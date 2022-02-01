@@ -1,0 +1,18 @@
+{
+  "include": [
+    "src/**/*"
+  ],
+  "compilerOptions": {
+    "checkJs": true,
+    "baseUrl": "./",
+    "paths": {
+      "/ixfx/*": [
+        "node_modules/ixfx/dist/*"
+      ]
+    },
+    // "types": [
+    //   "ixfx"
+    // ],
+    "moduleResolution": "node"
+  }
+}

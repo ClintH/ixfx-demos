@@ -1,0 +1,11 @@
+{
+  "liveServer.settings.multiRootWorkspaceName": "ixfx-demos",
+  "liveServer.settings.root": "src/",
+  "liveServer.settings.mount": [
+    [
+      "/ixfx",
+      "./node_modules/ixfx/dist"
+    ]
+  ],
+  "js/ts.implicitProjectConfig.checkJs": true
+}
