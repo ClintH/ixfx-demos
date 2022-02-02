@@ -1,6 +1,6 @@
-import {Dom} from '/ixfx/ixfx.js';
+import * as Dom from '/ixfx/dom.js';
 
-const logger = Dom.domLog(`#log`, {
+const logger = Dom.log(`#log`, {
   capacity: 10,
   timestamp: true
 });
