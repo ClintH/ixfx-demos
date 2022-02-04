@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Envelope decay</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+<style>
+  html,
+  body {
+    height: 100%;
+    width: 100%;
+    background-color: var(--gray);
+  }
+
+  section {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+  }
+
+  section:nth-child(1) {
+    border-right: 4px solid var(--grayDark);
+  }
+
+  body {
+    display: flex;
+    font-size: 2vw;
+  }
+
+  h1 {
+    color: var(--grayDark);
+    text-transform: uppercase;
+    margin-top: 40vh;
+  }
+</style>
+
+<body>
+  <section id="without">
+    <h1>Without envelope</h1>
+    <div id="trigState"></div>
+  </section>
+  <section id="with">
+    <h1>With envelope</h1>
+    <div id="envStage"></div>
+  </section>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>

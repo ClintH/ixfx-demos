@@ -1,4 +1,16 @@
 {
-	"folders": [],
-	"settings": {}
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.root": "src/",
+		"liveServer.settings.mount": [
+			[
+				"/ixfx/",
+				"./node_modules/ixfx/dist/"
+			]
+		]
+	}
 }
