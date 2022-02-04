@@ -5,11 +5,11 @@
   "compilerOptions": {
     "checkJs": true,
     "baseUrl": "./",
-    "paths": {
-      "/ixfx/*": [
-        "node_modules/ixfx/dist/*"
-      ]
-    },
+    // "paths": {
+    //   "/ixfx/*": [
+    //     "node_modules/ixfx/dist/*"
+    //   ]
+    // },
     "moduleResolution": "node"
   }
 }

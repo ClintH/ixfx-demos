@@ -5,12 +5,12 @@
 		}
 	],
 	"settings": {
-		"liveServer.settings.root": "src/",
-		"liveServer.settings.mount": [
-			[
-				"/ixfx/",
-				"./node_modules/ixfx/dist/"
-			]
-		]
+		"liveServer.settings.root": "./",
+		// "liveServer.settings.mount": [
+		// 	[
+		// 		"/ixfx/",
+		// 		"./node_modules/ixfx/dist/"
+		// 	]
+		// ]
 	}
 }
