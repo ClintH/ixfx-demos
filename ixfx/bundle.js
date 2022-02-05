@@ -1,41 +1,41 @@
 import {
   Generators_exports
-} from "./chunk-H5Z72JA2.js";
+} from "./chunk-FXSVYJCX.js";
 import {
   Random_exports
 } from "./chunk-IFVBVU2P.js";
 import {
   KeyValue_exports,
   getSorter
-} from "./chunk-BDJAXEXR.js";
+} from "./chunk-PSPI665F.js";
 import {
   visual_exports
-} from "./chunk-G44UTPJC.js";
+} from "./chunk-PEDV2GML.js";
 import {
   dom_exports
 } from "./chunk-4WJCK6OW.js";
 import "./chunk-S7E3L2QN.js";
 import {
   modulation_exports
-} from "./chunk-NT44FLGP.js";
+} from "./chunk-RJSLV354.js";
 import {
   Timer_exports
-} from "./chunk-EOAXAHCL.js";
+} from "./chunk-JAS4PSDA.js";
 import {
   StateMachine
 } from "./chunk-KYWIDCWW.js";
 import {
   geometry_exports
-} from "./chunk-VN6BZR7Y.js";
+} from "./chunk-EWRV4KIX.js";
 import "./chunk-QFSGSUQ6.js";
 import {
   collections_exports
-} from "./chunk-SG7ZQ2JY.js";
+} from "./chunk-5F3CYKGF.js";
 import "./chunk-RJ3ZNIWM.js";
 import {
   SimpleEventEmitter
 } from "./chunk-JBDRQ5KW.js";
-import "./chunk-G65LGGOR.js";
+import "./chunk-FOQZ2GRJ.js";
 import {
   clamp,
   clampZeroBounds,
@@ -44,7 +44,7 @@ import {
   lerp,
   map,
   toStringDefault
-} from "./chunk-UUCPAL4S.js";
+} from "./chunk-P6DWDAAF.js";
 import "./chunk-CICENSOU.js";
 import {
   __privateAdd,
@@ -52,8 +52,7 @@ import {
   __privateSet
 } from "./chunk-FQLUQVDZ.js";
 
-// src/MutableFrequency.ts
-var frequencyMutable = (keyString) => new FrequencyMutable(keyString);
+// src/FrequencyMutable.ts
 var _store, _keyString;
 var FrequencyMutable = class extends SimpleEventEmitter {
   constructor(keyString = void 0) {
@@ -109,7 +108,7 @@ var FrequencyMutable = class extends SimpleEventEmitter {
   minMaxAvg() {
     return KeyValue_exports.minMaxAvg(this.entries());
   }
-  entriesSorted(sortStyle) {
+  entriesSorted(sortStyle = `value`) {
     const s = getSorter(sortStyle);
     return s(this.entries());
   }
@@ -126,6 +125,7 @@ var FrequencyMutable = class extends SimpleEventEmitter {
 };
 _store = new WeakMap();
 _keyString = new WeakMap();
+var frequencyMutable = (keyString) => new FrequencyMutable(keyString);
 export {
   collections_exports as Collections,
   dom_exports as Dom,
