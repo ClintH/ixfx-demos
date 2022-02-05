@@ -1,4 +1,4 @@
-import {continuously} from '../../ixfx/bundle.js';
+import {Timers} from '../../ixfx/bundle.js';
 import {adsr, defaultAdsrOpts} from '../../ixfx/modulation.js';
 
 // Set up envelope
@@ -6,7 +6,8 @@ let env = adsr({
   ...defaultAdsrOpts(),
   attackDuration: 2000,
   releaseDuration: 5000,
-  sustainLevel: 1
+  sustainLevel: 1,
+  retrigger: false /* env continues from where it is */
 });
 
 // Initialise state
@@ -60,7 +61,7 @@ const updateVisual = () => {
 }
 
 // Run loop. This will call `updateState` until it returns false
-const run = continuously(updateState);
+const run = Timers.continuously(updateState);
 
 // Called on pointerdown or keydown. Triggers the envelope and
 // starts the run loop if it's not running

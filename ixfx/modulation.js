@@ -1,22 +1,25 @@
 import {
   adsr,
   defaultAdsrOpts,
-  getEasings,
-  tick,
-  timer
-} from "./chunk-ZKEVKSIO.js";
-import "./chunk-2THIUUNP.js";
-import "./chunk-HKPWQDQW.js";
-import "./chunk-ZFK2QSBD.js";
-import "./chunk-HQCU5VB2.js";
-import "./chunk-OMIWL6CW.js";
+  easeOverTicks,
+  easeOverTime,
+  getEasings
+} from "./chunk-NT44FLGP.js";
+import "./chunk-EOAXAHCL.js";
+import "./chunk-KYWIDCWW.js";
+import "./chunk-VN6BZR7Y.js";
 import "./chunk-QFSGSUQ6.js";
+import "./chunk-RJ3ZNIWM.js";
+import "./chunk-JBDRQ5KW.js";
+import "./chunk-G65LGGOR.js";
+import "./chunk-UUCPAL4S.js";
+import "./chunk-CICENSOU.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   adsr,
   defaultAdsrOpts,
-  getEasings,
-  tick,
-  timer
+  easeOverTicks,
+  easeOverTime,
+  getEasings
 };
 //# sourceMappingURL=modulation.js.map

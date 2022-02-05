@@ -1,7 +1,7 @@
 import {
-  domRx,
-  log
-} from "./chunk-L7NPGFXB.js";
+  log,
+  rx
+} from "./chunk-4WJCK6OW.js";
 import {
   Forms_exports,
   copyToClipboard,
@@ -10,17 +10,17 @@ import {
   resizeObservable,
   resolveEl,
   themeChangeObservable
-} from "./chunk-SBKZPT5N.js";
+} from "./chunk-S7E3L2QN.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   Forms_exports as Forms,
   copyToClipboard,
   createAfter,
   createIn,
-  domRx,
   log,
   resizeObservable,
   resolveEl,
+  rx,
   themeChangeObservable
 };
 //# sourceMappingURL=dom.js.map

@@ -7,23 +7,42 @@
   <title>ixfx demos</title>
   <link rel="stylesheet" href="./base.css">
 </head>
+<style>
+  #online {
+    margin-top: 3em;
+    display: none;
+  }
+</style>
 
 <body>
+
   <main class="fullHeight">
-    <section>
+    <section id="parent">
       <h1>ixfx demos</h1>
       <ul class="nobullets">
         <li> / <a href="./dom/">dom</a></li>
         <li> / <a href="./geometry/">geometry</a></li>
         <li> / <a href="./modulation/">modulation</a></li>
       </ul>
-      <!-- <ul class="nobullets">
-        <li><a href="./freqHistogram.html">Frequency Histogram</a></li>
-        <li><a href="./stateMachine.html">State Machine</a></li>
-      </ul> -->
+      <div id="online">
+        <ul class="nobullets">
+          <li><a href="https://clinth.github.io/ixfx-demos/">Demos online</a></li>
+          <li><a href="https://clinth.github.io/ixfx-docs/">Documentation online</a></li>
+          <li><a href="https://github.com/clinth/ixfx-demos/">GitHub</a></li>
+        </ul>
+      </div>
     </section>
 
   </main>
+
+  <script type="module">
+    const host = window.location.host;
+    const el = document.getElementById(`online`);
+    console.log(host);
+    if (host !== `github.io`) {
+      el.style.display = `block`;
+    }
+  </script>
 </body>
 
 </html>

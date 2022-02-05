@@ -1,4 +1,4 @@
-import { S as SimpleEventEmitter } from './Events-faeaa6ab';
+import { S as SimpleEventEmitter } from './Events-53171926';
 
 interface Options {
     readonly debug?: boolean;

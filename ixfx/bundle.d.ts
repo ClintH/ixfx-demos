@@ -1,45 +1,25 @@
-export { i as Geometry } from './index-922d6bbd';
-export { i as Visual } from './index-8ecd05aa';
-export { i as Dom } from './index-e6ebe5bb';
-export { i as Modulation } from './index-cabdee52';
-export { i as Collections } from './index-6d817f7c';
-export { G as Generators } from './Generators-c315f67c';
+export { i as Geometry } from './index-53b4f79b';
+export { i as Visual } from './index-60e7089c';
+export { i as Dom } from './index-21ee71b6';
+import { R as ResettableTimeout, C as Continuously, T as Timer$1, H as HasCompletion } from './index-1e79d35d';
+export { C as Continuously, H as HasCompletion, i as Modulation, R as ResettableTimeout, T as Timer } from './index-1e79d35d';
+export { i as Collections } from './index-6b59c63b';
+export { G as Generators } from './Generators-c9348862';
 export { R as Random } from './Random-88850926';
 import { K as KeyValue } from './KeyValue-5c033442';
 export { K as KeyValue, a as KeyValues } from './KeyValue-5c033442';
-import { T as ToString } from './util-115aef22';
-export { I as IsEqual, T as ToString, c as clamp, a as clampZeroBounds, i as isEqualDefault, b as isEqualValueDefault, l as lerp, t as toStringDefault } from './util-115aef22';
-import { S as SimpleEventEmitter } from './Events-faeaa6ab';
+import { T as ToString } from './util-ca5031db';
+export { I as IsEqual, T as ToString, c as clamp, a as clampZeroBounds, i as isEqualDefault, b as isEqualValueDefault, l as lerp, m as map, t as toStringDefault } from './util-ca5031db';
+import { S as SimpleEventEmitter } from './Events-53171926';
 export { StateMachine } from './stateMachine';
-import './Circle-1c0c31de';
-import './Rect-04af8f31';
-import './Set-712e3233';
+import './Rect-1d91d195';
+import './Interfaces-1af00b23';
 import 'rxjs';
-import './MutableMapMulti-7834c37d';
-import './Forms-f331a200';
+import './Forms-846a05a5';
+import './Set-8d7bf2bc';
+import './Arrays-2b2d0e65';
+import './Map-95c35487';
 import 'fp-ts/Ord';
-
-declare type Timer = {
-    reset(): void;
-    elapsed(): number;
-};
-/**
- * A resettable timeout, returned by {@link resettableTimeout}
- */
-interface ResettableTimeout {
-    start(altTimeoutMs?: number): void;
-    cancel(): void;
-    get isDone(): boolean;
-}
-/**
- * Runs a function continuously, returned by {@link Continuously}
- */
-interface Continuously {
-    start(): void;
-    get ticks(): number;
-    get isDone(): boolean;
-    cancel(): void;
-}
 
 /**
  * Returns a {@link ResettableTimeout} that can be triggered or cancelled.
@@ -123,24 +103,46 @@ declare const sleep: <V>(timeoutMs: number) => Promise<V>;
  * @return
  */
 declare const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
-declare type TimerSource = () => Timer;
+declare type TimerSource = () => Timer$1;
+declare const relativeTimer: (total: number, timer: Timer$1, clampValue?: boolean) => Timer$1 & HasCompletion;
 /**
  * A timer that uses clock time
  *
  * @returns {Timer}
  */
-declare const msRelativeTimer: () => Timer;
+declare const msElapsedTimer: () => Timer$1;
 /**
  * A timer that progresses with each call
  *
  * @returns {Timer}
  */
-declare const tickRelativeTimer: () => Timer;
+declare const ticksElapsedTimer: () => Timer$1;
 
-declare type MutableFrequencyEventMap = {
+declare const Timer_resettableTimeout: typeof resettableTimeout;
+declare const Timer_continuously: typeof continuously;
+declare const Timer_sleep: typeof sleep;
+declare const Timer_delay: typeof delay;
+type Timer_TimerSource = TimerSource;
+declare const Timer_relativeTimer: typeof relativeTimer;
+declare const Timer_msElapsedTimer: typeof msElapsedTimer;
+declare const Timer_ticksElapsedTimer: typeof ticksElapsedTimer;
+declare namespace Timer {
+  export {
+    Timer_resettableTimeout as resettableTimeout,
+    Timer_continuously as continuously,
+    Timer_sleep as sleep,
+    Timer_delay as delay,
+    Timer_TimerSource as TimerSource,
+    Timer_relativeTimer as relativeTimer,
+    Timer_msElapsedTimer as msElapsedTimer,
+    Timer_ticksElapsedTimer as ticksElapsedTimer,
+  };
+}
+
+declare type FrequencyEventMap = {
     readonly change: void;
 };
-declare const mutableFrequency: <V>(keyString?: ToString<V> | undefined) => MutableFrequency<V>;
+declare const frequencyMutable: <V>(keyString?: ToString<V> | undefined) => FrequencyMutable<V>;
 /**
  * Mutable Frequency
  *
@@ -168,10 +170,10 @@ declare const mutableFrequency: <V>(keyString?: ToString<V> | undefined) => Muta
  *
  * @export
  * @class MutableFrequency
- * @extends {SimpleEventEmitter<MutableFrequencyEventMap>}
+ * @extends {SimpleEventEmitter<FrequencyEventMap>}
  * @template V
  */
-declare class MutableFrequency<V> extends SimpleEventEmitter<MutableFrequencyEventMap> {
+declare class FrequencyMutable<V> extends SimpleEventEmitter<FrequencyEventMap> {
     #private;
     constructor(keyString?: ToString<V> | undefined);
     clear(): void;
@@ -191,4 +193,4 @@ declare class MutableFrequency<V> extends SimpleEventEmitter<MutableFrequencyEve
     add(...values: V[]): void;
 }
 
-export { Continuously, MutableFrequency, ResettableTimeout, Timer, TimerSource, continuously, delay, msRelativeTimer, mutableFrequency, resettableTimeout, sleep, tickRelativeTimer };
+export { FrequencyMutable, Timer as Timers, frequencyMutable };

@@ -1,3 +1,2 @@
-export { b as AdsrBaseOpts, A as AdsrOpts, C as CompleteEvent, E as Easing, S as StateChangeEvent, c as adsr, d as defaultAdsrOpts, g as getEasings, a as tick, t as timer } from './index-cabdee52';
-import './Events-faeaa6ab';
-import './Rect-04af8f31';
+export { j as Adsr, A as AdsrOpts, f as AdsrTimingOpts, h as CompleteEvent, E as Easing, b as EasingName, c as EnvelopeOpts, S as StateChangeEvent, k as adsr, d as defaultAdsrOpts, a as easeOverTicks, e as easeOverTime, g as getEasings } from './index-1e79d35d';
+import './Events-53171926';
