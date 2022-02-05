@@ -8,9 +8,8 @@
   <link rel="stylesheet" href="./base.css">
 </head>
 <style>
-  #online {
+  #local {
     margin-top: 3em;
-    display: none;
   }
 </style>
 
@@ -24,11 +23,11 @@
         <li> / <a href="./geometry/">geometry</a></li>
         <li> / <a href="./modulation/">modulation</a></li>
       </ul>
-      <div id="online">
+      <div id="local">
         <ul class="nobullets">
-          <li><a href="https://clinth.github.io/ixfx-demos/">Demos online</a></li>
-          <li><a href="https://clinth.github.io/ixfx-docs/">Documentation online</a></li>
-          <li><a href="https://github.com/clinth/ixfx-demos/">GitHub</a></li>
+          <li>&gt; <a href="https://clinth.github.io/ixfx-demos/">Demos online</a></li>
+          <li>&gt; <a href="https://clinth.github.io/ixfx-docs/">Documentation online</a></li>
+          <li>&gt; <a href="https://github.com/clinth/ixfx-demos/">GitHub</a></li>
         </ul>
       </div>
     </section>
@@ -37,10 +36,12 @@
 
   <script type="module">
     const host = window.location.host;
-    const el = document.getElementById(`online`);
+    const el = document.getElementById(`local`);
     console.log(host);
-    if (host !== `github.io`) {
-      el.style.display = `block`;
+
+    // If we're online, hide #local
+    if (host.endsWith(`github.io`) || host.endsWith(`glitch.io`)) {
+      el.style.display = `none`;
     }
   </script>
 </body>
