@@ -1,5 +1,4 @@
-import {Arcs} from '../../ixfx/geometry.js';
-import * as Generators from '../..//ixfx/generators.js';
+import * as Generators from '../../ixfx/generators.js';
 
 // Loop back and forth between 0 and 1, 0.0.1 steps at a time
 const pingPong = Generators.pingPongPercent(0.01);

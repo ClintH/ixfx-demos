@@ -1,5 +1,5 @@
 import {Arcs} from '../../ixfx/geometry.js';
-import {resettableTimeout, continuously} from '../../ixfx/bundle.js';
+import {timeout, continuously} from '../../ixfx/timers.js';
 import * as Generators from '../../ixfx/generators.js';
 
 // Loop back and forth between 0 and 1, 0.0.1 steps at a time
@@ -51,7 +51,7 @@ const draw = () => {
 }
 
 // After 2 seconds, reset button text
-const clickedTimeout = resettableTimeout(() => {
+const clickedTimeout = timeout(() => {
   document.getElementById(`moved`).innerText = `Click me!`;
 }, 2000);
 

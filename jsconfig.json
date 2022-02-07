@@ -1,6 +1,6 @@
 {
   "include": [
-    "src/**/*"
+    "**/*"
   ],
   "compilerOptions": {
     "checkJs": true,

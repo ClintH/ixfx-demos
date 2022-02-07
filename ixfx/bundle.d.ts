@@ -1,23 +1,24 @@
-export { i as Geometry } from './index-6d700731';
-export { i as Visual } from './index-e4d17dc7';
-export { i as Dom } from './index-21ee71b6';
-export { i as Modulation, T as Timers } from './index-24470daf';
-export { i as Collections } from './index-c8050e85';
+export { i as Geometry } from './index-05fb20ad';
+export { i as Visual } from './index-70f7ad73';
+export { i as Dom } from './index-b38e0491';
+export { i as Modulation } from './index-0e0e029d';
+export { i as Collections } from './index-b998f64b';
 export { G as Generators } from './Generators-c9348862';
 export { R as Random } from './Random-88850926';
 import { K as KeyValue } from './KeyValue-5c033442';
 export { K as KeyValue, a as KeyValues } from './KeyValue-5c033442';
-import { T as ToString } from './util-5d19a92f';
-export { I as IsEqual, T as ToString, c as clamp, a as clampZeroBounds, i as isEqualDefault, b as isEqualValueDefault, l as lerp, m as map, t as toStringDefault } from './util-5d19a92f';
+import { T as ToString } from './util-9f4d985a';
+export { I as IsEqual, T as ToString, c as clamp, a as clampZeroBounds, i as isEqualDefault, b as isEqualValueDefault, l as lerp, m as map, t as toStringDefault } from './util-9f4d985a';
+export { T as Timers } from './Timer-0ec89564';
 import { S as SimpleEventEmitter } from './Events-53171926';
 export { StateMachine } from './stateMachine';
 import './Rect-1d91d195';
-import './Interfaces-7669c3eb';
+import './Interfaces-15f9add4';
 import 'rxjs';
 import './Forms-846a05a5';
-import './Set-16588a98';
-import './Arrays-29298afe';
-import './Map-deea05b9';
+import './Set-0a91931a';
+import './Arrays-9cc7624e';
+import './Map-8adc35ed';
 import 'fp-ts/Ord';
 
 declare type FrequencyEventMap = {
@@ -28,18 +29,20 @@ declare type FrequencyEventMap = {
  * unlike a {@link Maps|Map} it does not store the data. By default compares
  * items by value (via JSON.stringify).
  *
+ * Create with {@link frequencyMutable}.
+ *
  * Fires `change` event when items are added or it is cleared.
  *
- * @example Overview
+ * Overview
  * ```
  * const fh = frequencyMutable();
- * fh.add(value)  - adds a value
- * fh.clear()     - clears all data
- * fh.keys() / .values()  - returns an iterator for keys and values
- * fh.toArray()   - returns an array of data in the shape [[key,freq],[key,freq]...]
+ * fh.add(value); // adds a value
+ * fh.clear();    // clears all data
+ * fh.keys() / .values() // returns an iterator for keys and values
+ * fh.toArray();  //  returns an array of data in the shape [[key,freq],[key,freq]...]
  * ```
  *
- * @example Usage
+ * Usage
  * ```
  * const fh = frequencyMutable();
  * fh.add(`apples`); // Count an occurence of `apples`
@@ -53,7 +56,7 @@ declare type FrequencyEventMap = {
  * })
  * ```
  *
- * @example Custom key string
+ * Custom key string
  * ```
  * const fh = frequencyMutable( person => person.name);
  * // All people with name `Samantha` will be counted in same group
