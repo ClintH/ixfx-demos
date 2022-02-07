@@ -37,12 +37,10 @@ const updateVisual = () => {
   if (isDone) {
     thingEl.classList.add(`isDone`);
   }
-  const thingElBounds = thingEl.getBoundingClientRect();
-
 
   // Available width is width of viewport minus size of circle
+  const thingElBounds = thingEl.getBoundingClientRect();
   const width = document.body.clientWidth - thingElBounds.width;
-
 
   console.log(amt);
   thingEl.innerText = percentage(amt);

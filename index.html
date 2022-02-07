@@ -37,12 +37,12 @@
 
   <script type="module">
     const host = window.location.host;
-    const el = document.getElementById(`local`);
     console.log(host);
 
     // If we're online, hide #local
     if (host.endsWith(`github.io`) || host.endsWith(`glitch.io`)) {
-      el.style.display = `none`;
+      const el = document.getElementById(`local`);
+      document.querySelectorAll(`.local`).forEach(el => el.style.display = `none`);
     }
   </script>
 </body>
