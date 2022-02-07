@@ -1,26 +1,34 @@
 import {
   log,
   rx
-} from "./chunk-7UKU2W2O.js";
+} from "./chunk-MGSKJXH6.js";
 import {
-  Forms_exports,
+  Forms_exports
+} from "./chunk-HKHBUIIG.js";
+import {
   copyToClipboard,
   createAfter,
   createIn,
+  fullSizeCanvas,
+  parentSizeCanvas,
   resizeObservable,
   resolveEl,
-  themeChangeObservable
-} from "./chunk-S7E3L2QN.js";
+  themeChangeObservable,
+  windowResize
+} from "./chunk-3N6FOJPC.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   Forms_exports as Forms,
   copyToClipboard,
   createAfter,
   createIn,
+  fullSizeCanvas,
   log,
+  parentSizeCanvas,
   resizeObservable,
   resolveEl,
   rx,
-  themeChangeObservable
+  themeChangeObservable,
+  windowResize
 };
 //# sourceMappingURL=dom.js.map

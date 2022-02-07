@@ -1,9 +1,10 @@
-export { i as Geometry } from './index-05fb20ad';
-export { i as Visual } from './index-70f7ad73';
-export { i as Dom } from './index-b38e0491';
+export { i as Geometry } from './index-74448907';
+export { D as Drawing } from './Drawing-1b4717cc';
+export { i as Visual } from './index-4d41fdcf';
+export { i as Dom } from './index-d8f646df';
 export { i as Modulation } from './index-0e0e029d';
 export { i as Collections } from './index-b998f64b';
-export { G as Generators } from './Generators-c9348862';
+export { G as Generators } from './Generators-1fe590bc';
 export { R as Random } from './Random-88850926';
 import { K as KeyValue } from './KeyValue-5c033442';
 export { K as KeyValue, a as KeyValues } from './KeyValue-5c033442';
@@ -12,7 +13,8 @@ export { I as IsEqual, T as ToString, c as clamp, a as clampZeroBounds, i as isE
 export { T as Timers } from './Timer-0ec89564';
 import { S as SimpleEventEmitter } from './Events-53171926';
 export { StateMachine } from './stateMachine';
-import './Rect-1d91d195';
+import './Circle-af6a5146';
+import './Rect-04af8f31';
 import './Interfaces-15f9add4';
 import 'rxjs';
 import './Forms-846a05a5';

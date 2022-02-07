@@ -1481,7 +1481,7 @@ declare module "geometry/Bezier" {
     export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
 }
 declare module "Guards" {
-    export type NumberGuardRange = `` | `positive` | `negative` | `aboveZero` | `belowZero` | `percentage` | `bipolar`;
+    export type NumberGuardRange = `` | `nonZero` | `positive` | `negative` | `aboveZero` | `belowZero` | `percentage` | `bipolar`;
     /**
      * Throws an error if `t` is not a number or within specified range
      * @param t Value to check
@@ -2568,6 +2568,52 @@ declare module "collections/index" {
 }
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
+    import { Points } from "geometry/index";
+    type ResizeArgs = {
+        readonly ctx: CanvasRenderingContext2D;
+        readonly el: HTMLCanvasElement;
+        readonly bounds: {
+            readonly width: number;
+            readonly height: number;
+            readonly center: Points.Point;
+        };
+    };
+    /**
+     * Resizes given canvas element to match window size. To resize canvas to match its parent, use {@link parentSizeCanvas}.
+     *
+     * To make the canvas appear propery, it sets the following CSS:
+     * ```css
+     * {
+     *  top: 0;
+     *  left: 0;
+     *  zIndex: -1;
+     *  position: fixed;
+     * }
+     * ```
+     * Pass _true_ for `skipCss` to avoid this.
+     *
+     * Provide a callback for when resize happens.
+     * @param domQueryOrEl Query string or reference to canvas element
+     * @param onResized Callback for when resize happens, eg for redrawing canvas
+     * @param skipCss if true, style are not added
+     * @returns Observable
+     */
+    export const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: ResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
+    /**
+     * Resizes given canvas element to its parent element. To resize canvas to match the viewport, use {@link fullSizeCanvas}.
+     *
+     * Provide a callback for when resize happens.
+     * @param domQueryOrEl Query string or reference to canvas element
+     * @param onResized Callback for when resize happens, eg for redrawing canvas
+     * @returns Observable
+     */
+    export const parentSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: ResizeArgs) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    /**
+     * Returns an Observable for window resize. Default 100ms debounce.
+     * @param timeoutMs
+     * @returns
+     */
+    export const windowResize: (timeoutMs?: number) => Observable<Event>;
     /**
      * Resolves either a string or HTML element to an element.
      * Useful when an argument is either an HTML element or query.
@@ -2625,13 +2671,369 @@ declare module "dom/Util" {
      * @param timeoutMs Tiemout before event gets triggered
      * @returns
      */
-    export const resizeObservable: (elem: HTMLElement, timeoutMs?: number) => Observable<readonly ResizeObserverEntry[]>;
+    export const resizeObservable: (elem: Element, timeoutMs?: number) => Observable<readonly ResizeObserverEntry[]>;
     /**
      * Copies string representation of object to clipboard
      * @param obj
      * @returns Promise
      */
-    export const copyToClipboard: (obj: any) => Promise<unknown>;
+    export const copyToClipboard: (obj: object) => Promise<unknown>;
+}
+declare module "visual/Drawing" {
+    import * as Points from "geometry/Point";
+    import * as Paths from "geometry/Path";
+    import * as Lines from "geometry/Line";
+    import * as Circles from "geometry/Circle";
+    import * as Arcs from "geometry/Arc";
+    import * as Beziers from "geometry/Bezier";
+    import * as Rects from "geometry/Rect";
+    import { Stack } from "collections/index";
+    type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
+    /**
+     * Gets a 2d drawing context from canvas element or query, or throws an error
+     * @param canvasElCtxOrQuery Canvas element reference or DOM query
+     * @returns Drawing context.
+     */
+    export const getCtx: (canvasElCtxOrQuery: CanvasCtxQuery) => CanvasRenderingContext2D;
+    /**
+     * Makes a helper object that wraps together a bunch of drawing functions that all use the same drawing context
+     * @param ctxOrCanvasEl Drawing context or canvs element reference
+     * @param canvasBounds Bounds of drawing (optional). Used for limiting `textBlock`
+     * @returns
+     */
+    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect | undefined) => {
+        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts | undefined): void;
+        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts | undefined): void;
+        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: (DrawingOpts & {
+            filled?: boolean | undefined;
+        }) | undefined): void;
+        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined): void;
+        connectedPoints(pointsToDraw: Points.Point[], opts?: (DrawingOpts & {
+            loop?: boolean | undefined;
+        }) | undefined): void;
+        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts | undefined): void;
+        dot(dotPosition: Points.Point | Points.Point[], opts?: (DrawingOpts & {
+            radius: number;
+            outlined?: boolean | undefined;
+            filled?: boolean | undefined;
+        }) | undefined): void;
+        circle(circlesToDraw: Circles.CirclePositioned | Circles.CirclePositioned[], opts: DrawingOpts): void;
+        arc(arcsToDraw: Arcs.ArcPositioned | Arcs.ArcPositioned[], opts: DrawingOpts): void;
+        textBlock(lines: string[], opts: DrawingOpts & {
+            anchor: Points.Point;
+            anchorPadding?: number;
+            bounds?: Rects.RectPositioned;
+        }): void;
+    };
+    /**
+     * Drawing options
+     */
+    type DrawingOpts = {
+        /**
+         * Stroke style
+         */
+        readonly strokeStyle?: string;
+        /**
+         * Fill style
+         */
+        readonly fillStyle?: string;
+        /**
+         * If true, diagnostic helpers will be drawn
+         */
+        readonly debug?: boolean;
+    };
+    /**
+     * Draws one or more arcs.
+     * @param ctx
+     * @param arcs
+     * @param opts
+     */
+    export const arc: (ctx: CanvasRenderingContext2D, arcs: Arcs.ArcPositioned | ReadonlyArray<Arcs.ArcPositioned>, opts?: DrawingOpts) => void;
+    /**
+     * A drawing stack operation
+     */
+    type StackOp = (ctx: CanvasRenderingContext2D) => void;
+    /**
+     * A drawing stack (immutable)
+     */
+    type DrawingStack = Readonly<{
+        /**
+         * Push a new drawing op
+         * @param op Operation to add
+         * @returns stack with added op
+         */
+        push(op: StackOp): DrawingStack;
+        /**
+         * Pops an operatiomn
+         * @returns Drawing stack with item popped
+         */
+        pop(): DrawingStack;
+        /**
+         * Applies drawing stack
+         */
+        apply(): DrawingStack;
+    }>;
+    /**
+     * Creates and returns an immutable drawing stack for a context
+     * @param ctx Context
+     * @param stk Initial stack operations
+     * @returns
+     */
+    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp> | undefined) => DrawingStack;
+    /**
+     * Draws one or more circles
+     * @param ctx
+     * @param circlesToDraw
+     * @param opts
+     */
+    export const circle: (ctx: CanvasRenderingContext2D, circlesToDraw: Circles.CirclePositioned | readonly Circles.CirclePositioned[], opts?: DrawingOpts) => void;
+    /**
+     * Draws one or more paths.
+     * supported paths are quadratic beziers and lines.
+     * @param ctx
+     * @param pathsToDraw
+     * @param opts
+     */
+    export const paths: (ctx: CanvasRenderingContext2D, pathsToDraw: readonly Paths.Path[] | Paths.Path, opts?: Readonly<{
+        readonly strokeStyle?: string;
+        readonly debug?: boolean;
+    }>) => void;
+    /**
+     * Draws a line between all the given points.
+     *
+     * @param ctx
+     * @param pts
+     */
+    export const connectedPoints: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
+        readonly loop?: boolean;
+        readonly strokeStyle?: string;
+    }) => void;
+    /**
+     * Draws labels for a set of points
+     * @param ctx
+     * @param pts Points to draw
+     * @param opts
+     * @param labels Labels for points
+     */
+    export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
+        readonly fillStyle?: string;
+    }, labels?: readonly string[] | undefined) => void;
+    /**
+     * Draws a cubic or quadratic bezier
+     * @param ctx
+     * @param bezierToDraw
+     * @param opts
+     */
+    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined) => void;
+    /**
+     * Draws one or more lines
+     * @param ctx
+     * @param toDraw
+     * @param opts
+     */
+    export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: {
+        readonly strokeStyle?: string;
+        readonly debug?: boolean;
+    }) => void;
+    /**
+     * Draws one or more rectangles
+     * @param ctx
+     * @param toDraw
+     * @param opts
+     */
+    export const rect: (ctx: CanvasRenderingContext2D, toDraw: Rects.RectPositioned | readonly Rects.RectPositioned[], opts?: DrawingOpts & {
+        readonly filled?: boolean;
+    }) => void;
+    /**
+     * Draws a block of text. Each array item is considered a line.
+     * @param ctx
+     * @param lines
+     * @param opts
+     */
+    export const textBlock: (ctx: CanvasRenderingContext2D, lines: readonly string[], opts: DrawingOpts & {
+        readonly anchor: Points.Point;
+        readonly anchorPadding?: number;
+        readonly bounds?: Rects.RectPositioned;
+    }) => void;
+}
+declare module "visual/Svg" {
+    import { CirclePositioned } from "geometry/Circle";
+    import { Line } from "geometry/Line";
+    import { Point } from "geometry/Point";
+    export type DrawingOpts = {
+        readonly strokeStyle?: string;
+        readonly fillStyle?: string;
+        readonly debug?: boolean;
+        readonly strokeWidth?: number;
+    };
+    export type TextDrawingOpts = DrawingOpts & {
+        readonly anchor?: `start` | `middle` | `end`;
+        readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
+    };
+    export const createPath: (svg: string, parent: SVGElement, opts?: DrawingOpts | undefined) => SVGPathElement;
+    export const createCircle: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined) => SVGCircleElement;
+    export const createLine: (line: Line, parent: SVGElement, opts?: DrawingOpts | undefined, id?: string | undefined) => SVGLineElement;
+    export const createText: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, id?: string | undefined) => SVGTextElement;
+    export const svg: (parent: SVGElement, opts?: DrawingOpts | undefined) => {
+        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, id?: string | undefined) => SVGTextElement;
+        line: (line: Line, opts?: DrawingOpts | undefined, id?: string | undefined) => SVGLineElement;
+        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined) => SVGCircleElement;
+        path: (svgStr: string, opts?: DrawingOpts | undefined) => SVGPathElement;
+        query: <V extends SVGElement>(selectors: string) => V | null;
+        width: number;
+        height: number;
+        clear: () => void;
+    };
+}
+declare module "visual/Palette" {
+    /**
+     * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
+     *
+     */
+    export type Palette = {
+        setElementBase(el: Element): void;
+        has(key: string): boolean;
+        /**
+         * Returns a colour by name.
+         *
+         * If the colour is not found:
+         *  1. Try to use a CSS variable `--key`, or
+         *  2. The next fallback colour is used (array cycles)
+         *
+         * @param key
+         * @returns
+         */
+        get(key: string, fallback?: string): string;
+        /**
+         * Gets a colour by key, adding and returning fallback if not present
+         * @param key Key of colour
+         * @param fallback Fallback colour if key is not found
+         */
+        getOrAdd(key: string, fallback?: string): string;
+        /**
+         * Adds a colour with a given key
+         *
+         * @param key
+         * @param colour
+         */
+        add(key: string, value: string): void;
+    };
+    export const create: (fallbacks?: readonly string[] | undefined) => Palette;
+    /**
+     * Gets a CSS variable.
+     * @example Fetch --accent variable, or use `yellow` if not found.
+     * ```
+     * getCssVariable(`accent`, `yellow`);
+     * ```
+     * @param name Name of variable. Do not starting `--`
+     * @param fallbackColour Fallback colour if not found
+     * @param root  Element to search variable from
+     * @returns Colour or fallback.
+     */
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
+}
+declare module "visual/Plot2" {
+    import { CircularArray, MapOfMutable } from "collections/Interfaces";
+    import * as Palette from "visual/Palette";
+    type Series = {
+        min: number;
+        max: number;
+        range: number;
+        name: string;
+    };
+    type DrawingOpts = PlotOpts & {
+        ctx: CanvasRenderingContext2D;
+        width: number;
+        height: number;
+        dataXScale?: number;
+        yLabelWidth: number;
+        palette: Palette.Palette;
+        textHeight: number;
+        capacity: number;
+        coalesce: boolean;
+    };
+    type PlotOpts = {
+        palette?: Palette.Palette;
+        capacity?: number;
+        showYAxis?: boolean;
+        yAxes?: string[] | string;
+        textHeight?: number;
+        lineWidth?: number;
+        coalesce?: boolean;
+    };
+    export const createScales: (buffer: MapOfMutable<number, CircularArray<number>>) => Series[];
+    export const add: (buffer: MapOfMutable<number, CircularArray<number>>, value: number, series?: string) => void;
+    export const draw: (buffer: MapOfMutable<number, CircularArray<number>>, drawing: DrawingOpts) => void;
+    export const drawSeriesAxis: (series: Series, drawing: DrawingOpts) => void;
+    export const drawSeries: (series: Series, values: CircularArray<number>, drawing: DrawingOpts) => void;
+    /**
+     * Creates a simple horizontal data plot within a DIV.
+     *
+     * ```
+     * const plot = plot2(`#parentDiv`);
+     * plot.add(10);
+     * plot.clear();
+     *
+     * // Plot data using series
+     * plot.add(-1, `temp`);
+     * plot.add(0.4, `humidty`);
+     * ```
+     *
+     * Options can be specified to customise plot
+     * ```
+     * const plot = plot2(`#parentDiv`, {
+     *  capacity: 100,     // How many data points to store (default: 10)
+     *  showYAxis: false,  // Toggle whether y axis is shown (default: true)
+     *  lineWidth: 2,      // Width of plot line (default: 2)
+     *  yAxes:  [`temp`],  // Only show these y axes (by default all are shown)
+     *  palette: Palette,  // Colour palette instance to use
+     *  coalesce: true,    // If true, sub-pixel data points are skipped, improving performance for dense plots at the expense of plot precision
+     * });
+     * ```
+     *
+     * By default, will attempt to use CSS variable `--series[seriesName]` for axis colours. -axis for titles.
+     * @param {string} parentElOrQuery
+     * @param {PlotOpts} opts
+     * @return {*}
+     */
+    export const plot2: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => {
+        add: (value: number, series?: string, skipDrawing?: boolean) => void;
+        clear: () => void;
+    };
+}
+declare module "visual/DictionaryOfColourCombinationsData" {
+    export const data: {
+        name: string;
+        combinations: number[];
+        swatch: number;
+        cmyk: number[];
+        lab: number[];
+        rgb: number[];
+        hex: string;
+    }[];
+}
+declare module "visual/DictionaryOfColourCombinations" {
+    type Cmyk = readonly [number, number, number, number];
+    type Lab = readonly [number, number, number];
+    type Rgb = readonly [number, number, number];
+    export type DictColour = {
+        readonly name: string;
+        readonly combinations: ReadonlyArray<number>;
+        readonly swatch: number;
+        readonly cmyk: Cmyk;
+        readonly lab: Lab;
+        readonly rgb: Rgb;
+        readonly hex: string;
+    };
+    export const randomPalette: (minColours?: number) => readonly DictColour[];
+}
+declare module "visual/index" {
+    import * as Drawing from "visual/Drawing";
+    import * as Svg from "visual/Svg";
+    import * as Plot from "visual/Plot2";
+    import * as DictionaryOfColourCombinations from "visual/DictionaryOfColourCombinations";
+    import * as Palette from "visual/Palette";
+    export { Palette, Drawing, Svg, Plot, DictionaryOfColourCombinations };
 }
 declare module "dom/ShadowDom" {
     export const addShadowCss: (parentEl: HTMLElement, styles: string) => ShadowRoot;
@@ -2900,268 +3302,6 @@ declare module "dom/index" {
      * Functions for working with DOM elements
      */
     export * as Forms from "dom/Forms";
-}
-declare module "visual/Drawing" {
-    import * as Points from "geometry/Point";
-    import * as Paths from "geometry/Path";
-    import * as Lines from "geometry/Line";
-    import * as Circles from "geometry/Circle";
-    import * as Arcs from "geometry/Arc";
-    import * as Beziers from "geometry/Bezier";
-    import * as Rects from "geometry/Rect";
-    import { Stack } from "collections/index";
-    export const autoSizeCanvas: (canvasEl: HTMLCanvasElement, callback: () => void, timeoutMs?: number) => import("rxjs").Subscription;
-    type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
-    export const getCtx: (canvasElCtxOrQuery: CanvasCtxQuery) => CanvasRenderingContext2D;
-    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect | undefined) => {
-        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts | undefined): void;
-        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts | undefined): void;
-        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: (DrawingOpts & {
-            filled?: boolean | undefined;
-        }) | undefined): void;
-        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined): void;
-        connectedPoints(pointsToDraw: Points.Point[], opts?: (DrawingOpts & {
-            loop?: boolean | undefined;
-        }) | undefined): void;
-        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts | undefined): void;
-        dot(dotPosition: Points.Point | Points.Point[], opts?: (DrawingOpts & {
-            radius: number;
-            outlined?: boolean | undefined;
-            filled?: boolean | undefined;
-        }) | undefined): void;
-        circle(circlesToDraw: Circles.CirclePositioned | Circles.CirclePositioned[], opts: DrawingOpts): void;
-        arc(arcsToDraw: Arcs.ArcPositioned | Arcs.ArcPositioned[], opts: DrawingOpts): void;
-        textBlock(lines: string[], opts: DrawingOpts & {
-            anchor: Points.Point;
-            anchorPadding?: number;
-            bounds?: Rects.RectPositioned;
-        }): void;
-    };
-    type DrawingOpts = {
-        readonly strokeStyle?: string;
-        readonly fillStyle?: string;
-        readonly debug?: boolean;
-    };
-    export const arc: (ctx: CanvasRenderingContext2D, arcs: Arcs.ArcPositioned | ReadonlyArray<Arcs.ArcPositioned>, opts?: DrawingOpts) => void;
-    type StackOp = (ctx: CanvasRenderingContext2D) => void;
-    type DrawingStack = Readonly<{
-        push(op: StackOp): DrawingStack;
-        pop(): DrawingStack;
-        apply(): DrawingStack;
-    }>;
-    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp> | undefined) => DrawingStack;
-    export const circle: (ctx: CanvasRenderingContext2D, circlesToDraw: Circles.CirclePositioned | readonly Circles.CirclePositioned[], opts?: DrawingOpts) => void;
-    export const paths: (ctx: CanvasRenderingContext2D, pathsToDraw: readonly Paths.Path[] | Paths.Path, opts?: Readonly<{
-        readonly strokeStyle?: string;
-        readonly debug?: boolean;
-    }>) => void;
-    /**
-     * Draws a line between all the given points.
-     *
-     * @export
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {...Points.Point[]} pts
-     * @returns {void}
-     */
-    export const connectedPoints: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
-        readonly loop?: boolean;
-        readonly strokeStyle?: string;
-    }) => void;
-    export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
-        readonly fillStyle?: string;
-    }, labels?: readonly string[] | undefined) => void;
-    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined) => void;
-    export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: {
-        readonly strokeStyle?: string;
-        readonly debug?: boolean;
-    }) => void;
-    export const rect: (ctx: CanvasRenderingContext2D, toDraw: Rects.RectPositioned | readonly Rects.RectPositioned[], opts?: DrawingOpts & {
-        readonly filled?: boolean;
-    }) => void;
-    export const textBlock: (ctx: CanvasRenderingContext2D, lines: readonly string[], opts: DrawingOpts & {
-        readonly anchor: Points.Point;
-        readonly anchorPadding?: number;
-        readonly bounds?: Rects.RectPositioned;
-    }) => void;
-}
-declare module "visual/Svg" {
-    import { CirclePositioned } from "geometry/Circle";
-    import { Line } from "geometry/Line";
-    import { Point } from "geometry/Point";
-    export type DrawingOpts = {
-        readonly strokeStyle?: string;
-        readonly fillStyle?: string;
-        readonly debug?: boolean;
-        readonly strokeWidth?: number;
-    };
-    export type TextDrawingOpts = DrawingOpts & {
-        readonly anchor?: `start` | `middle` | `end`;
-        readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
-    };
-    export const createPath: (svg: string, parent: SVGElement, opts?: DrawingOpts | undefined) => SVGPathElement;
-    export const createCircle: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined) => SVGCircleElement;
-    export const createLine: (line: Line, parent: SVGElement, opts?: DrawingOpts | undefined, id?: string | undefined) => SVGLineElement;
-    export const createText: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, id?: string | undefined) => SVGTextElement;
-    export const svg: (parent: SVGElement, opts?: DrawingOpts | undefined) => {
-        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, id?: string | undefined) => SVGTextElement;
-        line: (line: Line, opts?: DrawingOpts | undefined, id?: string | undefined) => SVGLineElement;
-        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined) => SVGCircleElement;
-        path: (svgStr: string, opts?: DrawingOpts | undefined) => SVGPathElement;
-        query: <V extends SVGElement>(selectors: string) => V | null;
-        width: number;
-        height: number;
-        clear: () => void;
-    };
-}
-declare module "visual/Palette" {
-    /**
-     * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
-     *
-     */
-    export type Palette = {
-        setElementBase(el: Element): void;
-        has(key: string): boolean;
-        /**
-         * Returns a colour by name.
-         *
-         * If the colour is not found:
-         *  1. Try to use a CSS variable `--key`, or
-         *  2. The next fallback colour is used (array cycles)
-         *
-         * @param key
-         * @returns
-         */
-        get(key: string, fallback?: string): string;
-        /**
-         * Gets a colour by key, adding and returning fallback if not present
-         * @param key Key of colour
-         * @param fallback Fallback colour if key is not found
-         */
-        getOrAdd(key: string, fallback?: string): string;
-        /**
-         * Adds a colour with a given key
-         *
-         * @param key
-         * @param colour
-         */
-        add(key: string, value: string): void;
-    };
-    export const create: (fallbacks?: readonly string[] | undefined) => Palette;
-    /**
-     * Gets a CSS variable.
-     * @example Fetch --accent variable, or use `yellow` if not found.
-     * ```
-     * getCssVariable(`accent`, `yellow`);
-     * ```
-     * @param name Name of variable. Do not starting `--`
-     * @param fallbackColour Fallback colour if not found
-     * @param root  Element to search variable from
-     * @returns Colour or fallback.
-     */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
-}
-declare module "visual/Plot2" {
-    import { CircularArray, MapOfMutable } from "collections/Interfaces";
-    import * as Palette from "visual/Palette";
-    type Series = {
-        min: number;
-        max: number;
-        range: number;
-        name: string;
-    };
-    type DrawingOpts = PlotOpts & {
-        ctx: CanvasRenderingContext2D;
-        width: number;
-        height: number;
-        dataXScale?: number;
-        yLabelWidth: number;
-        palette: Palette.Palette;
-        textHeight: number;
-        capacity: number;
-        coalesce: boolean;
-    };
-    type PlotOpts = {
-        palette?: Palette.Palette;
-        capacity?: number;
-        showYAxis?: boolean;
-        yAxes?: string[] | string;
-        textHeight?: number;
-        lineWidth?: number;
-        coalesce?: boolean;
-    };
-    export const createScales: (buffer: MapOfMutable<number, CircularArray<number>>) => Series[];
-    export const add: (buffer: MapOfMutable<number, CircularArray<number>>, value: number, series?: string) => void;
-    export const draw: (buffer: MapOfMutable<number, CircularArray<number>>, drawing: DrawingOpts) => void;
-    export const drawSeriesAxis: (series: Series, drawing: DrawingOpts) => void;
-    export const drawSeries: (series: Series, values: CircularArray<number>, drawing: DrawingOpts) => void;
-    /**
-     * Creates a simple horizontal data plot within a DIV.
-     *
-     * ```
-     * const plot = plot2(`#parentDiv`);
-     * plot.add(10);
-     * plot.clear();
-     *
-     * // Plot data using series
-     * plot.add(-1, `temp`);
-     * plot.add(0.4, `humidty`);
-     * ```
-     *
-     * Options can be specified to customise plot
-     * ```
-     * const plot = plot2(`#parentDiv`, {
-     *  capacity: 100,     // How many data points to store (default: 10)
-     *  showYAxis: false,  // Toggle whether y axis is shown (default: true)
-     *  lineWidth: 2,      // Width of plot line (default: 2)
-     *  yAxes:  [`temp`],  // Only show these y axes (by default all are shown)
-     *  palette: Palette,  // Colour palette instance to use
-     *  coalesce: true,    // If true, sub-pixel data points are skipped, improving performance for dense plots at the expense of plot precision
-     * });
-     * ```
-     *
-     * By default, will attempt to use CSS variable `--series[seriesName]` for axis colours. -axis for titles.
-     * @param {string} parentElOrQuery
-     * @param {PlotOpts} opts
-     * @return {*}
-     */
-    export const plot2: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => {
-        add: (value: number, series?: string, skipDrawing?: boolean) => void;
-        clear: () => void;
-    };
-}
-declare module "visual/DictionaryOfColourCombinationsData" {
-    export const data: {
-        name: string;
-        combinations: number[];
-        swatch: number;
-        cmyk: number[];
-        lab: number[];
-        rgb: number[];
-        hex: string;
-    }[];
-}
-declare module "visual/DictionaryOfColourCombinations" {
-    type Cmyk = readonly [number, number, number, number];
-    type Lab = readonly [number, number, number];
-    type Rgb = readonly [number, number, number];
-    export type DictColour = {
-        readonly name: string;
-        readonly combinations: ReadonlyArray<number>;
-        readonly swatch: number;
-        readonly cmyk: Cmyk;
-        readonly lab: Lab;
-        readonly rgb: Rgb;
-        readonly hex: string;
-    };
-    export const randomPalette: (minColours?: number) => readonly DictColour[];
-}
-declare module "visual/index" {
-    import * as Drawing from "visual/Drawing";
-    import * as Svg from "visual/Svg";
-    import * as Plot from "visual/Plot2";
-    import * as DictionaryOfColourCombinations from "visual/DictionaryOfColourCombinations";
-    import * as Palette from "visual/Palette";
-    export { Palette, Drawing, Svg, Plot, DictionaryOfColourCombinations };
 }
 declare module "Timer" {
     /**
@@ -3810,6 +3950,7 @@ declare module "Generators" {
      * @param interval Interval between numbers
      * @param start Start
      * @param end End (if undefined, range never ends)
+     * @param repeating If true, range loops from start indefinately
      * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
      */
     export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
@@ -3865,6 +4006,10 @@ declare module "Random" {
 }
 declare module "index" {
     export * as Geometry from "geometry/index";
+    /**
+     * Canvas drawing functions.
+     */
+    export * as Drawing from "visual/Drawing";
     export * as Visual from "visual/index";
     /**
      * DOM module has some functions for easing DOM manipulation.
