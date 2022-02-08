@@ -1,21 +1,22 @@
 import {
   log,
   rx
-} from "./chunk-MGSKJXH6.js";
+} from "./chunk-M35QZGT4.js";
 import {
   Forms_exports
-} from "./chunk-HKHBUIIG.js";
+} from "./chunk-TY3WVHED.js";
 import {
   copyToClipboard,
   createAfter,
   createIn,
   fullSizeCanvas,
+  parentSize,
   parentSizeCanvas,
   resizeObservable,
   resolveEl,
   themeChangeObservable,
   windowResize
-} from "./chunk-3N6FOJPC.js";
+} from "./chunk-VXW5GB4S.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   Forms_exports as Forms,
@@ -24,6 +25,7 @@ export {
   createIn,
   fullSizeCanvas,
   log,
+  parentSize,
   parentSizeCanvas,
   resizeObservable,
   resolveEl,

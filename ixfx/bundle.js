@@ -1,55 +1,56 @@
 import {
   visual_exports
-} from "./chunk-VGCB6QBM.js";
+} from "./chunk-CG7NP66B.js";
 import {
   Generators_exports
-} from "./chunk-MUNQEK3G.js";
+} from "./chunk-TAJBS64S.js";
 import {
   modulation_exports
-} from "./chunk-G72BR7PV.js";
+} from "./chunk-OB5NBZOH.js";
 import {
   Random_exports
 } from "./chunk-IFVBVU2P.js";
 import {
   StateMachine
-} from "./chunk-E6SCE3R7.js";
+} from "./chunk-IBAWT4MP.js";
 import {
   Timer_exports
-} from "./chunk-4YAYVAFY.js";
+} from "./chunk-DEFU5INQ.js";
 import {
   KeyValue_exports,
   getSorter
-} from "./chunk-UV3RUDZE.js";
+} from "./chunk-Q6URMP6F.js";
 import {
   dom_exports
-} from "./chunk-MGSKJXH6.js";
-import "./chunk-HKHBUIIG.js";
+} from "./chunk-M35QZGT4.js";
+import "./chunk-TY3WVHED.js";
 import {
   Drawing_exports
-} from "./chunk-NVJFDVR6.js";
+} from "./chunk-NCXW57O2.js";
 import {
   collections_exports
-} from "./chunk-6H3SBEJ7.js";
-import "./chunk-3N6FOJPC.js";
+} from "./chunk-35OYLY6R.js";
+import "./chunk-VXW5GB4S.js";
 import {
   geometry_exports
-} from "./chunk-CHPEVC6Q.js";
-import "./chunk-OQJMMN6S.js";
-import "./chunk-CICENSOU.js";
-import "./chunk-CUSOACMW.js";
+} from "./chunk-OTCI2VI3.js";
+import "./chunk-PQ6IJNUJ.js";
+import "./chunk-XU5FJBDE.js";
 import {
   SimpleEventEmitter
 } from "./chunk-JBDRQ5KW.js";
-import "./chunk-VRGUIV5Y.js";
+import "./chunk-7OKODHGY.js";
 import {
   clamp,
   clampZeroBounds,
   isEqualDefault,
   isEqualValueDefault,
   lerp,
-  map,
+  scale,
+  scalePercentOutput,
   toStringDefault
-} from "./chunk-44P5CV5L.js";
+} from "./chunk-NTQN762I.js";
+import "./chunk-OQJMMN6S.js";
 import {
   __privateAdd,
   __privateGet,
@@ -149,7 +150,8 @@ export {
   isEqualDefault,
   isEqualValueDefault,
   lerp,
-  map,
+  scale,
+  scalePercentOutput,
   toStringDefault
 };
 //# sourceMappingURL=bundle.js.map

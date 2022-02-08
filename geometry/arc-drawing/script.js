@@ -1,8 +1,19 @@
-import {Arcs} from '../../ixfx/geometry.js'
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
-const piPi = Math.PI * 2;
+const settings = {
+  outerColour: `indigo`,
+  innerColour: `pink`,
+  piPi: Math.PI * 2,
+  // Loop back and forth between 0 and 1, 0.0.1 steps at a time
+  pingPong: Generators.pingPongPercent(0.001)
+}
+
+// Initial state with empty values
+let state = {
+  progression: 0,
+  bounds: {width: 0, height: 0, center: {x: 0, y: 0}}
+};
 
 /**
  * Fills the drawing context with a graadient fill
@@ -10,6 +21,8 @@ const piPi = Math.PI * 2;
  * @param {{width:number, height:number, center: {x:number, y:number}}} bounds 
  */
 const drawGradient = (ctx, bounds) => {
+  const {outerColour, innerColour} = settings;
+
   const c = bounds.center;
 
   // Make a gradient
@@ -21,49 +34,31 @@ const drawGradient = (ctx, bounds) => {
     c.x,
     c.y,
     bounds.width);
-  g.addColorStop(0, `pink`);    // Inner circle
-  g.addColorStop(1, `indigo`);  // Outer circle
+  g.addColorStop(0, innerColour);    // Inner circle
+  g.addColorStop(1, outerColour);  // Outer circle
 
   // Use gradient to fill whole canvas
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, bounds.width, bounds.height);
 }
 
-// Automatically keeps canvas full size, callback is triggered when
-// a resize happens, so we can repaint it
-Dom.fullSizeCanvas(`#backdrop`, args => {
-  drawGradient(args.ctx, args.bounds);
-});
-
-// Keep our primary canvas full size too
-/** @type {HTMLCanvasElement} */
-const canvasEl = Dom.resolveEl(`#canvas`);
-Dom.fullSizeCanvas(canvasEl);
-canvasEl.style.zIndex = `0`; // Backdrop is automatically assigned -100, we want this one to be above that.
-
-// Loop back and forth between 0 and 1, 0.0.1 steps at a time
-const pingPong = Generators.pingPongPercent(0.001);
-
-// State
-let state = {
-  progression: 0,
-};
-
 // Update state of world
 const update = () => {
-  const rect = bounds(canvasEl);
+  const {pingPong} = settings;
+  const {bounds} = state;
 
   // Create an arc based on size of canvas (which itself is determined by viewport size)
   const arc = {
-    x: rect.center.x,
-    y: rect.center.y,
-    radius: Math.min(rect.width, rect.height) * 0.3, /* 30% of width/height */
+    x: bounds.center.x,
+    y: bounds.center.y,
+    radius: Math.min(bounds.width, bounds.height) * 0.3, /* 30% of width/height */
     startRadian: 0,
     endRadian: Math.PI
   }
 
   // Update state
   state = {
+    bounds,
     arc,
     // Get a new value from the generator
     progression: pingPong.next().value,
@@ -74,8 +69,9 @@ const update = () => {
  * Draw the current state
  * @param {CanvasRenderingContext2D} ctx 
  */
-const draw = (ctx, el) => {
+const draw = (ctx) => {
   const {progression, arc} = state;
+  const {piPi} = settings;
   ctx.fillStyle = `black`;
 
   // Draw arcs
@@ -93,6 +89,45 @@ const draw = (ctx, el) => {
 }
 
 /**
+ * Setup and run main loop 
+ */
+const setup = () => {
+  // Automatically keeps canvas full size, drawing gradient background whenver it change
+  Dom.fullSizeCanvas(`#backdrop`, args => {
+    drawGradient(args.ctx, args.bounds);
+  });
+
+  // Keep our primary canvas full size too
+  /** @type {HTMLCanvasElement} */
+  const canvasEl = Dom.resolveEl(`#canvas`);
+  Dom.fullSizeCanvas(canvasEl, args => {
+    // Update state with new size of canvas
+    state = {
+      ...state,
+      bounds: args.bounds
+    }
+  });
+  canvasEl.style.zIndex = `0`; // Backdrop is automatically assigned -100, we want this one to be above that.
+
+  const ctx = canvasEl.getContext(`2d`);
+
+
+  const clear = () => {
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  };
+
+  const loop = () => {
+    clear();
+    update();
+    draw(ctx);
+    window.requestAnimationFrame(loop);
+  }
+  window.requestAnimationFrame(loop);
+}
+setup();
+
+
+/**
  * @param {HTMLCanvasElement} el 
  * @returns Bounds of element 
  */
@@ -105,25 +140,3 @@ const bounds = (el) => {
     height: h
   }
 }
-
-/**
- * Setup and run main loop 
- */
-const setup = () => {
-  const ctx = canvasEl.getContext(`2d`);
-
-  const clear = () => {
-    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  };
-
-  const loop = () => {
-    clear();
-    update();
-    draw(ctx, canvasEl);
-    window.requestAnimationFrame(loop);
-  }
-  window.requestAnimationFrame(loop);
-}
-setup();
-
-

@@ -1,4 +1,45 @@
-declare module "util" {
+declare module "Guards" {
+    export type NumberGuardRange = `` | `nonZero` | `positive` | `negative` | `aboveZero` | `belowZero` | `percentage` | `bipolar`;
+    /**
+     * Throws an error if `t` is not a number or within specified range
+     * @param t Value to check
+     * @param name Name of parameter (for more helpful exception messages)
+     * @param range Range to enforce
+     * @returns
+     */
+    export const number: (t: number, range?: NumberGuardRange, name?: string) => boolean;
+    /**
+     * Throws an error if `t` is not in the range of 0-1.
+     *
+     * This is the same as calling ```number(t, `percentage`)```
+     * @param t
+     * @param name
+     * @returns
+     */
+    export const percent: (t: number, name?: string) => boolean;
+    /**
+     * Throws an error if `t` is not an integer
+     * @param t
+     * @param name
+     * @param range
+     */
+    export const integer: (t: number, range?: NumberGuardRange, name?: string) => void;
+    /**
+     * Returns true if parameter is an array of strings
+     * @param t
+     * @returns
+     */
+    export const isStringArray: (t: unknown) => boolean;
+    /**
+     * Throws an error if parameter is not an array
+     * @param t
+     * @param name
+     */
+    export const array: (t: unknown, name?: string) => void;
+    /** Throws an error if parameter is not defined */
+    export const defined: <T>(argument: T | undefined) => argument is T;
+}
+declare module "Util" {
     /**
      * Clamps a value between min and max (both inclusive)
      * Defaults to a 0-1 range, useful for percentages.
@@ -30,20 +71,28 @@ declare module "util" {
      * @returns {number} Interpolated value
      */
     /**
-     * Maps `v` from an input range to an output range.
+     * Scales `v` from an input range to an output range.
      * For example, if a sensor's useful range is 100-500, you could
-     * easily map it to a percentage:
+     * easily scale it to a percentage:
      * ```js
-     * map(sensorReading, 100, 500, 0, 1);
+     * scale(sensorReading, 100, 500, 0, 1);
      * ```
-     * @param v Value to map
+     * @param v Value to scale
      * @param inMin Input minimum
      * @param inMax Input maximum
      * @param outMin Output minimum
      * @param outMax Output maximum
-     * @returns Mapped value
+     * @returns Scaled value
      */
-    export const map: (v: number, inMin: number, inMax: number, outMin: number, outMax: number) => number;
+    export const scale: (v: number, inMin: number, inMax: number, outMin: number, outMax: number) => number;
+    /**
+     * Scales a full input percentage range to a diminished output range
+     * @param v
+     * @param outMin
+     * @param outMax
+     * @returns
+     */
+    export const scalePercentOutput: (v: number, outMin: number, outMax?: number) => number;
     /**
      * Clamps integer `v` between 0 (inclusive) and length (exclusive). This is useful
      * for clamping an array range, because the largest allowed number will
@@ -128,7 +177,7 @@ declare module "util" {
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
-    import { ToString, IsEqual } from "util";
+    import { ToString, IsEqual } from "Util";
     /**
      * @private
      */
@@ -976,7 +1025,7 @@ declare module "collections/Arrays" {
      * Functions for working with primitive arrays, regardless of type
      * See Also: NumericArrays.ts
      */
-    import { IsEqual } from "util";
+    import { IsEqual } from "Util";
     export * from "collections/NumericArrays";
     /**
      * Throws an error if `array` parameter is not a valid array
@@ -1152,7 +1201,7 @@ declare module "geometry/Point" {
      * @param p
      * @returns
      */
-    export const isPoint: (p: Point | Rects.RectPositioned | Rects.Rect) => p is Point;
+    export const isPoint: (p: number | unknown) => p is Point;
     /**
      * Returns point as an array in the form [x,y]. This can be useful for some libraries
      * that expect points in array form.
@@ -1291,7 +1340,7 @@ declare module "geometry/Path" {
         compute(t: number): Points.Point;
         bbox(): Rects.RectPositioned;
         toString(): string;
-        toSvgString(): string;
+        toSvgString(): readonly string[];
         readonly kind: `compound` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
     };
     /**
@@ -1320,7 +1369,7 @@ declare module "geometry/Arc" {
      * @param p Arc or number
      * @returns
      */
-    export const isArc: (p: Arc | number) => p is Arc;
+    export const isArc: (p: Arc | number | unknown) => p is Arc;
     /**
      * Returns true if parameter has a positioned (x,y)
      * @param p Point, Arc or ArcPositiond
@@ -1360,7 +1409,8 @@ declare module "geometry/Arc" {
      * @param origin Optional center of arc
      * @returns Arc
      */
-    export const fromDegrees: (radius: number, startDegrees: number, endDegrees: number, origin?: Points.Point | undefined) => Arc | ArcPositioned;
+    export function fromDegrees(radius: number, startDegrees: number, endDegrees: number): Arc;
+    export function fromDegrees(radius: number, startDegrees: number, endDegrees: number, origin: Points.Point): ArcPositioned;
     /**
      * Returns a {@link Line} linking the start and end points of an {@link ArcPositioned}.
      *
@@ -1381,6 +1431,10 @@ declare module "geometry/Arc" {
      * @param arc
      */
     export const guard: (arc: Arc | ArcPositioned) => void;
+    type Compute = {
+        (arc: Arc, t: number, origin: Points.Point): Points.Point;
+        (arc: ArcPositioned, t: number): Points.Point;
+    };
     /**
      * Compute relative position on arc
      * @param arc Arc
@@ -1388,7 +1442,7 @@ declare module "geometry/Arc" {
      * @param origin If arc is not positioned, pass in an origin
      * @returns
      */
-    export const compute: (arc: ArcPositioned | Arc, t: number, origin?: Points.Point | undefined) => Points.Point;
+    export const compute: Compute;
     /**
      * Creates a {@link Path} instance from the arc. This wraps up some functions for convienence.
      * @param arc
@@ -1407,15 +1461,33 @@ declare module "geometry/Arc" {
      * @returns Rectangle encompassing arc.
      */
     export const bbox: (arc: ArcPositioned | Arc) => Rects.RectPositioned | Rects.Rect;
+    type ToSvg = {
+        /**
+         * SVG path for arc description
+         * @param origin Origin of arc
+         * @param radius Radius
+         * @param startRadian Start
+         * @param endRadian End
+         */
+        (origin: Points.Point, radius: number, startRadian: number, endRadian: number): readonly string[];
+        /**
+         * SVG path for non-positioned arc
+         */
+        (arc: Arc, origin: Points.Point): readonly string[];
+        /**
+         * SVG path for positioned arc
+         */
+        (arc: ArcPositioned): readonly string[];
+    };
     /**
-     * Returns SVG string for an arc, suitable for Svg.js
-     * @param origin Origin
-     * @param radiusOrArc Radius, or {@link Arc} instance
-     * @param startRadian Start radian
-     * @param endRadian End radian
-     * @returns Svg string
+     * Creates an SV path snippet for arc
+     * @param originOrArc
+     * @param radiusOrOrigin
+     * @param startRadian
+     * @param endRadian
+     * @returns
      */
-    export const toSvg: (origin: Points.Point, radiusOrArc: number | Arc, startRadian?: number | undefined, endRadian?: number | undefined) => string;
+    export const toSvg: ToSvg;
     /**
      * Calculates the distance between the centers of two arcs
      * @param a
@@ -1475,51 +1547,10 @@ declare module "geometry/Bezier" {
      * @returns Point
      */
     export const computeQuadraticSimple: (start: Points.Point, end: Points.Point, bend: number, amt: number) => Points.Point;
-    export const quadraticToSvgString: (start: Points.Point, end: Points.Point, handle: Points.Point) => string;
+    export const quadraticToSvgString: (start: Points.Point, end: Points.Point, handle: Points.Point) => readonly string[];
     export const toPath: (cubicOrQuadratic: CubicBezier | QuadraticBezier) => CubicBezierPath | QuadraticBezierPath;
     export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
     export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
-}
-declare module "Guards" {
-    export type NumberGuardRange = `` | `nonZero` | `positive` | `negative` | `aboveZero` | `belowZero` | `percentage` | `bipolar`;
-    /**
-     * Throws an error if `t` is not a number or within specified range
-     * @param t Value to check
-     * @param name Name of parameter (for more helpful exception messages)
-     * @param range Range to enforce
-     * @returns
-     */
-    export const number: (t: number, range?: NumberGuardRange, name?: string) => boolean;
-    /**
-     * Throws an error if `t` is not in the range of 0-1.
-     *
-     * This is the same as calling ```number(t, `percentage`)```
-     * @param t
-     * @param name
-     * @returns
-     */
-    export const percent: (t: number, name?: string) => boolean;
-    /**
-     * Throws an error if `t` is not an integer
-     * @param t
-     * @param name
-     * @param range
-     */
-    export const integer: (t: number, range?: NumberGuardRange, name?: string) => void;
-    /**
-     * Returns true if parameter is an array of strings
-     * @param t
-     * @returns
-     */
-    export const isStringArray: (t: unknown) => boolean;
-    /**
-     * Throws an error if parameter is not an array
-     * @param t
-     * @param name
-     */
-    export const array: (t: unknown, name?: string) => void;
-    /** Throws an error if parameter is not defined */
-    export const defined: <T>(argument: T | undefined) => argument is T;
 }
 declare module "geometry/Line" {
     import { Path } from "geometry/Path";
@@ -1569,7 +1600,7 @@ declare module "geometry/Line" {
      * @returns {number[]}
      */
     export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
-    export const toSvgString: (a: Points.Point, b: Points.Point) => string;
+    export const toSvgString: (a: Points.Point, b: Points.Point) => readonly string[];
     export const fromArray: (arr: readonly number[]) => Line;
     export const fromPoints: (a: Points.Point, b: Points.Point) => Line;
     export const joinPointsToLines: (...points: readonly Points.Point[]) => readonly Line[];
@@ -1603,6 +1634,7 @@ declare module "geometry/Circle" {
      * @returns
      */
     export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
+    export const isCircle: (p: any) => p is Circle;
     /**
      * Returns a point on a circle at a specified angle in radians
      * @param circle
@@ -1673,6 +1705,19 @@ declare module "geometry/Circle" {
      * @returns
      */
     export const distanceCenter: (a: CirclePositioned, b: CirclePositioned) => number;
+    type ToSvg = {
+        (radius: number, sweep: boolean, origin: Points.Point): readonly string[];
+        (circle: Circle, sweep: boolean, origin: Points.Point): readonly string[];
+        (circle: CirclePositioned, sweep: boolean): readonly string[];
+    };
+    /**
+     * Creates a SVG path segment.
+     * @param a Circle or radius
+     * @param sweep If true, path is 'outward'
+     * @param origin Origin of path. Required if first parameter is just a radius or circle is non-positioned
+     * @returns
+     */
+    export const toSvg: ToSvg;
     /**
      * Returns a `CircularPath` representation of a circle
      *
@@ -1767,7 +1812,7 @@ declare module "geometry/CompoundPath" {
      * @param {Paths.Path[]} paths
      */
     export const guardContinuous: (paths: Paths.Path[]) => void;
-    export const toSvgString: (paths: Paths.Path[]) => string;
+    export const toSvgString: (paths: Paths.Path[]) => readonly string[];
     /**
      * Create a compoundpath from an array of paths.
      * All this does is verify they are connected, and precomputes dimensions
@@ -1778,7 +1823,7 @@ declare module "geometry/CompoundPath" {
     export const fromPaths: (...paths: Paths.Path[]) => CompoundPath;
 }
 declare module "collections/Set" {
-    import { ToString } from "util";
+    import { ToString } from "Util";
     import { SetMutable } from "collections/Interfaces";
     /**
      * @inheritdoc SetMutable
@@ -1788,7 +1833,7 @@ declare module "collections/Set" {
     export const setMutable: <V>(keyString?: ToString<V> | undefined) => SetMutable<V>;
 }
 declare module "collections/Map" {
-    import { IsEqual, ToString } from "util";
+    import { IsEqual, ToString } from "Util";
     /**
      * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
      * what key value might be under.
@@ -2212,7 +2257,7 @@ declare module "collections/CircularArray" {
 }
 declare module "collections/MapMultiMutable" {
     import { SimpleEventEmitter } from "Events";
-    import { ToString } from "util";
+    import { ToString } from "Util";
     import { CircularArray, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutable, MapSetOpts, MultiValue } from "collections/Interfaces";
     class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V>> {
         #private;
@@ -2569,14 +2614,16 @@ declare module "collections/index" {
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
     import { Points } from "geometry/index";
-    type ResizeArgs = {
-        readonly ctx: CanvasRenderingContext2D;
-        readonly el: HTMLCanvasElement;
+    type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
+        readonly el: V;
         readonly bounds: {
             readonly width: number;
             readonly height: number;
             readonly center: Points.Point;
         };
+    };
+    type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
+        readonly ctx: CanvasRenderingContext2D;
     };
     /**
      * Resizes given canvas element to match window size. To resize canvas to match its parent, use {@link parentSizeCanvas}.
@@ -2598,7 +2645,15 @@ declare module "dom/Util" {
      * @param skipCss if true, style are not added
      * @returns Observable
      */
-    export const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: ResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
+    export const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: CanvasResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
+    /**
+     * Sets width/height atributes on the given element according to the size of its parent.
+     * @param domQueryOrEl Elememnt to resize
+     * @param onResized Callback when resize happens
+     * @param timeoutMs Timeout for debouncing events
+     * @returns
+     */
+    export const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
     /**
      * Resizes given canvas element to its parent element. To resize canvas to match the viewport, use {@link fullSizeCanvas}.
      *
@@ -2607,7 +2662,7 @@ declare module "dom/Util" {
      * @param onResized Callback for when resize happens, eg for redrawing canvas
      * @returns Observable
      */
-    export const parentSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: ResizeArgs) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    export const parentSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: CanvasResizeArgs) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
     /**
      * Returns an Observable for window resize. Default 100ms debounce.
      * @param timeoutMs
@@ -2625,7 +2680,7 @@ declare module "dom/Util" {
      * @param domQueryOrEl
      * @returns
      */
-    export const resolveEl: <V extends HTMLElement>(domQueryOrEl: string | V) => V;
+    export const resolveEl: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V) => V;
     /**
      * Creates an element after `sibling`
      * ```
@@ -2870,14 +2925,48 @@ declare module "visual/Svg" {
         readonly anchor?: `start` | `middle` | `end`;
         readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
     };
-    export const createPath: (svg: string, parent: SVGElement, opts?: DrawingOpts | undefined) => SVGPathElement;
-    export const createCircle: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined) => SVGCircleElement;
-    export const createLine: (line: Line, parent: SVGElement, opts?: DrawingOpts | undefined, id?: string | undefined) => SVGLineElement;
-    export const createText: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, id?: string | undefined) => SVGTextElement;
+    export type TextPathDrawingOpts = TextDrawingOpts & {
+        readonly method?: `align` | `stretch`;
+        readonly side?: `left` | `right`;
+        readonly spacing?: `auto` | `exact`;
+        readonly startOffset?: number;
+        readonly textLength?: number;
+    };
+    /**
+     * Creates and adds an SVG path element
+     * @example
+     * ```js
+     * const paths = [
+     *  `M300,200`,
+     *  `a25,25 -30 0,1 50, -25 l 50,-25`
+     * ]
+     * createPath(paths, parentEl);
+     * ```
+     * @param svgOrArray Path syntax, or array of paths
+     * @param parent SVG parent
+     * @param opts Options
+     * @returns
+     */
+    export const pathEl: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: DrawingOpts | undefined) => SVGPathElement;
+    export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: DrawingOpts | undefined) => void;
+    export const circleEl: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    export const lineEl: (line: Line, parent: SVGElement, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: TextPathDrawingOpts | undefined) => void;
+    export const textPathEl: (pathRef: string, text: string, parent: SVGElement, opts?: TextPathDrawingOpts | undefined, idOrExisting?: string | undefined) => SVGTextPathElement;
+    export const textElUpdate: (el: SVGTextElement, pos?: Point | undefined, text?: string | undefined, opts?: TextDrawingOpts | undefined) => void;
+    export const textEl: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, idOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    /**
+     * Applies drawing options to given SVG element.
+     *
+     * Use to easily assign fillStyle, strokeStyle, strokeWidth.
+     * @param elem Element
+     * @param opts Drawing options
+     */
+    export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
     export const svg: (parent: SVGElement, opts?: DrawingOpts | undefined) => {
-        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, id?: string | undefined) => SVGTextElement;
-        line: (line: Line, opts?: DrawingOpts | undefined, id?: string | undefined) => SVGLineElement;
-        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined) => SVGCircleElement;
+        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, idOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+        line: (line: Line, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
         path: (svgStr: string, opts?: DrawingOpts | undefined) => SVGPathElement;
         query: <V extends SVGElement>(selectors: string) => V | null;
         width: number;
@@ -3955,7 +4044,16 @@ declare module "Generators" {
      */
     export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
     /**
-     * Continually loops back and forth between 0 and 1 by a specified interval.
+     * Returns a number range between 0.0-1.0. By default it loops back to 0 after reaching 1
+     * @param interval Interval (defaults to 0.01 or 1%)
+     * @param repeating Whether generator should loop
+     * @param start Start
+     * @param end End
+     * @returns
+     */
+    export const rangePercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
+    /**
+     * Continually loops up and down between 0 and 1 by a specified interval.
      * Looping returns start value, and is inclusive of 0 and 1.
      *
      * @example Usage
@@ -3973,13 +4071,13 @@ declare module "Generators" {
      *
      * Because limits are capped to 0 and 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
      *
-     * @param {number} interval Amount to increment by. Defaults to 10%
-     * @param {number} offset Starting point. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param {number} rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
+     * @param interval Amount to increment by. Defaults to 10%
+     * @param offset Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
      */
-    export const pingPongPercent: (interval?: number, offset?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+    export const pingPongPercent: (interval?: number, start?: number, end?: number, offset?: number, rounding?: number) => Generator<number, never, unknown>;
     /**
-     * Ping-pongs continually between `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
+     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
      *
      * In a loop:
      * ```
@@ -4057,7 +4155,7 @@ declare module "index" {
     export * as Generators from "Generators";
     export * as Random from "Random";
     export * as KeyValues from "KeyValue";
-    export * from "util";
+    export * from "Util";
     /**
      * Run code at intervals or with a delay
      *
@@ -4073,7 +4171,7 @@ declare module "index" {
     export { StateMachine } from "StateMachine";
 }
 declare module "FrequencyMutable" {
-    import { ToString } from "util";
+    import { ToString } from "Util";
     import { SimpleEventEmitter } from "Events";
     import * as KeyValueUtil from "KeyValue";
     import { KeyValues } from "index";

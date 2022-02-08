@@ -6,6 +6,7 @@
   --padding-box: 1em;
   --accent-dim: hsl(341, 80%, 34%);
   --accent: hsl(341, 80%, 46%);
+  --font:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 html {
@@ -18,7 +19,7 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: var(--font);
   background-color: var(--gray);
   font-weight: 600;
   font-size: 20px;
@@ -33,6 +34,7 @@ body {
 
 .demos {
   display: flex;
+  flex-wrap: wrap;
 }
 .demos>div {
   border: var(--padding) solid var(--gray-dark);
@@ -41,6 +43,31 @@ body {
   background-color: var(--gray-light);
   border-radius: 6px;
 }
+
+
+.demos .mods::before {
+  content: "Modules ";
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+
+.demos .fns::before {
+  content: "Functions ";
+  text-transform: uppercase;
+  font-size: 0.8em;
+  font-family: var(--font);
+}
+
+.demos .fns {
+  font-family: monospace;
+}
+
+.demos .techniques::before {
+  content: "Techniques ";
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+
 main {
   display: flex;
   align-items: center;

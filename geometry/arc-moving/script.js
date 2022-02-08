@@ -2,28 +2,32 @@ import {Arcs} from '../../ixfx/geometry.js';
 import {timeout, continuously} from '../../ixfx/timers.js';
 import * as Generators from '../../ixfx/generators.js';
 
-// Loop back and forth between 0 and 1, 0.0.1 steps at a time
-const pingPong = Generators.pingPongPercent(0.01);
+// Sketch settings
+const settings = {
+  // Loop back and forth between 0 and 1, 0.0.1 steps at a time
+  pingPong: Generators.pingPongPercent(0.01),
+  // Arc settings
+  endAngle: 180,
+  radiusProportion: 0.3,
+  startAngle: 0,
+}
 
-// State
+// Initial state
 let state = {
-  // Arc of radius 100, start degrees 0, end degrees 180
-  arc: Arcs.fromDegrees(100, 0, 180, {x: 0, y: 0}),
+  bounds: {width: 0, height: 0, center: {x: 0, y: 0}},
 };
 
-// Updates when viewport size changes
+// Update state when viewport size changes
 const sizeChange = () => {
-  const {arc} = state;
   // Center of viewport
-  const w = document.body.clientWidth;
-  const h = document.body.clientHeight;
+  const width = document.body.clientWidth;
+  const height = document.body.clientHeight;
+  const center = {x: width / 2, y: height / 2};
 
-  // Update arc to size of screen
-  state.arc = {
-    ...arc,
-    x: w / 2,
-    y: h / 2,
-    radius: Math.min(50, (w / 2 - 100), (h / 2 - 100))
+  // Update state
+  state = {
+    ...state,
+    bounds: {width, height, center},
   };
 }
 window.addEventListener(`resize`, sizeChange);
@@ -31,22 +35,37 @@ sizeChange(); // Trigger to use current size
 
 // Update state of world
 const update = () => {
-  const {arc} = state;
-  let amt = pingPong.next().value;
+  // Get fields we need
+  const {pingPong, radiusProportion} = settings;
+  const bounds = state.bounds;
+  const center = bounds.center;
 
+  // Set radius to be proportional to screen size so it's always visible
+  // - Radius will be radiusProportion% of viewport width or height, whichever is smaller
+  const radius = Math.min(bounds.width, bounds.height) * radiusProportion;
+
+  // Define arc
+  const arc = Arcs.fromDegrees(radius, settings.startAngle, settings.endAngle, center);
+
+  // Calculate relative point on arc using current pingpong amount
+  const coord = Arcs.compute(arc, pingPong.next().value);
+
+  // Update state
   state = {
-    ...state, // Include existing state
-    // Compute location on arc
-    coord: Arcs.compute(arc, amt),
+    ...state,
+    coord
   }
 }
 
-const draw = () => {
+/**
+ * 
+ * @param {HTMLElement} el Element to move 
+ */
+const updateEl = (el) => {
   // Grab state we need
   const {coord} = state;
 
-  // Move button to position on arc
-  const el = document.getElementById(`moved`);
+  // Move calculated position on arc
   el.style.transform = `translate(${coord.x}px, ${coord.y}px)`;
 }
 
@@ -61,8 +80,13 @@ document.getElementById(`moved`).addEventListener(`click`, () => {
   clickedTimeout.start();
 });
 
-// Keeps running at animation speed
-continuously(() => {
-  update();
-  draw();
-}).start();
+const setup = () => {
+  const elToMove = document.getElementById(`moved`);
+
+  // Keeps running at animation speed
+  continuously(() => {
+    update();
+    updateEl(elToMove);
+  }).start();
+}
+setup();
