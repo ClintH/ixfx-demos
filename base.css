@@ -44,7 +44,6 @@ body {
   border-radius: 6px;
 }
 
-
 .demos .mods::before {
   content: "Modules ";
   text-transform: uppercase;
@@ -66,6 +65,24 @@ body {
   content: "Techniques ";
   text-transform: uppercase;
   font-size: 0.8em;
+}
+.demos .source {
+  text-transform: uppercase;
+  font-size: 0.5em;
+  background-color: var(--gray-dark);
+  color: var(--gray-light);
+  padding: 0.5em;
+  opacity: 0.6;
+  border-radius: 1em;
+  transition: opacity 0.2s ease-in;
+}
+
+.demos .source::before {
+  content: "Source";
+}
+
+.demos .source:hover {
+  opacity: 1;
 }
 
 main {

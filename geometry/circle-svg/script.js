@@ -1,4 +1,3 @@
-import {Circles} from '../../ixfx/geometry.js'
 import {Svg} from '../../ixfx/visual.js';
 import {scalePercentOutput} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
@@ -58,8 +57,8 @@ const updateSvg = (circleEl) => {
   // Apply stroke width
   Svg.applyOpts(circleEl, {strokeWidth: width});
 
+  // Update circle
   Svg.circleUpdate(circleEl, circle);
-
 }
 
 /**

@@ -1191,6 +1191,16 @@ declare module "geometry/Point" {
      */
     export const guard: (p: Point, name?: string) => void;
     /**
+     * Returns the angle in radians between a and b.
+     * Eg if a is the origin, and b is another point,
+     * in degrees one would get 0 to -180 when `b` was above `a`. -180 would be `b` in line with `a`.
+     * Same for under `a`.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const angleBetween: (a: Point, b: Point) => number;
+    /**
      * Returns the minimum rectangle that can enclose all provided points
      * @param points
      * @returns
@@ -1290,14 +1300,24 @@ declare module "geometry/Point" {
      * @returns Point
      */
     export const diff: (a: Point, b: Point) => Point;
+    type Sum = {
+        /**
+         * Adds two sets of coordinates
+         */
+        (aX: number, aY: number, bX: number, bY: number): Point;
+        /**
+         * Add x,y to a
+         */
+        (a: Point, x: number, y: number): Point;
+        /**
+         * Add two points
+         */
+        (a: Point, b: Point): Point;
+    };
     /**
      * Returns `a` plus `b`
-     *
-     * @param a
-     * @param b
-     * @returns
      */
-    export const sum: (a: Point, b: Point) => Point;
+    export const sum: Sum;
     /**
      * Returns `a` multiplied by `b`
      *
@@ -1316,16 +1336,6 @@ declare module "geometry/Point" {
      * @returns Scaled point
      */
     export function multiply(a: Point, x: number, y?: number): Point;
-}
-declare module "geometry/Math" {
-    import { Point } from "geometry/Point";
-    export const degreeToRadian: (angleInDegrees: number) => number;
-    export const radianToDegree: (angleInRadians: number) => number;
-    export const radiansFromAxisX: (point: Point) => number;
-    export const polarToCartesian: (center: Point, radius: number, angleRadians: number) => {
-        x: number;
-        y: number;
-    };
 }
 declare module "geometry/Path" {
     import { Rects, Points } from "geometry/index";
@@ -2228,11 +2238,168 @@ declare module "geometry/index" {
     import * as Compound from "geometry/CompoundPath";
     import * as Grids from "geometry/Grid";
     import * as Lines from "geometry/Line";
-    import * as Math from "geometry/Math";
     import * as Paths from "geometry/Path";
     import * as Points from "geometry/Point";
     import * as Rects from "geometry/Rect";
-    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Math };
+    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound };
+    export const degreeToRadian: (angleInDegrees: number) => number;
+    export const radianToDegree: (angleInRadians: number) => number;
+    export const radiansFromAxisX: (point: Points.Point) => number;
+    export const polarToCartesian: (center: Points.Point, radius: number, angleRadians: number) => {
+        x: number;
+        y: number;
+    };
+}
+declare module "flow/StateMachine" {
+    import { SimpleEventEmitter } from "Events";
+    export interface Options {
+        readonly debug?: boolean;
+    }
+    export interface StateChangeEvent {
+        readonly newState: string;
+        readonly priorState: string;
+    }
+    export interface StopEvent {
+        readonly state: string;
+    }
+    type StateMachineEventMap = {
+        readonly change: StateChangeEvent;
+        readonly stop: StopEvent;
+    };
+    type StateEvent = (args: unknown, sender: StateMachine) => void;
+    type StateHandler = string | StateEvent | null;
+    export interface State {
+        readonly [event: string]: StateHandler;
+    }
+    export interface MachineDescription {
+        readonly [key: string]: string | readonly string[] | null;
+    }
+    /**
+     * Returns a machine description based on a list of strings. The final string is the final
+     * state.
+     *
+     * ```js
+     * const states = [`one`, `two`, `three`];
+     * const sm = new StateMachine(states[0], fromList(states));
+     * ```
+     * @param {...readonly} states
+     * @param {*} string
+     * @param {*} []
+     * @return {*}  {MachineDescription}
+     */
+    export const fromList: (...states: readonly string[]) => MachineDescription;
+    /**
+     * State machine
+     *
+     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
+     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
+     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
+     *
+     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
+     * ```
+     * const description = {
+     *  sleep: 'wakeup',
+     *  wakeup: ['coffee', 'breakfast'],
+     *  coffee: `bike`,
+     *  breakfast: `bike`,
+     *  bike: null
+     * }
+     * ```
+     * Create the machine with the starting state (`sleep`)
+     * ```
+     * const machine = new StateMachine(`sleep`, description);
+     * ```
+     *
+     * Change the state by name:
+     * ```
+     * machine.state = `wakeup`
+     * ```
+     *
+     * Or request an automatic transition (will use first state if there are several options)
+     * ```
+     * machine.next();
+     * ```
+     *
+     * Check status
+     * ```
+     * if (machine.state === `coffee`) ...;
+     * if (machine.isDone()) ...
+     * ```
+     *
+     * Listen for state changes
+     * ```
+     * machine.addEventListener(`change`, (evt) => {
+     *  const {priorState, newState} = evt;
+     *  console.log(`State change from ${priorState} -> ${newState}`);
+     * });
+     * ```
+     * @export
+     * @class StateMachine
+     * @extends {SimpleEventEmitter<StateMachineEventMap>}
+     */
+    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
+        #private;
+        /**
+         * Create a state machine with initial state, description and options
+         * @param {string} initial Initial state
+         * @param {MachineDescription} m Machine description
+         * @param {Options} [opts={debug: false}] Options for machine
+         * @memberof StateMachine
+         */
+        constructor(initial: string, m: MachineDescription, opts?: Options);
+        get states(): readonly string[];
+        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
+        /**
+         * Moves to the next state if possible. If multiple states are possible, it will use the first.
+         * If machine is finalised, no error is thrown and null is returned.
+         *
+         * @returns {(string|null)} Returns new state, or null if machine is finalised
+         * @memberof StateMachine
+         */
+        next(): string | null;
+        /**
+         * Returns true if state machine is in its final state
+         *
+         * @returns
+         * @memberof StateMachine
+         */
+        get isDone(): boolean;
+        /**
+         * Resets machine to initial state
+         *
+         * @memberof StateMachine
+         */
+        reset(): void;
+        /**
+         * Checks whether a state change is valid.
+         *
+         * @static
+         * @param {string} priorState From state
+         * @param {string} newState To state
+         * @param {MachineDescription} description Machine description
+         * @returns {[boolean, string]} If valid: [true,''], if invalid: [false, 'Error msg here']
+         * @memberof StateMachine
+         */
+        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
+        isValid(newState: string): readonly [boolean, string];
+        /**
+         * Sets state. Throws an error if an invalid transition is attempted.
+         * Use `StateMachine.isValid` to check validity without changing.
+         *
+         * @memberof StateMachine
+         */
+        set state(newState: string);
+        /**
+       * Return current state
+       *
+       * @type {string}
+       * @memberof StateMachine
+       */
+        get state(): string;
+    }
+}
+declare module "flow/index" {
+    export * as StateMachine from "flow/StateMachine";
 }
 declare module "collections/CircularArray" {
     import { CircularArray } from "collections/Interfaces";
@@ -2921,6 +3088,12 @@ declare module "visual/Svg" {
         readonly debug?: boolean;
         readonly strokeWidth?: number;
     };
+    export type LineDrawingOpts = DrawingOpts & PathDrawingOpts;
+    export type PathDrawingOpts = {
+        readonly markerEnd?: MarkerOpts;
+        readonly markerStart?: MarkerOpts;
+        readonly markerMid?: MarkerOpts;
+    };
     export type TextDrawingOpts = DrawingOpts & {
         readonly anchor?: `start` | `middle` | `end`;
         readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
@@ -2947,14 +3120,31 @@ declare module "visual/Svg" {
      * @param opts Options
      * @returns
      */
-    export const pathEl: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: DrawingOpts | undefined) => SVGPathElement;
+    export const pathEl: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
     export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: DrawingOpts | undefined) => void;
-    export const circleEl: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
-    export const lineEl: (line: Line, parent: SVGElement, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const circleEl: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    export const lineEl: (line: Line, parent: SVGElement, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    /**
+     * Adds definition if it doesn't already exist
+     * @param parent
+     * @param id
+     * @param creator
+     * @returns
+     */
+    export const getOrCreateDef: (parent: SVGElement, id: string, creator: () => SVGElement | undefined) => SVGElement;
+    type MarkerOpts = DrawingOpts & {
+        readonly id: string;
+        readonly markerWidth?: number;
+        readonly markerHeight?: number;
+        readonly orient?: string;
+        readonly viewBox?: string;
+        readonly refX?: number;
+        readonly refY?: number;
+    };
     export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: TextPathDrawingOpts | undefined) => void;
-    export const textPathEl: (pathRef: string, text: string, parent: SVGElement, opts?: TextPathDrawingOpts | undefined, idOrExisting?: string | undefined) => SVGTextPathElement;
+    export const textPathEl: (pathRef: string, text: string, parent: SVGElement, opts?: TextPathDrawingOpts | undefined, queryOrExisting?: string | undefined) => SVGTextPathElement;
     export const textElUpdate: (el: SVGTextElement, pos?: Point | undefined, text?: string | undefined, opts?: TextDrawingOpts | undefined) => void;
-    export const textEl: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, idOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    export const textEl: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
     /**
      * Applies drawing options to given SVG element.
      *
@@ -2964,10 +3154,10 @@ declare module "visual/Svg" {
      */
     export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
     export const svg: (parent: SVGElement, opts?: DrawingOpts | undefined) => {
-        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, idOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
-        line: (line: Line, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
-        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined, idOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
-        path: (svgStr: string, opts?: DrawingOpts | undefined) => SVGPathElement;
+        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+        line: (line: Line, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+        path: (svgStr: string | readonly string[], opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
         query: <V extends SVGElement>(selectors: string) => V | null;
         width: number;
         height: number;
@@ -3637,154 +3827,6 @@ declare module "modulation/Easing" {
         easeInOutBounce: (x: number) => number;
     };
 }
-declare module "StateMachine" {
-    import { SimpleEventEmitter } from "Events";
-    export interface Options {
-        readonly debug?: boolean;
-    }
-    export interface StateChangeEvent {
-        readonly newState: string;
-        readonly priorState: string;
-    }
-    export interface StopEvent {
-        readonly state: string;
-    }
-    type StateMachineEventMap = {
-        readonly change: StateChangeEvent;
-        readonly stop: StopEvent;
-    };
-    type StateEvent = (args: unknown, sender: StateMachine) => void;
-    type StateHandler = string | StateEvent | null;
-    export interface State {
-        readonly [event: string]: StateHandler;
-    }
-    export interface MachineDescription {
-        readonly [key: string]: string | readonly string[] | null;
-    }
-    /**
-     * Returns a machine description based on a list of strings. The final string is the final
-     * state.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = new StateMachine(states[0], fromList(states));
-     * ```
-     * @param {...readonly} states
-     * @param {*} string
-     * @param {*} []
-     * @return {*}  {MachineDescription}
-     */
-    export const fromList: (...states: readonly string[]) => MachineDescription;
-    /**
-     * State machine
-     *
-     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
-     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
-     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
-     *
-     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
-     * ```
-     * const description = {
-     *  sleep: 'wakeup',
-     *  wakeup: ['coffee', 'breakfast'],
-     *  coffee: `bike`,
-     *  breakfast: `bike`,
-     *  bike: null
-     * }
-     * ```
-     * Create the machine with the starting state (`sleep`)
-     * ```
-     * const machine = new StateMachine(`sleep`, description);
-     * ```
-     *
-     * Change the state by name:
-     * ```
-     * machine.state = `wakeup`
-     * ```
-     *
-     * Or request an automatic transition (will use first state if there are several options)
-     * ```
-     * machine.next();
-     * ```
-     *
-     * Check status
-     * ```
-     * if (machine.state === `coffee`) ...;
-     * if (machine.isDone()) ...
-     * ```
-     *
-     * Listen for state changes
-     * ```
-     * machine.addEventListener(`change`, (evt) => {
-     *  const {priorState, newState} = evt;
-     *  console.log(`State change from ${priorState} -> ${newState}`);
-     * });
-     * ```
-     * @export
-     * @class StateMachine
-     * @extends {SimpleEventEmitter<StateMachineEventMap>}
-     */
-    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
-        #private;
-        /**
-         * Create a state machine with initial state, description and options
-         * @param {string} initial Initial state
-         * @param {MachineDescription} m Machine description
-         * @param {Options} [opts={debug: false}] Options for machine
-         * @memberof StateMachine
-         */
-        constructor(initial: string, m: MachineDescription, opts?: Options);
-        get states(): readonly string[];
-        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
-        /**
-         * Moves to the next state if possible. If multiple states are possible, it will use the first.
-         * If machine is finalised, no error is thrown and null is returned.
-         *
-         * @returns {(string|null)} Returns new state, or null if machine is finalised
-         * @memberof StateMachine
-         */
-        next(): string | null;
-        /**
-         * Returns true if state machine is in its final state
-         *
-         * @returns
-         * @memberof StateMachine
-         */
-        get isDone(): boolean;
-        /**
-         * Resets machine to initial state
-         *
-         * @memberof StateMachine
-         */
-        reset(): void;
-        /**
-         * Checks whether a state change is valid.
-         *
-         * @static
-         * @param {string} priorState From state
-         * @param {string} newState To state
-         * @param {MachineDescription} description Machine description
-         * @returns {[boolean, string]} If valid: [true,''], if invalid: [false, 'Error msg here']
-         * @memberof StateMachine
-         */
-        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
-        isValid(newState: string): readonly [boolean, string];
-        /**
-         * Sets state. Throws an error if an invalid transition is attempted.
-         * Use `StateMachine.isValid` to check validity without changing.
-         *
-         * @memberof StateMachine
-         */
-        set state(newState: string);
-        /**
-       * Return current state
-       *
-       * @type {string}
-       * @memberof StateMachine
-       */
-        get state(): string;
-    }
-}
 declare module "modulation/Envelope" {
     import { SimpleEventEmitter } from "Events";
     /**
@@ -4104,6 +4146,7 @@ declare module "Random" {
 }
 declare module "index" {
     export * as Geometry from "geometry/index";
+    export * as Flow from "flow/index";
     /**
      * Canvas drawing functions.
      */
@@ -4168,7 +4211,6 @@ declare module "index" {
     export * as Timers from "Timer";
     export { KeyValue } from "KeyValue";
     export { frequencyMutable, FrequencyMutable } from "FrequencyMutable";
-    export { StateMachine } from "StateMachine";
 }
 declare module "FrequencyMutable" {
     import { ToString } from "Util";

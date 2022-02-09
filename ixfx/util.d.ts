@@ -44,13 +44,28 @@ declare const clamp: (v: number, min?: number, max?: number) => number;
  */
 declare const scale: (v: number, inMin: number, inMax: number, outMin: number, outMax: number) => number;
 /**
- * Scales a full input percentage range to a diminished output range
+ * Scales a full input percentage range to a diminished percentage output range.
+ *
+ * Essentially the same as {@link scalePercent}, however it throws an error if output range is not within 0-1.
+ *
  * @param v
- * @param outMin
- * @param outMax
+ * @param outMin Output minimum, between 0-1
+ * @param outMax Output maximum, between 0-1
  * @returns
  */
 declare const scalePercentOutput: (v: number, outMin: number, outMax?: number) => number;
+/**
+ * Scales an input percentage value (0-1) to the output range of `outMin`-`outMax`.
+ *
+ * Use {@link scalePercentOutput} if the output range is meant to be a percentage. It will
+ * enforce safety of the out range.
+ *
+ * @param v Value to scale
+ * @param outMin Minimum for output
+ * @param outMax Maximum for output
+ * @returns
+ */
+declare const scalePercent: (v: number, outMin: number, outMax: number) => number;
 /**
  * Clamps integer `v` between 0 (inclusive) and length (exclusive). This is useful
  * for clamping an array range, because the largest allowed number will
@@ -133,4 +148,4 @@ declare const isEqualValueDefault: <V>(a: V, b: V) => boolean;
  */
 declare const toStringDefault: <V>(itemToMakeStringFor: V) => string;
 
-export { IsEqual, ToString, clamp, clampZeroBounds, isEqualDefault, isEqualValueDefault, lerp, scale, scalePercentOutput, toStringDefault };
+export { IsEqual, ToString, clamp, clampZeroBounds, isEqualDefault, isEqualValueDefault, lerp, scale, scalePercent, scalePercentOutput, toStringDefault };
