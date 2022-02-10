@@ -19,16 +19,6 @@
  */
 declare const clamp: (v: number, min?: number, max?: number) => number;
 /**
- * Returns a bezier interpolated value, using the given ranges
- * @param {number} value  Value to be interpolated
- * @param {number} s1 Source range start
- * @param {number} s2  Source range end
- * @param {number} t1  Target range start
- * @param {number} t2  Target range end
- * @param {number} [slope]  Weight of the curve (0.5 = linear, 0.1 = weighted near target start, 0.9 = weighted near target end)
- * @returns {number} Interpolated value
- */
-/**
  * Scales `v` from an input range to an output range.
  * For example, if a sensor's useful range is 100-500, you could
  * easily scale it to a percentage:

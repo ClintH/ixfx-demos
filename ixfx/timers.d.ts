@@ -1,1 +1,1 @@
-export { C as Continuously, H as HasCompletion, b as Timeout, a as Timer, e as TimerSource, c as continuously, d as delay, m as msElapsedTimer, r as relativeTimer, s as sleep, f as ticksElapsedTimer, t as timeout } from './Timer-0ec89564';
+export { C as Continuously, H as HasCompletion, M as ModTimer, c as Timeout, a as Timer, b as TimerSource, e as continuously, d as debounce, f as delay, h as frequencyTimer, g as frequencyTimerSource, i as interval, m as msElapsedTimer, r as relativeTimer, s as sleep, j as ticksElapsedTimer, t as timeout } from './Timer-981c334a';
