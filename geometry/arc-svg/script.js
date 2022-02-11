@@ -4,7 +4,7 @@ import {scalePercentOutput} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
-// Settings used for sketch
+// Define settings
 const settings = {
   radiusMin: 20,
   radiusProportion: 0.4,

@@ -6,6 +6,7 @@ import * as Dom from '../../ixfx/dom.js';
 import {scalePercent} from '../../ixfx/util.js';
 import {Polar} from '../../ixfx/geometry.js';
 
+// Define settings
 const settings = {
   colour: `gray`,
   lineWidth: 2,
@@ -14,7 +15,7 @@ const settings = {
   steps: 1000
 }
 
-// Initial state with empty values
+// Initialise state with empty values
 let state = {
   slow: 0,
   fast: 0,

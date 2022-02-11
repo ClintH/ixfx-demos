@@ -2,7 +2,7 @@ import {Arcs} from '../../ixfx/geometry.js';
 import {timeout, continuously} from '../../ixfx/timers.js';
 import * as Generators from '../../ixfx/generators.js';
 
-// Sketch settings
+// Define settings
 const settings = {
   // Loop back and forth between 0 and 1, 0.0.1 steps at a time
   pingPong: Generators.pingPongPercent(0.01),

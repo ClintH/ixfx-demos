@@ -3,7 +3,7 @@ import {scalePercentOutput} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
-// Settings used for sketch
+// Define settings
 const settings = {
   radiusMin: 20,
   // Radius will be max 40% of viewport
@@ -17,7 +17,7 @@ const settings = {
   genLoop: Generators.rangePercent(0.01, true)
 };
 
-// State
+// Initialise state
 let state = {
   pingPong: 0,
   loop: 0,

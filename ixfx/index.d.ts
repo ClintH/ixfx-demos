@@ -61,16 +61,6 @@ declare module "Util" {
      */
     export const clamp: (v: number, min?: number, max?: number) => number;
     /**
-     * Returns a bezier interpolated value, using the given ranges
-     * @param {number} value  Value to be interpolated
-     * @param {number} s1 Source range start
-     * @param {number} s2  Source range end
-     * @param {number} t1  Target range start
-     * @param {number} t2  Target range end
-     * @param {number} [slope]  Weight of the curve (0.5 = linear, 0.1 = weighted near target start, 0.9 = weighted near target end)
-     * @returns {number} Interpolated value
-     */
-    /**
      * Scales `v` from an input range to an output range.
      * For example, if a sensor's useful range is 100-500, you could
      * easily scale it to a percentage:
@@ -86,13 +76,28 @@ declare module "Util" {
      */
     export const scale: (v: number, inMin: number, inMax: number, outMin: number, outMax: number) => number;
     /**
-     * Scales a full input percentage range to a diminished output range
+     * Scales a full input percentage range to a diminished percentage output range.
+     *
+     * Essentially the same as {@link scalePercent}, however it throws an error if output range is not within 0-1.
+     *
      * @param v
-     * @param outMin
-     * @param outMax
+     * @param outMin Output minimum, between 0-1
+     * @param outMax Output maximum, between 0-1
      * @returns
      */
     export const scalePercentOutput: (v: number, outMin: number, outMax?: number) => number;
+    /**
+     * Scales an input percentage value (0-1) to the output range of `outMin`-`outMax`.
+     *
+     * Use {@link scalePercentOutput} if the output range is meant to be a percentage. It will
+     * enforce safety of the out range.
+     *
+     * @param v Value to scale
+     * @param outMin Minimum for output
+     * @param outMax Maximum for output
+     * @returns
+     */
+    export const scalePercent: (v: number, outMin: number, outMax: number) => number;
     /**
      * Clamps integer `v` between 0 (inclusive) and length (exclusive). This is useful
      * for clamping an array range, because the largest allowed number will
@@ -464,8 +469,8 @@ declare module "collections/Interfaces" {
      */
     export interface MapOfMutable<V, M> extends SimpleEventEmitter<MapArrayEvents<V>> {
         /**
-         * Returns a human-readable rendering of contents
-         */
+       * Returns a human-readable rendering of contents
+       */
         debugString(): string;
         /**
          * Returns list of keys
@@ -524,6 +529,10 @@ declare module "collections/Interfaces" {
          * Returns true if the map is empty
          */
         get isEmpty(): boolean;
+        /**
+         * REturns the length of the longest child item
+         */
+        get lengthMax(): number;
         /**
          * Finds the first key where value is stored.
          * Note: value could be stored in multiple keys
@@ -1158,6 +1167,13 @@ declare module "geometry/Point" {
         readonly z?: number;
     };
     /**
+     * An empty point of {x:0, y:0}
+     */
+    export const Empty: Readonly<{
+        x: number;
+        y: number;
+    }>;
+    /**
      * Returns the 'minimum' point from an array of points, using a comparison function.
      *
      * @example Find point closest to a coordinate
@@ -1185,15 +1201,16 @@ declare module "geometry/Point" {
      */
     export const distance: (a: Point, b: Point) => number;
     /**
-     * Throws an error if point parameter is invalid
+     * Throws an error if point is invalid
      * @param p
      * @param name
      */
     export const guard: (p: Point, name?: string) => void;
     /**
-     * Returns the angle in radians between a and b.
-     * Eg if a is the origin, and b is another point,
-     * in degrees one would get 0 to -180 when `b` was above `a`. -180 would be `b` in line with `a`.
+     * Returns the angle in radians between `a` and `b`.
+     * Eg if `a` is the origin, and `b` is another point,
+     * in degrees one would get 0 to -180 when `b` was above `a`.
+     *  -180 would be `b` in line with `a`.
      * Same for under `a`.
      * @param a
      * @param b
@@ -1207,7 +1224,7 @@ declare module "geometry/Point" {
      */
     export const bbox: (...points: readonly Point[]) => Rects.RectPositioned;
     /**
-     * Returns true if the parameter has x and y
+     * Returns _true_ if the parameter has x and y fields
      * @param p
      * @returns
      */
@@ -1231,11 +1248,17 @@ declare module "geometry/Point" {
      */
     export const toString: (p: Point) => string;
     /**
-     * Returns true if the two points have identical values
+     * Returns _true_ if the two points have identical values
      *
+     * ```js
+     * const a = {x: 10, y: 10};
+     * const b = {x: 10, y: 10;};
+     * a === b        // False, because a and be are different objects
+     * equals(a, b)   // True, because a and b are same value
+     * ```
      * @param a
      * @param b
-     * @returns
+     * @returns _True_ if points are equal
      */
     export const equals: (a: Point, b: Point) => boolean;
     /**
@@ -1257,6 +1280,9 @@ declare module "geometry/Point" {
     export const withinRange: (a: Point, b: Point, maxRange: Point | number) => boolean;
     /**
      * Returns a relative point between two points
+     * ```js
+     * lerp(a, b, 0.5); // Halfway point between a and b
+     * ```
      * @param amt Relative amount, 0-1
      * @param a
      * @param b
@@ -1279,6 +1305,7 @@ declare module "geometry/Point" {
     export const from: (xOrArray?: number | readonly number[] | undefined, y?: number | undefined) => Point;
     /**
      * Returns an array of points from an array of numbers.
+     *
      * Array can be a continuous series of x, y values:
      * ```
      * [1,2,3,4] would yield: [{x:1, y:2}, {x:3, y:4}]
@@ -1295,11 +1322,18 @@ declare module "geometry/Point" {
     /**
      * Returns `a` minus `b`
      *
+     * ie.
+     * ```js
+     * return {
+     *   x: a.x - b.x,
+     *   y: a.y - b.y
+     * };
+     * ```
      * @param a
      * @param b
      * @returns Point
      */
-    export const diff: (a: Point, b: Point) => Point;
+    export const subtract: (a: Point, b: Point) => Point;
     type Sum = {
         /**
          * Adds two sets of coordinates
@@ -1308,19 +1342,33 @@ declare module "geometry/Point" {
         /**
          * Add x,y to a
          */
-        (a: Point, x: number, y: number): Point;
+        (a: Point, x: number, y?: number): Point;
         /**
          * Add two points
          */
-        (a: Point, b: Point): Point;
+        (a: Point, b?: Point): Point;
     };
     /**
      * Returns `a` plus `b`
+     * ie.
+     * ```js
+     * return {
+     *   x: a.x + b.x,
+     *   y: a.y + b.y
+     * };
+     * ```
      */
     export const sum: Sum;
     /**
      * Returns `a` multiplied by `b`
      *
+     * ie.
+     * ```js
+     * return {
+     *  x: a.x * b.x,
+    *   y: a.y * b.y
+     * }
+     * ```
      * @param a
      * @param b
      * @returns
@@ -1329,6 +1377,13 @@ declare module "geometry/Point" {
     /**
      * Returns `a` multipled by some x and/or y scaling factor
      *
+     * ie.
+     * ```js
+     * return {
+     *  x: a.x * x
+    *   y: a.y * y
+     * }
+     * ```
      * @export
      * @parama Point to scale
      * @param x Scale factor for x axis
@@ -1479,25 +1534,33 @@ declare module "geometry/Arc" {
          * @param startRadian Start
          * @param endRadian End
          */
-        (origin: Points.Point, radius: number, startRadian: number, endRadian: number): readonly string[];
+        (origin: Points.Point, radius: number, startRadian: number, endRadian: number, opts?: SvgOpts): readonly string[];
         /**
          * SVG path for non-positioned arc
          */
-        (arc: Arc, origin: Points.Point): readonly string[];
+        (arc: Arc, origin: Points.Point, opts?: SvgOpts): readonly string[];
         /**
          * SVG path for positioned arc
          */
-        (arc: ArcPositioned): readonly string[];
+        (arc: ArcPositioned, opts?: SvgOpts): readonly string[];
     };
     /**
      * Creates an SV path snippet for arc
-     * @param originOrArc
-     * @param radiusOrOrigin
-     * @param startRadian
-     * @param endRadian
      * @returns
      */
     export const toSvg: ToSvg;
+    type SvgOpts = {
+        /**
+         * "If the arc should be greater or less than 180 degrees"
+         * ie. tries to maximise arc length
+         */
+        readonly largeArc?: boolean;
+        /**
+         * "If the arc should begin moving at positive angles"
+         * ie. the kind of bend it makes to reach end point
+         */
+        readonly sweep?: boolean;
+    };
     /**
      * Calculates the distance between the centers of two arcs
      * @param a
@@ -2196,6 +2259,15 @@ declare module "geometry/Grid" {
     export const visitFor: (grid: Grid, start: Cell, steps: number, visitor: Visitor) => Cell;
     export const visitorColumn: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     /**
+     * Enumerate rows of grid, returning all the cells in the row
+     * @param grid
+     * @param start
+     */
+    export const rows: (grid: Grid, start?: Cell) => Generator<Readonly<{
+        readonly x: number;
+        readonly y: number;
+    }>[], void, unknown>;
+    /**
      * Enumerate all cells in an efficient manner. If end of grid is reached, iterator will wrap to ensure all are visited.
      *
      * @param {Grid} grid
@@ -2231,6 +2303,47 @@ declare module "geometry/Rect" {
      */
     export const getLines: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Lines.Line[];
 }
+declare module "geometry/Polar" {
+    import * as Points from "geometry/Point";
+    export type Coord = {
+        readonly distance: number;
+        readonly angleRadian: number;
+    };
+    type ToCartesian = {
+        (point: Coord, origin?: Points.Point): Points.Point;
+        (distance: number, angleRadians: number, origin?: Points.Point): Points.Point;
+    };
+    export const isCoord: (p: number | unknown) => p is Coord;
+    export const fromCartesian: (point: Points.Point, origin: Points.Point) => Coord;
+    export const toCartesian: ToCartesian;
+    /**
+     * Produces an Archimedean spiral
+     *
+     *
+     * This is a generator:
+     * ```
+     * const s = spiral(0.1, 1);
+     * for (const coord of s) {
+     *  // Use Polar coord...
+     *  if (coord.step === 1000) break; // Stop after 1000 iterations
+     * }
+     * ```
+     *
+     * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
+     * @param zoom At smoothness 0.1, zoom starting at 1 is OK
+     */
+    export function spiral(smoothness: number, zoom: number): IterableIterator<Coord & {
+        readonly step: number;
+    }>;
+    /**
+     * Produces an Archimedian spiral with manual stepping.
+     * @param step Step number. Typically 0, 1, 2 ...
+     * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
+     * @param zoom At smoothness 0.1, zoom starting at 1 is OK
+     * @returns
+     */
+    export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
+}
 declare module "geometry/index" {
     import * as Arcs from "geometry/Arc";
     import * as Beziers from "geometry/Bezier";
@@ -2242,13 +2355,10 @@ declare module "geometry/index" {
     import * as Points from "geometry/Point";
     import * as Rects from "geometry/Rect";
     export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound };
+    export * as Polar from "geometry/Polar";
     export const degreeToRadian: (angleInDegrees: number) => number;
     export const radianToDegree: (angleInRadians: number) => number;
     export const radiansFromAxisX: (point: Points.Point) => number;
-    export const polarToCartesian: (center: Points.Point, radius: number, angleRadians: number) => {
-        x: number;
-        y: number;
-    };
 }
 declare module "flow/StateMachine" {
     import { SimpleEventEmitter } from "Events";
@@ -2431,6 +2541,10 @@ declare module "collections/MapMultiMutable" {
         readonly groupBy: ToString<V>;
         readonly type: MultiValue<V, M>;
         constructor(type: MultiValue<V, M>, opts?: MapMultiOpts<V>);
+        /**
+         * Returns the length of the longest child list
+         */
+        get lengthMax(): number;
         debugString(): string;
         get isEmpty(): boolean;
         clear(): void;
@@ -3002,6 +3116,7 @@ declare module "visual/Drawing" {
      * @returns
      */
     export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp> | undefined) => DrawingStack;
+    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts | undefined) => void;
     /**
      * Draws one or more circles
      * @param ctx
@@ -3080,13 +3195,14 @@ declare module "visual/Drawing" {
 }
 declare module "visual/Svg" {
     import { CirclePositioned } from "geometry/Circle";
-    import { Line } from "geometry/Line";
-    import { Point } from "geometry/Point";
+    import * as Lines from "geometry/Line";
+    import * as Points from "geometry/Point";
     export type DrawingOpts = {
         readonly strokeStyle?: string;
         readonly fillStyle?: string;
         readonly debug?: boolean;
         readonly strokeWidth?: number;
+        readonly strokeDash?: string;
     };
     export type LineDrawingOpts = DrawingOpts & PathDrawingOpts;
     export type PathDrawingOpts = {
@@ -3123,7 +3239,7 @@ declare module "visual/Svg" {
     export const pathEl: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
     export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: DrawingOpts | undefined) => void;
     export const circleEl: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
-    export const lineEl: (line: Line, parent: SVGElement, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const lineEl: (line: Lines.Line, parent: SVGElement, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
     /**
      * Adds definition if it doesn't already exist
      * @param parent
@@ -3143,8 +3259,8 @@ declare module "visual/Svg" {
     };
     export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: TextPathDrawingOpts | undefined) => void;
     export const textPathEl: (pathRef: string, text: string, parent: SVGElement, opts?: TextPathDrawingOpts | undefined, queryOrExisting?: string | undefined) => SVGTextPathElement;
-    export const textElUpdate: (el: SVGTextElement, pos?: Point | undefined, text?: string | undefined, opts?: TextDrawingOpts | undefined) => void;
-    export const textEl: (pos: Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    export const textElUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: TextDrawingOpts | undefined) => void;
+    export const textEl: (pos: Points.Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
     /**
      * Applies drawing options to given SVG element.
      *
@@ -3154,15 +3270,17 @@ declare module "visual/Svg" {
      */
     export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
     export const svg: (parent: SVGElement, opts?: DrawingOpts | undefined) => {
-        text: (pos: Point, text: string, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
-        line: (line: Line, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+        text: (pos: Points.Point, text: string, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+        line: (line: Lines.Line, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
         circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
         path: (svgStr: string | readonly string[], opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
         query: <V extends SVGElement>(selectors: string) => V | null;
         width: number;
+        readonly parent: SVGElement;
         height: number;
         clear: () => void;
     };
+    export const grid: (parent: SVGElement, center: Points.Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts) => void;
 }
 declare module "visual/Palette" {
     /**
@@ -3196,6 +3314,7 @@ declare module "visual/Palette" {
          * @param colour
          */
         add(key: string, value: string): void;
+        alias(from: string, to: string): void;
     };
     export const create: (fallbacks?: readonly string[] | undefined) => Palette;
     /**
@@ -3211,7 +3330,7 @@ declare module "visual/Palette" {
      */
     export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
 }
-declare module "visual/Plot2" {
+declare module "visual/Plot" {
     import { CircularArray, MapOfMutable } from "collections/Interfaces";
     import * as Palette from "visual/Palette";
     type Series = {
@@ -3231,7 +3350,9 @@ declare module "visual/Plot2" {
         capacity: number;
         coalesce: boolean;
     };
-    type PlotOpts = {
+    export type PlotOpts = {
+        autoSizeCanvas?: boolean;
+        style?: `connected` | `dots`;
         palette?: Palette.Palette;
         capacity?: number;
         showYAxis?: boolean;
@@ -3239,6 +3360,8 @@ declare module "visual/Plot2" {
         textHeight?: number;
         lineWidth?: number;
         coalesce?: boolean;
+        fixedRange?: [number, number];
+        dataXScale?: number;
     };
     export const createScales: (buffer: MapOfMutable<number, CircularArray<number>>) => Series[];
     export const add: (buffer: MapOfMutable<number, CircularArray<number>>, value: number, series?: string) => void;
@@ -3275,9 +3398,11 @@ declare module "visual/Plot2" {
      * @param {PlotOpts} opts
      * @return {*}
      */
-    export const plot2: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => {
-        add: (value: number, series?: string, skipDrawing?: boolean) => void;
-        clear: () => void;
+    export const plot: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => Plotter;
+    export type Plotter = {
+        add(value: number, series?: string, skipDrawing?: boolean): void;
+        clear(): void;
+        dispose(): void;
     };
 }
 declare module "visual/DictionaryOfColourCombinationsData" {
@@ -3309,7 +3434,7 @@ declare module "visual/DictionaryOfColourCombinations" {
 declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
     import * as Svg from "visual/Svg";
-    import * as Plot from "visual/Plot2";
+    import * as Plot from "visual/Plot";
     import * as DictionaryOfColourCombinations from "visual/DictionaryOfColourCombinations";
     import * as Palette from "visual/Palette";
     export { Palette, Drawing, Svg, Plot, DictionaryOfColourCombinations };
@@ -3584,12 +3709,20 @@ declare module "dom/index" {
 }
 declare module "Timer" {
     /**
+     * Creates a timer
+     * @private
+     */
+    export type TimerSource = () => Timer;
+    /**
      * A timer instance
      * @private
      */
     export type Timer = {
         reset(): void;
         get elapsed(): number;
+    };
+    export type ModTimer = Timer & {
+        mod(amt: number): void;
     };
     /**
      * @private
@@ -3605,6 +3738,25 @@ declare module "Timer" {
         cancel(): void;
         get isDone(): boolean;
     };
+    export const debounce: (callback: () => void, timeoutMs: number) => () => void;
+    /**
+     * Generates values from `produce` with `intervalMs` time delay
+     *
+     * @example Produce a random number every 500ms:
+     * ```
+     * const randomGenerator = interval(() => Math.random(), 1000);
+     * for await (const r of randomGenerator) {
+     *  // Random value every 1 second
+     * }
+     * ```
+     *
+     * @template V
+     * @param intervalMs Interval between execution
+     * @param produce Function to call
+     * @template V Data type
+     * @returns
+     */
+    export const interval: <V>(produce: () => Promise<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
     /**
      * Returns a {@link Timeout} that can be triggered, cancelled and reset
      *
@@ -3638,6 +3790,7 @@ declare module "Timer" {
      */
     export type Continuously = HasCompletion & {
         start(): void;
+        get elapsed(): number;
         get ticks(): number;
         get isDone(): boolean;
         cancel(): void;
@@ -3668,7 +3821,7 @@ declare module "Timer" {
      * @param intervalMs
      * @returns
      */
-    export const continuously: (callback: (ticks?: number | undefined) => boolean | void, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined) => boolean | void) | undefined) => Continuously;
+    export const continuously: (callback: (ticks?: number | undefined, totalElapsed?: number | undefined) => boolean | void, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined) => boolean | void) | undefined) => Continuously;
     /**
      * Pauses execution for `timeoutMs`.
      *
@@ -3697,11 +3850,6 @@ declare module "Timer" {
      */
     export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
     /**
-     * Creates a timer
-     * @private
-     */
-    export type TimerSource = () => Timer;
-    /**
      * Wraps a timer, returning a relative elapsed value.
      *
      * ```js
@@ -3711,10 +3859,12 @@ declare module "Timer" {
      * @private
      * @param total
      * @param timer
-     * @param clampValue
+     * @param clampValue If true, returned value never exceeds 1.0
      * @returns
      */
-    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => Timer & HasCompletion;
+    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
+    export const frequencyTimerSource: (frequency: number) => TimerSource;
+    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
     /**
      * A timer that uses clock time
      * @private
@@ -4018,29 +4168,83 @@ declare module "modulation/Envelope" {
      */
     export const adsr: (opts: EnvelopeOpts) => Adsr;
 }
+declare module "modulation/Oscillator" {
+    import * as Timers from "Timer";
+    /**
+     * Oscillator.
+     *
+     * // Saw/tri pinch
+     * ```js
+     * const v = Math.pow(osc.value, 2);
+     * ```
+     *
+     * // Saw/tri bulge
+     * ```js
+     * const v = Math.pow(osc.value, 0.5);
+     * ```
+     *
+     */
+    export function sine(timer: Timers.Timer): Generator<number, void, unknown>;
+    export function sineBipolar(timer: Timers.Timer): Generator<number, void, unknown>;
+    export function triangle(timer: Timers.Timer): Generator<number, void, unknown>;
+    export function saw(timer: Timers.Timer): Generator<number, void, unknown>;
+    export function square(timer: Timers.Timer): Generator<0 | 1, void, unknown>;
+}
 declare module "modulation/index" {
     export * from "modulation/Easing";
     export * from "modulation/Envelope";
+    export * as Oscillators from "modulation/Oscillator";
 }
-declare module "Generators" {
+declare module "modulation/PingPong" {
     /**
-     * Generates values from `produce` with `intervalMs` time delay
+     * Continually loops up and down between 0 and 1 by a specified interval.
+     * Looping returns start value, and is inclusive of 0 and 1.
      *
-     * @example Produce a random number every 500ms:
-     * ```
-     * const randomGenerator = atInterval(() => Math.random(), 1000);
-     * for await (const r of randomGenerator) {
-     *  // Random value every 1 second
+     * @example Usage
+     * ```js
+     * for (let v of percentPingPong(0.1)) {
+     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
      * }
      * ```
      *
-     * @template V
-     * @param intervalMs Interval between execution
-     * @param produce Function to call
-     * @template V Data type
-     * @returns
+     * @example Alternative:
+     * ```js
+     * let pp = pingPongPercent(0.1, 0.5); // Setup generator one time
+     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     *
+     * Because limits are capped to 0 and 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
+     *
+     * @param interval Amount to increment by. Defaults to 10%
+     * @param offset Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
      */
-    export const interval: <V>(produce: () => Promise<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
+    export const pingPongPercent: (interval?: number, start?: number, end?: number, offset?: number, rounding?: number) => Generator<number, never, unknown>;
+    /**
+     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
+     *
+     * In a loop:
+     * ```
+     * for (const c of pingPong(10, 0, 100)) {
+     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
+     * }
+     * ```
+     *
+     * Manual:
+     * ```
+     * const pp = pingPong(10, 0, 100);
+     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     * @param interval Amount to increment by. Use negative numbers to start counting down
+     * @param lower Lower bound (inclusive)
+     * @param upper Upper bound (inclusive, must be greater than start)
+     * @param offset Starting point within bounds (defaults to `lower`)
+     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
+     */
+    export const pingPong: (interval: number, lower: number, upper: number, offset?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+}
+declare module "Generators" {
+    export { pingPong, pingPongPercent } from "modulation/PingPong";
     /**
      * Generates a range of numbers, starting from `start` and coutnting by `interval`.
      * If `end` is provided, generator stops when reached.
@@ -4088,58 +4292,12 @@ declare module "Generators" {
     /**
      * Returns a number range between 0.0-1.0. By default it loops back to 0 after reaching 1
      * @param interval Interval (defaults to 0.01 or 1%)
-     * @param repeating Whether generator should loop
+     * @param repeating Whether generator should loop (default false)
      * @param start Start
      * @param end End
      * @returns
      */
     export const rangePercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
-    /**
-     * Continually loops up and down between 0 and 1 by a specified interval.
-     * Looping returns start value, and is inclusive of 0 and 1.
-     *
-     * @example Usage
-     * ```js
-     * for (let v of percentPingPong(0.1)) {
-     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
-     * }
-     * ```
-     *
-     * @example Alternative:
-     * ```js
-     * let pp = percentPingPong(0.1, 0.5); // Setup generator one time
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     *
-     * Because limits are capped to 0 and 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
-     *
-     * @param interval Amount to increment by. Defaults to 10%
-     * @param offset Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
-     */
-    export const pingPongPercent: (interval?: number, start?: number, end?: number, offset?: number, rounding?: number) => Generator<number, never, unknown>;
-    /**
-     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
-     *
-     * In a loop:
-     * ```
-     * for (const c of pingPong(10, 0, 100)) {
-     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
-     * }
-     * ```
-     *
-     * Manual:
-     * ```
-     * const pp = pingPong(10, 0, 100);
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     * @param interval Amount to increment by. Use negative numbers to start counting down
-     * @param lower Lower bound (inclusive)
-     * @param upper Upper bound (inclusive, must be greater than start)
-     * @param offset Starting point within bounds (defaults to `lower`)
-     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
-     */
-    export const pingPong: (interval: number, lower: number, upper: number, offset?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
 }
 declare module "Random" {
     export const weighted: (min: number, max: number) => number;
@@ -4403,7 +4561,6 @@ declare module "Tracker" {
 declare module "__tests__/frequencyMutable.test" { }
 declare module "__tests__/keyValue.test" { }
 declare module "__tests__/producers.test" { }
-declare module "__tests__/statemachine.test" { }
 declare module "__tests__/util.test" { }
 declare module "__tests__/collections/lists.test" { }
 declare module "__tests__/collections/map.test" { }
@@ -4411,7 +4568,9 @@ declare module "__tests__/collections/mapMutable.test" { }
 declare module "__tests__/collections/queue.test" { }
 declare module "__tests__/collections/sets.test" { }
 declare module "__tests__/collections/stack.test" { }
+declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/grid.test" { }
+declare module "__tests__/modulation/waves" { }
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";

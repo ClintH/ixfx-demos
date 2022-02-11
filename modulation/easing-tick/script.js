@@ -1,9 +1,13 @@
 import {Timers} from '../../ixfx/bundle.js';
 import {easeOverTicks} from '../../ixfx/modulation.js';
-const thingEl = document.getElementById(`thing`);
 
-// Set up easer
-let e = easeOverTicks(`easeInSine`, 100);
+// Define settings
+const settings = {
+  // thing we'll move
+  thingEl: document.getElementById(`thing`),
+  // setup easing
+  easing: easeOverTicks(`easeInSine`, 100)
+}
 
 // Initialise state
 let state = {
@@ -13,17 +17,18 @@ let state = {
 
 // Called on pointerup/keyup 
 const updateState = () => {
+  const {easing} = settings;
   state = {
     ...state,
-    amt: e.compute(), // Progresses easing by one tick
-    isDone: e.isDone
+    amt: easing.compute(), // Progresses easing by one tick
+    isDone: easing.isDone
   }
 
   // Trigger a visual refresh
   updateVisual();
 
   // Return false if envelope is done, stopping animation
-  return !e.isDone;
+  return !easing.isDone;
 }
 
 // Make a human-friendly percentage
@@ -31,7 +36,8 @@ const percentage = (v) => Math.floor(v * 100) + '%';
 
 // Update visuals
 const updateVisual = () => {
-  // Grab relevant fields from state
+  // Grab relevant fields from settings & state
+  const {thingEl} = settings;
   const {amt, isDone} = state;
 
   if (isDone) {
@@ -50,7 +56,8 @@ const updateVisual = () => {
 }
 
 const reset = () => {
-  e.reset();
+  const {thingEl, easing} = settings;
+  easing.reset();
   thingEl.classList.remove(`isDone`);
   thingEl.style.transform = ``;
   thingEl.innerText = ``;

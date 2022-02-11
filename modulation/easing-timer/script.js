@@ -1,10 +1,13 @@
 import {Timers} from '../../ixfx/bundle.js';
 import {easeOverTime} from '../../ixfx/modulation.js';
 
-const thingEl = document.getElementById(`thing`);
-
-// Set up easer
-let e = easeOverTime(`easeInSine`, 1000);
+// Define settings
+const settings = {
+  // thing to move
+  thingEl: document.getElementById(`thing`),
+  // setup easing
+  easing: easeOverTime(`easeInSine`, 1000)
+}
 
 // Initialise state
 let state = {
@@ -14,17 +17,18 @@ let state = {
 
 // Update state with value from easing
 const updateState = () => {
+  const {easing} = settings;
   state = {
     ...state,
-    amt: e.compute(),
-    isDone: e.isDone
+    amt: easing.compute(),
+    isDone: easing.isDone
   }
 
   // Trigger a visual refresh
   updateVisual();
 
   // Return false if envelope is done, stopping animation
-  return !e.isDone;
+  return !easing.isDone;
 }
 
 // Make a human-friendly percentage
@@ -32,7 +36,8 @@ const percentage = (v) => Math.floor(v * 100) + '%';
 
 // Update visuals
 const updateVisual = () => {
-  // Grab relevant field from state
+  // Grab relevant field from settings & state
+  const {thingEl} = settings;
   const {amt, isDone} = state;
 
   if (isDone) {
@@ -56,13 +61,14 @@ const run = Timers.continuously(updateState);
 // Called on pointerup or keyup. 
 // Triggers easing function
 const trigger = () => {
-  e.reset();
+  const {easing, thingEl} = settings;
+  easing.reset();
   run.start();
   thingEl.classList.remove(`isDone`);
   thingEl.style.transform = ``;
   thingEl.innerText = ``;
 };
 
-// Handle events
+// Wire up events
 document.addEventListener(`pointerup`, trigger);
 document.addEventListener(`keyup`, trigger);

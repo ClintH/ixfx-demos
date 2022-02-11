@@ -1,6 +1,7 @@
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
+// Define settings
 const settings = {
   outerColour: `indigo`,
   innerColour: `pink`,

@@ -4,7 +4,7 @@ import {scale} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
-// Settings used for sketch
+// Define settings
 const settings = {
   // Radius will be 30% of viewport
   radiusProportion: 0.3,

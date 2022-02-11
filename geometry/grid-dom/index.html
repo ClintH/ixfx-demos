@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grid DOM</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+
+<body>
+  <style>
+    body,
+    html {
+      height: 100%;
+      width: 100%;
+    }
+
+    main {
+      height: 100%;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .cell {
+      width: 5vw;
+      height: 5vw;
+      border: 1px solid var(--gray-light);
+      transition: background 1.5s ease-out;
+    }
+
+    .cell:hover {
+      background-color: lightcoral;
+      transition: background 0.3s ease-in;
+    }
+
+    .grid {
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+  <main>
+    <div id="grid"></div>
+    <div id="feedback"></div>
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
