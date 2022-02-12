@@ -1,7 +1,10 @@
-export { D as Drawing } from './Drawing-73fb6d6f';
-export { D as DictionaryOfColourCombinations, P as Palette, a as Plot, S as Svg } from './index-ebdbc35a';
-import './Rect-320e55dc';
-import './Circle-f30fc0a6';
-import './Interfaces-482c491d';
+export { D as Drawing } from './Drawing-59975292';
+export { S as Svg } from './Svg-7f729872';
+export { C as Colour, D as DictionaryOfColourCombinations, P as Palette, a as Plot } from './index-2ba5204f';
+import './Rect-a4ccf209';
+import './Circle-d41f7d52';
+import './Bezier-be86010c';
+import './Interfaces-99011dee';
 import './Events-53171926';
 import './util';
+import 'd3-color';

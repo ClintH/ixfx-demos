@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Throttle</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+<style>
+  body {
+    font-size: 12px;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+  }
+
+  .container>div {
+    padding-bottom: 1em;
+  }
+
+  .data {
+    overflow: auto;
+    max-height: 30vh;
+  }
+
+  button {
+    padding: 0.3em;
+  }
+</style>
+
+<body>
+  <section>
+    <p>Try moving your pointer. Sketch responds at maximum rate of 500ms.</p>
+    <button id="btnReset">Reset</button>
+    <div class="container">
+      <div>
+        Throttled:
+        <div class="data" id="log"></div>
+      </div>
+      <div>
+        Raw:
+        <div class="data" id="raw"></div>
+      </div>
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

@@ -1,3 +1,4 @@
+declare const startsEnds: (v: string, start: string, end: string) => boolean;
 /**
  * Clamps a value between min and max (both inclusive)
  * Defaults to a 0-1 range, useful for percentages.
@@ -78,30 +79,30 @@ declare const scalePercent: (v: number, outMin: number, outMax: number) => numbe
  */
 declare const clampZeroBounds: (v: number, length: number) => number;
 /**
- * Lerp calculates a relative value of `amt` between `a` and `b`.
+ * Interpolates between `a` and `b` by `amount`. Aka `lerp`.
  *
  * @example Get the halfway point between 30 and 60
  * ```js
- * lerp(0.5, 30, 60);
+ * interpolate(0.5, 30, 60);
  * ````
  *
- * Lerp is commonly used to interpolate between numbers for animation.
- * In that case, `amt` would start at 0 and you would keep `lerp`ing up to `1`
+ * Interpolation is often used for animation.
+ * In that case, `amount` would start at 0 and you would keep interpolating up to `1`
  * @example
  * ```
  * let pp = percentPingPong(0.1); // Go back and forth between 0 and 1 by 0.1
  * continuously(() => {
  *   const amt = pp.next().value;     // Get position in ping-pong
- *   let v = lerp(amt, xStart, xEnd); // Lerp between xStart and xEnd
+ *   let v = interpolate(amt, xStart, xEnd); // interpolate between xStart and xEnd
  *  // do something with v...
  * }).start();
  * ```
- * @param amt Lerp amount, between 0 and 1 inclusive
+ * @param amount Interpolation amount, between 0 and 1 inclusive
  * @param a Start (ie when `amt` is 0)
  * @param b End (ie. when `amt` is 1)
- * @returns Lerped value which will be betewen `a` and `b`.
+ * @returns Interpolated value which will be betewen `a` and `b`.
  */
-declare const lerp: (amt: number, a: number, b: number) => number;
+declare const interpolate: (amount: number, a: number, b: number) => number;
 /**
  * @private
  */
@@ -137,5 +138,61 @@ declare const isEqualValueDefault: <V>(a: V, b: V) => boolean;
  * @returns {string}
  */
 declare const toStringDefault: <V>(itemToMakeStringFor: V) => string;
+/**
+ * Wraps a number within a specified range.
+ * See {@link wrapDegrees} to wrap within 0-360.
+ *
+ * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
+ * Eg: to add 200 to 200, we don't want 400, but 40.
+ * ```js
+ * const v = wrapped(200+200, 0, 360); // 40
+ * ```
+ *
+ * Or if we minus 100 from 10, we don't want -90 but 270
+ * ```js
+ * const v = wrapped(10-100, 0, 360); // 270
+ * ```
+ *
+ * Non-zero starting points can be used. A range of 20-70:
+ * ```js
+ * const v = wrapped(-20, 20, 70); // 50
+ * ```
+ * @param v Value to wrap
+ * @param min Minimum of range
+ * @param max Maximum of range
+ * @returns
+ */
+declare const wrap: (v: number, min: number, max: number) => number;
+/**
+ * Wraps the given `degrees` to within 0-360, using {@link wrap}.
+ *
+ * Eg
+ * ```
+ * wrapDegrees(150); // 150 - fine, within range
+ * wrapDegrees(400); // 40  - wraps around
+ * wrapDegrees(-20); // 340 - wraps around
+ * @param v
+ * @returns
+ */
+declare const wrapDegrees: (degrees: number) => number;
+/**
+ * Performs a calculation within a wrapping number range.
+ * See also: {@link wrap} to wrap a number within a range.
+ *
+ * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
+ * Eg: to add 200 to 200, we don't want 400, but 40.
+ * ```
+ * const v = wrappedRange(0, 360, 0,)
+ * ```
+ * Or if we minus 100 from 10, we don't want -90 but 270
+ *
+ * @param a
+ * @param b
+ * @param min
+ * @param max
+ * @param fn
+ * @returns
+ */
+declare const wrapRange: (min: number, max: number, fn: (rangeMax: number) => number, a: number, b: number) => number;
 
-export { IsEqual, ToString, clamp, clampZeroBounds, isEqualDefault, isEqualValueDefault, lerp, scale, scalePercent, scalePercentOutput, toStringDefault };
+export { IsEqual, ToString, clamp, clampZeroBounds, interpolate, isEqualDefault, isEqualValueDefault, scale, scalePercent, scalePercentOutput, startsEnds, toStringDefault, wrap, wrapDegrees, wrapRange };

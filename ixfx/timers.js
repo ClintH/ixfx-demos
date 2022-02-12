@@ -8,12 +8,13 @@ import {
   msElapsedTimer,
   relativeTimer,
   sleep,
+  throttle,
   ticksElapsedTimer,
   timeout
-} from "./chunk-5KBJPUCR.js";
-import "./chunk-XQ3ULWLN.js";
-import "./chunk-OQJMMN6S.js";
-import "./chunk-FQLUQVDZ.js";
+} from "./chunk-R5XXMDFJ.js";
+import "./chunk-4M4QV6VA.js";
+import "./chunk-RKVT4IML.js";
+import "./chunk-YDTVC7MM.js";
 export {
   continuously,
   debounce,
@@ -24,7 +25,7 @@ export {
   msElapsedTimer,
   relativeTimer,
   sleep,
+  throttle,
   ticksElapsedTimer,
   timeout
 };
-//# sourceMappingURL=timers.js.map
