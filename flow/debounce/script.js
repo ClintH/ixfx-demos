@@ -12,6 +12,6 @@ const onMove = (elapsedMs, ...args) => {
 
 const setup = () => {
   const moveDebounced = debounce(onMove, 1000);
-  window.addEventListener(`pointermove`, moveDebounced);
+  document.addEventListener(`pointermove`, moveDebounced);
 }
 setup();
