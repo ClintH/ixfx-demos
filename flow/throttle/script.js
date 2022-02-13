@@ -17,7 +17,6 @@ const setup = () => {
   const moveThrottled = throttle(onMove, 500);
 
   // Swallow some events to avoid touch screen issues
-  window.addEventListener(`touchstart`, (ev) => ev.preventDefault());
   document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());
 
   window.addEventListener(`pointermove`, (ev) => {
