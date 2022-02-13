@@ -1,4 +1,4 @@
-import * as Generators from '../../ixfx/generators.js';
+import {pingPongPercent, forEach, count} from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings
@@ -7,7 +7,7 @@ const settings = {
   innerColour: `pink`,
   piPi: Math.PI * 2,
   // Loop back and forth between 0 and 1, 1% at a time
-  pingPong: Generators.pingPongPercent(0.01),
+  pingPong: pingPongPercent(0.01),
   // % to reduce radius by for each circle
   radiusDecay: 0.8,
   // Proportion of viewport size to radius
@@ -38,7 +38,7 @@ const update = () => {
 }
 
 /**
- * 
+ * Draw a gradient-filled circle
  * @param {CanvasRenderingContext2D} ctx 
  * @param {number} radius 
  */
@@ -74,12 +74,14 @@ const draw = (ctx) => {
   let {radius} = state;
   const {radiusDecay} = settings;
 
-  for (let i = 0; i < 10; i++) {
+  // Uses ixfx's forEach and count to run the body 10 times
+  forEach(count(10), () => {
+    // Draw a circle with given radius  
     drawGradientCircle(ctx, radius);
 
     // Diminish radius
     radius *= radiusDecay;
-  }
+  });
 }
 
 /**
@@ -89,6 +91,7 @@ const setup = () => {
   // Keep our primary canvas full size
   /** @type {HTMLCanvasElement} */
   const canvasEl = Dom.resolveEl(`#canvas`);
+  const ctx = canvasEl.getContext(`2d`);
   Dom.fullSizeCanvas(canvasEl, args => {
     // Update state with new size of canvas
     state = {
@@ -97,15 +100,9 @@ const setup = () => {
     }
   });
 
-  const ctx = canvasEl.getContext(`2d`);
-
-  const clear = () => {
-    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  };
-
   const loop = () => {
-    clear();
     update();
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
     draw(ctx);
     window.requestAnimationFrame(loop);
   }

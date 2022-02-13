@@ -43,6 +43,7 @@ const updateDom = () => {
   const {lastClicked} = state;
   feedbackEl.innerHTML = `Clicked ${lastClicked.x},${lastClicked.y}`;
 }
+
 /**
  * Setup 
  */
@@ -62,7 +63,6 @@ const setup = () => {
   }
 
   gridEl.addEventListener(`click`, onCellClick);
-
 }
 
 setup();

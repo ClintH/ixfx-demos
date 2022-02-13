@@ -1,23 +1,21 @@
 import {Timers} from '../../ixfx/bundle.js';
 import {adsr, defaultAdsrOpts} from '../../ixfx/modulation.js';
 
-// Set up envelope
 const settings = {
+  // Set up envelope
   env: adsr({
     ...defaultAdsrOpts(),
     attackDuration: 2000,
     releaseDuration: 5000,
     sustainLevel: 1,
     retrigger: false /* env continues from where it is */
-  })
+  }),
+  // continuously instance, initialised in setup()
+  run: null
 }
 
 // Initialise state
-let state = {
-  amt: 0,
-  stage: ``,
-  raw: 0
-};
+let state = {amt: 0, stage: ``, raw: 0};
 
 // Update state - this is called by runLoop
 const updateState = () => {
@@ -45,11 +43,11 @@ const percentage = (v) => Math.floor(v * 100) + '%';
 // Update visuals
 const updateVisual = () => {
   // Grab relevant fields from settings & state
-  const {env} = settings;
   const {amt, stage, raw, triggered} = state;
   const isComplete = Number.isNaN(amt); // Are we done?
   const hsl = (v) => `hsl(60, ${v * 100}%, 40%)`; // Produces a hsl(60, sat%, lightness%) string
 
+  console.log(amt);
   // Update left side
   const withoutEl = document.getElementById(`without`);
   withoutEl.style.backgroundColor = triggered ? hsl(1) : hsl(0);
@@ -64,13 +62,10 @@ const updateVisual = () => {
     `${stage} ${percentage(raw)}`;
 }
 
-// Run loop. This will call `updateState` until it returns false
-const run = Timers.continuously(updateState);
-
 // Called on pointerdown or keydown. Triggers the envelope and
 // starts the run loop if it's not running
 const trigger = (ev) => {
-  const {env} = settings;
+  const {env, run} = settings;
   ev.preventDefault();
 
   // Returns if already triggered. 
@@ -88,7 +83,7 @@ const trigger = (ev) => {
 // Called on pointerup or keyup. Releases envelope and 
 // makes sure run loop is still running to animate result
 const release = (ev) => {
-  const {env} = settings;
+  const {env, run} = settings;
   ev.preventDefault();
   state = {
     ...state,
@@ -98,13 +93,21 @@ const release = (ev) => {
   run.start();
 }
 
-// Prevent context menu popping up on touch screens when there is a long touch
-document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());
+const setup = () => {
+  // Run loop. This will call `updateState` until it returns false
+  settings.run = Timers.continuously(updateState)
 
-// Trigger envelope
-document.addEventListener(`pointerdown`, trigger);
-document.addEventListener(`keydown`, trigger);
+  // Prevent context menu popping up on touch screens when there is a long touch
+  document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());
 
-// Release envelope
-document.addEventListener(`pointerup`, release);
-document.addEventListener(`keyup`, release);
+  // Trigger envelope
+  document.addEventListener(`pointerdown`, trigger);
+  document.addEventListener(`keydown`, trigger);
+
+  // Release envelope
+  document.addEventListener(`pointerup`, release);
+  document.addEventListener(`keyup`, release);
+}
+setup();
+
+

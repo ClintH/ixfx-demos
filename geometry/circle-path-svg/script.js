@@ -24,10 +24,13 @@ let state = {
 const update = () => {
   const {genLoop} = settings;
 
+  const v = genLoop.next().value;
+  if (!v) return; // Exit if generator doesn't return a value
+
   state = {
     ...state,
     // Get new values from generator
-    loop: genLoop.next().value
+    loop: v
   }
 }
 
@@ -69,7 +72,7 @@ const setup = () => {
   });
 
   // Create an empty SVG path element for circle
-  const circleEl = Svg.pathEl(``, svg, {
+  const circleEl = Svg.Elements.path(``, svg, {
     fillStyle: `none`,
     strokeStyle: `none`,
     strokeWidth: 1
@@ -77,7 +80,7 @@ const setup = () => {
   circleEl.id = `circlePath`;
 
   // Create text to go on path
-  Svg.textPathEl(`#circlePath`, text, svg);
+  Svg.Elements.textPath(`#circlePath`, text, svg);
 
   const loop = () => {
     update();

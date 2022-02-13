@@ -55,20 +55,23 @@ const updateVisual = () => {
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
 }
 
-// Run loop. This will call `updateState` until it returns false
-const run = Timers.continuously(updateState);
+const setup = () => {
+  // Run loop. This will call `updateState` until it returns false
+  const run = Timers.continuously(updateState);
 
-// Called on pointerup or keyup. 
-// Triggers easing function
-const trigger = () => {
-  const {easing, thingEl} = settings;
-  easing.reset();
-  run.start();
-  thingEl.classList.remove(`isDone`);
-  thingEl.style.transform = ``;
-  thingEl.innerText = ``;
-};
+  // Called on pointerup or keyup. 
+  // Triggers easing function
+  const trigger = () => {
+    const {easing, thingEl} = settings;
+    easing.reset();
+    run.start();
+    thingEl.classList.remove(`isDone`);
+    thingEl.style.transform = ``;
+    thingEl.innerText = ``;
+  };
 
-// Wire up events
-document.addEventListener(`pointerup`, trigger);
-document.addEventListener(`keyup`, trigger);
+  // Wire up events
+  document.addEventListener(`pointerup`, trigger);
+  document.addEventListener(`keyup`, trigger);
+}
+setup();

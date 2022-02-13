@@ -29,11 +29,15 @@ let state = {
 const update = () => {
   const {genPingPong, genLoop} = settings;
 
+  // In case generator stops returning values, default to 0
+  let v = genLoop.next().value;
+  if (!v) v = 0;
+
   state = {
     ...state,
     // Get new values from generators
     pingPong: genPingPong.next().value,
-    loop: genLoop.next().value
+    loop: v
   }
 }
 
@@ -58,7 +62,7 @@ const updateSvg = (circleEl) => {
   Svg.applyOpts(circleEl, {strokeWidth: width});
 
   // Update circle
-  Svg.circleUpdate(circleEl, circle);
+  Svg.Elements.circleUpdate(circleEl, circle);
 }
 
 /**
@@ -83,7 +87,7 @@ const setup = () => {
   })
 
   // Create SVG `path` element for circle
-  const circleEl = Svg.circleEl({radius: 10, x: 10, y: 10}, svg, {
+  const circleEl = Svg.Elements.circle({radius: 10, x: 10, y: 10}, svg, {
     fillStyle: `none`,
     strokeStyle: settings.strokeStyle,
     strokeWidth: settings.strokeWidthMax

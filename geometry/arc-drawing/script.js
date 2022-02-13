@@ -112,7 +112,6 @@ const setup = () => {
 
   const ctx = canvasEl.getContext(`2d`);
 
-
   const clear = () => {
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
   };
@@ -126,7 +125,6 @@ const setup = () => {
   window.requestAnimationFrame(loop);
 }
 setup();
-
 
 /**
  * @param {HTMLCanvasElement} el 

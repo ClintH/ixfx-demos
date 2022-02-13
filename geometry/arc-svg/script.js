@@ -80,7 +80,7 @@ const setup = () => {
   });
 
   // Create SVG `path` element for arc
-  const arcEl = Svg.pathEl(``, svg, {
+  const arcEl = Svg.Elements.path(``, svg, {
     fillStyle: `none`,
     strokeStyle: settings.strokeStyle,
     strokeWidth: settings.strokeWidthMax

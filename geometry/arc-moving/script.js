@@ -48,7 +48,7 @@ const update = () => {
   const arc = Arcs.fromDegrees(radius, settings.startAngle, settings.endAngle, center);
 
   // Calculate relative point on arc using current pingpong amount
-  const coord = Arcs.compute(arc, pingPong.next().value);
+  const coord = Arcs.interpolate(pingPong.next().value, arc);
 
   // Update state
   state = {
@@ -58,7 +58,7 @@ const update = () => {
 }
 
 /**
- * 
+ * Moves `el` to `state.coord` using CSS transform
  * @param {HTMLElement} el Element to move 
  */
 const updateEl = (el) => {

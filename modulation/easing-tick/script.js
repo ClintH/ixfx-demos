@@ -16,7 +16,8 @@ let state = {
 };
 
 // Called on pointerup/keyup 
-const updateState = () => {
+const updateState = (ev) => {
+  ev.preventDefault();
   const {easing} = settings;
   state = {
     ...state,
@@ -55,14 +56,25 @@ const updateVisual = () => {
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
 }
 
-const reset = () => {
+const reset = (ev) => {
   const {thingEl, easing} = settings;
+
+  // Don't reset if circle is clicked 
+  if (ev.target === thingEl) return;
+
+  // Reset
   easing.reset();
   thingEl.classList.remove(`isDone`);
   thingEl.style.transform = ``;
   thingEl.innerText = ``;
 };
 
-// Handle events
-document.addEventListener(`pointerdown`, reset);
-document.addEventListener(`keydown`, updateState);
+const setup = () => {
+  const {thingEl} = settings;
+
+  // Handle events
+  document.addEventListener(`pointerdown`, reset);
+  document.addEventListener(`keydown`, updateState);
+  thingEl.addEventListener(`click`, updateState);
+}
+setup();
