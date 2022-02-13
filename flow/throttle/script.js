@@ -15,19 +15,23 @@ const onMove = (elapsedMs, ...args) => {
 const setup = () => {
   const {log, raw, resetBtn} = settings;
   const moveThrottled = throttle(onMove, 500);
-  window.addEventListener(`pointermove`, moveThrottled);
 
-  // For comparison also show unthrottled
-  window.addEventListener(`pointermove`, () => {
+  // Swallow some events to avoid touch screen issues
+  window.addEventListener(`touchstart`, (ev) => ev.preventDefault());
+  document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());
+
+  window.addEventListener(`pointermove`, (ev) => {
+    ev.preventDefault();
+
+    // For comparison also show unthrottled
     raw.append(`!`);
+    moveThrottled();
   });
 
-
+  // Reset button
   resetBtn.addEventListener(`click`, () => {
     log.innerHTML = ``;
     raw.innerHTML = ``;
   });
-
-
 }
 setup();
