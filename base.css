@@ -19,6 +19,7 @@ html {
 }
 
 body {
+  overscroll-behavior: contain;
   font-family: var(--font);
   background-color: var(--gray);
   font-weight: 600;
