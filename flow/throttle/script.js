@@ -19,7 +19,7 @@ const setup = () => {
   // Swallow some events to avoid touch screen issues
   document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());
 
-  window.addEventListener(`pointermove`, (ev) => {
+  document.addEventListener(`pointermove`, (ev) => {
     ev.preventDefault();
 
     // For comparison also show unthrottled
