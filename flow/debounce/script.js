@@ -1,4 +1,4 @@
-import {debounce} from '../../ixfx/timers.js';
+import {debounce} from '../../ixfx/flow.js';
 
 const settings = {
   log: document.getElementById(`log`)

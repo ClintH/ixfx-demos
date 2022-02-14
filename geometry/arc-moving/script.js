@@ -1,5 +1,5 @@
 import {Arcs} from '../../ixfx/geometry.js';
-import {timeout, continuously} from '../../ixfx/timers.js';
+import {timeout, continuously} from '../../ixfx/flow.js';
 import * as Generators from '../../ixfx/generators.js';
 
 // Define settings

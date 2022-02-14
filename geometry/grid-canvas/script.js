@@ -1,6 +1,6 @@
 import {Grids} from '../../ixfx/geometry.js'
 import * as Modulation from '../../ixfx/modulation.js'
-import * as Timers from '../../ixfx/timers.js'
+import * as Flow from '../../ixfx/flow.js'
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings
@@ -33,7 +33,7 @@ const update = () => {
     if (!modulators.has(key)) {
       // Create a frequency-based timer
       // Max rate will be 0.5 cycles/per sec
-      const t = Timers.frequencyTimer(0.5);
+      const t = Flow.frequencyTimer(0.5);
 
       // Since all oscillators are created about the same time,
       // they will be in sync. Add some random modulation to each

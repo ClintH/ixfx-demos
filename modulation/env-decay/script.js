@@ -1,4 +1,4 @@
-import {Timers} from '../../ixfx/bundle.js';
+import * as Flow from '../../ixfx/flow.js';
 import {adsr, defaultAdsrOpts} from '../../ixfx/modulation.js';
 
 const settings = {
@@ -95,7 +95,7 @@ const release = (ev) => {
 
 const setup = () => {
   // Run loop. This will call `updateState` until it returns false
-  settings.run = Timers.continuously(updateState)
+  settings.run = Flow.continuously(updateState)
 
   // Prevent context menu popping up on touch screens when there is a long touch
   document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());

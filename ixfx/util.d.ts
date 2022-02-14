@@ -1,14 +1,32 @@
-declare const startsEnds: (v: string, start: string, end: string) => boolean;
+/**
+ * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
+ * If _end_ is omitted, the the `start` value will be used.
+ *
+ * ```js
+ * startsEnds(`This is a string`, `This`, `string`); // True
+ * startsEnds(`This is a string`, `is`, `a`); // False
+ * starsEnds(`test`, `t`); // True, starts and ends with 't'
+ * ```
+ * @param source String to search within
+ * @param start Start
+ * @param end End (if omitted, start will be looked for at end as well)
+ * @returns True if source starts and ends with provided values.
+ */
+declare const startsEnds: (source: string, start: string, end?: string) => boolean;
 /**
  * Clamps a value between min and max (both inclusive)
  * Defaults to a 0-1 range, useful for percentages.
  *
  * @example Usage
  * ```js
- *  clamp(0.5);         // 0.5 - just fine, within default of 0 to 1
- *  clamp(1.5);         // 1 - above default max of 1
- *  clamp(-50, 0, 100); // 0 - below range
- *  clamp(50, 0, 50);   // 50 - within range
+ * // 0.5 - just fine, within default of 0 to 1
+ * clamp(0.5);
+ * // 1 - above default max of 1
+ * clamp(1.5);
+ * // 0 - below range
+ * clamp(-50, 0, 100);
+ * // 50 - within range
+ * clamp(50, 0, 50);
  * ```
  *
  * For clamping integer ranges, consider `clampZeroBounds`
@@ -20,36 +38,52 @@ declare const startsEnds: (v: string, start: string, end: string) => boolean;
  */
 declare const clamp: (v: number, min?: number, max?: number) => number;
 /**
- * Scales `v` from an input range to an output range.
- * For example, if a sensor's useful range is 100-500, you could
- * easily scale it to a percentage:
+ * Scales `v` from an input range to an output range (aka `map`)
+ *
+ * For example, if a sensor's useful range is 100-500, scale it to a percentage:
  * ```js
  * scale(sensorReading, 100, 500, 0, 1);
+ * ```
+ *
+ * `scale` defaults to a percentage-range output, so you can get away with:
+ * ```js
+ * scale(sensorReading, 100, 500);
  * ```
  * @param v Value to scale
  * @param inMin Input minimum
  * @param inMax Input maximum
- * @param outMin Output minimum
- * @param outMax Output maximum
+ * @param outMin Output minimum. If not specified, 0
+ * @param outMax Output maximum. If not specified, 1.
  * @returns Scaled value
  */
-declare const scale: (v: number, inMin: number, inMax: number, outMin: number, outMax: number) => number;
+declare const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined) => number;
 /**
- * Scales a full input percentage range to a diminished percentage output range.
+ * Scales an input percentage to a new percentage range.
  *
- * Essentially the same as {@link scalePercent}, however it throws an error if output range is not within 0-1.
+ * If you have an input percentage (0-1), `scalePercentageOutput` maps it to an
+ * _output_ percentage of `outMin`-`outMax`.
  *
- * @param v
+ * ```js
+ * // Scales 50% to a range of 0-10%
+ * scalePercentages(0.5, 0, 0.10); // 0.05 - 5%
+ * ```
+ *
+ * An error is thrown if any parameter is outside of percentage range. This added
+ * safety is useful for catching bugs. Otherwise, you could just as well call
+ * `scale(percentage, 0, 1, outMin, outMax)`.
+ *
+ * @param percentage Input value, within percentage range
  * @param outMin Output minimum, between 0-1
  * @param outMax Output maximum, between 0-1
- * @returns
+ * @returns Scaled value between outMin-outMax.
  */
-declare const scalePercentOutput: (v: number, outMin: number, outMax?: number) => number;
+declare const scalePercentages: (percentage: number, outMin: number, outMax?: number) => number;
 /**
- * Scales an input percentage value (0-1) to the output range of `outMin`-`outMax`.
- *
- * Use {@link scalePercentOutput} if the output range is meant to be a percentage. It will
- * enforce safety of the out range.
+ * Scales an input percentage value  to an output range
+ * If you have an input percentage (0-1), `scalePercent` maps it to an output range of `outMin`-`outMax`.
+ * ```js
+ * scalePercent(0.5, 10, 20); // 15
+ * ```
  *
  * @param v Value to scale
  * @param outMin Minimum for output
@@ -58,26 +92,26 @@ declare const scalePercentOutput: (v: number, outMin: number, outMax?: number) =
  */
 declare const scalePercent: (v: number, outMin: number, outMax: number) => number;
 /**
- * Clamps integer `v` between 0 (inclusive) and length (exclusive). This is useful
- * for clamping an array range, because the largest allowed number will
- * be one less than length.
+ * Clamps integer `v` between 0 (inclusive) and array length or length (exclusive).
+ * Returns value then will always be at least zero, and a valid array index.
  *
  * @example Usage
  * ```js
+ * // Array of length 4
  * const myArray = [`a`, `b`, `c`, `d`];
- * clampZeroBounds(0, myArray.length);    // 0
- * clampZeroBounds(1.2, myArray.length);  // 1
- * clampZeroBounds(4, myArray.length);    // 4
- * clampZeroBounds(5, myArray.length);    // 4
- * clampZeroBounds(-1, myArray.length);   // 0
+ * clampIndex(0, myArray);    // 0
+ * clampIndex(4, myArray);    // 3
+ * clampIndex(-1, myArray);   // 0
+ *
+ * clampIndex(5, 3); // 2
  * ```
  *
- * Throws an error if `v` or `length` are not integers.
+ * Throws an error if `v` is not an integer.
  * @param v Value to clamp (must be an interger)
- * @param length Length of bounds (must be an integer)
+ * @param arrayOrLength Array, or length of bounds (must be an integer)
  * @returns Clamped value, minimum will be 0, maximum will be one less than `length`.
  */
-declare const clampZeroBounds: (v: number, length: number) => number;
+declare const clampIndex: (v: number, arrayOrLength: number | readonly any[]) => number;
 /**
  * Interpolates between `a` and `b` by `amount`. Aka `lerp`.
  *
@@ -86,17 +120,22 @@ declare const clampZeroBounds: (v: number, length: number) => number;
  * interpolate(0.5, 30, 60);
  * ````
  *
- * Interpolation is often used for animation.
- * In that case, `amount` would start at 0 and you would keep interpolating up to `1`
+ * Interpolation is often used for animation. In that case, `amount`
+ * would start at 0 and you would keep interpolating up to `1`
  * @example
- * ```
- * let pp = percentPingPong(0.1); // Go back and forth between 0 and 1 by 0.1
+ * ```js
+ * // Go back and forth between 0 and 1 by 0.1
+ * let pp = percentPingPong(0.1);
  * continuously(() => {
- *   const amt = pp.next().value;     // Get position in ping-pong
- *   let v = interpolate(amt, xStart, xEnd); // interpolate between xStart and xEnd
+ *  // Get position in ping-pong
+ *  const amt = pp.next().value;
+ *  // interpolate between xStart and xEnd
+ *  let v = interpolate(amt, xStart, xEnd);
  *  // do something with v...
  * }).start();
  * ```
+ *
+ * See also {@link Colour.interpolate}, {@link Points.interpolate}.
  * @param amount Interpolation amount, between 0 and 1 inclusive
  * @param a Start (ie when `amt` is 0)
  * @param b End (ie. when `amt` is 1)
@@ -176,23 +215,30 @@ declare const wrap: (v: number, min: number, max: number) => number;
  */
 declare const wrapDegrees: (degrees: number) => number;
 /**
- * Performs a calculation within a wrapping number range.
- * See also: {@link wrap} to wrap a number within a range.
+ * Performs a calculation within a wrapping number range. This is a lower-level function.
+ * See also: {@link wrap} for simple wrapping within a range.
  *
- * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
- * Eg: to add 200 to 200, we don't want 400, but 40.
- * ```
- * const v = wrappedRange(0, 360, 0,)
- * ```
- * Or if we minus 100 from 10, we don't want -90 but 270
+ * `min` and `max` define the start and end of the valid range, inclusive. Eg for hue degrees it'd be 0, 360.
+ * `a` and `b` is the range you want to work in.
  *
- * @param a
- * @param b
- * @param min
- * @param max
- * @param fn
+ * For example, let's say you want to get the middle point between a hue of 30 and a hue of 330 (ie warmer colours):
+ * ```js
+ * wrapRange(0,360, (distance) => {
+ *  // for a:0 and b:330, distance would be 90 from 30 degrees to 330 (via zero)
+ *  return distance * 0.5; // eg return middle point
+ * }, 30, 330);
+ * ```
+ *
+ * The return value of the callback should be in the range of 0-distance. `wrapRange` will subsequently
+ * conform it to the `min` and `max` range before it's returned to the caller.
+ *
+ * @param a Output start (eg. 60)
+ * @param b Output end (eg 300)
+ * @param min Range start (eg 0)
+ * @param max Range end (eg 360)
+ * @param fn Returns a computed value from 0 to `distance`.
  * @returns
  */
-declare const wrapRange: (min: number, max: number, fn: (rangeMax: number) => number, a: number, b: number) => number;
+declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
 
-export { IsEqual, ToString, clamp, clampZeroBounds, interpolate, isEqualDefault, isEqualValueDefault, scale, scalePercent, scalePercentOutput, startsEnds, toStringDefault, wrap, wrapDegrees, wrapRange };
+export { IsEqual, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, scale, scalePercent, scalePercentages, startsEnds, toStringDefault, wrap, wrapDegrees, wrapRange };

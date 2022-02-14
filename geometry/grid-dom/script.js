@@ -6,6 +6,7 @@
 
 import {Grids} from '../../ixfx/geometry.js'
 
+
 // Define settings
 const settings = {
   grid: {rows: 10, cols: 10, size: 10},
@@ -24,8 +25,8 @@ let state = {
  * @returns 
  */
 const getCellFromElement = (el) => ({
-  x: parseInt(el.getAttribute(`data-x`)),
-  y: parseInt(el.getAttribute(`data-y`))
+  x: parseInt(el.getAttribute(`data - x`)),
+  y: parseInt(el.getAttribute(`data - y`))
 });
 
 const onCellClick = (ev) => {
@@ -41,7 +42,7 @@ const updateDom = () => {
   // Grab what we need from settings and state
   const {feedbackEl} = settings;
   const {lastClicked} = state;
-  feedbackEl.innerHTML = `Clicked ${lastClicked.x},${lastClicked.y}`;
+  feedbackEl.innerHTML = `Clicked ${lastClicked.x}, ${lastClicked.y}`;
 }
 
 /**
@@ -53,10 +54,10 @@ const setup = () => {
   for (const row of Grids.rows(grid)) {
     // Make HTML for each cell. This produces an array of strings
     //   Note we encode the coordinate of the cell in the attributes
-    const cellsHtml = row.map(cell => `<div data-x="${cell.x}" data-y="${cell.y}" class="cell"></div>`);
+    const cellsHtml = row.map(cell => `< div data - x="${cell.x}" data - y="${cell.y}" class= "cell" ></div > `);
 
     // Make HTML for a row. Join together array of strings
-    const rowHtml = `<div class="row">${cellsHtml.join(` `)}</div>`;
+    const rowHtml = `< div class= "row" > ${cellsHtml.join(` `)}</div > `;
 
     // Add it to the parent element
     gridEl.insertAdjacentHTML(`beforeend`, rowHtml);

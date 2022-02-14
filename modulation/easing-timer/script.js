@@ -1,4 +1,4 @@
-import {Timers} from '../../ixfx/bundle.js';
+import * as Flow from '../../ixfx/flow.js';
 import {easeOverTime} from '../../ixfx/modulation.js';
 
 // Define settings
@@ -57,7 +57,7 @@ const updateVisual = () => {
 
 const setup = () => {
   // Run loop. This will call `updateState` until it returns false
-  const run = Timers.continuously(updateState);
+  const run = Flow.continuously(updateState);
 
   // Called on pointerup or keyup. 
   // Triggers easing function

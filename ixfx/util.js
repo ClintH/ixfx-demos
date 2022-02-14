@@ -1,32 +1,33 @@
 import {
   clamp,
-  clampZeroBounds,
+  clampIndex,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
   scale,
   scalePercent,
-  scalePercentOutput,
+  scalePercentages,
   startsEnds,
   toStringDefault,
   wrap,
   wrapDegrees,
   wrapRange
-} from "./chunk-XUOVPB5U.js";
-import "./chunk-E6FEPMVF.js";
-import "./chunk-YDTVC7MM.js";
+} from "./chunk-MNQGJO77.js";
+import "./chunk-6JTGCZJL.js";
+import "./chunk-FQLUQVDZ.js";
 export {
   clamp,
-  clampZeroBounds,
+  clampIndex,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
   scale,
   scalePercent,
-  scalePercentOutput,
+  scalePercentages,
   startsEnds,
   toStringDefault,
   wrap,
   wrapDegrees,
   wrapRange
 };
+//# sourceMappingURL=util.js.map

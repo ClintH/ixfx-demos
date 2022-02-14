@@ -1,4 +1,4 @@
-import {throttle} from '../../ixfx/timers.js';
+import {throttle} from '../../ixfx/flow.js';
 
 const settings = {
   log: document.getElementById(`log`),
@@ -8,7 +8,12 @@ const settings = {
 
 const onMove = (elapsedMs, ...args) => {
   const {log} = settings;
-  const evt = args[0]; // PointerEvent if we wanted it...
+  console.log(`Elapsed: ${elapsedMs}`);
+  console.log(args);
+
+  /** @type {PointerEvent} */
+  const pointerEvt = args[0];
+
   log.append(`!`);
 }
 
@@ -24,7 +29,7 @@ const setup = () => {
 
     // For comparison also show unthrottled
     raw.append(`!`);
-    moveThrottled();
+    moveThrottled(ev);
   });
 
   // Reset button

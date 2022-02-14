@@ -1,4 +1,3 @@
-import {Timers} from '../../ixfx/bundle.js';
 import {easeOverTicks} from '../../ixfx/modulation.js';
 
 // Define settings

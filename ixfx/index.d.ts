@@ -1,55 +1,85 @@
 declare module "Guards" {
     export type NumberGuardRange = `` | `nonZero` | `positive` | `negative` | `aboveZero` | `belowZero` | `percentage` | `bipolar`;
     /**
-     * Throws an error if `t` is not a number or within specified range
-     * @param t Value to check
-     * @param name Name of parameter (for more helpful exception messages)
+     * Throws an error if `t` is not a number or within specified range.
+     * Alternatives: {@link integer} for additional integer check, {@link percentage}.
+     *
+     * positive: must be at least zero
+     * negative: must be zero or lower
+     * aboveZero: must be above zero
+     * belowZero: must be below zero
+     * percentage: must be within 0-1, inclusive
+     * nonZero: can be anything except zero
+     * bipolar: can be -1 to 1, inclusive
+     * @param value Value to check
+     * @param paramName Name of parameter (for more helpful exception messages)
      * @param range Range to enforce
      * @returns
      */
-    export const number: (t: number, range?: NumberGuardRange, name?: string) => boolean;
+    export const number: (value: number, range?: NumberGuardRange, paramName?: string) => boolean;
     /**
-     * Throws an error if `t` is not in the range of 0-1.
+     * Throws an error if `value` is not in the range of 0-1.
+     * Equiv to `number(value, `percentage`);`
      *
      * This is the same as calling ```number(t, `percentage`)```
-     * @param t
-     * @param name
+     * @param value Value to check
+     * @param paramName Param name for customising exception message
      * @returns
      */
-    export const percent: (t: number, name?: string) => boolean;
+    export const percent: (value: number, paramName?: string) => boolean;
     /**
-     * Throws an error if `t` is not an integer
-     * @param t
-     * @param name
-     * @param range
+     * Throws an error if `value` is not an integer, or does not meet guard criteria.
+     * See {@link number} for guard details, or use that if integer checking is not required.
+     * @param value Value to check
+     * @param paramName Param name for customising exception message
+     * @param range Guard specifier.
      */
-    export const integer: (t: number, range?: NumberGuardRange, name?: string) => void;
+    export const integer: (value: number, range?: NumberGuardRange, paramName?: string) => void;
     /**
      * Returns true if parameter is an array of strings
-     * @param t
+     * @param value
      * @returns
      */
-    export const isStringArray: (t: unknown) => boolean;
+    export const isStringArray: (value: unknown) => boolean;
     /**
      * Throws an error if parameter is not an array
-     * @param t
-     * @param name
+     * @param value
+     * @param paramName
      */
-    export const array: (t: unknown, name?: string) => void;
+    export const array: (value: unknown, paramName?: string) => void;
     /** Throws an error if parameter is not defined */
     export const defined: <T>(argument: T | undefined) => argument is T;
 }
 declare module "Util" {
+    /**
+     * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
+     * If _end_ is omitted, the the `start` value will be used.
+     *
+     * ```js
+     * startsEnds(`This is a string`, `This`, `string`); // True
+     * startsEnds(`This is a string`, `is`, `a`); // False
+     * starsEnds(`test`, `t`); // True, starts and ends with 't'
+     * ```
+     * @param source String to search within
+     * @param start Start
+     * @param end End (if omitted, start will be looked for at end as well)
+     * @returns True if source starts and ends with provided values.
+     */
+    export const startsEnds: (source: string, start: string, end?: string) => boolean;
     /**
      * Clamps a value between min and max (both inclusive)
      * Defaults to a 0-1 range, useful for percentages.
      *
      * @example Usage
      * ```js
-     *  clamp(0.5);         // 0.5 - just fine, within default of 0 to 1
-     *  clamp(1.5);         // 1 - above default max of 1
-     *  clamp(-50, 0, 100); // 0 - below range
-     *  clamp(50, 0, 50);   // 50 - within range
+     * // 0.5 - just fine, within default of 0 to 1
+     * clamp(0.5);
+     * // 1 - above default max of 1
+     * clamp(1.5);
+     * // 0 - below range
+     * clamp(-50, 0, 100);
+     * // 50 - within range
+     * clamp(50, 0, 50);
      * ```
      *
      * For clamping integer ranges, consider `clampZeroBounds`
@@ -61,36 +91,52 @@ declare module "Util" {
      */
     export const clamp: (v: number, min?: number, max?: number) => number;
     /**
-     * Scales `v` from an input range to an output range.
-     * For example, if a sensor's useful range is 100-500, you could
-     * easily scale it to a percentage:
+     * Scales `v` from an input range to an output range (aka `map`)
+     *
+     * For example, if a sensor's useful range is 100-500, scale it to a percentage:
      * ```js
      * scale(sensorReading, 100, 500, 0, 1);
+     * ```
+     *
+     * `scale` defaults to a percentage-range output, so you can get away with:
+     * ```js
+     * scale(sensorReading, 100, 500);
      * ```
      * @param v Value to scale
      * @param inMin Input minimum
      * @param inMax Input maximum
-     * @param outMin Output minimum
-     * @param outMax Output maximum
+     * @param outMin Output minimum. If not specified, 0
+     * @param outMax Output maximum. If not specified, 1.
      * @returns Scaled value
      */
-    export const scale: (v: number, inMin: number, inMax: number, outMin: number, outMax: number) => number;
+    export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined) => number;
     /**
-     * Scales a full input percentage range to a diminished percentage output range.
+     * Scales an input percentage to a new percentage range.
      *
-     * Essentially the same as {@link scalePercent}, however it throws an error if output range is not within 0-1.
+     * If you have an input percentage (0-1), `scalePercentageOutput` maps it to an
+     * _output_ percentage of `outMin`-`outMax`.
      *
-     * @param v
+     * ```js
+     * // Scales 50% to a range of 0-10%
+     * scalePercentages(0.5, 0, 0.10); // 0.05 - 5%
+     * ```
+     *
+     * An error is thrown if any parameter is outside of percentage range. This added
+     * safety is useful for catching bugs. Otherwise, you could just as well call
+     * `scale(percentage, 0, 1, outMin, outMax)`.
+     *
+     * @param percentage Input value, within percentage range
      * @param outMin Output minimum, between 0-1
      * @param outMax Output maximum, between 0-1
-     * @returns
+     * @returns Scaled value between outMin-outMax.
      */
-    export const scalePercentOutput: (v: number, outMin: number, outMax?: number) => number;
+    export const scalePercentages: (percentage: number, outMin: number, outMax?: number) => number;
     /**
-     * Scales an input percentage value (0-1) to the output range of `outMin`-`outMax`.
-     *
-     * Use {@link scalePercentOutput} if the output range is meant to be a percentage. It will
-     * enforce safety of the out range.
+     * Scales an input percentage value  to an output range
+     * If you have an input percentage (0-1), `scalePercent` maps it to an output range of `outMin`-`outMax`.
+     * ```js
+     * scalePercent(0.5, 10, 20); // 15
+     * ```
      *
      * @param v Value to scale
      * @param outMin Minimum for output
@@ -99,51 +145,56 @@ declare module "Util" {
      */
     export const scalePercent: (v: number, outMin: number, outMax: number) => number;
     /**
-     * Clamps integer `v` between 0 (inclusive) and length (exclusive). This is useful
-     * for clamping an array range, because the largest allowed number will
-     * be one less than length.
+     * Clamps integer `v` between 0 (inclusive) and array length or length (exclusive).
+     * Returns value then will always be at least zero, and a valid array index.
      *
      * @example Usage
      * ```js
+     * // Array of length 4
      * const myArray = [`a`, `b`, `c`, `d`];
-     * clampZeroBounds(0, myArray.length);    // 0
-     * clampZeroBounds(1.2, myArray.length);  // 1
-     * clampZeroBounds(4, myArray.length);    // 4
-     * clampZeroBounds(5, myArray.length);    // 4
-     * clampZeroBounds(-1, myArray.length);   // 0
+     * clampIndex(0, myArray);    // 0
+     * clampIndex(4, myArray);    // 3
+     * clampIndex(-1, myArray);   // 0
+     *
+     * clampIndex(5, 3); // 2
      * ```
      *
-     * Throws an error if `v` or `length` are not integers.
+     * Throws an error if `v` is not an integer.
      * @param v Value to clamp (must be an interger)
-     * @param length Length of bounds (must be an integer)
+     * @param arrayOrLength Array, or length of bounds (must be an integer)
      * @returns Clamped value, minimum will be 0, maximum will be one less than `length`.
      */
-    export const clampZeroBounds: (v: number, length: number) => number;
+    export const clampIndex: (v: number, arrayOrLength: number | readonly any[]) => number;
     /**
-     * Lerp calculates a relative value of `amt` between `a` and `b`.
+     * Interpolates between `a` and `b` by `amount`. Aka `lerp`.
      *
      * @example Get the halfway point between 30 and 60
      * ```js
-     * lerp(0.5, 30, 60);
+     * interpolate(0.5, 30, 60);
      * ````
      *
-     * Lerp is commonly used to interpolate between numbers for animation.
-     * In that case, `amt` would start at 0 and you would keep `lerp`ing up to `1`
+     * Interpolation is often used for animation. In that case, `amount`
+     * would start at 0 and you would keep interpolating up to `1`
      * @example
-     * ```
-     * let pp = percentPingPong(0.1); // Go back and forth between 0 and 1 by 0.1
+     * ```js
+     * // Go back and forth between 0 and 1 by 0.1
+     * let pp = percentPingPong(0.1);
      * continuously(() => {
-     *   const amt = pp.next().value;     // Get position in ping-pong
-     *   let v = lerp(amt, xStart, xEnd); // Lerp between xStart and xEnd
+     *  // Get position in ping-pong
+     *  const amt = pp.next().value;
+     *  // interpolate between xStart and xEnd
+     *  let v = interpolate(amt, xStart, xEnd);
      *  // do something with v...
      * }).start();
      * ```
-     * @param amt Lerp amount, between 0 and 1 inclusive
+     *
+     * See also {@link Colour.interpolate}, {@link Points.interpolate}.
+     * @param amount Interpolation amount, between 0 and 1 inclusive
      * @param a Start (ie when `amt` is 0)
      * @param b End (ie. when `amt` is 1)
-     * @returns Lerped value which will be betewen `a` and `b`.
+     * @returns Interpolated value which will be betewen `a` and `b`.
      */
-    export const lerp: (amt: number, a: number, b: number) => number;
+    export const interpolate: (amount: number, a: number, b: number) => number;
     /**
      * @private
      */
@@ -179,6 +230,69 @@ declare module "Util" {
      * @returns {string}
      */
     export const toStringDefault: <V>(itemToMakeStringFor: V) => string;
+    /**
+     * Wraps a number within a specified range.
+     * See {@link wrapDegrees} to wrap within 0-360.
+     *
+     * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
+     * Eg: to add 200 to 200, we don't want 400, but 40.
+     * ```js
+     * const v = wrapped(200+200, 0, 360); // 40
+     * ```
+     *
+     * Or if we minus 100 from 10, we don't want -90 but 270
+     * ```js
+     * const v = wrapped(10-100, 0, 360); // 270
+     * ```
+     *
+     * Non-zero starting points can be used. A range of 20-70:
+     * ```js
+     * const v = wrapped(-20, 20, 70); // 50
+     * ```
+     * @param v Value to wrap
+     * @param min Minimum of range
+     * @param max Maximum of range
+     * @returns
+     */
+    export const wrap: (v: number, min: number, max: number) => number;
+    /**
+     * Wraps the given `degrees` to within 0-360, using {@link wrap}.
+     *
+     * Eg
+     * ```
+     * wrapDegrees(150); // 150 - fine, within range
+     * wrapDegrees(400); // 40  - wraps around
+     * wrapDegrees(-20); // 340 - wraps around
+     * @param v
+     * @returns
+     */
+    export const wrapDegrees: (degrees: number) => number;
+    /**
+     * Performs a calculation within a wrapping number range. This is a lower-level function.
+     * See also: {@link wrap} for simple wrapping within a range.
+     *
+     * `min` and `max` define the start and end of the valid range, inclusive. Eg for hue degrees it'd be 0, 360.
+     * `a` and `b` is the range you want to work in.
+     *
+     * For example, let's say you want to get the middle point between a hue of 30 and a hue of 330 (ie warmer colours):
+     * ```js
+     * wrapRange(0,360, (distance) => {
+     *  // for a:0 and b:330, distance would be 90 from 30 degrees to 330 (via zero)
+     *  return distance * 0.5; // eg return middle point
+     * }, 30, 330);
+     * ```
+     *
+     * The return value of the callback should be in the range of 0-distance. `wrapRange` will subsequently
+     * conform it to the `min` and `max` range before it's returned to the caller.
+     *
+     * @param a Output start (eg. 60)
+     * @param b Output end (eg 300)
+     * @param min Range start (eg 0)
+     * @param max Range end (eg 360)
+     * @param fn Returns a computed value from 0 to `distance`.
+     * @returns
+     */
+    export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
@@ -269,7 +383,7 @@ declare module "collections/Interfaces" {
      * ```js
      * let q = queue();           // Create
      * q = q.enqueue(`a`, `b`);   // Add two strings
-     * const front = q.peek();    // `a` is at the front of queue (oldest)
+     * const front = q.peek;      // `a` is at the front of queue (oldest)
      * q = q.dequeue();           // q now just consists of `b`
      * ```
      * @example Cap size to 5 items, throwing away newest items already in queue.
@@ -279,6 +393,16 @@ declare module "collections/Interfaces" {
      *
      */
     export interface Queue<V> {
+        /**
+         * Enumerates queue from back-to-front
+         *
+        */
+        forEach(fn: (v: V) => void): void;
+        /**
+         * Enumerates queue from front-to-back
+         * @param fn
+         */
+        forEachFromFront(fn: (v: V) => void): void;
         /**
          * Returns a new queue with items added
          * @param toAdd Items to add
@@ -1156,6 +1280,122 @@ declare module "KeyValue" {
         readonly avg: number;
     };
 }
+declare module "geometry/Path" {
+    import { Rects, Points } from "geometry/index";
+    export type Path = {
+        length(): number;
+        /**
+         * Returns a point at a relative (0.0-1.0) position along the path
+         *
+         * @param {number} t Relative position (0.0-1.0)
+         * @returns {Point} Point
+         */
+        interpolate(t: number): Points.Point;
+        bbox(): Rects.RectPositioned;
+        toString(): string;
+        toSvgString(): readonly string[];
+        readonly kind: `compound` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
+    };
+    /**
+     * Return the start point of a path
+     *
+     * @param {Path} path
+     * @return {*}  {Point}
+     */
+    export const getStart: (path: Path) => Points.Point;
+    /**
+     * Return the end point of a path
+     *
+     * @param {Path} path
+     * @return {*}  {Point}
+     */
+    export const getEnd: (path: Path) => Points.Point;
+    export type WithBeziers = {
+        getBeziers(): readonly Path[];
+    };
+}
+declare module "geometry/Line" {
+    import { Path } from "geometry/Path";
+    import { Rects, Points } from "geometry/index";
+    export type Line = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+    };
+    export const isLine: (p: Path | Line | Points.Point) => p is Line;
+    /**
+     * Returns true if the lines have the same value
+     *
+     * @param {Line} a
+     * @param {Line} b
+     * @returns {boolean}
+     */
+    export const equals: (a: Line, b: Line) => boolean;
+    export const guard: (l: Line, paramName?: string) => void;
+    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
+    export const withinRange: (l: Line, p: Points.Point, maxRange: number) => boolean;
+    export const length: (aOrLine: Points.Point | Line, b?: Points.Point | undefined) => number;
+    export const nearest: (line: Line, p: Points.Point) => Points.Point;
+    /**
+     * Calculates slope of line
+     * @example
+     * ```js
+     * slope(line);
+     * slope(ptA, ptB)
+     * ```
+     * @param lineOrPoint Line or point. If point is provided, second point must be given too
+     * @param b Second point if needed
+     * @returns
+     */
+    export const slope: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
+    export const extendX: (line: Line, xIntersection: number) => Points.Point;
+    /**
+     * Returns a line extended from it's start (`a`) by a specified distance
+     *
+     * ```js
+     * const line = {a: {x: 0, y:0}, b: {x:10, y:10} }
+     * const extended = extendFromStart(line, 2);
+     * ```
+     * @param ine
+     * @param distance
+     * @return Newly extended line
+     */
+    export const extendFromStart: (line: Line, distance: number) => Line;
+    export const distance: (l: Line, p: Points.Point) => number;
+    /**
+     * Calculates a point in-between a and b
+     * @param amount Relative position, 0 being at a, 0.5 being halfway, 1 being at b
+     * @param a Start
+     * @param b End
+     * @returns Point between a and b
+     */
+    export const interpolate: (amount: number, a: Points.Point, b: Points.Point) => Points.Point;
+    export const toString: (a: Points.Point, b: Points.Point) => string;
+    export const fromNumbers: (x1: number, y1: number, x2: number, y2: number) => Line;
+    /**
+     * Returns an array representation of line: [a.x, a.y, b.x, b.y]
+     *
+     * @export
+     * @param {Point} a
+     * @param {Point} b
+     * @returns {number[]}
+     */
+    export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
+    export const toSvgString: (a: Points.Point, b: Points.Point) => readonly string[];
+    /**
+     * Returns a line from four numbers [x1,y1,x2,y2]
+     * @param arr Array in the form [x1,y1,x2,y2]
+     * @returns Line
+     */
+    export const fromArray: (arr: readonly number[]) => Line;
+    export const fromPoints: (a: Points.Point, b: Points.Point) => Line;
+    export const joinPointsToLines: (...points: readonly Points.Point[]) => readonly Line[];
+    export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
+    export type LinePath = Line & Path & {
+        toFlatArray(): readonly number[];
+    };
+    export const bbox: (line: Line) => Rects.RectPositioned;
+    export const toPath: (line: Line) => LinePath;
+}
 declare module "geometry/Point" {
     import { Rects } from "geometry/index";
     /**
@@ -1281,14 +1521,17 @@ declare module "geometry/Point" {
     /**
      * Returns a relative point between two points
      * ```js
-     * lerp(a, b, 0.5); // Halfway point between a and b
+     * interpolate(a, b, 0.5); // Halfway point between a and b
      * ```
-     * @param amt Relative amount, 0-1
+     *
+     * Alias for Lines.interpolate(amount, a, b);
+     *
+     * @param amount Relative amount, 0-1
      * @param a
      * @param b
      * @returns {@link Point}
      */
-    export const lerp: (a: Point, b: Point, amt: number) => Point;
+    export const interpolate: (amount: number, a: Point, b: Point) => Point;
     /**
      * Returns a point from two coordinates or an array of [x,y]
      * @example
@@ -1392,40 +1635,6 @@ declare module "geometry/Point" {
      */
     export function multiply(a: Point, x: number, y?: number): Point;
 }
-declare module "geometry/Path" {
-    import { Rects, Points } from "geometry/index";
-    export type Path = {
-        length(): number;
-        /**
-         * Returns a point at a relative (0.0-1.0) position along the path
-         *
-         * @param {number} t Relative position (0.0-1.0)
-         * @returns {Point} Point
-         */
-        compute(t: number): Points.Point;
-        bbox(): Rects.RectPositioned;
-        toString(): string;
-        toSvgString(): readonly string[];
-        readonly kind: `compound` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
-    };
-    /**
-     * Return the start point of a path
-     *
-     * @param {Path} path
-     * @return {*}  {Point}
-     */
-    export const getStart: (path: Path) => Points.Point;
-    /**
-     * Return the end point of a path
-     *
-     * @param {Path} path
-     * @return {*}  {Point}
-     */
-    export const getEnd: (path: Path) => Points.Point;
-    export type WithBeziers = {
-        getBeziers(): readonly Path[];
-    };
-}
 declare module "geometry/Arc" {
     import { Path } from "geometry/Path";
     import { Lines, Points, Rects } from "geometry/index";
@@ -1496,18 +1705,18 @@ declare module "geometry/Arc" {
      * @param arc
      */
     export const guard: (arc: Arc | ArcPositioned) => void;
-    type Compute = {
-        (arc: Arc, t: number, origin: Points.Point): Points.Point;
-        (arc: ArcPositioned, t: number): Points.Point;
+    type Interpolate = {
+        (amount: number, arc: Arc, origin: Points.Point): Points.Point;
+        (amount: number, arc: ArcPositioned): Points.Point;
     };
     /**
      * Compute relative position on arc
      * @param arc Arc
-     * @param t Relative position 0-1
+     * @param amount Relative position 0-1
      * @param origin If arc is not positioned, pass in an origin
      * @returns
      */
-    export const compute: Compute;
+    export const interpolate: Interpolate;
     /**
      * Creates a {@link Path} instance from the arc. This wraps up some functions for convienence.
      * @param arc
@@ -1625,65 +1834,6 @@ declare module "geometry/Bezier" {
     export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
     export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
 }
-declare module "geometry/Line" {
-    import { Path } from "geometry/Path";
-    import { Rects, Points } from "geometry/index";
-    export type Line = {
-        readonly a: Points.Point;
-        readonly b: Points.Point;
-    };
-    export const isLine: (p: Path | Line | Points.Point) => p is Line;
-    /**
-     * Returns true if the lines have the same value
-     *
-     * @param {Line} a
-     * @param {Line} b
-     * @returns {boolean}
-     */
-    export const equals: (a: Line, b: Line) => boolean;
-    export const guard: (l: Line, paramName?: string) => void;
-    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
-    export const withinRange: (l: Line, p: Points.Point, maxRange: number) => boolean;
-    export const length: (aOrLine: Points.Point | Line, b?: Points.Point | undefined) => number;
-    export const nearest: (line: Line, p: Points.Point) => Points.Point;
-    export const slope: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
-    export const extendX: (line: Line, xIntersection: number) => Points.Point;
-    /**
-     * Returns a line extended from it's start (`a`) by a specified distance
-     *
-     * ```js
-     * const line = {a: {x: 0, y:0}, b: {x:10, y:10} }
-     * const extended = extendFromStart(line, 2);
-     * ```
-     * @param {Line} line
-     * @param {number} distance
-     * @return {*}  {Line}
-     */
-    export const extendFromStart: (line: Line, distance: number) => Line;
-    export const distance: (l: Line, p: Points.Point) => number;
-    export const compute: (a: Points.Point, b: Points.Point, t: number) => Points.Point;
-    export const toString: (a: Points.Point, b: Points.Point) => string;
-    export const fromNumbers: (x1: number, y1: number, x2: number, y2: number) => Line;
-    /**
-     * Returns an array representation of line: [a.x, a.y, b.x, b.y]
-     *
-     * @export
-     * @param {Point} a
-     * @param {Point} b
-     * @returns {number[]}
-     */
-    export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
-    export const toSvgString: (a: Points.Point, b: Points.Point) => readonly string[];
-    export const fromArray: (arr: readonly number[]) => Line;
-    export const fromPoints: (a: Points.Point, b: Points.Point) => Line;
-    export const joinPointsToLines: (...points: readonly Points.Point[]) => readonly Line[];
-    export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
-    export type LinePath = Line & Path & {
-        toFlatArray(): readonly number[];
-    };
-    export const bbox: (line: Line) => Rects.RectPositioned;
-    export const toPath: (line: Line) => LinePath;
-}
 declare module "geometry/Circle" {
     import { Path } from "geometry/Path";
     import { Line } from "geometry/Line";
@@ -1707,7 +1857,7 @@ declare module "geometry/Circle" {
      * @returns
      */
     export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
-    export const isCircle: (p: any) => p is Circle;
+    export const isCircle: (p: Circle | CirclePositioned | number) => p is Circle;
     /**
      * Returns a point on a circle at a specified angle in radians
      * @param circle
@@ -1722,7 +1872,7 @@ declare module "geometry/Circle" {
      * @param t Position, 0-1
      * @returns
      */
-    export const compute: (circle: CirclePositioned, t: number) => Points.Point;
+    export const interpolate: (circle: CirclePositioned, t: number) => Points.Point;
     /**
      * Returns circumference of circle
      * @param circle
@@ -1809,8 +1959,8 @@ declare module "geometry/Circle" {
 declare module "geometry/CompoundPath" {
     import { Points, Paths, Rects } from "geometry/index";
     export type CompoundPath = Paths.Path & {
-        segments: Paths.Path[];
-        kind: `compound`;
+        readonly segments: readonly Paths.Path[];
+        readonly kind: `compound`;
     };
     /**
      * Returns a new compoundpath, replacing a path at a given index
@@ -1830,32 +1980,32 @@ declare module "geometry/CompoundPath" {
      * @param {Dimensions} [dimensions] Precalculated dimensions of paths, will be computed if omitted
      * @returns
      */
-    export const compute: (paths: Paths.Path[], t: number, useWidth?: boolean | undefined, dimensions?: Dimensions | undefined) => Points.Point;
+    export const interpolate: (paths: readonly Paths.Path[], t: number, useWidth?: boolean | undefined, dimensions?: Dimensions | undefined) => Points.Point;
     type Dimensions = {
         /**
          * Width of each path (based on bounding box)
          *
          * @type {number[]}
          */
-        widths: number[];
+        readonly widths: readonly number[];
         /**
          * Length of each path
          *
          * @type {number[]}
          */
-        lengths: number[];
+        readonly lengths: readonly number[];
         /**
          * Total length of all paths
          *
          * @type {number}
          */
-        totalLength: number;
+        readonly totalLength: number;
         /**
          * Total width of all paths
          *
          * @type {number}
          */
-        totalWidth: number;
+        readonly totalWidth: number;
     };
     /**
      * Computes the widths and lengths of all paths, adding them up as well
@@ -1863,7 +2013,7 @@ declare module "geometry/CompoundPath" {
      * @param {Paths.Path[]} paths
      * @returns {Dimensions}
      */
-    export const computeDimensions: (paths: Paths.Path[]) => Dimensions;
+    export const computeDimensions: (paths: readonly Paths.Path[]) => Dimensions;
     /**
      * Computes the bounding box that encloses entire compoundpath
      *
@@ -1871,21 +2021,21 @@ declare module "geometry/CompoundPath" {
      *
      * @returns {Rects.Rect}
      */
-    export const bbox: (paths: Paths.Path[]) => Rects.RectPositioned;
+    export const bbox: (paths: readonly Paths.Path[]) => Rects.RectPositioned;
     /**
      * Produce a human-friendly representation of paths
      *
      * @param {Paths.Path[]} paths
      * @returns {string}
      */
-    export const toString: (paths: Paths.Path[]) => string;
+    export const toString: (paths: readonly Paths.Path[]) => string;
     /**
      * Throws an error if paths are not connected together, in order
      *
      * @param {Paths.Path[]} paths
      */
-    export const guardContinuous: (paths: Paths.Path[]) => void;
-    export const toSvgString: (paths: Paths.Path[]) => readonly string[];
+    export const guardContinuous: (paths: readonly Paths.Path[]) => void;
+    export const toSvgString: (paths: readonly Paths.Path[]) => readonly string[];
     /**
      * Create a compoundpath from an array of paths.
      * All this does is verify they are connected, and precomputes dimensions
@@ -1893,7 +2043,7 @@ declare module "geometry/CompoundPath" {
      * @param {...Paths.Path[]} paths
      * @returns {CompoundPath}
      */
-    export const fromPaths: (...paths: Paths.Path[]) => CompoundPath;
+    export const fromPaths: (...paths: readonly Paths.Path[]) => CompoundPath;
 }
 declare module "collections/Set" {
     import { ToString } from "Util";
@@ -2093,79 +2243,109 @@ declare module "geometry/Grid" {
     type NeighbourSelector = (neighbours: ReadonlyArray<Neighbour>) => Neighbour | undefined;
     type IdentifyNeighbours = (grid: Grid, origin: Cell) => ReadonlyArray<Neighbour>;
     /**
-     * Returns true if grids `a` and `b` are equal in value
+     * Returns _true_ if grids `a` and `b` are equal in value
      *
-     * @param {(Grid|GridVisual)} a
-     * @param {(Grid|GridVisual)} b
-     * @return {*}  {boolean}
+     * @param a
+     * @param b
+     * @return
      */
     export const isEqual: (a: Grid | GridVisual, b: Grid | GridVisual) => boolean;
     /**
      * Returns a key string for a cell instance
      * A key string allows comparison of instances by value rather than reference
-     * @param {Cell} v
-     * @returns {string}
+     * @param v
+     * @returns
      */
     export const cellKeyString: (v: Cell) => string;
     /**
      * Returns true if two cells equal. Returns false if either cell (or both) are undefined
      *
-     * @param {Cell} a
-     * @param {Cell} b
-     * @returns {boolean}
+     * @param a
+     * @param b
+     * @returns
      */
     export const cellEquals: (a: Cell, b: Cell) => boolean;
-    export const guard: (a: Cell, paramName?: string, grid?: Readonly<{
+    /**
+     * Throws an exception if any of the cell's parameters are invalid
+     * @private
+     * @param cell
+     * @param paramName
+     * @param grid
+     */
+    export const guard: (cell: Cell, paramName?: string, grid?: Readonly<{
         readonly rows: number;
         readonly cols: number;
     }> | undefined) => void;
     /**
-     * Returns true if cell coordinates are above zero and within bounds of grid
+     * Returns _true_ if cell coordinates are above zero and within bounds of grid
      *
-     * @param {Grid} grid
-     * @param {Cell} cell
-     * @return {*}  {boolean}
+     * @param grid
+     * @param cell
+     * @return
      */
     export const inside: (grid: Grid, cell: Cell) => boolean;
     /**
-     * Returns a rect of the cell, positioned from the top-left corner
+     * Returns a visual rectangle of the cell, positioned from the top-left corner
      *
-     * @param {Cell} cell
-     * @param {(Grid & GridVisual)} grid
-     * @return {*}  {Rect.RectPositioned}
+     * @param cell
+     * @param grid
+     * @return
      */
     export const rectangleForCell: (cell: Cell, grid: Grid & GridVisual) => Rects.RectPositioned;
     /**
      * Returns the cell at a specified visual coordinate
      *
-     * @param {Point.Point} position Position, eg in pixels
-     * @param {(Grid & GridVisual)} grid Grid
-     * @return {*}  {(Cell | undefined)} Cell at position or undefined if outside of the grid
+     * @param position Position, eg in pixels
+     * @param grid Grid
+     * @return Cell at position or undefined if outside of the grid
      */
     export const cellAtPoint: (position: Points.Point, grid: Grid & GridVisual) => Cell | undefined;
+    /**
+     * Returns a list of all cardinal directions
+     */
     export const allDirections: readonly CardinalDirection[];
+    /**
+     * Returns a list of + shaped directions (ie. excluding diaganol)
+     */
     export const crossDirections: readonly CardinalDirection[];
+    /**
+     * Returns neighbours for a cell. If no `directions` are provided, it defaults to all.
+     *
+     * ```js
+     * const n = neighbours = ({rows: 5, cols: 5}, {x:2, y:2} `wrap`);
+     * {
+     *  n: {x: 2, y: 1}
+     *  s: {x: 2, y: 3}
+     *  ....
+     * }
+     * ```
+     * @returns Returns a map of cells, keyed by cardinal direction
+     * @param grid Grid
+     * @param cell Cell
+     * @param bounds How to handle edges of grid
+     * @param directions Directions to return
+     */
     export const neighbours: (grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: readonly CardinalDirection[] | undefined) => Neighbours;
     /**
-     * Returns the pixel midpoint of a cell
+     * Returns the visual midpoint of a cell (eg pixel coordinate)
      *
-     * @param {Cell} cell
-     * @param {(Grid & GridVisual)} grid
-     * @return {*}  {Point.Point}
+     * @param cell
+     * @param grid
+     * @return
      */
     export const cellMiddle: (cell: Cell, grid: Grid & GridVisual) => Points.Point;
     /**
      * Returns the cells on the line of start and end, inclusive
      *
-     * @param {Cell} start Starting cel
-     * @param {Cell} end End cell
-     * @returns {Cell[]}
+     * @param start Starting cell
+     * @param end End cell
+     * @returns
      */
     export const getLine: (start: Cell, end: Cell) => ReadonlyArray<Cell>;
     /**
      * Returns cells that correspond to the cardinal directions at a specified distance
      *
-     * @param grid Griod
+     * @param grid Grid
      * @param steps Distance
      * @param start Start poiint
      * @param bound Logic for if bounds of grid are exceeded
@@ -2174,11 +2354,12 @@ declare module "geometry/Grid" {
     export const offsetCardinals: (grid: Grid, start: Cell, steps: number, bounds?: BoundsLogic) => Neighbours;
     /**
      * Returns an {x,y} signed vector corresponding to the provided cardinal direction.
-     * ```
+     * ```js
      * const n = getVectorFromCardinal(`n`); // {x: 0, y: -1}
      * ```
+     *
      * Optional `multiplier` can be applied to vector
-     * ```
+     * ```js
      * const n = getVectorFromCardinal(`n`, 10); // {x: 0, y: -10}
      * ```
      *
@@ -2196,7 +2377,7 @@ declare module "geometry/Grid" {
      * @param start Start cell
      * @param end end clel
      * @param endInclusive
-     * @return {*}  {ReadonlyArray<Cell>}
+     * @return Array of cells
      */
     export const simpleLine: (start: Cell, end: Cell, endInclusive?: boolean) => ReadonlyArray<Cell>;
     /**
@@ -2207,11 +2388,11 @@ declare module "geometry/Grid" {
      *
      *
      * Note: x and y wrapping are calculated independently. A large wrapping of x, for example won't shift down a line
-     * @param {Grid} grid Grid to traverse
-     * @param {Cell} vector Offset in x/y
-     * @param {Cell} start Start point
-     * @param {BoundsLogic} [bounds=`undefined`]
-     * @returns {(Cell | undefined)}
+     * @param grid Grid to traverse
+     * @param vector Offset in x/y
+     * @param start Start point
+     * @param bounds
+     * @returns Cell
      */
     export const offset: (grid: Grid, start: Cell, vector: Cell, bounds?: BoundsLogic) => Cell | undefined;
     /**
@@ -2260,6 +2441,11 @@ declare module "geometry/Grid" {
     export const visitorColumn: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     /**
      * Enumerate rows of grid, returning all the cells in the row
+     * ```js
+     * for (const row of Grid.rows(shape)) {
+     *  // row is an array of Cells.
+     * }
+     * ```
      * @param grid
      * @param start
      */
@@ -2268,7 +2454,8 @@ declare module "geometry/Grid" {
         readonly y: number;
     }>[], void, unknown>;
     /**
-     * Enumerate all cells in an efficient manner. If end of grid is reached, iterator will wrap to ensure all are visited.
+     * Enumerate all cells in an efficient manner. Runs left-to-right, top-to-bottom.
+     * If end of grid is reached, iterator will wrap to ensure all are visited.
      *
      * @param {Grid} grid
      * @param {Cell} [start={x:0, y:0}]
@@ -2508,8 +2695,362 @@ declare module "flow/StateMachine" {
         get state(): string;
     }
 }
+declare module "flow/Timer" {
+    /**
+     * Creates a timer
+     * @private
+     */
+    export type TimerSource = () => Timer;
+    /**
+     * A timer instance
+     * @private
+     */
+    export type Timer = {
+        reset(): void;
+        get elapsed(): number;
+    };
+    export type ModTimer = Timer & {
+        mod(amt: number): void;
+    };
+    /**
+     * @private
+     */
+    export type HasCompletion = {
+        get isDone(): boolean;
+    };
+    /**
+     * A resettable timeout, returned by {@link timeout}
+     */
+    export type Timeout = HasCompletion & {
+        start(altTimeoutMs?: number, args?: readonly unknown[]): void;
+        cancel(): void;
+        get isDone(): boolean;
+    };
+    /**
+     * Creates a debounce function
+     * ```js
+     * // Create
+     * const d = debounce(fn, 1000);
+     *
+     * // Use
+     * d(); // Only calls fn after 1000s
+     * ```
+     *
+     * @example Handle most recent pointermove event after 1000ms
+     * ```js
+     * // Set up debounced handler
+     * const moveDebounced = debounce((evt) => {
+     *    // Handle event
+     * }, 500);
+     *
+     * // Wire up event
+     * el.addEventListener(`pointermove`, moveDebounced);
+     * ```
+     * @param callback
+     * @param timeoutMs
+     * @returns
+     */
+    export const debounce: (callback: () => void, timeoutMs: number) => (...args: unknown[]) => void;
+    /***
+     * Throttles an function. Callback only triggered after minimum of `intervalMinMs`.
+     *
+     * @example Only handle move event every 500ms
+     * ```js
+     * const moveThrottled = throttle( (elapsedMs, args) => {
+     *  // Handle ar
+     * }, 500);
+     * el.addEventListener(`pointermove`, moveThrottled)
+     * ```
+     */
+    export const throttle: (callback: (elapsedMs: number, ...args: readonly unknown[]) => void, intervalMinMs: number) => (...args: unknown[]) => void;
+    /**
+     * Generates values from `produce` with `intervalMs` time delay
+     *
+     * @example Produce a random number every 500ms:
+     * ```
+     * const randomGenerator = interval(() => Math.random(), 1000);
+     * for await (const r of randomGenerator) {
+     *  // Random value every 1 second
+     * }
+     * ```
+     *
+     * @template V
+     * @param intervalMs Interval between execution
+     * @param produce Function to call
+     * @template V Data type
+     * @returns
+     */
+    export const interval: <V>(produce: () => Promise<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Returns a {@link Timeout} that can be triggered, cancelled and reset
+     *
+     * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
+     * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
+     *
+     * @example Essential functionality
+     * ```js
+     * const fn = () => {
+     *  console.log(`Executed`);
+     * };
+     * const t = timeout(fn, 60*1000);
+     * t.start();   // After 1 minute `fn` will run, printing to the console
+     * ```
+     *
+     * @example Control execution functionality
+     * ```
+     * t.cancel();  // Cancel it from running
+     * t.start();   // Schedule again after 1 minute
+     * t.start(30*1000); // Cancel that, and now scheduled after 30s
+     * t.isDone;    // True if a scheduled event is pending
+     * ```
+     *
+     * Callback function receives any additional parameters passed in from start.
+     * This can be useful for passing through event data:
+     *
+     * @example
+     * ```js
+     * const t = timeout( (elapsedMs, ...args) => {
+     *  // args contains event data
+     * }, 1000);
+     * el.addEventListener(`click`, t.start);
+     * ```
+     *
+     * @param callback
+     * @param timeoutMs
+     * @returns {@link Timeout}
+     */
+    export const timeout: (callback: (elapsedMs?: number | undefined, ...args: readonly unknown[]) => void, timeoutMs: number) => Timeout;
+    /**
+     * Runs a function continuously, returned by {@link Continuously}
+     */
+    export type Continuously = HasCompletion & {
+        /**
+         * Starts loop. If already running, it is reset
+         */
+        start(): void;
+        /**
+         * How many milliseconds since start() was last called
+         */
+        get elapsedMs(): number;
+        /**
+         * How many iterations of the loop since start() was last called
+         */
+        get ticks(): number;
+        /**
+         * Whether loop has finished
+         */
+        get isDone(): boolean;
+        /**
+         * Stops loop
+         */
+        cancel(): void;
+    };
+    /**
+     * Returns a {@link Continuously} that continuously executes `callback`. If callback returns _false_, loop exits.
+     *
+     * Call `start` to begin/reset loop. `cancel` stops loop.
+     *
+     * @example Animation loop
+     * ```js
+     * const draw = () => {
+     *  // Draw on canvas
+     * }
+     * continuously(draw).start(); // Run draw as fast as possible using `window.requestAnimationFrame`
+     * ```
+     *
+     * @example With delay
+     * ```js
+     * const fn = () => {
+     *  console.log(`1 minute`);
+     * }
+     * const c = continuously(fn, 60*1000);
+     * c.start(); // Runs `fn` every minute
+     * ```
+     *
+     * ```js
+     * c.cancel();
+     * c.elapsedMs;  // How many milliseconds have elapsed since start
+     * c.ticks;      // How many iterations of loop since start
+     * ```
+     * @param callback Function to run. If it returns false, loop exits.
+     * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
+     * @param intervalMs
+     * @returns
+     */
+    export const continuously: (callback: (ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void) | undefined) => Continuously;
+    /**
+     * Pauses execution for `timeoutMs`.
+     *
+     * @example
+     * ```js
+     * console.log(`Hello`);
+     * await sleep(1000);
+     * console.log(`There`); // Prints one second after
+     * ```
+     * @param timeoutMs
+     * @return
+     */
+    export const sleep: <V>(timeoutMs: number) => Promise<V>;
+    /**
+     * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
+     *
+     * @example
+     * ```js
+     * const result = await delay(async () => Math.random(), 1000);
+     * console.log(result); // Prints out result after one second
+     * ```
+     * @template V
+     * @param callback
+     * @param timeoutMs
+     * @return
+     */
+    export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
+    /**
+     * Wraps a timer, returning a relative elapsed value.
+     *
+     * ```js
+     * let t = relativeTimer(1000, msElapsedTimer());
+     * ```
+     *
+     * @private
+     * @param total
+     * @param timer
+     * @param clampValue If true, returned value never exceeds 1.0
+     * @returns
+     */
+    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
+    export const frequencyTimerSource: (frequency: number) => TimerSource;
+    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
+    /**
+     * A timer that uses clock time
+     * @private
+     * @returns {Timer}
+     */
+    export const msElapsedTimer: () => Timer;
+    /**
+     * A timer that progresses with each call
+     * @private
+     * @returns {Timer}
+     */
+    export const ticksElapsedTimer: () => Timer;
+}
 declare module "flow/index" {
     export * as StateMachine from "flow/StateMachine";
+    export * from "flow/Timer";
+}
+declare module "visual/Colour" {
+    import * as d3Colour from 'd3-color';
+    export type Hsl = {
+        h: number;
+        s: number;
+        l: number;
+        opacity?: number;
+    };
+    export type Rgb = {
+        r: number;
+        g: number;
+        b: number;
+        opacity?: number;
+    };
+    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
+    /**
+     * @private
+     */
+    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
+    export type Colourish = string | d3Colour.ColorCommonInstance;
+    /**
+     * Options for interpolation
+     */
+    export type InterpolationOpts = {
+        /**
+         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
+         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
+         */
+        gamma?: number;
+        /**
+         * Colour space
+         */
+        space?: Spaces;
+        /**
+         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
+         */
+        long?: boolean;
+    };
+    /**
+     * Parses colour to {h,s,l}. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toHsl: (colour: Colourish) => Hsl;
+    /**
+     * Parses colour to {r,g,b}. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toRgb: (colour: Colourish) => Rgb;
+    /**
+     * Returns a colour in hex format `#000000`
+     * @param colour
+     * @returns Hex format, including #
+     */
+    export const toHex: (colour: Colourish) => string;
+    /**
+     * Returns a variation of colour with its opacity multiplied by `amt`.
+     *
+     * ```js
+     * opacity(`blue`, 0.5);
+     * ```
+     * @param colour
+     * @param amt
+     * @returns
+     */
+    export const opacity: (colour: Colourish, amt: number) => string;
+    /**
+     * Gets a CSS variable.
+     * @example Fetch --accent variable, or use `yellow` if not found.
+     * ```
+     * getCssVariable(`accent`, `yellow`);
+     * ```
+     * @param name Name of variable. Do not starting `--`
+     * @param fallbackColour Fallback colour if not found
+     * @param root  Element to search variable from
+     * @returns Colour or fallback.
+     */
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
+    /**
+     * Interpolates between two colours, returning a string
+     *
+     * @example
+     * ```js
+     * // Get 50% between blue and red
+     * interpolate(0.5, `blue`, `red`);
+     *
+     * // Get midway point, with specified colour space
+     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
+     * ```
+     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
+     * @param from Starting colour
+     * @param to Final colour
+     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
+     * @returns String representation of colour, eg. `rgb(x,x,x)`
+     */
+    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts | undefined) => string;
+    /**
+     * Produces a scale of colours as a string array
+     *
+     * @example
+     * ```js
+     * // Yields array of 5 colour strings
+     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
+     * // Produces scale between three colours
+     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
+     * ```
+     * @param steps Number of colours
+     * @param opts Options for interpolation, or string colour space eg `hsl`
+     * @param colours From/end colours (or more)
+     * @returns
+     */
+    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
 }
 declare module "collections/CircularArray" {
     import { CircularArray } from "collections/Interfaces";
@@ -2934,7 +3475,7 @@ declare module "dom/Util" {
      * @param timeoutMs Timeout for debouncing events
      * @returns
      */
-    export const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    export const parentSize: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
     /**
      * Resizes given canvas element to its parent element. To resize canvas to match the viewport, use {@link fullSizeCanvas}.
      *
@@ -2961,7 +3502,7 @@ declare module "dom/Util" {
      * @param domQueryOrEl
      * @returns
      */
-    export const resolveEl: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V) => V;
+    export const resolveEl: <V extends HTMLElement>(domQueryOrEl: string | V) => V;
     /**
      * Creates an element after `sibling`
      * ```
@@ -3193,15 +3734,105 @@ declare module "visual/Drawing" {
         readonly bounds?: Rects.RectPositioned;
     }) => void;
 }
+declare module "visual/SvgMarkers" {
+    import { MarkerOpts, DrawingOpts } from "visual/Svg";
+    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: (() => SVGElement) | undefined) => SVGMarkerElement;
+    export const markerPrebuilt: (elem: SVGElement | null, opts: MarkerOpts, _context: DrawingOpts) => string;
+}
+declare module "visual/SvgElements" {
+    import { CirclePositioned } from "geometry/Circle";
+    import * as Lines from "geometry/Line";
+    import * as Points from "geometry/Point";
+    import * as Svg from "visual/Svg";
+    /**
+     * Creates and adds an SVG path element
+     * @example
+     * ```js
+     * const paths = [
+     *  `M300,200`,
+     *  `a25,25 -30 0,1 50, -25 l 50,-25`
+     * ]
+     * const pathEl = path(paths, parentEl);
+     * ```
+     * @param svgOrArray Path syntax, or array of paths. Can be empty if path data will be added later
+     * @param parent SVG parent element
+     * @param opts Options Drawing options
+     * @returns
+     */
+    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
+    export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: Svg.DrawingOpts | undefined) => void;
+    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: Svg.TextPathDrawingOpts | undefined) => void;
+    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts | undefined, queryOrExisting?: string | SVGTextPathElement | undefined) => SVGTextPathElement;
+    export const textUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: Svg.TextDrawingOpts | undefined) => void;
+    /**
+     * Creates a SVG Text element
+     * @param pos Position of text
+     * @param text Text
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const text: (text: string, parent: SVGElement, pos?: Points.Point | undefined, opts?: Svg.TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    /**
+     * Creates a square grid based at a center point, with cells having `spacing` height and width.
+     *
+     * It fits in as many cells as it can within `width` and `height`.
+     *
+     * Returns a SVG group, consisting of horizontal and vertical lines
+     * @param parent Parent element
+     * @param center Center point of grid
+     * @param spacing Width/height of cells
+     * @param width How wide grid should be
+     * @param height How high grid should be
+     * @param opts
+     */
+    export const grid: (parent: SVGElement, center: Points.Point, spacing: number, width: number, height: number, opts?: Svg.LineDrawingOpts) => SVGGElement;
+}
 declare module "visual/Svg" {
     import { CirclePositioned } from "geometry/Circle";
     import * as Lines from "geometry/Line";
     import * as Points from "geometry/Point";
+    import * as Elements from "visual/SvgElements";
+    export { Elements };
+    export type MarkerOpts = DrawingOpts & {
+        readonly id: string;
+        readonly markerWidth?: number;
+        readonly markerHeight?: number;
+        readonly orient?: string;
+        readonly viewBox?: string;
+        readonly refX?: number;
+        readonly refY?: number;
+    };
+    /**
+     * Drawing options
+     */
     export type DrawingOpts = {
+        /**
+         * Style for lines. Eg `white`.
+         * @see [stroke](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke)
+         */
         readonly strokeStyle?: string;
+        /**
+         * Style for fill. Eg `black`.
+         * @see [fill](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill)
+         */
         readonly fillStyle?: string;
+        /**
+         * If true, debug helpers are drawn
+         */
         readonly debug?: boolean;
+        /**
+         * Width of stroke, eg `2`
+         * @see [stroke-width](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-width)
+         */
         readonly strokeWidth?: number;
+        /**
+         * Stroke dash pattern, eg `5`
+         * @see [stroke-dasharray](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray)
+         */
         readonly strokeDash?: string;
     };
     export type LineDrawingOpts = DrawingOpts & PathDrawingOpts;
@@ -3222,24 +3853,14 @@ declare module "visual/Svg" {
         readonly textLength?: number;
     };
     /**
-     * Creates and adds an SVG path element
-     * @example
-     * ```js
-     * const paths = [
-     *  `M300,200`,
-     *  `a25,25 -30 0,1 50, -25 l 50,-25`
-     * ]
-     * createPath(paths, parentEl);
-     * ```
-     * @param svgOrArray Path syntax, or array of paths
-     * @param parent SVG parent
-     * @param opts Options
+     * Creates and appends a SVG element.
+     * If `queryOrExisting` is specified, element will be returned if it already exists.
+     * @param parent Parent element
+     * @param type Type of SVG element
+     * @param queryOrExisting Query, eg `#id`
      * @returns
      */
-    export const pathEl: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
-    export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: DrawingOpts | undefined) => void;
-    export const circleEl: (circle: CirclePositioned, parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
-    export const lineEl: (line: Lines.Line, parent: SVGElement, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const createOrResolve: <V extends SVGElement>(parent: SVGElement, type: string, queryOrExisting?: string | V | undefined) => V;
     /**
      * Adds definition if it doesn't already exist
      * @param parent
@@ -3247,40 +3868,116 @@ declare module "visual/Svg" {
      * @param creator
      * @returns
      */
-    export const getOrCreateDef: (parent: SVGElement, id: string, creator: () => SVGElement | undefined) => SVGElement;
-    type MarkerOpts = DrawingOpts & {
-        readonly id: string;
-        readonly markerWidth?: number;
-        readonly markerHeight?: number;
-        readonly orient?: string;
-        readonly viewBox?: string;
-        readonly refX?: number;
-        readonly refY?: number;
-    };
-    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: TextPathDrawingOpts | undefined) => void;
-    export const textPathEl: (pathRef: string, text: string, parent: SVGElement, opts?: TextPathDrawingOpts | undefined, queryOrExisting?: string | undefined) => SVGTextPathElement;
-    export const textElUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: TextDrawingOpts | undefined) => void;
-    export const textEl: (pos: Points.Point, text: string, parent: SVGElement, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    /**
+     * Creates an element of `type` and with `id` (if specified)
+     * @param type Element type, eg `circle`
+     * @param id Optional id to assign to element
+     * @returns Element
+     */
+    export const createEl: <V extends SVGElement>(type: string, id?: string | undefined) => V;
+    /**
+     * Applies path drawing options to given element
+     * Applies: markerEnd, markerStart, markerMid
+     * @param elem Element (presumed path)
+     * @param opts Options
+     */
+    export const applyPathOpts: (elem: SVGElement, opts: PathDrawingOpts) => void;
     /**
      * Applies drawing options to given SVG element.
-     *
-     * Use to easily assign fillStyle, strokeStyle, strokeWidth.
+     * Applies: fillStyle, strokeStyle, strokeWidth, strokeDash
      * @param elem Element
      * @param opts Drawing options
      */
     export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
-    export const svg: (parent: SVGElement, opts?: DrawingOpts | undefined) => {
-        text: (pos: Points.Point, text: string, opts?: TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
-        line: (line: Lines.Line, opts?: LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
-        circle: (circle: CirclePositioned, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
-        path: (svgStr: string | readonly string[], opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
-        query: <V extends SVGElement>(selectors: string) => V | null;
-        width: number;
-        readonly parent: SVGElement;
-        height: number;
-        clear: () => void;
+    /**
+     * Helper to make SVG elements with a common parent.
+     *
+     * Create with {@link makeHelper}.
+     */
+    export type SvgHelper = {
+        /**
+         * Creates a text element
+         * @param text Text
+         * @param pos Position
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        text(text: string, pos: Points.Point, opts?: TextDrawingOpts, queryOrExisting?: string | SVGTextElement): SVGTextElement;
+        /**
+         * Creates text on a path
+         * @param pathRef Reference to path element
+         * @param text Text
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        textPath(pathRef: string, text: string, opts?: TextDrawingOpts, queryOrExisting?: string | SVGTextPathElement): SVGTextPathElement;
+        /**
+         * Creates a line
+         * @param line Line
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        line(line: Lines.Line, opts?: LineDrawingOpts, queryOrExisting?: string | SVGLineElement): SVGLineElement;
+        /**
+         * Creates a circle
+         * @param circle Circle
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        circle(circle: CirclePositioned, opts?: DrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
+        /**
+         * Creates a path
+         * @param svgStr Path description, or empty string
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        path(svgStr: string | readonly string[], opts?: DrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
+        /**
+         * Creates a grid of horizontal and vertical lines inside of a group
+         * @param center Grid origin
+         * @param spacing Cell size
+         * @param width Width of grid
+         * @param height Height of grid
+         * @param opts Drawing options
+         */
+        grid(center: Points.Point, spacing: number, width: number, height: number, opts?: DrawingOpts): SVGGElement;
+        /**
+         * Returns an element if it exists in parent
+         * @param selectors Eg `#path`
+         */
+        query<V extends SVGElement>(selectors: string): V | null;
+        /**
+         * Gets the width of the parent
+         */
+        get width(): number;
+        /**
+         * Sets the width of the parent
+         */
+        set width(width: number);
+        /**
+         * Gets the parent
+         */
+        get parent(): SVGElement;
+        /**
+         * Gets the height of the parent
+         */
+        get height(): number;
+        /**
+         * Sets the height of the parent
+         */
+        set height(height: number);
+        /**
+         * Deletes all child elements
+         */
+        clear(): void;
     };
-    export const grid: (parent: SVGElement, center: Points.Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts) => void;
+    /**
+     * @inheritdoc SvgHelper
+     * @param parent
+     * @param parentOpts
+     * @returns
+     */
+    export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts | undefined) => SvgHelper;
 }
 declare module "visual/Palette" {
     /**
@@ -3317,18 +4014,6 @@ declare module "visual/Palette" {
         alias(from: string, to: string): void;
     };
     export const create: (fallbacks?: readonly string[] | undefined) => Palette;
-    /**
-     * Gets a CSS variable.
-     * @example Fetch --accent variable, or use `yellow` if not found.
-     * ```
-     * getCssVariable(`accent`, `yellow`);
-     * ```
-     * @param name Name of variable. Do not starting `--`
-     * @param fallbackColour Fallback colour if not found
-     * @param root  Element to search variable from
-     * @returns Colour or fallback.
-     */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
 }
 declare module "visual/Plot" {
     import { CircularArray, MapOfMutable } from "collections/Interfaces";
@@ -3437,6 +4122,15 @@ declare module "visual/index" {
     import * as Plot from "visual/Plot";
     import * as DictionaryOfColourCombinations from "visual/DictionaryOfColourCombinations";
     import * as Palette from "visual/Palette";
+    import * as Colour from "visual/Colour";
+    /**
+     * Colour interpolation, scale generation and parsing
+     *
+     * Overview
+     * * {@link interpolate}: Blend colours
+     * * {@link scale}: Produce colour scale
+     */
+    export { Colour };
     export { Palette, Drawing, Svg, Plot, DictionaryOfColourCombinations };
 }
 declare module "dom/ShadowDom" {
@@ -3707,179 +4401,8 @@ declare module "dom/index" {
      */
     export * as Forms from "dom/Forms";
 }
-declare module "Timer" {
-    /**
-     * Creates a timer
-     * @private
-     */
-    export type TimerSource = () => Timer;
-    /**
-     * A timer instance
-     * @private
-     */
-    export type Timer = {
-        reset(): void;
-        get elapsed(): number;
-    };
-    export type ModTimer = Timer & {
-        mod(amt: number): void;
-    };
-    /**
-     * @private
-     */
-    export type HasCompletion = {
-        get isDone(): boolean;
-    };
-    /**
-     * A resettable timeout, returned by {@link timeout}
-     */
-    export type Timeout = HasCompletion & {
-        start(altTimeoutMs?: number): void;
-        cancel(): void;
-        get isDone(): boolean;
-    };
-    export const debounce: (callback: () => void, timeoutMs: number) => () => void;
-    /**
-     * Generates values from `produce` with `intervalMs` time delay
-     *
-     * @example Produce a random number every 500ms:
-     * ```
-     * const randomGenerator = interval(() => Math.random(), 1000);
-     * for await (const r of randomGenerator) {
-     *  // Random value every 1 second
-     * }
-     * ```
-     *
-     * @template V
-     * @param intervalMs Interval between execution
-     * @param produce Function to call
-     * @template V Data type
-     * @returns
-     */
-    export const interval: <V>(produce: () => Promise<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
-    /**
-     * Returns a {@link Timeout} that can be triggered, cancelled and reset
-     *
-     * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
-     * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
-     *
-     * @example Essential functionality
-     * ```js
-     * const fn = () => {
-     *  console.log(`Executed`);
-     * };
-     * const t = timeout(fn, 60*1000);
-     * t.start();   // After 1 minute `fn` will run, printing to the console
-     * ```
-     *
-     * @example More functionality
-     * ```
-     * t.cancel();  // Cancel it from running
-     * t.start();   // Schedule again after 1 minute
-     * t.start(30*1000); // Cancel that, and now scheduled after 30s
-     * t.isDone;    // True if a scheduled event is pending
-     * ```
-     *
-     * @param callback
-     * @param timeoutMs
-     * @returns {@link Timeout}
-     */
-    export const timeout: (callback: () => void, timeoutMs: number) => Timeout;
-    /**
-     * Runs a function continuously, returned by {@link Continuously}
-     */
-    export type Continuously = HasCompletion & {
-        start(): void;
-        get elapsed(): number;
-        get ticks(): number;
-        get isDone(): boolean;
-        cancel(): void;
-    };
-    /**
-     * Returns a {@link Continuously} that continuously executes `callback`. Call `start` to begin.
-     *
-     * @example Animation loop
-     * ```js
-     * const draw = () => {
-     *  // Draw on canvas
-     * }
-     * continuously(draw).start(); // Run draw as fast as possible using `window.requestAnimationFrame`
-     * ```
-     *
-     * @example With delay
-     * ```js
-     * const fn = () => {
-     *  console.log(`1 minute`);
-     * }
-     * const c = continuously(fn, 60*1000);
-     * c.start(); // Runs `fn` every minute
-     * ```
-     *
-     * @example With res
-     * @param callback
-     * @param resetCallback
-     * @param intervalMs
-     * @returns
-     */
-    export const continuously: (callback: (ticks?: number | undefined, totalElapsed?: number | undefined) => boolean | void, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined) => boolean | void) | undefined) => Continuously;
-    /**
-     * Pauses execution for `timeoutMs`.
-     *
-     * @example
-     * ```js
-     * console.log(`Hello`);
-     * await sleep(1000);
-     * console.log(`There`); // Prints one second after
-     * ```
-     * @param timeoutMs
-     * @return
-     */
-    export const sleep: <V>(timeoutMs: number) => Promise<V>;
-    /**
-     * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
-     *
-     * @example
-     * ```js
-     * const result = await delay(async () => Math.random(), 1000);
-     * console.log(result); // Prints out result after one second
-     * ```
-     * @template V
-     * @param callback
-     * @param timeoutMs
-     * @return
-     */
-    export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
-    /**
-     * Wraps a timer, returning a relative elapsed value.
-     *
-     * ```js
-     * let t = relativeTimer(1000, msElapsedTimer());
-     * ```
-     *
-     * @private
-     * @param total
-     * @param timer
-     * @param clampValue If true, returned value never exceeds 1.0
-     * @returns
-     */
-    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
-    export const frequencyTimerSource: (frequency: number) => TimerSource;
-    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
-    /**
-     * A timer that uses clock time
-     * @private
-     * @returns {Timer}
-     */
-    export const msElapsedTimer: () => Timer;
-    /**
-     * A timer that progresses with each call
-     * @private
-     * @returns {Timer}
-     */
-    export const ticksElapsedTimer: () => Timer;
-}
 declare module "modulation/Easing" {
-    import { HasCompletion } from "Timer";
+    import { HasCompletion } from "flow/Timer";
     /**
      * Creates an easing based on clock time
      * @inheritdoc Easing
@@ -4107,7 +4630,7 @@ declare module "modulation/Envelope" {
      *
      * ...normally you'd just want:
      * ```js
-     * const value = env.compute()[1]; // Get scaled
+     * const value = env.value; // Get scaled
      * ```
      *
      * @example Hold & release
@@ -4134,13 +4657,15 @@ declare module "modulation/Envelope" {
         /**
          * Compute value of envelope at this point in time.
          *
-         * Returns an array of [stage, scaled, raw]. Most likely you want the scaled value:
-         * ```
-         * const v = env.compute()[1];
-         * ```
+         * Returns an array of [stage, scaled, raw]. Most likely you want to use {@link value} to just get the scaled value.
          * @param allowStateChange If true (default) envelope will be allowed to change state if necessary before returning value
          */
         compute(allowStateChange?: boolean): readonly [stage: string | undefined, scaled: number, raw: number];
+        /**
+         * Returns the scaled value
+         * Same as .compute()[1]
+         */
+        get value(): number;
         /**
          * Releases a held envelope. Has no effect if envelope was not held or is complete.
          */
@@ -4169,7 +4694,7 @@ declare module "modulation/Envelope" {
     export const adsr: (opts: EnvelopeOpts) => Adsr;
 }
 declare module "modulation/Oscillator" {
-    import * as Timers from "Timer";
+    import * as Timers from "flow/Timer";
     /**
      * Oscillator.
      *
@@ -4202,24 +4727,28 @@ declare module "modulation/PingPong" {
      *
      * @example Usage
      * ```js
-     * for (let v of percentPingPong(0.1)) {
+     * for (const v of percentPingPong(0.1)) {
      *  // v will go up and down. Make sure you have a break somewhere because it is infinite
      * }
      * ```
      *
      * @example Alternative:
      * ```js
-     * let pp = pingPongPercent(0.1, 0.5); // Setup generator one time
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
+     * const v = pp.next().value; // Call .next().value whenever a new value is needed
      * ```
      *
-     * Because limits are capped to 0 and 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
+     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
      *
+     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
+     * ```
+     * const pp = pingPongPercent(0.1, 0.4, 0.6);
+     * ```
      * @param interval Amount to increment by. Defaults to 10%
-     * @param offset Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
      * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
      */
-    export const pingPongPercent: (interval?: number, start?: number, end?: number, offset?: number, rounding?: number) => Generator<number, never, unknown>;
+    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
     /**
      * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
      *
@@ -4238,10 +4767,10 @@ declare module "modulation/PingPong" {
      * @param interval Amount to increment by. Use negative numbers to start counting down
      * @param lower Lower bound (inclusive)
      * @param upper Upper bound (inclusive, must be greater than start)
-     * @param offset Starting point within bounds (defaults to `lower`)
+     * @param start Starting point within bounds (defaults to `lower`)
      * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
      */
-    export const pingPong: (interval: number, lower: number, upper: number, offset?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
 }
 declare module "Generators" {
     export { pingPong, pingPongPercent } from "modulation/PingPong";
@@ -4261,6 +4790,18 @@ declare module "Generators" {
      * @param end End (if undefined, range never ends)
      */
     export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
+    /**
+     * Iterates over `iterator`, calling `fn` for each value.
+     * If `fn` returns _false_, iterator cancels
+     * @example
+     * ```js
+     * forEach(count(5), () => console.log(`Hi`)); // Prints `Hi` 5x
+     * forEach(count(5), (i) => console.log(i));   // Prints 0 1 2 3 4
+     * ```
+     * @param iterator
+     * @param fn
+     */
+    export const forEach: <V>(iterator: IterableIterator<V>, fn: (v?: V | undefined) => boolean | void) => void;
     /**
      * Generates a range of numbers, with a given interval.
      *
@@ -4290,6 +4831,22 @@ declare module "Generators" {
      */
     export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
     /**
+     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
+     * count decreases. If `offset` is provided, this is added to the return result.
+     * @example
+     * ```js
+     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
+     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
+     * for (const v of count(5, 5)) {
+     *  // Yields: 5, 6, 7, 8, 9
+     * }
+     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
+     * ```
+     * @param amount Number of integers to yield
+     * @param offset Added to result
+     */
+    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
+    /**
      * Returns a number range between 0.0-1.0. By default it loops back to 0 after reaching 1
      * @param interval Interval (defaults to 0.01 or 1%)
      * @param repeating Whether generator should loop (default false)
@@ -4304,11 +4861,26 @@ declare module "Random" {
 }
 declare module "index" {
     export * as Geometry from "geometry/index";
+    /**
+     * Control execution
+     *
+     * Overview:
+     * * {@link continuously} Run code in a loop, as fast as possible or with a delay between each execution
+     * * {@link timeout} Run code after a specified time delay
+     * * {@link sleep} Using `async await`, delay execution for a period
+     * * {@link delay} Using `async await`, run a given callback after a period
+     * * {@link StateMachine} Manage state transitions
+     */
     export * as Flow from "flow/index";
     /**
-     * Canvas drawing functions.
+     * Visuals
+     *
+     * Overview:
+     * * {@link Colour}: Colour interpolation, scale generation and parsing
+     * * {@link Palette}: Colour palette managment
+     * * {@link Svg}: SVG helper
+     * * {@link Drawing}: Canvas drawing helper
      */
-    export * as Drawing from "visual/Drawing";
     export * as Visual from "visual/index";
     /**
      * DOM module has some functions for easing DOM manipulation.
@@ -4357,16 +4929,6 @@ declare module "index" {
     export * as Random from "Random";
     export * as KeyValues from "KeyValue";
     export * from "Util";
-    /**
-     * Run code at intervals or with a delay
-     *
-     * Overview:
-     * * {@link continuously} Run code in a loop, as fast as possible or with a delay between each execution
-     * * {@link timeout} Run code after a specified time delay
-     * * {@link sleep} Using `async await`, delay execution for a period
-     * * {@link delay} Using `async await`, run a given callback after a period
-     */
-    export * as Timers from "Timer";
     export { KeyValue } from "KeyValue";
     export { frequencyMutable, FrequencyMutable } from "FrequencyMutable";
 }
@@ -4559,8 +5121,9 @@ declare module "Tracker" {
     }
 }
 declare module "__tests__/frequencyMutable.test" { }
+declare module "__tests__/generators.test" { }
+declare module "__tests__/guards.test" { }
 declare module "__tests__/keyValue.test" { }
-declare module "__tests__/producers.test" { }
 declare module "__tests__/util.test" { }
 declare module "__tests__/collections/lists.test" { }
 declare module "__tests__/collections/map.test" { }
@@ -4570,7 +5133,7 @@ declare module "__tests__/collections/sets.test" { }
 declare module "__tests__/collections/stack.test" { }
 declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/grid.test" { }
-declare module "__tests__/modulation/waves" { }
+declare module "__tests__/modulation/pingPong.test" { }
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";
