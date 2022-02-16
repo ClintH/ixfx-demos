@@ -4,8 +4,10 @@ import {
   applyPathOpts,
   createEl,
   createOrResolve,
-  makeHelper
-} from "./chunk-STAQ33ZX.js";
+  getBounds,
+  makeHelper,
+  setBounds
+} from "./chunk-PBE4UKCE.js";
 import "./chunk-UWLZSNHO.js";
 import "./chunk-PQ6IJNUJ.js";
 import "./chunk-XU5FJBDE.js";
@@ -20,6 +22,8 @@ export {
   applyPathOpts,
   createEl,
   createOrResolve,
-  makeHelper
+  getBounds,
+  makeHelper,
+  setBounds
 };
 //# sourceMappingURL=svg.js.map

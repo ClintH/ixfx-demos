@@ -1,5 +1,5 @@
-export { C as Colour, b as DictionaryOfColourCombinations, D as Drawing, P as Palette, a as Plot } from './index-60c6be28';
-export { S as Svg } from './Svg-0b831d1b';
+export { C as Colour, b as DictionaryOfColourCombinations, D as Drawing, P as Palette, a as Plot } from './index-be9fb13e';
+export { S as Svg } from './Svg-959a16c7';
 import './Rect-0db90c49';
 import './Circle-c8def07e';
 import './Bezier-7fe54675';

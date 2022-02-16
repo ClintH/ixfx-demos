@@ -3796,6 +3796,7 @@ declare module "visual/Svg" {
     import * as Lines from "geometry/Line";
     import * as Points from "geometry/Point";
     import * as Elements from "visual/SvgElements";
+    import * as Rects from "geometry/Rect";
     export { Elements };
     export type MarkerOpts = DrawingOpts & {
         readonly id: string;
@@ -3971,6 +3972,18 @@ declare module "visual/Svg" {
          */
         clear(): void;
     };
+    /**
+     * Get the bounds of an SVG element (determined by its width/height attribs)
+     * @param svg
+     * @returns
+     */
+    export const getBounds: (svg: SVGElement) => Rects.Rect;
+    /**
+     * Set the bounds of an element, using its width/height attribs.
+     * @param svg
+     * @param bounds
+     */
+    export const setBounds: (svg: SVGElement, bounds: Rects.Rect) => void;
     /**
      * @inheritdoc SvgHelper
      * @param parent
@@ -4696,7 +4709,13 @@ declare module "modulation/Envelope" {
 declare module "modulation/Oscillator" {
     import * as Timers from "flow/Timer";
     /**
-     * Oscillator.
+     * Sine oscillator.
+     *
+     * ```js
+     * const osc = sine(Timers.frequencyTimer(10));
+     * const osc = sine(0.1);
+     * osc.next().value;
+     * ```
      *
      * // Saw/tri pinch
      * ```js
@@ -4709,11 +4728,39 @@ declare module "modulation/Oscillator" {
      * ```
      *
      */
-    export function sine(timer: Timers.Timer): Generator<number, void, unknown>;
-    export function sineBipolar(timer: Timers.Timer): Generator<number, void, unknown>;
-    export function triangle(timer: Timers.Timer): Generator<number, void, unknown>;
-    export function saw(timer: Timers.Timer): Generator<number, void, unknown>;
-    export function square(timer: Timers.Timer): Generator<0 | 1, void, unknown>;
+    export function sine(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Bipolar sine (-1 to 1)
+     * @param timerOrFreq
+     */
+    export function sineBipolar(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Triangle oscillator
+     * ```js
+     * const osc = triangle(Timers.frequencyTimer(0.1));
+     * const osc = triangle(0.1);
+     * osc.next().value;
+     * ```
+     */
+    export function triangle(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Saw oscillator
+     * ```js
+     * const osc = saw(Timers.frequencyTimer(0.1));
+     * const osc = saw(0.1);
+     * osc.next().value;
+     * ```
+     */
+    export function saw(timerOrFreq: Timers.Timer): Generator<number, void, unknown>;
+    /**
+     * Square oscillator
+     * ```js
+     * const osc = square(Timers.frequencyTimer(0.1));
+     * const osc = square(0.1);
+     * osc.next().value;
+     * ```
+     */
+    export function square(timerOrFreq: Timers.Timer): Generator<0 | 1, void, unknown>;
 }
 declare module "modulation/index" {
     export * from "modulation/Easing";
