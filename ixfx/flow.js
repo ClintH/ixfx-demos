@@ -1,4 +1,4 @@
-import "./chunk-KWHKIGT7.js";
+import "./chunk-X6JGXZI6.js";
 import {
   continuously,
   debounce,
@@ -11,8 +11,9 @@ import {
   sleep,
   throttle,
   ticksElapsedTimer,
-  timeout
-} from "./chunk-NKVPIKLJ.js";
+  timeout,
+  updateOutdated
+} from "./chunk-IQCBL7VN.js";
 import {
   StateMachine_exports
 } from "./chunk-YFNN25WV.js";
@@ -33,6 +34,7 @@ export {
   sleep,
   throttle,
   ticksElapsedTimer,
-  timeout
+  timeout,
+  updateOutdated
 };
 //# sourceMappingURL=flow.js.map

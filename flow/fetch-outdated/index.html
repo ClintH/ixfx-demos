@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fetch Outdated</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+<style>
+  button {
+    padding: 0.4em;
+  }
+</style>
+
+<body>
+  <section>
+    <h1>fetch-outdated</h1>
+    <p>Demonstrates caching and fetching on demand (rather than polling).</p>
+    <p>Note the timestamp while repeatedly pressing <em>Request data</em>.
+      On the first press, it will fetch the data, but subsequent requests will use
+      the cached data until a timeout of 10 seconds.
+    </p>
+    <button id="btnRequest">Request data</button>
+    <div id="status"></div>
+    <div id="data"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
