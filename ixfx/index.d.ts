@@ -2845,6 +2845,8 @@ declare module "flow/Timer" {
          */
         cancel(): void;
     };
+    export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
+    export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
     /**
      * Returns a {@link Continuously} that continuously executes `callback`. If callback returns _false_, loop exits.
      *
@@ -2877,7 +2879,7 @@ declare module "flow/Timer" {
      * @param intervalMs
      * @returns
      */
-    export const continuously: (callback: (ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void) | undefined) => Continuously;
+    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void) | undefined) => Continuously;
     /**
      * Pauses execution for `timeoutMs`.
      *
