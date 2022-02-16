@@ -11,23 +11,23 @@ import {
   queueMutable,
   stack,
   stackMutable
-} from "./chunk-74WXU46N.js";
+} from "./chunk-FRVUOYS5.js";
 import {
   Map_exports
-} from "./chunk-U5MCJANK.js";
+} from "./chunk-PQ6IJNUJ.js";
 import {
   Set_exports,
   setMutable
-} from "./chunk-G5Q3FAR4.js";
+} from "./chunk-XU5FJBDE.js";
 import {
   Arrays_exports
-} from "./chunk-XXM7P7BJ.js";
+} from "./chunk-JBV6FYKJ.js";
 import {
   simpleMapArrayMutable
-} from "./chunk-HCHJFXUB.js";
-import "./chunk-BBKPCEJK.js";
-import "./chunk-E6FEPMVF.js";
-import "./chunk-YDTVC7MM.js";
+} from "./chunk-JBDRQ5KW.js";
+import "./chunk-MNQGJO77.js";
+import "./chunk-6JTGCZJL.js";
+import "./chunk-FQLUQVDZ.js";
 export {
   Arrays_exports as Arrays,
   Map_exports as Maps,
@@ -47,3 +47,4 @@ export {
   stack,
   stackMutable
 };
+//# sourceMappingURL=collections.js.map

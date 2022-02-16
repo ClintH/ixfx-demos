@@ -2781,6 +2781,8 @@ declare module "flow/Timer" {
      * @returns
      */
     export const interval: <V>(produce: () => Promise<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
+    export type TimeoutSyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => boolean | void;
+    export type TimeoutAsyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => Promise<boolean | void>;
     /**
      * Returns a {@link Timeout} that can be triggered, cancelled and reset
      *
@@ -2815,11 +2817,15 @@ declare module "flow/Timer" {
      * el.addEventListener(`click`, t.start);
      * ```
      *
+     * Asynchronous callbacks can be used as well:
+     * ```js
+     * timeout(async () => {...}, 100);
+     * ```
      * @param callback
      * @param timeoutMs
      * @returns {@link Timeout}
      */
-    export const timeout: (callback: (elapsedMs?: number | undefined, ...args: readonly unknown[]) => void, timeoutMs: number) => Timeout;
+    export const timeout: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => Timeout;
     /**
      * Runs a function continuously, returned by {@link Continuously}
      */
@@ -2873,6 +2879,11 @@ declare module "flow/Timer" {
      * c.cancel();
      * c.elapsedMs;  // How many milliseconds have elapsed since start
      * c.ticks;      // How many iterations of loop since start
+     * ```
+     *
+     * Asynchronous callback functions are supported too:
+     * ```js
+     * continuously(async () => { ..});
      * ```
      * @param callback Function to run. If it returns false, loop exits.
      * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
