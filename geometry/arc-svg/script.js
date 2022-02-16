@@ -1,6 +1,6 @@
 import {Arcs} from '../../ixfx/geometry.js'
 import {Svg} from '../../ixfx/visual.js';
-import {scalePercentOutput} from '../../ixfx/util.js';
+import {scalePercent} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
@@ -30,11 +30,14 @@ let state = {
 const update = () => {
   const {genPingPong, genLoop} = settings;
 
+  // Value could potentially be undefined
+  const genLoopV = genLoop.next().value;
+
   state = {
     ...state,
     // Get new values from generators
     pingPong: genPingPong.next().value,
-    loop: genLoop.next().value
+    loop: genLoopV ? genLoopV : 0
   }
 }
 
@@ -47,7 +50,7 @@ const updateSvg = (arcEl) => {
   const {bounds, pingPong, loop} = state;
 
   // pingPong runs from 0-100%, producing a radius that is too large. Scale to 0-40%
-  const radius = settings.radiusMin + (bounds.width * scalePercentOutput(pingPong, 0, radiusProportion));
+  const radius = settings.radiusMin + (bounds.width * scalePercent(pingPong, 0, radiusProportion));
 
   // Apply same pingPong value to stroke width
   const width = settings.strokeWidthMin + (pingPong * settings.strokeWidthMax);

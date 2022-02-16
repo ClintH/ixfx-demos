@@ -1,5 +1,5 @@
 import {Svg} from '../../ixfx/visual.js';
-import {scalePercentOutput} from '../../ixfx/util.js';
+import {scalePercent} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
@@ -50,7 +50,7 @@ const updateSvg = (circleEl) => {
   const {bounds, pingPong, loop, pointer} = state;
 
   // pingPong runs from 0-100%, producing a radius that is too large. Scale
-  const radius = settings.radiusMin + (bounds.width * scalePercentOutput(pingPong, 0, radiusProportion));
+  const radius = settings.radiusMin + (bounds.width * scalePercent(pingPong, 0, radiusProportion));
 
   // Apply same pingPong value to stroke width
   const width = settings.strokeWidthMin + (pingPong * settings.strokeWidthMax);

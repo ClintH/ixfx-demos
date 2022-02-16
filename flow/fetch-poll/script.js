@@ -8,43 +8,48 @@
  */
 import {continuously} from "../../ixfx/flow.js"
 
+// Define settings
 const settings = {
-  processIntervalMs: 60 * 1000,
+  // How often to fetch data
+  fetchIntervalMs: 60 * 1000,
 }
 
+// Initialises state. It will keep the last data fetched
 let state = {
   response: {}
 }
 
 continuously(async () => {
-  const dataEl = document.getElementById(`data`);
-
   try {
+    // Try to fetch from URL
     status(`Fetching...`);
     const resp = await fetch(`https://jsonplaceholder.typicode.com/todos/1`);
+
+    // Add the JSON to state
     state = {
       ...state,
       response: await resp.json()
     }
 
+    // For demo purposes, we'll print it to the screen, but normally
+    // you would use state.response elsewhere as needed, outside of this callback
+    document.getElementById(`data`).innerText = JSON.stringify(state.response);
     status(`Fetched.`);
-
-    // For demo purposes, log it
-    // But normally you would used state.response elsewhere as needed
-    dataEl.innerText = JSON.stringify(state.response);
   } catch (ex) {
-    status(ex.message);
-    console.error(ex);
-
+    // Uh-oh, an error happened!
     // You might want to leave the last response in the
-    // state. Here we will clear it:
+    // state. But we will clear it:
     state = {
       ...state,
       response: {}
     }
-  }
-}, settings.processIntervalMs).start();
 
+    status(ex.message);
+    console.error(ex);
+  }
+}, settings.fetchIntervalMs).start();
+
+// Puts a timestamped message in the #status element
 const status = (m) => {
   document.getElementById(`status`).innerText = new Date().toLocaleTimeString() + ` ` + m;
 }

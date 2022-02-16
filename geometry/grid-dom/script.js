@@ -54,10 +54,10 @@ const setup = () => {
   for (const row of Grids.rows(grid)) {
     // Make HTML for each cell. This produces an array of strings
     //   Note we encode the coordinate of the cell in the attributes
-    const cellsHtml = row.map(cell => `< div data - x="${cell.x}" data - y="${cell.y}" class= "cell" ></div > `);
+    const cellsHtml = row.map(cell => `<div data-x="${cell.x}" data-y="${cell.y}" class="cell"></div>`);
 
     // Make HTML for a row. Join together array of strings
-    const rowHtml = `< div class= "row" > ${cellsHtml.join(` `)}</div > `;
+    const rowHtml = `<div class="row"> ${cellsHtml.join(` `)}</div>`;
 
     // Add it to the parent element
     gridEl.insertAdjacentHTML(`beforeend`, rowHtml);
