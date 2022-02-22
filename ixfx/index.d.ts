@@ -5198,6 +5198,24 @@ declare module "Match" {
         allFiltersMustMatch?: boolean;
     }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
 }
+/**
+ * Reads from a serial port in a line-by-line fashion.
+ * Assumes \n as a line separator.
+ *
+ * @example
+ * ```js
+ * document.querySelector(`btnStart`).addEventListener(`click`, async () => {
+ *  const port = await navigator.serial.requestPort();
+ *  await port.open({baudRate: 9600});
+ *  read(port, line => {
+ *    // Do something with line (string)
+ *  });
+ * });
+ * ```
+ * @param port Opened port to read from
+ * @param separator Line separator `\n` by default
+ * @param callback Callback for each line read
+ */
 declare module "Tracker" {
     /**
      * Keeps track of the min, max and avg in a stream of values.
