@@ -2,20 +2,24 @@ import {
   average,
   groupBy,
   guardArray,
+  max,
+  min,
   minMaxAvg,
   randomElement,
   randomIndex,
   randomPluck,
   shuffle,
   without
-} from "./chunk-JBV6FYKJ.js";
-import "./chunk-MNQGJO77.js";
-import "./chunk-6JTGCZJL.js";
-import "./chunk-FQLUQVDZ.js";
+} from "./chunk-57USKCMY.js";
+import "./chunk-5ATJXEJX.js";
+import "./chunk-E6FEPMVF.js";
+import "./chunk-YDTVC7MM.js";
 export {
   average,
   groupBy,
   guardArray,
+  max,
+  min,
   minMaxAvg,
   randomElement,
   randomIndex,
@@ -23,4 +27,3 @@ export {
   shuffle,
   without
 };
-//# sourceMappingURL=arrays.js.map
