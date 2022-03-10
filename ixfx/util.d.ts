@@ -49,6 +49,8 @@ declare const clamp: (v: number, min?: number, max?: number) => number;
  * ```js
  * scale(sensorReading, 100, 500);
  * ```
+ *
+ * If inMin and inMax are equal, outMax will be returned.
  * @param v Value to scale
  * @param inMin Input minimum
  * @param inMax Input maximum
@@ -72,6 +74,11 @@ declare const scale: (v: number, inMin: number, inMax: number, outMin?: number |
  * safety is useful for catching bugs. Otherwise, you could just as well call
  * `scale(percentage, 0, 1, outMin, outMax)`.
  *
+ * If you want to scale some input range to percentage output range, just use `scale`:
+ * ```js
+ * // Yields 0.5
+ * scale(2.5, 0, 5);
+ * ```
  * @param percentage Input value, within percentage range
  * @param outMin Output minimum, between 0-1
  * @param outMax Output maximum, between 0-1
@@ -79,7 +86,7 @@ declare const scale: (v: number, inMin: number, inMax: number, outMin?: number |
  */
 declare const scalePercentages: (percentage: number, outMin: number, outMax?: number) => number;
 /**
- * Scales an input percentage value  to an output range
+ * Scales an input percentage value to an output range
  * If you have an input percentage (0-1), `scalePercent` maps it to an output range of `outMin`-`outMax`.
  * ```js
  * scalePercent(0.5, 10, 20); // 15
@@ -118,7 +125,7 @@ declare const clampIndex: (v: number, arrayOrLength: number | readonly any[]) =>
  * @example Get the halfway point between 30 and 60
  * ```js
  * interpolate(0.5, 30, 60);
- * ````
+ * ```
  *
  * Interpolation is often used for animation. In that case, `amount`
  * would start at 0 and you would keep interpolating up to `1`
@@ -129,8 +136,8 @@ declare const clampIndex: (v: number, arrayOrLength: number | readonly any[]) =>
  * continuously(() => {
  *  // Get position in ping-pong
  *  const amt = pp.next().value;
- *  // interpolate between xStart and xEnd
- *  let v = interpolate(amt, xStart, xEnd);
+ *  // interpolate between Math.PI and Math.PI*2
+ *  const v = interpolate(amt, Math.PI, Math.PI*2);
  *  // do something with v...
  * }).start();
  * ```
@@ -178,42 +185,37 @@ declare const isEqualValueDefault: <V>(a: V, b: V) => boolean;
  */
 declare const toStringDefault: <V>(itemToMakeStringFor: V) => string;
 /**
- * Wraps a number within a specified range.
- * See {@link wrapDegrees} to wrap within 0-360.
+ * Wraps a number within a specified range, defaulting to degrees (0-360)
  *
  * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
  * Eg: to add 200 to 200, we don't want 400, but 40.
  * ```js
- * const v = wrapped(200+200, 0, 360); // 40
+ * const v = wrap(200+200, 0, 360); // 40
  * ```
  *
  * Or if we minus 100 from 10, we don't want -90 but 270
  * ```js
- * const v = wrapped(10-100, 0, 360); // 270
+ * const v = wrap(10-100, 0, 360); // 270
+ * ```
+ *
+ * `wrap` uses 0-360 as a default range, so both of these
+ * examples could just as well be:
+ *
+ * ```js
+ * wrap(200+200);  // 40
+ * wrap(10-100);  // 270
  * ```
  *
  * Non-zero starting points can be used. A range of 20-70:
  * ```js
- * const v = wrapped(-20, 20, 70); // 50
+ * const v = wrap(-20, 20, 70); // 50
  * ```
  * @param v Value to wrap
- * @param min Minimum of range
- * @param max Maximum of range
+ * @param min Minimum of range (default: 0)
+ * @param max Maximum of range (default: 360)
  * @returns
  */
-declare const wrap: (v: number, min: number, max: number) => number;
-/**
- * Wraps the given `degrees` to within 0-360, using {@link wrap}.
- *
- * Eg
- * ```
- * wrapDegrees(150); // 150 - fine, within range
- * wrapDegrees(400); // 40  - wraps around
- * wrapDegrees(-20); // 340 - wraps around
- * @param v
- * @returns
- */
-declare const wrapDegrees: (degrees: number) => number;
+declare const wrap: (v: number, min?: number, max?: number) => number;
 /**
  * Performs a calculation within a wrapping number range. This is a lower-level function.
  * See also: {@link wrap} for simple wrapping within a range.
@@ -240,5 +242,31 @@ declare const wrapDegrees: (degrees: number) => number;
  * @returns
  */
 declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
+declare type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
+/**
+ * Runs `fn` a certain number of times, accumulating result into return array.
+ * If `fn` returns undefined, it is skipped.
+ *
+ * ```js
+ * // Results will be an array with five random numbers
+ * const results = repeat(5, () => Math.random());
+ * ```
+ *
+ * Repeats can be specified as an integer (eg 5 for five repeats), or a function
+ * that gives _false_ when repeating should stop.
+ *
+ * ```js
+ * // Keep running `fn` until we've accumulated 10 values
+ * // Useful if `fn` sometimes returns _undefined_
+ * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
+ * ```
+ *
+ * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
+ *
+ * @param countOrPredicate Number of repeats or function returning false when to stop
+ * @param fn Function to run, must return a value to accumulate into array or _undefined_
+ * @returns Array of accumulated results
+ */
+declare const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 
-export { IsEqual, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, scale, scalePercent, scalePercentages, startsEnds, toStringDefault, wrap, wrapDegrees, wrapRange };
+export { IsEqual, RepeatPredicate, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, repeat, scale, scalePercent, scalePercentages, startsEnds, toStringDefault, wrap, wrapRange };

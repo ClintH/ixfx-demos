@@ -102,6 +102,8 @@ declare module "Util" {
      * ```js
      * scale(sensorReading, 100, 500);
      * ```
+     *
+     * If inMin and inMax are equal, outMax will be returned.
      * @param v Value to scale
      * @param inMin Input minimum
      * @param inMax Input maximum
@@ -4492,6 +4494,7 @@ declare module "dom/index" {
 }
 declare module "modulation/Easing" {
     import { HasCompletion } from "flow/Timer";
+    type EasingFn = (x: number) => number;
     /**
      * Creates an easing based on clock time
      * @inheritdoc Easing
@@ -4552,13 +4555,14 @@ declare module "modulation/Easing" {
          */
         get isDone(): boolean;
     };
-    export type EasingName = keyof typeof easings;
+    export type EasingName = keyof typeof functions;
+    export const get: (easingName: EasingName) => EasingFn;
     /**
      * @private
      * @returns Returns list of available easing names
      */
     export const getEasings: () => readonly string[];
-    const easings: {
+    export const functions: {
         easeInSine: (x: number) => number;
         easeOutSine: (x: number) => number;
         easeInQuad: (x: number) => number;
@@ -4980,7 +4984,19 @@ declare module "Generators" {
     export const rangePercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
 }
 declare module "Random" {
-    export const weighted: (min: number, max: number) => number;
+    import { randomIndex, randomElement } from "collections/Arrays";
+    import * as Easings from "modulation/Easing";
+    export { randomIndex as arrayIndex };
+    export { randomElement as arrayElement };
+    /**
+     * Returns a random number between `min-max` weighted such that values closer to `min`
+     * occur more frequently
+     * @param min
+     * @param max
+     * @returns
+     */
+    export const weighted2: (min: number, max: number) => number;
+    export const weightedInteger: (max: number, min: number, easing: Easings.EasingName) => number;
 }
 declare module "index" {
     export * as Geometry from "geometry/index";
@@ -5198,6 +5214,40 @@ declare module "Match" {
         allFiltersMustMatch?: boolean;
     }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
 }
+declare module "Normalise" {
+    /**
+     * Normalises numbers, adjusting min/max as new values are processed.
+     * Normalised return values will be in the range of 0-1.
+     *
+     * ```js
+     * const s = stream();
+     * s(2);    // 1 (because 2 is highest seen)
+     * s(1);    // 0 (because 1 is the lowest so far)
+     * s(1.5);  // 0.5 (50% of range 1-2)
+     * s(0.5);  // 0 (because it's the new lowest)
+     * ```
+     * @returns
+     */
+    export const stream: (minDefault?: number | undefined, maxDefault?: number | undefined) => (v: number) => number;
+}
+/**
+ * Reads from a serial port in a line-by-line fashion.
+ * Assumes \n as a line separator.
+ *
+ * @example
+ * ```js
+ * document.querySelector(`btnStart`).addEventListener(`click`, async () => {
+ *  const port = await navigator.serial.requestPort();
+ *  await port.open({baudRate: 9600});
+ *  read(port, line => {
+ *    // Do something with line (string)
+ *  });
+ * });
+ * ```
+ * @param port Opened port to read from
+ * @param separator Line separator `\n` by default
+ * @param callback Callback for each line read
+ */
 declare module "Tracker" {
     /**
      * Keeps track of the min, max and avg in a stream of values.

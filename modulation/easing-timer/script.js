@@ -1,12 +1,12 @@
 import * as Flow from '../../ixfx/flow.js';
-import {easeOverTime} from '../../ixfx/modulation.js';
+import {Easings} from '../../ixfx/modulation.js';
 
 // Define settings
 const settings = {
   // thing to move
   thingEl: document.getElementById(`thing`),
   // setup easing
-  easing: easeOverTime(`easeInSine`, 1000)
+  easing: Easings.time(`sineIn`, 1000)
 }
 
 // Initialise state

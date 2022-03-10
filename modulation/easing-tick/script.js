@@ -1,11 +1,11 @@
-import {easeOverTicks} from '../../ixfx/modulation.js';
+import {Easings} from '../../ixfx/modulation.js';
 
 // Define settings
 const settings = {
   // thing we'll move
   thingEl: document.getElementById(`thing`),
   // setup easing
-  easing: easeOverTicks(`easeInSine`, 100)
+  easing: Easings.tick(`sineIn`, 100)
 }
 
 // Initialise state
