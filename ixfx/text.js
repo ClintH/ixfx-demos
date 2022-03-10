@@ -4,8 +4,9 @@ import {
   lineSpan,
   splitRanges,
   startsEnds,
+  untilMatch,
   unwrap
-} from "./chunk-55ZKDOX4.js";
+} from "./chunk-6IKSZCHO.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   between,
@@ -13,6 +14,7 @@ export {
   lineSpan,
   splitRanges,
   startsEnds,
+  untilMatch,
   unwrap
 };
 //# sourceMappingURL=text.js.map

@@ -1,6 +1,6 @@
-export { i as Temporal } from './index-7bddec66';
+export { i as Temporal } from './index-d3320c2d';
 export { i as Geometry } from './index-03f14dc7';
-export { T as Text } from './Text-0691b119';
+export { T as Text } from './Text-84c59f86';
 export { i as Flow } from './index-a82427ae';
 export { i as Visual } from './index-072d0c01';
 export { i as Dom } from './index-403ca138';

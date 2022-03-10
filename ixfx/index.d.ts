@@ -2010,6 +2010,14 @@ declare module "Text" {
      */
     export const between: (source: string, start: string, end?: string | undefined, lastEndMatch?: boolean) => string | undefined;
     /**
+     * Returns the `source` string up until (and excluding) `match`. If match is not
+     * found, all of `source` is returned.
+     * @param source
+     * @param match
+     * @param startPos If provided, gives the starting offset. Default 0
+     */
+    export const untilMatch: (source: string, match: string, startPos?: number) => string;
+    /**
      * 'Unwraps' a string, removing one or more 'wrapper' strings that it starts and ends with.
      * ```js
      * unwrap("'hello'", "'");        // hello
@@ -2283,6 +2291,11 @@ declare module "temporal/FrequencyMutable" {
          * @returns Copy of entries as an array of `[key, count]`
          */
         toArray(): [key: string, count: number][];
+        /**
+         * Returns a string with keys and counts, useful for debugging.
+         * @returns
+         */
+        debugString(): string;
         /**
          *
          * @param value Value to count
