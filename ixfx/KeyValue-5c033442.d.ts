@@ -36,4 +36,4 @@ declare namespace KeyValue$1 {
   };
 }
 
-export { KeyValue as K, SortingFn as S, KeyValue$1 as a, byValueString as b, sortByValueString as c, sortByValueNumber as d, getSorter as g, minMaxAvg as m, sortByKey as s };
+export { KeyValue$1 as K, SortingFn as S, KeyValue as a, byValueString as b, sortByValueString as c, sortByValueNumber as d, getSorter as g, minMaxAvg as m, sortByKey as s };

@@ -1,19 +1,4 @@
 /**
- * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
- * If _end_ is omitted, the the `start` value will be used.
- *
- * ```js
- * startsEnds(`This is a string`, `This`, `string`); // True
- * startsEnds(`This is a string`, `is`, `a`); // False
- * starsEnds(`test`, `t`); // True, starts and ends with 't'
- * ```
- * @param source String to search within
- * @param start Start
- * @param end End (if omitted, start will be looked for at end as well)
- * @returns True if source starts and ends with provided values.
- */
-declare const startsEnds: (source: string, start: string, end?: string) => boolean;
-/**
  * Clamps a value between min and max (both inclusive)
  * Defaults to a 0-1 range, useful for percentages.
  *
@@ -269,4 +254,8 @@ declare type RepeatPredicate = (repeats: number, valuesProduced: number) => bool
  */
 declare const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 
+<<<<<<< Updated upstream
 export { IsEqual, RepeatPredicate, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, repeat, scale, scalePercent, scalePercentages, startsEnds, toStringDefault, wrap, wrapRange };
+=======
+export { IsEqual, RepeatPredicate, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, repeat, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapRange };
+>>>>>>> Stashed changes

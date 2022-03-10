@@ -1,7 +1,7 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { K as KeyValue } from './KeyValue-5c033442';
+import { a as KeyValue } from './KeyValue-5c033442';
 import 'fp-ts/Ord';
 
 declare type Bar = {
