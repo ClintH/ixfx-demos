@@ -254,8 +254,4 @@ declare type RepeatPredicate = (repeats: number, valuesProduced: number) => bool
  */
 declare const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 
-<<<<<<< Updated upstream
-export { IsEqual, RepeatPredicate, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, repeat, scale, scalePercent, scalePercentages, startsEnds, toStringDefault, wrap, wrapRange };
-=======
 export { IsEqual, RepeatPredicate, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, repeat, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapRange };
->>>>>>> Stashed changes
