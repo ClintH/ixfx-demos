@@ -47,9 +47,10 @@ const draw = (ctx) => {
   ctx.strokeStyle = settings.colour;
 
   // Use fast ping pong value, scaling from 0.1 -> 1
-  const smoothness = scalePercent(fast, 0.1, 1);// (1 * fast) + 0.1;
+  const smoothness = scalePercent(fast, 0.1, 1);
+
   // Use slower ping pong value, scaling from 1 -> 10
-  const zoom = scalePercent(slow, 1, 10); // (10 * slow) + 1;
+  const zoom = scalePercent(slow, 1, 10);
 
   // Makes a generator to produce coordinates of spiral
   const spiral = Polar.spiral(smoothness, zoom);

@@ -40,10 +40,45 @@ declare const clamp: (v: number, min?: number, max?: number) => number;
  * @param inMin Input minimum
  * @param inMax Input maximum
  * @param outMin Output minimum. If not specified, 0
- * @param outMax Output maximum. If not specified, 1.
+ * @param outMax Output maximum. If not specified, 1
+ * @param easing Easing function to use
  * @returns Scaled value
  */
-declare const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined) => number;
+declare const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
+declare type NumberFunction = () => number;
+/**
+ * Flips a percentage-scale number: `1 - v`.
+ *
+ * The utility of this function is that it sanity-checks
+ * that `v` is in 0..1 scale.
+ *
+ * ```js
+ * flip(1);   // 0
+ * flip(0.5); // 0.5
+ * flip(0);   // 1
+ * ```
+ * @param v
+ * @returns
+ */
+declare const flip: (v: number | NumberFunction) => number;
+/**
+ * Scales a percentage-scale number `v * t`.
+ * The utility of this function is that it sanity-checks that
+ *  both parameters are in 0..1 scale
+ * @param v Value
+ * @param t Scale amount
+ * @returns Scaled value
+ */
+declare const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
+/**
+ * Scales a percentage-scale number but reversed: `(1-v) * t`
+ * The utility of this function is that it sanity-checks that
+ *  both parameters are in 0..1 scale
+ * @param v
+ * @param t
+ * @returns
+ */
+declare const proportionReverse: (v: number | NumberFunction, t: number | NumberFunction) => number;
 /**
  * Scales an input percentage to a new percentage range.
  *
@@ -131,7 +166,7 @@ declare const clampIndex: (v: number, arrayOrLength: number | readonly any[]) =>
  * @param amount Interpolation amount, between 0 and 1 inclusive
  * @param a Start (ie when `amt` is 0)
  * @param b End (ie. when `amt` is 1)
- * @returns Interpolated value which will be betewen `a` and `b`.
+ * @returns Interpolated value which will be between `a` and `b`.
  */
 declare const interpolate: (amount: number, a: number, b: number) => number;
 /**
@@ -174,6 +209,7 @@ declare const toStringDefault: <V>(itemToMakeStringFor: V) => string;
  *
  * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
  * Eg: to add 200 to 200, we don't want 400, but 40.
+ *
  * ```js
  * const v = wrap(200+200, 0, 360); // 40
  * ```
@@ -195,9 +231,18 @@ declare const toStringDefault: <V>(itemToMakeStringFor: V) => string;
  * ```js
  * const v = wrap(-20, 20, 70); // 50
  * ```
+ *
+ * Note that the minimum value is inclusive, while the maximum is _exclusive_.
+ * So with the default range of 0-360, 360 is never reached:
+ *
+ * ```js
+ * wrap(360); // 0
+ * wrap(361); // 1
+ * ```
+ *
  * @param v Value to wrap
- * @param min Minimum of range (default: 0)
- * @param max Maximum of range (default: 360)
+ * @param min Integer minimum of range (default: 0). Inclusive
+ * @param max Integer maximum of range (default: 360). Exlusive
  * @returns
  */
 declare const wrap: (v: number, min?: number, max?: number) => number;
@@ -227,31 +272,5 @@ declare const wrap: (v: number, min?: number, max?: number) => number;
  * @returns
  */
 declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
-declare type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
-/**
- * Runs `fn` a certain number of times, accumulating result into return array.
- * If `fn` returns undefined, it is skipped.
- *
- * ```js
- * // Results will be an array with five random numbers
- * const results = repeat(5, () => Math.random());
- * ```
- *
- * Repeats can be specified as an integer (eg 5 for five repeats), or a function
- * that gives _false_ when repeating should stop.
- *
- * ```js
- * // Keep running `fn` until we've accumulated 10 values
- * // Useful if `fn` sometimes returns _undefined_
- * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
- * ```
- *
- * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
- *
- * @param countOrPredicate Number of repeats or function returning false when to stop
- * @param fn Function to run, must return a value to accumulate into array or _undefined_
- * @returns Array of accumulated results
- */
-declare const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 
-export { IsEqual, RepeatPredicate, ToString, clamp, clampIndex, interpolate, isEqualDefault, isEqualValueDefault, repeat, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapRange };
+export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, proportion, proportionReverse, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapRange };

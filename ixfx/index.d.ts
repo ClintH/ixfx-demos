@@ -105,10 +105,45 @@ declare module "Util" {
      * @param inMin Input minimum
      * @param inMax Input maximum
      * @param outMin Output minimum. If not specified, 0
-     * @param outMax Output maximum. If not specified, 1.
+     * @param outMax Output maximum. If not specified, 1
+     * @param easing Easing function to use
      * @returns Scaled value
      */
-    export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined) => number;
+    export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
+    export type NumberFunction = () => number;
+    /**
+     * Flips a percentage-scale number: `1 - v`.
+     *
+     * The utility of this function is that it sanity-checks
+     * that `v` is in 0..1 scale.
+     *
+     * ```js
+     * flip(1);   // 0
+     * flip(0.5); // 0.5
+     * flip(0);   // 1
+     * ```
+     * @param v
+     * @returns
+     */
+    export const flip: (v: number | NumberFunction) => number;
+    /**
+     * Scales a percentage-scale number `v * t`.
+     * The utility of this function is that it sanity-checks that
+     *  both parameters are in 0..1 scale
+     * @param v Value
+     * @param t Scale amount
+     * @returns Scaled value
+     */
+    export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
+    /**
+     * Scales a percentage-scale number but reversed: `(1-v) * t`
+     * The utility of this function is that it sanity-checks that
+     *  both parameters are in 0..1 scale
+     * @param v
+     * @param t
+     * @returns
+     */
+    export const proportionReverse: (v: number | NumberFunction, t: number | NumberFunction) => number;
     /**
      * Scales an input percentage to a new percentage range.
      *
@@ -196,7 +231,7 @@ declare module "Util" {
      * @param amount Interpolation amount, between 0 and 1 inclusive
      * @param a Start (ie when `amt` is 0)
      * @param b End (ie. when `amt` is 1)
-     * @returns Interpolated value which will be betewen `a` and `b`.
+     * @returns Interpolated value which will be between `a` and `b`.
      */
     export const interpolate: (amount: number, a: number, b: number) => number;
     /**
@@ -239,6 +274,7 @@ declare module "Util" {
      *
      * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
      * Eg: to add 200 to 200, we don't want 400, but 40.
+     *
      * ```js
      * const v = wrap(200+200, 0, 360); // 40
      * ```
@@ -260,9 +296,18 @@ declare module "Util" {
      * ```js
      * const v = wrap(-20, 20, 70); // 50
      * ```
+     *
+     * Note that the minimum value is inclusive, while the maximum is _exclusive_.
+     * So with the default range of 0-360, 360 is never reached:
+     *
+     * ```js
+     * wrap(360); // 0
+     * wrap(361); // 1
+     * ```
+     *
      * @param v Value to wrap
-     * @param min Minimum of range (default: 0)
-     * @param max Maximum of range (default: 360)
+     * @param min Integer minimum of range (default: 0). Inclusive
+     * @param max Integer maximum of range (default: 360). Exlusive
      * @returns
      */
     export const wrap: (v: number, min?: number, max?: number) => number;
@@ -292,32 +337,6 @@ declare module "Util" {
      * @returns
      */
     export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
-    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
-    /**
-     * Runs `fn` a certain number of times, accumulating result into return array.
-     * If `fn` returns undefined, it is skipped.
-     *
-     * ```js
-     * // Results will be an array with five random numbers
-     * const results = repeat(5, () => Math.random());
-     * ```
-     *
-     * Repeats can be specified as an integer (eg 5 for five repeats), or a function
-     * that gives _false_ when repeating should stop.
-     *
-     * ```js
-     * // Keep running `fn` until we've accumulated 10 values
-     * // Useful if `fn` sometimes returns _undefined_
-     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
-     * ```
-     *
-     * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
-     *
-     * @param countOrPredicate Number of repeats or function returning false when to stop
-     * @param fn Function to run, must return a value to accumulate into array or _undefined_
-     * @returns Array of accumulated results
-     */
-    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
@@ -1296,211 +1315,6 @@ declare module "Iterable" {
     export const isIterable: (v: any) => v is Iterable<any>;
     export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
 }
-declare module "collections/NumericArrays" {
-    /**
-     * Calculates the average of all numbers in an array.
-     * Array items which aren't a valid number are ignored and do not factor into averaging.
-     *
-     * Use {@link minMaxAvg} if you want min, max and total as well.
-     *
-     * @example
-     * ```
-     * // Average of a list
-     * const avg = average(1, 1.4, 0.9, 0.1);
-     *
-     * // Average of a variable
-     * let data = [100,200];
-     * average(...data);
-     * ```
-     * @param data Data to average.
-     * @returns Average of array
-     */
-    export const average: (...data: readonly number[]) => number;
-    /**
-     * Returns the minimum number out of `data`.
-     * Undefined and non-numbers are silently ignored.
-     * @param data
-     * @returns Minimum number
-     */
-    export const min: (...data: readonly number[]) => number;
-    /**
-     * Returns the minimum number out of `data`.
-     * Undefined and non-numbers are silently ignored.
-     * @param data
-     * @returns Minimum number
-     */
-    export const max: (...data: readonly number[]) => number;
-    /**
-     * Returns the min, max, avg and total of the array.
-     * Any values that are invalid are silently skipped over.
-     *
-     * Use {@link average} if you only need average
-     *
-     * @param data
-     * @returns `{min, max, avg, total}`
-     */
-    export const minMaxAvg: (data: readonly number[]) => {
-        /**
-         * Smallest value in array
-         */
-        readonly min: number;
-        /**
-         * Total of all items
-         */
-        readonly total: number;
-        /**
-         * Largest value in array
-         */
-        readonly max: number;
-        /**
-         * Average value in array
-         */
-        readonly avg: number;
-    };
-}
-declare module "collections/Arrays" {
-    /**
-     * Functions for working with primitive arrays, regardless of type
-     * See Also: NumericArrays.ts
-     */
-    import { IsEqual } from "Util";
-    export * from "collections/NumericArrays";
-    /**
-     * Throws an error if `array` parameter is not a valid array
-     * @private
-     * @param array
-     * @param paramName
-     */
-    export const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
-    /**
-     * Returns a random array index
-     * @param array
-     * @returns
-     */
-    export const randomIndex: <V>(array: ArrayLike<V>) => number;
-    /**
-     * Returns random element
-     * @param array
-     * @returns
-     */
-    export const randomElement: <V>(array: ArrayLike<V>) => V;
-    /**
-     * Removes a random item from an array, returning both the item and the new array as a result.
-     * Does not modify the original array unless `mutate` parameter is true.
-     *
-     * @example Without changing source
-     * ```js
-     * const data = [100, 20, 40];
-     * const {value, array} = randomPluck(data);
-     * // value: 20, array: [100, 40], data: [100, 20, 40];
-     * ```
-     *
-     * @example Mutating source
-     * ```js
-     * const data = [100, 20, 40];
-     * const {value} = randomPluck(data, true);
-     * // value: 20, data: [100, 40];
-     * ```
-     *
-     * @template V Type of array
-     * @param array Array to pluck item from
-     * @param mutate If _true_, changes input array. _False_ by default.
-     * @return Returns an object `{value:V|undefined, array:V[]}`
-     */
-    export const randomPluck: <V>(array: readonly V[], mutate?: boolean) => {
-        readonly value: V | undefined;
-        readonly array: V[];
-    };
-    /**
-     * Returns a shuffled copy of the input array.
-     * @example
-     * ```js
-     * const d = [1, 2, 3, 4];
-     * const s = shuffle(d);
-     * // d: [1, 2, 3, 4], s: [3, 1, 2, 4]
-     * ```
-     * @param dataToShuffle
-     * @returns Copy with items moved around randomly
-     * @template V Type of array items
-     */
-    export const shuffle: <V>(dataToShuffle: readonly V[]) => readonly V[];
-    /**
-     * Returns an array with a value omitted. If value is not found, result will be a copy of input.
-     * Value checking is completed via the provided `comparer` function, or by default checking whether `a === b`.
-     *
-     * @example
-     * ```js
-     * const data = [100, 20, 40];
-     * const filtered = without(data, 20); // [100, 40]
-     * ```
-     * @template V Type of array items
-     * @param data Source array
-     * @param value Value to remove
-     * @param comparer Comparison function. If not provided {@link isEqualDefault} is used, which compares using `===`
-     * @return Copy of array without value.
-     */
-    export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
-    /**
-     * Groups data by a grouper function, returning data as a map with string
-     * keys and array values.
-     *
-     * @example
-     * ```js
-     * const data = [
-     *  { age: 39, city: `London` }
-     *  { age: 14, city: `Copenhagen` }
-     *  { age: 23, city: `Stockholm` }
-     *  { age: 56, city: `London` }
-     * ];
-     * const map = groupBy(data, item => data.city);
-     * ```
-     *
-     * Returns a map:
-     *
-     * London: [{ age: 39, city: `London` }, { age: 56, city: `London` }]
-     * Stockhom: [{ age: 23, city: `Stockholm` }]
-     * Copenhagen: [{ age: 14, city: `Copenhagen` }]
-     *
-     * @param array Array to group
-     * @param grouper Function that returns a key for a given item
-     * @template K Type of key to group by. Typically string.
-     * @template V Type of values
-     * @returns Map
-     */
-    export const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
-}
-declare module "KeyValue" {
-    type Primitive = string | number;
-    export type KeyValue = readonly [key: string, value: Primitive];
-    export const byValueString: (reverse?: boolean) => import("fp-ts/Ord").Ord<KeyValue>;
-    export const sortByKey: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
-    export const sortByValueString: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
-    export const sortByValueNumber: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
-    export type SortingFn = (data: KeyValue[]) => KeyValue[];
-    export const getSorter: (sortStyle: `value` | `valueReverse` | `key` | `keyReverse`) => <A extends KeyValue>(as: A[]) => A[];
-    export const minMaxAvg: (entries: readonly KeyValue[], conversionFn?: ((v: KeyValue) => number) | undefined) => {
-        readonly min: number;
-        readonly total: number;
-        readonly max: number;
-        readonly avg: number;
-    };
-}
-declare module "Match" {
-    type MatchFunction<V> = {
-        (v: V, index?: number, array?: V[]): boolean;
-    };
-    /**
-     * Returns a function that filters a set of items by a set of filters
-     *
-     * @template V
-     * @param {Iterable<MatchFunction<V>>} filters If filter returns true, item is included
-     * @param {{allFiltersMustMatch?: boolean}} [opts={}]
-     * @returns
-     */
-    export const filter: <V>(filters: Iterable<MatchFunction<V>>, opts?: {
-        allFiltersMustMatch?: boolean;
-    }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
-}
 declare module "flow/Timer" {
     /**
      * Creates a timer
@@ -1545,7 +1359,7 @@ declare module "flow/Timer" {
      * @example Handle most recent pointermove event after 1000ms
      * ```js
      * // Set up debounced handler
-     * const moveDebounced = debounce((evt) => {
+     * const moveDebounced = debounce((elapsedMs, evt) => {
      *    // Handle event
      * }, 500);
      *
@@ -1562,7 +1376,7 @@ declare module "flow/Timer" {
      * @param timeoutMs
      * @returns
      */
-    export const debounce: (callback: () => void | Promise<unknown>, timeoutMs: number) => DebouncedFunction;
+    export const debounce: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => DebouncedFunction;
     /**
      * Debounced function
      * @private
@@ -1841,11 +1655,11 @@ declare module "modulation/Easing" {
      * t.reset();   // Reset to 0
      * t.isDone;    // _True_ if finished
      * ```
-     * @param name Name of easing
+     * @param nameOrFn Name of easing, or an easing function
      * @param durationMs Duration in milliseconds
      * @returns Easing
      */
-    export const time: (name: EasingName, durationMs: number) => Easing;
+    export const time: (nameOrFn: EasingName | EasingFn, durationMs: number) => Easing;
     /**
      * Creates an easing based on ticks
      *
@@ -1857,11 +1671,11 @@ declare module "modulation/Easing" {
      * t.reset();   // Reset to 0
      * t.isDone;    // _True_ if finished
      * ```
-     * @param name Name of easing
+     * @param nameOrFn Name of easing, or an easing function
      * @param durationTicks Duration in ticks
      * @returns Easing
      */
-    export const tick: (name: EasingName, durationTicks: number) => Easing;
+    export const tick: (nameOrFn: EasingName | EasingFn, durationTicks: number) => Easing;
     /**
      * 'Ease' from `0` to `1` over a delicious curve. Commonly used for animation
      * and basic modelling of phyical motion.
@@ -1889,6 +1703,41 @@ declare module "modulation/Easing" {
         get isDone(): boolean;
     };
     /**
+     * Creates an easing function using a simple cubic bezier defined by two points.
+     *
+     * Eg: https://cubic-bezier.com/#0,1.33,1,-1.25
+     *  a:0, b: 1.33, c: 1, d: -1.25
+     *
+     * ```js
+     * // Time-based easing using bezier
+     * const e = Easings.time(fromCubicBezier(1.33, -1.25), 1000);
+     * e.compute();
+     * ```
+     * @param b
+     * @param d
+     * @param t
+     * @returns Value
+     */
+    export const fromCubicBezier: (b: number, d: number) => EasingFn;
+    /**
+     * Returns a mix of two easing functions.
+     *
+     * ```js
+     * // Get a 50/50 mix of two easing functions at t=0.25
+     * mix(0.5, 0.25, sineIn, sineOut);
+     *
+     * // 10% of sineIn, 90% of sineOut
+     * mix(0.90, 0.25, sineIn, sineOut);
+     * ```
+     * @param amt
+     * @param balance
+     * @param easingA
+     * @param easingB
+     * @returns
+     */
+    export const mix: (amt: number, balance: number, easingA: EasingFn, easingB: EasingFn) => number;
+    export const crossfade: (amt: number, easingA: EasingFn, easingB: EasingFn) => number;
+    /**
      * @private
      */
     export type EasingName = keyof typeof functions;
@@ -1911,7 +1760,15 @@ declare module "modulation/Easing" {
      * @returns Returns list of available easing names
      */
     export const getEasings: () => readonly string[];
+    /**
+     * Returns a roughly gaussian easing function
+     * @param stdDev
+     * @returns
+     */
+    export const gaussian: (stdDev?: number) => EasingFn;
     export const functions: {
+        arch: (x: number) => number;
+        bell: EasingFn;
         sineIn: (x: number) => number;
         sineOut: (x: number) => number;
         quadIn: (x: number) => number;
@@ -1944,8 +1801,11 @@ declare module "modulation/Easing" {
 }
 declare module "Random" {
     import { randomIndex, randomElement } from "collections/Arrays";
+    import * as Easings from "modulation/Easing";
     export { randomIndex as arrayIndex };
     export { randomElement as arrayElement };
+    export const defaultRandom: () => number;
+    export type RandomSource = () => number;
     /**
      * Returns a random number between `min-max` weighted such that values closer to `min`
      * occur more frequently
@@ -1953,10 +1813,24 @@ declare module "Random" {
      * @param max
      * @returns
      */
-    export const weighted2: (min: number, max: number) => number;
+    /***
+     * Returns a random number, 0..1, weighted by a given easing function.
+     * Default easing is `quadIn`, which skews towards zero.
+     *
+     * ```js
+     * weighted();          // quadIn easing by default, which skews toward low values
+     * weighted(`quadOut`); // quadOut favours high values
+     * ```
+     *
+     * @param easingName Easing name. `quadIn` by default.
+     * @param rand Source random generator. `Math.random` by default.
+     * @returns Random number (0-1)
+     */
+    export const weighted: (easingName?: Easings.EasingName, rand?: RandomSource) => number;
     /**
      * Random integer, weighted according to an easing function.
      * Number will be inclusive of `min` and below `max`.
+     *
      * ```js
      * // If only one parameter is provided, it's assumed to be the max:
      * // Random number that might be 0 through to 99
@@ -1964,22 +1838,285 @@ declare module "Random" {
      *
      * // If two numbers are given, it's assumed to be min, max
      * // Random number that might be 20 through to 29
-     * const r = weightedInteger(30,20);
+     * const r = weightedInteger(20,30);
      *
-     * // One number,
-     * // Random number with `easeInExpo` function
-     * const r = weightedInteger(100, `minOrMax`)
+     * // One number and string. First param is assumed to be
+     * // the max, second parameter the easing function
+     * const r = weightedInteger(100, `quadIn`)
      * ```
      *
-     * Result from easing function will be capped between
-     * 0-1 to ensure `min` and `max` are respected.
+     * Useful for accessing a random array element:
+     * ```js
+     * const list = [`mango`, `kiwi`, `grape`];
+     * // Yields random item from list
+     * list[weightedInteger(list.length)];
+     * ```
+     *
+     * Note: result from easing function will be clamped to
+     * the min/max (by default 0-1);
      *
      * @param max Maximum (exclusive)
      * @param min Minimum number (inclusive), 0 by default
+     * @param rand Source random generator. `Math.random` by default.
      * @param easing Easing to use, uses `quadIn` by default
      * @returns
      */
-    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, easing?: "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined) => number;
+    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | "arch" | "bell" | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, easing?: "arch" | "bell" | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, rand?: RandomSource) => number;
+    /**
+     * Returns a random number with gaussian (ie bell-curved) distribution
+     * ```js
+     * // Yields a random number between 0..1
+     * // with a gaussian distribution
+     * gaussian();
+     * ```
+     *
+     * Distribution can also be skewed:
+     * ```js
+     * // Yields a skewed random value
+     * gaussian(10);
+     * ```
+     *
+     * Use the curried version in order to pass the random number generator elsewhere:
+     * ```js
+     * const g = gaussianSkewed(10);
+     * // Now it can be called without parameters
+     * g(); // Yields skewed random
+     *
+     * // Eg:
+     * shuffle(gaussianSkewed(10));
+     * ```
+     * @param skew
+     * @returns
+     */
+    export const gaussian: (skew?: number) => number;
+    /**
+     * Returns a function of skewed gaussian values.
+     *
+     * This 'curried' function is useful when be
+     * ```js
+     * const g = gaussianSkewed(10);
+     *
+     * // Now it can be called without parameters
+     * g(); // Returns skewed value
+     *
+     * // Eg:
+     * shuffle(gaussianSkewed(10));
+     * ```
+     * @param skew
+     * @returns
+     */
+    export const gaussianSkewed: (skew: number) => () => number;
+}
+declare module "collections/NumericArrays" {
+    /**
+     * Calculates the average of all numbers in an array.
+     * Array items which aren't a valid number are ignored and do not factor into averaging.
+     *
+     * Use {@link minMaxAvg} if you want min, max and total as well.
+     *
+     * @example
+     * ```
+     * // Average of a list
+     * const avg = average(1, 1.4, 0.9, 0.1);
+     *
+     * // Average of a variable
+     * let data = [100,200];
+     * average(...data);
+     * ```
+     * @param data Data to average.
+     * @returns Average of array
+     */
+    export const average: (...data: readonly number[]) => number;
+    /**
+     * Returns the minimum number out of `data`.
+     * Undefined and non-numbers are silently ignored.
+     * @param data
+     * @returns Minimum number
+     */
+    export const min: (...data: readonly number[]) => number;
+    /**
+     * Returns the minimum number out of `data`.
+     * Undefined and non-numbers are silently ignored.
+     * @param data
+     * @returns Minimum number
+     */
+    export const max: (...data: readonly number[]) => number;
+    /**
+     * Returns the min, max, avg and total of the array.
+     * Any values that are invalid are silently skipped over.
+     *
+     * Use {@link average} if you only need average
+     *
+     * @param data
+     * @returns `{min, max, avg, total}`
+     */
+    export const minMaxAvg: (data: readonly number[]) => {
+        /**
+         * Smallest value in array
+         */
+        readonly min: number;
+        /**
+         * Total of all items
+         */
+        readonly total: number;
+        /**
+         * Largest value in array
+         */
+        readonly max: number;
+        /**
+         * Average value in array
+         */
+        readonly avg: number;
+    };
+}
+declare module "collections/Arrays" {
+    /**
+     * Functions for working with primitive arrays, regardless of type
+     * See Also: NumericArrays.ts
+     */
+    import { RandomSource } from "Random";
+    import { IsEqual } from "Util";
+    export * from "collections/NumericArrays";
+    /**
+     * Throws an error if `array` parameter is not a valid array
+     * @private
+     * @param array
+     * @param paramName
+     */
+    export const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
+    /**
+     * Returns a random array index
+     * @param array
+     * @param rand Random generator. `Math.random` by default.
+     * @returns
+     */
+    export const randomIndex: <V>(array: ArrayLike<V>, rand?: RandomSource) => number;
+    /**
+     * Returns random element
+     * @param array
+     * @params rand Random generator. `Math.random` by default.
+     * @returns
+     */
+    export const randomElement: <V>(array: ArrayLike<V>, rand?: RandomSource) => V;
+    /**
+     * Removes a random item from an array, returning both the item and the new array as a result.
+     * Does not modify the original array unless `mutate` parameter is true.
+     *
+     * @example Without changing source
+     * ```js
+     * const data = [100, 20, 40];
+     * const {value, array} = randomPluck(data);
+     * // value: 20, array: [100, 40], data: [100, 20, 40];
+     * ```
+     *
+     * @example Mutating source
+     * ```js
+     * const data = [100, 20, 40];
+     * const {value} = randomPluck(data, true);
+     * // value: 20, data: [100, 40];
+     * ```
+     *
+     * @template V Type of array
+     * @param array Array to pluck item from
+     * @param mutate If _true_, changes input array. _False_ by default.
+     * @param random Random generatr. `Math.random` by default.
+     * @return Returns an object `{value:V|undefined, array:V[]}`
+     *
+     */
+    export const randomPluck: <V>(array: readonly V[], mutate?: boolean, rand?: RandomSource) => {
+        readonly value: V | undefined;
+        readonly array: V[];
+    };
+    /**
+     * Returns a shuffled copy of the input array.
+     * @example
+     * ```js
+     * const d = [1, 2, 3, 4];
+     * const s = shuffle(d);
+     * // d: [1, 2, 3, 4], s: [3, 1, 2, 4]
+     * ```
+     * @param dataToShuffle
+     * @param rand Random generator. `Math.random` by default.
+     * @returns Copy with items moved around randomly
+     * @template V Type of array items
+     */
+    export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
+    /**
+     * Returns an array with a value omitted. If value is not found, result will be a copy of input.
+     * Value checking is completed via the provided `comparer` function, or by default checking whether `a === b`.
+     *
+     * @example
+     * ```js
+     * const data = [100, 20, 40];
+     * const filtered = without(data, 20); // [100, 40]
+     * ```
+     * @template V Type of array items
+     * @param data Source array
+     * @param value Value to remove
+     * @param comparer Comparison function. If not provided {@link isEqualDefault} is used, which compares using `===`
+     * @return Copy of array without value.
+     */
+    export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
+    /**
+     * Groups data by a grouper function, returning data as a map with string
+     * keys and array values.
+     *
+     * @example
+     * ```js
+     * const data = [
+     *  { age: 39, city: `London` }
+     *  { age: 14, city: `Copenhagen` }
+     *  { age: 23, city: `Stockholm` }
+     *  { age: 56, city: `London` }
+     * ];
+     * const map = groupBy(data, item => data.city);
+     * ```
+     *
+     * Returns a map:
+     *
+     * London: [{ age: 39, city: `London` }, { age: 56, city: `London` }]
+     * Stockhom: [{ age: 23, city: `Stockholm` }]
+     * Copenhagen: [{ age: 14, city: `Copenhagen` }]
+     *
+     * @param array Array to group
+     * @param grouper Function that returns a key for a given item
+     * @template K Type of key to group by. Typically string.
+     * @template V Type of values
+     * @returns Map
+     */
+    export const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
+}
+declare module "KeyValue" {
+    type Primitive = string | number;
+    export type KeyValue = readonly [key: string, value: Primitive];
+    export const byValueString: (reverse?: boolean) => import("fp-ts/Ord").Ord<KeyValue>;
+    export const sortByKey: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
+    export const sortByValueString: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
+    export const sortByValueNumber: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
+    export type SortingFn = (data: KeyValue[]) => KeyValue[];
+    export const getSorter: (sortStyle: `value` | `valueReverse` | `key` | `keyReverse`) => <A extends KeyValue>(as: A[]) => A[];
+    export const minMaxAvg: (entries: readonly KeyValue[], conversionFn?: ((v: KeyValue) => number) | undefined) => {
+        readonly min: number;
+        readonly total: number;
+        readonly max: number;
+        readonly avg: number;
+    };
+}
+declare module "Match" {
+    type MatchFunction<V> = {
+        (v: V, index?: number, array?: V[]): boolean;
+    };
+    /**
+     * Returns a function that filters a set of items by a set of filters
+     *
+     * @template V
+     * @param {Iterable<MatchFunction<V>>} filters If filter returns true, item is included
+     * @param {{allFiltersMustMatch?: boolean}} [opts={}]
+     * @returns
+     */
+    export const filter: <V>(filters: Iterable<MatchFunction<V>>, opts?: {
+        allFiltersMustMatch?: boolean;
+    }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
 }
 /**
  * Reads from a serial port in a line-by-line fashion.
@@ -2001,7 +2138,12 @@ declare module "Random" {
  */
 declare module "Text" {
     /**
-     * Returns source text that is between `start` and `end` match strings.
+     * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
+     *
+     * ```js
+     * // Yields ` orange `;
+     * between(`apple orange melon`, `apple`, `melon`);
+     * ```
      * @param source Source text
      * @param start Start match
      * @param end If undefined, `start` will be used instead
@@ -2012,6 +2154,11 @@ declare module "Text" {
     /**
      * Returns the `source` string up until (and excluding) `match`. If match is not
      * found, all of `source` is returned.
+     *
+     * ```js
+     * // Yields `apple `
+     * untilMarch(`apple orange melon`, `orange`);
+     * ```
      * @param source
      * @param match
      * @param startPos If provided, gives the starting offset. Default 0
@@ -2361,7 +2508,7 @@ declare module "geometry/Path" {
         bbox(): Rects.RectPositioned;
         toString(): string;
         toSvgString(): readonly string[];
-        readonly kind: `compound` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
+        readonly kind: `compound` | `elliptical` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
     };
     /**
      * Return the start point of a path
@@ -3569,6 +3716,17 @@ declare module "geometry/Rect" {
     export const fromElement: (el: HTMLElement) => Rect;
     export const isEqual: (a: Rect, b: Rect) => boolean;
     export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns a rectangle based on provided four corners.
+     *
+     * To create a rectangle that contains an arbitary set of points, use {@links Points.bbox}.
+     *
+     * Does some sanity checking such as:
+     *  - x will be smallest of topLeft/bottomLeft
+     *  - y will be smallest of topRight/topLeft
+     *  - width will be largest between top/bottom left and right
+     *  - height will be largest between left and right top/bottom
+     */
     export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
     export const guard: (rect: Rect, name?: string) => void;
     export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
@@ -3583,6 +3741,31 @@ declare module "geometry/Rect" {
      * @returns {Lines.Line[]}
      */
     export const getLines: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Lines.Line[];
+}
+declare module "geometry/Ellipse" {
+    import { Path } from "geometry/Path";
+    import { Points } from "geometry/index";
+    /**
+     * An ellipse
+     */
+    export type Ellipse = {
+        readonly radiusX: number;
+        readonly radiusY: number;
+        /**
+         * Rotation, in radians
+         */
+        readonly rotation?: number;
+        readonly startAngle?: number;
+        readonly endAngle?: number;
+    };
+    /**
+     * A {@link Ellipse} with position
+     */
+    export type EllipsePositioned = Points.Point & Ellipse;
+    export const fromDegrees: (radiusX: number, radiusY: number, rotationDeg?: number, startAngleDeg?: number, endAngleDeg?: number) => Ellipse;
+    export type EllipticalPath = Ellipse & Path & {
+        readonly kind: `elliptical`;
+    };
 }
 declare module "geometry/Polar" {
     import * as Points from "geometry/Point";
@@ -3635,7 +3818,8 @@ declare module "geometry/index" {
     import * as Paths from "geometry/Path";
     import * as Points from "geometry/Point";
     import * as Rects from "geometry/Rect";
-    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound };
+    import * as Ellipses from "geometry/Ellipse";
+    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses };
     export * as Polar from "geometry/Polar";
     export const degreeToRadian: (angleInDegrees: number) => number;
     export const radianToDegree: (angleInRadians: number) => number;
@@ -3671,14 +3855,32 @@ declare module "flow/StateMachine" {
      *
      * ```js
      * const states = [`one`, `two`, `three`];
-     * const sm = new StateMachine(states[0], fromList(states));
+     * const sm = StateMachine.create(states[0], descriptionFromList(states));
      * ```
      * @param {...readonly} states
      * @param {*} string
      * @param {*} []
      * @return {*}  {MachineDescription}
      */
-    export const fromList: (...states: readonly string[]) => MachineDescription;
+    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
+    /**
+     * Returns a state machine based on a list of strings. The first string is used as the initial state,
+     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
+     *
+     * ```js
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.fromList(states);
+     * ```
+     */
+    export const fromList: (...states: readonly string[]) => StateMachine;
+    /**
+     * Creates a new state machine
+     * @param initial Initial state
+     * @param m Machine description
+     * @param opts Options
+     * @returns State machine instance
+     */
+    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
     /**
      * State machine
      *
@@ -3698,7 +3900,7 @@ declare module "flow/StateMachine" {
      * ```
      * Create the machine with the starting state (`sleep`)
      * ```
-     * const machine = new StateMachine(`sleep`, description);
+     * const machine = StateMachine.create(`sleep`, description);
      * ```
      *
      * Change the state by name:
@@ -3792,6 +3994,32 @@ declare module "flow/StateMachine" {
 declare module "flow/index" {
     export * as StateMachine from "flow/StateMachine";
     export * from "flow/Timer";
+    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
+    /**
+     * Runs `fn` a certain number of times, accumulating result into return array.
+     * If `fn` returns undefined, it is skipped.
+     *
+     * ```js
+     * // Results will be an array with five random numbers
+     * const results = repeat(5, () => Math.random());
+     * ```
+     *
+     * Repeats can be specified as an integer (eg 5 for five repeats), or a function
+     * that gives _false_ when repeating should stop.
+     *
+     * ```js
+     * // Keep running `fn` until we've accumulated 10 values
+     * // Useful if `fn` sometimes returns _undefined_
+     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
+     * ```
+     *
+     * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
+     *
+     * @param countOrPredicate Number of repeats or function returning false when to stop
+     * @param fn Function to run, must return a value to accumulate into array or _undefined_
+     * @returns Array of accumulated results
+     */
+    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 }
 declare module "visual/Colour" {
     import * as d3Colour from 'd3-color';
@@ -4432,6 +4660,7 @@ declare module "visual/Drawing" {
     import * as Arcs from "geometry/Arc";
     import * as Beziers from "geometry/Bezier";
     import * as Rects from "geometry/Rect";
+    import * as Ellipses from "geometry/Ellipse";
     import { Stack } from "collections/index";
     type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
     /**
@@ -4527,12 +4756,21 @@ declare module "visual/Drawing" {
     export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp> | undefined) => DrawingStack;
     export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts | undefined) => void;
     /**
-     * Draws one or more circles
+     * Draws one or more circles. Will draw outline/fill depending on
+     * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
      * @param ctx
      * @param circlesToDraw
      * @param opts
      */
     export const circle: (ctx: CanvasRenderingContext2D, circlesToDraw: Circles.CirclePositioned | readonly Circles.CirclePositioned[], opts?: DrawingOpts) => void;
+    /**
+     * Draws one or more ellipses. Will draw outline/fill depending on
+     * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
+     * @param ctx
+     * @param ellipsesToDraw
+     * @param opts
+     */
+    export const ellipse: (ctx: CanvasRenderingContext2D, ellipsesToDraw: Ellipses.EllipsePositioned | readonly Ellipses.EllipsePositioned[], opts?: DrawingOpts) => void;
     /**
      * Draws one or more paths.
      * supported paths are quadratic beziers and lines.
@@ -4564,6 +4802,17 @@ declare module "visual/Drawing" {
     export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
         readonly fillStyle?: string;
     }, labels?: readonly string[] | undefined) => void;
+    /**
+     * Draws filled circle(s) at provided point(s)
+     * @param ctx
+     * @param pos
+     * @param opts
+     */
+    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: (DrawingOpts & {
+        readonly radius?: number | undefined;
+        readonly outlined?: boolean | undefined;
+        readonly filled?: boolean | undefined;
+    }) | undefined) => void;
     /**
      * Draws a cubic or quadratic bezier
      * @param ctx
@@ -4870,42 +5119,6 @@ declare module "visual/Svg" {
      */
     export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts | undefined) => SvgHelper;
 }
-declare module "visual/Palette" {
-    /**
-     * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
-     *
-     */
-    export type Palette = {
-        setElementBase(el: Element): void;
-        has(key: string): boolean;
-        /**
-         * Returns a colour by name.
-         *
-         * If the colour is not found:
-         *  1. Try to use a CSS variable `--key`, or
-         *  2. The next fallback colour is used (array cycles)
-         *
-         * @param key
-         * @returns
-         */
-        get(key: string, fallback?: string): string;
-        /**
-         * Gets a colour by key, adding and returning fallback if not present
-         * @param key Key of colour
-         * @param fallback Fallback colour if key is not found
-         */
-        getOrAdd(key: string, fallback?: string): string;
-        /**
-         * Adds a colour with a given key
-         *
-         * @param key
-         * @param colour
-         */
-        add(key: string, value: string): void;
-        alias(from: string, to: string): void;
-    };
-    export const create: (fallbacks?: readonly string[] | undefined) => Palette;
-}
 declare module "visual/Plot" {
     import { CircularArray, MapOfMutable } from "collections/Interfaces";
     import { Rect } from "geometry/Rect";
@@ -5093,6 +5306,42 @@ declare module "visual/DictionaryOfColourCombinations" {
         readonly hex: string;
     };
     export const randomPalette: (minColours?: number) => readonly DictColour[];
+}
+declare module "visual/Palette" {
+    /**
+     * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
+     *
+     */
+    export type Palette = {
+        setElementBase(el: Element): void;
+        has(key: string): boolean;
+        /**
+         * Returns a colour by name.
+         *
+         * If the colour is not found:
+         *  1. Try to use a CSS variable `--key`, or
+         *  2. The next fallback colour is used (array cycles)
+         *
+         * @param key
+         * @returns
+         */
+        get(key: string, fallback?: string): string;
+        /**
+         * Gets a colour by key, adding and returning fallback if not present
+         * @param key Key of colour
+         * @param fallback Fallback colour if key is not found
+         */
+        getOrAdd(key: string, fallback?: string): string;
+        /**
+         * Adds a colour with a given key
+         *
+         * @param key
+         * @param colour
+         */
+        add(key: string, value: string): void;
+        alias(from: string, to: string): void;
+    };
+    export const create: (fallbacks?: readonly string[] | undefined) => Palette;
 }
 declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
@@ -5630,13 +5879,14 @@ declare module "modulation/Oscillator" {
     export function square(timerOrFreq: Timers.Timer): Generator<0 | 1, void, unknown>;
 }
 declare module "modulation/index" {
+    import { RandomSource } from "Random";
     /**
      * Easings module
      *
      * Overview:
      * * {@link Easings.time} - Ease by time
      * * {@link Easings.tick} - Ease by tick
-     * * {@link Easings.get} - Get an easing function by name
+     * * {@link Easings.get}  - Get an easing function by name
      */
     export * as Easings from "modulation/Easing";
     /**
@@ -5647,6 +5897,44 @@ declare module "modulation/index" {
      * Oscillator
      */
     export * as Oscillators from "modulation/Oscillator";
+    export type JitterOpts = {
+        readonly type?: `rel` | `abs`;
+        readonly clamped?: boolean;
+    };
+    /**
+     * Jitters `value` by the absolute `jitter` amount.
+     * All values should be on a 0..1 scale, and return value by default clamped to 0..1
+     *
+     * ```js
+     * // Jitter 0.5 by 10% (absolute)
+     * // yields range of 0.4-0.6
+     * jitter(0.5, 0.1);
+     *
+     * // Jitter 0.5 by 10% (relative)
+     * // yields range of 0.45-0.55
+     * jitter(0.5, 0.1, {type:`rel`});
+     * ```
+     *
+     * You can also opt not to clamp values:
+     * ```js
+     * // Yields range of -1.5 - 1.5
+     * jitter(0.5, 1, {clamped:false});
+     * ```
+     *
+     * A custom source for random numbers can be provided. Eg, use a weighted
+     * random number generator:
+     *
+     * ```js
+     * import {weighted} from 'https://unpkg.com/ixfx/dist/random.js';
+     * jitter(0.5, 0.1, {}, weighted);
+     * ```
+     * @param value Value to jitter
+     * @param jitter Absolute amount to jitter by
+     * @param opts Jitter options
+     * @param rand Source of random numbers, Math.random by default.
+     * @returns Jittered value on 0..1 scale
+     */
+    export const jitter: (value: number, jitter: number, opts?: JitterOpts, rand?: RandomSource) => number;
 }
 declare module "index" {
     export * as Temporal from "temporal/index";
@@ -5688,16 +5976,18 @@ declare module "index" {
      * The Modulation module contains functions for, well, modulating data.
      *
      * Overview:
-     * * {@link adsr}: Modulate over a series of ADSR stages.
-     * * {@link Easings}: Ease from `0` to `1` over a specified duration.
+     * * {@link adsr} - Modulate over a series of ADSR stages.
+     * * {@link Easings} - Ease from `0` to `1` over a specified duration.
+     * * {@link jitter} - Jitter a value
+     * * {@link Oscillators} - Waveforms
      *
-     * @example Import examples
+     * @example Importing
      * ```
      * // If library is stored two directories up under `ixfx/`
-     * import {adsr, defaultAdsrOpts} from '../../ixfx/modulation.js';
+     * import {adsr, defaultAdsrOpts} from '../../ixfx/dist/modulation.js';
      *
      * // Import from web
-     * import {adsr, defaultAdsrOpts} from 'https://unpkg.com/ixfx/modulation.js'
+     * import {adsr, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js'
      * ```
      *
      */
@@ -5734,6 +6024,7 @@ declare module "__tests__/collections/mapMutable.test" { }
 declare module "__tests__/collections/queue.test" { }
 declare module "__tests__/collections/sets.test" { }
 declare module "__tests__/collections/stack.test" { }
+declare module "__tests__/flow/repeat.test" { }
 declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/grid.test" { }
 declare module "__tests__/modulation/pingPong.test" { }

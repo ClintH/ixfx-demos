@@ -1,61 +1,61 @@
 import {
   temporal_exports
-} from "./chunk-VVDUJOCL.js";
+} from "./chunk-E3LQVI25.js";
 import {
   Text_exports
-} from "./chunk-6IKSZCHO.js";
+} from "./chunk-OMXZMOOU.js";
 import {
   visual_exports
-} from "./chunk-A3OQLAFF.js";
+} from "./chunk-C37FD3JM.js";
 import {
   Generators_exports
-} from "./chunk-JV6CQCW4.js";
+} from "./chunk-LLVNI3R6.js";
 import {
   modulation_exports
-} from "./chunk-EHKPP5SR.js";
-import {
-  Random_exports
-} from "./chunk-2OQPH7JM.js";
-import "./chunk-CTQ6HR35.js";
-import "./chunk-MXBALDCV.js";
+} from "./chunk-CCOKD2RJ.js";
+import "./chunk-JDKZH5ZB.js";
 import {
   KeyValue_exports
-} from "./chunk-TITFEN5N.js";
+} from "./chunk-4DMQ5B5V.js";
 import {
   collections_exports
-} from "./chunk-B7RHPX6D.js";
+} from "./chunk-4THA4YVV.js";
 import {
   dom_exports
-} from "./chunk-TDKAXZAS.js";
-import "./chunk-ULMYFS2R.js";
-import "./chunk-QVRQKKRB.js";
+} from "./chunk-SJVFW73P.js";
+import "./chunk-2LMDG6V5.js";
+import "./chunk-DTRNDG6C.js";
 import {
   flow_exports
-} from "./chunk-NP7XBFS5.js";
-import "./chunk-BNGD6RO3.js";
-import "./chunk-FYQLQT42.js";
+} from "./chunk-KSM64VVS.js";
+import "./chunk-WPZ6N3LH.js";
 import {
   geometry_exports
-} from "./chunk-LHJ7JM7H.js";
-import "./chunk-PQ6IJNUJ.js";
-import "./chunk-XU5FJBDE.js";
-import "./chunk-TDPI3IJN.js";
-import "./chunk-JBDRQ5KW.js";
+} from "./chunk-6TM6SJDV.js";
+import "./chunk-7XLMEXWP.js";
+import "./chunk-TF7BQQHV.js";
+import {
+  Random_exports
+} from "./chunk-VXBNK4QD.js";
+import "./chunk-2EXQEXQ3.js";
+import "./chunk-LFDYO2WO.js";
 import {
   clamp,
   clampIndex,
+  flip,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
-  repeat,
+  proportion,
+  proportionReverse,
   scale,
   scalePercent,
   scalePercentages,
   toStringDefault,
   wrap,
   wrapRange
-} from "./chunk-TBQ2OBWU.js";
-import "./chunk-MNTWLMDP.js";
+} from "./chunk-EBSVTCOQ.js";
+import "./chunk-QLMTBJ7O.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   collections_exports as Collections,
@@ -71,10 +71,12 @@ export {
   visual_exports as Visual,
   clamp,
   clampIndex,
+  flip,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
-  repeat,
+  proportion,
+  proportionReverse,
   scale,
   scalePercent,
   scalePercentages,

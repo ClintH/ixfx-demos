@@ -1,26 +1,30 @@
 import {
   clamp,
   clampIndex,
+  flip,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
-  repeat,
+  proportion,
+  proportionReverse,
   scale,
   scalePercent,
   scalePercentages,
   toStringDefault,
   wrap,
   wrapRange
-} from "./chunk-TBQ2OBWU.js";
-import "./chunk-MNTWLMDP.js";
+} from "./chunk-EBSVTCOQ.js";
+import "./chunk-QLMTBJ7O.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   clamp,
   clampIndex,
+  flip,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
-  repeat,
+  proportion,
+  proportionReverse,
   scale,
   scalePercent,
   scalePercentages,

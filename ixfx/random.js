@@ -1,20 +1,23 @@
 import {
-  weighted2,
-  weightedInteger
-} from "./chunk-2OQPH7JM.js";
-import "./chunk-CTQ6HR35.js";
-import "./chunk-BNGD6RO3.js";
-import {
+  defaultRandom,
+  gaussian,
+  gaussianSkewed,
   randomElement,
-  randomIndex
-} from "./chunk-TDPI3IJN.js";
-import "./chunk-TBQ2OBWU.js";
-import "./chunk-MNTWLMDP.js";
+  randomIndex,
+  weighted,
+  weightedInteger
+} from "./chunk-VXBNK4QD.js";
+import "./chunk-LFDYO2WO.js";
+import "./chunk-EBSVTCOQ.js";
+import "./chunk-QLMTBJ7O.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   randomElement as arrayElement,
   randomIndex as arrayIndex,
-  weighted2,
+  defaultRandom,
+  gaussian,
+  gaussianSkewed,
+  weighted,
   weightedInteger
 };
 //# sourceMappingURL=random.js.map
