@@ -79,7 +79,8 @@ declare module "Util" {
      * clamp(50, 0, 50);
      * ```
      *
-     * For clamping integer ranges, consider `clampZeroBounds`
+     * For clamping integer ranges, consider {@link clampZeroBounds}
+     * For clamping {x,y} points, consider `Points.clamp`.
      *
      * @param v Value to clamp
      * @param Minimum value (inclusive)
@@ -310,10 +311,18 @@ declare module "Util" {
      * @param max Integer maximum of range (default: 360). Exlusive
      * @returns
      */
+    export const wrapInteger: (v: number, min?: number, max?: number) => number;
+    /**
+     * Wraps floating point numbers. Defaults to a 0..1 scale.
+     * @param v
+     * @param min
+     * @param max
+     * @returns
+     */
     export const wrap: (v: number, min?: number, max?: number) => number;
     /**
      * Performs a calculation within a wrapping number range. This is a lower-level function.
-     * See also: {@link wrap} for simple wrapping within a range.
+     * See also: {@link wrapInteger} for simple wrapping within a range.
      *
      * `min` and `max` define the start and end of the valid range, inclusive. Eg for hue degrees it'd be 0, 360.
      * `a` and `b` is the range you want to work in.
@@ -2661,6 +2670,12 @@ declare module "geometry/Point" {
      */
     export const guard: (p: Point, name?: string) => void;
     /**
+     * Throws if parameter is not a valid point, or either x or y is 0
+     * @param pt
+     * @returns
+     */
+    export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
+    /**
      * Returns the angle in radians between `a` and `b`.
      * Eg if `a` is the origin, and `b` is another point,
      * in degrees one would get 0 to -180 when `b` was above `a`.
@@ -2848,6 +2863,69 @@ declare module "geometry/Point" {
      * @returns Scaled point
      */
     export function multiply(a: Point, x: number, y?: number): Point;
+    /**
+     * Divides a / b
+     * @param a
+     * @param b
+     */
+    export function divide(a: Point, b: Point): Point;
+    /**
+     * Divides a point by x,y.
+     * ie: a.x / x, b.y / y
+     * @param a Point
+     * @param x X divisor
+     * @param y Y divisor
+     */
+    export function divide(a: Point, x: number, y: number): Point;
+    export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
+    /**
+     * Normalises a point by a given width and height
+     * @param pt Point
+     * @param width Width
+     * @param height Height
+     */
+    export function normalise(pt: Point, width: number, height: number): Point;
+    /**
+     * Normalises x,y by width and height so it is on a 0..1 scale
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function normalise(x: number, y: number, width: number, height: number): Point;
+    /**
+     * Wraps a point to be within `ptMin` and `ptMax`.
+     * Note that max values are _exclusive_, meaning the return value will always be one less.
+     *
+     * Eg, if a view port is 100x100 pixels, wrapping the point 150,100 yields 50,99.
+     *
+     * ```js
+     * // Wraps 150,100 to on 0,0 -100,100 range
+     * wrap({x:150,y:100}, {x:100,y:100});
+     * ```
+     *
+     * If `ptMin` is not specified, {x:0,y:0} is used.
+     * @param pt Point to wrap
+     * @param ptMax Maximum value
+     * @param ptMin Minimum value, or {x:0, y:0} by default
+     * @returns Wrapped point
+     */
+    export const wrap: (pt: Point, ptMax: Point, ptMin?: Point) => Point;
+    /**
+     * Clamps a point to be between `min` and `max` (0 & 1 by default)
+     * @param pt Point
+     * @param min Minimum value (0 by default)
+     * @param max Maximum value (1 by default)
+     */
+    export function clamp(pt: Point, min?: number, max?: number): Point;
+    /**
+     * Clamps an x,y pair to be between `min` and `max` (0 & 1 by default)
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param min Minimum value (0 by default)
+     * @param max Maximum value (1 by default)
+     */
+    export function clamp(x: number, y: number, min?: number, max?: number): Point;
 }
 declare module "geometry/Arc" {
     import { Path } from "geometry/Path";
@@ -5932,7 +6010,7 @@ declare module "modulation/index" {
      * @param jitter Absolute amount to jitter by
      * @param opts Jitter options
      * @param rand Source of random numbers, Math.random by default.
-     * @returns Jittered value on 0..1 scale
+     * @returns Jittered value
      */
     export const jitter: (value: number, jitter: number, opts?: JitterOpts, rand?: RandomSource) => number;
 }
@@ -6027,6 +6105,7 @@ declare module "__tests__/collections/stack.test" { }
 declare module "__tests__/flow/repeat.test" { }
 declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/grid.test" { }
+declare module "__tests__/geometry/point.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';

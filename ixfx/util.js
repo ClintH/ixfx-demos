@@ -12,9 +12,10 @@ import {
   scalePercentages,
   toStringDefault,
   wrap,
+  wrapInteger,
   wrapRange
-} from "./chunk-EBSVTCOQ.js";
-import "./chunk-QLMTBJ7O.js";
+} from "./chunk-MOJQTAHW.js";
+import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   clamp,
@@ -30,6 +31,7 @@ export {
   scalePercentages,
   toStringDefault,
   wrap,
+  wrapInteger,
   wrapRange
 };
 //# sourceMappingURL=util.js.map

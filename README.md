@@ -10,7 +10,7 @@ ixfx
 
 ## Running
 
-You can get up and running from a ZIP file, or cloning the repository
+You can get up and running from a ZIP file, or cloning the repository. It's recommended to use [Visual Studio Code](https://code.visualstudio.com) to edit code.
 
 ## ZIP
 

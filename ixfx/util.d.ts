@@ -14,7 +14,8 @@
  * clamp(50, 0, 50);
  * ```
  *
- * For clamping integer ranges, consider `clampZeroBounds`
+ * For clamping integer ranges, consider {@link clampZeroBounds}
+ * For clamping {x,y} points, consider `Points.clamp`.
  *
  * @param v Value to clamp
  * @param Minimum value (inclusive)
@@ -245,10 +246,18 @@ declare const toStringDefault: <V>(itemToMakeStringFor: V) => string;
  * @param max Integer maximum of range (default: 360). Exlusive
  * @returns
  */
+declare const wrapInteger: (v: number, min?: number, max?: number) => number;
+/**
+ * Wraps floating point numbers. Defaults to a 0..1 scale.
+ * @param v
+ * @param min
+ * @param max
+ * @returns
+ */
 declare const wrap: (v: number, min?: number, max?: number) => number;
 /**
  * Performs a calculation within a wrapping number range. This is a lower-level function.
- * See also: {@link wrap} for simple wrapping within a range.
+ * See also: {@link wrapInteger} for simple wrapping within a range.
  *
  * `min` and `max` define the start and end of the valid range, inclusive. Eg for hue degrees it'd be 0, 360.
  * `a` and `b` is the range you want to work in.
@@ -273,4 +282,4 @@ declare const wrap: (v: number, min?: number, max?: number) => number;
  */
 declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
 
-export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, proportion, proportionReverse, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapRange };
+export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, proportion, proportionReverse, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
