@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rectangle drawing</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 200;
+    }
+
+    body {
+      background-color: hsl(var(--hue), 10%, 80%);
+    }
+
+    h1 {
+      color: hsl(var(--hue), 100%, 30%);
+    }
+  </style>
+  <section>
+    <h1>Rectangle drawing</h1>
+    <p>Demonstrates creating a rectangle from a center point or top-left corner.</p>
+    <canvas id="canvas"></canvas>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

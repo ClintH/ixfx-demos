@@ -1,8 +1,6 @@
 import * as Dom from '../../ixfx/dom.js';
 import {Points} from '../../ixfx/geometry.js';
 import {repeat} from '../../ixfx/flow.js';
-import {jitter} from '../../ixfx/modulation.js';
-import {flip} from '../../ixfx/util.js';
 
 const randomPoint = () => ({
   x: Math.random(),
@@ -13,11 +11,12 @@ const randomPoint = () => ({
 // Define settings
 const settings = {
   // Drawing settings
-  dotColour: `#fed9b7`,
-  bgColour: `hsla(194, 100%, 33%, 40%)`,
+  dotColour: `black`,
   radiusMax: 10,
 
-  particles: 300
+  // Generate 100 random points
+  // with x,y and radius on 0..1 scale
+  points: repeat(100, randomPoint)
 };
 
 // Initial state with empty values
@@ -26,31 +25,12 @@ let state = {
     width: 0,
     height: 0,
     center: {x: 0, y: 0}
-  },
-  // Generate random points
-  points: repeat(settings.particles, randomPoint)
+  }
 };
 
 // Update state of world
 const update = () => {
-  const {points} = state;
 
-  // Alter points
-  const pts = points.map(pt => {
-    const p = {
-      // Jitter x,y based on a max amount multiplied by the inverse
-      // of the radius. So smaller things will jitter more than larger
-      x: jitter(pt.x, 0.001 * flip(pt.radius)),
-      y: jitter(pt.y, 0.002 * flip(pt.radius)),
-      radius: pt.radius
-    };
-    return p;
-  });
-
-  state = {
-    ...state,
-    points: pts
-  }
 }
 
 /**
@@ -88,7 +68,7 @@ const drawPoint = (ctx, pt) => {
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const {points} = state;
+  const {points} = settings;
 
   // Draw each points
   points.forEach(p => {
@@ -102,16 +82,13 @@ const draw = (ctx) => {
  */
 const clear = (ctx) => {
   const {width, height} = state.bounds;
-  const {bgColour} = settings;
 
   // Make background transparent
-  //ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
 
   // Clear with a colour
-  ctx.fillStyle = bgColour;
-
-  ctx.globalCompositeOperation = `luminosity`; // Changing the composition style can give an interesting effect...
-  ctx.fillRect(0, 0, width, height);
+  //ctx.fillStyle = `orange`;
+  //ctx.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
   //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;

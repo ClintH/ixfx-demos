@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Point math</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 200;
+    }
+
+    body {
+      background-color: #970747;
+      overflow: hidden;
+      color: #FEF4E8;
+    }
+
+    h1 {
+      color: #DADBBD;
+    }
+
+    #thing {
+      background-color: #13445A;
+      border-radius: 3em;
+    }
+
+    #reference {
+      background-color: #446878;
+    }
+
+    .ball {
+      display: inline-block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 1em;
+      border-radius: 3em;
+    }
+  </style>
+  <section>
+    <div id="info">
+      Distance relative: <span id="lblDistance">?</span><br />
+      Angle deg: <span id="lblAngleDeg">?</span><br />
+    </div>
+    <div class="ball" id="reference"></div>
+    <div class="ball" id="thing"></div>
+
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
