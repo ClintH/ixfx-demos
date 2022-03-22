@@ -1,3 +1,3 @@
-export { k as average, j as groupBy, f as guardArray, l as max, m as min, n as minMaxAvg, b as randomElement, r as randomIndex, h as randomPluck, s as shuffle, i as without } from './Arrays-a2dc3197';
+export { h as areValuesIdentical, n as average, o as averageWeighted, i as ensureLength, l as groupBy, f as guardArray, q as max, p as min, t as minMaxAvg, b as randomElement, r as randomIndex, j as randomPluck, s as shuffle, m as weight, k as without, z as zip } from './Arrays-5ae7d9fb';
 import './util';
 import './Timer-32529894';

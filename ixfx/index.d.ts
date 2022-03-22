@@ -1652,7 +1652,7 @@ declare module "flow/Timer" {
 }
 declare module "modulation/Easing" {
     import { HasCompletion } from "flow/Timer";
-    type EasingFn = (x: number) => number;
+    export type EasingFn = (x: number) => number;
     /**
      * Creates an easing based on clock time
      * @inheritdoc Easing
@@ -1917,6 +1917,36 @@ declare module "Random" {
     export const gaussianSkewed: (skew: number) => () => number;
 }
 declare module "collections/NumericArrays" {
+    import * as Easings from "modulation/Easing";
+    /**
+     * Applies a function to the elements of an array, weighting them based on their relative position.
+     *
+     * ```js
+     * // Six items
+     * weight([1,1,1,1,1,1], Easings.gaussian());
+     *
+     * // Yields:
+     * // [0.02, 0.244, 0.85, 0.85, 0.244, 0.02]
+     * ```
+     *
+     * Function is expected to map (0..1) => (0..1), such as an {@link Easings.EasingFn}. The input to the
+     * function is the relative position of an element, so the first element will use fn(0), the middle (0.5) and so on.
+     * The output of the function s then multiplied by the original value.
+     *
+     * In the below example (which is also the default if `fn` is not specified), it is just the
+     * position which is used to proportion the contents.
+     *
+     * ```js
+     * weight([1,1,1,1,1,1], (relativePos) => relativePos);
+     * // Yields:
+     * // [0, 0.2, 0.4, 0.6, 0.8, 1]
+     * ```
+     *
+     * Non-numbers in `data` will be silently ignored.
+     * @param data Data to process. Assumed to be an array of numbers
+     * @param fn Function (number)=>number. Returns a weighting based on the given relative position. If unspecified (x) => x is used.
+     */
+    export const weight: (data: readonly number[], fn?: ((relativePos: number) => number) | undefined) => readonly number[];
     /**
      * Calculates the average of all numbers in an array.
      * Array items which aren't a valid number are ignored and do not factor into averaging.
@@ -1936,6 +1966,38 @@ declare module "collections/NumericArrays" {
      * @returns Average of array
      */
     export const average: (...data: readonly number[]) => number;
+    /**
+     * Computes an average of an array with a set of weights applied.
+     *
+     * Weights can be provided as an array, expected to be on 0..1 scale, with indexes
+     * matched up to input data. Ie. data at index 2 will be weighed by index 2 in the weightings array.
+     *
+     * ```js
+     * // All items weighted evenly
+     * averageWeighted([1,2,3], [1,1,1]); // 2
+     *
+     * // First item has full weight, second half, third quarter
+     * averageWeighted([1,2,3], [1, 0.5, 0.25]); // 1.57
+     *
+     * // With reversed weighting of [0.25,0.5,1] value is 2.42
+     * ```
+     *
+     * A function can alternatively be provided to compute the weighting based on array index, via {@link weight}.
+     *
+     * ```js
+     * averageWeighted[1,2,3], Easings.gaussian()); // 2.0
+     * ```
+     *
+     * This is the same as:
+     * ```js
+     * const data = [1,2,3];
+     * const w = weight(data, Easings.gaussian());
+     * const avg = averageWeighted(data, w); // 2.0
+     * ```
+     * @param data Data to average
+     * @param weightings Array of weightings that match up to data array, or an easing function
+     */
+    export const averageWeighted: (data: readonly number[], weightings: (readonly number[]) | Easings.EasingFn) => number;
     /**
      * Returns the minimum number out of `data`.
      * Undefined and non-numbers are silently ignored.
@@ -1993,6 +2055,56 @@ declare module "collections/Arrays" {
      * @param paramName
      */
     export const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
+    /**
+     * Returns _true_ if all the contents of the array are identical
+     * @param array Array
+     * @param equality Equality checker. Uses string-conversion checking by default
+     * @returns
+     */
+    export const areValuesIdentical: <V>(array: readonly V[], equality?: IsEqual<V> | undefined) => boolean;
+    /**
+     * Zip ombines the elements of two or more arrays based on their index.
+     *
+     * ```js
+     * const a = [1,2,3];
+     * const b = [`red`, `blue`, `green`];
+     *
+     * const c = zip(a, b);
+     * // Yields:
+     * // [
+     * //   [1, `red`],
+     * //   [2, `blue`],
+     * //   [3, `green`]
+     * // ]
+     * ```
+     *
+     * Typically the arrays you zip together are all about the same logical item. Eg, in the above example
+     * perhaps `a` is size and `b` is colour. So thing #1 (at array index 0) is a red thing of size 1. Before
+     * zipping we'd access it by `a[0]` and `b[0]`. After zipping, we'd have c[0], which is array of [1, `red`].
+     * @param arrays
+     * @returns Zipped together array
+     */
+    export const zip: (...arrays: ReadonlyArray<any>) => ReadonlyArray<any>;
+    /**
+     * Returns an copy of `data` with specified length.
+     * If the input array is too long, it is truncated.
+     * If the input array is too short, it will the expanded based on the `expand` strategy
+     *  - undefined: fill with `undefined`
+     *  - repeat: repeat array elements from position 0
+     *  - first: continually use first element
+     *  - last: continually use last element
+     *
+     * ```js
+     * ensureLength([1,2,3], 2); // [1,2]
+     * ensureLength([1,2,3], 5, `undefined`); // [1,2,3,undefined,undefined]
+     * ensureLength([1,2,3], 5, `repeat`);    // [1,2,3,1,2]
+     * ensureLength([1,2,3], 5, `first`);     // [1,2,3,1,1]
+     * ensureLength([1,2,3], 5, `last`);      // [1,2,3,3,3]
+     * ```
+     * @param data
+     * @param length
+     */
+    export const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => readonly V[];
     /**
      * Returns a random array index
      * @param array
@@ -2082,11 +2194,11 @@ declare module "collections/Arrays" {
      * ```
      *
      * Returns a map:
-     *
+     * ```
      * London: [{ age: 39, city: `London` }, { age: 56, city: `London` }]
      * Stockhom: [{ age: 23, city: `Stockholm` }]
      * Copenhagen: [{ age: 14, city: `Copenhagen` }]
-     *
+     * ```
      * @param array Array to group
      * @param grouper Function that returns a key for a given item
      * @template K Type of key to group by. Typically string.
@@ -2553,11 +2665,97 @@ declare module "geometry/Line" {
      * @returns {boolean}
      */
     export const equals: (a: Line, b: Line) => boolean;
-    export const guard: (l: Line, paramName?: string) => void;
+    /**
+     * Applies `fn` to both start and end points.
+     *
+     * ```js
+     * // Line 10,10 -> 20,20
+     * const line = Lines.fromNumbers(10,10, 20,20);
+     *
+     * // Applies randomisation to x&y
+     * const rand = (p) => ({
+     *  x: p.x * Math.random(),
+     *  y: p.y * Math.random()
+     * });
+     *
+     * // Applies our randomisation function
+     * const line2 = apply(line, rand);
+     * ```
+     * @param line Line
+     * @param fn Function that takes a point and returns a point
+     * @returns
+     */
+    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => {
+        a: Points.Point;
+        b: Points.Point;
+    };
+    /**
+     * Throws an exception if:
+     * * line is undefined
+     * * a or b parameters are missing
+     *
+     * Does not validate points
+     * @param line
+     * @param paramName
+     */
+    export const guard: (line: Line, paramName?: string) => void;
+    /**
+     * Returns the angle in radians of a line, or two points
+     * ```js
+     * angleRadian(line);
+     * angleRadian(ptA, ptB);
+     * ```
+     * @param lineOrPoint
+     * @param b
+     * @returns
+     */
     export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
-    export const withinRange: (l: Line, p: Points.Point, maxRange: number) => boolean;
+    /**
+     * Multiplies start and end of line by x,y given in `p`.
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = multiply(l, {x:2, y:3});
+     * // Yields: 2,20 -> 3,30
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const multiply: (line: Line, point: Points.Point) => Line;
+    /**
+     * Returns true if `point` is within `maxRange` of `line`.
+     * ```js
+     * const line = Lines.fromNumbers(0,20,20,20);
+     * Lines.withinRange(line, {x:0,y:21}, 1); // True
+     * ```
+     * @param line
+     * @param point
+     * @param maxRange
+     * @returns True if point is within range
+     */
+    export const withinRange: (line: Line, point: Points.Point, maxRange: number) => boolean;
+    /**
+     * Returns the length of a line or length between two points
+     * ```js
+     * length(line);
+     * length(ptA, ptB);
+     * ```
+     * @param aOrLine Line or first point
+     * @param b Second point
+     * @returns
+     */
     export const length: (aOrLine: Points.Point | Line, b?: Points.Point | undefined) => number;
-    export const nearest: (line: Line, p: Points.Point) => Points.Point;
+    /**
+     * Returns the nearest point on `line` closest to `point`.
+     * ```js
+     * nearest(line, {x:10,y:10});
+     * ```
+     * @param line
+     * @param point
+     * @returns Point {x,y}
+     */
+    export const nearest: (line: Line, point: Points.Point) => Points.Point;
     /**
      * Calculates slope of line
      * @example
@@ -2570,6 +2768,11 @@ declare module "geometry/Line" {
      * @returns
      */
     export const slope: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
+    /**
+     * Extends a line to intersection the x-axis at a specified location
+     * @param line Line to extend
+     * @param xIntersection Intersection of x-axis.
+     */
     export const extendX: (line: Line, xIntersection: number) => Points.Point;
     /**
      * Returns a line extended from it's start (`a`) by a specified distance
@@ -2583,16 +2786,55 @@ declare module "geometry/Line" {
      * @return Newly extended line
      */
     export const extendFromStart: (line: Line, distance: number) => Line;
-    export const distance: (l: Line, p: Points.Point) => number;
     /**
-     * Calculates a point in-between a and b
+     * Returns the distance of `point` to the
+     * nearest point on `line`.
+     *
+     * ```js
+     * distance(line, {x:10,y:10});
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const distance: (line: Line, point: Points.Point) => number;
+    /**
+     * Calculates a point in-between `a` and `b`.
+     *
+     * ```js
+     * // Get {x,y} at 50% along line
+     * interpolate(0.5, line);
+     *
+     * // Get {x,y} at 80% between point A and B
+     * interpolate(0.8, ptA, ptB);
+     * ```
      * @param amount Relative position, 0 being at a, 0.5 being halfway, 1 being at b
      * @param a Start
      * @param b End
      * @returns Point between a and b
      */
-    export const interpolate: (amount: number, a: Points.Point, b: Points.Point) => Points.Point;
-    export const toString: (a: Points.Point, b: Points.Point) => string;
+    export function interpolate(amount: number, a: Points.Point, b: Points.Point): Points.Point;
+    export function interpolate(amount: number, line: Line): Points.Point;
+    /**
+     * Returns a string representation of line, or two points
+     * @param a
+     * @param b
+     * @returns
+     */
+    export function toString(a: Points.Point, b: Points.Point): string;
+    export function toString(line: Line): string;
+    /**
+     * Returns a line from a basis of coordinates
+     * ```js
+     * // Line from 0,1 -> 10,15
+     * fromNumbers(0,1,10,15);
+     * ```
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @returns
+     */
     export const fromNumbers: (x1: number, y1: number, x2: number, y2: number) => Line;
     /**
      * Returns an array representation of line: [a.x, a.y, b.x, b.y]
@@ -2610,14 +2852,55 @@ declare module "geometry/Line" {
      * @returns Line
      */
     export const fromArray: (arr: readonly number[]) => Line;
+    /**
+     * Returns a line from two points
+     * ```js
+     * // Line from 0,1 to 10,15
+     * fromPoints({x:0,y:1}, {x:10,y:15});
+     * ```
+     * @param a Start point
+     * @param b End point
+     * @returns
+     */
     export const fromPoints: (a: Points.Point, b: Points.Point) => Line;
+    /**
+     * Returns an array of lines that connects provided points.
+     *
+     * Eg, if points a,b,c are provided, two lines are provided: a->b and b->c
+     * @param points
+     * @returns
+     */
     export const joinPointsToLines: (...points: readonly Points.Point[]) => readonly Line[];
     export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
     export type LinePath = Line & Path & {
         toFlatArray(): readonly number[];
     };
+    /**
+     * Returns a rectangle that encompasses dimension of line
+     */
     export const bbox: (line: Line) => Rects.RectPositioned;
     export const toPath: (line: Line) => LinePath;
+    /**
+     * Returns a line that is rotated by `angleRad`. By default it rotates
+     * around its center, but an arbitrary `origin` point can be provided.
+     * If `origin` is a number, it's presumed to be a 0..1 percentage of the line.
+     *
+     * ```js
+     * // Rotates line by 0.1 radians around point 10,10
+     * rotate(line, 0.1, {x:10,y:10});
+     *
+     * // Rotate line by 5 degrees around its center
+     * rotate(line, degreeToRadian(5));
+     *
+     * // Rotate line by 5 degres around its end point
+     * rotate(line, degreeToRadian(5), line.b);
+     * ```
+     * @param line Line to rotate
+     * @param amountRadian Angle in radians to rotate by
+     * @param origin Point to rotate around. If undefined, middle of line will be used
+     * @returns
+     */
+    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Points.Point | undefined) => Line;
 }
 declare module "geometry/Point" {
     import { Rects } from "geometry/index";
@@ -2801,11 +3084,46 @@ declare module "geometry/Point" {
      *   y: a.y - b.y
      * };
      * ```
-     * @param a
-     * @param b
+     * @param a Point a
+     * @param b Point b
      * @returns Point
      */
-    export const subtract: (a: Point, b: Point) => Point;
+    export function subtract(a: Point, b: Point): Point;
+    /**
+     * Returns `a` minus the given coordinates.
+     *
+     * ie:
+     * ```js
+     * return {
+     *  x: a.x - x,
+     *  y: a.y - y
+     * }
+     * ```
+     * @param a Point
+     * @param x X coordinate
+     * @param y Y coordinate
+     */
+    export function subtract(a: Point, x: number, y: number): Point;
+    /**
+     * Subtracts two sets of x,y pairs
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    export function subtract(x1: number, y1: number, x2: number, y2: number): Point;
+    /**
+     * Applies `fn` on `x` and `y` fields, returning all other fields as well
+     * ```js
+     * const p = {x:1.234, y:4.9};
+     * const p2 = apply(p, Math.round);
+     * // Yields: {x:1, y:5}
+     * ```
+     * @param pt
+     * @param fn
+     * @returns
+     */
+    export const apply: (pt: Point, fn: (v: number) => number) => Point;
     type Sum = {
         /**
          * Adds two sets of coordinates
@@ -2878,6 +3196,7 @@ declare module "geometry/Point" {
      */
     export function divide(a: Point, x: number, y: number): Point;
     export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
+    export const rotate: (pt: Point, amountRadian: number, origin?: Point | undefined) => Point;
     /**
      * Normalises a point by a given width and height
      * @param pt Point
@@ -3877,6 +4196,8 @@ declare module "geometry/Polar" {
     export function spiral(smoothness: number, zoom: number): IterableIterator<Coord & {
         readonly step: number;
     }>;
+    export const rotate: (c: Coord, amountRadian: number) => Coord;
+    export const rotateDegrees: (c: Coord, amountDeg: number) => Coord;
     /**
      * Produces an Archimedian spiral with manual stepping.
      * @param step Step number. Typically 0, 1, 2 ...
@@ -3899,7 +4220,17 @@ declare module "geometry/index" {
     import * as Ellipses from "geometry/Ellipse";
     export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses };
     export * as Polar from "geometry/Polar";
+    /**
+     * Convert angle in degrees to angle in radians.
+     * @param angleInDegrees
+     * @returns
+     */
     export const degreeToRadian: (angleInDegrees: number) => number;
+    /**
+     * Convert angle in radians to angle in degrees
+     * @param angleInRadians
+     * @returns
+     */
     export const radianToDegree: (angleInRadians: number) => number;
     export const radiansFromAxisX: (point: Points.Point) => number;
 }
@@ -6096,6 +6427,7 @@ declare module "__tests__/guards.test" { }
 declare module "__tests__/keyValue.test" { }
 declare module "__tests__/random.test" { }
 declare module "__tests__/util.test" { }
+declare module "__tests__/collections/arrays.test" { }
 declare module "__tests__/collections/lists.test" { }
 declare module "__tests__/collections/map.test" { }
 declare module "__tests__/collections/mapMutable.test" { }
@@ -6105,7 +6437,9 @@ declare module "__tests__/collections/stack.test" { }
 declare module "__tests__/flow/repeat.test" { }
 declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/grid.test" { }
+declare module "__tests__/geometry/line.test" { }
 declare module "__tests__/geometry/point.test" { }
+declare module "__tests__/geometry/polar.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
