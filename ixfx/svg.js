@@ -2,13 +2,15 @@ import {
   SvgElements_exports,
   applyOpts,
   applyPathOpts,
+  applyStrokeOpts,
   createEl,
   createOrResolve,
   getBounds,
   makeHelper,
+  remove,
   setBounds
-} from "./chunk-G7YL2IZD.js";
-import "./chunk-ZTHSWHI3.js";
+} from "./chunk-NQW6DUXW.js";
+import "./chunk-MRSGRDMZ.js";
 import "./chunk-7XLMEXWP.js";
 import "./chunk-TF7BQQHV.js";
 import "./chunk-JHJYWUOD.js";
@@ -21,10 +23,12 @@ export {
   SvgElements_exports as Elements,
   applyOpts,
   applyPathOpts,
+  applyStrokeOpts,
   createEl,
   createOrResolve,
   getBounds,
   makeHelper,
+  remove,
   setBounds
 };
 //# sourceMappingURL=svg.js.map

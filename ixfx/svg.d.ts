@@ -1,3 +1,3 @@
-import './Circle-6173ef8c';
-import './Rect-4e733e81';
-export { D as DrawingOpts, a as Elements, L as LineDrawingOpts, M as MarkerOpts, P as PathDrawingOpts, g as SvgHelper, T as TextDrawingOpts, b as TextPathDrawingOpts, f as applyOpts, e as applyPathOpts, d as createEl, c as createOrResolve, h as getBounds, m as makeHelper, s as setBounds } from './Svg-48bcd358';
+import './Circle-9d96c0ac';
+import './Rect-e8610a33';
+export { D as DrawingOpts, a as Elements, L as LineDrawingOpts, M as MarkerOpts, P as PathDrawingOpts, b as StrokeOpts, i as SvgHelper, T as TextDrawingOpts, c as TextPathDrawingOpts, g as applyOpts, f as applyPathOpts, h as applyStrokeOpts, e as createEl, d as createOrResolve, j as getBounds, m as makeHelper, r as remove, s as setBounds } from './Svg-a301f99b';

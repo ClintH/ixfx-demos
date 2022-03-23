@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/Random.ts"],"sourcesContent":["export const weighted = (min: number, max: number) => Math.round(max / (Math.random() * max + min));"],"mappings":";;;;;AAAA;AAAA;AAAA;AAAA;AAAO,IAAM,WAAW,CAAC,KAAa,QAAgB,KAAK,MAAM,MAAO,MAAK,WAAW,MAAM;","names":[]}

@@ -2650,6 +2650,7 @@ declare module "geometry/Path" {
     };
 }
 declare module "geometry/Line" {
+    import { Point } from "geometry/Point";
     import { Path } from "geometry/Path";
     import { Rects, Points } from "geometry/index";
     export type Line = {
@@ -2685,10 +2686,10 @@ declare module "geometry/Line" {
      * @param fn Function that takes a point and returns a point
      * @returns
      */
-    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => {
-        a: Points.Point;
-        b: Points.Point;
-    };
+    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => Readonly<{
+        a: Point;
+        b: Point;
+    }>;
     /**
      * Throws an exception if:
      * * line is undefined
@@ -2709,7 +2710,7 @@ declare module "geometry/Line" {
      * @param b
      * @returns
      */
-    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
+    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
     /**
      * Multiplies start and end of line by x,y given in `p`.
      * ```js
@@ -2723,6 +2724,60 @@ declare module "geometry/Line" {
      * @returns
      */
     export const multiply: (line: Line, point: Points.Point) => Line;
+    /**
+     * Divides both start and end points by given x,y
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = divide(l, {x:2, y:4});
+     * // Yields: 0.5,0.25 -> 5,2.5
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const divide: (line: Line, point: Points.Point) => Line;
+    /**
+     * Adds both start and end points by given x,y
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = sum(l, {x:2, y:4});
+     * // Yields: 3,5 -> 12,14
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const sum: (line: Line, point: Points.Point) => Line;
+    /**
+     * Subtracts both start and end points by given x,y
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = subtract(l, {x:2, y:4});
+     * // Yields: -1,-3 -> 8,6
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const subtract: (line: Line, point: Points.Point) => Line;
+    /**
+     * Normalises start and end points by given width and height. Useful
+     * for converting an absolutely-defined line to a relative one.
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = normalise(l, 10, 10);
+     * // Yields: 0.1,0.1 -> 1,1
+     * ```
+     * @param line
+     * @param width
+     * @param height
+     * @returns
+     */
+    export const normalise: (line: Line, width: number, height: number) => Line;
     /**
      * Returns true if `point` is within `maxRange` of `line`.
      * ```js
@@ -2745,7 +2800,7 @@ declare module "geometry/Line" {
      * @param b Second point
      * @returns
      */
-    export const length: (aOrLine: Points.Point | Line, b?: Points.Point | undefined) => number;
+    export const length: (aOrLine: Points.Point | Line, b?: Point | undefined) => number;
     /**
      * Returns the nearest point on `line` closest to `point`.
      * ```js
@@ -2757,7 +2812,8 @@ declare module "geometry/Line" {
      */
     export const nearest: (line: Line, point: Points.Point) => Points.Point;
     /**
-     * Calculates slope of line
+     * Calculates [slope](https://en.wikipedia.org/wiki/Slope) of line.
+     *
      * @example
      * ```js
      * slope(line);
@@ -2767,7 +2823,7 @@ declare module "geometry/Line" {
      * @param b Second point if needed
      * @returns
      */
-    export const slope: (lineOrPoint: Line | Points.Point, b?: Points.Point | undefined) => number;
+    export const slope: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
     /**
      * Extends a line to intersection the x-axis at a specified location
      * @param line Line to extend
@@ -2872,14 +2928,41 @@ declare module "geometry/Line" {
      */
     export const joinPointsToLines: (...points: readonly Points.Point[]) => readonly Line[];
     export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
-    export type LinePath = Line & Path & {
-        toFlatArray(): readonly number[];
-    };
     /**
      * Returns a rectangle that encompasses dimension of line
      */
     export const bbox: (line: Line) => Rects.RectPositioned;
+    /**
+     * Returns a path wrapper around a line instance. This is useful if there are a series
+     * of operations you want to do with the same line because you don't have to pass it
+     * in as an argument to each function.
+     *
+     * Note that the line is immutable, so a function like `sum` returns a new LinePath,
+     * wrapping the result of `sum`.
+     *
+     * ```js
+     * // Create a path
+     * const l = toPath(fromNumbers(0,0,10,10));
+     * l.length();
+     *
+     * // Mutate functions return a new path
+     * const ll = l.sum({x:10,y:10});
+     * ll.length();
+     * ```
+     * @param line
+     * @returns
+     */
     export const toPath: (line: Line) => LinePath;
+    export type LinePath = Line & Path & {
+        toFlatArray(): readonly number[];
+        toPoints(): readonly Points.Point[];
+        rotate(amountRadian: number, origin: Points.Point): LinePath;
+        sum(point: Points.Point): LinePath;
+        divide(point: Points.Point): LinePath;
+        multiply(point: Points.Point): LinePath;
+        subtract(point: Points.Point): LinePath;
+        apply(fn: (point: Points.Point) => Points.Point): LinePath;
+    };
     /**
      * Returns a line that is rotated by `angleRad`. By default it rotates
      * around its center, but an arbitrary `origin` point can be provided.
@@ -2900,7 +2983,7 @@ declare module "geometry/Line" {
      * @param origin Point to rotate around. If undefined, middle of line will be used
      * @returns
      */
-    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Points.Point | undefined) => Line;
+    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
 }
 declare module "geometry/Point" {
     import { Rects } from "geometry/index";
@@ -3119,11 +3202,21 @@ declare module "geometry/Point" {
      * const p2 = apply(p, Math.round);
      * // Yields: {x:1, y:5}
      * ```
+     *
+     * The name of the field is provided as well. Here we only round the `x` field:
+     *
+     * ```js
+     * const p = {x:1.234, y:4.9};
+     * const p2 = apply(p, (v, field) => {
+     *  if (field === `x`) return Math.round(v);
+     *  return v;
+     * });
+     * ```
      * @param pt
      * @param fn
      * @returns
      */
-    export const apply: (pt: Point, fn: (v: number) => number) => Point;
+    export const apply: (pt: Point, fn: (v: number, field?: string | undefined) => number) => Point;
     type Sum = {
         /**
          * Adds two sets of coordinates
@@ -4166,23 +4259,46 @@ declare module "geometry/Ellipse" {
 }
 declare module "geometry/Polar" {
     import * as Points from "geometry/Point";
+    /**
+     * Polar coordinate, made up of a distance and angle in radians.
+     * Most computations involving Coords require an `origin` as well.
+     */
     export type Coord = {
         readonly distance: number;
         readonly angleRadian: number;
     };
+    /**
+     * Converts to Cartesian coordiantes
+     */
     type ToCartesian = {
         (point: Coord, origin?: Points.Point): Points.Point;
         (distance: number, angleRadians: number, origin?: Points.Point): Points.Point;
     };
+    /**
+     * Returns true if `p` seems to be a {@link Coord} (ie has both distance & angleRadian fields)
+     * @param p
+     * @returns True if `p` seems to be a Coord
+     */
     export const isCoord: (p: number | unknown) => p is Coord;
+    /**
+     * Converts a Cartesian coordinate to polar
+     * @param point Point
+     * @param origin Origin
+     * @returns
+     */
     export const fromCartesian: (point: Points.Point, origin: Points.Point) => Coord;
+    /**
+     * Converts a polar coordinate to a Cartesian one
+     * @param a
+     * @param b
+     * @param c
+     * @returns
+     */
     export const toCartesian: ToCartesian;
     /**
-     * Produces an Archimedean spiral
+     * Produces an Archimedean spiral. It's a generator.
      *
-     *
-     * This is a generator:
-     * ```
+     * ```js
      * const s = spiral(0.1, 1);
      * for (const coord of s) {
      *  // Use Polar coord...
@@ -4196,7 +4312,19 @@ declare module "geometry/Polar" {
     export function spiral(smoothness: number, zoom: number): IterableIterator<Coord & {
         readonly step: number;
     }>;
+    /**
+     * Returns a rotated coordiante
+     * @param c Coordinate
+     * @param amountRadian Amount to rotate, in radians
+     * @returns
+     */
     export const rotate: (c: Coord, amountRadian: number) => Coord;
+    /**
+     * Returns a rotated coordinate
+     * @param c Coordinate
+     * @param amountDeg Amount to rotate, in degrees
+     * @returns
+     */
     export const rotateDegrees: (c: Coord, amountDeg: number) => Coord;
     /**
      * Produces an Archimedian spiral with manual stepping.
@@ -5296,14 +5424,72 @@ declare module "visual/SvgElements" {
      * @returns
      */
     export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
-    export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: Svg.DrawingOpts | undefined) => void;
-    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
-    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
-    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: Svg.TextPathDrawingOpts | undefined) => void;
-    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts | undefined, queryOrExisting?: string | SVGTextPathElement | undefined) => SVGTextPathElement;
-    export const textUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: Svg.TextDrawingOpts | undefined) => void;
     /**
-     * Creates a SVG Text element
+     * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
+     * @param el Element
+     * @param circle Circle
+     * @param opts Drawing options
+     * @returns SVGCircleElement
+     */
+    export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: Svg.DrawingOpts | undefined) => SVGCircleElement;
+    /**
+     * Creates or reuses a `SVGCircleElement`.
+     *
+     * To update an existing element, use `circleUpdate`
+     * @param circle
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    /**
+     * Creates or reuses a SVGLineElement.
+     *
+     * @param line
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    /**
+     * Updates a SVGLineElement instance with potentially changed line and drawing data
+     * @param lineEl
+     * @param line
+     * @param opts
+     * @returns
+     */
+    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts | undefined) => SVGLineElement;
+    /**
+     * Updates an existing SVGTextPathElement instance with text and drawing options
+     * @param el
+     * @param text
+     * @param opts
+     * @returns
+     */
+    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: Svg.TextPathDrawingOpts | undefined) => SVGTextPathElement;
+    /**
+     * Creates or reuses a SVGTextPathElement.
+     * @param pathRef
+     * @param text
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts | undefined, queryOrExisting?: string | SVGTextPathElement | undefined) => SVGTextPathElement;
+    /**
+     * Updates an existing SVGTextElement instance with position, text and drawing options
+     * @param el
+     * @param pos
+     * @param text
+     * @param opts
+     * @returns
+     */
+    export const textUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: Svg.TextDrawingOpts | undefined) => SVGTextElement;
+    /**
+     * Creates or reuses a SVGTextElement
      * @param pos Position of text
      * @param text Text
      * @param parent
@@ -5334,7 +5520,7 @@ declare module "visual/Svg" {
     import * as Elements from "visual/SvgElements";
     import * as Rects from "geometry/Rect";
     export { Elements };
-    export type MarkerOpts = DrawingOpts & {
+    export type MarkerOpts = StrokeOpts & DrawingOpts & {
         readonly id: string;
         readonly markerWidth?: number;
         readonly markerHeight?: number;
@@ -5348,11 +5534,6 @@ declare module "visual/Svg" {
      */
     export type DrawingOpts = {
         /**
-         * Style for lines. Eg `white`.
-         * @see [stroke](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke)
-         */
-        readonly strokeStyle?: string;
-        /**
          * Style for fill. Eg `black`.
          * @see [fill](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill)
          */
@@ -5361,27 +5542,51 @@ declare module "visual/Svg" {
          * If true, debug helpers are drawn
          */
         readonly debug?: boolean;
+    };
+    export type StrokeOpts = {
+        /**
+         * Line cap
+         * @see [stroke-linecap](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-linecap)
+         */
+        readonly strokeLineCap?: `butt` | `round` | `square`;
         /**
          * Width of stroke, eg `2`
          * @see [stroke-width](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-width)
          */
         readonly strokeWidth?: number;
         /**
-         * Stroke dash pattern, eg `5`
-         * @see [stroke-dasharray](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray)
-         */
+        * Stroke dash pattern, eg `5`
+        * @see [stroke-dasharray](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray)
+        */
         readonly strokeDash?: string;
+        /**
+         * Style for lines. Eg `white`.
+         * @see [stroke](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke)
+         */
+        readonly strokeStyle?: string;
     };
-    export type LineDrawingOpts = DrawingOpts & PathDrawingOpts;
+    /**
+     * Line drawing options
+     */
+    export type LineDrawingOpts = DrawingOpts & PathDrawingOpts & StrokeOpts;
+    /**
+     * Path drawing options
+     */
     export type PathDrawingOpts = {
         readonly markerEnd?: MarkerOpts;
         readonly markerStart?: MarkerOpts;
         readonly markerMid?: MarkerOpts;
     };
-    export type TextDrawingOpts = DrawingOpts & {
+    /**
+     * Text drawing options
+     */
+    export type TextDrawingOpts = StrokeOpts & DrawingOpts & {
         readonly anchor?: `start` | `middle` | `end`;
         readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
     };
+    /**
+     * Text path drawing options
+     */
     export type TextPathDrawingOpts = TextDrawingOpts & {
         readonly method?: `align` | `stretch`;
         readonly side?: `left` | `right`;
@@ -5391,20 +5596,26 @@ declare module "visual/Svg" {
     };
     /**
      * Creates and appends a SVG element.
-     * If `queryOrExisting` is specified, element will be returned if it already exists.
+     *
+     * ```js
+     * // Create a circle
+     * const circleEl = createOrResolve(parentEl, `SVGCircleElement`);
+     * ```
+     *
+     * If `queryOrExisting` is specified, it is used as a query to find an existing element. If
+     * query starts with `#`, this will be set as the element id, if created.
+     *
+     * ```js
+     * // Creates an element with id 'myCircle' if it doesn't exist
+     * const circleEl = createOrResolve(parentEl, `SVGCircleElement`, `#myCircle`);
+     * ```
      * @param parent Parent element
      * @param type Type of SVG element
      * @param queryOrExisting Query, eg `#id`
      * @returns
      */
     export const createOrResolve: <V extends SVGElement>(parent: SVGElement, type: string, queryOrExisting?: string | V | undefined) => V;
-    /**
-     * Adds definition if it doesn't already exist
-     * @param parent
-     * @param id
-     * @param creator
-     * @returns
-     */
+    export const remove: <V extends SVGElement>(parent: SVGElement, queryOrExisting: string | V) => void;
     /**
      * Creates an element of `type` and with `id` (if specified)
      * @param type Element type, eg `circle`
@@ -5426,12 +5637,14 @@ declare module "visual/Svg" {
      * @param opts Drawing options
      */
     export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
+    export const applyStrokeOpts: (elem: SVGElement, opts: StrokeOpts) => void;
     /**
      * Helper to make SVG elements with a common parent.
      *
      * Create with {@link makeHelper}.
      */
     export type SvgHelper = {
+        remove(queryOrExisting: string | SVGElement): void;
         /**
          * Creates a text element
          * @param text Text
