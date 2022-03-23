@@ -1,27 +1,29 @@
 # ixfx-demos
  
-* [Demos are available online](https://clinth.github.io/ixfx-demos/)
+* [Demos can be run online](https://clinth.github.io/ixfx-demos/)
 * [Source code on GitHub](https://github.com/clinth/ixfx-demos/)
 
 ixfx
-* [docs](https://clinth.github.io/ixfx-docs/)
-* [code](https://github.com/clinth/ixfx/) 
-* [API docs](https://clinth.github.io/ixfx/)
+* [Documentation](https://clinth.github.io/ixfx-docs/)
+* [ixfx repository](https://github.com/clinth/ixfx/) 
+* [API documentation](https://clinth.github.io/ixfx/)
 
 ## Running
 
-You can get up and running from a ZIP file, or cloning the repository. It's recommended to use [Visual Studio Code](https://code.visualstudio.com) to edit code.
+You can get up and running from a ZIP file, or cloning the repository. It's recommended to use [Visual Studio Code](https://code.visualstudio.com) to edit code. All the sketches are set for editing and running code offline - it includes a recent build of the ixfx library.
 
-## ZIP
+If you find a bug in a demo, please [report it](https://github.com/ClintH/ixfx-demos/issues).
+
+### ZIP
 
 1. [Download a ZIP of this repository](https://github.com/ClintH/ixfx-demos/archive/refs/heads/main.zip)
 2. Unpack it to a place where you can work on the files
   
-## Clone
+### Clone
 
 If you have `git` installed on your system, or the `GitHub` app, you can clone this repository to a folder.
 
-## ...and then
+### ...and then
 
 1. Open up the provided VS Code workspace (`ixfx-demos.code-workspace`)
 2. If you have the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension installed, start it (via the `Go Live` button in the VS Code toolbar, for example)

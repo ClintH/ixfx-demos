@@ -1,130 +1,132 @@
+/**
+ * This sketch draws rays from the center of the screen to
+ * each pointer location. Use a multi-touch device to see this.
+ */
+import {Svg} from '../../ixfx/visual.js';
+import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 import {Points} from '../../ixfx/geometry.js';
-import {repeat} from '../../ixfx/flow.js';
-
-const randomPoint = () => ({
-  x: Math.random(),
-  y: Math.random(),
-  radius: Math.random()
-});
 
 // Define settings
 const settings = {
-  // Drawing settings
-  dotColour: `black`,
-  radiusMax: 10,
-
-  // Generate 100 random points
-  // with x,y and radius on 0..1 scale
-  points: repeat(100, randomPoint)
+  // Relative middle
+  originPoint: {x: 0.5, y: 0.5},
+  strokeWidthMax: 70,
+  strokeWidthMin: 3,
+  strokeStyle: `#FACF5A`,
+  // Loop up and down again from 0 and 100%, 1% at a time
+  genPingPong: Generators.pingPongPercent(0.01),
+  svg: document.querySelector(`svg`)
 };
 
-// Initial state with empty values
+// Initialise state
 let state = {
-  bounds: {
-    width: 0,
-    height: 0,
-    center: {x: 0, y: 0}
-  }
+  pingPong: 0,
+  bounds: {width: 0, height: 0, center: {x: 0, y: 0}},
+  pointers: {}
 };
 
 // Update state of world
 const update = () => {
+  const {genPingPong} = settings;
 
+  state = {
+    ...state,
+    // Get new values from generators
+    pingPong: genPingPong.next().value
+  }
 }
 
 /**
- * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} ctx 
- * @param {{x:number, y:number,radius:number}} pt 
+ * Update line
  */
-const drawPoint = (ctx, pt) => {
-  const {radiusMax, dotColour} = settings;
-  const {width, height} = state.bounds;
+const updateSvg = () => {
+  const {originPoint, svg} = settings;
+  const {bounds, pingPong, pointers} = state;
 
-  // Convert relative x,y coords to screen coords
-  const {x, y} = Points.multiply(pt, {x: width, y: height});
+  // Apply same pingPong value to stroke width
+  const strokeWidth = settings.strokeWidthMin + (pingPong * settings.strokeWidthMax);
 
-  // Calculate radius based on relative random radius
-  // and the max radius.
-  const radius = radiusMax * pt.radius;
+  // Calc absolute point of origin according to screen size
+  const originAbs = Points.multiply(originPoint, bounds.width, bounds.height)
 
-  // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(x, y);
 
-  // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = dotColour;
-  ctx.fill();
+  const drawingOpts = {
+    strokeWidth,
+    strokeStyle: settings.strokeStyle,
+    strokeLineCap: "round"
+  }
 
-  // Unwind translation
-  ctx.restore();
-}
+  // Delete all existing lines
+  svg.innerHTML = ``;
 
-/**
- * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
- */
-const draw = (ctx) => {
-  const {points} = settings;
+  for (const [id, p] of Object.entries(pointers)) {
+    // Create line for pointer
+    const line = {a: originAbs, b: p};
 
-  // Draw each points
-  points.forEach(p => {
-    drawPoint(ctx, p);
-  });
-}
-
-/**
- * 
- * @param {CanvasRenderingContext2D} ctx 
- */
-const clear = (ctx) => {
-  const {width, height} = state.bounds;
-
-  // Make background transparent
-  ctx.clearRect(0, 0, width, height);
-
-  // Clear with a colour
-  //ctx.fillStyle = `orange`;
-  //ctx.fillRect(0, 0, width, height);
-
-  // Fade out previously painted pixels
-  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //ctx.fillRect(0, 0, width, height);
+    // Create or update line
+    Svg.Elements.line(line, svg, drawingOpts, `#ray${id}`);
+  }
 }
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  // Keep our primary canvas full size
-  /** @type {HTMLCanvasElement} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl.getContext(`2d`);
+  const svg = document.querySelector(`svg`);
 
-  Dom.fullSizeCanvas(canvasEl, args => {
-    // Update state with new size of canvas
+  // Resize SVG element to match viewport
+  Dom.parentSize(svg, args => {
     state = {
       ...state,
-      bounds: args.bounds
+      bounds: windowBounds()
     }
   });
 
+  window.addEventListener(`touchmove`, ev => {
+    ev.preventDefault();
+  })
+
+  window.addEventListener(`pointerdown`, ev => {
+    const {pointers} = state;
+    pointers[ev.pointerId] = {x: ev.offsetX, y: ev.offsetY};
+    state = {...state, pointers};
+    ev.preventDefault();
+  });
+
+  window.addEventListener(`pointerup`, ev => {
+    const {pointers} = state;
+    delete pointers[ev.pointerId];
+    state = {...state, pointers};
+    ev.preventDefault();
+  });
+
+  window.addEventListener(`pointermove`, ev => {
+    // Moving, but no press/touch
+    if (ev.buttons === 0) return;
+    const {pointers} = state;
+
+    pointers[ev.pointerId] = {x: ev.offsetX, y: ev.offsetY};
+    state = {...state, pointers};
+  })
+
   const loop = () => {
-    // Update state
     update();
-
-    // Clear canvas
-    clear(ctx);
-
-    // Draw new things
-    draw(ctx);
-
-    // Loop
+    updateSvg();
     window.requestAnimationFrame(loop);
   }
   window.requestAnimationFrame(loop);
 }
+
+const windowBounds = () => ({
+  width: window.innerWidth,
+  height: window.innerHeight,
+  center: {
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2
+  }
+});
+
 setup();
+
+
