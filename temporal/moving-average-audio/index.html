@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moving average audio</title>
+  <link rel="stylesheet" href="../../base.css">
+</head>
+<style>
+  :root {
+    --avg-colour: #FB90B7;
+    --raw-colour: #D01257;
+  }
+
+  html,
+  body {
+    height: 100%;
+    background-color: #0F1021;
+    color: #FFCEE4;
+  }
+
+  body {
+    font-size: 12px;
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  button {
+    padding: 0.5em;
+  }
+
+  #levels>div {
+    position: absolute;
+    display: inline-block;
+    width: 5em;
+    height: 5em;
+    border-radius: 5em;
+  }
+
+  #rawLevel {
+    background-color: var(--raw-colour);
+  }
+
+  #avgLevel {
+    background-color: var(--avg-colour);
+  }
+
+  .raw {
+    color: var(--raw-colour);
+  }
+
+  .avg {
+    color: var(--avg-colour);
+  }
+</style>
+
+<body>
+  <section>
+    <p>Calculates an average sound level from the microphone.</p>
+    <button id="btnStart">Start audio</button>
+    <div class="raw">
+      Raw level: <div id="lblRawLevel"></div>
+    </div>
+    <div class="avg">
+      Average level: <div id="lblAvgLevel"></div>
+    </div>
+    <div id="levels">
+      <div id="rawLevel"></div>
+      <div id="avgLevel"></div>
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
