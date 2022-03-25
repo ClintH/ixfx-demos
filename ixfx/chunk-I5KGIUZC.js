@@ -2,14 +2,15 @@ import {
   msElapsedTimer,
   relativeTimer,
   ticksElapsedTimer
-} from "./chunk-HOGX73KH.js";
+} from "./chunk-TWT4P22Q.js";
 import {
   clamp,
   interpolate,
   isEqualDefault,
   isEqualValueDefault
-} from "./chunk-MOJQTAHW.js";
+} from "./chunk-EQS4EAIT.js";
 import {
+  integer,
   number
 } from "./chunk-U4IZE4J2.js";
 import {
@@ -35,9 +36,12 @@ __export(Arrays_exports, {
   average: () => average,
   averageWeighted: () => averageWeighted,
   ensureLength: () => ensureLength,
+  filterBetween: () => filterBetween,
   groupBy: () => groupBy,
   guardArray: () => guardArray,
+  guardIndex: () => guardIndex,
   max: () => max,
+  maxFast: () => maxFast,
   min: () => min,
   minMaxAvg: () => minMaxAvg,
   randomElement: () => randomElement,
@@ -77,8 +81,23 @@ var max = (...data) => {
   const validNumbers = data.filter((d) => typeof d === `number` && !Number.isNaN(d));
   return Math.max(...validNumbers);
 };
-var minMaxAvg = (data) => {
-  const validNumbers = data.filter((d) => typeof d === `number` && !Number.isNaN(d));
+var maxFast = (data) => {
+  let m = Number.MIN_SAFE_INTEGER;
+  for (let i = 0; i < data.length; i++) {
+    m = Math.max(m, data[i]);
+  }
+  return m;
+};
+var minMaxAvg = (data, startIndex, endIndex) => {
+  if (data === void 0)
+    throw new Error(`'data' is undefined`);
+  if (!Array.isArray(data))
+    throw new Error(`'data' parameter is not an array`);
+  if (startIndex === void 0)
+    startIndex = 0;
+  if (endIndex === void 0)
+    endIndex = data.length;
+  const validNumbers = filterBetween(data, (d) => typeof d === `number` && !Number.isNaN(d), startIndex, endIndex);
   const total = validNumbers.reduce((acc, v) => acc + v, 0);
   return {
     total,
@@ -96,6 +115,12 @@ var guardArray = (array, paramName = `?`) => {
     throw new Error(`Param '${paramName}' is null. Expected array.`);
   if (!Array.isArray(array))
     throw new Error(`Param '${paramName}' not an array as expected`);
+};
+var guardIndex = (array, index, paramName = `index`) => {
+  guardArray(array);
+  integer(index, `positive`, paramName);
+  if (index > array.length - 1)
+    throw new Error(`'${paramName}' ${index} beyond array max of ${array.length - 1}`);
 };
 var areValuesIdentical = (array, equality) => {
   if (!Array.isArray(array))
@@ -146,6 +171,16 @@ var ensureLength = (data, length, expand = `undefined`) => {
     }
   }
   return d;
+};
+var filterBetween = (array, predicate, startIndex, endIndex) => {
+  guardIndex(array, startIndex, `startIndex`);
+  guardIndex(array, endIndex, `endIndex`);
+  const t = [];
+  for (let i = startIndex; i <= endIndex; i++) {
+    if (predicate(array[i], i, array))
+      t.push(array[i]);
+  }
+  return t;
 };
 var randomIndex = (array, rand = defaultRandom) => Math.floor(rand() * array.length);
 var randomElement = (array, rand = defaultRandom) => {
@@ -419,22 +454,25 @@ export {
   gaussian2 as gaussian,
   gaussianSkewed,
   Random_exports,
+  weight,
+  average,
+  averageWeighted,
+  min,
+  max,
+  maxFast,
+  minMaxAvg,
   guardArray,
+  guardIndex,
   areValuesIdentical,
   zip,
   ensureLength,
+  filterBetween,
   randomIndex,
   randomElement,
   randomPluck,
   shuffle,
   without,
   groupBy,
-  Arrays_exports,
-  weight,
-  average,
-  averageWeighted,
-  min,
-  max,
-  minMaxAvg
+  Arrays_exports
 };
-//# sourceMappingURL=chunk-JHJYWUOD.js.map
+//# sourceMappingURL=chunk-I5KGIUZC.js.map

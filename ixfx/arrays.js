@@ -3,9 +3,12 @@ import {
   average,
   averageWeighted,
   ensureLength,
+  filterBetween,
   groupBy,
   guardArray,
+  guardIndex,
   max,
+  maxFast,
   min,
   minMaxAvg,
   randomElement,
@@ -15,9 +18,9 @@ import {
   weight,
   without,
   zip
-} from "./chunk-JHJYWUOD.js";
-import "./chunk-HOGX73KH.js";
-import "./chunk-MOJQTAHW.js";
+} from "./chunk-I5KGIUZC.js";
+import "./chunk-TWT4P22Q.js";
+import "./chunk-EQS4EAIT.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
@@ -25,9 +28,12 @@ export {
   average,
   averageWeighted,
   ensureLength,
+  filterBetween,
   groupBy,
   guardArray,
+  guardIndex,
   max,
+  maxFast,
   min,
   minMaxAvg,
   randomElement,

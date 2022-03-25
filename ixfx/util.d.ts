@@ -281,5 +281,6 @@ declare const wrap: (v: number, min?: number, max?: number) => number;
  * @returns
  */
 declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
+declare const isPowerOfTwo: (x: number) => boolean;
 
-export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, proportion, proportionReverse, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
+export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, proportionReverse, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };

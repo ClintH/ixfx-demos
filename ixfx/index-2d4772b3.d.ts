@@ -1,6 +1,6 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { a as Point } from './Rect-e8610a33';
+import { P as Point } from './Rect-520c9c0f';
 import { F as Forms } from './Forms-c4547be7';
 
 declare type LogOpts = {

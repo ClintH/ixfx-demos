@@ -1,6 +1,6 @@
 import {
   fromNumbers
-} from "./chunk-MRSGRDMZ.js";
+} from "./chunk-IG77NHF6.js";
 import {
   number
 } from "./chunk-U4IZE4J2.js";
@@ -94,6 +94,7 @@ __export(SvgElements_exports, {
   line: () => line,
   lineUpdate: () => lineUpdate,
   path: () => path,
+  pathUpdate: () => pathUpdate,
   text: () => text,
   textPath: () => textPath,
   textPathUpdate: () => textPathUpdate,
@@ -1055,22 +1056,29 @@ var numOrPercentage = (v) => {
   return v.toString();
 };
 var path = (svgOrArray, parent, opts, queryOrExisting) => {
-  const p = createOrResolve(parent, `path`, queryOrExisting);
+  const elem = createOrResolve(parent, `path`, queryOrExisting);
   const svg = typeof svgOrArray === `string` ? svgOrArray : svgOrArray.join(`
 `);
-  p.setAttributeNS(null, `d`, svg);
-  parent.appendChild(p);
-  if (opts)
-    applyOpts(p, opts);
-  return p;
+  elem.setAttributeNS(null, `d`, svg);
+  parent.appendChild(elem);
+  return pathUpdate(elem, opts);
 };
-var circleUpdate = (el, circle2, opts) => {
-  el.setAttributeNS(null, `cx`, circle2.x.toString());
-  el.setAttributeNS(null, `cy`, circle2.y.toString());
-  el.setAttributeNS(null, `r`, circle2.radius.toString());
+var pathUpdate = (elem, opts) => {
   if (opts)
-    applyOpts(el, opts);
-  return el;
+    applyOpts(elem, opts);
+  if (opts)
+    applyStrokeOpts(elem, opts);
+  return elem;
+};
+var circleUpdate = (elem, circle2, opts) => {
+  elem.setAttributeNS(null, `cx`, circle2.x.toString());
+  elem.setAttributeNS(null, `cy`, circle2.y.toString());
+  elem.setAttributeNS(null, `r`, circle2.radius.toString());
+  if (opts)
+    applyOpts(elem, opts);
+  if (opts)
+    applyStrokeOpts(elem, opts);
+  return elem;
 };
 var circle = (circle2, parent, opts, queryOrExisting) => {
   const p = createOrResolve(parent, `circle`, queryOrExisting);
@@ -1151,6 +1159,8 @@ var grid = (parent, center, spacing, width, height, opts = {}) => {
     opts = { ...opts, strokeWidth: 1 };
   const g = createEl(`g`);
   applyOpts(g, opts);
+  applyPathOpts(g, opts);
+  applyStrokeOpts(g, opts);
   let y = 0;
   while (y < height) {
     const horiz = fromNumbers(0, y, width, y);
@@ -1238,8 +1248,10 @@ var setBounds = (svg, bounds) => {
   svg.setAttributeNS(null, `height`, bounds.height.toString());
 };
 var makeHelper = (parent, parentOpts) => {
-  if (parentOpts)
+  if (parentOpts) {
     applyOpts(parent, parentOpts);
+    applyStrokeOpts(parent, parentOpts);
+  }
   const o = {
     remove: (queryOrExisting) => remove(parent, queryOrExisting),
     text: (text2, pos, opts, queryOrExisting) => text(text2, parent, pos, opts, queryOrExisting),
@@ -1294,4 +1306,4 @@ export {
   makeHelper,
   Svg_exports
 };
-//# sourceMappingURL=chunk-NQW6DUXW.js.map
+//# sourceMappingURL=chunk-45HITA6M.js.map

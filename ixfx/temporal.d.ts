@@ -1,4 +1,4 @@
-export { F as FrequencyMutable, N as Normalise, f as frequencyMutable } from './index-71e995f6';
+export { F as FrequencyMutable, M as MovingAverage, N as Normalise, f as frequencyMutable, m as movingAverage } from './index-a849922f';
 import './util';
 import './Events-53171926';
 import './KeyValue-5c033442';

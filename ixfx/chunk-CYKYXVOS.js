@@ -1,17 +1,21 @@
 import {
   KeyValue_exports,
   getSorter
-} from "./chunk-Q5VO73EQ.js";
+} from "./chunk-7TPLTIAX.js";
 import {
+  queueMutable
+} from "./chunk-MPJDFK6X.js";
+import {
+  Arrays_exports,
   minMaxAvg
-} from "./chunk-JHJYWUOD.js";
+} from "./chunk-I5KGIUZC.js";
 import {
   SimpleEventEmitter
 } from "./chunk-2EXQEXQ3.js";
 import {
   clamp,
   scale
-} from "./chunk-MOJQTAHW.js";
+} from "./chunk-EQS4EAIT.js";
 import {
   __export,
   __privateAdd,
@@ -24,7 +28,8 @@ var temporal_exports = {};
 __export(temporal_exports, {
   FrequencyMutable: () => FrequencyMutable,
   Normalise: () => Normalise_exports,
-  frequencyMutable: () => frequencyMutable
+  frequencyMutable: () => frequencyMutable,
+  movingAverage: () => movingAverage
 });
 
 // src/temporal/Normalise.ts
@@ -138,10 +143,37 @@ _store = new WeakMap();
 _keyString = new WeakMap();
 var frequencyMutable = (keyString) => new FrequencyMutable(keyString);
 
+// src/temporal/MovingAverage.ts
+var movingAverage = (samples = 100, weightingFn) => {
+  let q = queueMutable({
+    capacity: samples,
+    discardPolicy: `older`
+  });
+  const clear = () => {
+    q = queueMutable({
+      capacity: samples,
+      discardPolicy: `older`
+    });
+  };
+  const compute = () => {
+    if (weightingFn === void 0) {
+      return Arrays_exports.average(...q.data);
+    } else {
+      return Arrays_exports.averageWeighted(q.data, weightingFn);
+    }
+  };
+  const add = (v) => {
+    q.enqueue(v);
+    return compute();
+  };
+  return { add, compute, clear };
+};
+
 export {
   Normalise_exports,
   FrequencyMutable,
   frequencyMutable,
+  movingAverage,
   temporal_exports
 };
-//# sourceMappingURL=chunk-L432VXQJ.js.map
+//# sourceMappingURL=chunk-CYKYXVOS.js.map

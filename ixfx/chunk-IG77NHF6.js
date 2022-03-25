@@ -6,12 +6,12 @@ import {
 } from "./chunk-TF7BQQHV.js";
 import {
   randomElement
-} from "./chunk-JHJYWUOD.js";
+} from "./chunk-I5KGIUZC.js";
 import {
   clamp,
   clampIndex,
   wrapInteger
-} from "./chunk-MOJQTAHW.js";
+} from "./chunk-EQS4EAIT.js";
 import {
   integer,
   number,
@@ -3172,9 +3172,10 @@ var isCoord = (p) => {
 };
 var fromCartesian = (point3, origin) => {
   point3 = subtract2(point3, origin);
+  const angle = Math.atan2(point3.y, point3.x);
   return Object.freeze({
     ...point3,
-    angleRadian: Math.atan2(point3.y, point3.x),
+    angleRadian: angle,
     distance: Math.sqrt(point3.x * point3.x + point3.y * point3.y)
   });
 };
@@ -3261,4 +3262,4 @@ export {
   radiansFromAxisX,
   geometry_exports
 };
-//# sourceMappingURL=chunk-MRSGRDMZ.js.map
+//# sourceMappingURL=chunk-IG77NHF6.js.map

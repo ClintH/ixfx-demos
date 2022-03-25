@@ -346,6 +346,7 @@ declare module "Util" {
      * @returns
      */
     export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
+    export const isPowerOfTwo: (x: number) => boolean;
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
@@ -2006,12 +2007,20 @@ declare module "collections/NumericArrays" {
      */
     export const min: (...data: readonly number[]) => number;
     /**
-     * Returns the minimum number out of `data`.
+     * Returns the maximum number out of `data`.
      * Undefined and non-numbers are silently ignored.
      * @param data
-     * @returns Minimum number
+     * @returns Maximum number
      */
     export const max: (...data: readonly number[]) => number;
+    /**
+     * Returns the maximum out of `data` without additional processing for speed.
+     *
+     * For most uses, {@link max} should suffice.
+     * @param data
+     * @returns Maximum
+     */
+    export const maxFast: (data: readonly number[] | Float32Array) => number;
     /**
      * Returns the min, max, avg and total of the array.
      * Any values that are invalid are silently skipped over.
@@ -2019,9 +2028,11 @@ declare module "collections/NumericArrays" {
      * Use {@link average} if you only need average
      *
      * @param data
+     * @param startIndex If provided, starting index to do calculations (defaults full range)
+     * @param endIndex If provided, the end index to do calculations (defaults full range)
      * @returns `{min, max, avg, total}`
      */
-    export const minMaxAvg: (data: readonly number[]) => {
+    export const minMaxAvg: (data: readonly number[], startIndex?: number | undefined, endIndex?: number | undefined) => {
         /**
          * Smallest value in array
          */
@@ -2041,10 +2052,6 @@ declare module "collections/NumericArrays" {
     };
 }
 declare module "collections/Arrays" {
-    /**
-     * Functions for working with primitive arrays, regardless of type
-     * See Also: NumericArrays.ts
-     */
     import { RandomSource } from "Random";
     import { IsEqual } from "Util";
     export * from "collections/NumericArrays";
@@ -2055,6 +2062,13 @@ declare module "collections/Arrays" {
      * @param paramName
      */
     export const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
+    /**
+     * Throws if `index` is an invalid array index for `array`, and if
+     * `array` itself is not a valid array.
+     * @param array
+     * @param index
+     */
+    export const guardIndex: <V>(array: readonly V[], index: number, paramName?: string) => void;
     /**
      * Returns _true_ if all the contents of the array are identical
      * @param array Array
@@ -2105,6 +2119,17 @@ declare module "collections/Arrays" {
      * @param length
      */
     export const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => readonly V[];
+    /**
+     * Return elements from `array` that match a given `predicate`, and moreover are between the given `startIndex` and `endIndex`.
+     *
+     * While this can be done with in the in-built `array.filter` function, it will needless iterate through the whole array. It also
+     * avoids another alternative of slicing the array before using `filter`.
+     * @param array
+     * @param predicate
+     * @param startIndex
+     * @param endIndex
+     */
+    export const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex: number, endIndex: number) => readonly V[];
     /**
      * Returns a random array index
      * @param array
@@ -2387,16 +2412,18 @@ declare module "Text" {
 }
 declare module "Tracker" {
     /**
-     * Keeps track of the min, max and avg in a stream of values.
+     * Keeps track of the min, max and avg in a stream of values without actually storing them.
      *
      * Usage:
-     * ```
+     *
+     * ```js
      *  const t = tracker();
-     *  t.seen(10)
+     *  t.seen(10);
      *
      *  t.avg / t.min/ t.max / t.getMinMax()
      * ```
-     * Use `reset()` to clear everything, or `resetAvg()` to just reset averaging calculation
+     *
+     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation
      * @class Tracker
      */
     export class Tracker {
@@ -2416,6 +2443,7 @@ declare module "Tracker" {
             avg: number;
         };
     }
+    export const tracker: (id?: string | undefined) => Tracker;
     /**
      * A `Tracker` that tracks interval between calls to `mark()`
      *
@@ -2611,9 +2639,593 @@ declare module "temporal/FrequencyMutable" {
      */
     export const frequencyMutable: <V>(keyString?: ToString<V> | undefined) => FrequencyMutable<V>;
 }
+declare module "collections/Map" {
+    import { IsEqual, ToString } from "Util";
+    /**
+     * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
+     * what key value might be under.
+     *
+     * Having a comparer function is useful to check by value rather than object reference.
+     *
+     * @example Find key value based on string equality
+     * ```js
+     * hasKeyValue(map,`hello`, `samantha`, (a, b) => a === b);
+     * ```
+     * @param map Map to search
+     * @param key Key to search
+     * @param value Value to search
+     * @param comparer Function to determine match
+     * @returns True if key is found
+     */
+    export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
+    /**
+     * Adds items to a map only if their key doesn't already exist
+     *
+     * Uses provided {@link ToString} function to create keys for items. Item is only added if it doesn't already exist.
+     * Thus the older item wins out, versus normal `Map.set` where the newest wins.
+     *
+     *
+     * @example
+     * ```js
+     * const map = new Map();
+     * const peopleArray = [ _some people objects..._];
+     * addUniqueByHash(map, p => p.name, ...peopleArray);
+     * ```
+     * @param set
+     * @param hashFunc
+     * @param values
+     * @returns
+     */
+    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
+    /**
+     * Returns true if _any_ key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
+     * if you only want to find a value under a certain key.
+     *
+     * Having a comparer function is useful to check by value rather than object reference.
+     * @example Finds value `samantha`, using string equality to match
+     * ```js
+     * hasAnyValue(map, `samantha`, (a, b) => a === b);
+     * ```
+     * @param map Map to search
+     * @param value Value to find
+     * @param comparer Function that determines matching
+     * @returns True if value is found
+     */
+    export const hasAnyValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer: IsEqual<V>) => boolean;
+    /**
+     * Returns items where `predicate` returns true.
+     *
+     * If you just want the first match, use `find`
+     *
+     * @example All people over thirty
+     * ```js
+     * const overThirty = filter(people, person => person.age > 30);
+     * ```
+     * @param map Map
+     * @param predicate Filtering predicate
+     * @returns Values that match predicate
+     */
+    export const filter: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => readonly V[];
+    /**
+     * Copies data to an array
+     * @param map
+     * @returns
+     */
+    export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
+    /**
+     * Returns the first found item that matches `predicate` or undefined.
+     *
+     * If you want all matches, use `filter`.
+     *
+     * @example First person over thirty
+     * ```js
+     * const overThirty = find(people, person => person.age > 30);
+     * ```
+     * @param map
+     * @param predicate
+     * @returns Found item or undefined
+     */
+    export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
+    /**
+     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>
+     *
+     * @example
+     * ```js
+     * // Convert a map of string->string to string->number
+     * transformMap<string, string, number>(mapOfStrings, (value, key) => parseInt(value));
+     * ```
+     * @param source
+     * @param transformer
+     * @returns
+     */
+    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
+    /**
+     * Zips together an array of keys and values into an object. Requires that
+     * `keys` and `values` are the same length.
+     *
+     * @example
+     * ```js
+     * const o = zipKeyValue([`a`, `b`, `c`], [0, 1, 2])
+     * Yields: { a: 0, b: 1, c: 2}
+     *```
+      * @template V
+      * @param keys
+      * @param values
+      * @return
+      */
+    export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
+        [k: string]: V | undefined;
+    };
+    /**
+     * Converts a `Map` to a plain object, useful for serializing to JSON
+     *
+     * @example
+     * ```js
+     * const str = JSON.stringify(mapToObj(map));
+     * ```
+     * @param m
+     * @returns
+     */
+    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
+        readonly [key: string]: T;
+    };
+    /**
+     * Converts Map<K,V> to Array<R> with a provided `transformer`
+     *
+     * @example Get a list of ages from a map of Person objects
+     * ```js
+     * let person = { age: 29, name: `John`};
+     * map.add(person.name, person);
+     * const ages = mapToArray<string, People, number>(map, (key, person) => person.age);
+     * // [29, ...]
+     * ```
+     * @param m
+     * @param transformer
+     * @returns
+     */
+    export const mapToArray: <K, V, R>(m: ReadonlyMap<K, V>, transformer: (key: K, item: V) => R) => readonly R[];
+}
+declare module "collections/CircularArray" {
+    import { CircularArray } from "collections/Interfaces";
+    /**
+     * Returns a new circular array. Immutable. A circular array only keeps up to `capacity` items.
+     * Old items are overridden with new items.
+     *
+     * `CircularArray` extends the regular JS array. Only use `add` to change the array if you want
+     * to keep the `CircularArray` behaviour.
+     * @example
+     * ```js
+     * let a = circularArray(10);
+     * a = a.add(`hello`); // Because it's immutable, capture the return result of `add`
+     * a.isFull;  // True if circular array is full
+     * a.pointer; // The current position in array it will write to
+     * ```
+     * @template V Value of array items
+     * @param {number} capacity Capacity.
+     * @return {*}  {CircularArray<V>}
+     */
+    export const circularArray: <V>(capacity: number) => CircularArray<V>;
+}
+declare module "collections/MapMultiMutable" {
+    import { SimpleEventEmitter } from "Events";
+    import { ToString } from "Util";
+    import { CircularArray, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutable, MapSetOpts, MultiValue } from "collections/Interfaces";
+    class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V>> {
+        #private;
+        readonly groupBy: ToString<V>;
+        readonly type: MultiValue<V, M>;
+        constructor(type: MultiValue<V, M>, opts?: MapMultiOpts<V>);
+        /**
+         * Returns the type name. For in-built implementations, it will be one of: array, set or circular
+         */
+        get typeName(): string;
+        /**
+         * Returns the length of the longest child list
+         */
+        get lengthMax(): number;
+        debugString(): string;
+        get isEmpty(): boolean;
+        clear(): void;
+        addKeyedValues(key: string, ...values: ReadonlyArray<V>): void;
+        addValue(...values: ReadonlyArray<V>): void;
+        hasKeyValue(key: string, value: V): boolean;
+        has(key: string): boolean;
+        deleteKeyValue(key: string, value: V): boolean;
+        delete(key: string): boolean;
+        findKeyForValue(value: V): string | undefined;
+        count(key: string): number;
+        /**
+         * Returns the array of values stored under `key`
+         * or undefined if key does not exist
+         *
+         * @param {string} key
+         * @return {*}  {readonly}
+         * @memberof MutableMapArray
+         */
+        get(key: string): readonly V[] | undefined;
+        getSource(key: string): M | undefined;
+        keys(): string[];
+        keysAndCounts(): Array<[string, number]>;
+        merge(other: MapOfMutable<V, M>): void;
+    }
+    /**
+     * Returns a {@link MapOfMutable} to allow storing multiple values under a key, unlike a regular Map.
+     * @example
+     * ```js
+     * const map = mapArray();
+     * map.add(`hello`, [1,2,3,4]); // Adds series of numbers under key `hello`
+     *
+     * const hello = map.get(`hello`); // Get back values
+     * ```
+     *
+     * Takes options { comparer: {@link IsEqual}, toString: {@link ToString}}
+     *
+     * A custom {@link ToString} function can be provided which is used when checking value equality (`has`, `without`)
+     * ```js
+     * const map = mapArray({toString:(v) => v.name}); // Compare values based on their `name` field;
+     * ```
+     *
+     * Alternatively, a {@link IsEqual} function can be used:
+     * ```js
+     * const map = mapArray({comparer: (a, b) => a.name === b.name });
+     * ```
+     * @param opts
+     * @template V Data type of items
+     * @returns {@link MapOfMutable}
+     */
+    export const mapArray: <V>(opts?: MapArrayOpts<V>) => MapOfMutable<V, readonly V[]>;
+    /**
+     * Returns a {@link MapOfMutable} that uses a set to hold values.
+     * This means that only unique values are stored under each key. By default it
+     * uses the JSON representation to compare items.
+     *
+     * Options: { hash: {@link ToString} }
+     *
+     * @example Only storing the newest three items per key
+     * ```js
+     * const map = mapSetMutable();
+     * map.add(`hello`, [1, 2, 3, 1, 2, 3]);
+     * const hello = map.get(`hello`); // [1, 2, 3]
+     * ```
+     *
+     * Provide a {@link ToString} function for custom equality checking
+     *
+     * @example
+     * ```js
+     * const hash = (v) => v.name; // Use name as the key
+     * const map = mapSetMutable(hash);
+     * map.add(`hello`, {age:40, name: `Mary`});
+     * map.add(`hello`, {age:29, name: `Mary`}); // Value ignored as same name exists
+     * ```
+     * @param opts
+     * @returns {@link MapOfMutable}
+     */
+    export const mapSet: <V>(opts?: MapSetOpts<V> | undefined) => MapOfMutableImpl<V, ReadonlyMap<string, V>>;
+    /**
+     * Returns a {@link MapOfMutable} that uses a {@link CircularArray} to hold values.
+     * This means that the number of values stored under each key will be limited to the defined
+     * capacity.
+     *
+     * Requires options: { capacity: number}
+     *
+     * @example Only storing the newest three items per key
+     * ```js
+     * const map = mapCircular({capacity: 3});
+     * map.add(`hello`, [1, 2, 3, 4, 5]);
+     * const hello = map.get(`hello`); // [3, 4, 5]
+     * ```
+     * @param opts
+     * @returns
+     */
+    export const mapCircular: <V>(opts: MapCircularOpts<V>) => MapOfMutable<V, CircularArray<V>>;
+}
+declare module "collections/Set" {
+    import { ToString } from "Util";
+    import { SetMutable } from "collections/Interfaces";
+    /**
+     * @inheritdoc SetMutable
+     * @param keyString Function that produces a key for items. If unspecified uses JSON.stringify
+     * @returns
+     */
+    export const setMutable: <V>(keyString?: ToString<V> | undefined) => SetMutable<V>;
+}
+declare module "collections/Stack" {
+    import { DiscardPolicy, Stack } from "collections/Interfaces";
+    import { StackMutable } from "collections/Interfaces";
+    export type StackOpts = {
+        readonly debug?: boolean;
+        readonly capacity?: number;
+        readonly discardPolicy?: DiscardPolicy;
+    };
+    /**
+     * Returns stack (immutable). Use {@link stackMutable} for a mutable one.
+     * @example
+     * ```js
+     * let s = stack();
+     * s = s.push(1, 2, 3, 4);
+     * s.peek; // 4
+     * s = s.pop();
+     * s.peek; // 3
+     * ```
+     * @template V
+     * @param {StackOpts} [opts={}]
+     * @param {...V[]} startingItems
+     * @returns {Stack<V>}
+     */
+    export const stack: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => Stack<V>;
+    /**
+     * Creates a stack (mutable). Use {@link stack} for an immutable one.
+     *
+     * @example
+     * ```js
+     * const s = stackMutable();
+     * s.push(1, 2, 3, 4);
+     * s.peek;  // 4
+     * s.pop;   // 4
+     * s.peek;  // 3
+     * ```
+     * @template V
+     * @param {StackOpts} opts
+     * @param {...V[]} startingItems
+     * @returns
+     */
+    export const stackMutable: <V>(opts: StackOpts, ...startingItems: readonly V[]) => StackMutable<V>;
+}
+declare module "collections/Queue" {
+    import { QueueMutable, Queue, DiscardPolicy } from "collections/Interfaces";
+    /**
+     * Queue options.
+     *
+     * @example Cap size to 5 items, throwing away newest items already in queue.
+     * ```js
+     * const q = queue({capacity: 5, discardPolicy: `newer`});
+     * ```
+     */
+    export type QueueOpts = {
+        /**
+         * @private
+         */
+        readonly debug?: boolean;
+        /**
+         * Capcity limit
+         */
+        readonly capacity?: number;
+        /**
+         * Default is `additions`, meaning new items are discarded.
+         *
+         * `older`: Removes items front of the queue (ie older items are discarded)
+         *
+         * `newer`: Remove from rear of queue to make space for new items (ie newer items are discarded)
+         *
+         * `additions`: Only adds new items that there are room for (ie. brand new items are discarded)
+         *
+         */
+        readonly discardPolicy?: DiscardPolicy;
+    };
+    /**
+     * Returns an immutable queue. Queues are useful if you want to treat 'older' or 'newer'
+     * items differently. _Enqueing_ adds items at the back of the queue, while
+     * _dequeing_ removes items from the front (ie. the oldest).
+     *
+     * ```js
+     * let q = queue();           // Create
+     * q = q.enqueue(`a`, `b`);   // Add two strings
+     * const front = q.peek();    // `a` is at the front of queue (oldest)
+     * q = q.dequeue();           // q now just consists of `b`
+     * ```
+     * @example Cap size to 5 items, throwing away newest items already in queue.
+     * ```js
+     * const q = queue({capacity: 5, discardPolicy: `newer`});
+     * ```
+     *
+     * @template V Data type of items
+     * @param opts
+     * @param startingItems Index 0 is the front of the queue
+     * @returns A new queue
+     */
+    export const queue: <V>(opts?: QueueOpts, ...startingItems: readonly V[]) => Queue<V>;
+    /**
+     * Returns a mutable queue. Queues are useful if you want to treat 'older' or 'newer'
+     * items differently. _Enqueing_ adds items at the back of the queue, while
+     * _dequeing_ removes items from the front (ie. the oldest).
+     *
+     * ```js
+     * const q = queue();       // Create
+     * q.enqueue(`a`, `b`);     // Add two strings
+     * const front = q.dequeue();  // `a` is at the front of queue (oldest)
+     * ```
+     *
+     * @example Cap size to 5 items, throwing away newest items already in queue.
+     * ```js
+     * const q = queue({capacity: 5, discardPolicy: `newer`});
+     * ```
+     *
+     * @template V Data type of items
+     * @param opts
+     * @param startingItems Items are added in array order. So first item will be at the front of the queue.
+     */
+    export const queueMutable: <V>(opts?: QueueOpts, ...startingItems: readonly V[]) => QueueMutable<V>;
+}
+declare module "collections/MapImmutable" {
+    import { EitherKey, MapImmutable } from "collections/Interfaces";
+    /**
+     * Returns true if map contains key
+     *
+     * @example
+     * ```js
+     * if (has(map, `London`)) ...
+     * ```
+     * @param map Map to search
+     * @param key Key to find
+     * @returns True if map contains key
+     */
+    export const has: <K, V>(map: ReadonlyMap<K, V>, key: K) => boolean;
+    /**
+     * Adds data to a map, returning the new map.
+     *
+     * Can add items in the form of [key,value] or {key, value}.
+     * @example These all produce the same result
+     * ```js
+     * map.set(`hello`, `samantha`);
+     * map.add([`hello`, `samantha`]);
+     * map.add({key: `hello`, value: `samantha`})
+     * ```
+     * @param map Initial data
+     * @param data One or more data to add in the form of [key,value] or {key, value}
+     * @returns New map with data added
+     */
+    export const add: <K, V>(map: ReadonlyMap<K, V>, ...data: EitherKey<K, V>) => ReadonlyMap<K, V>;
+    /**
+     * Sets data in a copy of the initial map
+     * @param map Initial map
+     * @param key Key
+     * @param value Value to  set
+     * @returns New map with data set
+     */
+    export const set: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V) => Map<K, V>;
+    /**
+     * Delete a key from the map, returning a new map
+     * @param map Initial data
+     * @param key
+     * @returns New map with data deleted
+     */
+    export const del: <K, V>(map: ReadonlyMap<K, V>, key: K) => ReadonlyMap<K, V>;
+    /**
+     * Returns an {@link MapImmutable}.
+     * Use {@link mapMutable} as an alternatve.
+     *
+     * @param dataOrMap Optional initial data in the form of an array of {key:value} or [key,value]
+     * @returns {@link MapImmutable}
+     */
+    export const map: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V> | undefined) => MapImmutable<K, V>;
+}
+declare module "collections/MapMutable" {
+    import { EitherKey, MapMutable } from "collections/Interfaces";
+    /**
+     * Returns a {@link MapMutable} (which just wraps the in-built Map)
+     * Use {@link map} for the immutable alternative.
+     *
+     * @param data Optional initial data in the form of an array of {key:value} or [key,value]
+     * @returns {@link MapMutable}
+     */
+    export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
+}
+declare module "collections/index" {
+    export * from "collections/Interfaces";
+    export { mapSet, mapCircular, mapArray } from "collections/MapMultiMutable";
+    export { circularArray } from "collections/CircularArray";
+    export { simpleMapArrayMutable } from "collections/SimpleMapArray";
+    export { setMutable } from "collections/Set";
+    export { stack, stackMutable } from "collections/Stack";
+    export { queue, queueMutable } from "collections/Queue";
+    export { map } from "collections/MapImmutable";
+    export { mapMutable } from "collections/MapMutable";
+    /**
+     * Stacks store items in order.
+     *
+     * Stacks and queues can be helpful when it's necessary to process data in order, but each one has slightly different behaviour.
+     *
+     * Like a stack of plates, the newest item (on top) is removed
+     * before the oldest items (at the bottom). {@link Queues} operate differently, with
+     * the oldest items (at the front of the queue) removed before the newest items (at the end of the queue).
+     *
+     * Create stacks with {@link stack} or {@link stackMutable}. These return a {@link Stack} or {@link StackMutable} respectively.
+     *
+     * The ixfx implementation allow you to set a capacity limit with three {@link DiscardPolicy |policies} for
+     * how items are evicted.
+     */
+    export * as Stacks from "collections/Stack";
+    /**
+     * Arrays are a list of data.
+     *
+     * ixfx has several functions for working with arrays.
+     *
+     * For arrays of numbers: {@link average}, {@link minMaxAvg}
+     *
+     * Randomisation: {@link randomIndex}, {@link randomElement}, {@link shuffle}
+     *
+     * Filtering: {@link without}
+     *
+     * Changing the shape: {@link groupBy}
+     */
+    export * as Arrays from "collections/Arrays";
+    /**
+     * Sets store unique items.
+     *
+     * ixfx's {@link SetMutable} compares items by value rather than reference, unlike the default JS implementation.
+     *
+     * Create using {@link setMutable}
+     */
+    export * as Sets from "collections/Set";
+    /**
+     * Queues store items in the order in which they are added.
+     *
+     * Stacks and queues can be helpful when it's necessary to process data in order, but each one has slightly different behaviour.
+     *
+     * Like lining up at a bakery, the oldest items (at the front of the queue) are removed
+     * before the newest items (at the end of the queue). This is different to {@link Stacks},
+     * where the newest item (on top) is removed before the oldest items (at the bottom).
+     *
+     * The ixfx implementations allow you to set a capacity limit with three {@link DiscardPolicy |policies} for
+     * how items are evicted.
+     *
+     * Create queues with {@link queue} or {@link queueMutable}. These return a {@link Queue} or {@link QueueMutable} respectively.
+     */
+    export * as Queues from "collections/Queue";
+    /**
+     * Maps associate keys with values. Several helper functions are provided
+     * for working with the standard JS Map class.
+     *
+     * ixfx also includes {@link MapMutable}, {@link MapImmutable}
+     */
+    export * as Maps from "collections/Map";
+}
+declare module "temporal/MovingAverage" {
+    /**
+     * Creates a moving average for a set number of `samples`.
+     *
+     * Moving average are useful for computing the average over a recent set of numbers.
+     * A lower number of samples produces a computed value that is lower-latency yet more jittery.
+     * A higher number of samples produces a smoother computed value which takes longer to respond to
+     * changes in data.
+     *
+     * Sample size is considered with respect to the level of latency/smoothness trade-off, and also
+     * the rate at which new data is added to the moving average.
+     *
+    * `add` adds a number and returns the computed average. Call `compute` to
+     * get the average without adding a new value.
+     *
+     * ```js
+     * const ma = movingAverage(10);
+     * ma.add(10); // 10
+     * ma.add(5);  // 7.5
+     * ```
+     *
+     * `clear` clears the average.
+     *
+     * A weighting function can be provided to shape how the average is
+     * calculated - eg privileging the most recent data over older data.
+     * It uses `Arrays.averageWeighted` under the hood.
+     *
+     * ```js
+     * // Give more weight to data in middle of sampling window
+     * const ma = movingAverage(100, Easings.gaussian());
+     * ```
+     * @param samples Number of samples to compute average from
+     * @param weightingFn Optional weighting function
+     * @returns
+     */
+    export const movingAverage: (samples?: number, weightingFn?: ((v: number) => number) | undefined) => MovingAverage;
+    export type MovingAverage = {
+        clear(): void;
+        compute(): number;
+        add(v: number): number;
+    };
+}
 declare module "temporal/index" {
     export * as Normalise from "temporal/Normalise";
     export * from "temporal/FrequencyMutable";
+    export * from "temporal/MovingAverage";
 }
 declare module "geometry/Path" {
     import { Rects, Points } from "geometry/index";
@@ -3749,162 +4361,6 @@ declare module "geometry/CompoundPath" {
      */
     export const fromPaths: (...paths: readonly Paths.Path[]) => CompoundPath;
 }
-declare module "collections/Set" {
-    import { ToString } from "Util";
-    import { SetMutable } from "collections/Interfaces";
-    /**
-     * @inheritdoc SetMutable
-     * @param keyString Function that produces a key for items. If unspecified uses JSON.stringify
-     * @returns
-     */
-    export const setMutable: <V>(keyString?: ToString<V> | undefined) => SetMutable<V>;
-}
-declare module "collections/Map" {
-    import { IsEqual, ToString } from "Util";
-    /**
-     * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
-     * what key value might be under.
-     *
-     * Having a comparer function is useful to check by value rather than object reference.
-     *
-     * @example Find key value based on string equality
-     * ```js
-     * hasKeyValue(map,`hello`, `samantha`, (a, b) => a === b);
-     * ```
-     * @param map Map to search
-     * @param key Key to search
-     * @param value Value to search
-     * @param comparer Function to determine match
-     * @returns True if key is found
-     */
-    export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
-    /**
-     * Adds items to a map only if their key doesn't already exist
-     *
-     * Uses provided {@link ToString} function to create keys for items. Item is only added if it doesn't already exist.
-     * Thus the older item wins out, versus normal `Map.set` where the newest wins.
-     *
-     *
-     * @example
-     * ```js
-     * const map = new Map();
-     * const peopleArray = [ _some people objects..._];
-     * addUniqueByHash(map, p => p.name, ...peopleArray);
-     * ```
-     * @param set
-     * @param hashFunc
-     * @param values
-     * @returns
-     */
-    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
-    /**
-     * Returns true if _any_ key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
-     * if you only want to find a value under a certain key.
-     *
-     * Having a comparer function is useful to check by value rather than object reference.
-     * @example Finds value `samantha`, using string equality to match
-     * ```js
-     * hasAnyValue(map, `samantha`, (a, b) => a === b);
-     * ```
-     * @param map Map to search
-     * @param value Value to find
-     * @param comparer Function that determines matching
-     * @returns True if value is found
-     */
-    export const hasAnyValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer: IsEqual<V>) => boolean;
-    /**
-     * Returns items where `predicate` returns true.
-     *
-     * If you just want the first match, use `find`
-     *
-     * @example All people over thirty
-     * ```js
-     * const overThirty = filter(people, person => person.age > 30);
-     * ```
-     * @param map Map
-     * @param predicate Filtering predicate
-     * @returns Values that match predicate
-     */
-    export const filter: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => readonly V[];
-    /**
-     * Copies data to an array
-     * @param map
-     * @returns
-     */
-    export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
-    /**
-     * Returns the first found item that matches `predicate` or undefined.
-     *
-     * If you want all matches, use `filter`.
-     *
-     * @example First person over thirty
-     * ```js
-     * const overThirty = find(people, person => person.age > 30);
-     * ```
-     * @param map
-     * @param predicate
-     * @returns Found item or undefined
-     */
-    export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
-    /**
-     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>
-     *
-     * @example
-     * ```js
-     * // Convert a map of string->string to string->number
-     * transformMap<string, string, number>(mapOfStrings, (value, key) => parseInt(value));
-     * ```
-     * @param source
-     * @param transformer
-     * @returns
-     */
-    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
-    /**
-     * Zips together an array of keys and values into an object. Requires that
-     * `keys` and `values` are the same length.
-     *
-     * @example
-     * ```js
-     * const o = zipKeyValue([`a`, `b`, `c`], [0, 1, 2])
-     * Yields: { a: 0, b: 1, c: 2}
-     *```
-      * @template V
-      * @param keys
-      * @param values
-      * @return
-      */
-    export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
-        [k: string]: V | undefined;
-    };
-    /**
-     * Converts a `Map` to a plain object, useful for serializing to JSON
-     *
-     * @example
-     * ```js
-     * const str = JSON.stringify(mapToObj(map));
-     * ```
-     * @param m
-     * @returns
-     */
-    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
-        readonly [key: string]: T;
-    };
-    /**
-     * Converts Map<K,V> to Array<R> with a provided `transformer`
-     *
-     * @example Get a list of ages from a map of Person objects
-     * ```js
-     * let person = { age: 29, name: `John`};
-     * map.add(person.name, person);
-     * const ages = mapToArray<string, People, number>(map, (key, person) => person.age);
-     * // [29, ...]
-     * ```
-     * @param m
-     * @param transformer
-     * @returns
-     */
-    export const mapToArray: <K, V, R>(m: ReadonlyMap<K, V>, transformer: (key: K, item: V) => R) => readonly R[];
-}
 declare module "geometry/Grid" {
     import { Rects, Points } from "geometry/index";
     import { SetMutable } from "collections/Interfaces";
@@ -4681,391 +5137,6 @@ declare module "visual/Colour" {
      */
     export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
 }
-declare module "collections/CircularArray" {
-    import { CircularArray } from "collections/Interfaces";
-    /**
-     * Returns a new circular array. Immutable. A circular array only keeps up to `capacity` items.
-     * Old items are overridden with new items.
-     *
-     * `CircularArray` extends the regular JS array. Only use `add` to change the array if you want
-     * to keep the `CircularArray` behaviour.
-     * @example
-     * ```js
-     * let a = circularArray(10);
-     * a = a.add(`hello`); // Because it's immutable, capture the return result of `add`
-     * a.isFull;  // True if circular array is full
-     * a.pointer; // The current position in array it will write to
-     * ```
-     * @template V Value of array items
-     * @param {number} capacity Capacity.
-     * @return {*}  {CircularArray<V>}
-     */
-    export const circularArray: <V>(capacity: number) => CircularArray<V>;
-}
-declare module "collections/MapMultiMutable" {
-    import { SimpleEventEmitter } from "Events";
-    import { ToString } from "Util";
-    import { CircularArray, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutable, MapSetOpts, MultiValue } from "collections/Interfaces";
-    class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V>> {
-        #private;
-        readonly groupBy: ToString<V>;
-        readonly type: MultiValue<V, M>;
-        constructor(type: MultiValue<V, M>, opts?: MapMultiOpts<V>);
-        /**
-         * Returns the type name. For in-built implementations, it will be one of: array, set or circular
-         */
-        get typeName(): string;
-        /**
-         * Returns the length of the longest child list
-         */
-        get lengthMax(): number;
-        debugString(): string;
-        get isEmpty(): boolean;
-        clear(): void;
-        addKeyedValues(key: string, ...values: ReadonlyArray<V>): void;
-        addValue(...values: ReadonlyArray<V>): void;
-        hasKeyValue(key: string, value: V): boolean;
-        has(key: string): boolean;
-        deleteKeyValue(key: string, value: V): boolean;
-        delete(key: string): boolean;
-        findKeyForValue(value: V): string | undefined;
-        count(key: string): number;
-        /**
-         * Returns the array of values stored under `key`
-         * or undefined if key does not exist
-         *
-         * @param {string} key
-         * @return {*}  {readonly}
-         * @memberof MutableMapArray
-         */
-        get(key: string): readonly V[] | undefined;
-        getSource(key: string): M | undefined;
-        keys(): string[];
-        keysAndCounts(): Array<[string, number]>;
-        merge(other: MapOfMutable<V, M>): void;
-    }
-    /**
-     * Returns a {@link MapOfMutable} to allow storing multiple values under a key, unlike a regular Map.
-     * @example
-     * ```js
-     * const map = mapArray();
-     * map.add(`hello`, [1,2,3,4]); // Adds series of numbers under key `hello`
-     *
-     * const hello = map.get(`hello`); // Get back values
-     * ```
-     *
-     * Takes options { comparer: {@link IsEqual}, toString: {@link ToString}}
-     *
-     * A custom {@link ToString} function can be provided which is used when checking value equality (`has`, `without`)
-     * ```js
-     * const map = mapArray({toString:(v) => v.name}); // Compare values based on their `name` field;
-     * ```
-     *
-     * Alternatively, a {@link IsEqual} function can be used:
-     * ```js
-     * const map = mapArray({comparer: (a, b) => a.name === b.name });
-     * ```
-     * @param opts
-     * @template V Data type of items
-     * @returns {@link MapOfMutable}
-     */
-    export const mapArray: <V>(opts?: MapArrayOpts<V>) => MapOfMutable<V, readonly V[]>;
-    /**
-     * Returns a {@link MapOfMutable} that uses a set to hold values.
-     * This means that only unique values are stored under each key. By default it
-     * uses the JSON representation to compare items.
-     *
-     * Options: { hash: {@link ToString} }
-     *
-     * @example Only storing the newest three items per key
-     * ```js
-     * const map = mapSetMutable();
-     * map.add(`hello`, [1, 2, 3, 1, 2, 3]);
-     * const hello = map.get(`hello`); // [1, 2, 3]
-     * ```
-     *
-     * Provide a {@link ToString} function for custom equality checking
-     *
-     * @example
-     * ```js
-     * const hash = (v) => v.name; // Use name as the key
-     * const map = mapSetMutable(hash);
-     * map.add(`hello`, {age:40, name: `Mary`});
-     * map.add(`hello`, {age:29, name: `Mary`}); // Value ignored as same name exists
-     * ```
-     * @param opts
-     * @returns {@link MapOfMutable}
-     */
-    export const mapSet: <V>(opts?: MapSetOpts<V> | undefined) => MapOfMutableImpl<V, ReadonlyMap<string, V>>;
-    /**
-     * Returns a {@link MapOfMutable} that uses a {@link CircularArray} to hold values.
-     * This means that the number of values stored under each key will be limited to the defined
-     * capacity.
-     *
-     * Requires options: { capacity: number}
-     *
-     * @example Only storing the newest three items per key
-     * ```js
-     * const map = mapCircular({capacity: 3});
-     * map.add(`hello`, [1, 2, 3, 4, 5]);
-     * const hello = map.get(`hello`); // [3, 4, 5]
-     * ```
-     * @param opts
-     * @returns
-     */
-    export const mapCircular: <V>(opts: MapCircularOpts<V>) => MapOfMutable<V, CircularArray<V>>;
-}
-declare module "collections/Stack" {
-    import { DiscardPolicy, Stack } from "collections/Interfaces";
-    import { StackMutable } from "collections/Interfaces";
-    export type StackOpts = {
-        readonly debug?: boolean;
-        readonly capacity?: number;
-        readonly discardPolicy?: DiscardPolicy;
-    };
-    /**
-     * Returns stack (immutable). Use {@link stackMutable} for a mutable one.
-     * @example
-     * ```js
-     * let s = stack();
-     * s = s.push(1, 2, 3, 4);
-     * s.peek; // 4
-     * s = s.pop();
-     * s.peek; // 3
-     * ```
-     * @template V
-     * @param {StackOpts} [opts={}]
-     * @param {...V[]} startingItems
-     * @returns {Stack<V>}
-     */
-    export const stack: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => Stack<V>;
-    /**
-     * Creates a stack (mutable). Use {@link stack} for an immutable one.
-     *
-     * @example
-     * ```js
-     * const s = stackMutable();
-     * s.push(1, 2, 3, 4);
-     * s.peek;  // 4
-     * s.pop;   // 4
-     * s.peek;  // 3
-     * ```
-     * @template V
-     * @param {StackOpts} opts
-     * @param {...V[]} startingItems
-     * @returns
-     */
-    export const stackMutable: <V>(opts: StackOpts, ...startingItems: readonly V[]) => StackMutable<V>;
-}
-declare module "collections/Queue" {
-    import { QueueMutable, Queue, DiscardPolicy } from "collections/Interfaces";
-    /**
-     * Queue options.
-     *
-     * @example Cap size to 5 items, throwing away newest items already in queue.
-     * ```js
-     * const q = queue({capacity: 5, discardPolicy: `newer`});
-     * ```
-     */
-    export type QueueOpts = {
-        /**
-         * @private
-         */
-        readonly debug?: boolean;
-        /**
-         * Capcity limit
-         */
-        readonly capacity?: number;
-        /**
-         * Default is `additions`, meaning new items are discarded.
-         *
-         * `older`: Removes items front of the queue (ie older items are discarded)
-         *
-         * `newer`: Remove from rear of queue to make space for new items (ie newer items are discarded)
-         *
-         * `additions`: Only adds new items that there are room for (ie. brand new items are discarded)
-         *
-         */
-        readonly discardPolicy?: DiscardPolicy;
-    };
-    /**
-     * Returns an immutable queue. Queues are useful if you want to treat 'older' or 'newer'
-     * items differently. _Enqueing_ adds items at the back of the queue, while
-     * _dequeing_ removes items from the front (ie. the oldest).
-     *
-     * ```js
-     * let q = queue();           // Create
-     * q = q.enqueue(`a`, `b`);   // Add two strings
-     * const front = q.peek();    // `a` is at the front of queue (oldest)
-     * q = q.dequeue();           // q now just consists of `b`
-     * ```
-     * @example Cap size to 5 items, throwing away newest items already in queue.
-     * ```js
-     * const q = queue({capacity: 5, discardPolicy: `newer`});
-     * ```
-     *
-     * @template V Data type of items
-     * @param opts
-     * @param startingItems Index 0 is the front of the queue
-     * @returns A new queue
-     */
-    export const queue: <V>(opts?: QueueOpts, ...startingItems: readonly V[]) => Queue<V>;
-    /**
-     * Returns a mutable queue. Queues are useful if you want to treat 'older' or 'newer'
-     * items differently. _Enqueing_ adds items at the back of the queue, while
-     * _dequeing_ removes items from the front (ie. the oldest).
-     *
-     * ```js
-     * const q = queue();       // Create
-     * q.enqueue(`a`, `b`);     // Add two strings
-     * const front = q.dequeue();  // `a` is at the front of queue (oldest)
-     * ```
-     *
-     * @example Cap size to 5 items, throwing away newest items already in queue.
-     * ```js
-     * const q = queue({capacity: 5, discardPolicy: `newer`});
-     * ```
-     *
-     * @template V Data type of items
-     * @param opts
-     * @param startingItems Items are added in array order. So first item will be at the front of the queue.
-     */
-    export const queueMutable: <V>(opts?: QueueOpts, ...startingItems: readonly V[]) => QueueMutable<V>;
-}
-declare module "collections/MapImmutable" {
-    import { EitherKey, MapImmutable } from "collections/Interfaces";
-    /**
-     * Returns true if map contains key
-     *
-     * @example
-     * ```js
-     * if (has(map, `London`)) ...
-     * ```
-     * @param map Map to search
-     * @param key Key to find
-     * @returns True if map contains key
-     */
-    export const has: <K, V>(map: ReadonlyMap<K, V>, key: K) => boolean;
-    /**
-     * Adds data to a map, returning the new map.
-     *
-     * Can add items in the form of [key,value] or {key, value}.
-     * @example These all produce the same result
-     * ```js
-     * map.set(`hello`, `samantha`);
-     * map.add([`hello`, `samantha`]);
-     * map.add({key: `hello`, value: `samantha`})
-     * ```
-     * @param map Initial data
-     * @param data One or more data to add in the form of [key,value] or {key, value}
-     * @returns New map with data added
-     */
-    export const add: <K, V>(map: ReadonlyMap<K, V>, ...data: EitherKey<K, V>) => ReadonlyMap<K, V>;
-    /**
-     * Sets data in a copy of the initial map
-     * @param map Initial map
-     * @param key Key
-     * @param value Value to  set
-     * @returns New map with data set
-     */
-    export const set: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V) => Map<K, V>;
-    /**
-     * Delete a key from the map, returning a new map
-     * @param map Initial data
-     * @param key
-     * @returns New map with data deleted
-     */
-    export const del: <K, V>(map: ReadonlyMap<K, V>, key: K) => ReadonlyMap<K, V>;
-    /**
-     * Returns an {@link MapImmutable}.
-     * Use {@link mapMutable} as an alternatve.
-     *
-     * @param dataOrMap Optional initial data in the form of an array of {key:value} or [key,value]
-     * @returns {@link MapImmutable}
-     */
-    export const map: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V> | undefined) => MapImmutable<K, V>;
-}
-declare module "collections/MapMutable" {
-    import { EitherKey, MapMutable } from "collections/Interfaces";
-    /**
-     * Returns a {@link MapMutable} (which just wraps the in-built Map)
-     * Use {@link map} for the immutable alternative.
-     *
-     * @param data Optional initial data in the form of an array of {key:value} or [key,value]
-     * @returns {@link MapMutable}
-     */
-    export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
-}
-declare module "collections/index" {
-    export * from "collections/Interfaces";
-    export { mapSet, mapCircular, mapArray } from "collections/MapMultiMutable";
-    export { circularArray } from "collections/CircularArray";
-    export { simpleMapArrayMutable } from "collections/SimpleMapArray";
-    export { setMutable } from "collections/Set";
-    export { stack, stackMutable } from "collections/Stack";
-    export { queue, queueMutable } from "collections/Queue";
-    export { map } from "collections/MapImmutable";
-    export { mapMutable } from "collections/MapMutable";
-    /**
-     * Stacks store items in order.
-     *
-     * Stacks and queues can be helpful when it's necessary to process data in order, but each one has slightly different behaviour.
-     *
-     * Like a stack of plates, the newest item (on top) is removed
-     * before the oldest items (at the bottom). {@link Queues} operate differently, with
-     * the oldest items (at the front of the queue) removed before the newest items (at the end of the queue).
-     *
-     * Create stacks with {@link stack} or {@link stackMutable}. These return a {@link Stack} or {@link StackMutable} respectively.
-     *
-     * The ixfx implementation allow you to set a capacity limit with three {@link DiscardPolicy |policies} for
-     * how items are evicted.
-     */
-    export * as Stacks from "collections/Stack";
-    /**
-     * Arrays are a list of data.
-     *
-     * ixfx has several functions for working with arrays.
-     *
-     * For arrays of numbers: {@link average}, {@link minMaxAvg}
-     *
-     * Randomisation: {@link randomIndex}, {@link randomElement}, {@link shuffle}
-     *
-     * Filtering: {@link without}
-     *
-     * Changing the shape: {@link groupBy}
-     */
-    export * as Arrays from "collections/Arrays";
-    /**
-     * Sets store unique items.
-     *
-     * ixfx's {@link SetMutable} compares items by value rather than reference, unlike the default JS implementation.
-     *
-     * Create using {@link setMutable}
-     */
-    export * as Sets from "collections/Set";
-    /**
-     * Queues store items in the order in which they are added.
-     *
-     * Stacks and queues can be helpful when it's necessary to process data in order, but each one has slightly different behaviour.
-     *
-     * Like lining up at a bakery, the oldest items (at the front of the queue) are removed
-     * before the newest items (at the end of the queue). This is different to {@link Stacks},
-     * where the newest item (on top) is removed before the oldest items (at the bottom).
-     *
-     * The ixfx implementations allow you to set a capacity limit with three {@link DiscardPolicy |policies} for
-     * how items are evicted.
-     *
-     * Create queues with {@link queue} or {@link queueMutable}. These return a {@link Queue} or {@link QueueMutable} respectively.
-     */
-    export * as Queues from "collections/Queue";
-    /**
-     * Maps associate keys with values. Several helper functions are provided
-     * for working with the standard JS Map class.
-     *
-     * ixfx also includes {@link MapMutable}, {@link MapImmutable}
-     */
-    export * as Maps from "collections/Map";
-}
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
     import { Points } from "geometry/index";
@@ -5423,15 +5494,16 @@ declare module "visual/SvgElements" {
      * @param opts Options Drawing options
      * @returns
      */
-    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
+    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
+    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts | undefined) => SVGPathElement;
     /**
      * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
-     * @param el Element
+     * @param elem Element
      * @param circle Circle
      * @param opts Drawing options
      * @returns SVGCircleElement
      */
-    export const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: Svg.DrawingOpts | undefined) => SVGCircleElement;
+    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts | undefined) => SVGCircleElement;
     /**
      * Creates or reuses a `SVGCircleElement`.
      *
@@ -5568,11 +5640,10 @@ declare module "visual/Svg" {
     /**
      * Line drawing options
      */
-    export type LineDrawingOpts = DrawingOpts & PathDrawingOpts & StrokeOpts;
-    /**
-     * Path drawing options
-     */
-    export type PathDrawingOpts = {
+    export type LineDrawingOpts = DrawingOpts & MarkerDrawingOpts & StrokeOpts;
+    export type CircleDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
+    export type PathDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
+    export type MarkerDrawingOpts = {
         readonly markerEnd?: MarkerOpts;
         readonly markerStart?: MarkerOpts;
         readonly markerMid?: MarkerOpts;
@@ -5674,14 +5745,14 @@ declare module "visual/Svg" {
          * @param opts Drawing options
          * @param queryOrExisting DOM query to look up existing element, or the element instance
          */
-        circle(circle: CirclePositioned, opts?: DrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
+        circle(circle: CirclePositioned, opts?: CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
         /**
          * Creates a path
          * @param svgStr Path description, or empty string
          * @param opts Drawing options
          * @param queryOrExisting DOM query to look up existing element, or the element instance
          */
-        path(svgStr: string | readonly string[], opts?: DrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
+        path(svgStr: string | readonly string[], opts?: PathDrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
         /**
          * Creates a grid of horizontal and vertical lines inside of a group
          * @param center Grid origin
@@ -5690,7 +5761,7 @@ declare module "visual/Svg" {
          * @param height Height of grid
          * @param opts Drawing options
          */
-        grid(center: Points.Point, spacing: number, width: number, height: number, opts?: DrawingOpts): SVGGElement;
+        grid(center: Points.Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts): SVGGElement;
         /**
          * Returns an element if it exists in parent
          * @param selectors Eg `#path`
@@ -5739,7 +5810,7 @@ declare module "visual/Svg" {
      * @param parentOpts
      * @returns
      */
-    export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts | undefined) => SvgHelper;
+    export const makeHelper: (parent: SVGElement, parentOpts?: (DrawingOpts & StrokeOpts) | undefined) => SvgHelper;
 }
 declare module "visual/Plot" {
     import { CircularArray, MapOfMutable } from "collections/Interfaces";
@@ -6251,6 +6322,190 @@ declare module "dom/index" {
      */
     export * as Forms from "dom/Forms";
 }
+declare module "audio/AudioVisualiser" {
+    import { Points } from "geometry/index";
+    import { Tracker } from "Tracker";
+    import Analyser from "audio/Analyser";
+    export default class Visualiser {
+        freqMaxRange: number;
+        audio: Analyser;
+        parent: HTMLElement;
+        lastPointer: Points.Point;
+        pointerDown: boolean;
+        pointerClicking: boolean;
+        pointerClickDelayMs: number;
+        pointerDelaying: boolean;
+        waveTracker: Tracker;
+        freqTracker: Tracker;
+        el: HTMLElement;
+        constructor(parentElem: HTMLElement, audio: Analyser);
+        renderFreq(freq: readonly number[]): void;
+        isExpanded(): boolean;
+        setExpanded(value: boolean): void;
+        clear(): void;
+        clearCanvas(canvas: HTMLCanvasElement | null): void;
+        renderWave(wave: readonly number[], bipolar?: boolean): void;
+        getPointerRelativeTo(elem: HTMLElement): {
+            x: number;
+            y: number;
+        };
+        onPointer(evt: MouseEvent | PointerEvent): void;
+    }
+}
+declare module "audio/Analyser" {
+    import AudioVisualiser from "audio/AudioVisualiser";
+    /**
+     * Options for audio processing
+     */
+    export type Opts = Readonly<{
+        readonly showVis?: boolean;
+        /**
+         * FFT size. Must be a power of 2, from 32 - 32768. Higher number means
+         * more precision and higher CPU overhead
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
+         */
+        readonly fftSize?: number;
+        /**
+         * Range from 0-1, default is 0.8
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant
+         */
+        readonly smoothingTimeConstant?: number;
+        readonly debug?: boolean;
+    }>;
+    export type DataAnalyser = (node: AnalyserNode, analyser: Analyser) => void;
+    export type BasicAnalyserHandler = (freq: Float32Array, wave: Float32Array, analyser: Analyser) => void;
+    /**
+     * Basic audio analyser. Returns back waveform and FFT analysis. Use {@link freq} if you just want FFT results.
+     *
+     * ```js
+     * const onData = (freq, wave, analyser) => {
+     *  // Demo: Get FFT results just for 100Hz-1KHz.
+     *  const freqSlice = analyser.sliceByFrequency(100,1000,freq);
+     *
+     *  // Demo: Get FFT value for a particular frequency (1KHz)
+     *  const amt = freq[analyser.getIndexForFrequency(1000)];
+     * }
+     * basic(onData, {fftSize: 512});
+     * ```
+     *
+     * {@link Analyser} instance is returned and can be controlled:
+     * ```js
+     * const analyser = basic(onData);
+     * analyser.paused = true;
+     * ```
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     *
+     * @param onData Handler for data
+     * @param opts Options
+     * @returns Analyser instance
+     */
+    export const basic: (onData: BasicAnalyserHandler, opts?: Opts) => Analyser;
+    /**
+     * Basic audio analyser. Returns FFT analysis. Use {@link basic} if you also want the waveform.
+     *
+     * ```js
+     * const onData = (freq, analyser) => {
+     *  // Demo: Print out each sound frequency (Hz) and amount of energy in that band
+     *  for (let i=0;i<freq.length;i++) {
+     *    const f = analyser.getFrequencyAtIndex(0);
+     *    console.log(`${i}. frequency: ${f} amount: ${freq[i]}`);
+     *  }
+     * }
+     * freq(onData, {fftSize:512});
+     * ```
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     *
+     * @param onData
+     * @param opts
+     * @returns
+     */
+    export const freq: (onData: (freq: Float32Array, analyser: Analyser) => void, opts?: Opts) => Analyser;
+    /**
+     * Basic audio analyser which reports the peak sound level.
+     *
+     * ```js
+     * peak(level => {
+     *  console.log(level);
+     * });
+     * ```
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     * @param onData
+     * @param opts
+     * @returns
+     */
+    export const peakLevel: (onData: (level: number, analyser: Analyser) => void, opts?: Opts) => Analyser;
+    /**
+     * Helper for doing audio analysis. It takes case of connecting the audio stream, running in a loop and pause capability.
+     *
+     * Provide a function which works with an [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode), and does something with the result.
+     * ```js
+     * const myAnalysis = (node, analyser) => {
+     *  const freq = new Float32Array(node.frequencyBinCount);
+     *  node.getFloatFrequencyData(freq);
+     *  // Do something with frequency data...
+     * }
+     * const a = new Analyser(myAnalysis);
+     * ```
+     *
+     * Two helper functions provide ready-to-use Analysers:
+     * * {@link peakLevel} peak decibel reading
+     * * {@link freq} FFT results
+     * * {@link basic} FFT results and waveform
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     *
+     */
+    export default class Analyser {
+        #private;
+        showVis: boolean;
+        fftSize: number;
+        smoothingTimeConstant: number;
+        debug: boolean;
+        visualiser: AudioVisualiser | undefined;
+        audioCtx: AudioContext | undefined;
+        analyserNode: AnalyserNode | undefined;
+        analyse: DataAnalyser;
+        constructor(analyse: DataAnalyser, opts?: Opts);
+        init(): void;
+        get paused(): boolean;
+        set paused(v: boolean);
+        private setup;
+        private onMicSuccess;
+        private analyseLoop;
+        /**
+         * Returns the maximum FFT value within the given frequency range
+         */
+        getFrequencyRangeMax(lowFreq: number, highFreq: number, freqData: readonly number[]): number;
+        /**
+         * Returns a sub-sampling of frequency analysis data that falls between
+         * `lowFreq` and `highFreq`.
+         * @param lowFreq Low frequency
+         * @param highFreq High frequency
+         * @param freqData Full-spectrum frequency data
+         * @returns Sub-sampling of analysis
+         */
+        sliceByFrequency(lowFreq: number, highFreq: number, freqData: readonly number[]): number[];
+        /**
+         * Returns the starting frequency for a given binned frequency index.
+         * @param index Array index
+         * @returns Sound frequency
+         */
+        getFrequencyAtIndex(index: number): number;
+        /**
+         * Returns a binned array index for a given frequency
+         * @param freq Sound frequency
+         * @returns Array index into frequency bins
+         */
+        getIndexForFrequency(freq: number): number;
+    }
+}
+declare module "audio/index" {
+    export * as Analysers from "audio/Analyser";
+    export * as Visualiser from "audio/AudioVisualiser";
+}
 declare module "modulation/Envelope" {
     import { SimpleEventEmitter } from "Events";
     /**
@@ -6594,6 +6849,7 @@ declare module "index" {
      *
      */
     export * as Dom from "dom/index";
+    export * as Audio from "audio/index";
     /**
      * The Modulation module contains functions for, well, modulating data.
      *

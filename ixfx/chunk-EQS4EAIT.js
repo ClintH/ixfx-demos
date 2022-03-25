@@ -144,6 +144,7 @@ var wrapRange = (min, max, fn, a, b) => {
   }
   return wrapInteger(r, min, max);
 };
+var isPowerOfTwo = (x) => Math.log2(x) % 1 === 0;
 
 export {
   clamp,
@@ -160,6 +161,7 @@ export {
   toStringDefault,
   wrapInteger,
   wrap,
-  wrapRange
+  wrapRange,
+  isPowerOfTwo
 };
-//# sourceMappingURL=chunk-MOJQTAHW.js.map
+//# sourceMappingURL=chunk-EQS4EAIT.js.map

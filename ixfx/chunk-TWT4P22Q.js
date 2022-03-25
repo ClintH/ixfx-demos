@@ -1,6 +1,6 @@
 import {
   clamp
-} from "./chunk-MOJQTAHW.js";
+} from "./chunk-EQS4EAIT.js";
 import {
   integer
 } from "./chunk-U4IZE4J2.js";
@@ -260,4 +260,4 @@ export {
   ticksElapsedTimer,
   updateOutdated
 };
-//# sourceMappingURL=chunk-HOGX73KH.js.map
+//# sourceMappingURL=chunk-TWT4P22Q.js.map

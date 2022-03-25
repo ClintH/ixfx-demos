@@ -1,5 +1,5 @@
-import { a as CirclePositioned } from './Circle-9d96c0ac';
-import { f as Line, a as Point, e as Rect } from './Rect-e8610a33';
+import { a as CirclePositioned } from './Circle-39148592';
+import { f as Line, P as Point, e as Rect } from './Rect-520c9c0f';
 
 /**
  * Creates and adds an SVG path element
@@ -16,15 +16,16 @@ import { f as Line, a as Point, e as Rect } from './Rect-e8610a33';
  * @param opts Options Drawing options
  * @returns
  */
-declare const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: DrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
+declare const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: PathDrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
+declare const pathUpdate: (elem: SVGPathElement, opts?: PathDrawingOpts | undefined) => SVGPathElement;
 /**
  * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
- * @param el Element
+ * @param elem Element
  * @param circle Circle
  * @param opts Drawing options
  * @returns SVGCircleElement
  */
-declare const circleUpdate: (el: SVGCircleElement, circle: CirclePositioned, opts?: DrawingOpts | undefined) => SVGCircleElement;
+declare const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: CircleDrawingOpts | undefined) => SVGCircleElement;
 /**
  * Creates or reuses a `SVGCircleElement`.
  *
@@ -107,6 +108,7 @@ declare const text: (text: string, parent: SVGElement, pos?: Point | undefined, 
 declare const grid: (parent: SVGElement, center: Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts) => SVGGElement;
 
 declare const SvgElements_path: typeof path;
+declare const SvgElements_pathUpdate: typeof pathUpdate;
 declare const SvgElements_circleUpdate: typeof circleUpdate;
 declare const SvgElements_circle: typeof circle;
 declare const SvgElements_line: typeof line;
@@ -119,6 +121,7 @@ declare const SvgElements_grid: typeof grid;
 declare namespace SvgElements {
   export {
     SvgElements_path as path,
+    SvgElements_pathUpdate as pathUpdate,
     SvgElements_circleUpdate as circleUpdate,
     SvgElements_circle as circle,
     SvgElements_line as line,
@@ -179,11 +182,10 @@ declare type StrokeOpts = {
 /**
  * Line drawing options
  */
-declare type LineDrawingOpts = DrawingOpts & PathDrawingOpts & StrokeOpts;
-/**
- * Path drawing options
- */
-declare type PathDrawingOpts = {
+declare type LineDrawingOpts = DrawingOpts & MarkerDrawingOpts & StrokeOpts;
+declare type CircleDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
+declare type PathDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
+declare type MarkerDrawingOpts = {
     readonly markerEnd?: MarkerOpts;
     readonly markerStart?: MarkerOpts;
     readonly markerMid?: MarkerOpts;
@@ -285,14 +287,14 @@ declare type SvgHelper = {
      * @param opts Drawing options
      * @param queryOrExisting DOM query to look up existing element, or the element instance
      */
-    circle(circle: CirclePositioned, opts?: DrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
+    circle(circle: CirclePositioned, opts?: CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
     /**
      * Creates a path
      * @param svgStr Path description, or empty string
      * @param opts Drawing options
      * @param queryOrExisting DOM query to look up existing element, or the element instance
      */
-    path(svgStr: string | readonly string[], opts?: DrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
+    path(svgStr: string | readonly string[], opts?: PathDrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
     /**
      * Creates a grid of horizontal and vertical lines inside of a group
      * @param center Grid origin
@@ -301,7 +303,7 @@ declare type SvgHelper = {
      * @param height Height of grid
      * @param opts Drawing options
      */
-    grid(center: Point, spacing: number, width: number, height: number, opts?: DrawingOpts): SVGGElement;
+    grid(center: Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts): SVGGElement;
     /**
      * Returns an element if it exists in parent
      * @param selectors Eg `#path`
@@ -350,13 +352,15 @@ declare const setBounds: (svg: SVGElement, bounds: Rect) => void;
  * @param parentOpts
  * @returns
  */
-declare const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts | undefined) => SvgHelper;
+declare const makeHelper: (parent: SVGElement, parentOpts?: (DrawingOpts & StrokeOpts) | undefined) => SvgHelper;
 
 type Svg_MarkerOpts = MarkerOpts;
 type Svg_DrawingOpts = DrawingOpts;
 type Svg_StrokeOpts = StrokeOpts;
 type Svg_LineDrawingOpts = LineDrawingOpts;
+type Svg_CircleDrawingOpts = CircleDrawingOpts;
 type Svg_PathDrawingOpts = PathDrawingOpts;
+type Svg_MarkerDrawingOpts = MarkerDrawingOpts;
 type Svg_TextDrawingOpts = TextDrawingOpts;
 type Svg_TextPathDrawingOpts = TextPathDrawingOpts;
 declare const Svg_createOrResolve: typeof createOrResolve;
@@ -376,7 +380,9 @@ declare namespace Svg {
     Svg_DrawingOpts as DrawingOpts,
     Svg_StrokeOpts as StrokeOpts,
     Svg_LineDrawingOpts as LineDrawingOpts,
+    Svg_CircleDrawingOpts as CircleDrawingOpts,
     Svg_PathDrawingOpts as PathDrawingOpts,
+    Svg_MarkerDrawingOpts as MarkerDrawingOpts,
     Svg_TextDrawingOpts as TextDrawingOpts,
     Svg_TextPathDrawingOpts as TextPathDrawingOpts,
     Svg_createOrResolve as createOrResolve,
@@ -392,4 +398,4 @@ declare namespace Svg {
   };
 }
 
-export { DrawingOpts as D, LineDrawingOpts as L, MarkerOpts as M, PathDrawingOpts as P, Svg as S, TextDrawingOpts as T, SvgElements as a, StrokeOpts as b, TextPathDrawingOpts as c, createOrResolve as d, createEl as e, applyPathOpts as f, applyOpts as g, applyStrokeOpts as h, SvgHelper as i, getBounds as j, makeHelper as m, remove as r, setBounds as s };
+export { CircleDrawingOpts as C, DrawingOpts as D, LineDrawingOpts as L, MarkerOpts as M, PathDrawingOpts as P, Svg as S, TextDrawingOpts as T, SvgElements as a, StrokeOpts as b, MarkerDrawingOpts as c, TextPathDrawingOpts as d, createOrResolve as e, createEl as f, applyPathOpts as g, applyOpts as h, applyStrokeOpts as i, SvgHelper as j, getBounds as k, makeHelper as m, remove as r, setBounds as s };

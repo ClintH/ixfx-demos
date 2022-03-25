@@ -395,12 +395,20 @@ declare const averageWeighted: (data: readonly number[], weightings: (readonly n
  */
 declare const min: (...data: readonly number[]) => number;
 /**
- * Returns the minimum number out of `data`.
+ * Returns the maximum number out of `data`.
  * Undefined and non-numbers are silently ignored.
  * @param data
- * @returns Minimum number
+ * @returns Maximum number
  */
 declare const max: (...data: readonly number[]) => number;
+/**
+ * Returns the maximum out of `data` without additional processing for speed.
+ *
+ * For most uses, {@link max} should suffice.
+ * @param data
+ * @returns Maximum
+ */
+declare const maxFast: (data: readonly number[] | Float32Array) => number;
 /**
  * Returns the min, max, avg and total of the array.
  * Any values that are invalid are silently skipped over.
@@ -408,9 +416,11 @@ declare const max: (...data: readonly number[]) => number;
  * Use {@link average} if you only need average
  *
  * @param data
+ * @param startIndex If provided, starting index to do calculations (defaults full range)
+ * @param endIndex If provided, the end index to do calculations (defaults full range)
  * @returns `{min, max, avg, total}`
  */
-declare const minMaxAvg: (data: readonly number[]) => {
+declare const minMaxAvg: (data: readonly number[], startIndex?: number | undefined, endIndex?: number | undefined) => {
     /**
      * Smallest value in array
      */
@@ -441,6 +451,13 @@ declare const minMaxAvg: (data: readonly number[]) => {
  * @param paramName
  */
 declare const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
+/**
+ * Throws if `index` is an invalid array index for `array`, and if
+ * `array` itself is not a valid array.
+ * @param array
+ * @param index
+ */
+declare const guardIndex: <V>(array: readonly V[], index: number, paramName?: string) => void;
 /**
  * Returns _true_ if all the contents of the array are identical
  * @param array Array
@@ -491,6 +508,17 @@ declare const zip: (...arrays: ReadonlyArray<any>) => ReadonlyArray<any>;
  * @param length
  */
 declare const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => readonly V[];
+/**
+ * Return elements from `array` that match a given `predicate`, and moreover are between the given `startIndex` and `endIndex`.
+ *
+ * While this can be done with in the in-built `array.filter` function, it will needless iterate through the whole array. It also
+ * avoids another alternative of slicing the array before using `filter`.
+ * @param array
+ * @param predicate
+ * @param startIndex
+ * @param endIndex
+ */
+declare const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex: number, endIndex: number) => readonly V[];
 /**
  * Returns a random array index
  * @param array
@@ -594,9 +622,11 @@ declare const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) 
 declare const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
 
 declare const Arrays_guardArray: typeof guardArray;
+declare const Arrays_guardIndex: typeof guardIndex;
 declare const Arrays_areValuesIdentical: typeof areValuesIdentical;
 declare const Arrays_zip: typeof zip;
 declare const Arrays_ensureLength: typeof ensureLength;
+declare const Arrays_filterBetween: typeof filterBetween;
 declare const Arrays_randomIndex: typeof randomIndex;
 declare const Arrays_randomElement: typeof randomElement;
 declare const Arrays_randomPluck: typeof randomPluck;
@@ -608,13 +638,16 @@ declare const Arrays_average: typeof average;
 declare const Arrays_averageWeighted: typeof averageWeighted;
 declare const Arrays_min: typeof min;
 declare const Arrays_max: typeof max;
+declare const Arrays_maxFast: typeof maxFast;
 declare const Arrays_minMaxAvg: typeof minMaxAvg;
 declare namespace Arrays {
   export {
     Arrays_guardArray as guardArray,
+    Arrays_guardIndex as guardIndex,
     Arrays_areValuesIdentical as areValuesIdentical,
     Arrays_zip as zip,
     Arrays_ensureLength as ensureLength,
+    Arrays_filterBetween as filterBetween,
     Arrays_randomIndex as randomIndex,
     Arrays_randomElement as randomElement,
     Arrays_randomPluck as randomPluck,
@@ -626,8 +659,9 @@ declare namespace Arrays {
     Arrays_averageWeighted as averageWeighted,
     Arrays_min as min,
     Arrays_max as max,
+    Arrays_maxFast as maxFast,
     Arrays_minMaxAvg as minMaxAvg,
   };
 }
 
-export { Arrays as A, Easing$1 as E, Random as R, RandomSource as a, randomElement as b, weightedInteger as c, defaultRandom as d, gaussianSkewed as e, guardArray as f, gaussian as g, areValuesIdentical as h, ensureLength as i, randomPluck as j, without as k, groupBy as l, weight as m, average as n, averageWeighted as o, min as p, max as q, randomIndex as r, shuffle as s, minMaxAvg as t, weighted as w, zip as z };
+export { Arrays as A, Easing$1 as E, Random as R, RandomSource as a, randomElement as b, weightedInteger as c, defaultRandom as d, gaussianSkewed as e, guardArray as f, gaussian as g, guardIndex as h, areValuesIdentical as i, ensureLength as j, filterBetween as k, randomPluck as l, without as m, groupBy as n, weight as o, average as p, averageWeighted as q, randomIndex as r, shuffle as s, min as t, max as u, maxFast as v, weighted as w, minMaxAvg as x, zip as z };

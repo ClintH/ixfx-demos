@@ -1,4 +1,4 @@
-import { a as Point, f as Line, P as Path, R as RectPositioned, e as Rect } from './Rect-e8610a33';
+import { P as Point, f as Line, a as Path, R as RectPositioned, e as Rect } from './Rect-520c9c0f';
 
 /**
  * Returns true if parameter is an arc

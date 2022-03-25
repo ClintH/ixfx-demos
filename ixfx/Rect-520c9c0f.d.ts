@@ -894,4 +894,4 @@ declare namespace Rect$1 {
   };
 }
 
-export { Line$1 as L, Path as P, RectPositioned as R, Point as a, Rect$1 as b, Point$1 as c, Path$1 as d, Rect as e, Line as f };
+export { Line$1 as L, Point as P, RectPositioned as R, Path as a, Rect$1 as b, Point$1 as c, Path$1 as d, Rect as e, Line as f };

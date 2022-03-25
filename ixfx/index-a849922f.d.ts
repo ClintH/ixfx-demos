@@ -186,16 +186,61 @@ declare class FrequencyMutable<V> extends SimpleEventEmitter<FrequencyEventMap> 
  */
 declare const frequencyMutable: <V>(keyString?: ToString<V> | undefined) => FrequencyMutable<V>;
 
+/**
+ * Creates a moving average for a set number of `samples`.
+ *
+ * Moving average are useful for computing the average over a recent set of numbers.
+ * A lower number of samples produces a computed value that is lower-latency yet more jittery.
+ * A higher number of samples produces a smoother computed value which takes longer to respond to
+ * changes in data.
+ *
+ * Sample size is considered with respect to the level of latency/smoothness trade-off, and also
+ * the rate at which new data is added to the moving average.
+ *
+* `add` adds a number and returns the computed average. Call `compute` to
+ * get the average without adding a new value.
+ *
+ * ```js
+ * const ma = movingAverage(10);
+ * ma.add(10); // 10
+ * ma.add(5);  // 7.5
+ * ```
+ *
+ * `clear` clears the average.
+ *
+ * A weighting function can be provided to shape how the average is
+ * calculated - eg privileging the most recent data over older data.
+ * It uses `Arrays.averageWeighted` under the hood.
+ *
+ * ```js
+ * // Give more weight to data in middle of sampling window
+ * const ma = movingAverage(100, Easings.gaussian());
+ * ```
+ * @param samples Number of samples to compute average from
+ * @param weightingFn Optional weighting function
+ * @returns
+ */
+declare const movingAverage: (samples?: number, weightingFn?: ((v: number) => number) | undefined) => MovingAverage;
+declare type MovingAverage = {
+    clear(): void;
+    compute(): number;
+    add(v: number): number;
+};
+
 declare const index_Normalise: typeof Normalise;
 type index_FrequencyMutable<V> = FrequencyMutable<V>;
 declare const index_FrequencyMutable: typeof FrequencyMutable;
 declare const index_frequencyMutable: typeof frequencyMutable;
+declare const index_movingAverage: typeof movingAverage;
+type index_MovingAverage = MovingAverage;
 declare namespace index {
   export {
     index_Normalise as Normalise,
     index_FrequencyMutable as FrequencyMutable,
     index_frequencyMutable as frequencyMutable,
+    index_movingAverage as movingAverage,
+    index_MovingAverage as MovingAverage,
   };
 }
 
-export { FrequencyMutable as F, Normalise as N, frequencyMutable as f, index as i };
+export { FrequencyMutable as F, MovingAverage as M, Normalise as N, frequencyMutable as f, index as i, movingAverage as m };

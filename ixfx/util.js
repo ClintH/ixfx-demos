@@ -5,6 +5,7 @@ import {
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
+  isPowerOfTwo,
   proportion,
   proportionReverse,
   scale,
@@ -14,7 +15,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-MOJQTAHW.js";
+} from "./chunk-EQS4EAIT.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
@@ -24,6 +25,7 @@ export {
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
+  isPowerOfTwo,
   proportion,
   proportionReverse,
   scale,
