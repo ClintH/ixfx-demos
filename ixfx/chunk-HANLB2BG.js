@@ -96,7 +96,7 @@ var minMaxAvg = (data, startIndex, endIndex) => {
   if (startIndex === void 0)
     startIndex = 0;
   if (endIndex === void 0)
-    endIndex = data.length;
+    endIndex = data.length - 1;
   const validNumbers = filterBetween(data, (d) => typeof d === `number` && !Number.isNaN(d), startIndex, endIndex);
   const total = validNumbers.reduce((acc, v) => acc + v, 0);
   return {
@@ -475,4 +475,4 @@ export {
   groupBy,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-I5KGIUZC.js.map
+//# sourceMappingURL=chunk-HANLB2BG.js.map
