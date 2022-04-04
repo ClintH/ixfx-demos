@@ -4,11 +4,12 @@ import {
   gaussianSkewed,
   randomElement,
   randomIndex,
+  string,
   weighted,
   weightedInteger
-} from "./chunk-HANLB2BG.js";
-import "./chunk-TWT4P22Q.js";
-import "./chunk-EQS4EAIT.js";
+} from "./chunk-UP53XZW4.js";
+import "./chunk-3TJYQOMS.js";
+import "./chunk-FRWO5LHF.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
@@ -17,6 +18,7 @@ export {
   defaultRandom,
   gaussian,
   gaussianSkewed,
+  string,
   weighted,
   weightedInteger
 };

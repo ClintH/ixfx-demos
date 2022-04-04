@@ -1,3 +1,4 @@
+/// <reference types="web-bluetooth" />
 declare module "Guards" {
     export type NumberGuardRange = 
     /**
@@ -79,8 +80,8 @@ declare module "Util" {
      * clamp(50, 0, 50);
      * ```
      *
-     * For clamping integer ranges, consider {@link clampZeroBounds}
-     * For clamping {x,y} points, consider `Points.clamp`.
+     * For clamping integer ranges, consider {@link clampIndex}
+     * For clamping {x,y} points, consider {@link Points.clamp}.
      *
      * @param v Value to clamp
      * @param Minimum value (inclusive)
@@ -101,13 +102,23 @@ declare module "Util" {
      * scale(sensorReading, 100, 500);
      * ```
      *
+     * If `v` is outside of the input range, it will likewise be outside of the output range.
+     * Use {@clamp} to ensure output range is maintained.
+     *
      * If inMin and inMax are equal, outMax will be returned.
+     *
+     * An easing function can be provided for non-linear scaling. In this case
+     * the input value is 'pre scaled' using the function before it is applied to the
+     * output range.
+     * ```js
+     * scale(sensorReading, 100, 500, 0, 1, Easings.gaussian());
+     * ```
      * @param v Value to scale
      * @param inMin Input minimum
      * @param inMax Input maximum
      * @param outMin Output minimum. If not specified, 0
      * @param outMax Output maximum. If not specified, 1
-     * @param easing Easing function to use
+     * @param easing Easing function
      * @returns Scaled value
      */
     export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
@@ -128,23 +139,14 @@ declare module "Util" {
      */
     export const flip: (v: number | NumberFunction) => number;
     /**
-     * Scales a percentage-scale number `v * t`.
+     * Scales a percentage-scale number, ie: `v * t`.
      * The utility of this function is that it sanity-checks that
-     *  both parameters are in 0..1 scale
+     *  both parameters are in the 0..1 scale.
      * @param v Value
      * @param t Scale amount
      * @returns Scaled value
      */
     export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
-    /**
-     * Scales a percentage-scale number but reversed: `(1-v) * t`
-     * The utility of this function is that it sanity-checks that
-     *  both parameters are in 0..1 scale
-     * @param v
-     * @param t
-     * @returns
-     */
-    export const proportionReverse: (v: number | NumberFunction, t: number | NumberFunction) => number;
     /**
      * Scales an input percentage to a new percentage range.
      *
@@ -346,7 +348,13 @@ declare module "Util" {
      * @returns
      */
     export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
+    /**
+     * Returns true if `x` is a power of two
+     * @param x
+     * @returns True if `x` is a power of two
+     */
     export const isPowerOfTwo: (x: number) => boolean;
+    export const runningiOS: () => boolean;
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
@@ -1113,23 +1121,6 @@ declare module "collections/SimpleMapArray" {
 }
 declare module "Events" {
     export type Listener<Events> = (ev: unknown, sender: SimpleEventEmitter<Events>) => void;
-    type FlowSource = {
-        name: string;
-        dispose(): void;
-        input: FlowSink;
-    };
-    type FlowHandler = (args?: any) => void;
-    interface FlowSink {
-        [key: string]: FlowHandler;
-    }
-    export type Debouncer = {
-        reset: () => void;
-        dispose: () => void;
-    };
-    export const debounceFactory: (sink: FlowSink, opts: {
-        timeoutMs: number;
-    }) => FlowSource;
-    export const debounce: (triggered: () => void, timeoutMs: number) => Debouncer;
     export class SimpleEventEmitter<Events> {
         #private;
         /**
@@ -1155,7 +1146,7 @@ declare module "Events" {
          * @param {Listener<Events>} listener
          * @memberof SimpleEventEmitter
          */
-        removeEventListener<K extends keyof Events>(type: K, listener: Listener<Events>): void;
+        removeEventListener<K extends keyof Events>(type: K, listener: (ev: Events[K], sender: SimpleEventEmitter<Events>) => void): void;
         /**
          * Clear all event listeners
          * @private
@@ -1168,162 +1159,6 @@ declare module "Filters" {
     export const threshold: (threshold: number) => (v: number) => boolean;
     export const rangeInclusive: (min: number, max: number) => (v: number) => boolean;
     export const filter: <V>(v: V, fn: (v: V) => boolean, skipValue: V | undefined) => V | undefined;
-}
-declare module "modulation/PingPong" {
-    /**
-     * Continually loops up and down between 0 and 1 by a specified interval.
-     * Looping returns start value, and is inclusive of 0 and 1.
-     *
-     * @example Usage
-     * ```js
-     * for (const v of percentPingPong(0.1)) {
-     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
-     * }
-     * ```
-     *
-     * @example Alternative:
-     * ```js
-     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
-     * const v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     *
-     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
-     *
-     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
-     * ```
-     * const pp = pingPongPercent(0.1, 0.4, 0.6);
-     * ```
-     * @param interval Amount to increment by. Defaults to 10%
-     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
-     */
-    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
-    /**
-     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
-     *
-     * In a loop:
-     * ```
-     * for (const c of pingPong(10, 0, 100)) {
-     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
-     * }
-     * ```
-     *
-     * Manual:
-     * ```
-     * const pp = pingPong(10, 0, 100);
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     * @param interval Amount to increment by. Use negative numbers to start counting down
-     * @param lower Lower bound (inclusive)
-     * @param upper Upper bound (inclusive, must be greater than start)
-     * @param start Starting point within bounds (defaults to `lower`)
-     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
-     */
-    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
-}
-declare module "Generators" {
-    export { pingPong, pingPongPercent } from "modulation/PingPong";
-    /**
-     * Generates a range of numbers, starting from `start` and coutnting by `interval`.
-     * If `end` is provided, generator stops when reached.
-     *
-     * Unlike numericRange, numbers might contain rounding errors
-     *
-     * ```js
-     * for (const c of numericRangeRaw(10, 100)) {
-     *  // 100, 110, 120 ...
-     * }
-     * ```
-     * @param interval Interval between numbers
-     * @param start Start
-     * @param end End (if undefined, range never ends)
-     */
-    export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
-    /**
-     * Iterates over `iterator`, calling `fn` for each value.
-     * If `fn` returns _false_, iterator cancels
-     * @example
-     * ```js
-     * forEach(count(5), () => console.log(`Hi`)); // Prints `Hi` 5x
-     * forEach(count(5), (i) => console.log(i));   // Prints 0 1 2 3 4
-     * ```
-     * @param iterator
-     * @param fn
-     */
-    export const forEach: <V>(iterator: IterableIterator<V>, fn: (v?: V | undefined) => boolean | void) => void;
-    /**
-     * Generates a range of numbers, with a given interval.
-     *
-     * @example For-loop
-     * ```
-     * let loopForever = numericRange(0.1); // By default starts at 0 and counts upwards forever
-     * for (v of loopForever) {
-     *  console.log(v);
-     * }
-     * ```
-     *
-     * @example If you want more control over when/where incrementing happens...
-     * ```js
-     * let percent = numericRange(0.1, 0, 1);
-     *
-     * let percentResult = percent.next().value;
-     * ```
-     *
-     * Note that computations are internally rounded to avoid floating point math issues. So if the `interval` is very small (eg thousandths), specify a higher rounding
-     * number.
-     *
-     * @param interval Interval between numbers
-     * @param start Start. Defaults to 0
-     * @param end End (if undefined, range never ends)
-     * @param repeating Range loops from start indefinately. Default _false_
-     * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
-     */
-    export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
-    /**
-     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
-     * count decreases. If `offset` is provided, this is added to the return result.
-     * @example
-     * ```js
-     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
-     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
-     * for (const v of count(5, 5)) {
-     *  // Yields: 5, 6, 7, 8, 9
-     * }
-     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
-     * ```
-     *
-     * @example Used with forEach
-     * ```js
-     * // Prints `Hi` 5x
-     * forEach(count(5), () => console.log(`Hi`));
-     * ```
-     *
-     * If you want to accumulate return values, consider using
-     * {@link repeat}.
-     * @param amount Number of integers to yield
-     * @param offset Added to result
-     */
-    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
-    /**
-     * Returns a non-repeating number range between 0.0-1.0.
-     *
-     * If `repeating` is true, it loops back to 0 after reaching 1
-     * @param interval Interval (default: 0.01, ie. 1%)
-     * @param repeating Whether generator should loop (default: false)
-     * @param start Start (default: 0)
-     * @param end End (default: 1)
-     * @returns
-     */
-    export const rangePercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
-}
-declare module "Iterable" {
-    type WithEvents = {
-        addEventListener(type: string, callbackfn: any): void;
-        removeEventListener(type: string, callbackfn: any): void;
-    };
-    export const isAsyncIterable: (v: any) => v is AsyncIterable<any>;
-    export const isIterable: (v: any) => v is Iterable<any>;
-    export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
 }
 declare module "flow/Timer" {
     /**
@@ -1586,6 +1421,28 @@ declare module "flow/Timer" {
      * @return
      */
     export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
+    export type CancelToken = {
+        readonly cancel: boolean;
+    };
+    /**
+     * Keeps executing `calback` until it runs without an exception being thrown.
+     *
+     * ```
+     * // Retry up to five times, starting at 200ms delay
+     * await retry(async () => {
+     *  // Do something, sometimes throwing an error
+     * }, 5, 200);
+     * ```
+     *
+     * Each loop will run at twice the duration of the last, beginning at `startingTimeoutMs`.
+     *
+     * @param callback Async code to run
+     * @param attempts Number of times to try
+     * @param startingTimeoutMs Time to sleep for first iteration
+     * @param cancelToken If provided, this is checked before and after each sleep to see if retry should continue. If cancelled, promise will be rejected
+     * @returns
+     */
+    export const retry: <V>(callback: () => Promise<V>, attempts?: number, startingTimeoutMs?: number, cancelToken?: CancelToken | undefined) => Promise<V>;
     /**
      * Wraps a timer, returning a relative elapsed value.
      *
@@ -1650,6 +1507,209 @@ declare module "flow/Timer" {
      * @returns Value
      */
     export const updateOutdated: <V>(fn: (elapsedMs?: number | undefined) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
+    /**
+     * Helper function for calling code that should fail after a timeout.
+     *
+     * ```js
+     * const onAborted = (reason:string) => {
+     *  // 'reason' is a string describing why it has aborted.
+     *  // ie: due to timeout or because done() was called with an error
+     * };
+     * const onComplete = (success:boolean) => {
+     *  // Called if we were aborted or finished succesfully.
+     *  // onComplete will be called after onAborted, if it was an error case
+     * }
+     * const done = waitFor(1000, onAborted, onComplete);
+     *
+     * // Call done if your code completed successfully:
+     * done();
+     *
+     * // Or if there was an error
+     * done(`Some error`);
+     * ```
+     *
+     * The completion handler is used for removing event handlers.
+     *
+     * @param timeoutMs
+     * @param onAborted
+     * @param onComplete
+     * @returns
+     */
+    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string | undefined) => void;
+}
+declare module "modulation/PingPong" {
+    /**
+     * Continually loops up and down between 0 and 1 by a specified interval.
+     * Looping returns start value, and is inclusive of 0 and 1.
+     *
+     * @example Usage
+     * ```js
+     * for (const v of percentPingPong(0.1)) {
+     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
+     * }
+     * ```
+     *
+     * @example Alternative:
+     * ```js
+     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
+     * const v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     *
+     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
+     *
+     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
+     * ```
+     * const pp = pingPongPercent(0.1, 0.4, 0.6);
+     * ```
+     * @param interval Amount to increment by. Defaults to 10%
+     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
+     */
+    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+    /**
+     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
+     *
+     * In a loop:
+     * ```
+     * for (const c of pingPong(10, 0, 100)) {
+     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
+     * }
+     * ```
+     *
+     * Manual:
+     * ```
+     * const pp = pingPong(10, 0, 100);
+     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     * @param interval Amount to increment by. Use negative numbers to start counting down
+     * @param lower Lower bound (inclusive)
+     * @param upper Upper bound (inclusive, must be greater than start)
+     * @param start Starting point within bounds (defaults to `lower`)
+     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
+     */
+    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+}
+declare module "Generators" {
+    export { pingPong, pingPongPercent } from "modulation/PingPong";
+    /**
+     * Generates a range of numbers, starting from `start` and coutnting by `interval`.
+     * If `end` is provided, generator stops when reached.
+     *
+     * Unlike numericRange, numbers might contain rounding errors
+     *
+     * ```js
+     * for (const c of numericRangeRaw(10, 100)) {
+     *  // 100, 110, 120 ...
+     * }
+     * ```
+     * @param interval Interval between numbers
+     * @param start Start
+     * @param end End (if undefined, range never ends)
+     */
+    export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
+    /**
+     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
+     * If `fn` returns _false_, iterator cancels.
+     *
+     * @example
+     * ```js
+     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
+     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
+     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
+     * ```
+     *
+     * Use `forEachAsync` if you want to use an async `iterator` and async `fn`.
+     * @param iterator Iterable or array
+     * @param fn Function to call for each item. If function returns false, iteration cancels
+     */
+    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
+    /**
+     * Iterates over an async iterable, calling `fn` for each value, with optional
+     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
+     *
+     * Use `forEach` for a synchronous version.
+     *
+     * ```js
+     * // Prints items from array evry second
+     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
+     * ```
+     * @param iterator
+     * @param fn
+     */
+    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | void, intervalMs?: number | undefined) => Promise<void>;
+    /**
+     * Generates a range of numbers, with a given interval.
+     *
+     * @example For-loop
+     * ```
+     * let loopForever = numericRange(0.1); // By default starts at 0 and counts upwards forever
+     * for (v of loopForever) {
+     *  console.log(v);
+     * }
+     * ```
+     *
+     * @example If you want more control over when/where incrementing happens...
+     * ```js
+     * let percent = numericRange(0.1, 0, 1);
+     *
+     * let percentResult = percent.next().value;
+     * ```
+     *
+     * Note that computations are internally rounded to avoid floating point math issues. So if the `interval` is very small (eg thousandths), specify a higher rounding
+     * number.
+     *
+     * @param interval Interval between numbers
+     * @param start Start. Defaults to 0
+     * @param end End (if undefined, range never ends)
+     * @param repeating Range loops from start indefinately. Default _false_
+     * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
+     */
+    export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
+    /**
+     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
+     * count decreases. If `offset` is provided, this is added to the return result.
+     * @example
+     * ```js
+     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
+     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
+     * for (const v of count(5, 5)) {
+     *  // Yields: 5, 6, 7, 8, 9
+     * }
+     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
+     * ```
+     *
+     * @example Used with forEach
+     * ```js
+     * // Prints `Hi` 5x
+     * forEach(count(5), () => console.log(`Hi`));
+     * ```
+     *
+     * If you want to accumulate return values, consider using
+     * {@link repeat}.
+     * @param amount Number of integers to yield
+     * @param offset Added to result
+     */
+    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
+    /**
+     * Returns a non-repeating number range between 0.0-1.0.
+     *
+     * If `repeating` is true, it loops back to 0 after reaching 1
+     * @param interval Interval (default: 0.01, ie. 1%)
+     * @param repeating Whether generator should loop (default: false)
+     * @param start Start (default: 0)
+     * @param end End (default: 1)
+     * @returns
+     */
+    export const rangePercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
+}
+declare module "Iterable" {
+    type WithEvents = {
+        addEventListener(type: string, callbackfn: any): void;
+        removeEventListener(type: string, callbackfn: any): void;
+    };
+    export const isAsyncIterable: (v: any) => v is AsyncIterable<any>;
+    export const isIterable: (v: any) => v is Iterable<any>;
+    export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
 }
 declare module "modulation/Easing" {
     import { HasCompletion } from "flow/Timer";
@@ -1916,6 +1976,16 @@ declare module "Random" {
      * @returns
      */
     export const gaussianSkewed: (skew: number) => () => number;
+    /**
+     * Returns a string of random letters and numbers of a given `length`.
+     *
+     * ```js
+     * string(4); // eg. `4afd`
+     * ```
+     * @param length Length of random string
+     * @returns Random string
+     */
+    export const string: (length: number) => string;
 }
 declare module "collections/NumericArrays" {
     import * as Easings from "modulation/Easing";
@@ -2264,24 +2334,6 @@ declare module "Match" {
         allFiltersMustMatch?: boolean;
     }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
 }
-/**
- * Reads from a serial port in a line-by-line fashion.
- * Assumes \n as a line separator.
- *
- * @example
- * ```js
- * document.querySelector(`btnStart`).addEventListener(`click`, async () => {
- *  const port = await navigator.serial.requestPort();
- *  await port.open({baudRate: 9600});
- *  read(port, line => {
- *    // Do something with line (string)
- *  });
- * });
- * ```
- * @param port Opened port to read from
- * @param separator Line separator `\n` by default
- * @param callback Callback for each line read
- */
 declare module "Text" {
     /**
      * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
@@ -2297,6 +2349,43 @@ declare module "Text" {
      * @returns
      */
     export const between: (source: string, start: string, end?: string | undefined, lastEndMatch?: boolean) => string | undefined;
+    /**
+     * Returns first position of the given character code, or -1 if not found.
+     * @param source Source string
+     * @param code Code to seek
+     * @param start Start index, 0 by default
+     * @param end End index (inclusive), source.length-1 by default
+     * @returns Found position, or -1 if not found
+     */
+    export const indexOfCharCode: (source: string, code: number, start?: number, end?: number) => number;
+    /**
+     * Returns `source` with chars removed at `removeStart` position
+     * ```js
+     * omitChars(`hello there`, 1, 3);
+     * // Yields: `ho there`
+     * ```
+     * @param source
+     * @param removeStart Start point to remove
+     * @param removeLength Number of characters to remove
+     * @returns
+     */
+    export const omitChars: (source: string, removeStart: number, removeLength: number) => string;
+    /**
+     * Splits a string into `length`-size chunks.
+     *
+     * If `length` is greater than the length of `source`, a single element array is returned with source.
+     * The final array element may be smaller if we ran out of characters.
+     *
+     * ```js
+     * splitByLength(`hello there`, 2);
+     * // Yields:
+     * // [`he`, `ll`, `o `, `th`, `er`, `e`]
+     * ```
+     * @param source Source string
+     * @param length Length of each chunk
+     * @returns
+     */
+    export const splitByLength: (source: string, length: number) => readonly string[];
     /**
      * Returns the `source` string up until (and excluding) `match`. If match is not
      * found, all of `source` is returned.
@@ -2409,54 +2498,7 @@ declare module "Text" {
      * @returns True if source starts and ends with provided values.
      */
     export const startsEnds: (source: string, start: string, end?: string) => boolean;
-}
-declare module "Tracker" {
-    /**
-     * Keeps track of the min, max and avg in a stream of values without actually storing them.
-     *
-     * Usage:
-     *
-     * ```js
-     *  const t = tracker();
-     *  t.seen(10);
-     *
-     *  t.avg / t.min/ t.max / t.getMinMax()
-     * ```
-     *
-     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation
-     * @class Tracker
-     */
-    export class Tracker {
-        samples: number;
-        total: number;
-        min: number;
-        max: number;
-        id: string | undefined;
-        constructor(id?: string | undefined);
-        get avg(): number;
-        resetAvg(newId?: string | null): void;
-        reset(newId?: string | null): void;
-        seen(sample: number): void;
-        getMinMaxAvg(): {
-            min: number;
-            max: number;
-            avg: number;
-        };
-    }
-    export const tracker: (id?: string | undefined) => Tracker;
-    /**
-     * A `Tracker` that tracks interval between calls to `mark()`
-     *
-     * @export
-     * @class IntervalTracker
-     * @extends {Tracker}
-     */
-    export class IntervalTracker extends Tracker {
-        lastMark: number;
-        perf: any;
-        constructor(id?: string | undefined);
-        mark(): void;
-    }
+    export const htmlEntities: (source: string) => string;
 }
 declare module "temporal/Normalise" {
     /**
@@ -2727,18 +2769,15 @@ declare module "collections/Map" {
      */
     export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
     /**
-     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>
+     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link mapToObj}.
      *
-     * @example
-     * ```js
-     * // Convert a map of string->string to string->number
-     * transformMap<string, string, number>(mapOfStrings, (value, key) => parseInt(value));
-     * ```
-     * @param source
-     * @param transformer
+     * @param m
+     * @param valueTransform
      * @returns
      */
-    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
+    export const mapToObjTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => {
+        readonly [key: string]: K;
+    };
     /**
      * Zips together an array of keys and values into an object. Requires that
      * `keys` and `values` are the same length.
@@ -2756,6 +2795,19 @@ declare module "collections/Map" {
     export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
         [k: string]: V | undefined;
     };
+    /**
+     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>
+     *
+     * @example
+     * ```js
+     * // Convert a map of string->string to string->number
+     * transformMap<string, string, number>(mapOfStrings, (value, key) => parseInt(value));
+     * ```
+     * @param source
+     * @param transformer
+     * @returns
+     */
+    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
     /**
      * Converts a `Map` to a plain object, useful for serializing to JSON
      *
@@ -2778,6 +2830,17 @@ declare module "collections/Map" {
      * map.add(person.name, person);
      * const ages = mapToArray<string, People, number>(map, (key, person) => person.age);
      * // [29, ...]
+     * ```
+     *
+     * In the above example, the `transformer` function returns a single value, but it could
+     * just as well return an object:
+     * ```js
+     * mapToArray(map, (key, person) => ({
+     *  height: Math.random(),
+     *  name: person.name.toUpperCase();
+     * }))
+     * // Yields:
+     * // [{height: 0.12, name: "JOHN"}, ...]
      * ```
      * @param m
      * @param transformer
@@ -2969,7 +3032,7 @@ declare module "collections/Stack" {
      * @param {...V[]} startingItems
      * @returns
      */
-    export const stackMutable: <V>(opts: StackOpts, ...startingItems: readonly V[]) => StackMutable<V>;
+    export const stackMutable: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => StackMutable<V>;
 }
 declare module "collections/Queue" {
     import { QueueMutable, Queue, DiscardPolicy } from "collections/Interfaces";
@@ -3222,10 +3285,81 @@ declare module "temporal/MovingAverage" {
         add(v: number): number;
     };
 }
+declare module "temporal/Tracker" {
+    /**
+     * Keeps track of the min, max and avg in a stream of values without actually storing them.
+     *
+     * Usage:
+     *
+     * ```js
+     *  const t = tracker();
+     *  t.seen(10);
+     *
+     *  t.avg / t.min/ t.max / t.getMinMax()
+     * ```
+     *
+     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation
+     * @class Tracker
+     */
+    export class Tracker {
+        samples: number;
+        total: number;
+        min: number;
+        max: number;
+        id: string | undefined;
+        constructor(id?: string | undefined);
+        get avg(): number;
+        resetAvg(newId?: string | null): void;
+        reset(newId?: string | null): void;
+        seen(sample: number): void;
+        getMinMaxAvg(): {
+            min: number;
+            max: number;
+            avg: number;
+        };
+    }
+    export const tracker: (id?: string | undefined) => Tracker;
+    /**
+     * A `Tracker` that tracks interval between calls to `mark()`
+     *
+     * @export
+     * @class IntervalTracker
+     * @extends {Tracker}
+     */
+    export class IntervalTracker extends Tracker {
+        lastMark: number;
+        perf: any;
+        constructor(id?: string | undefined);
+        mark(): void;
+    }
+    /**
+     * Returns a new {@link IntervalTracker} instance. IntervalTracker
+     * records the interval between each call to `mark`.
+     *
+     * ```js
+     * const t = intervalTracker();
+     *
+     * // Call `mark` to record an interval
+     * t.mark();
+     * ...
+     * t.mark();
+     *
+     * // Get average time in milliseconds between calls to `mark`
+     * t.avg;
+     *
+     * // Longest and shortest times are available too...
+     * t.min; t.max
+     * ```
+     * @param id Optional id of instance
+     * @returns New interval tracker
+     */
+    export const intervalTracker: (id?: string | undefined) => IntervalTracker;
+}
 declare module "temporal/index" {
     export * as Normalise from "temporal/Normalise";
     export * from "temporal/FrequencyMutable";
     export * from "temporal/MovingAverage";
+    export { tracker } from "temporal/Tracker";
 }
 declare module "geometry/Path" {
     import { Rects, Points } from "geometry/index";
@@ -5974,32 +6108,6 @@ declare module "visual/Plot" {
      */
     export const plot: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => Plotter;
 }
-declare module "visual/DictionaryOfColourCombinationsData" {
-    export const data: {
-        name: string;
-        combinations: number[];
-        swatch: number;
-        cmyk: number[];
-        lab: number[];
-        rgb: number[];
-        hex: string;
-    }[];
-}
-declare module "visual/DictionaryOfColourCombinations" {
-    type Cmyk = readonly [number, number, number, number];
-    type Lab = readonly [number, number, number];
-    type Rgb = readonly [number, number, number];
-    export type DictColour = {
-        readonly name: string;
-        readonly combinations: ReadonlyArray<number>;
-        readonly swatch: number;
-        readonly cmyk: Cmyk;
-        readonly lab: Lab;
-        readonly rgb: Rgb;
-        readonly hex: string;
-    };
-    export const randomPalette: (minColours?: number) => readonly DictColour[];
-}
 declare module "visual/Palette" {
     /**
      * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
@@ -6040,7 +6148,6 @@ declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
     import * as Svg from "visual/Svg";
     import * as Plot from "visual/Plot";
-    import * as DictionaryOfColourCombinations from "visual/DictionaryOfColourCombinations";
     import * as Palette from "visual/Palette";
     import * as Colour from "visual/Colour";
     /**
@@ -6052,23 +6159,25 @@ declare module "visual/index" {
      * * {@link opacity}: Give a colour opacity
      */
     export { Colour };
-    export { Palette, Drawing, Svg, Plot, DictionaryOfColourCombinations };
+    export { Palette, Drawing, Svg, Plot };
 }
 declare module "dom/ShadowDom" {
     export const addShadowCss: (parentEl: HTMLElement, styles: string) => ShadowRoot;
 }
 declare module "dom/Log" {
     export type LogOpts = {
+        readonly reverse?: boolean;
         readonly capacity?: number;
         readonly timestamp?: boolean;
         readonly collapseDuplicates?: boolean;
         readonly monospaced?: boolean;
         readonly minIntervalMs?: number;
+        readonly css?: string;
     };
     export type Log = Readonly<{
         clear(): void;
         error(msgOrError: string | Error | unknown): void;
-        log(msg?: string | object | number): void;
+        log(msg?: string | object | number): HTMLElement | undefined;
         append(el: HTMLElement): void;
         dispose(): void;
         readonly isEmpty: boolean;
@@ -6324,8 +6433,8 @@ declare module "dom/index" {
 }
 declare module "audio/AudioVisualiser" {
     import { Points } from "geometry/index";
-    import { Tracker } from "Tracker";
-    import Analyser from "audio/Analyser";
+    import { Tracker } from "temporal/Tracker";
+    import { Analyser } from "audio/Analyser";
     export default class Visualiser {
         freqMaxRange: number;
         audio: Analyser;
@@ -6356,6 +6465,15 @@ declare module "audio/Analyser" {
     import AudioVisualiser from "audio/AudioVisualiser";
     /**
      * Options for audio processing
+     *
+     * fftSize: Must be a power of 2, from 32 - 32768. Higher number means
+     * more precision and higher CPU overhead
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
+     *
+     * smoothingTimeConstant: Range from 0-1, default is 0.8.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant
+     *
+     * debug: If true, additonal console logging will happen
      */
     export type Opts = Readonly<{
         readonly showVis?: boolean;
@@ -6373,9 +6491,8 @@ declare module "audio/Analyser" {
         readonly debug?: boolean;
     }>;
     export type DataAnalyser = (node: AnalyserNode, analyser: Analyser) => void;
-    export type BasicAnalyserHandler = (freq: Float32Array, wave: Float32Array, analyser: Analyser) => void;
     /**
-     * Basic audio analyser. Returns back waveform and FFT analysis. Use {@link freq} if you just want FFT results.
+     * Basic audio analyser. Returns back waveform and FFT analysis. Use {@link peakLevel} if you want sound level, or {@link freq} if you just want FFT results.
      *
      * ```js
      * const onData = (freq, wave, analyser) => {
@@ -6388,7 +6505,7 @@ declare module "audio/Analyser" {
      * basic(onData, {fftSize: 512});
      * ```
      *
-     * {@link Analyser} instance is returned and can be controlled:
+     * An `Analyser` instance is returned and can be controlled:
      * ```js
      * const analyser = basic(onData);
      * analyser.paused = true;
@@ -6400,9 +6517,9 @@ declare module "audio/Analyser" {
      * @param opts Options
      * @returns Analyser instance
      */
-    export const basic: (onData: BasicAnalyserHandler, opts?: Opts) => Analyser;
+    export const basic: (onData: (freq: Float32Array, wave: Float32Array, analyser: Analyser) => void, opts?: Opts) => Analyser;
     /**
-     * Basic audio analyser. Returns FFT analysis. Use {@link basic} if you also want the waveform.
+     * Basic audio analyser. Returns FFT analysis. Use {@link peakLevel} if you want the sound level, or {@link basic} if you also want the waveform.
      *
      * ```js
      * const onData = (freq, analyser) => {
@@ -6426,7 +6543,7 @@ declare module "audio/Analyser" {
      * Basic audio analyser which reports the peak sound level.
      *
      * ```js
-     * peak(level => {
+     * peakLevel(level => {
      *  console.log(level);
      * });
      * ```
@@ -6458,7 +6575,7 @@ declare module "audio/Analyser" {
      * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
      *
      */
-    export default class Analyser {
+    export class Analyser {
         #private;
         showVis: boolean;
         fftSize: number;
@@ -7004,4 +7121,209 @@ declare module "components/FrequencyHistogramPlot" {
 declare module "components/index" {
     export { HistogramVis } from "components/HistogramVis";
     export { FrequencyHistogramPlot } from "components/FrequencyHistogramPlot";
+}
+declare module "io/Codec" {
+    export class Codec {
+        enc: TextEncoder;
+        dec: TextDecoder;
+        toBuffer(str: string): Uint8Array;
+        fromBuffer(buffer: ArrayBuffer): string;
+    }
+}
+declare module "io/StringReceiveBuffer" {
+    export class StringReceiveBuffer {
+        private onData;
+        private separator;
+        buffer: string;
+        constructor(onData: (data: string) => void, separator?: string);
+        clear(): void;
+        add(str: string): void;
+    }
+}
+declare module "io/StringWriteBuffer" {
+    import { QueueMutable } from "collections/index";
+    import { Continuously } from "flow/index";
+    export class StringWriteBuffer {
+        private onData;
+        private chunkSize;
+        paused: boolean;
+        queue: QueueMutable<string>;
+        writer: Continuously;
+        intervalMs: number;
+        constructor(onData: (data: string) => Promise<void>, chunkSize?: number);
+        clear(): void;
+        onWrite(): Promise<boolean>;
+        add(str: string): void;
+    }
+}
+declare module "io/BleDevice" {
+    import { SimpleEventEmitter } from "Events";
+    import { StateChangeEvent, StateMachine } from "flow/StateMachine";
+    import { Codec } from "io/Codec";
+    import { StringReceiveBuffer } from "io/StringReceiveBuffer";
+    import { StringWriteBuffer } from "io/StringWriteBuffer";
+    export type Opts = {
+        readonly service: string;
+        readonly rxGattCharacteristic: string;
+        readonly txGattCharacteristic: string;
+        readonly chunkSize: number;
+        readonly name: string;
+        readonly connectAttempts: number;
+    };
+    export type DataEvent = {
+        readonly data: string;
+    };
+    type Events = {
+        readonly data: DataEvent;
+        readonly change: StateChangeEvent;
+    };
+    export class BleDevice extends SimpleEventEmitter<Events> {
+        private device;
+        private config;
+        states: StateMachine;
+        codec: Codec;
+        rx: BluetoothRemoteGATTCharacteristic | undefined;
+        tx: BluetoothRemoteGATTCharacteristic | undefined;
+        gatt: BluetoothRemoteGATTServer | undefined;
+        verboseLogging: boolean;
+        rxBuffer: StringReceiveBuffer;
+        txBuffer: StringWriteBuffer;
+        constructor(device: BluetoothDevice, config: Opts);
+        get isConnected(): boolean;
+        get isClosed(): boolean;
+        write(txt: string): void;
+        private writeInternal;
+        disconnect(): void;
+        connect(): Promise<void>;
+        onRx(evt: Event): void;
+        protected verbose(m: string): void;
+        protected log(m: string): void;
+        protected warn(m: unknown): void;
+    }
+}
+declare module "io/NordicBleDevice" {
+    import { BleDevice } from "io/BleDevice";
+    export const defaultOpts: {
+        chunkSize: number;
+        service: string;
+        txGattCharacteristic: string;
+        rxGattCharacteristic: string;
+        name: string;
+        connectAttempts: number;
+    };
+    type Opts = {
+        readonly chunkSize?: number;
+        readonly name?: string;
+        readonly connectAttempts?: number;
+    };
+    export class NordicBleDevice extends BleDevice {
+        constructor(device: BluetoothDevice, opts?: Opts);
+    }
+}
+declare module "io/Espruino" {
+    import { NordicBleDevice } from "io/NordicBleDevice";
+    export type Options = {
+        readonly evalTimeoutMs?: number;
+        readonly name?: string;
+    };
+    export type EvalOpts = {
+        readonly timeoutMs?: number;
+        readonly assumeExclusive?: boolean;
+    };
+    /**
+     * An Espruino BLE-connection
+     *
+     * Use the `puck` function to initialise and connect to a Puck.js.
+     * It must be called in a UI event handler for browser security reasons.
+     *
+     * ```js
+     * const e = await puck();
+     * ```
+     *
+     * Listen for events:
+     * ```js
+     * // Received something
+     * e.addEventLister(`data`, d => console.log(d.data));
+     * // Monitor connection state
+     * e.addEventListener(`change`, c => console.log(`${d.priorState} -> ${d.newState}`));
+     * ```
+     *
+     * Write to the device (note the \n for a new line at the end of the string). This will
+     * execute the code on the Espruino.
+     *
+     * ```js
+     * e.write(`digitalPulse(LED1,1,[10,500,10,500,10]);\n`);
+     * ```
+     *
+     * Run some code and return result:
+     * ```js
+     * const result = await e.eval(`2+2\n`);
+     * ```
+     */
+    class Espruino extends NordicBleDevice {
+        evalTimeoutMs: number;
+        /**
+         * Creates instance. You probably would rather use {@link puck} to create.
+         * @param device
+         * @param opts
+         */
+        constructor(device: BluetoothDevice, opts?: Options);
+        /**
+         * Sends some code to be executed on the Espruino. The result
+         * is packaged into JSON and sent back to your code. An exception is
+         * thrown if code can't be executed for some reason.
+         *
+         * ```js
+         * const sum = await e.eval(`2+2`);
+         * ```
+         *
+         * It will wait for a period of time for a well-formed response from the
+         * Espruino. This might not happen if there is a connection problem
+         * or a syntax error in the code being evaled. In cases like the latter,
+         * it will take up to `timeoutMs` (default 5 seconds) before we give up
+         * waiting for a correct response and throw an error.
+         *
+         * Tweaking of the timeout may be required if `eval()` is giving up too quickly
+         * or too slowly. A default timeout can be given when creating the class.
+         *
+         * Options:
+         *  timeoutMs: Timeout for execution. 5 seconds by default
+         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. False by default
+         * @param code Code to run on the Espruino.
+         * @param opts Options
+         */
+        eval(code: string, opts?: EvalOpts): Promise<string>;
+    }
+    /**
+     * @inheritdoc Espruino
+     * @returns
+     */
+    export const puck: () => Promise<Espruino>;
+    /**
+     * @inheritdoc Espruino
+     * @returns
+     */
+    export const connect: () => Promise<Espruino>;
+}
+/**
+ * Reads from a serial port in a line-by-line fashion.
+ * Assumes \n as a line separator.
+ *
+ * @example
+ * ```js
+ * document.querySelector(`btnStart`).addEventListener(`click`, async () => {
+ *  const port = await navigator.serial.requestPort();
+ *  await port.open({baudRate: 9600});
+ *  read(port, line => {
+ *    // Do something with line (string)
+ *  });
+ * });
+ * ```
+ * @param port Opened port to read from
+ * @param separator Line separator `\n` by default
+ * @param callback Callback for each line read
+ */
+declare module "io/index" {
+    export * as Bluetooth from "io/NordicBleDevice";
+    export * as Espruino from "io/Espruino";
 }

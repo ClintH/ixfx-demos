@@ -7,7 +7,7 @@ import {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
-  proportionReverse,
+  runningiOS,
   scale,
   scalePercent,
   scalePercentages,
@@ -15,7 +15,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-EQS4EAIT.js";
+} from "./chunk-FRWO5LHF.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
@@ -27,7 +27,7 @@ export {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
-  proportionReverse,
+  runningiOS,
   scale,
   scalePercent,
   scalePercentages,

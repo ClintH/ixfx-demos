@@ -6,10 +6,11 @@ import {
   hasKeyValue,
   mapToArray,
   mapToObj,
+  mapToObjTransform,
   toArray,
   transformMap,
   zipKeyValue
-} from "./chunk-7XLMEXWP.js";
+} from "./chunk-FGWKHPUM.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   addUniqueByHash,
@@ -19,6 +20,7 @@ export {
   hasKeyValue,
   mapToArray,
   mapToObj,
+  mapToObjTransform,
   toArray,
   transformMap,
   zipKeyValue

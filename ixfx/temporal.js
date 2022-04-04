@@ -3,33 +3,36 @@ import {
   Normalise_exports,
   frequencyMutable,
   movingAverage
-} from "./chunk-XDUKCDIB.js";
-import "./chunk-OMXZMOOU.js";
-import "./chunk-TSWQ4JT6.js";
-import "./chunk-LU5W57AP.js";
-import "./chunk-3LVOEJ7V.js";
-import "./chunk-PHF3FPUO.js";
-import "./chunk-QIWUQGQJ.js";
-import "./chunk-HYVQIQVS.js";
-import "./chunk-C2TJYUU7.js";
-import "./chunk-QAZYUFOI.js";
-import "./chunk-7XLMEXWP.js";
-import "./chunk-TF7BQQHV.js";
-import "./chunk-HANLB2BG.js";
-import "./chunk-SJVFW73P.js";
-import "./chunk-2LMDG6V5.js";
-import "./chunk-DTRNDG6C.js";
-import "./chunk-HGDBKEIQ.js";
-import "./chunk-XFTV7E35.js";
-import "./chunk-2EXQEXQ3.js";
-import "./chunk-TWT4P22Q.js";
-import "./chunk-EQS4EAIT.js";
+} from "./chunk-UNXPYPOV.js";
+import "./chunk-LZ7XWTRR.js";
+import "./chunk-H6TBE3LW.js";
+import "./chunk-FFBPDNHF.js";
+import "./chunk-AW5RWBWK.js";
+import "./chunk-ODBLOXCD.js";
+import "./chunk-7TKMEWX5.js";
+import {
+  tracker
+} from "./chunk-JR36IBZA.js";
+import "./chunk-LQDBQKBM.js";
+import "./chunk-3CYWIYMP.js";
+import "./chunk-FGWKHPUM.js";
+import "./chunk-VQWJYEVC.js";
+import "./chunk-UP53XZW4.js";
+import "./chunk-VFK4G76S.js";
+import "./chunk-P4FBQYIR.js";
+import "./chunk-4DU25RMK.js";
+import "./chunk-RT6UATE3.js";
+import "./chunk-I3R3AECV.js";
+import "./chunk-AWXCQ245.js";
+import "./chunk-3TJYQOMS.js";
+import "./chunk-FRWO5LHF.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   FrequencyMutable,
   Normalise_exports as Normalise,
   frequencyMutable,
-  movingAverage
+  movingAverage,
+  tracker
 };
 //# sourceMappingURL=temporal.js.map

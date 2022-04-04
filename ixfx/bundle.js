@@ -1,47 +1,47 @@
 import {
   temporal_exports
-} from "./chunk-XDUKCDIB.js";
-import {
-  Text_exports
-} from "./chunk-OMXZMOOU.js";
+} from "./chunk-UNXPYPOV.js";
 import {
   visual_exports
-} from "./chunk-TSWQ4JT6.js";
-import "./chunk-LU5W57AP.js";
+} from "./chunk-LZ7XWTRR.js";
+import "./chunk-H6TBE3LW.js";
 import {
   Generators_exports
-} from "./chunk-3LVOEJ7V.js";
+} from "./chunk-FFBPDNHF.js";
 import {
   modulation_exports
-} from "./chunk-PHF3FPUO.js";
+} from "./chunk-AW5RWBWK.js";
 import {
   geometry_exports
-} from "./chunk-QIWUQGQJ.js";
+} from "./chunk-ODBLOXCD.js";
+import {
+  Text_exports
+} from "./chunk-7TKMEWX5.js";
 import {
   audio_exports
-} from "./chunk-HYVQIQVS.js";
+} from "./chunk-JR36IBZA.js";
 import {
   KeyValue_exports
-} from "./chunk-C2TJYUU7.js";
+} from "./chunk-LQDBQKBM.js";
 import {
   collections_exports
-} from "./chunk-QAZYUFOI.js";
-import "./chunk-7XLMEXWP.js";
-import "./chunk-TF7BQQHV.js";
+} from "./chunk-3CYWIYMP.js";
+import "./chunk-FGWKHPUM.js";
+import "./chunk-VQWJYEVC.js";
 import {
   Random_exports
-} from "./chunk-HANLB2BG.js";
+} from "./chunk-UP53XZW4.js";
 import {
   dom_exports
-} from "./chunk-SJVFW73P.js";
-import "./chunk-2LMDG6V5.js";
-import "./chunk-DTRNDG6C.js";
+} from "./chunk-VFK4G76S.js";
+import "./chunk-P4FBQYIR.js";
+import "./chunk-4DU25RMK.js";
 import {
   flow_exports
-} from "./chunk-HGDBKEIQ.js";
-import "./chunk-XFTV7E35.js";
-import "./chunk-2EXQEXQ3.js";
-import "./chunk-TWT4P22Q.js";
+} from "./chunk-RT6UATE3.js";
+import "./chunk-I3R3AECV.js";
+import "./chunk-AWXCQ245.js";
+import "./chunk-3TJYQOMS.js";
 import {
   clamp,
   clampIndex,
@@ -51,7 +51,7 @@ import {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
-  proportionReverse,
+  runningiOS,
   scale,
   scalePercent,
   scalePercentages,
@@ -59,7 +59,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-EQS4EAIT.js";
+} from "./chunk-FRWO5LHF.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
@@ -83,7 +83,7 @@ export {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
-  proportionReverse,
+  runningiOS,
   scale,
   scalePercent,
   scalePercentages,

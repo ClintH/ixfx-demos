@@ -14,8 +14,8 @@
  * clamp(50, 0, 50);
  * ```
  *
- * For clamping integer ranges, consider {@link clampZeroBounds}
- * For clamping {x,y} points, consider `Points.clamp`.
+ * For clamping integer ranges, consider {@link clampIndex}
+ * For clamping {x,y} points, consider {@link Points.clamp}.
  *
  * @param v Value to clamp
  * @param Minimum value (inclusive)
@@ -36,13 +36,23 @@ declare const clamp: (v: number, min?: number, max?: number) => number;
  * scale(sensorReading, 100, 500);
  * ```
  *
+ * If `v` is outside of the input range, it will likewise be outside of the output range.
+ * Use {@clamp} to ensure output range is maintained.
+ *
  * If inMin and inMax are equal, outMax will be returned.
+ *
+ * An easing function can be provided for non-linear scaling. In this case
+ * the input value is 'pre scaled' using the function before it is applied to the
+ * output range.
+ * ```js
+ * scale(sensorReading, 100, 500, 0, 1, Easings.gaussian());
+ * ```
  * @param v Value to scale
  * @param inMin Input minimum
  * @param inMax Input maximum
  * @param outMin Output minimum. If not specified, 0
  * @param outMax Output maximum. If not specified, 1
- * @param easing Easing function to use
+ * @param easing Easing function
  * @returns Scaled value
  */
 declare const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
@@ -63,23 +73,14 @@ declare type NumberFunction = () => number;
  */
 declare const flip: (v: number | NumberFunction) => number;
 /**
- * Scales a percentage-scale number `v * t`.
+ * Scales a percentage-scale number, ie: `v * t`.
  * The utility of this function is that it sanity-checks that
- *  both parameters are in 0..1 scale
+ *  both parameters are in the 0..1 scale.
  * @param v Value
  * @param t Scale amount
  * @returns Scaled value
  */
 declare const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
-/**
- * Scales a percentage-scale number but reversed: `(1-v) * t`
- * The utility of this function is that it sanity-checks that
- *  both parameters are in 0..1 scale
- * @param v
- * @param t
- * @returns
- */
-declare const proportionReverse: (v: number | NumberFunction, t: number | NumberFunction) => number;
 /**
  * Scales an input percentage to a new percentage range.
  *
@@ -281,6 +282,12 @@ declare const wrap: (v: number, min?: number, max?: number) => number;
  * @returns
  */
 declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
+/**
+ * Returns true if `x` is a power of two
+ * @param x
+ * @returns True if `x` is a power of two
+ */
 declare const isPowerOfTwo: (x: number) => boolean;
+declare const runningiOS: () => boolean;
 
-export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, proportionReverse, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
+export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, runningiOS, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
