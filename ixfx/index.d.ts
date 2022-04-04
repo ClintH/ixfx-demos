@@ -1160,6 +1160,160 @@ declare module "Filters" {
     export const rangeInclusive: (min: number, max: number) => (v: number) => boolean;
     export const filter: <V>(v: V, fn: (v: V) => boolean, skipValue: V | undefined) => V | undefined;
 }
+declare module "modulation/PingPong" {
+    /**
+     * Continually loops up and down between 0 and 1 by a specified interval.
+     * Looping returns start value, and is inclusive of 0 and 1.
+     *
+     * @example Usage
+     * ```js
+     * for (const v of percentPingPong(0.1)) {
+     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
+     * }
+     * ```
+     *
+     * @example Alternative:
+     * ```js
+     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
+     * const v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     *
+     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
+     *
+     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
+     * ```
+     * const pp = pingPongPercent(0.1, 0.4, 0.6);
+     * ```
+     * @param interval Amount to increment by. Defaults to 10%
+     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
+     */
+    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+    /**
+     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
+     *
+     * In a loop:
+     * ```
+     * for (const c of pingPong(10, 0, 100)) {
+     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
+     * }
+     * ```
+     *
+     * Manual:
+     * ```
+     * const pp = pingPong(10, 0, 100);
+     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     * @param interval Amount to increment by. Use negative numbers to start counting down
+     * @param lower Lower bound (inclusive)
+     * @param upper Upper bound (inclusive, must be greater than start)
+     * @param start Starting point within bounds (defaults to `lower`)
+     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
+     */
+    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+}
+declare module "Generators" {
+    export { pingPong, pingPongPercent } from "modulation/PingPong";
+    /**
+     * Generates a range of numbers, starting from `start` and counting by `interval`.
+     * If `end` is provided, generator stops when reached.
+     *
+     * Unlike {@link numericRange}, numbers might contain rounding errors
+     *
+     * ```js
+     * for (const c of numericRangeRaw(10, 100)) {
+     *  // 100, 110, 120 ...
+     * }
+     * ```
+     * @param interval Interval between numbers
+     * @param start Start
+     * @param end End (if undefined, range never ends)
+     */
+    export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
+    /**
+     * Generates a range of numbers, with a given interval.
+     *
+     * @example For-loop
+     * ```
+     * let loopForever = numericRange(0.1); // By default starts at 0 and counts upwards forever
+     * for (v of loopForever) {
+     *  console.log(v);
+     * }
+     * ```
+     *
+     * @example If you want more control over when/where incrementing happens...
+     * ```js
+     * let percent = numericRange(0.1, 0, 1);
+     *
+     * let percentResult = percent.next().value;
+     * ```
+     *
+     * Note that computations are internally rounded to avoid floating point math issues. So if the `interval` is very small (eg thousandths), specify a higher rounding
+     * number.
+     *
+     * @param interval Interval between numbers
+     * @param start Start. Defaults to 0
+     * @param end End (if undefined, range never ends)
+     * @param repeating Range loops from start indefinately. Default _false_
+     * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
+     */
+    export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
+    /**
+     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
+     * count decreases. If `offset` is provided, this is added to the return result.
+     * @example
+     * ```js
+     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
+     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
+     * for (const v of count(5, 5)) {
+     *  // Yields: 5, 6, 7, 8, 9
+     * }
+     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
+     * ```
+     *
+     * @example Used with forEach
+     * ```js
+     * // Prints `Hi` 5x
+     * forEach(count(5), () => console.log(`Hi`));
+     * ```
+     *
+     * If you want to accumulate return values, consider using
+     * {@link Flow.repeat}.
+     * @param amount Number of integers to yield
+     * @param offset Added to result
+     */
+    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
+    /**
+     * Returns a number range between 0.0-1.0.
+     *
+     * ```
+     * // Yields: [0, 0.2, 0.4, 0.6, 0.8, 1]
+     * const a = [...numericPercent(0.2)];
+     *
+     * // Repeating flag set to true:
+     * for (const v of numericPercent(0.2, true)) {
+     *  // Infinite loop. V loops back to 0 after hitting 1
+     * }
+     * ```
+     *
+     * If `repeating` is true, it loops back to 0 after reaching 1
+     * @param interval Interval (default: 0.01, ie. 1%)
+     * @param repeating Whether generator should loop (default: false)
+     * @param start Start (default: 0)
+     * @param end End (default: 1)
+     * @returns
+     */
+    export const numericPercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
+}
+declare module "Iterable" {
+    type WithEvents = {
+        addEventListener(type: string, callbackfn: any): void;
+        removeEventListener(type: string, callbackfn: any): void;
+    };
+    export const isAsyncIterable: (v: any) => v is AsyncIterable<any>;
+    export const isIterable: (v: any) => v is Iterable<any>;
+    export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
+}
 declare module "flow/Timer" {
     /**
      * Creates a timer
@@ -1536,180 +1690,6 @@ declare module "flow/Timer" {
      * @returns
      */
     export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string | undefined) => void;
-}
-declare module "modulation/PingPong" {
-    /**
-     * Continually loops up and down between 0 and 1 by a specified interval.
-     * Looping returns start value, and is inclusive of 0 and 1.
-     *
-     * @example Usage
-     * ```js
-     * for (const v of percentPingPong(0.1)) {
-     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
-     * }
-     * ```
-     *
-     * @example Alternative:
-     * ```js
-     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
-     * const v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     *
-     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
-     *
-     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
-     * ```
-     * const pp = pingPongPercent(0.1, 0.4, 0.6);
-     * ```
-     * @param interval Amount to increment by. Defaults to 10%
-     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
-     */
-    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
-    /**
-     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
-     *
-     * In a loop:
-     * ```
-     * for (const c of pingPong(10, 0, 100)) {
-     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
-     * }
-     * ```
-     *
-     * Manual:
-     * ```
-     * const pp = pingPong(10, 0, 100);
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     * @param interval Amount to increment by. Use negative numbers to start counting down
-     * @param lower Lower bound (inclusive)
-     * @param upper Upper bound (inclusive, must be greater than start)
-     * @param start Starting point within bounds (defaults to `lower`)
-     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
-     */
-    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
-}
-declare module "Generators" {
-    export { pingPong, pingPongPercent } from "modulation/PingPong";
-    /**
-     * Generates a range of numbers, starting from `start` and coutnting by `interval`.
-     * If `end` is provided, generator stops when reached.
-     *
-     * Unlike numericRange, numbers might contain rounding errors
-     *
-     * ```js
-     * for (const c of numericRangeRaw(10, 100)) {
-     *  // 100, 110, 120 ...
-     * }
-     * ```
-     * @param interval Interval between numbers
-     * @param start Start
-     * @param end End (if undefined, range never ends)
-     */
-    export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
-    /**
-     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
-     * If `fn` returns _false_, iterator cancels.
-     *
-     * @example
-     * ```js
-     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
-     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
-     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
-     * ```
-     *
-     * Use `forEachAsync` if you want to use an async `iterator` and async `fn`.
-     * @param iterator Iterable or array
-     * @param fn Function to call for each item. If function returns false, iteration cancels
-     */
-    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
-    /**
-     * Iterates over an async iterable, calling `fn` for each value, with optional
-     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
-     *
-     * Use `forEach` for a synchronous version.
-     *
-     * ```js
-     * // Prints items from array evry second
-     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
-     * ```
-     * @param iterator
-     * @param fn
-     */
-    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | void, intervalMs?: number | undefined) => Promise<void>;
-    /**
-     * Generates a range of numbers, with a given interval.
-     *
-     * @example For-loop
-     * ```
-     * let loopForever = numericRange(0.1); // By default starts at 0 and counts upwards forever
-     * for (v of loopForever) {
-     *  console.log(v);
-     * }
-     * ```
-     *
-     * @example If you want more control over when/where incrementing happens...
-     * ```js
-     * let percent = numericRange(0.1, 0, 1);
-     *
-     * let percentResult = percent.next().value;
-     * ```
-     *
-     * Note that computations are internally rounded to avoid floating point math issues. So if the `interval` is very small (eg thousandths), specify a higher rounding
-     * number.
-     *
-     * @param interval Interval between numbers
-     * @param start Start. Defaults to 0
-     * @param end End (if undefined, range never ends)
-     * @param repeating Range loops from start indefinately. Default _false_
-     * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
-     */
-    export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
-    /**
-     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
-     * count decreases. If `offset` is provided, this is added to the return result.
-     * @example
-     * ```js
-     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
-     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
-     * for (const v of count(5, 5)) {
-     *  // Yields: 5, 6, 7, 8, 9
-     * }
-     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
-     * ```
-     *
-     * @example Used with forEach
-     * ```js
-     * // Prints `Hi` 5x
-     * forEach(count(5), () => console.log(`Hi`));
-     * ```
-     *
-     * If you want to accumulate return values, consider using
-     * {@link repeat}.
-     * @param amount Number of integers to yield
-     * @param offset Added to result
-     */
-    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
-    /**
-     * Returns a non-repeating number range between 0.0-1.0.
-     *
-     * If `repeating` is true, it loops back to 0 after reaching 1
-     * @param interval Interval (default: 0.01, ie. 1%)
-     * @param repeating Whether generator should loop (default: false)
-     * @param start Start (default: 0)
-     * @param end End (default: 1)
-     * @returns
-     */
-    export const rangePercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
-}
-declare module "Iterable" {
-    type WithEvents = {
-        addEventListener(type: string, callbackfn: any): void;
-        removeEventListener(type: string, callbackfn: any): void;
-    };
-    export const isAsyncIterable: (v: any) => v is AsyncIterable<any>;
-    export const isIterable: (v: any) => v is Iterable<any>;
-    export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
 }
 declare module "modulation/Easing" {
     import { HasCompletion } from "flow/Timer";
@@ -5118,20 +5098,81 @@ declare module "flow/StateMachine" {
         get state(): string;
     }
 }
+declare module "io/Codec" {
+    export class Codec {
+        enc: TextEncoder;
+        dec: TextDecoder;
+        toBuffer(str: string): Uint8Array;
+        fromBuffer(buffer: ArrayBuffer): string;
+    }
+}
+declare module "io/StringReceiveBuffer" {
+    export class StringReceiveBuffer {
+        private onData;
+        private separator;
+        buffer: string;
+        constructor(onData: (data: string) => void, separator?: string);
+        clear(): void;
+        add(str: string): void;
+    }
+}
 declare module "flow/index" {
     export * as StateMachine from "flow/StateMachine";
     export * from "flow/Timer";
+    /**
+     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
+     * If `fn` returns _false_, iterator cancels.
+     *
+     * @example
+     * ```js
+     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
+     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
+     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
+     * ```
+     *
+     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
+     * @param iterator Iterable or array
+     * @param fn Function to call for each item. If function returns false, iteration cancels
+     */
+    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
+    /**
+     * Iterates over an async iterable or array, calling `fn` for each value, with optional
+     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
+     *
+     * Use {@link forEach} for a synchronous version.
+     *
+     * ```
+     * // Prints items from array every second
+     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
+     * ```
+     *
+     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
+     * ```
+     * await forEachAsync(count(5), i=> {
+     *  try {
+     *    await doSomething();
+     *    return false; // Succeeded, exit early
+     *  } catch (ex) {
+     *    console.log(ex);
+     *    return true; // Keep trying
+     *  }
+     * }, 5000);
+     * ```
+     * @param iterator
+     * @param fn
+     */
+    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number | undefined) => Promise<void>;
     export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
     /**
-     * Runs `fn` a certain number of times, accumulating result into return array.
-     * If `fn` returns undefined, it is skipped.
+     * Runs `fn` a certain number of times, accumulating result into an array.
+     * If `fn` returns undefined, the result is ignored.
      *
      * ```js
      * // Results will be an array with five random numbers
      * const results = repeat(5, () => Math.random());
      * ```
      *
-     * Repeats can be specified as an integer (eg 5 for five repeats), or a function
+     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
      * that gives _false_ when repeating should stop.
      *
      * ```js
@@ -5147,6 +5188,204 @@ declare module "flow/index" {
      * @returns Array of accumulated results
      */
     export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
+}
+declare module "io/StringWriteBuffer" {
+    import { QueueMutable } from "collections/index";
+    import { Continuously } from "flow/index";
+    export class StringWriteBuffer {
+        private onData;
+        private chunkSize;
+        paused: boolean;
+        queue: QueueMutable<string>;
+        writer: Continuously;
+        intervalMs: number;
+        constructor(onData: (data: string) => Promise<void>, chunkSize?: number);
+        clear(): void;
+        onWrite(): Promise<boolean>;
+        add(str: string): void;
+    }
+}
+declare module "io/BleDevice" {
+    import { SimpleEventEmitter } from "Events";
+    import { StateChangeEvent, StateMachine } from "flow/StateMachine";
+    import { Codec } from "io/Codec";
+    import { StringReceiveBuffer } from "io/StringReceiveBuffer";
+    import { StringWriteBuffer } from "io/StringWriteBuffer";
+    export type Opts = {
+        readonly service: string;
+        readonly rxGattCharacteristic: string;
+        readonly txGattCharacteristic: string;
+        readonly chunkSize: number;
+        readonly name: string;
+        readonly connectAttempts: number;
+    };
+    export type DataEvent = {
+        readonly data: string;
+    };
+    type Events = {
+        readonly data: DataEvent;
+        readonly change: StateChangeEvent;
+    };
+    export class BleDevice extends SimpleEventEmitter<Events> {
+        private device;
+        private config;
+        states: StateMachine;
+        codec: Codec;
+        rx: BluetoothRemoteGATTCharacteristic | undefined;
+        tx: BluetoothRemoteGATTCharacteristic | undefined;
+        gatt: BluetoothRemoteGATTServer | undefined;
+        verboseLogging: boolean;
+        rxBuffer: StringReceiveBuffer;
+        txBuffer: StringWriteBuffer;
+        constructor(device: BluetoothDevice, config: Opts);
+        get isConnected(): boolean;
+        get isClosed(): boolean;
+        write(txt: string): void;
+        private writeInternal;
+        disconnect(): void;
+        connect(): Promise<void>;
+        onRx(evt: Event): void;
+        protected verbose(m: string): void;
+        protected log(m: string): void;
+        protected warn(m: unknown): void;
+    }
+}
+declare module "io/NordicBleDevice" {
+    import { BleDevice } from "io/BleDevice";
+    export const defaultOpts: {
+        chunkSize: number;
+        service: string;
+        txGattCharacteristic: string;
+        rxGattCharacteristic: string;
+        name: string;
+        connectAttempts: number;
+    };
+    type Opts = {
+        readonly chunkSize?: number;
+        readonly name?: string;
+        readonly connectAttempts?: number;
+    };
+    export class NordicBleDevice extends BleDevice {
+        constructor(device: BluetoothDevice, opts?: Opts);
+    }
+}
+declare module "io/EspruinoDevice" {
+    import { NordicBleDevice } from "io/NordicBleDevice";
+    /**
+     * Options for device
+     */
+    export type Options = {
+        /**
+         * Default milliseconds to wait before giving up on a well-formed reply. 5 seconds is the default.
+         */
+        readonly evalTimeoutMs?: number;
+        /**
+         * Name of device. Only used for printing log mesages to the console
+         */
+        readonly name?: string;
+    };
+    /**
+     * Options for code evaluation
+     */
+    export type EvalOpts = {
+        /**
+         * Milliseconds to wait before giving up on well-formed reply. 5 seconds is the default.
+         */
+        readonly timeoutMs?: number;
+        /**
+         * If true (default), it assumes that anything received from the board
+         * is a response to the eval
+         */
+        readonly assumeExclusive?: boolean;
+    };
+    /**
+     * An Espruino BLE-connection
+     *
+     * Use the `puck` function to initialise and connect to a Puck.js.
+     * It must be called in a UI event handler for browser security reasons.
+     *
+     * ```js
+     * const e = await puck();
+     * ```
+     *
+     * Listen for events:
+     * ```js
+     * // Received something
+     * e.addEventListener(`data`, d => console.log(d.data));
+     * // Monitor connection state
+     * e.addEventListener(`change`, c => console.log(`${d.priorState} -> ${d.newState}`));
+     * ```
+     *
+     * Write to the device (note the \n for a new line at the end of the string). This will
+     * execute the code on the Espruino.
+     *
+     * ```js
+     * e.write(`digitalPulse(LED1,1,[10,500,10,500,10]);\n`);
+     * ```
+     *
+     * Run some code and return result:
+     * ```js
+     * const result = await e.eval(`2+2\n`);
+     * ```
+     */
+    export class EspruinoDevice extends NordicBleDevice {
+        evalTimeoutMs: number;
+        /**
+         * Creates instance. You probably would rather use {@link puck} to create.
+         * @param device
+         * @param opts
+         */
+        constructor(device: BluetoothDevice, opts?: Options);
+        /**
+         * Sends some code to be executed on the Espruino. The result
+         * is packaged into JSON and sent back to your code. An exception is
+         * thrown if code can't be executed for some reason.
+         *
+         * ```js
+         * const sum = await e.eval(`2+2`);
+         * ```
+         *
+         * It will wait for a period of time for a well-formed response from the
+         * Espruino. This might not happen if there is a connection problem
+         * or a syntax error in the code being evaled. In cases like the latter,
+         * it will take up to `timeoutMs` (default 5 seconds) before we give up
+         * waiting for a correct response and throw an error.
+         *
+         * Tweaking of the timeout may be required if `eval()` is giving up too quickly
+         * or too slowly. A default timeout can be given when creating the class.
+         *
+         * Options:
+         *  timeoutMs: Timeout for execution. 5 seconds by default
+         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+         * @param code Code to run on the Espruino.
+         * @param opts Options
+         */
+        eval(code: string, opts?: EvalOpts): Promise<string>;
+    }
+    /**
+     * @inheritdoc EspruinoDevice
+     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
+     */
+    export const puck: () => Promise<EspruinoDevice>;
+    /**
+     * @inheritdoc EspruinoDevice
+     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
+     */
+    export const connect: () => Promise<EspruinoDevice>;
+}
+declare module "io/index" {
+    /**
+     * Generic support for Bluetooth LE devices
+     */
+    export * as Bluetooth from "io/NordicBleDevice";
+    /**
+     * Espruino-based devices connected via Bluetooth LE
+     *
+     * Overview:
+     * * {@link puck}: Connect to a Puck.js
+     * * {@link connect}: Connect to a generic Espruino
+     */
+    export * as Espruino from "io/EspruinoDevice";
 }
 declare module "visual/Colour" {
     import * as d3Colour from 'd3-color';
@@ -6931,9 +7170,23 @@ declare module "modulation/index" {
     export const jitter: (value: number, jitter: number, opts?: JitterOpts, rand?: RandomSource) => number;
 }
 declare module "index" {
+    /**
+     * Processing streams of data
+     */
     export * as Temporal from "temporal/index";
+    /**
+     * Geometry
+     * Functions for different shapes, paths and coordinate spaces
+     */
     export * as Geometry from "geometry/index";
+    /**
+     * Text processing
+     */
     export * as Text from "Text";
+    /**
+     * Input and output to devices, sensors and actuators
+     */
+    export * as Io from "io/index";
     /**
      * Control execution
      *
@@ -6942,9 +7195,21 @@ declare module "index" {
      * * {@link timeout} Run code after a specified time delay
      * * {@link sleep} Using `async await`, delay execution for a period
      * * {@link delay} Using `async await`, run a given callback after a period
+     * * {@link forEach} / {@link forEachAsync} Loop over an iterable or array, with the possibility of early exit
      * * {@link StateMachine} Manage state transitions
      */
     export * as Flow from "flow/index";
+    /**
+     * Generators produce values on demand.
+     *
+     * Overview
+     * * {@link count} Generate a set numbers, counting by one
+     * * {@link numericPercent} Generate a range of numbers on the percentage scale of 0-1
+     * * {@link numericRange} Generate a range of numbers
+     * * {@link pingPong} / {@link pingPongPercent} Generate numbers that repeat up and down between the set limits
+     *
+     */
+    export * as Generators from "Generators";
     /**
      * Visuals
      *
@@ -6998,10 +7263,6 @@ declare module "index" {
      * * {@link Stacks}: a list of ordered data, like a stack of plates
      */
     export * as Collections from "collections/index";
-    /**
-     * Generators produce values on demand.
-     */
-    export * as Generators from "Generators";
     export * as Random from "Random";
     export * as KeyValues from "KeyValue";
     export * from "Util";
@@ -7122,189 +7383,6 @@ declare module "components/index" {
     export { HistogramVis } from "components/HistogramVis";
     export { FrequencyHistogramPlot } from "components/FrequencyHistogramPlot";
 }
-declare module "io/Codec" {
-    export class Codec {
-        enc: TextEncoder;
-        dec: TextDecoder;
-        toBuffer(str: string): Uint8Array;
-        fromBuffer(buffer: ArrayBuffer): string;
-    }
-}
-declare module "io/StringReceiveBuffer" {
-    export class StringReceiveBuffer {
-        private onData;
-        private separator;
-        buffer: string;
-        constructor(onData: (data: string) => void, separator?: string);
-        clear(): void;
-        add(str: string): void;
-    }
-}
-declare module "io/StringWriteBuffer" {
-    import { QueueMutable } from "collections/index";
-    import { Continuously } from "flow/index";
-    export class StringWriteBuffer {
-        private onData;
-        private chunkSize;
-        paused: boolean;
-        queue: QueueMutable<string>;
-        writer: Continuously;
-        intervalMs: number;
-        constructor(onData: (data: string) => Promise<void>, chunkSize?: number);
-        clear(): void;
-        onWrite(): Promise<boolean>;
-        add(str: string): void;
-    }
-}
-declare module "io/BleDevice" {
-    import { SimpleEventEmitter } from "Events";
-    import { StateChangeEvent, StateMachine } from "flow/StateMachine";
-    import { Codec } from "io/Codec";
-    import { StringReceiveBuffer } from "io/StringReceiveBuffer";
-    import { StringWriteBuffer } from "io/StringWriteBuffer";
-    export type Opts = {
-        readonly service: string;
-        readonly rxGattCharacteristic: string;
-        readonly txGattCharacteristic: string;
-        readonly chunkSize: number;
-        readonly name: string;
-        readonly connectAttempts: number;
-    };
-    export type DataEvent = {
-        readonly data: string;
-    };
-    type Events = {
-        readonly data: DataEvent;
-        readonly change: StateChangeEvent;
-    };
-    export class BleDevice extends SimpleEventEmitter<Events> {
-        private device;
-        private config;
-        states: StateMachine;
-        codec: Codec;
-        rx: BluetoothRemoteGATTCharacteristic | undefined;
-        tx: BluetoothRemoteGATTCharacteristic | undefined;
-        gatt: BluetoothRemoteGATTServer | undefined;
-        verboseLogging: boolean;
-        rxBuffer: StringReceiveBuffer;
-        txBuffer: StringWriteBuffer;
-        constructor(device: BluetoothDevice, config: Opts);
-        get isConnected(): boolean;
-        get isClosed(): boolean;
-        write(txt: string): void;
-        private writeInternal;
-        disconnect(): void;
-        connect(): Promise<void>;
-        onRx(evt: Event): void;
-        protected verbose(m: string): void;
-        protected log(m: string): void;
-        protected warn(m: unknown): void;
-    }
-}
-declare module "io/NordicBleDevice" {
-    import { BleDevice } from "io/BleDevice";
-    export const defaultOpts: {
-        chunkSize: number;
-        service: string;
-        txGattCharacteristic: string;
-        rxGattCharacteristic: string;
-        name: string;
-        connectAttempts: number;
-    };
-    type Opts = {
-        readonly chunkSize?: number;
-        readonly name?: string;
-        readonly connectAttempts?: number;
-    };
-    export class NordicBleDevice extends BleDevice {
-        constructor(device: BluetoothDevice, opts?: Opts);
-    }
-}
-declare module "io/Espruino" {
-    import { NordicBleDevice } from "io/NordicBleDevice";
-    export type Options = {
-        readonly evalTimeoutMs?: number;
-        readonly name?: string;
-    };
-    export type EvalOpts = {
-        readonly timeoutMs?: number;
-        readonly assumeExclusive?: boolean;
-    };
-    /**
-     * An Espruino BLE-connection
-     *
-     * Use the `puck` function to initialise and connect to a Puck.js.
-     * It must be called in a UI event handler for browser security reasons.
-     *
-     * ```js
-     * const e = await puck();
-     * ```
-     *
-     * Listen for events:
-     * ```js
-     * // Received something
-     * e.addEventLister(`data`, d => console.log(d.data));
-     * // Monitor connection state
-     * e.addEventListener(`change`, c => console.log(`${d.priorState} -> ${d.newState}`));
-     * ```
-     *
-     * Write to the device (note the \n for a new line at the end of the string). This will
-     * execute the code on the Espruino.
-     *
-     * ```js
-     * e.write(`digitalPulse(LED1,1,[10,500,10,500,10]);\n`);
-     * ```
-     *
-     * Run some code and return result:
-     * ```js
-     * const result = await e.eval(`2+2\n`);
-     * ```
-     */
-    class Espruino extends NordicBleDevice {
-        evalTimeoutMs: number;
-        /**
-         * Creates instance. You probably would rather use {@link puck} to create.
-         * @param device
-         * @param opts
-         */
-        constructor(device: BluetoothDevice, opts?: Options);
-        /**
-         * Sends some code to be executed on the Espruino. The result
-         * is packaged into JSON and sent back to your code. An exception is
-         * thrown if code can't be executed for some reason.
-         *
-         * ```js
-         * const sum = await e.eval(`2+2`);
-         * ```
-         *
-         * It will wait for a period of time for a well-formed response from the
-         * Espruino. This might not happen if there is a connection problem
-         * or a syntax error in the code being evaled. In cases like the latter,
-         * it will take up to `timeoutMs` (default 5 seconds) before we give up
-         * waiting for a correct response and throw an error.
-         *
-         * Tweaking of the timeout may be required if `eval()` is giving up too quickly
-         * or too slowly. A default timeout can be given when creating the class.
-         *
-         * Options:
-         *  timeoutMs: Timeout for execution. 5 seconds by default
-         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. False by default
-         * @param code Code to run on the Espruino.
-         * @param opts Options
-         */
-        eval(code: string, opts?: EvalOpts): Promise<string>;
-    }
-    /**
-     * @inheritdoc Espruino
-     * @returns
-     */
-    export const puck: () => Promise<Espruino>;
-    /**
-     * @inheritdoc Espruino
-     * @returns
-     */
-    export const connect: () => Promise<Espruino>;
-}
 /**
  * Reads from a serial port in a line-by-line fashion.
  * Assumes \n as a line separator.
@@ -7323,7 +7401,3 @@ declare module "io/Espruino" {
  * @param separator Line separator `\n` by default
  * @param callback Callback for each line read
  */
-declare module "io/index" {
-    export * as Bluetooth from "io/NordicBleDevice";
-    export * as Espruino from "io/Espruino";
-}

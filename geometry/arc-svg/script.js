@@ -16,7 +16,7 @@ const settings = {
   // Loop up and down again from 0 and 100%, 1% at a time
   genPingPong: Generators.pingPongPercent(0.01),
   // Loops from 0 to 100%, but starts back at 0. In contrast, pingPong counts down to 0
-  genLoop: Generators.rangePercent(0.01, true)
+  genLoop: Generators.numericPercent(0.01, true)
 };
 
 // State

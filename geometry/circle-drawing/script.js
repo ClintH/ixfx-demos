@@ -1,4 +1,5 @@
-import {pingPongPercent, forEach, count} from '../../ixfx/generators.js';
+import {pingPongPercent, count} from '../../ixfx/generators.js';
+import {forEach} from '../../ixfx/flow.js';
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings

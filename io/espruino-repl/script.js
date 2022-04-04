@@ -4,7 +4,7 @@
  */
 import {Espruino} from '../../ixfx/io.js';
 import {log} from '../../ixfx/dom.js';
-import {forEachAsync} from '../../ixfx/generators.js';
+import {forEachAsync} from '../../ixfx/flow.js';
 import {stackMutable} from '../../ixfx/collections.js';
 
 const settings = {

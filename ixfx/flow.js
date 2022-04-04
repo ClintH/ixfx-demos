@@ -1,6 +1,8 @@
 import {
+  forEach,
+  forEachAsync,
   repeat
-} from "./chunk-RT6UATE3.js";
+} from "./chunk-XYAFQIIV.js";
 import {
   StateMachine_exports
 } from "./chunk-I3R3AECV.js";
@@ -30,6 +32,8 @@ export {
   continuously,
   debounce,
   delay,
+  forEach,
+  forEachAsync,
   frequencyTimer,
   frequencyTimerSource,
   interval,

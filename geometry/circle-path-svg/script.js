@@ -10,7 +10,7 @@ const settings = {
   radiusProportion: 0.3,
   text: `Hello there text on a path`,
   // Loops from 0 to 100%, but starts back at 0. In contrast, pingPong counts down to 0
-  genLoop: Generators.rangePercent(0.001, true)
+  genLoop: Generators.numericPercent(0.001, true)
 };
 
 // State

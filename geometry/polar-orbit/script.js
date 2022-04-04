@@ -9,7 +9,7 @@ import {Polar} from '../../ixfx/geometry.js';
 const settings = {
   minRadius: 100,
   slowPp: Generators.pingPongPercent(0.001),
-  range: Generators.rangePercent(0.01, true),
+  range: Generators.numericPercent(0.01, true),
   thingEl: document.getElementById(`thing`)
 }
 
@@ -49,7 +49,7 @@ const updateDom = () => {
   // Distance is based on ping-pong value and size of screen
   const d = minRadius + (slow * (maxDimension - minRadius) / 8);
 
-  // Use the rangePercent generator value to set angle
+  // Use the numericPercent generator value to set angle
   const angle = Math.PI * 2 * range;
 
   // Calculate position for circle based on polar coordinates (distance, angle & origin)
