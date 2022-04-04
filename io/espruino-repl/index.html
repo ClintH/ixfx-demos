@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ixfx - Espruino REPL</title>
+</head>
+
+<body>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue-primary: 44;
+      --hue-secondary: 60;
+      --padding: 0.6rem;
+      --padding-s: 0.3rem;
+
+      --mono-size: 16px;
+      --mono-font: ui-monospace,
+        Menlo, Monaco,
+        "Cascadia Mono", "Segoe UI Mono",
+        "Roboto Mono",
+        "Oxygen Mono",
+        "Ubuntu Monospace",
+        "Source Code Pro",
+        "Fira Mono",
+        "Droid Sans Mono",
+        "Courier New", monospace;
+    }
+
+    .disconnected #log {
+      opacity: 0.8;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      background-color: hsl(var(--hue-secondary) 1% 14%);
+      color: hsl(var(--hue-primary), 88%, 66%);
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    header,
+    #log,
+    #input {
+      padding-right: var(--padding);
+      padding-left: var(--padding);
+      padding-bottom: var(--padding);
+    }
+
+    header {
+      padding-top: var(--padding);
+    }
+
+    button,
+    input {
+      background-color: transparent;
+      border: 1px solid hsl(var(--hue-primary) 60% 46%);
+      border-radius: var(--padding-s);
+      color: hsl(var(--hue-primary) 60% 46%);
+    }
+
+    button {
+      background-color: hsl(var(--hue-primary) 20% 16%);
+
+    }
+
+    button:disabled,
+    input:disabled {
+      border: 1px solid hsl(var(--hue-primary) 0% 46%);
+      border-radius: var(--padding-s);
+      color: hsl(var(--hue-primary) 0% 46%);
+      cursor: default;
+    }
+
+    button {
+      color: hsl(var(--hue-primary) 60% 46%);
+      padding: var(--padding);
+      cursor: pointer;
+      transition: all ease-out 0.5s;
+    }
+
+    button:hover:not([disabled]) {
+      border: 1px solid hsl(var(--hue-primary) 88% 66%);
+      color: hsl(var(--hue-primary) 88% 66%);
+      background-color: hsl(var(--hue-primary) 60% 16%);
+      transition: all ease-in 0.3s;
+    }
+
+    header {
+      background-color: hsl(var(--hue-secondary) 10% 10%);
+      display: flex;
+      align-items: center;
+    }
+
+    header .title {
+      flex-grow: 1;
+    }
+
+    a,
+    a:link,
+    a:visited {
+      text-decoration: none;
+      color: unset;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+
+    #log {
+      font-family: var(--mono-font);
+      font-size: var(--mono-size);
+      flex-grow: 1;
+      overflow: hidden;
+      --theme-bg-hover: black;
+      padding-top: var(--padding);
+    }
+
+    #input {
+      display: flex;
+    }
+
+    #txtInput {
+      font-size: var(--mono-size);
+      flex-grow: 1;
+      font-family: var(--mono-font);
+      padding: var(--padding-s);
+      margin-right: var(--padding);
+      border: none;
+      color: hsl(var(--hue-primary) 0% 46%);
+    }
+
+    #txtInput::selection {
+      background-color: hsl(var(--hue-secondary) 1% 4%);
+      color: hsl(var(--hue-primary), 88%, 66%);
+    }
+
+    #txtInput:focus,
+    #txtInput:focus-visible {
+      border-bottom: 1px solid hsl(var(--hue-primary) 0% 46%);
+      border-radius: 0;
+      outline: none;
+    }
+  </style>
+
+  <header>
+    <div class="title">
+      <a href="http://clinth.github.io/ixfx-docs/">ixfx</a> / Espruino REPL
+    </div>
+    <div class="toolbar">
+      <button title="Run some demo code" id="btnDemo">Demo</button>
+      <button title="Prompts to connect to a board" id="btnConnect">Connect</button>
+      <button title="Disconnects to a board" id="btnDisconnect">Disconnect</button>
+    </div>
+  </header>
+  <div id="log">
+    ?
+  </div>
+  <div id="input">
+    <input id="txtInput" type="text" value="LED1.set()">
+    <button id="btnSend">Send</button>
+  </div>
+  <script type="module" src="./script.js"></script>
+</body>
+<html>
