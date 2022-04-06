@@ -23,6 +23,7 @@ let state = {
 }
 
 const processor = continuously(() => {
+  // Keeps looping until we've done everything in backlog
   const {log} = settings;
   let {toProcess} = state;
   if (toProcess.isEmpty) return false; // Stack is empty
@@ -36,12 +37,12 @@ const processor = continuously(() => {
     toProcess: toProcess.pop()
   }
 
-  // Do something with item
+  // Do something with item (in this case, print a log message)
   log.log(`🤖 Processing ${item}`);
   return true; // Keep loop running
 }, settings.processIntervalMs);
 
-// Add to stack
+// Adds item to stack
 const process = (item) => {
   const {toProcess} = state;
   state = {
@@ -54,9 +55,10 @@ const process = (item) => {
 }
 
 const setup = () => {
+  // Adds three items to backlog
   document.getElementById(`btnAddItems`).addEventListener(`click`, () => {
-    const n = performance.now();
-    process(`${n} - 1`);
+    const n = performance.now(); // Get a timestamp
+    process(`${n} - 1`);    // Add a string, but it could be an object
     process(`${n} - 2`);
     process(`${n} - 3`);
   });

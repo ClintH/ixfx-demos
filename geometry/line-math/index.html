@@ -4,15 +4,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Line math</title>
-  <link rel="stylesheet" href="../../base.css">
+  <title>line-math</title>
 </head>
 
 <body>
   <style>
+    :root {
+      --hue1: 255;
+      --hue2: 62;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue2), 100%, 85%);
+      --fg: hsl(var(--hue1), 100%, 74%);
+    }
+
     body {
-      background-color: #FCFFA6;
-      color: #CAB8FF;
+      background-color: var(--bg);
+      color: var(--fg);
     }
   </style>
   <section>

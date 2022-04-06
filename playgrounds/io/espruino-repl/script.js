@@ -2,10 +2,10 @@
  * This code isn't meant for extending - it's just meant for running in
  * the browser, providing a REPL environment
  */
-import {Espruino} from '../../ixfx/io.js';
-import {log} from '../../ixfx/dom.js';
-import {forEachAsync} from '../../ixfx/flow.js';
-import {stackMutable} from '../../ixfx/collections.js';
+import {Espruino} from '../../../ixfx/io.js';
+import {log} from '../../../ixfx/dom.js';
+import {forEachAsync} from '../../../ixfx/flow.js';
+import {stackMutable} from '../../../ixfx/collections.js';
 
 const settings = {
   log: log(`#log`, {

@@ -4,15 +4,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Line rotation</title>
-  <link rel="stylesheet" href="../../base.css">
+  <title>line-rotation</title>
 </head>
 
 <body>
   <style>
+    :root {
+      --hue1: 170;
+      --hue2: 327;
+      --bg: hsl(var(--hue2), 71%, 41%);
+      --fg: hsl(var(--hue1), 83%, 53%);
+    }
+
     body {
-      background-color: #B31E6F;
-      color: #22EACA;
+      background-color: var(--bg);
+      color: var(--fg);
     }
   </style>
   <section>

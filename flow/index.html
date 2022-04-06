@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ixfx - flow</title>
-  <link rel="stylesheet" href="../base.css">
+  <title>ixfx / flow</title>
+  <link rel="stylesheet" href="../demos.css">
 </head>
 
 <body>
@@ -13,24 +13,34 @@
     <header>
       <a href="../">../</a> flow
     </header>
+    <ul class="pillbox">
+      <li><a class="pill" href="https://clinth.github.io/ixfx-docs/flow/stateMachine/">Documentation</a></li>
+      <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Flow.html">API Reference</a></li>
+    </ul>
     <div class="demos">
+
       <div>
         <h1>timers</h1>
+
         <ul class="nobullets">
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/flow/debounce"></a>
-            <a href="./debounce/">Debounce</a>
-            <div class="techniques">Only respond after a period of quiet</div>
+            <a href="./debounce/">Debounce</a>: Only respond after a period of quiet
+            <div class="techniques">Debounce, pointer events</div>
           </li>
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/flow/throttle"></a>
-            <a href="./throttle/">Throttle</a>
-            <div class="techniques">Only respond to events every set interval</div>
+            <a href="./throttle/">Throttle</a>: Only respond to events every set interval
+            <div class="techniques">Throttle, pointer events</div>
           </li>
         </ul>
       </div>
       <div>
         <h1>state machine</h1>
+        <ul class="pillbox">
+          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/flow/stateMachine/">Documentation</a></li>
+          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Flow.StateMachine.html">API Reference</a></li>
+        </ul>
         <ul class="nobullets">
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/flow/statemachine-starter"></a>
@@ -44,18 +54,18 @@
         <ul class="nobullets">
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/flow/list-async"></a>
-            <a href="./list-async/">List</a>
-            <div class="techniques">Process a list of items with a set interval</div>
+            <a href="./list-async/">List</a>: Process a list of items with a set interval
+            <div class="techniques">Stack, continuously</div>
           </li>
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/flow/fetch-poll"></a>
-            <a href="./fetch-poll/">Fetch poll</a>
-            <div class="techniques">Downloads JSON from a URL at a specified interval, continuously, fetch</div>
+            <a href="./fetch-poll/">Fetch poll</a>: Downloads JSON from a URL at a specified interval
+            <div class="techniques">fetch, continuously</div>
           </li>
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/flow/fetch-outdated"></a>
-            <a href="./fetch-outdated/">Fetch outdated</a>
-            <div class="techniques">Downloads JSON from a URL only if it is out of date, async, fetch</div>
+            <a href="./fetch-outdated/">Fetch outdated</a>: Downloads JSON from a URL only if it is out of date
+            <div class="techniques">fetch, caching, async</div>
           </li>
         </ul>
       </div>

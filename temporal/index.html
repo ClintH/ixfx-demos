@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ixfx - temporal</title>
-  <link rel="stylesheet" href="../base.css">
+  <title>ixfx / temporal</title>
+  <link rel="stylesheet" href="../demos.css">
 </head>
 
 <body>
@@ -13,19 +13,26 @@
     <header>
       <a href="../">../</a> temporal
     </header>
+    <ul class="pillbox">
+      <li><a class="pill" href="https://clinth.github.io/ixfx-docs/temporal/normalising/">Documentation</a></li>
+      <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Temporal.html">API Reference</a></li>
+    </ul>
     <div class="demos">
-      <ul class="nobullets">
-        <li>
-          <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/temporal/moving-average-1"></a>
-          <a href="./moving-average-1/">Moving average 1</a>
-          <div class="techniques"></div>
-        </li>
-        <li>
-          <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/temporal/moving-average-audio"></a>
-          <a href="./moving-average-audio/">Moving average audio</a>
-          <div class="techniques">Calculates average of the microphone audio level</div>
-        </li>
-      </ul>
+      <div>
+        <h1>moving average</h1>
+        <ul class="nobullets">
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/temporal/moving-average-pointer"></a>
+            <a href="./moving-average-pointer/">pointer</a>: Average pointer x,y
+            <div class="techniques">moving average, pointer events</div>
+          </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/temporal/moving-average-audio"></a>
+            <a href="./moving-average-audio/">audio</a>: Average microphone input
+            <div class="techniques">moving average, audio</div>
+          </li>
+        </ul>
+      </div>
     </div>
   </main>
 </body>

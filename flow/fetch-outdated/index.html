@@ -4,10 +4,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fetch Outdated</title>
-  <link rel="stylesheet" href="../../base.css">
+  <title>fetch-outdated</title>
 </head>
 <style>
+  body {
+    background-color: #f8ffe5;
+    color: #2ec4b6;
+    font-size: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  }
+
   button {
     padding: 0.4em;
   }
@@ -16,7 +22,7 @@
 <body>
   <section>
     <h1>fetch-outdated</h1>
-    <p>Demonstrates caching and fetching on demand (rather than polling).</p>
+    <em>Demonstrates caching and fetching on demand (rather than polling).</em>
     <p>Note the timestamp while repeatedly pressing <em>Request data</em>.
       On the first press, it will fetch the data, but subsequent requests will use
       the cached data until a timeout of 10 seconds.

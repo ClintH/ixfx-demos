@@ -4,33 +4,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Point math</title>
-  <link rel="stylesheet" href="../../base.css">
+  <title>point-math</title>
 </head>
 
 <body>
   <style>
     :root {
-      --hue: 200;
+      --hue1: 33;
+      --hue2: 333;
+      --hue3: 198;
+      --radius: 3em;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue2), 91%, 31%);
+      --fg: hsl(var(--hue1), 92%, 95%);
     }
 
     body {
-      background-color: #970747;
+      font-family: var(--font);
+      background-color: var(--bg);
       overflow: hidden;
-      color: #FEF4E8;
-    }
-
-    h1 {
-      color: #DADBBD;
+      color: var(--fg);
     }
 
     #thing {
-      background-color: #13445A;
-      border-radius: 3em;
+      background-color: hsl(var(--hue3), 28%, 37%);
+      border-radius: var(--radius);
     }
 
     #reference {
-      background-color: #446878;
+      background-color: hsl(var(--hue3), 28%, 60%);
     }
 
     .ball {
@@ -39,7 +41,7 @@
       top: 0;
       left: 0;
       padding: 1em;
-      border-radius: 3em;
+      border-radius: var(--radius);
     }
   </style>
   <section>

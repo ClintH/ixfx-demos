@@ -1,11 +1,12 @@
 import {Circles} from '../../ixfx/geometry.js'
 import {Svg} from '../../ixfx/visual.js';
-import {scale} from '../../ixfx/util.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings
 const settings = {
+  // Colour for text
+  textStyle: `#54BAB9`,
   // Radius will be 30% of viewport
   radiusProportion: 0.3,
   text: `Hello there text on a path`,
@@ -60,7 +61,7 @@ const updateSvg = (circleEl) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  const {text} = settings;
+  const {text, textStyle} = settings;
   const svg = document.querySelector(`svg`);
 
   // Resize SVG element to match viewport
@@ -80,7 +81,9 @@ const setup = () => {
   circleEl.id = `circlePath`;
 
   // Create text to go on path
-  Svg.Elements.textPath(`#circlePath`, text, svg);
+  Svg.Elements.textPath(`#circlePath`, text, svg, {
+    fillStyle: textStyle
+  });
 
   const loop = () => {
     update();

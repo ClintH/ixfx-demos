@@ -4,24 +4,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ixfx - dom - log</title>
-  <link rel="stylesheet" href="../../base.css">
+  <title>log</title>
   <script src="./script.js" type="module"></script>
 </head>
 
 <body>
   <style>
     #container {
-      border: 1px solid whitesmoke;
+      border: 2px solid whitesmoke;
       overflow-y: scroll;
       height: 10em;
     }
   </style>
-  <main class="fullHeight">
-    <div id="container">
-      <div id="log"></div>
-    </div>
-  </main>
+
+  <p>Adding random messages to the log. By default, new messages added to the top.</p>
+  <!-- Element that we will log to -->
+  <div id="container">
+    <div id="log"></div>
+  </div>
+
 </body>
 
 </html>

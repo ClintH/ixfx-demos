@@ -2,7 +2,7 @@
  * This sketch draws rays from the center of the screen to
  * each pointer location. Use a multi-touch device to see this.
  */
-import {Svg} from '../../ixfx/visual.js';
+import {Svg, Colour} from '../../ixfx/visual.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 import {Points} from '../../ixfx/geometry.js';
@@ -13,7 +13,7 @@ const settings = {
   originPoint: {x: 0.5, y: 0.5},
   strokeWidthMax: 70,
   strokeWidthMin: 3,
-  strokeStyle: `#FACF5A`,
+  strokeStyle: Colour.getCssVariable(`arc`, `#FACF5A`),
   // Loop up and down again from 0 and 100%, 1% at a time
   genPingPong: Generators.pingPongPercent(0.01),
   svg: document.querySelector(`svg`)

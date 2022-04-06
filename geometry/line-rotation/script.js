@@ -1,5 +1,6 @@
 import * as Dom from '../../ixfx/dom.js';
-import {Points, Lines, radianToDegree, Polar, degreeToRadian} from '../../ixfx/geometry.js';
+import {Colour} from '../../ixfx/visual.js';
+import {Points, Lines} from '../../ixfx/geometry.js';
 
 const piPi = Math.PI * 2;
 
@@ -20,7 +21,7 @@ const settings = {
   },
   // How much to increment by on each loop (radians)
   rotationIncrement: 0.005,
-  lineStyle: `#22EACA`
+  lineStyle: Colour.getCssVariable('fg', `#22EACA`)
 };
 
 // Initial state with empty values

@@ -10,7 +10,7 @@ const settings = {
   radiusProportion: 0.4,
   strokeWidthMax: 70,
   strokeWidthMin: 3,
-  strokeStyle: `black`,
+  strokeStyle: `#EEBB55`,
   // Loop up and down again from 0 and 100%, 1% at a time
   genPingPong: Generators.pingPongPercent(0.01),
   // Loops from 0 to 100%, but starts back at 0. In contrast, pingPong counts down to 0

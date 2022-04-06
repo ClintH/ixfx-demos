@@ -4,29 +4,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flow - Throttle</title>
-  <link rel="stylesheet" href="../../base.css">
+  <title>throttle</title>
 </head>
 <style>
   html,
   body {
     height: 100%;
-  }
-
-  body {
-    font-size: 12px;
+    background-color: #fde2e4;
     overscroll-behavior: contain;
     touch-action: none;
+    color: #735d78;
+    font-size: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 
   .container {
     display: flex;
     flex-direction: column;
-    padding: 1em;
-  }
-
-  .container>div {
-    padding-bottom: 1em;
   }
 
   .data {
@@ -41,7 +35,7 @@
 
 <body>
   <section>
-    <p>Try moving your pointer. Sketch responds at maximum rate of 500ms</p>
+    <em>Try moving your pointer. Sketch responds at maximum rate of 500ms.</em>
     <button id="btnReset">Reset</button>
     <div class="container">
       <div>

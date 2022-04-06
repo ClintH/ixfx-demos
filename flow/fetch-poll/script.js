@@ -11,7 +11,7 @@ import {continuously} from "../../ixfx/flow.js"
 // Define settings
 const settings = {
   // How often to fetch data
-  fetchIntervalMs: 60 * 1000,
+  fetchIntervalMs: 30 * 1000,
 }
 
 // Initialises state. It will keep the last data fetched
