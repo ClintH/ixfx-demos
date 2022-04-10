@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>espruino accel/gyro</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 333;
+    --bg: hsl(var(--hue) 100% 5%);
+    --fg: hsl(var(--hue) 100% 90%);
+  }
+
+  html,
+  body {
+    height: 100%;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  body {
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+
+  #data {
+    font-family: var(--mono-font);
+  }
+</style>
+
+<body>
+  <section>
+    <div id="preamble">
+      <h1>espruino accel/gyro</h1>
+      <button id="btnConnect">Connect</button>
+    </div>
+    <div id="data">
+      <div id="lblAcc">acc: ...</div>
+      <div id="lblGyro">gyro: ...</div>
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
