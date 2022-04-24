@@ -1,3 +1,5 @@
-export { i as areValuesIdentical, q as average, t as averageWeighted, j as ensureLength, k as filterBetween, o as groupBy, f as guardArray, h as guardIndex, v as max, x as maxFast, u as min, y as minMaxAvg, b as randomElement, r as randomIndex, l as randomPluck, m as shuffle, p as weight, n as without, z as zip } from './Arrays-b2f5fc77';
+export { l as areValuesIdentical, m as ensureLength, n as filterBetween, t as groupBy, j as guardArray, k as guardIndex, b as randomElement, r as randomIndex, o as randomPluck, p as shuffle, q as without, z as zip } from './Arrays-ef02e956';
 import './util';
+export { M as MinMaxAvgTotal, b as average, c as averageWeighted, f as max, g as maxFast, d as maxIndex, m as min, h as minFast, e as minIndex, i as minMaxAvg, w as weight } from './NumericArrays-0b49814f';
+import 'd3-color';
 import './Timer-1403e151';

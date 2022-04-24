@@ -24,6 +24,51 @@
  */
 declare const clamp: (v: number, min?: number, max?: number) => number;
 /**
+ * Returns a field on object `o` by a dotted path.
+ * ```
+ * const d = {
+ *  accel: {x: 1, y: 2, z: 3},
+ *  gyro:  {x: 4, y: 5, z: 6}
+ * };
+ * getFieldByPath(d, `accel.x`); // 1
+ * getFieldByPath(d, `gyro.z`);  // 6
+ * getFieldByPath(d, `gyro`);    // {x:4, y:5, z:6}
+ * getFieldByPath(d, ``);        // Returns d
+ * ```
+ *
+ * If a field does not exist, `undefined` is returned.
+ * Use {@link getFieldPaths} to get a list of paths.
+ * @param o
+ * @param path
+ * @returns
+ */
+declare const getFieldByPath: (o: any, path?: string) => any | undefined;
+/**
+ * Returns a list of paths for all the fields on `o`
+ * ```
+ * const d = {
+ *  accel: {x: 1, y: 2, z: 3},
+ *  gyro:  {x: 4, y: 5, z: 6}
+ * };
+ * const paths = getFieldPaths(d);
+ * // Yields [ `accel.x`, `accel.y`,`accel.z`,`gyro.x`,`gyro.y`,`gyro.z` ]
+ * ```
+ * @param o
+ * @returns
+ */
+declare const getFieldPaths: (o: any) => readonly string[];
+/**
+ * Rounds `v` up to the nearest multiple of `multiple`
+ * ```
+ * roundMultiple(19, 20); // 20
+ * roundMultiple(21, 20); // 40
+ * ```
+ * @param v
+ * @param multiple
+ * @returns
+ */
+declare const roundUpToMultiple: (v: number, multiple: number) => number;
+/**
  * Scales `v` from an input range to an output range (aka `map`)
  *
  * For example, if a sensor's useful range is 100-500, scale it to a percentage:
@@ -290,4 +335,4 @@ declare const wrapRange: (min: number, max: number, fn: (distance: number) => nu
 declare const isPowerOfTwo: (x: number) => boolean;
 declare const runningiOS: () => boolean;
 
-export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, runningiOS, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
+export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, getFieldByPath, getFieldPaths, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, roundUpToMultiple, runningiOS, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };

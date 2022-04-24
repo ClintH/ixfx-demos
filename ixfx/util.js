@@ -2,11 +2,14 @@ import {
   clamp,
   clampIndex,
   flip,
+  getFieldByPath,
+  getFieldPaths,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  roundUpToMultiple,
   runningiOS,
   scale,
   scalePercent,
@@ -15,18 +18,22 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-FRWO5LHF.js";
+} from "./chunk-OQOZAYAW.js";
+import "./chunk-7TKMEWX5.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   clamp,
   clampIndex,
   flip,
+  getFieldByPath,
+  getFieldPaths,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  roundUpToMultiple,
   runningiOS,
   scale,
   scalePercent,

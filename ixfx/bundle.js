@@ -1,59 +1,59 @@
 import {
   temporal_exports
-} from "./chunk-PUREIJO2.js";
+} from "./chunk-5OW7GMY7.js";
 import {
   visual_exports
-} from "./chunk-LZ7XWTRR.js";
-import "./chunk-H6TBE3LW.js";
+} from "./chunk-SXU3D5SZ.js";
+import "./chunk-BYYEG5VH.js";
 import {
   Generators_exports
-} from "./chunk-BH77NWYF.js";
+} from "./chunk-KUKR6QKP.js";
 import {
   modulation_exports
-} from "./chunk-AW5RWBWK.js";
+} from "./chunk-DAJIBACJ.js";
 import {
   geometry_exports
-} from "./chunk-ODBLOXCD.js";
+} from "./chunk-XTYELGV5.js";
 import {
   io_exports
-} from "./chunk-PUGMC3D4.js";
-import {
-  Text_exports
-} from "./chunk-7TKMEWX5.js";
+} from "./chunk-H3BMD573.js";
 import {
   audio_exports
-} from "./chunk-JR36IBZA.js";
+} from "./chunk-K4DJRAR5.js";
 import {
   KeyValue_exports
-} from "./chunk-LQDBQKBM.js";
+} from "./chunk-WC33PP63.js";
 import {
   collections_exports
-} from "./chunk-3CYWIYMP.js";
+} from "./chunk-FRSKMHW2.js";
 import "./chunk-FGWKHPUM.js";
 import "./chunk-VQWJYEVC.js";
 import {
   Random_exports
-} from "./chunk-UP53XZW4.js";
+} from "./chunk-WEI3MOER.js";
 import {
   dom_exports
-} from "./chunk-VFK4G76S.js";
-import "./chunk-P4FBQYIR.js";
-import "./chunk-4DU25RMK.js";
+} from "./chunk-FTHWHXST.js";
+import "./chunk-3MJXSGYO.js";
+import "./chunk-FLZZ6D3A.js";
 import {
   flow_exports
-} from "./chunk-XYAFQIIV.js";
+} from "./chunk-A33S5M5I.js";
 import "./chunk-I3R3AECV.js";
 import "./chunk-AWXCQ245.js";
-import "./chunk-3TJYQOMS.js";
+import "./chunk-UMX64OKN.js";
 import {
   clamp,
   clampIndex,
   flip,
+  getFieldByPath,
+  getFieldPaths,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  roundUpToMultiple,
   runningiOS,
   scale,
   scalePercent,
@@ -62,7 +62,10 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-FRWO5LHF.js";
+} from "./chunk-OQOZAYAW.js";
+import {
+  Text_exports
+} from "./chunk-7TKMEWX5.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
 export {
@@ -82,11 +85,14 @@ export {
   clamp,
   clampIndex,
   flip,
+  getFieldByPath,
+  getFieldPaths,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  roundUpToMultiple,
   runningiOS,
   scale,
   scalePercent,

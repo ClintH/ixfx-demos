@@ -2,14 +2,16 @@ import {
   button,
   checkbox,
   numeric,
-  select
-} from "./chunk-P4FBQYIR.js";
-import "./chunk-4DU25RMK.js";
+  select,
+  textAreaKeyboard
+} from "./chunk-3MJXSGYO.js";
+import "./chunk-FLZZ6D3A.js";
 import "./chunk-FQLUQVDZ.js";
 export {
   button,
   checkbox,
   numeric,
-  select
+  select,
+  textAreaKeyboard
 };
 //# sourceMappingURL=forms.js.map

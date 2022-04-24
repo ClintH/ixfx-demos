@@ -1,9 +1,11 @@
-export { C as Colour, D as Drawing, P as Palette, a as Plot } from './index-131a99ec';
-export { S as Svg } from './Svg-8eab4c81';
-import './Rect-520c9c0f';
-import './Circle-39148592';
-import './Ellipse-e01360ab';
-import './Interfaces-d1c1f610';
+export { D as Drawing, P as Palette, a as Plot, b as Plot2, S as SceneGraph } from './index-efb6ad2a';
+export { S as Svg } from './Svg-44e98cef';
+export { C as Colour } from './Arrays-ef02e956';
+import './Rect-afd5c0f2';
+import './Ellipse-48d82ca6';
+import './Interfaces-ce084a93';
 import './Events-d728150d';
 import './util';
+import './NumericArrays-0b49814f';
+import './Timer-1403e151';
 import 'd3-color';

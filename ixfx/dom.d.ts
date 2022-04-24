@@ -1,4 +1,4 @@
-export { D as DomRxOpts, a as Log, L as LogOpts, P as PluckOpts, R as Rx, T as TransformOpts, h as copyToClipboard, d as createAfter, e as createIn, f as fullSizeCanvas, l as log, p as parentSize, b as parentSizeCanvas, g as resizeObservable, c as resolveEl, r as rx, t as themeChangeObservable, w as windowResize } from './index-c14c6a02';
-export { F as Forms } from './Forms-c4547be7';
+export { D as DomRxOpts, a as Log, L as LogOpts, P as PluckOpts, R as Rx, T as TransformOpts, h as copyToClipboard, d as createAfter, e as createIn, f as fullSizeCanvas, l as log, p as parentSize, b as parentSizeCanvas, g as resizeObservable, c as resolveEl, r as rx, t as themeChangeObservable, w as windowResize } from './index-3f2f9052';
+export { F as Forms } from './Forms-8c246006';
 import 'rxjs';
-import './Rect-520c9c0f';
+import './Rect-afd5c0f2';

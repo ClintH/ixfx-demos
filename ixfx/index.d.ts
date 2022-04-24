@@ -63,6 +63,172 @@ declare module "Guards" {
     /** Throws an error if parameter is not defined */
     export const defined: <T>(argument: T | undefined) => argument is T;
 }
+declare module "Text" {
+    /**
+     * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
+     *
+     * ```js
+     * // Yields ` orange `;
+     * between(`apple orange melon`, `apple`, `melon`);
+     * ```
+     * @param source Source text
+     * @param start Start match
+     * @param end If undefined, `start` will be used instead
+     * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
+     * @returns
+     */
+    export const between: (source: string, start: string, end?: string | undefined, lastEndMatch?: boolean) => string | undefined;
+    /**
+     * Returns first position of the given character code, or -1 if not found.
+     * @param source Source string
+     * @param code Code to seek
+     * @param start Start index, 0 by default
+     * @param end End index (inclusive), source.length-1 by default
+     * @returns Found position, or -1 if not found
+     */
+    export const indexOfCharCode: (source: string, code: number, start?: number, end?: number) => number;
+    /**
+     * Returns `source` with chars removed at `removeStart` position
+     * ```js
+     * omitChars(`hello there`, 1, 3);
+     * // Yields: `ho there`
+     * ```
+     * @param source
+     * @param removeStart Start point to remove
+     * @param removeLength Number of characters to remove
+     * @returns
+     */
+    export const omitChars: (source: string, removeStart: number, removeLength: number) => string;
+    /**
+     * Splits a string into `length`-size chunks.
+     *
+     * If `length` is greater than the length of `source`, a single element array is returned with source.
+     * The final array element may be smaller if we ran out of characters.
+     *
+     * ```js
+     * splitByLength(`hello there`, 2);
+     * // Yields:
+     * // [`he`, `ll`, `o `, `th`, `er`, `e`]
+     * ```
+     * @param source Source string
+     * @param length Length of each chunk
+     * @returns
+     */
+    export const splitByLength: (source: string, length: number) => readonly string[];
+    /**
+     * Returns the `source` string up until (and excluding) `match`. If match is not
+     * found, all of `source` is returned.
+     *
+     * ```js
+     * // Yields `apple `
+     * untilMarch(`apple orange melon`, `orange`);
+     * ```
+     * @param source
+     * @param match
+     * @param startPos If provided, gives the starting offset. Default 0
+     */
+    export const untilMatch: (source: string, match: string, startPos?: number) => string;
+    /**
+     * 'Unwraps' a string, removing one or more 'wrapper' strings that it starts and ends with.
+     * ```js
+     * unwrap("'hello'", "'");        // hello
+     * unwrap("apple", "a");          // apple
+     * unwrap("wow", "w");            // o
+     * unwrap(`"'blah'"`, '"', "'");  // blah
+     * ```
+     * @param source
+     * @param wrappers
+     * @returns
+     */
+    export const unwrap: (source: string, ...wrappers: readonly string[]) => string;
+    /**
+     * A range
+     */
+    export type Range = {
+        /**
+         * Text of range
+         */
+        readonly text: string;
+        /**
+         * Start position, with respect to source text
+         */
+        readonly start: number;
+        /**
+         * End position, with respect to source text
+         */
+        readonly end: number;
+        /**
+         * Index of range. First range is 0
+         */
+        readonly index: number;
+    };
+    export type LineSpan = {
+        readonly start: number;
+        readonly end: number;
+        readonly length: number;
+    };
+    /**
+     * Calculates the span, defined in {@link Range} indexes, that includes `start` through to `end` character positions.
+     *
+     * After using {@link splitRanges} to split text, `lineSpan` is used to associate some text coordinates with ranges.
+     *
+     * @param ranges Ranges
+     * @param start Start character position, in source text reference
+     * @param end End character position, in source text reference
+     * @returns Span
+     */
+    export const lineSpan: (ranges: readonly Range[], start: number, end: number) => LineSpan;
+    /**
+     * Splits a source string into ranges:
+     * ```js
+     * const ranges = splitRanges("hello;there;fella", ";");
+     * ```
+     *
+     * Each range consists of:
+     * ```js
+     * {
+     *  text: string  - the text of range
+     *  start: number - start pos of range, wrt to source
+     *  end: number   - end pos of range, wrt to source
+     *  index: number - index of range (starting at 0)
+     * }
+     * ```
+     * @param source
+     * @param split
+     * @returns
+     */
+    export const splitRanges: (source: string, split: string) => readonly Range[];
+    /**
+     * Counts the number of times one of `chars` appears at the front of
+     * a string, contiguously.
+     *
+     * ```js
+     * countCharsFromStart(`  hi`, ` `); // 2
+     * countCharsFromStart(`hi  `, ` `); // 0
+     * countCharsFromStart(`  hi  `, ` `); // 2
+     * ```
+     * @param source
+     * @param chars
+     * @returns
+     */
+    export const countCharsFromStart: (source: string, ...chars: readonly string[]) => number;
+    /**
+     * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
+     * If _end_ is omitted, the the `start` value will be used.
+     *
+     * ```js
+     * startsEnds(`This is a string`, `This`, `string`); // True
+     * startsEnds(`This is a string`, `is`, `a`); // False
+     * starsEnds(`test`, `t`); // True, starts and ends with 't'
+     * ```
+     * @param source String to search within
+     * @param start Start
+     * @param end End (if omitted, start will be looked for at end as well)
+     * @returns True if source starts and ends with provided values.
+     */
+    export const startsEnds: (source: string, start: string, end?: string) => boolean;
+    export const htmlEntities: (source: string) => string;
+}
 declare module "Util" {
     /**
      * Clamps a value between min and max (both inclusive)
@@ -89,6 +255,51 @@ declare module "Util" {
      * @returns Clamped value
      */
     export const clamp: (v: number, min?: number, max?: number) => number;
+    /**
+     * Returns a field on object `o` by a dotted path.
+     * ```
+     * const d = {
+     *  accel: {x: 1, y: 2, z: 3},
+     *  gyro:  {x: 4, y: 5, z: 6}
+     * };
+     * getFieldByPath(d, `accel.x`); // 1
+     * getFieldByPath(d, `gyro.z`);  // 6
+     * getFieldByPath(d, `gyro`);    // {x:4, y:5, z:6}
+     * getFieldByPath(d, ``);        // Returns d
+     * ```
+     *
+     * If a field does not exist, `undefined` is returned.
+     * Use {@link getFieldPaths} to get a list of paths.
+     * @param o
+     * @param path
+     * @returns
+     */
+    export const getFieldByPath: (o: any, path?: string) => any | undefined;
+    /**
+     * Returns a list of paths for all the fields on `o`
+     * ```
+     * const d = {
+     *  accel: {x: 1, y: 2, z: 3},
+     *  gyro:  {x: 4, y: 5, z: 6}
+     * };
+     * const paths = getFieldPaths(d);
+     * // Yields [ `accel.x`, `accel.y`,`accel.z`,`gyro.x`,`gyro.y`,`gyro.z` ]
+     * ```
+     * @param o
+     * @returns
+     */
+    export const getFieldPaths: (o: any) => readonly string[];
+    /**
+     * Rounds `v` up to the nearest multiple of `multiple`
+     * ```
+     * roundMultiple(19, 20); // 20
+     * roundMultiple(21, 20); // 40
+     * ```
+     * @param v
+     * @param multiple
+     * @returns
+     */
+    export const roundUpToMultiple: (v: number, multiple: number) => number;
     /**
      * Scales `v` from an input range to an output range (aka `map`)
      *
@@ -1849,20 +2060,139 @@ declare module "modulation/Easing" {
         bounceInOut: (x: number) => number;
     };
 }
+declare module "visual/Colour" {
+    import * as d3Colour from 'd3-color';
+    import { RandomSource } from "Random";
+    export type Hsl = {
+        h: number;
+        s: number;
+        l: number;
+        opacity?: number;
+    };
+    export type Rgb = {
+        r: number;
+        g: number;
+        b: number;
+        opacity?: number;
+    };
+    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
+    /**
+     * @private
+     */
+    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
+    /**
+     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
+     */
+    export type Colourish = string | d3Colour.ColorCommonInstance;
+    /**
+     * Options for interpolation
+     */
+    export type InterpolationOpts = {
+        /**
+         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
+         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
+         */
+        gamma?: number;
+        /**
+         * Colour space
+         */
+        space?: Spaces;
+        /**
+         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
+         */
+        long?: boolean;
+    };
+    /**
+     * Parses colour to {h,s,l}. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toHsl: (colour: Colourish) => Hsl;
+    export const randomHue: (rand?: RandomSource) => number;
+    /**
+     * Parses colour to {r,g,b}. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toRgb: (colour: Colourish) => Rgb;
+    /**
+     * Returns a colour in hex format `#000000`
+     * @param colour
+     * @returns Hex format, including #
+     */
+    export const toHex: (colour: Colourish) => string;
+    /**
+     * Returns a variation of colour with its opacity multiplied by `amt`.
+     *
+     * ```js
+     * // Return a colour string for blue that is 50% opaque
+     * opacity(`blue`, 0.5);
+     * // eg: `rgba(0,0,255,0.5)`
+     *
+     * // Returns a colour string that is 50% more opaque
+     * opacity(`hsla(200,100%,50%,50%`, 0.5);
+     * // eg: `hsla(200,100%,50%,25%)`
+     * ```
+     * @param colour A valid CSS colour
+     * @param amt Amount to multiply opacity by
+     * @returns String representation of colour
+     */
+    export const opacity: (colour: Colourish, amt: number) => string;
+    /**
+     * Gets a CSS variable.
+     * @example Fetch --accent variable, or use `yellow` if not found.
+     * ```
+     * getCssVariable(`accent`, `yellow`);
+     * ```
+     * @param name Name of variable. Do not starting `--`
+     * @param fallbackColour Fallback colour if not found
+     * @param root  Element to search variable from
+     * @returns Colour or fallback.
+     */
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
+    /**
+     * Interpolates between two colours, returning a string
+     *
+     * @example
+     * ```js
+     * // Get 50% between blue and red
+     * interpolate(0.5, `blue`, `red`);
+     *
+     * // Get midway point, with specified colour space
+     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
+     * ```
+     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
+     * @param from Starting colour
+     * @param to Final colour
+     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
+     * @returns String representation of colour, eg. `rgb(x,x,x)`
+     */
+    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts | undefined) => string;
+    /**
+     * Produces a scale of colours as a string array
+     *
+     * @example
+     * ```js
+     * // Yields array of 5 colour strings
+     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
+     * // Produces scale between three colours
+     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
+     * ```
+     * @param steps Number of colours
+     * @param opts Options for interpolation, or string colour space eg `hsl`
+     * @param colours From/end colours (or more)
+     * @returns
+     */
+    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
+}
 declare module "Random" {
     import { randomIndex, randomElement } from "collections/Arrays";
     import * as Easings from "modulation/Easing";
     export { randomIndex as arrayIndex };
     export { randomElement as arrayElement };
+    export { randomHue as hue } from "visual/Colour";
     export const defaultRandom: () => number;
     export type RandomSource = () => number;
-    /**
-     * Returns a random number between `min-max` weighted such that values closer to `min`
-     * occur more frequently
-     * @param min
-     * @param max
-     * @returns
-     */
     /***
      * Returns a random number, 0..1, weighted by a given easing function.
      * Default easing is `quadIn`, which skews towards zero.
@@ -1956,6 +2286,29 @@ declare module "Random" {
      * @returns
      */
     export const gaussianSkewed: (skew: number) => () => number;
+    /**
+     * Returns a random integer between `max` (exclusive) and `min` (inclusive)
+     * If `min` is not specified, 0 is used.
+     *
+     * ```js
+     * integer(10);    // Random number 0-9
+     * integer(5, 10); // Random number 5-9
+     * integer(-5);       // Random number from -4 to 0
+     * integer(-5, -10); // Random number from -10 to -6
+     * ```
+     * @param max
+     * @param min
+     * @returns
+     */
+    export const integer: (max: number, min?: number | undefined) => number;
+    /**
+     * Random a random float between `max` (exclusive) and `min` (inclusive).
+     * If `min` is not specified, 0 is used.
+     * @param max
+     * @param min
+     * @returns
+     */
+    export const float: (max: number, min?: number) => number;
     /**
      * Returns a string of random letters and numbers of a given `length`.
      *
@@ -2057,6 +2410,18 @@ declare module "collections/NumericArrays" {
      */
     export const min: (...data: readonly number[]) => number;
     /**
+     * Returns the index of the largest value
+     * @param data
+     * @returns
+     */
+    export const maxIndex: (...data: readonly number[]) => number;
+    /**
+     * Returns the index of the smallest value
+     * @param data
+     * @returns
+     */
+    export const minIndex: (...data: readonly number[]) => number;
+    /**
      * Returns the maximum number out of `data`.
      * Undefined and non-numbers are silently ignored.
      * @param data
@@ -2064,7 +2429,7 @@ declare module "collections/NumericArrays" {
      */
     export const max: (...data: readonly number[]) => number;
     /**
-     * Returns the maximum out of `data` without additional processing for speed.
+     * Returns the maximum out of `data` without pre-filtering for speed.
      *
      * For most uses, {@link max} should suffice.
      * @param data
@@ -2072,17 +2437,14 @@ declare module "collections/NumericArrays" {
      */
     export const maxFast: (data: readonly number[] | Float32Array) => number;
     /**
-     * Returns the min, max, avg and total of the array.
-     * Any values that are invalid are silently skipped over.
+     * Returns the maximum out of `data` without pre-filtering for speed.
      *
-     * Use {@link average} if you only need average
-     *
+     * For most uses, {@link max} should suffice.
      * @param data
-     * @param startIndex If provided, starting index to do calculations (defaults full range)
-     * @param endIndex If provided, the end index to do calculations (defaults full range)
-     * @returns `{min, max, avg, total}`
+     * @returns Maximum
      */
-    export const minMaxAvg: (data: readonly number[], startIndex?: number | undefined, endIndex?: number | undefined) => {
+    export const minFast: (data: readonly number[] | Float32Array) => number;
+    export type MinMaxAvgTotal = {
         /**
          * Smallest value in array
          */
@@ -2100,6 +2462,18 @@ declare module "collections/NumericArrays" {
          */
         readonly avg: number;
     };
+    /**
+     * Returns the min, max, avg and total of the array.
+     * Any values that are invalid are silently skipped over.
+     *
+     * Use {@link average} if you only need average
+     *
+     * @param data
+     * @param startIndex If provided, starting index to do calculations (defaults full range)
+     * @param endIndex If provided, the end index to do calculations (defaults full range)
+     * @returns `{min, max, avg, total}`
+     */
+    export const minMaxAvg: (data: readonly number[], startIndex?: number | undefined, endIndex?: number | undefined) => MinMaxAvgTotal;
 }
 declare module "collections/Arrays" {
     import { RandomSource } from "Random";
@@ -2291,12 +2665,7 @@ declare module "KeyValue" {
     export const sortByValueNumber: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
     export type SortingFn = (data: KeyValue[]) => KeyValue[];
     export const getSorter: (sortStyle: `value` | `valueReverse` | `key` | `keyReverse`) => <A extends KeyValue>(as: A[]) => A[];
-    export const minMaxAvg: (entries: readonly KeyValue[], conversionFn?: ((v: KeyValue) => number) | undefined) => {
-        readonly min: number;
-        readonly total: number;
-        readonly max: number;
-        readonly avg: number;
-    };
+    export const minMaxAvg: (entries: readonly KeyValue[], conversionFn?: ((v: KeyValue) => number) | undefined) => import("collections/NumericArrays").MinMaxAvgTotal;
 }
 declare module "Match" {
     type MatchFunction<V> = {
@@ -2313,172 +2682,6 @@ declare module "Match" {
     export const filter: <V>(filters: Iterable<MatchFunction<V>>, opts?: {
         allFiltersMustMatch?: boolean;
     }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
-}
-declare module "Text" {
-    /**
-     * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
-     *
-     * ```js
-     * // Yields ` orange `;
-     * between(`apple orange melon`, `apple`, `melon`);
-     * ```
-     * @param source Source text
-     * @param start Start match
-     * @param end If undefined, `start` will be used instead
-     * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
-     * @returns
-     */
-    export const between: (source: string, start: string, end?: string | undefined, lastEndMatch?: boolean) => string | undefined;
-    /**
-     * Returns first position of the given character code, or -1 if not found.
-     * @param source Source string
-     * @param code Code to seek
-     * @param start Start index, 0 by default
-     * @param end End index (inclusive), source.length-1 by default
-     * @returns Found position, or -1 if not found
-     */
-    export const indexOfCharCode: (source: string, code: number, start?: number, end?: number) => number;
-    /**
-     * Returns `source` with chars removed at `removeStart` position
-     * ```js
-     * omitChars(`hello there`, 1, 3);
-     * // Yields: `ho there`
-     * ```
-     * @param source
-     * @param removeStart Start point to remove
-     * @param removeLength Number of characters to remove
-     * @returns
-     */
-    export const omitChars: (source: string, removeStart: number, removeLength: number) => string;
-    /**
-     * Splits a string into `length`-size chunks.
-     *
-     * If `length` is greater than the length of `source`, a single element array is returned with source.
-     * The final array element may be smaller if we ran out of characters.
-     *
-     * ```js
-     * splitByLength(`hello there`, 2);
-     * // Yields:
-     * // [`he`, `ll`, `o `, `th`, `er`, `e`]
-     * ```
-     * @param source Source string
-     * @param length Length of each chunk
-     * @returns
-     */
-    export const splitByLength: (source: string, length: number) => readonly string[];
-    /**
-     * Returns the `source` string up until (and excluding) `match`. If match is not
-     * found, all of `source` is returned.
-     *
-     * ```js
-     * // Yields `apple `
-     * untilMarch(`apple orange melon`, `orange`);
-     * ```
-     * @param source
-     * @param match
-     * @param startPos If provided, gives the starting offset. Default 0
-     */
-    export const untilMatch: (source: string, match: string, startPos?: number) => string;
-    /**
-     * 'Unwraps' a string, removing one or more 'wrapper' strings that it starts and ends with.
-     * ```js
-     * unwrap("'hello'", "'");        // hello
-     * unwrap("apple", "a");          // apple
-     * unwrap("wow", "w");            // o
-     * unwrap(`"'blah'"`, '"', "'");  // blah
-     * ```
-     * @param source
-     * @param wrappers
-     * @returns
-     */
-    export const unwrap: (source: string, ...wrappers: readonly string[]) => string;
-    /**
-     * A range
-     */
-    export type Range = {
-        /**
-         * Text of range
-         */
-        readonly text: string;
-        /**
-         * Start position, with respect to source text
-         */
-        readonly start: number;
-        /**
-         * End position, with respect to source text
-         */
-        readonly end: number;
-        /**
-         * Index of range. First range is 0
-         */
-        readonly index: number;
-    };
-    export type LineSpan = {
-        readonly start: number;
-        readonly end: number;
-        readonly length: number;
-    };
-    /**
-     * Calculates the span, defined in {@link Range} indexes, that includes `start` through to `end` character positions.
-     *
-     * After using {@link splitRanges} to split text, `lineSpan` is used to associate some text coordinates with ranges.
-     *
-     * @param ranges Ranges
-     * @param start Start character position, in source text reference
-     * @param end End character position, in source text reference
-     * @returns Span
-     */
-    export const lineSpan: (ranges: readonly Range[], start: number, end: number) => LineSpan;
-    /**
-     * Splits a source string into ranges:
-     * ```js
-     * const ranges = splitRanges("hello;there;fella", ";");
-     * ```
-     *
-     * Each range consists of:
-     * ```js
-     * {
-     *  text: string  - the text of range
-     *  start: number - start pos of range, wrt to source
-     *  end: number   - end pos of range, wrt to source
-     *  index: number - index of range (starting at 0)
-     * }
-     * ```
-     * @param source
-     * @param split
-     * @returns
-     */
-    export const splitRanges: (source: string, split: string) => readonly Range[];
-    /**
-     * Counts the number of times one of `chars` appears at the front of
-     * a string, contiguously.
-     *
-     * ```js
-     * countCharsFromStart(`  hi`, ` `); // 2
-     * countCharsFromStart(`hi  `, ` `); // 0
-     * countCharsFromStart(`  hi  `, ` `); // 2
-     * ```
-     * @param source
-     * @param chars
-     * @returns
-     */
-    export const countCharsFromStart: (source: string, ...chars: readonly string[]) => number;
-    /**
-     * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
-     * If _end_ is omitted, the the `start` value will be used.
-     *
-     * ```js
-     * startsEnds(`This is a string`, `This`, `string`); // True
-     * startsEnds(`This is a string`, `is`, `a`); // False
-     * starsEnds(`test`, `t`); // True, starts and ends with 't'
-     * ```
-     * @param source String to search within
-     * @param start Start
-     * @param end End (if omitted, start will be looked for at end as well)
-     * @returns True if source starts and ends with provided values.
-     */
-    export const startsEnds: (source: string, start: string, end?: string) => boolean;
-    export const htmlEntities: (source: string) => string;
 }
 declare module "temporal/Normalise" {
     /**
@@ -2634,12 +2837,7 @@ declare module "temporal/FrequencyMutable" {
          *
          * @returns Returns `{min,max,avg,total}`
          */
-        minMaxAvg(): {
-            readonly min: number;
-            readonly total: number;
-            readonly max: number;
-            readonly avg: number;
-        };
+        minMaxAvg(): import("collections/NumericArrays").MinMaxAvgTotal;
         /**
          *
          * @param sortStyle Sorting style (default: _value_, ie. count)
@@ -3383,7 +3581,9 @@ declare module "geometry/Line" {
         readonly a: Points.Point;
         readonly b: Points.Point;
     };
+    export type PolyLine = ReadonlyArray<Line>;
     export const isLine: (p: Path | Line | Points.Point) => p is Line;
+    export const isPolyLine: (p: any) => p is PolyLine;
     /**
      * Returns true if the lines have the same value
      *
@@ -3575,11 +3775,13 @@ declare module "geometry/Line" {
      * ```js
      * distance(line, {x:10,y:10});
      * ```
-     * @param line
-     * @param point
-     * @returns
+     *
+     * If an array of lines is provided, the shortest distance is returned.
+     * @param line Line (or array of lines)
+     * @param point Point to check against
+     * @returns Distance
      */
-    export const distance: (line: Line, point: Points.Point) => number;
+    export const distance: (line: Line | ReadonlyArray<Line>, point: Points.Point) => number;
     /**
      * Calculates a point in-between `a` and `b`.
      *
@@ -3652,7 +3854,7 @@ declare module "geometry/Line" {
      * @param points
      * @returns
      */
-    export const joinPointsToLines: (...points: readonly Points.Point[]) => readonly Line[];
+    export const joinPointsToLines: (...points: readonly Points.Point[]) => PolyLine;
     export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
     /**
      * Returns a rectangle that encompasses dimension of line
@@ -3712,7 +3914,7 @@ declare module "geometry/Line" {
     export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
 }
 declare module "geometry/Point" {
-    import { Rects } from "geometry/index";
+    import { Circles, Lines, Rects } from "geometry/index";
     /**
      * A point, consisting of x, y and maybe z fields.
      */
@@ -3755,6 +3957,38 @@ declare module "geometry/Point" {
      * @returns
      */
     export const distance: (a: Point, b: Point) => number;
+    /**
+     * Returns the distance from point `a` to the exterior of `shape`.
+     *
+     * @example Distance from point to rectangle
+     * ```
+     * const distance = distanceToExterior(
+     *  {x: 50, y: 50},
+     *  {x: 100, y: 100, width: 20, height: 20}
+     * );
+     * ```
+     *
+     * @example Find closest shape to point
+     * ```
+     * import {minIndex} from '../collections/arrays.js';
+     * const shapes = [ some shapes... ]; // Shapes to compare against
+     * const pt = { x: 10, y: 10 };       // Comparison point
+     * const distances = shapes.map(v => distanceToExterior(pt, v));
+     * const closest = shapes[minIndex(...distances)];
+     * ```
+     * @param a Point
+     * @param shape Point, or a positioned Rect or Circle.
+     * @returns
+     */
+    export const distanceToExterior: (a: Point, shape: PointCalculableShape) => number;
+    /**
+     * Returns the distance from point `a` to the center of `shape`.
+     * @param a Point
+     * @param shape Point, or a positioned Rect or Circle.
+     * @returns
+     */
+    export const distanceToCenter: (a: Point, shape: PointCalculableShape) => number;
+    export type PointCalculableShape = Lines.PolyLine | Lines.Line | Rects.RectPositioned | Point | Circles.CirclePositioned;
     /**
      * Throws an error if point is invalid
      * @param p
@@ -4282,12 +4516,13 @@ declare module "geometry/Circle" {
         readonly kind: `circular`;
     };
     /**
-     * Returns true if parameter has x,y
+     * Returns true if parameter has x,y. Does not verify if parameter is a circle or not
      * @param p Circle or point
      * @returns
      */
     export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
-    export const isCircle: (p: Circle | CirclePositioned | number) => p is Circle;
+    export const isCircle: (p: Circle | CirclePositioned | any) => p is Circle;
+    export const isCirclePositioned: (p: Circle | CirclePositioned | any) => p is CirclePositioned;
     /**
      * Returns a point on a circle at a specified angle in radians
      * @param circle
@@ -4352,12 +4587,21 @@ declare module "geometry/Circle" {
      */
     export const isEquals: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
     /**
-     * Returns the distance between two circle centers
+     * Returns the distance between two circle centers.
+     *
+     * Throws an error if either is lacking position.
      * @param a
      * @param b
-     * @returns
+     * @returns Distance
      */
     export const distanceCenter: (a: CirclePositioned, b: CirclePositioned) => number;
+    /**
+     * Returns the distance between the exterior of two circles, or between the exterior of a circle and point.
+     * If `b` overlaps or is enclosed by `a`, distance is 0.
+     * @param a
+     * @param b
+     */
+    export const distanceFromExterior: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
     type ToSvg = {
         (radius: number, sweep: boolean, origin: Points.Point): readonly string[];
         (circle: Circle, sweep: boolean, origin: Points.Point): readonly string[];
@@ -4773,9 +5017,86 @@ declare module "geometry/Rect" {
         readonly height: number;
     };
     export type RectPositioned = Points.Point & Rect;
+    export const empty: Readonly<{
+        width: number;
+        height: number;
+    }>;
+    export const emptyPositioned: Readonly<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    export const placeholder: Readonly<{
+        width: number;
+        height: number;
+    }>;
+    export const placeholderPositioned: Readonly<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    export const isEmpty: (rect: Rect) => boolean;
+    export const isPlaceholder: (rect: Rect) => boolean;
+    /**
+     * Returns true if parameter has a positioned (x,y)
+     * @param p Point, Rect or RectPositiond
+     * @returns
+     */
+    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
+    export const isRect: (p: number | unknown) => p is Rect;
+    /**
+     * Returns true if `p` is a positioned rectangle
+     * @param p
+     * @returns
+     */
+    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
     export const fromElement: (el: HTMLElement) => Rect;
-    export const isEqual: (a: Rect, b: Rect) => boolean;
+    export const isEqualSize: (a: Rect, b: Rect) => boolean;
+    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
+    /**
+     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
+     *
+     * x,y coords from `a` will be unchanged
+     * @param a
+     * @param b
+     */
+    export function subtract(a: Rect, b: Rect): Rect;
+    /**
+     * Subtracts a width/height from `a`, returning result.
+     *
+     * x,y coords from a will be unchanged
+     * @param a
+     * @param width
+     * @param height
+     */
+    export function subtract(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Returns true if `point` is within, or on boundary of `rect`.
+     * @param rect
+     * @param point
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
+    /**
+     * Returns true if x,y coordinate is within, or on boundary of `rect`.
+     * @param rect
+     * @param x
+     * @param y
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
     export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the distance from the perimeter of `rect` to `pt`.
+     * If the point is within the rectangle, 0 is returned.
+     *
+     * If `rect` does not have an x,y it's assumed to be 0,0
+     * @param rect Rectangle
+     * @param pt Point
+     * @returns Distance
+     */
+    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
+    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
     /**
      * Returns a rectangle based on provided four corners.
      *
@@ -5218,6 +5539,7 @@ declare module "io/BleDevice" {
         readonly chunkSize: number;
         readonly name: string;
         readonly connectAttempts: number;
+        readonly debug: boolean;
     };
     export type DataEvent = {
         readonly data: string;
@@ -5244,7 +5566,7 @@ declare module "io/BleDevice" {
         private writeInternal;
         disconnect(): void;
         connect(): Promise<void>;
-        onRx(evt: Event): void;
+        private onRx;
         protected verbose(m: string): void;
         protected log(m: string): void;
         protected warn(m: unknown): void;
@@ -5259,11 +5581,13 @@ declare module "io/NordicBleDevice" {
         rxGattCharacteristic: string;
         name: string;
         connectAttempts: number;
+        debug: boolean;
     };
     type Opts = {
         readonly chunkSize?: number;
         readonly name?: string;
         readonly connectAttempts?: number;
+        readonly debug?: boolean;
     };
     export class NordicBleDevice extends BleDevice {
         constructor(device: BluetoothDevice, opts?: Opts);
@@ -5283,6 +5607,10 @@ declare module "io/EspruinoDevice" {
          * Name of device. Only used for printing log mesages to the console
          */
         readonly name?: string;
+        /**
+         * If true, additional logging information is printed
+         */
+        readonly debug?: boolean;
     };
     /**
      * Options for code evaluation
@@ -5337,6 +5665,22 @@ declare module "io/EspruinoDevice" {
          */
         constructor(device: BluetoothDevice, opts?: Options);
         /**
+         * Writes a script to Espruino.
+         *
+         * It will first send a CTRL+C to cancel any previous input, `reset()` to clear the board,
+         * and then the provided `code` followed by a new line.
+         * @param code Code to send. A new line is added automatically.
+         *
+         * ```js
+         * // Eg from https://www.espruino.com/Web+Bluetooth
+         * writeScript(`
+         * setInterval(() => Bluetooth.println(E.getTemperature()), 1000);
+         * NRF.on('disconnect',()=>reset());
+         * `);
+         * ```
+         */
+        writeScript(code: string): Promise<void>;
+        /**
          * Sends some code to be executed on the Espruino. The result
          * is packaged into JSON and sent back to your code. An exception is
          * thrown if code can't be executed for some reason.
@@ -5366,7 +5710,10 @@ declare module "io/EspruinoDevice" {
      * @inheritdoc EspruinoDevice
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
-    export const puck: () => Promise<EspruinoDevice>;
+    export const puck: (opts?: {
+        readonly name?: string;
+        readonly debug?: boolean;
+    }) => Promise<EspruinoDevice>;
     /**
      * @inheritdoc EspruinoDevice
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
@@ -5386,129 +5733,6 @@ declare module "io/index" {
      * * {@link connect}: Connect to a generic Espruino
      */
     export * as Espruino from "io/EspruinoDevice";
-}
-declare module "visual/Colour" {
-    import * as d3Colour from 'd3-color';
-    export type Hsl = {
-        h: number;
-        s: number;
-        l: number;
-        opacity?: number;
-    };
-    export type Rgb = {
-        r: number;
-        g: number;
-        b: number;
-        opacity?: number;
-    };
-    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
-    /**
-     * @private
-     */
-    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
-    /**
-     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
-     */
-    export type Colourish = string | d3Colour.ColorCommonInstance;
-    /**
-     * Options for interpolation
-     */
-    export type InterpolationOpts = {
-        /**
-         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
-         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
-         */
-        gamma?: number;
-        /**
-         * Colour space
-         */
-        space?: Spaces;
-        /**
-         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
-         */
-        long?: boolean;
-    };
-    /**
-     * Parses colour to {h,s,l}. `opacity` field is added if it exists on source.
-     * @param colour
-     * @returns
-     */
-    export const toHsl: (colour: Colourish) => Hsl;
-    /**
-     * Parses colour to {r,g,b}. `opacity` field is added if it exists on source.
-     * @param colour
-     * @returns
-     */
-    export const toRgb: (colour: Colourish) => Rgb;
-    /**
-     * Returns a colour in hex format `#000000`
-     * @param colour
-     * @returns Hex format, including #
-     */
-    export const toHex: (colour: Colourish) => string;
-    /**
-     * Returns a variation of colour with its opacity multiplied by `amt`.
-     *
-     * ```js
-     * // Return a colour string for blue that is 50% opaque
-     * opacity(`blue`, 0.5);
-     * // eg: `rgba(0,0,255,0.5)`
-     *
-     * // Returns a colour string that is 50% more opaque
-     * opacity(`hsla(200,100%,50%,50%`, 0.5);
-     * // eg: `hsla(200,100%,50%,25%)`
-     * ```
-     * @param colour A valid CSS colour
-     * @param amt Amount to multiply opacity by
-     * @returns String representation of colour
-     */
-    export const opacity: (colour: Colourish, amt: number) => string;
-    /**
-     * Gets a CSS variable.
-     * @example Fetch --accent variable, or use `yellow` if not found.
-     * ```
-     * getCssVariable(`accent`, `yellow`);
-     * ```
-     * @param name Name of variable. Do not starting `--`
-     * @param fallbackColour Fallback colour if not found
-     * @param root  Element to search variable from
-     * @returns Colour or fallback.
-     */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
-    /**
-     * Interpolates between two colours, returning a string
-     *
-     * @example
-     * ```js
-     * // Get 50% between blue and red
-     * interpolate(0.5, `blue`, `red`);
-     *
-     * // Get midway point, with specified colour space
-     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
-     * ```
-     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
-     * @param from Starting colour
-     * @param to Final colour
-     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
-     * @returns String representation of colour, eg. `rgb(x,x,x)`
-     */
-    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts | undefined) => string;
-    /**
-     * Produces a scale of colours as a string array
-     *
-     * @example
-     * ```js
-     * // Yields array of 5 colour strings
-     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
-     * // Produces scale between three colours
-     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
-     * ```
-     * @param steps Number of colours
-     * @param opts Options for interpolation, or string colour space eg `hsl`
-     * @param colours From/end colours (or more)
-     * @returns
-     */
-    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
 }
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
@@ -5784,6 +6008,13 @@ declare module "visual/Drawing" {
         readonly fillStyle?: string;
     }, labels?: readonly string[] | undefined) => void;
     /**
+     * Returns `point` with the canvas's translation matrix applied
+     * @param ctx
+     * @param point
+     * @returns
+     */
+    export const translatePoint: (ctx: CanvasRenderingContext2D, point: Points.Point) => Points.Point;
+    /**
      * Draws filled circle(s) at provided point(s)
      * @param ctx
      * @param pos
@@ -5820,6 +6051,15 @@ declare module "visual/Drawing" {
     export const rect: (ctx: CanvasRenderingContext2D, toDraw: Rects.RectPositioned | readonly Rects.RectPositioned[], opts?: DrawingOpts & {
         readonly filled?: boolean;
     }) => void;
+    /**
+     * Returns the width of `text`. Rounds number up to nearest multiple if provided. If
+     * text is empty or undefined, 0 is returned.
+     * @param ctx
+     * @param text
+     * @param widthMultiple
+     * @returns
+     */
+    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null | undefined, padding?: number, widthMultiple?: number | undefined) => number;
     /**
      * Draws a block of text. Each array item is considered a line.
      * @param ctx
@@ -6191,6 +6431,10 @@ declare module "visual/Plot" {
     export type Plotter = {
         add(value: number, series?: string, skipDrawing?: boolean): void;
         drawValue(index: number): void;
+        /**
+         * Draws current data. Useful if skipDrawing was true for earlier add() calls.
+         */
+        draw(): void;
         clear(): void;
         dispose(): void;
     };
@@ -6200,6 +6444,8 @@ declare module "visual/Plot" {
         range: number;
         name: string;
         colour: string;
+        lastValue?: number;
+        hoverValue?: number;
     };
     type DrawingOpts = PlotOpts & {
         x: Axis;
@@ -6217,6 +6463,13 @@ declare module "visual/Plot" {
         debug: boolean;
         digitsPrecision: number;
         lineWidth: number;
+        defaultSeriesColour: string;
+        defaultSeriesVariable?: string;
+        showLegend: boolean;
+        pointer: {
+            x: number;
+            y: number;
+        };
     };
     /**
      * Properties for an axis
@@ -6297,9 +6550,20 @@ declare module "visual/Plot" {
          * If true, sub-pixel data points are ignored
          */
         coalesce?: boolean;
+        /**
+         * Fixed range to scale Y values. By default normalises values
+         * as they come in. This will also determine the y-axis labels and drawing
+         */
+        /**
+         * How many horizontal pixels per data point. If unspecified,
+         * it will scale based on width of canvas and capacity.
+         */
+        defaultSeriesColour?: string;
+        defaultSeriesVariable?: string;
+        showLegend?: boolean;
     };
     export const defaultAxis: (name: string) => Axis;
-    export const calcScale: (buffer: BufferType, seriesColours?: SeriesColours | undefined) => Series[];
+    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours | undefined) => Series[];
     export const add: (buffer: BufferType, value: number, series?: string) => void;
     type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
     export const drawValue: (index: number, buffer: BufferType, drawing: DrawingOpts) => void;
@@ -6330,7 +6594,6 @@ declare module "visual/Plot" {
      *  showYAxis: false,  // Toggle whether y axis is shown (default: true)
      *  lineWidth: 2,      // Width of plot line (default: 2)
      *  yAxes:  [`temp`],  // Only show these y axes (by default all are shown)
-     *  palette: Palette,  // Colour palette instance to use
      *  coalesce: true,    // If true, sub-pixel data points are skipped, improving performance for dense plots at the expense of plot precision
      * });
      * ```
@@ -6346,6 +6609,274 @@ declare module "visual/Plot" {
      * @return Plotter instance
      */
     export const plot: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => Plotter;
+}
+declare module "visual/SceneGraph" {
+    import { Points } from "geometry/index";
+    import * as Rects from "geometry/Rect";
+    export type Measurement = {
+        size: Rects.Rect | Rects.RectPositioned;
+        ref: Box;
+        children: Array<Measurement | undefined>;
+    };
+    export type PxUnit = {
+        value: number;
+        type: `px`;
+    };
+    export type BoxUnit = PxUnit;
+    export type BoxRect = {
+        x?: BoxUnit;
+        y?: BoxUnit;
+        width?: BoxUnit;
+        height?: BoxUnit;
+    };
+    export class MeasureState {
+        bounds: Rects.Rect;
+        pass: number;
+        measurements: Map<string, Measurement>;
+        constructor(bounds: Rects.Rect);
+        getSize(id: string): Rects.Rect | undefined;
+        resolveToPx(u: BoxUnit | undefined, defaultValue: number): number;
+    }
+    export abstract class Box {
+        visual: Rects.RectPositioned;
+        private _desiredSize;
+        private _lastMeasure;
+        protected children: Box[];
+        protected readonly _parent: Box | undefined;
+        private _idMap;
+        debugLayout: boolean;
+        private _visible;
+        protected _ready: boolean;
+        takesSpaceWhenInvisible: boolean;
+        needsDrawing: boolean;
+        protected _needsLayout: boolean;
+        debugHue: number;
+        readonly id: string;
+        constructor(parent: Box | undefined, id: string);
+        hasChild(box: Box): boolean;
+        notify(msg: string, source: Box): void;
+        protected onNotify(msg: string, source: Box): void;
+        protected onChildAdded(child: Box): void;
+        setReady(ready: boolean, includeChildren?: boolean): void;
+        get visible(): boolean;
+        set visible(v: boolean);
+        get desiredSize(): BoxRect | undefined;
+        set desiredSize(v: BoxRect | undefined);
+        onLayoutNeeded(): void;
+        private notifyChildLayoutNeeded;
+        get root(): Box;
+        protected measurePreflight(): void;
+        /**
+         * Applies measurement, returning true if size is different than before
+         * @param size
+         * @returns
+         */
+        measureApply(m: Measurement, force: boolean): boolean;
+        debugLog(m: any): void;
+        measureStart(opts: MeasureState, force: boolean, parent?: Measurement): Measurement | undefined;
+        protected measureSelf(opts: MeasureState, parent?: Measurement): Rects.RectPositioned | Rects.Rect | undefined;
+        /**
+         * Called when update() is called
+         * @param force
+         */
+        protected abstract updateBegin(force: boolean): MeasureState;
+        protected updateDone(state: MeasureState, force: boolean): void;
+        abstract onUpdateDone(state: MeasureState, force: boolean): void;
+        update(force?: boolean): void;
+    }
+    export class CanvasMeasureState extends MeasureState {
+        readonly ctx: CanvasRenderingContext2D;
+        constructor(bounds: Rects.Rect, ctx: CanvasRenderingContext2D);
+    }
+    export class CanvasBox extends Box {
+        readonly canvasEl: HTMLCanvasElement;
+        constructor(parent: CanvasBox | undefined, canvasEl: HTMLCanvasElement, id: string);
+        private designateRoot;
+        protected onClick(p: Points.Point): void;
+        private notifyClick;
+        private notifyPointerLeave;
+        private notifyPointerMove;
+        protected onPointerLeave(): void;
+        protected onPointerMove(p: Points.Point): void;
+        protected updateBegin(): MeasureState;
+        onUpdateDone(state: MeasureState, force: boolean): void;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+    }
+}
+declare module "visual/Plot2" {
+    import { Points, Rects } from "geometry/index";
+    import * as Sg from "visual/SceneGraph";
+    interface DataSource {
+        dirty: boolean;
+        type: string;
+        get range(): DataRange;
+        add(value: number): void;
+    }
+    /**
+     * Plot options
+     */
+    export type Opts = {
+        /**
+         * If true, Canvas will be resized to fit parent
+         */
+        autoSize?: boolean;
+        /**
+         * Colour for axis lines & labels
+         */
+        axisColour?: string;
+        /**
+         * Width for axis lines
+         */
+        axisWidth?: number;
+    };
+    /**
+     * Series options
+     */
+    export type SeriesOpts = {
+        /**
+         * Colour for series
+         */
+        colour: string;
+        /**
+         * Visual width/height (depends on drawingStyle)
+         */
+        width?: number;
+        /**
+         * How series should be rendered
+         */
+        drawingStyle?: `line` | `dotted` | `bar`;
+        /**
+         * Preferred data range
+         */
+        axisRange?: DataRange;
+        /**
+         * If true, range will stay at min/max, rather than continuously adapting
+         * to the current data range.
+         */
+        visualRangeStretch?: boolean;
+    };
+    type DataPoint = {
+        value: number;
+        index: number;
+        title?: string;
+    };
+    type DataHitPoint = (pt: Points.Point) => [point: DataPoint | undefined, distance: number];
+    type DataRange = {
+        min: number;
+        max: number;
+        changed?: boolean;
+    };
+    class Series {
+        private plot;
+        name: string;
+        colour: string;
+        source: DataSource;
+        drawingStyle: `line` | `dotted` | `bar`;
+        width: number;
+        dataHitPoint: DataHitPoint | undefined;
+        tooltip?: string;
+        precision: number;
+        lastPxPerPt: number;
+        protected _visualRange: DataRange;
+        protected _visualRangeStretch: boolean;
+        constructor(name: string, sourceType: `array` | `stream`, plot: Plot, opts: SeriesOpts);
+        formatValue(v: number): string;
+        get visualRange(): DataRange;
+        scaleValue(value: number): number;
+        add(value: number): void;
+    }
+    class PlotArea extends Sg.CanvasBox {
+        private plot;
+        paddingPx: number;
+        piPi: number;
+        pointerDistanceThreshold: number;
+        lastRangeChange: number;
+        pointer: Points.Point | undefined;
+        constructor(plot: Plot);
+        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
+        protected onNotify(msg: string, source: Sg.Box): void;
+        protected onClick(p: Points.Point): void;
+        protected onPointerLeave(): void;
+        protected onPointerMove(p: Points.Point): void;
+        protected measurePreflight(): void;
+        updateTooltip(): void;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        computeY(series: Series, rawValue: number): number;
+        drawDataSet(series: Series, d: number[], ctx: CanvasRenderingContext2D): void;
+    }
+    class Legend extends Sg.CanvasBox {
+        private plot;
+        sampleSize: {
+            width: number;
+            height: number;
+        };
+        padding: number;
+        widthSnapping: number;
+        constructor(plot: Plot);
+        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        protected onNotify(msg: string, source: Sg.Box): void;
+    }
+    class AxisX extends Sg.CanvasBox {
+        private plot;
+        paddingPx: number;
+        colour?: string;
+        constructor(plot: Plot);
+        protected onNotify(msg: string, source: Sg.Box): void;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
+    }
+    class AxisY extends Sg.CanvasBox {
+        private plot;
+        seriesToShow: string | undefined;
+        maxDigits: number;
+        paddingPx: number;
+        colour?: string;
+        lastRange: DataRange;
+        lastPlotAreaHeight: number;
+        constructor(plot: Plot);
+        protected measurePreflight(): void;
+        protected onNotify(msg: string, source: Sg.Box): void;
+        protected measureSelf(opts: Sg.MeasureState): Rects.RectPositioned;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        getSeries(): Series | undefined;
+        seriesAxis(series: Series, ctx: CanvasRenderingContext2D): void;
+    }
+    /**
+     * Canvas-based data plotter.
+     *
+     * ```
+     * const p = new Plot(document.getElementById(`myCanvas`), opts);
+     *
+     * // Plot 1-5 as series  test'
+     * p.createSeries(`test`, `array`, [1,2,3,4,5]);
+     *
+     * // Create a streaming series, add a random number
+     * const s = p.createSeries(`test2`, `stream`);
+     * s.add(Math.random());
+     * ```
+     *
+     *
+     * `createSeries` returns the {@link Series} instance with properties for fine-tuning
+     */
+    export class Plot extends Sg.CanvasBox {
+        plotArea: PlotArea;
+        legend: Legend;
+        axisX: AxisX;
+        axisY: AxisY;
+        axisColour: string;
+        axisWidth: number;
+        series: Map<string, Series>;
+        private _frozen;
+        constructor(canvasEl: HTMLCanvasElement, opts?: Opts);
+        get frozen(): boolean;
+        set frozen(v: boolean);
+        seriesArray(): Series[];
+        get seriesLength(): number;
+        plot(o: any): void;
+        createSeriesFromObject(o: any, prefix?: string): Series[];
+        createSeries(name?: string, type?: `stream` | `array`, initialData?: number[]): Series;
+    }
 }
 declare module "visual/Palette" {
     /**
@@ -6387,8 +6918,10 @@ declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
     import * as Svg from "visual/Svg";
     import * as Plot from "visual/Plot";
+    import * as Plot2 from "visual/Plot2";
     import * as Palette from "visual/Palette";
     import * as Colour from "visual/Colour";
+    import * as SceneGraph from "visual/SceneGraph";
     /**
      * Colour interpolation, scale generation and parsing
      *
@@ -6398,7 +6931,7 @@ declare module "visual/index" {
      * * {@link opacity}: Give a colour opacity
      */
     export { Colour };
-    export { Palette, Drawing, Svg, Plot };
+    export { Palette, Drawing, Svg, Plot, Plot2, SceneGraph };
 }
 declare module "dom/ShadowDom" {
     export const addShadowCss: (parentEl: HTMLElement, styles: string) => ShadowRoot;
@@ -6502,6 +7035,11 @@ declare module "dom/DomRx" {
     export const rx: <V>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts | undefined) => Rx<V>;
 }
 declare module "dom/Forms" {
+    /**
+     * Adds tab and shift+tab to TEXTAREA
+     * @param el
+     */
+    export const textAreaKeyboard: (el: HTMLTextAreaElement) => void;
     /**
      * Quick access to <input type="checkbox"> value.
      * Provide a checkbox by string id or object reference. If a callback is
