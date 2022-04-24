@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>espruino plot</title>
+  <script src="split.min.js"></script>
+</head>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  :root {
+    --hue-primary: 44;
+    --hue-secondary: 60;
+    --padding: 0.6rem;
+    --padding-s: 0.3rem;
+    --fg: hsl(var(--hue-primary), 30%, 86%);
+    --bg: hsl(var(--hue-secondary) 1% 14%);
+    --bg-dark: hsl(var(--hue-secondary) 1% 10%);
+    --mono-size: 16px;
+    --mono-font: ui-monospace,
+      Menlo, Monaco,
+      "Cascadia Mono", "Segoe UI Mono",
+      "Roboto Mono",
+      "Oxygen Mono",
+      "Ubuntu Monospace",
+      "Source Code Pro",
+      "Fira Mono",
+      "Droid Sans Mono",
+      "Courier New", monospace;
+  }
+
+  .gutter {
+    background-repeat: no-repeat;
+    background-position: 50%;
+  }
+
+  .gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+  }
+
+  .gutter.gutter-vertical {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  }
+
+
+  html,
+  body {
+    height: 100vh;
+    width: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    overflow: hidden;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+
+  #container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  header {
+    padding: var(--padding);
+    color: hsl(var(--hue-primary), 88%, 56%);
+  }
+
+  button,
+  input {
+    background-color: transparent;
+    border: 1px solid hsl(var(--hue-primary) 60% 46%);
+    border-radius: var(--padding-s);
+    color: hsl(var(--hue-primary) 60% 46%);
+  }
+
+  button {
+    background-color: hsl(var(--hue-primary) 20% 16%);
+
+  }
+
+  button:disabled,
+  input:disabled {
+    border: 1px solid hsl(var(--hue-primary) 0% 46%);
+    border-radius: var(--padding-s);
+    color: hsl(var(--hue-primary) 0% 46%);
+    cursor: default;
+  }
+
+  button {
+    color: hsl(var(--hue-primary) 60% 46%);
+    padding: var(--padding);
+    cursor: pointer;
+    transition: all ease-out 0.5s;
+  }
+
+  button:hover:not([disabled]) {
+    border: 1px solid hsl(var(--hue-primary) 88% 66%);
+    color: hsl(var(--hue-primary) 88% 66%);
+    background-color: hsl(var(--hue-primary) 60% 16%);
+    transition: all ease-in 0.3s;
+  }
+
+  header {
+    background-color: hsl(var(--hue-secondary) 10% 10%);
+    display: flex;
+    align-items: center;
+  }
+
+  header .title {
+    flex-grow: 1;
+  }
+
+  a,
+  a:link,
+  a:visited {
+    text-decoration: none;
+    color: unset;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  #main {
+    display: flex;
+    flex-grow: 1;
+  }
+
+  #editor {
+    overflow: hidden;
+  }
+
+  #logArea {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #stream,
+  #plot {
+    padding: var(--padding);
+  }
+
+  #plotCanvas {
+    height: 100%;
+    width: 100%;
+  }
+
+  #stream {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #log {
+    flex-grow: 1;
+    overflow: hidden;
+    height: 1em;
+  }
+
+  #txtCode {
+    height: 100%;
+    width: 100%;
+    resize: none;
+    font-family: var(--mono-font);
+    background-color: transparent;
+    border: none;
+    color: var(--fg);
+    padding: var(--padding);
+  }
+</style>
+
+<body>
+  <div id="container">
+
+    <header>
+      <div class="title">espruino plot</div>
+      <div class="toolbar">
+        <button id="btnSend">Send</button>
+        <button id="btnConnect">Connect</button>
+      </div>
+    </header>
+    <div id="main">
+      <div id="editor">
+        <textarea spellcheck="false" id="txtCode">
+Puck.accelOn(12.5);
+Puck.on('accel', (a) => {
+  Bluetooth.println(JSON.stringify(a));
+});
+    </textarea>
+      </div>
+      <div id="logArea">
+        <div id="plot">
+          <canvas id="plotCanvas">
+        </div>
+        <div id="stream">
+          <div class="toolbar">
+            <button id="btnClearLog">Clear</button>
+          </div>
+          <div id="log"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
