@@ -1,0 +1,242 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --hue-primary: 44;
+  --hue-secondary: 60;
+  --padding: 0.6rem;
+  --padding-s: 0.3rem;
+  --fg: hsl(var(--hue-primary), 30%, 86%);
+  --bg: hsl(var(--hue-secondary) 1% 14%);
+  --bg-dark: hsl(var(--hue-secondary) 1% 10%);
+  --bg-toolbar: hsl(var(--hue-secondary) 10% 10%);
+  --mono-size: 16px;
+  --mono-font: ui-monospace,
+    Menlo, Monaco,
+    "Cascadia Mono", "Segoe UI Mono",
+    "Roboto Mono",
+    "Oxygen Mono",
+    "Ubuntu Monospace",
+    "Source Code Pro",
+    "Fira Mono",
+    "Droid Sans Mono",
+    "Courier New", monospace;
+}
+
+pre {
+  font-family: var(--mono-font);
+  font-size: 0.8em;
+}
+
+#dlgHelp {
+  display: hidden;
+  margin: auto;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  border: 3px solid var(--bg-dark);
+  box-shadow: 0 0 10em hsl(var(--hue-secondary) 1% 1%);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+
+
+.gutter {
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  background-color: var(--bg-toolbar);
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+  background-color: var(--bg-toolbar);
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+}
+
+
+html,
+body {
+  height: 100vh;
+  width: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+header {
+  padding: var(--padding);
+  color: hsl(var(--hue-primary), 88%, 56%);
+  background-color: var(--bg-toolbar);
+  display: flex;
+  align-items: center;
+}
+
+header .title {
+  flex-grow: 1;
+}
+
+
+button,
+input {
+  background-color: transparent;
+  border: 1px solid hsl(var(--hue-primary) 60% 46%);
+  border-radius: var(--padding-s);
+  color: hsl(var(--hue-primary) 60% 46%);
+}
+
+button {
+  background-color: hsl(var(--hue-primary) 20% 16%);
+
+}
+
+button:disabled,
+input:disabled {
+  border: 1px solid hsl(var(--hue-primary) 0% 46%);
+  border-radius: var(--padding-s);
+  color: hsl(var(--hue-primary) 0% 46%);
+  cursor: default;
+}
+
+button {
+  color: hsl(var(--hue-primary) 60% 46%);
+  padding: var(--padding);
+  cursor: pointer;
+  transition: all ease-out 0.5s;
+}
+
+button:hover:not([disabled]) {
+  border: 1px solid hsl(var(--hue-primary) 88% 66%);
+  color: hsl(var(--hue-primary) 88% 66%);
+  background-color: hsl(var(--hue-primary) 60% 16%);
+  transition: all ease-in 0.3s;
+}
+
+
+a,
+a:link,
+a:visited {
+  text-decoration: none;
+  color: unset;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#dlgHelp>section {
+  padding: 1em;
+
+}
+
+#dlgHelp .title {
+  color: hsl(var(--hue-primary), 88%, 56%);
+}
+
+#dlgHelp a:link {
+  text-decoration: underline;
+}
+
+#main {
+  display: flex;
+  flex-grow: 1;
+}
+
+#editor {
+  overflow: hidden;
+}
+
+#data {
+  display: flex;
+  flex-direction: column;
+}
+
+#dataArea {
+  flex-grow: 1;
+}
+
+#plot {
+  display: flex;
+  flex-direction: column;
+}
+
+#canvasWrapper {
+  flex-grow: 1;
+  height: 1em;
+}
+
+#plotCanvas {
+  height: 100%;
+  width: 100%;
+  opacity: 1;
+}
+
+#plotCanvas.frozen {
+  border: 5px solid lightblue;
+  opacity: 0.9;
+}
+
+#stream {
+  display: flex;
+  flex-direction: column;
+}
+
+#log {
+  flex-grow: 1;
+  overflow: hidden;
+  height: 1em;
+  padding: var(--padding);
+}
+
+#txtCode {
+  height: 100%;
+  width: 100%;
+  resize: none;
+  font-family: var(--mono-font);
+  font-size: 1.2em;
+  background-color: transparent;
+  border: none;
+  color: var(--fg);
+  padding: var(--padding);
+}
+
+.toolbar {
+  display: flex;
+  background-color: var(--bg-toolbar);
+  justify-content: flex-end;
+  gap: 0.6em;
+  padding: var(--padding);
+}
+
+.toolbar .title {
+  flex: 1;
+}
+
+.toolbar.mini,
+.toolbar.mini>button {
+  zoom: 80%;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
