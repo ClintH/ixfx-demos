@@ -1,4 +1,4 @@
-export { F as FrequencyMutable, M as MovingAverage, N as Normalise, f as frequencyMutable, m as movingAverage } from './index-23bf1121';
+export { F as FrequencyMutable, M as MovingAverage, N as Normalise, f as frequencyMutable, m as movingAverage } from './index-650cbe1d';
 export { t as tracker } from './Tracker-c614813c';
 import './NumericArrays-0b49814f';
 import './Timer-1403e151';

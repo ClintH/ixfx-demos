@@ -1,6 +1,6 @@
 import { S as SimpleEventEmitter } from './Events-d728150d';
 import { S as StateMachine, a as StateChangeEvent } from './StateMachine-631114de';
-import { Q as QueueMutable } from './Interfaces-ce084a93';
+import { Q as QueueMutable } from './Interfaces-f2faa339';
 import { C as Continuously } from './Timer-1403e151';
 
 declare class Codec {

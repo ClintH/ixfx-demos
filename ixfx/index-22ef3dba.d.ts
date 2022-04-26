@@ -1,8 +1,8 @@
 import { e as Rect, a as Path, f as Line, R as RectPositioned, P as Point, g as CirclePositioned } from './Rect-afd5c0f2';
 import { Q as QuadraticBezier, C as CubicBezier, a as ArcPositioned, b as EllipsePositioned } from './Ellipse-48d82ca6';
-import { a as Stack, M as MapOfMutable, C as CircularArray } from './Interfaces-ce084a93';
+import { a as Stack, M as MapOfMutable, C as CircularArray } from './Interfaces-f2faa339';
 import { S as Svg } from './Svg-44e98cef';
-import { C as Colour } from './Arrays-ef02e956';
+import { C as Colour } from './Arrays-9c8d976a';
 
 declare type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
 /**
@@ -673,9 +673,9 @@ declare class PlotArea extends CanvasBox {
     lastRangeChange: number;
     pointer: Point | undefined;
     constructor(plot: Plot);
+    clear(): void;
     protected measureSelf(opts: MeasureState, parent?: Measurement): Rect | RectPositioned | undefined;
     protected onNotify(msg: string, source: Box): void;
-    protected onClick(p: Point): void;
     protected onPointerLeave(): void;
     protected onPointerMove(p: Point): void;
     protected measurePreflight(): void;
@@ -693,6 +693,7 @@ declare class Legend extends CanvasBox {
     padding: number;
     widthSnapping: number;
     constructor(plot: Plot);
+    clear(): void;
     protected measureSelf(opts: MeasureState, parent?: Measurement): Rect | RectPositioned | undefined;
     protected drawSelf(ctx: CanvasRenderingContext2D): void;
     protected onNotify(msg: string, source: Box): void;
@@ -702,19 +703,21 @@ declare class AxisX extends CanvasBox {
     paddingPx: number;
     colour?: string;
     constructor(plot: Plot);
+    clear(): void;
     protected onNotify(msg: string, source: Box): void;
     protected drawSelf(ctx: CanvasRenderingContext2D): void;
     protected measureSelf(opts: MeasureState, parent?: Measurement): Rect | RectPositioned | undefined;
 }
 declare class AxisY extends CanvasBox {
     private plot;
+    private _maxDigits;
     seriesToShow: string | undefined;
-    maxDigits: number;
     paddingPx: number;
     colour?: string;
     lastRange: DataRange;
     lastPlotAreaHeight: number;
     constructor(plot: Plot);
+    clear(): void;
     protected measurePreflight(): void;
     protected onNotify(msg: string, source: Box): void;
     protected measureSelf(opts: MeasureState): RectPositioned;
@@ -748,7 +751,9 @@ declare class Plot extends CanvasBox {
     axisWidth: number;
     series: Map<string, Series>;
     private _frozen;
+    defaultSeriesOpts?: SeriesOpts;
     constructor(canvasEl: HTMLCanvasElement, opts?: Opts);
+    clear(): void;
     get frozen(): boolean;
     set frozen(v: boolean);
     seriesArray(): Series[];

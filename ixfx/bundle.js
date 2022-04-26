@@ -1,36 +1,36 @@
 import {
   temporal_exports
-} from "./chunk-5OW7GMY7.js";
+} from "./chunk-6PE5X2SU.js";
 import {
   visual_exports
-} from "./chunk-SXU3D5SZ.js";
-import "./chunk-BYYEG5VH.js";
+} from "./chunk-2TMC3NRY.js";
+import "./chunk-L72RAZUZ.js";
 import {
   Generators_exports
 } from "./chunk-KUKR6QKP.js";
 import {
   modulation_exports
-} from "./chunk-DAJIBACJ.js";
+} from "./chunk-4PVKNK5O.js";
 import {
   geometry_exports
-} from "./chunk-XTYELGV5.js";
+} from "./chunk-RRSA5CVJ.js";
 import {
   io_exports
-} from "./chunk-H3BMD573.js";
+} from "./chunk-T7MBRAA6.js";
 import {
   audio_exports
-} from "./chunk-K4DJRAR5.js";
+} from "./chunk-CBRQRP3X.js";
 import {
   KeyValue_exports
-} from "./chunk-WC33PP63.js";
+} from "./chunk-UNS56LQG.js";
 import {
   collections_exports
-} from "./chunk-FRSKMHW2.js";
+} from "./chunk-EUQOUN72.js";
 import "./chunk-FGWKHPUM.js";
 import "./chunk-VQWJYEVC.js";
 import {
   Random_exports
-} from "./chunk-WEI3MOER.js";
+} from "./chunk-IZS4HT5C.js";
 import {
   dom_exports
 } from "./chunk-FTHWHXST.js";
@@ -38,16 +38,17 @@ import "./chunk-3MJXSGYO.js";
 import "./chunk-FLZZ6D3A.js";
 import {
   flow_exports
-} from "./chunk-A33S5M5I.js";
+} from "./chunk-YGSHV3K5.js";
 import "./chunk-I3R3AECV.js";
 import "./chunk-AWXCQ245.js";
-import "./chunk-UMX64OKN.js";
+import "./chunk-KGMWHWQY.js";
 import {
   clamp,
   clampIndex,
   flip,
   getFieldByPath,
   getFieldPaths,
+  ifNaN,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
@@ -62,7 +63,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-OQOZAYAW.js";
+} from "./chunk-BRJUVXZQ.js";
 import {
   Text_exports
 } from "./chunk-7TKMEWX5.js";
@@ -87,6 +88,7 @@ export {
   flip,
   getFieldByPath,
   getFieldPaths,
+  ifNaN,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,

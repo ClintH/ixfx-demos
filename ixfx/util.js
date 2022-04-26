@@ -4,6 +4,7 @@ import {
   flip,
   getFieldByPath,
   getFieldPaths,
+  ifNaN,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,
@@ -18,7 +19,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-OQOZAYAW.js";
+} from "./chunk-BRJUVXZQ.js";
 import "./chunk-7TKMEWX5.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-FQLUQVDZ.js";
@@ -28,6 +29,7 @@ export {
   flip,
   getFieldByPath,
   getFieldPaths,
+  ifNaN,
   interpolate,
   isEqualDefault,
   isEqualValueDefault,

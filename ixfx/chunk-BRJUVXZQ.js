@@ -72,6 +72,11 @@ var flip = (v) => {
   number(v, `percentage`, `v`);
   return 1 - v;
 };
+var ifNaN = (v, fallback) => {
+  if (Number.isNaN(v))
+    return fallback;
+  return v;
+};
 var proportion = (v, t) => {
   if (typeof v === `function`)
     v = v();
@@ -189,6 +194,7 @@ export {
   roundUpToMultiple,
   scale,
   flip,
+  ifNaN,
   proportion,
   scalePercentages,
   scalePercent,
@@ -203,4 +209,4 @@ export {
   isPowerOfTwo,
   runningiOS
 };
-//# sourceMappingURL=chunk-OQOZAYAW.js.map
+//# sourceMappingURL=chunk-BRJUVXZQ.js.map

@@ -1,6 +1,6 @@
 import {
   Svg_exports
-} from "./chunk-BYYEG5VH.js";
+} from "./chunk-L72RAZUZ.js";
 import {
   Point_exports,
   Rect_exports,
@@ -16,12 +16,12 @@ import {
   isQuadraticBezier,
   placeholder,
   placeholderPositioned
-} from "./chunk-XTYELGV5.js";
+} from "./chunk-RRSA5CVJ.js";
 import {
   mapArray,
   mapCircular,
   stack
-} from "./chunk-FRSKMHW2.js";
+} from "./chunk-EUQOUN72.js";
 import {
   Arrays_exports,
   Colour_exports,
@@ -29,7 +29,7 @@ import {
   minMaxAvg,
   opacity,
   randomHue
-} from "./chunk-WEI3MOER.js";
+} from "./chunk-IZS4HT5C.js";
 import {
   parentSizeCanvas,
   resolveEl
@@ -39,9 +39,10 @@ import {
   flip,
   getFieldByPath,
   getFieldPaths,
+  ifNaN,
   roundUpToMultiple,
   scale
-} from "./chunk-OQOZAYAW.js";
+} from "./chunk-BRJUVXZQ.js";
 import {
   array
 } from "./chunk-U4IZE4J2.js";
@@ -966,7 +967,7 @@ var Box = class {
     __publicField(this, "children", []);
     __publicField(this, "_parent");
     __publicField(this, "_idMap", /* @__PURE__ */ new Map());
-    __publicField(this, "debugLayout", true);
+    __publicField(this, "debugLayout", false);
     __publicField(this, "_visible", true);
     __publicField(this, "_ready", true);
     __publicField(this, "takesSpaceWhenInvisible", false);
@@ -1222,7 +1223,6 @@ var CanvasBox = class extends Box {
     ctx.translate(this.visual.x, this.visual.y);
     const v = this.visual;
     if (this.debugLayout) {
-      ctx.clearRect(0, 0, v.width, v.height);
       ctx.lineWidth = 1;
       ctx.strokeStyle = `hsl(${this.debugHue}, 100%, 50%)`;
       ctx.strokeRect(0, 0, v.width, v.height);
@@ -1305,7 +1305,7 @@ var Series = class {
     this.drawingStyle = opts.drawingStyle ?? `line`;
     this.colour = opts.colour;
     this.width = opts.width ?? 3;
-    this._visualRange = opts.axisRange ?? { min: 0, max: 0 };
+    this._visualRange = opts.axisRange ?? { min: Number.NaN, max: Number.NaN };
     this._visualRangeStretch = opts.visualRangeStretch ?? true;
     if (sourceType === `array`) {
       this.source = new ArrayDataSource(this);
@@ -1323,8 +1323,8 @@ var Series = class {
     let changed = false;
     if (sourceRange.changed) {
       if (this._visualRangeStretch) {
-        const rmin = Math.min(vr.min, sourceRange.min);
-        const rmax = Math.max(vr.max, sourceRange.max);
+        const rmin = Math.min(ifNaN(vr.min, sourceRange.min), sourceRange.min);
+        const rmax = Math.max(ifNaN(vr.max, sourceRange.max), sourceRange.max);
         if (rmin !== vr.min || rmax !== vr.max) {
           vr = { min: rmin, max: rmax };
           changed = true;
@@ -1343,6 +1343,9 @@ var Series = class {
     if (this.source === void 0)
       return value;
     const r = this.visualRange;
+    if (r.min == r.max) {
+      return 0.5;
+    }
     return scale(value, r.min, r.max);
   }
   add(value) {
@@ -1359,7 +1362,10 @@ var PlotArea = class extends CanvasBox {
     __publicField(this, "pointerDistanceThreshold", 20);
     __publicField(this, "lastRangeChange", 0);
     __publicField(this, "pointer");
-    this.debugLayout = false;
+  }
+  clear() {
+    this.lastRangeChange = 0;
+    this.pointer = void 0;
   }
   measureSelf(opts, parent) {
     const axisY = opts.getSize(`AxisY`);
@@ -1383,9 +1389,6 @@ var PlotArea = class extends CanvasBox {
       this._needsLayout = true;
     if (msg === `measureApplied` && source === this.plot.legend)
       this._needsLayout = true;
-  }
-  onClick(p) {
-    this.plot.frozen = !this.plot.frozen;
   }
   onPointerLeave() {
     const series = [...this.plot.series.values()];
@@ -1517,7 +1520,8 @@ var Legend = class extends CanvasBox {
     __publicField(this, "sampleSize", { width: 10, height: 10 });
     __publicField(this, "padding", 3);
     __publicField(this, "widthSnapping", 20);
-    this.debugLayout = false;
+  }
+  clear() {
   }
   measureSelf(opts, parent) {
     const yAxis = opts.measurements.get(`AxisY`);
@@ -1583,7 +1587,8 @@ var AxisX = class extends CanvasBox {
     this.plot = plot2;
     __publicField(this, "paddingPx", 2);
     __publicField(this, "colour");
-    this.debugLayout = false;
+  }
+  clear() {
   }
   onNotify(msg, source) {
     if (msg === `measureApplied` && source === this.plot.axisY)
@@ -1623,18 +1628,22 @@ var AxisX = class extends CanvasBox {
   }
 };
 var isRangeEqual = (a, b) => a.max === b.max && a.min === b.min;
+var isRangeSinglePoint = (a) => a.max === a.min;
 var AxisY = class extends CanvasBox {
   constructor(plot2) {
     super(plot2, plot2.canvasEl, `AxisY`);
     this.plot = plot2;
+    __publicField(this, "_maxDigits", 1);
     __publicField(this, "seriesToShow");
-    __publicField(this, "maxDigits", 1);
     __publicField(this, "paddingPx", 2);
     __publicField(this, "colour");
     __publicField(this, "lastRange");
     __publicField(this, "lastPlotAreaHeight", 0);
-    this.debugLayout = false;
     this.lastRange = { min: 0, max: 0 };
+  }
+  clear() {
+    this.lastRange = { min: 0, max: 0 };
+    this.lastPlotAreaHeight = 0;
   }
   measurePreflight() {
     const series = this.getSeries();
@@ -1655,10 +1664,15 @@ var AxisY = class extends CanvasBox {
   measureSelf(opts) {
     const copts = opts;
     const paddingPx = this.paddingPx;
-    const textToMeasure = `9`.repeat(this.maxDigits);
-    const text = copts.ctx.measureText(textToMeasure);
-    const textWidth2 = paddingPx + text.width + paddingPx + this.plot.axisWidth + paddingPx;
-    const w = opts.resolveToPx(this.desiredSize?.width, textWidth2);
+    let width = this.plot.axisWidth + paddingPx;
+    const series = this.getSeries();
+    if (series !== void 0) {
+      const r = series.visualRange;
+      this._maxDigits = Math.ceil(r.max).toString().length + series.precision + 1;
+      const textToMeasure = `9`.repeat(this._maxDigits);
+      width += textWidth(copts.ctx, textToMeasure, paddingPx * 2);
+    }
+    const w = opts.resolveToPx(this.desiredSize?.width, width);
     return {
       x: 0,
       y: 0,
@@ -1693,10 +1707,9 @@ var AxisY = class extends CanvasBox {
     const colour = this.colour ?? plot2.axisColour;
     ctx.strokeStyle = colour;
     ctx.fillStyle = colour;
-    if (r.min === 0 && r.max === 0)
+    if (Number.isNaN(r.min) && Number.isNaN(r.max))
       return;
     this.lastRange = r;
-    this.maxDigits = Math.ceil(r.max).toString().length + series.precision + 1;
     ctx.clearRect(0, 0, v.width, v.height);
     ctx.beginPath();
     ctx.lineWidth = width;
@@ -1706,14 +1719,21 @@ var AxisY = class extends CanvasBox {
     ctx.stroke();
     ctx.textBaseline = `top`;
     const fromRight = v.width - paddingPx * 4;
-    drawText(ctx, series.formatValue(r.max), (size) => [
-      fromRight - size.width,
-      plotArea.computeY(series, r.max) + width / 2
-    ]);
-    drawText(ctx, series.formatValue(r.min), (size) => [
-      fromRight - size.width,
-      plotArea.computeY(series, r.min) - 5
-    ]);
+    if (isRangeSinglePoint(r)) {
+      drawText(ctx, series.formatValue(r.max), (size) => [
+        fromRight - size.width,
+        plotArea.computeY(series, r.max) - paddingPx * 4
+      ]);
+    } else {
+      drawText(ctx, series.formatValue(r.max), (size) => [
+        fromRight - size.width,
+        plotArea.computeY(series, r.max) + width / 2
+      ]);
+      drawText(ctx, series.formatValue(r.min), (size) => [
+        fromRight - size.width,
+        plotArea.computeY(series, r.min) - 5
+      ]);
+    }
   }
 };
 var drawText = (ctx, text, position) => {
@@ -1734,6 +1754,7 @@ var Plot = class extends CanvasBox {
     __publicField(this, "axisWidth");
     __publicField(this, "series");
     __publicField(this, "_frozen", false);
+    __publicField(this, "defaultSeriesOpts");
     if (opts.autoSize) {
       parentSizeCanvas(canvasEl, (evt) => {
         this.update(true);
@@ -1746,13 +1767,27 @@ var Plot = class extends CanvasBox {
     this.legend = new Legend(this);
     this.axisX = new AxisX(this);
     this.axisY = new AxisY(this);
-    this.debugLayout = false;
+  }
+  clear() {
+    this.series = /* @__PURE__ */ new Map();
+    this.plotArea.clear();
+    this.legend.clear();
+    this.axisX.clear();
+    this.axisY.clear();
+    this.update(true);
   }
   get frozen() {
     return this._frozen;
   }
   set frozen(v) {
     this._frozen = v;
+    if (v) {
+      this.canvasEl.classList.add(`frozen`);
+      this.canvasEl.title = `Plot frozen. Tap to unfreeze`;
+    } else {
+      this.canvasEl.title = ``;
+      this.canvasEl.classList.remove(`frozen`);
+    }
   }
   seriesArray() {
     return [...this.series.values()];
@@ -1776,7 +1811,7 @@ var Plot = class extends CanvasBox {
     const create2 = (key) => {
       const v = o[key];
       if (typeof v === `object`) {
-        return this.createSeriesFromObject(v, key + ".");
+        return this.createSeriesFromObject(v, prefix + key + ".");
       } else if (typeof v === `number`) {
         return [this.createSeries(key, `stream`)];
       } else {
@@ -1791,9 +1826,11 @@ var Plot = class extends CanvasBox {
       name = `series-${len}`;
     if (this.series.has(name))
       throw new Error(`Series name '${name}' already in use`);
-    const opts = {
-      colour: `hsl(${len * 20 % 360}, 80%,50%)`
+    let opts = {
+      colour: `hsl(${len * 25 % 360}, 70%,50%)`
     };
+    if (this.defaultSeriesOpts)
+      opts = { ...this.defaultSeriesOpts, ...opts };
     const s = new Series(name, type, this, opts);
     if (type === `array` && initialData !== void 0) {
       s.source.set(initialData);
@@ -1881,4 +1918,4 @@ export {
   Palette_exports,
   visual_exports
 };
-//# sourceMappingURL=chunk-SXU3D5SZ.js.map
+//# sourceMappingURL=chunk-2TMC3NRY.js.map

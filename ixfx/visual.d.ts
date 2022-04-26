@@ -1,9 +1,9 @@
-export { D as Drawing, P as Palette, a as Plot, b as Plot2, S as SceneGraph } from './index-efb6ad2a';
+export { D as Drawing, P as Palette, a as Plot, b as Plot2, S as SceneGraph } from './index-22ef3dba';
 export { S as Svg } from './Svg-44e98cef';
-export { C as Colour } from './Arrays-ef02e956';
+export { C as Colour } from './Arrays-9c8d976a';
 import './Rect-afd5c0f2';
 import './Ellipse-48d82ca6';
-import './Interfaces-ce084a93';
+import './Interfaces-f2faa339';
 import './Events-d728150d';
 import './util';
 import './NumericArrays-0b49814f';

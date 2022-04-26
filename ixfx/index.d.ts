@@ -350,6 +350,13 @@ declare module "Util" {
      */
     export const flip: (v: number | NumberFunction) => number;
     /**
+     * Returns `fallback` if `v` is NaN, otherwise returns `v`
+     * @param v
+     * @param fallback
+     * @returns
+     */
+    export const ifNaN: (v: number, fallback: number) => number;
+    /**
      * Scales a percentage-scale number, ie: `v * t`.
      * The utility of this function is that it sanity-checks that
      *  both parameters are in the 0..1 scale.
@@ -6793,9 +6800,9 @@ declare module "visual/Plot2" {
         lastRangeChange: number;
         pointer: Points.Point | undefined;
         constructor(plot: Plot);
+        clear(): void;
         protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
         protected onNotify(msg: string, source: Sg.Box): void;
-        protected onClick(p: Points.Point): void;
         protected onPointerLeave(): void;
         protected onPointerMove(p: Points.Point): void;
         protected measurePreflight(): void;
@@ -6813,6 +6820,7 @@ declare module "visual/Plot2" {
         padding: number;
         widthSnapping: number;
         constructor(plot: Plot);
+        clear(): void;
         protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
         protected drawSelf(ctx: CanvasRenderingContext2D): void;
         protected onNotify(msg: string, source: Sg.Box): void;
@@ -6822,19 +6830,21 @@ declare module "visual/Plot2" {
         paddingPx: number;
         colour?: string;
         constructor(plot: Plot);
+        clear(): void;
         protected onNotify(msg: string, source: Sg.Box): void;
         protected drawSelf(ctx: CanvasRenderingContext2D): void;
         protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
     }
     class AxisY extends Sg.CanvasBox {
         private plot;
+        private _maxDigits;
         seriesToShow: string | undefined;
-        maxDigits: number;
         paddingPx: number;
         colour?: string;
         lastRange: DataRange;
         lastPlotAreaHeight: number;
         constructor(plot: Plot);
+        clear(): void;
         protected measurePreflight(): void;
         protected onNotify(msg: string, source: Sg.Box): void;
         protected measureSelf(opts: Sg.MeasureState): Rects.RectPositioned;
@@ -6868,7 +6878,9 @@ declare module "visual/Plot2" {
         axisWidth: number;
         series: Map<string, Series>;
         private _frozen;
+        defaultSeriesOpts?: SeriesOpts;
         constructor(canvasEl: HTMLCanvasElement, opts?: Opts);
+        clear(): void;
         get frozen(): boolean;
         set frozen(v: boolean);
         seriesArray(): Series[];

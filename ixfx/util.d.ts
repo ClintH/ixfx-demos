@@ -118,6 +118,13 @@ declare type NumberFunction = () => number;
  */
 declare const flip: (v: number | NumberFunction) => number;
 /**
+ * Returns `fallback` if `v` is NaN, otherwise returns `v`
+ * @param v
+ * @param fallback
+ * @returns
+ */
+declare const ifNaN: (v: number, fallback: number) => number;
+/**
  * Scales a percentage-scale number, ie: `v * t`.
  * The utility of this function is that it sanity-checks that
  *  both parameters are in the 0..1 scale.
@@ -335,4 +342,4 @@ declare const wrapRange: (min: number, max: number, fn: (distance: number) => nu
 declare const isPowerOfTwo: (x: number) => boolean;
 declare const runningiOS: () => boolean;
 
-export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, getFieldByPath, getFieldPaths, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, roundUpToMultiple, runningiOS, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
+export { IsEqual, NumberFunction, ToString, clamp, clampIndex, flip, getFieldByPath, getFieldPaths, ifNaN, interpolate, isEqualDefault, isEqualValueDefault, isPowerOfTwo, proportion, roundUpToMultiple, runningiOS, scale, scalePercent, scalePercentages, toStringDefault, wrap, wrapInteger, wrapRange };
