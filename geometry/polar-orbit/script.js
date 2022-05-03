@@ -1,5 +1,11 @@
 /**
  * Demonstates moving a DOM element by polar coordinates
+ * 
+ * Angle is incremented each loop with simple addition.
+ * Distance is determined by a ping-pong generator (cycles between 0..1)
+ * 
+ * The normal amount to turn is settings.maxRadiansPerCycle. This is multiplied
+ * by the state.orbitSpeedFactor to make it slower or faster.
  */
 import * as Generators from '../../ixfx/generators.js';
 import {Points} from '../../ixfx/geometry.js';
@@ -7,55 +13,62 @@ import {Polar} from '../../ixfx/geometry.js';
 
 // Define settings
 const settings = {
-  minRadius: 100,
-  slowPp: Generators.pingPongPercent(0.001),
-  range: Generators.numericPercent(0.01, true),
-  thingEl: document.getElementById(`thing`)
+  // How much angle to increment each loop, if speed is 100%
+  maxRadiansPerCycle: 0.2,
+  // Generator for setting radius
+  distanceGen: Generators.pingPongPercent(0.001),
+  // References to HTML elements
+  thingEl: document.getElementById(`thing`),
+  rangeSpeed: document.getElementById(`rangeSpeed`)
 }
 
 // Initialise state with empty values
 let state = {
-  slow: 0,
-  range: 0,
+  // Multiplier for orbit speed
+  orbitSpeedFactor: 1,
+  // Current angle (radians)
+  angle: 0,
+  // Current distance
+  distance: 0,
   // Width or height of viewport, whichever is smaller
-  maxDimension: 0,
+  minDimension: 0,
   // Will be set to size of screen
   bounds: {width: 0, height: 0, center: {x: 0, y: 0}}
 };
 
 // Update state of world
 const update = () => {
-  const {slowPp, range} = settings;
+  const {distanceGen, maxRadiansPerCycle} = settings;
+  const {angle, orbitSpeedFactor} = state;
 
-  // This generator can possibly be undefined, so
-  // we have to be a bit tricksy
-  let r = range.next().value;
+  // Calculate new angle
+  const newAngle = angle + (maxRadiansPerCycle * orbitSpeedFactor);
+
+  // Calculate distance - relative value 0..1
+  const newDistance = distanceGen.next().value;
 
   // Update state
   state = {
     ...state,
-    // Get a new value from generators
-    slow: slowPp.next().value,
-    range: r ? r : 0 // if r is undefined, use 0 by default
+    angle: newAngle,
+    distance: newDistance,
   }
 }
 
 const updateDom = () => {
-  const {thingEl, minRadius} = settings;
-  const {slow, bounds, maxDimension, range} = state;
+  const {thingEl} = settings;
+  const {bounds, minDimension, distance, angle} = state;
   const c = bounds.center;
   const thingSize = thingEl.getBoundingClientRect();
 
-  // Distance is based on ping-pong value and size of screen
-  const d = minRadius + (slow * (maxDimension - minRadius) / 8);
-
-  // Use the numericPercent generator value to set angle
-  const angle = Math.PI * 2 * range;
+  // Make distance absolute, using the dimension of viewport
+  const smallestDimension = minDimension / 2; // Halve because we we're setting a radius, not diameter
+  const distanceAbs = distance * smallestDimension
 
   // Calculate position for circle based on polar coordinates (distance, angle & origin)
   // But we need to offset by the mid-point of circle, otherwise it will be off-centre
   const pt = Points.subtract(
-    Polar.toCartesian(d, angle, c),
+    Polar.toCartesian(distanceAbs, angle, c),
     {x: thingSize.width / 2, y: thingSize.height / 2}
   );
 
@@ -66,6 +79,7 @@ const updateDom = () => {
  * Setup and run main loop 
  */
 const setup = () => {
+  const {rangeSpeed} = settings;
   const updateBounds = () => {
     const bounds = {
       width: window.innerWidth,
@@ -79,7 +93,7 @@ const setup = () => {
     state = {
       ...state,
       bounds: bounds,
-      maxDimension: Math.max(bounds.width, bounds.height)
+      minDimension: Math.min(bounds.width, bounds.height)
     }
   }
   window.addEventListener(`resize`, updateBounds)
@@ -93,5 +107,11 @@ const setup = () => {
     window.requestAnimationFrame(loop);
   }
   window.requestAnimationFrame(loop);
+
+  rangeSpeed.addEventListener(`input`, evt => {
+    // Range slider is 0-500, normalise to 0..1
+    state.orbitSpeedFactor = rangeSpeed.value / 500;
+
+  });
 }
 setup();
