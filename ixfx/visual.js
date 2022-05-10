@@ -3,25 +3,28 @@ import {
   Palette_exports,
   Plot2_exports,
   Plot_exports,
-  SceneGraph_exports
-} from "./chunk-2TMC3NRY.js";
+  SceneGraph_exports,
+  Video_exports
+} from "./chunk-QFIBAXVB.js";
 import {
   Svg_exports
-} from "./chunk-L72RAZUZ.js";
-import "./chunk-RRSA5CVJ.js";
-import "./chunk-EUQOUN72.js";
-import "./chunk-FGWKHPUM.js";
-import "./chunk-VQWJYEVC.js";
+} from "./chunk-PC5QPMTT.js";
+import "./chunk-ZIROF45C.js";
+import "./chunk-F667TMKX.js";
+import "./chunk-IC5TDEPM.js";
+import "./chunk-YMB7M7AT.js";
 import {
   Colour_exports
-} from "./chunk-IZS4HT5C.js";
-import "./chunk-FLZZ6D3A.js";
-import "./chunk-AWXCQ245.js";
-import "./chunk-KGMWHWQY.js";
-import "./chunk-BRJUVXZQ.js";
-import "./chunk-7TKMEWX5.js";
+} from "./chunk-ZRXV45HR.js";
+import "./chunk-BSJKVIJG.js";
+import "./chunk-CZDOAKEN.js";
+import "./chunk-EVCJTLDY.js";
+import "./chunk-DDV6VV3P.js";
+import "./chunk-DH3KCIEB.js";
+import "./chunk-34NRF2SX.js";
+import "./chunk-5J6CFDHI.js";
 import "./chunk-U4IZE4J2.js";
-import "./chunk-FQLUQVDZ.js";
+import "./chunk-6SYKIMQH.js";
 export {
   Colour_exports as Colour,
   Drawing_exports as Drawing,
@@ -29,6 +32,7 @@ export {
   Plot_exports as Plot,
   Plot2_exports as Plot2,
   SceneGraph_exports as SceneGraph,
-  Svg_exports as Svg
+  Svg_exports as Svg,
+  Video_exports as Video
 };
 //# sourceMappingURL=visual.js.map

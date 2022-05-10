@@ -1,4 +1,4 @@
-import { S as SimpleEventEmitter } from './Events-d728150d';
+import { S as SimpleEventEmitter } from './Events-d728150d.js';
 
 interface Options {
     readonly debug?: boolean;

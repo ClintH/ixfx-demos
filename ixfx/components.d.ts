@@ -1,10 +1,11 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-46de8317';
-import './NumericArrays-0b49814f';
-import './Timer-1403e151';
-import 'fp-ts/Ord';
+import { a as KeyValue } from './KeyValue-79948994.js';
+import './NumericArrays-31f025d3.js';
+import './Timer-7b853923.js';
+import './Eq';
+import './Ordering';
 
 declare type Bar = {
     readonly percentage: number;

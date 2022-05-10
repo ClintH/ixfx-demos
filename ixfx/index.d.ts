@@ -1648,6 +1648,8 @@ declare module "flow/Timer" {
      *  // Do something with `v`
      * }
      * ```
+     *
+     * If you just want to loop at a ceratin speed, consider using {@link continuously} instead.
      * @template V Returns value of `produce` function
      * @param intervalMs Interval between execution
      * @param produce Function to call
@@ -1760,6 +1762,9 @@ declare module "flow/Timer" {
      * ```js
      * continuously(async () => { ..});
      * ```
+     *
+     * Use `continuously` if you need a loop you can start and stop at will.
+     * Alternatives: {@link yieldAnimationRate}
      * @param callback Function to run. If it returns false, loop exits.
      * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
      * @param intervalMs
@@ -1767,18 +1772,30 @@ declare module "flow/Timer" {
      */
     export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void) | undefined) => Continuously;
     /**
-     * Pauses execution for `timeoutMs`.
+     * Returns after `timeoutMs`.
      *
-     * @example
+     * @example In an async function
      * ```js
      * console.log(`Hello`);
      * await sleep(1000);
      * console.log(`There`); // Prints one second after
      * ```
+     *
+     * @example As a promise
+     * ```js
+     * console.log(`Hello`);
+     * sleep(1000)
+     *  .then(() => console.log(`There`)); // Prints one second after
+     * ```
+     *
+     * If a timeout of 0 is given, `requestAnimationFrame` is used instead of `setTimeout`.
+     *
+     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
+     *
      * @param timeoutMs
      * @return
      */
-    export const sleep: <V>(timeoutMs: number) => Promise<V>;
+    export const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V | undefined>;
     /**
      * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
      *
@@ -1787,10 +1804,13 @@ declare module "flow/Timer" {
      * const result = await delay(async () => Math.random(), 1000);
      * console.log(result); // Prints out result after one second
      * ```
+     *
+     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
+     *
      * @template V
-     * @param callback
-     * @param timeoutMs
-     * @return
+     * @param callback What to run after `timeoutMs`
+     * @param timeoutMs How long to delay
+     * @return Returns result of `callback`.
      */
     export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
     export type CancelToken = {
@@ -1908,6 +1928,34 @@ declare module "flow/Timer" {
      * @returns
      */
     export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string | undefined) => void;
+    /**
+     * Async generator that loops at a given `timeoutMs`.
+     *
+     * @example Loop runs every second
+     * ```
+     * // Loop forever
+     * (async () => {
+     *  const loop = delayLoop(1000);
+     *  while (true) {
+     *    await loop.next();
+     *
+     *    // Do something...
+     *    // Warning: loops forever
+     *  }
+     * })();
+     * ```
+     *
+     * @example For Await loop every second
+     * ```
+     * const loop = delayLoop(1000);
+     * for await (const o of loop) {
+     *  // Do something...
+     *  // Warning: loops forever
+     * }
+     * ```
+     * @param timeoutMs Delay. If 0 is given, `requestAnimationFrame` is used over `setTimeout`.
+     */
+    export function delayLoop(timeoutMs: number): AsyncGenerator<undefined, void, unknown>;
 }
 declare module "modulation/Easing" {
     import { HasCompletion } from "flow/Timer";
@@ -3483,7 +3531,13 @@ declare module "temporal/Tracker" {
      *  t.avg / t.min/ t.max / t.getMinMax()
      * ```
      *
-     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation
+     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation.
+     *
+     * Trackers can automatically reset after a given number of samples
+     * ```
+     * // reset after 100 samples
+     * const t = tracker(`something`, 100);
+     * ```
      * @class Tracker
      */
     export class Tracker {
@@ -3492,7 +3546,8 @@ declare module "temporal/Tracker" {
         min: number;
         max: number;
         id: string | undefined;
-        constructor(id?: string | undefined);
+        resetAfterSamples?: number;
+        constructor(id?: string | undefined, resetAfterSamples?: number);
         get avg(): number;
         resetAvg(newId?: string | null): void;
         reset(newId?: string | null): void;
@@ -3503,7 +3558,7 @@ declare module "temporal/Tracker" {
             avg: number;
         };
     }
-    export const tracker: (id?: string | undefined) => Tracker;
+    export const tracker: (id?: string | undefined, resetAfterSamples?: number | undefined) => Tracker;
     /**
      * A `Tracker` that tracks interval between calls to `mark()`
      *
@@ -3513,8 +3568,7 @@ declare module "temporal/Tracker" {
      */
     export class IntervalTracker extends Tracker {
         lastMark: number;
-        perf: any;
-        constructor(id?: string | undefined);
+        constructor(id?: string | undefined, resetAfterSamples?: number);
         mark(): void;
     }
     /**
@@ -3535,16 +3589,22 @@ declare module "temporal/Tracker" {
      * // Longest and shortest times are available too...
      * t.min; t.max
      * ```
+     *
+     * Interval tracker can automatically reset after a given number of samples:
+     * ```
+     * // Reset after 100 samples
+     * const t = intervalTracker(`tracker`, 100);
+     * ```
      * @param id Optional id of instance
      * @returns New interval tracker
      */
-    export const intervalTracker: (id?: string | undefined) => IntervalTracker;
+    export const intervalTracker: (id?: string | undefined, resetAfterSamples?: number | undefined) => IntervalTracker;
 }
 declare module "temporal/index" {
     export * as Normalise from "temporal/Normalise";
     export * from "temporal/FrequencyMutable";
     export * from "temporal/MovingAverage";
-    export { tracker } from "temporal/Tracker";
+    export { tracker, intervalTracker } from "temporal/Tracker";
 }
 declare module "geometry/Path" {
     import { Rects, Points } from "geometry/index";
@@ -5727,6 +5787,46 @@ declare module "io/EspruinoDevice" {
      */
     export const connect: () => Promise<EspruinoDevice>;
 }
+declare module "io/Camera" {
+    import * as Rects from "geometry/Rect";
+    /**
+     * Print available media devices to console
+     * @param filterKind Defaults `videoinput`
+     */
+    export const dumpDevices: (filterKind?: string) => Promise<void>;
+    export type Constraints = {
+        readonly facingMode?: `user` | `environment`;
+        readonly max?: Rects.Rect;
+        readonly min?: Rects.Rect;
+    };
+    export type StartResult = {
+        readonly dispose: () => void;
+        readonly videoEl: HTMLVideoElement;
+    };
+    /**
+     * Attempts to start a video-only stream from a camera into a hidden
+     * VIDEO element for frame capture. The VIDEO element is created automatically.
+     *
+     *
+     * ```
+     * import { frames } from 'visual.js';
+     * try
+     *  const { videoEl, dispose } = await start();
+     *  for await (const frame of frames(videoEl)) {
+     *   // Do something with pixels...
+     *  }
+     * } catch (ex) {
+     *  console.error(`Video could not be started`);
+     * }
+     * ```
+     *
+     * Be sure to call the dispose() function to stop the video stream and remove the created VIDEO element.
+     *
+     * @param constraints
+     * @returns Returns {videoEl,dispose}, where videoEl is the created VIDEO element, and dispose is a function for removing the element and stopping the video.
+     */
+    export const start: (constraints?: Constraints) => Promise<StartResult | undefined>;
+}
 declare module "io/index" {
     /**
      * Generic support for Bluetooth LE devices
@@ -5740,6 +5840,7 @@ declare module "io/index" {
      * * {@link connect}: Connect to a generic Espruino
      */
     export * as Espruino from "io/EspruinoDevice";
+    export * as Camera from "io/Camera";
 }
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
@@ -6021,6 +6122,19 @@ declare module "visual/Drawing" {
      * @returns
      */
     export const translatePoint: (ctx: CanvasRenderingContext2D, point: Points.Point) => Points.Point;
+    /**
+     * Creates a new HTML IMG element with a snapshot of the
+     * canvas. Element will need to be inserted into the document.
+     *
+     * ```
+     * const myCanvas = document.getElementById('someCanvas');
+     * const el = copyToImg(myCanvas);
+     * document.getElementById('images').appendChild(el);
+     * ```
+     * @param canvasEl
+     * @returns
+     */
+    export const copyToImg: (canvasEl: HTMLCanvasElement) => HTMLImageElement;
     /**
      * Draws filled circle(s) at provided point(s)
      * @param ctx
@@ -6438,10 +6552,6 @@ declare module "visual/Plot" {
     export type Plotter = {
         add(value: number, series?: string, skipDrawing?: boolean): void;
         drawValue(index: number): void;
-        /**
-         * Draws current data. Useful if skipDrawing was true for earlier add() calls.
-         */
-        draw(): void;
         clear(): void;
         dispose(): void;
     };
@@ -6451,8 +6561,6 @@ declare module "visual/Plot" {
         range: number;
         name: string;
         colour: string;
-        lastValue?: number;
-        hoverValue?: number;
     };
     type DrawingOpts = PlotOpts & {
         x: Axis;
@@ -6470,13 +6578,6 @@ declare module "visual/Plot" {
         debug: boolean;
         digitsPrecision: number;
         lineWidth: number;
-        defaultSeriesColour: string;
-        defaultSeriesVariable?: string;
-        showLegend: boolean;
-        pointer: {
-            x: number;
-            y: number;
-        };
     };
     /**
      * Properties for an axis
@@ -6557,20 +6658,9 @@ declare module "visual/Plot" {
          * If true, sub-pixel data points are ignored
          */
         coalesce?: boolean;
-        /**
-         * Fixed range to scale Y values. By default normalises values
-         * as they come in. This will also determine the y-axis labels and drawing
-         */
-        /**
-         * How many horizontal pixels per data point. If unspecified,
-         * it will scale based on width of canvas and capacity.
-         */
-        defaultSeriesColour?: string;
-        defaultSeriesVariable?: string;
-        showLegend?: boolean;
     };
     export const defaultAxis: (name: string) => Axis;
-    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours | undefined) => Series[];
+    export const calcScale: (buffer: BufferType, seriesColours?: SeriesColours | undefined) => Series[];
     export const add: (buffer: BufferType, value: number, series?: string) => void;
     type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
     export const drawValue: (index: number, buffer: BufferType, drawing: DrawingOpts) => void;
@@ -6601,6 +6691,7 @@ declare module "visual/Plot" {
      *  showYAxis: false,  // Toggle whether y axis is shown (default: true)
      *  lineWidth: 2,      // Width of plot line (default: 2)
      *  yAxes:  [`temp`],  // Only show these y axes (by default all are shown)
+     *  palette: Palette,  // Colour palette instance to use
      *  coalesce: true,    // If true, sub-pixel data points are skipped, improving performance for dense plots at the expense of plot precision
      * });
      * ```
@@ -6926,6 +7017,82 @@ declare module "visual/Palette" {
     };
     export const create: (fallbacks?: readonly string[] | undefined) => Palette;
 }
+declare module "visual/Video" {
+    export type Capturer = {
+        start(): void;
+        cancel(): void;
+        readonly canvasEl: HTMLCanvasElement;
+    };
+    export type CaptureOpts = {
+        readonly maxIntervalMs?: number;
+        readonly showCanvas?: boolean;
+        readonly workerScript?: string;
+        readonly onFrame?: (pixels: ImageData) => void;
+    };
+    /**
+     * Options for frames generator
+     */
+    export type FramesOpts = {
+        /**
+         * Max frame rate (millis per frame), or 0 for animation speed
+         */
+        readonly maxIntervalMs?: number;
+        /**
+         * False by default, created canvas will be hidden
+         */
+        readonly showCanvas?: boolean;
+        /**
+         * If provided, this canvas will be used as the buffer rather than creating one.
+         */
+        readonly canvasEl?: HTMLCanvasElement;
+    };
+    /**
+     * Generator that yields frames from a video element as ImageData.
+     * ```
+     * const ctx = canvasEl.getContext(`2d`);
+     * for await (const frame of Video.frames(videoEl)) {
+     *   // TODO: Some processing of pixels
+     *
+     *   // Draw image on to the visible canvas
+     *   ctx.putImageData(frame, 0, 0);
+     * }
+     * ```
+     *
+     * Under the hood it creates a hidden canvas where frames are drawn to. This is necessary
+     * to read back pixel data. An existing canvas can be used if it is passed in as an option.
+     *
+     * @param sourceVideoEl
+     * @param opts
+     */
+    export function frames(sourceVideoEl: HTMLVideoElement, opts?: FramesOpts): AsyncIterable<ImageData>;
+    /**
+     * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
+     *
+     * ```@example Using a function
+     * capture(sourceVideoEl, {
+     *  onFrame(imageData => {
+     *    // Do something with pixels...
+     *  });
+     * });
+     * ```
+     *
+     * ```@example Using a worker
+     * capture(sourceVideoEl, {
+     *  workerScript: `./frameProcessor.js`
+     * });
+     *
+     * // In frameProcessor.js...
+     * ```
+     *
+     * Implementation: frames are captured using a animation-speed loop to a hidden canvas. From there
+     * the pixel data is extracted and sent to either destination. In future the intermediate drawing to a
+     * canvas could be skipped if it becomes possible to get pixel data from an ImageBitmap.
+     * @param sourceVideoEl
+     * @param opts
+     * @returns
+     */
+    export const capture: (sourceVideoEl: HTMLVideoElement, opts?: CaptureOpts) => Capturer;
+}
 declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
     import * as Svg from "visual/Svg";
@@ -6944,6 +7111,7 @@ declare module "visual/index" {
      */
     export { Colour };
     export { Palette, Drawing, Svg, Plot, Plot2, SceneGraph };
+    export * as Video from "visual/Video";
 }
 declare module "dom/ShadowDom" {
     export const addShadowCss: (parentEl: HTMLElement, styles: string) => ShadowRoot;

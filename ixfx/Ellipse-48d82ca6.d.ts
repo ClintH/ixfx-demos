@@ -1,4 +1,4 @@
-import { P as Point, f as Line, a as Path, R as RectPositioned, e as Rect } from './Rect-afd5c0f2';
+import { P as Point, f as Line, a as Path, R as RectPositioned, e as Rect } from './Rect-afd5c0f2.js';
 
 /**
  * Returns true if parameter is an arc

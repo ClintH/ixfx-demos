@@ -1,7 +1,7 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { P as Point } from './Rect-afd5c0f2';
-import { F as Forms } from './Forms-8c246006';
+import { P as Point } from './Rect-afd5c0f2.js';
+import { F as Forms } from './Forms-8c246006.js';
 
 declare type LogOpts = {
     readonly reverse?: boolean;
