@@ -1,18 +1,23 @@
 /**
- * Demonstates starting a video stream, accessing the frames for
- * processing, and then drawing an overlay.
+ * Demonstates starting a video stream, accessing and manipulating pixel data
+ * and then writing it back to a canvas.
  * 
  * In this case, the processing compares the current video frame to the last, 
  * counting the number of pixels which have changed. This is boiled down to a % in
- * state.differences. It also visually overlays the changed pixels, but this step is not
- * necessary for the calculation.
+ * state.differences.
  * 
+ * To demo changing pixels, it sets all unchanged pixels to grayscale, and 
+ * somewhat translucent. Only changed pixels are left alone.
+ *
  * Settings:
  *  threshold: how much change in grayscale value counts as a changed pixel. Lower = more sensitive
  *  visualise: if 'false', the video feed is not shown
  * 
  * This technique works well if you only want to show processed pixels, and the
  * output matches the input dimensions.
+ * 
+ * For a variation, see the `camera-overlay` demo. In that one, we draw on top of the
+ * video feed, rather than edit the pixels.
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
@@ -81,10 +86,8 @@ const update = (frame, ctx) => {
   } else {
     // Compare to previous frame
     differences = 0;
-
     const w = frame.width;
     const h = frame.height;
-    ctx.fillStyle = `magenta`;
     for (let x = 0; x < w; x++) {
       for (let y = 0; y < h; y++) {
         const indexes = rgbaIndexes(w, x, y);
@@ -111,7 +114,7 @@ const update = (frame, ctx) => {
     }
 
     // Write pixels
-    ctx.putImageData(frame, 0, 0);
+    if (visualise) ctx.putImageData(frame, 0, 0);
 
     // Get a proportional difference, dividing by total number of pixels
     differences /= (w * h);
