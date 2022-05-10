@@ -25,7 +25,7 @@ const settings = {
   // Difference in grayscale value to count as a changed pixel
   threshold: 30,
   // If true, the differencing is shown. If false, just the difference calculation is shown
-  visualise: false,
+  visualise: true,
   /** @type {HTMLCanvasElement} */
   canvasEl: document.getElementById(`canvas`),
   lblFps: document.getElementById(`lblFps`),
