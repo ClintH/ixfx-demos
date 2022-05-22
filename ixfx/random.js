@@ -7,13 +7,14 @@ import {
   randomElement,
   randomHue,
   randomIndex,
+  shortGuid,
   string,
   weighted,
   weightedInteger
-} from "./chunk-ZRXV45HR.js";
-import "./chunk-DH3KCIEB.js";
-import "./chunk-34NRF2SX.js";
-import "./chunk-5J6CFDHI.js";
+} from "./chunk-ZSQYTL5I.js";
+import "./chunk-MLUQT4HB.js";
+import "./chunk-7MTDIKUL.js";
+import "./chunk-OE2F6QKM.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-6SYKIMQH.js";
 export {
@@ -25,6 +26,7 @@ export {
   gaussianSkewed,
   randomHue as hue,
   integer,
+  shortGuid,
   string,
   weighted,
   weightedInteger

@@ -2,6 +2,8 @@ import {
   addUniqueByHash,
   filter,
   find,
+  getOrGenerate,
+  getOrGenerateSync,
   hasAnyValue,
   hasKeyValue,
   mapToArray,
@@ -10,12 +12,14 @@ import {
   toArray,
   transformMap,
   zipKeyValue
-} from "./chunk-IC5TDEPM.js";
+} from "./chunk-JEQAMATA.js";
 import "./chunk-6SYKIMQH.js";
 export {
   addUniqueByHash,
   filter,
   find,
+  getOrGenerate,
+  getOrGenerateSync,
   hasAnyValue,
   hasKeyValue,
   mapToArray,
