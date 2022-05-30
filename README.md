@@ -21,7 +21,7 @@ If you find a bug in a demo, please [report it](https://github.com/ClintH/ixfx-d
   
 ### Clone
 
-If you have `git` installed on your system, or the `GitHub` app, you can clone this repository to a folder.
+Using `git` or the Github app, clone this repository to a folder. This gives you a local copy of the source, and can be easily updated if the repository changes.
 
 ### ...and then
 
@@ -33,7 +33,7 @@ Each sketch is contained in its own folder. Once you're ready to modify, duplica
 
 ## Paths
 
-If you move the folder within the directory structure, you may need to modify the HTML and JS files and correct the pathing.
+If you move the folder within the directory structure, you may need to modify the HTML and JS files to correct the pathing.
 
 Consider `easing-tick`, which is contained in `modulation`:
 
