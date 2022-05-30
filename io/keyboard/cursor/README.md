@@ -8,5 +8,5 @@ It shows how to keep track of the state of keys via `keydown` and `keyup` events
 
 * Make it pick up speed the longer you continuously hold any cursor key
 * Make it wrap around or stop at the edge of the viewport
-* Rather than directly set the position of `thingEl`, make modify a 'target position' and interpolate towards it.
+* Rather than directly set the position of `thingEl`, make modify a 'target position' and interpolate towards it. (see _geometry/point-interpolate_ demo)
 * Change shadow position according to direction
