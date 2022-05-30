@@ -1,8 +1,8 @@
-import { e as Rect, a as Path, f as Line, R as RectPositioned, P as Point, g as CirclePositioned } from './Rect-afd5c0f2.js';
-import { Q as QuadraticBezier, C as CubicBezier, a as ArcPositioned, b as EllipsePositioned } from './Ellipse-48d82ca6.js';
-import { a as Stack, M as MapOfMutable, C as CircularArray } from './Interfaces-8849984d.js';
-import { S as Svg } from './Svg-44e98cef.js';
-import { C as Colour } from './Arrays-732b57fd.js';
+import { e as Rect, a as Path, f as Line, R as RectPositioned, P as Point, g as CirclePositioned } from './Rect-afd5c0f2';
+import { Q as QuadraticBezier, C as CubicBezier, a as ArcPositioned, b as EllipsePositioned } from './Ellipse-48d82ca6';
+import { a as Stack, M as MapOfMutable, C as CircularArray } from './Interfaces-8849984d';
+import { S as Svg } from './Svg-44e98cef';
+import { C as Colour } from './Arrays-732b57fd';
 
 declare type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
 /**

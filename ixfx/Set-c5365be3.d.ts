@@ -1,5 +1,5 @@
-import { ToString } from './util.js';
-import { S as SetMutable } from './Interfaces-8849984d.js';
+import { ToString } from './util';
+import { S as SetMutable } from './Interfaces-8849984d';
 
 /**
  * @inheritdoc SetMutable

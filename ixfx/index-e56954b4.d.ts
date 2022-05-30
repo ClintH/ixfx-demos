@@ -1,8 +1,8 @@
-import { S as SimpleEventEmitter } from './Events-d79f0e59.js';
-import { S as StateMachine, a as StateChangeEvent } from './StateMachine-c12ce7c8.js';
-import { Q as QueueMutable } from './Interfaces-8849984d.js';
-import { C as Continuously } from './Timer-7b853923.js';
-import { e as Rect } from './Rect-afd5c0f2.js';
+import { S as SimpleEventEmitter } from './Events-d79f0e59';
+import { S as StateMachine, a as StateChangeEvent } from './StateMachine-c12ce7c8';
+import { Q as QueueMutable } from './Interfaces-8849984d';
+import { C as Continuously } from './Timer-7b853923';
+import { e as Rect } from './Rect-afd5c0f2';
 
 /**
  * Handles utf-8 text encoding/decoding
