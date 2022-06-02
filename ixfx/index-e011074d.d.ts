@@ -1,6 +1,6 @@
-import { A as Arc, B as Bezier, E as Ellipse } from './Ellipse-48d82ca6.js';
-import { a as Path, P as Point, R as RectPositioned, C as Circle, L as Line, b as Rect, c as Point$1, d as Path$1 } from './Rect-afd5c0f2.js';
-import { S as SetMutable } from './Interfaces-8849984d.js';
+import { A as Arc, B as Bezier, E as Ellipse } from './Ellipse-48d82ca6';
+import { a as Path, P as Point, R as RectPositioned, C as Circle, L as Line, b as Rect, c as Point$1, d as Path$1 } from './Rect-afd5c0f2';
+import { S as SetMutable } from './Interfaces-8849984d';
 
 declare type CompoundPath = Path & {
     readonly segments: readonly Path[];

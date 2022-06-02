@@ -1,7 +1,7 @@
-import { a as RandomSource } from './Arrays-732b57fd.js';
-import { E as Easing } from './NumericArrays-31f025d3.js';
-import { S as SimpleEventEmitter } from './Events-d79f0e59.js';
-import { a as Timer } from './Timer-7b853923.js';
+import { a as RandomSource } from './Arrays-732b57fd';
+import { E as Easing } from './NumericArrays-31f025d3';
+import { S as SimpleEventEmitter } from './Events-d79f0e59';
+import { a as Timer } from './Timer-7b853923';
 
 /**
  * @returns Returns a full set of default ADSR options

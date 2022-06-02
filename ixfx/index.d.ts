@@ -6078,6 +6078,13 @@ declare module "io/index" {
      */
     export * as Espruino from "io/EspruinoDevice";
     export * as Camera from "io/Camera";
+    /**
+     * Microcontrollers such as Arduinos connected via USB serial
+     *
+     * Overview
+     * * {@link Serial.Device}
+     *
+     */
     export * as Serial from "io/Serial";
 }
 declare module "dom/Util" {
@@ -6123,6 +6130,11 @@ declare module "dom/Util" {
      * @returns
      */
     export const parentSize: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    /**
+     * Source: https://zellwk.com/blog/translate-in-javascript
+     * @param domQueryOrEl
+     */
+    export const getTranslation: (domQueryOrEl: string | HTMLElement) => Points.Point;
     /**
      * Resizes given canvas element to its parent element. To resize canvas to match the viewport, use {@link fullSizeCanvas}.
      *

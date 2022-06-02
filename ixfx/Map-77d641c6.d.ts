@@ -1,4 +1,4 @@
-import { IsEqual, ToString } from './util.js';
+import { IsEqual, ToString } from './util';
 
 /**
  * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care

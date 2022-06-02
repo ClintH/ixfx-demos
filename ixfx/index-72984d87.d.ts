@@ -1,5 +1,5 @@
-import { P as Point } from './Rect-afd5c0f2.js';
-import { T as Tracker } from './Tracker-ec5cafa7.js';
+import { P as Point } from './Rect-afd5c0f2';
+import { T as Tracker } from './Tracker-ec5cafa7';
 
 /**
  * Visualiser component
