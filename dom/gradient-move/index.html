@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gradient-move</title>
+</head>
+
+<body>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Modak&display=swap');
+
+    html,
+    body {
+      height: 100%;
+      background-color: black;
+      margin: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    section {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #text {
+      font-size: clamp(100%, 40vh, clamp(100%, 1rem + 40vw, 20em));
+      font-family: 'Modak';
+      text-align: center;
+      line-height: 75%;
+      padding: 1em;
+    }
+  </style>
+  <section>
+    <div id="text">
+      Hello there!
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

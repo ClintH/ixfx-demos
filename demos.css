@@ -118,6 +118,10 @@ body {
 
 }
 
+.demos ul.nobullets li {
+  padding-bottom: var(--padding);
+}
+
 .pillbox {
   display: flex;
   margin-bottom: 1em;

@@ -1,8 +1,11 @@
+/**
+ * Generates a stacked set of gradients based on a given
+ * angle interval. Gradient hues are rotated over time.
+ */
 import {continuously} from '../../ixfx/flow.js';
 import * as Generators from '../../ixfx/generators.js';
 
 const settings = {
-
   // Opacity of gradient stop
   opacity: 0.8,
   // Interval between hues
