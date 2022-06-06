@@ -8,11 +8,16 @@
   <link rel="stylesheet" href="../../base.css">
 </head>
 <style>
+  :root {
+    --hue: 350;
+    --bg: hsl(var(--hue), 10%, 10%);
+    --fg: hsl(var(--hue), 50%, 90%);
+  }
+
   html,
   body {
-    /* height: 100%;
-    width: 100%; */
-    background-color: var(--gray);
+    background-color: var(--bg);
+    color: var(--fg);
   }
 
   body {
@@ -20,27 +25,25 @@
   }
 
   h1 {
-    color: var(--grayDark);
     text-transform: uppercase;
-    margin-top: 30vh;
+    margin-top: 10vh;
   }
 
   #thing {
     height: 6em;
     width: 6em;
-    color: hsl(350, 100%, 68%);
-    ;
+    color: var(--bg);
     display: inline-block;
     border-radius: 99em;
-    background-color: hsl(350, 100%, 88%);
+    background-color: hsl(var(--hue), 100%, 88%);
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   #thing.isDone {
-    color: hsl(350, 100%, 88%);
-    background-color: hsl(350, 100%, 68%);
+    color: hsl(var(--hue), 100%, 88%);
+    background-color: hsl(var(--hue), 100%, 68%);
   }
 </style>
 
