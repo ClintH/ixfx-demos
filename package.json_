@@ -1,0 +1,23 @@
+{
+  "name": "ixfx-demos",
+  "version": "1.0.0",
+  "description": "* [Demos can be run online](https://clinth.github.io/ixfx-demos/)\r * [Source code on GitHub](https://github.com/clinth/ixfx-demos/)",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server --no-browser"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ClintH/ixfx-demos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ClintH/ixfx-demos/issues"
+  },
+  "homepage": "https://github.com/ClintH/ixfx-demos#readme",
+  "dependencies": {
+    "@compodoc/live-server": "^1.2.3"
+  }
+}
