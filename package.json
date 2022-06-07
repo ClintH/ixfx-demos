@@ -4,7 +4,7 @@
   "description": "Demos of ixfx",
   "main": "index.html",
   "scripts": {
-    "start": "live-server --no-browser"
+    "start": "browser-sync -f *.html -f *.js -f *.css --no-open --no-ui"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/ClintH/ixfx-demos#readme",
   "dependencies": {
-    "@compodoc/live-server": "^1.2.3"
+    "browser-sync": "^2.27.10"
   }
 }
