@@ -1,23 +1,21 @@
 {
   "name": "ixfx-demos",
-  "version": "1.0.0",
+  "version": "0.0.0",
+  "private": true,
   "description": "Demos of ixfx",
-  "main": "index.js",
-  "scripts": {
-    "start": "live-server --no-browser"
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ClintH/ixfx-demos.git"
   },
-  "keywords": [],
+  "keywords": [
+    "ixfx",
+    "interactivity"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ClintH/ixfx-demos/issues"
   },
   "homepage": "https://github.com/ClintH/ixfx-demos#readme",
-  "dependencies": {
-    "@compodoc/live-server": "^1.2.3"
-  }
 }
