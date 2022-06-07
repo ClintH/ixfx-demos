@@ -2,5 +2,20 @@
   "name": "ixfx-demos",
   "version": "0.0.0",
   "private": true,
-  "dependencies": {}
+  "description": "Demos of ixfx",
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ClintH/ixfx-demos.git"
+  },
+  "keywords": [
+    "ixfx",
+    "interactivity"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ClintH/ixfx-demos/issues"
+  },
+  "homepage": "https://github.com/ClintH/ixfx-demos#readme",
 }

@@ -1,7 +1,7 @@
 {
   "name": "ixfx-demos",
   "version": "1.0.0",
-  "description": "* [Demos can be run online](https://clinth.github.io/ixfx-demos/)\r * [Source code on GitHub](https://github.com/clinth/ixfx-demos/)",
+  "description": "Demos of ixfx",
   "main": "index.js",
   "scripts": {
     "start": "live-server --no-browser"
