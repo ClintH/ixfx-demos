@@ -120,6 +120,7 @@ body {
 
 .demos ul.nobullets li {
   padding-bottom: var(--padding);
+
 }
 
 .pillbox {
@@ -156,6 +157,8 @@ header a:hover {
 
 ul.nobullets {
   padding: 0;
+  padding-top: calc(var(--padding)*2);
+
 }
 
 ul.nobullets li {
