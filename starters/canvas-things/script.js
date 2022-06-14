@@ -14,9 +14,9 @@ const settings = {
   addIntervalMs: 1000,
   // How much to let thing fall off edge before resetting it
   // This is needed or things can be reset too early
-  edgeMax: 1.05,
+  edgeMax: 1.10,
   // Value to reset thing to if it goes past max
-  edgeMin: -0.05,
+  edgeMin: -0.1,
   xSpeed: 0.01,
   ySpeed: 0.001
 };
