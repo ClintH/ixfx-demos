@@ -47,7 +47,7 @@ const drawRect = (ctx, r, strokeStyle) => {
  */
 const drawRectManual = (ctx, r, strokeStyle) => {
   // Compute corner coordinates for a rect
-  const pts = Rects.getCorners(r);
+  const pts = Rects.corners(r);
   ctx.strokeStyle = strokeStyle;
 
   // Draw circles for each corner
@@ -59,7 +59,7 @@ const drawRectManual = (ctx, r, strokeStyle) => {
   });
 
   // Compute the lines for a rectangle
-  const lines = Rects.getLines(r);
+  const lines = Rects.edges(r);
 
   // Start at first point
   ctx.beginPath();

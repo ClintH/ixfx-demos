@@ -266,7 +266,7 @@ declare module "Util" {
      * getFieldByPath(d, `accel.x`); // 1
      * getFieldByPath(d, `gyro.z`);  // 6
      * getFieldByPath(d, `gyro`);    // {x:4, y:5, z:6}
-     * getFieldByPath(d, ``);        // Returns d
+     * getFieldByPath(d, ``);        // Returns original object
      * ```
      *
      * If a field does not exist, `undefined` is returned.
@@ -286,6 +286,8 @@ declare module "Util" {
      * const paths = getFieldPaths(d);
      * // Yields [ `accel.x`, `accel.y`,`accel.z`,`gyro.x`,`gyro.y`,`gyro.z` ]
      * ```
+     *
+     * Use {@link getFieldByPath} to fetch data by this 'path' string.
      * @param o
      * @returns
      */
@@ -798,7 +800,8 @@ declare module "flow/Timer" {
         get isDone(): boolean;
     };
     /**
-     * Creates a debounce function
+     * Creates a debounce function.
+     *
      * ```js
      * // Create
      * const d = debounce(fn, 1000);
@@ -883,7 +886,7 @@ declare module "flow/Timer" {
      * }
      * ```
      *
-     * If you just want to loop at a ceratin speed, consider using {@link continuously} instead.
+     * If you just want to loop at a certain speed, consider using {@link continuously} instead.
      * @template V Returns value of `produce` function
      * @param intervalMs Interval between execution
      * @param produce Function to call
@@ -1145,16 +1148,19 @@ declare module "flow/Timer" {
      *  // Called if we were aborted or finished succesfully.
      *  // onComplete will be called after onAborted, if it was an error case
      * }
+     *
+     * // If done() is not called after 1000, onAborted will be called
+     * // if done() is called or there was a timeout, onComplete is called
      * const done = waitFor(1000, onAborted, onComplete);
      *
-     * // Call done if your code completed successfully:
+     * // Signal completed successfully (thus calling onComplete(true))
      * done();
      *
-     * // Or if there was an error
+     * // Signal there was an error (thus calling onAborted and onComplete(false))
      * done(`Some error`);
      * ```
      *
-     * The completion handler is used for removing event handlers.
+     * The completion handler is useful for removing event handlers.
      *
      * @param timeoutMs
      * @param onAborted
@@ -1380,6 +1386,13 @@ declare module "collections/NumericArrays" {
      * @param fn Function (number)=>number. Returns a weighting based on the given relative position. If unspecified (x) => x is used.
      */
     export const weight: (data: readonly number[], fn?: ((relativePos: number) => number) | undefined) => readonly number[];
+    /**
+     * Returns the dot product of two arbitrary-sized arrays. Assumed they are of the same length.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const dotProduct: (values: ReadonlyArray<readonly number[]>) => number;
     /**
      * Calculates the average of all numbers in an array.
      * Array items which aren't a valid number are ignored and do not factor into averaging.
@@ -3017,6 +3030,7 @@ declare module "temporal/Normalise" {
     /**
      * Normalises numbers, adjusting min/max as new values are processed.
      * Normalised return values will be in the range of 0-1 (inclusive).
+     * [Read more in the docs]{@link https://clinth.github.io/ixfx-docs/temporal/normalising/}
      *
      * @example
      * ```js
@@ -3048,7 +3062,7 @@ declare module "temporal/Normalise" {
     export const stream: (minDefault?: number | undefined, maxDefault?: number | undefined) => (v: number) => number;
     /**
      * Normalises an array. By default uses the actual min/max of the array
-     * as the normalisation range.
+     * as the normalisation range. [Read more in the docs]{@link https://clinth.github.io/ixfx-docs/temporal/normalising/}
      *
      * ```js
      * // Yields: [0.5, 0.1, 0.0, 0.9, 1]
@@ -3586,6 +3600,32 @@ declare module "collections/index" {
 }
 declare module "temporal/MovingAverage" {
     /**
+     * A moving average calculator (exponential weighted moving average) which does not keep track of
+     * previous samples. Less accurate, but uses less system resources.
+     *
+     * The `scaling` parameter determines smoothing. A value of `1` means that
+     * the latest value is used as the average - that is, no smoothing. Higher numbers
+     * introduce progressively more smoothing by weighting the accumulated prior average more heavily.
+     *
+     * `add()` adds a new value and returns the calculated average.
+     *
+     * ```
+     * const ma = movingAverageLight(); // default scaling of 3
+     * ma.add(50);  // 50
+     * ma.add(100); // 75
+     * ma.add(75);  // 75
+     * ma.add(0);   // 50
+     * ```
+     *
+     * Note that the final average of 50 is pretty far from the last value of 0. To make it more responsive,
+     * we could use a lower scaling factor: `movingAverageLight(2)`. This yields a final average of `37.5` instead.
+     *
+     * Use `clear()` to reset the moving average, or `compute()` to get the current value without adding.
+     * @param scaling Scaling factor. 1 is no smoothing. Default: 3
+     * @returns {@link MovingAverage}
+     */
+    export const movingAverageLight: (scaling?: number) => MovingAverage;
+    /**
      * Creates a moving average for a set number of `samples`.
      *
      * Moving average are useful for computing the average over a recent set of numbers.
@@ -3615,14 +3655,30 @@ declare module "temporal/MovingAverage" {
      * // Give more weight to data in middle of sampling window
      * const ma = movingAverage(100, Easings.gaussian());
      * ```
+     *
+     * Because it keeps track of `samples` previous data, there is a memory impact. A lighter version is {@link movingAverageLight} which does not keep a buffer of prior data, but can't be as easily fine-tuned.
      * @param samples Number of samples to compute average from
      * @param weightingFn Optional weighting function
      * @returns
      */
     export const movingAverage: (samples?: number, weightingFn?: ((v: number) => number) | undefined) => MovingAverage;
+    /**
+     * Moving average.
+     * Create via {@link movingAverage} or {@link movingAverageLight}.
+     */
     export type MovingAverage = {
+        /**
+         * Clear data
+         */
         clear(): void;
+        /**
+         * Returns current average
+         */
         compute(): number;
+        /**
+         * Adds a value, returning new average
+         * @param v Value to add
+         */
         add(v: number): number;
     };
 }
@@ -3752,12 +3808,29 @@ declare module "geometry/Line" {
     import { Point } from "geometry/Point";
     import { Path } from "geometry/Path";
     import { Rects, Points } from "geometry/index";
+    /**
+     * A line, which consists of an `a` and `b` {@link Point}.
+     */
     export type Line = {
         readonly a: Points.Point;
         readonly b: Points.Point;
     };
+    /**
+     * A PolyLine, consisting of more than one line.
+     */
     export type PolyLine = ReadonlyArray<Line>;
+    /**
+     * Returns true if `p` is a valid line, containing `a` and `b` Points.
+     * @param p Value to check
+     * @returns True if a valid line.
+     */
     export const isLine: (p: Path | Line | Points.Point) => p is Line;
+    /**
+     * Returns true if `p` is a {@link PolyLine}, ie. an array of {@link Line}s.
+     * Validates all items in array.
+     * @param p
+     * @returns
+     */
     export const isPolyLine: (p: any) => p is PolyLine;
     /**
      * Returns true if the lines have the same value
@@ -3787,10 +3860,7 @@ declare module "geometry/Line" {
      * @param fn Function that takes a point and returns a point
      * @returns
      */
-    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => Readonly<{
-        a: Point;
-        b: Point;
-    }>;
+    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => Readonly<Line>;
     /**
      * Throws an exception if:
      * * line is undefined
@@ -3870,7 +3940,7 @@ declare module "geometry/Line" {
      * ```js
      * // Line 1,1 -> 10,10
      * const l = fromNumbers(1,1,10,10);
-     * const ll = normalise(l, 10, 10);
+     * const ll = normaliseByRect(l, 10, 10);
      * // Yields: 0.1,0.1 -> 1,1
      * ```
      * @param line
@@ -3878,7 +3948,7 @@ declare module "geometry/Line" {
      * @param height
      * @returns
      */
-    export const normalise: (line: Line, width: number, height: number) => Line;
+    export const normaliseByRect: (line: Line, width: number, height: number) => Line;
     /**
      * Returns true if `point` is within `maxRange` of `line`.
      * ```js
@@ -3901,17 +3971,22 @@ declare module "geometry/Line" {
      * @param b Second point
      * @returns
      */
-    export const length: (aOrLine: Points.Point | Line, b?: Point | undefined) => number;
+    export const length: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => number;
+    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => Points.Point;
+    export const points: (aOrLine: Points.Point | Line, b?: Point | undefined) => readonly [Points.Point, Points.Point];
     /**
      * Returns the nearest point on `line` closest to `point`.
+     *
      * ```js
-     * nearest(line, {x:10,y:10});
+     * const pt = nearest(line, {x:10,y:10});
      * ```
-     * @param line
+     *
+     * If an array of lines is provided, it will be the closest point amongst all the lines
+     * @param line Line or array of lines
      * @param point
      * @returns Point {x,y}
      */
-    export const nearest: (line: Line, point: Points.Point) => Points.Point;
+    export const nearest: (line: Line | readonly Line[], point: Points.Point) => Points.Point;
     /**
      * Calculates [slope](https://en.wikipedia.org/wiki/Slope) of line.
      *
@@ -3926,13 +4001,48 @@ declare module "geometry/Line" {
      */
     export const slope: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
     /**
+     * Returns a point perpendicular to `line` at a specified `distance`. Use negative
+     * distances for the other side of line.
+     * ```
+     * // Project a point 100 units away from line, at its midpoint.
+     * const pt = perpendicularPoint(line, 100, 0.5);
+     * ```
+     * @param line Line
+     * @param distance Distance from line. Use negatives to flip side
+     * @param amount Relative place on line to project point from. 0 projects from A, 0.5 from the middle, 1 from B.
+     */
+    export const perpendicularPoint: (line: Line, distance: number, amount?: number) => {
+        x: number;
+        y: number;
+    };
+    /**
+     * Returns a parallel line to `line` at `distance`.
+     * @param line
+     * @param distance
+     */
+    export const parallel: (line: Line, distance: number) => Line;
+    /**
+     * Scales a line from its midpoint
+     *
+     * @example Shorten by 50%, anchored at the midpoint
+     * ```js
+     * const l = {
+     *  a: {x:50, y:50}, b: {x: 100, y: 90}
+     * }
+     * const l2 = scaleFromMidpoint(l, 0.5);
+     * ```
+     * @param line
+     * @param factor
+     */
+    export const scaleFromMidpoint: (line: Line, factor: number) => Line;
+    /**
      * Extends a line to intersection the x-axis at a specified location
      * @param line Line to extend
      * @param xIntersection Intersection of x-axis.
      */
     export const extendX: (line: Line, xIntersection: number) => Points.Point;
     /**
-     * Returns a line extended from it's start (`a`) by a specified distance
+     * Returns a line extended from its `a` point by a specified distance
      *
      * ```js
      * const line = {a: {x: 0, y:0}, b: {x:10, y:10} }
@@ -3942,13 +4052,13 @@ declare module "geometry/Line" {
      * @param distance
      * @return Newly extended line
      */
-    export const extendFromStart: (line: Line, distance: number) => Line;
+    export const extendFromA: (line: Line, distance: number) => Line;
     /**
      * Returns the distance of `point` to the
      * nearest point on `line`.
      *
      * ```js
-     * distance(line, {x:10,y:10});
+     * const d = distance(line, {x:10,y:10});
      * ```
      *
      * If an array of lines is provided, the shortest distance is returned.
@@ -3972,15 +4082,19 @@ declare module "geometry/Line" {
      * @param b End
      * @returns Point between a and b
      */
-    export function interpolate(amount: number, a: Points.Point, b: Points.Point): Points.Point;
+    export function interpolate(amount: number, a: Points.Point, pointB: Points.Point): Points.Point;
     export function interpolate(amount: number, line: Line): Points.Point;
     /**
-     * Returns a string representation of line, or two points
+     * Returns a string representation of two points
      * @param a
      * @param b
      * @returns
      */
     export function toString(a: Points.Point, b: Points.Point): string;
+    /**
+     * Returns a string representation of a line
+     * @param line
+     */
     export function toString(line: Line): string;
     /**
      * Returns a line from a basis of coordinates
@@ -3998,19 +4112,30 @@ declare module "geometry/Line" {
     /**
      * Returns an array representation of line: [a.x, a.y, b.x, b.y]
      *
+     * See {@link fromArray} to create a line _from_ this representation.
+     *
      * @export
      * @param {Point} a
      * @param {Point} b
      * @returns {number[]}
      */
     export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
+    /**
+     * Returns an SVG description of line
+     * @param a
+     * @param b
+     * @returns
+     */
     export const toSvgString: (a: Points.Point, b: Points.Point) => readonly string[];
     /**
-     * Returns a line from four numbers [x1,y1,x2,y2]
+     * Returns a line from four numbers [x1,y1,x2,y2].
+     *
+     * See {@link toFlatArray} to create an array from a line.
+     *
      * @param arr Array in the form [x1,y1,x2,y2]
      * @returns Line
      */
-    export const fromArray: (arr: readonly number[]) => Line;
+    export const fromFlatArray: (arr: readonly number[]) => Line;
     /**
      * Returns a line from two points
      * ```js
@@ -4030,6 +4155,12 @@ declare module "geometry/Line" {
      * @returns
      */
     export const joinPointsToLines: (...points: readonly Points.Point[]) => PolyLine;
+    /**
+     * Returns a {@link LinePath} from two points
+     * @param a
+     * @param b
+     * @returns
+     */
     export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
     /**
      * Returns a rectangle that encompasses dimension of line
@@ -4080,6 +4211,10 @@ declare module "geometry/Line" {
      *
      * // Rotate line by 5 degres around its end point
      * rotate(line, degreeToRadian(5), line.b);
+     *
+     * // Rotate by 90 degrees at the 80% position
+     * rotated = rotate(line, Math.PI / 2, 0.8);
+     *
      * ```
      * @param line Line to rotate
      * @param amountRadian Angle in radians to rotate by
@@ -4089,7 +4224,7 @@ declare module "geometry/Line" {
     export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
 }
 declare module "geometry/Point" {
-    import { Circles, Lines, Rects } from "geometry/index";
+    import { Circles, Lines, Points, Rects } from "geometry/index";
     /**
      * A point, consisting of x, y and maybe z fields.
      */
@@ -4099,12 +4234,27 @@ declare module "geometry/Point" {
         readonly z?: number;
     };
     /**
+     *
+     * @ignore
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const getPointParam: (a: Point | number, b?: number | undefined) => Point;
+    export const dotProduct: (...pts: readonly Point[]) => number;
+    /**
      * An empty point of {x:0, y:0}
      */
     export const Empty: Readonly<{
         x: number;
         y: number;
     }>;
+    export const Placeholder: Readonly<{
+        x: number;
+        y: number;
+    }>;
+    export const isEmpty: (p: Point) => boolean;
+    export const isPlaceholder: (p: Point) => boolean;
     /**
      * Returns the 'minimum' point from an array of points, using a comparison function.
      *
@@ -4198,7 +4348,7 @@ declare module "geometry/Point" {
      * @param p
      * @returns
      */
-    export const isPoint: (p: number | unknown) => p is Point;
+    export const isPoint: (p: number | unknown) => p is Points.Point;
     /**
      * Returns point as an array in the form [x,y]. This can be useful for some libraries
      * that expect points in array form.
@@ -4218,19 +4368,19 @@ declare module "geometry/Point" {
      */
     export const toString: (p: Point) => string;
     /**
-     * Returns _true_ if the two points have identical values
+     * Returns _true_ if the points have identical values
      *
      * ```js
      * const a = {x: 10, y: 10};
      * const b = {x: 10, y: 10;};
      * a === b        // False, because a and be are different objects
-     * equals(a, b)   // True, because a and b are same value
+     * isEqual(a, b)   // True, because a and b are same value
      * ```
      * @param a
      * @param b
      * @returns _True_ if points are equal
      */
-    export const equals: (a: Point, b: Point) => boolean;
+    export const isEqual: (...p: readonly Point[]) => boolean;
     /**
      * Returns true if two points are within a specified range.
      * Provide a point for the range to set different x/y range, or pass a number
@@ -4352,6 +4502,21 @@ declare module "geometry/Point" {
      * @returns
      */
     export const apply: (pt: Point, fn: (v: number, field?: string | undefined) => number) => Point;
+    /**
+     * Reduces over points, treating x,y separately.
+     *
+     * ```
+     * // Sum x and y valuse
+     * const total = reduce(points, (p, acc) => {
+     *  return {x: p.x + acc.x, y: p.y + acc.y}
+     * });
+     * ```
+     * @param pts Points to reduce
+     * @param fn Reducer
+     * @param initial Initial value, uses {x:0,y:0} by default
+     * @returns
+     */
+    export const reduce: (pts: readonly Point[], fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
     type Sum = {
         /**
          * Adds two sets of coordinates
@@ -4424,14 +4589,37 @@ declare module "geometry/Point" {
      */
     export function divide(a: Point, x: number, y: number): Point;
     export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
-    export const rotate: (pt: Point, amountRadian: number, origin?: Point | undefined) => Point;
+    /**
+     * Rotate a single point by a given amount in radians
+     * @param pt
+     * @param amountRadian
+     * @param origin
+     */
+    export function rotate(pt: Point, amountRadian: number, origin?: Point): Point;
+    /**
+     * Rotate several points by a given amount in radians
+     * @param pt Points
+     * @param amountRadian Amount to rotate in radians
+     * @param origin Origin to rotate around. Defaults to 0,0
+     */
+    export function rotate(pt: ReadonlyArray<Point>, amountRadian: number, origin?: Point): ReadonlyArray<Point>;
+    export const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadian: number) => number[][];
+    /**
+     * Normalise point as a unit vector
+     *
+     * @param ptOrX
+     * @param y
+     * @returns
+     */
+    export const normalise: (ptOrX: Point | number, y?: number | undefined) => Point;
     /**
      * Normalises a point by a given width and height
      * @param pt Point
      * @param width Width
      * @param height Height
      */
-    export function normalise(pt: Point, width: number, height: number): Point;
+    export function normaliseByRect(pt: Point, width: number, height: number): Point;
+    export function normaliseByRect(pt: Point, rect: Rects.Rect): Point;
     /**
      * Normalises x,y by width and height so it is on a 0..1 scale
      * @param x
@@ -4439,7 +4627,7 @@ declare module "geometry/Point" {
      * @param width
      * @param height
      */
-    export function normalise(x: number, y: number, width: number, height: number): Point;
+    export function normaliseByRect(x: number, y: number, width: number, height: number): Point;
     /**
      * Wraps a point to be within `ptMin` and `ptMax`.
      * Note that max values are _exclusive_, meaning the return value will always be one less.
@@ -4714,11 +4902,23 @@ declare module "geometry/Circle" {
      */
     export const interpolate: (circle: CirclePositioned, t: number) => Points.Point;
     /**
-     * Returns circumference of circle
+     * Returns circumference of `circle` (alias of {@link circumference})
      * @param circle
      * @returns
      */
     export const length: (circle: Circle) => number;
+    /**
+     * Returns circumference of `circle` (alias of {@link length})
+     * @param circle
+     * @returns
+     */
+    export const circumference: (circle: Circle) => number;
+    /**
+     * Returns the area of `circle`.
+     * @param circle
+     * @returns
+     */
+    export const area: (circle: Circle) => number;
     /**
      * Computes a bounding box that encloses circle
      * @param circle
@@ -5286,8 +5486,14 @@ declare module "geometry/Rect" {
     export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
     export const guard: (rect: Rect, name?: string) => void;
     export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    export const getCorners: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Points.Point[];
+    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Points.Point[];
     export const getCenter: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => Points.Point;
+    /**
+     * Returns the length of each side of the rectangle (top, right, bottom, left)
+     * @param rect
+     * @returns
+     */
+    export const lengths: (rect: RectPositioned) => readonly number[];
     /**
      * Returns four lines based on each corner.
      * Lines are given in order: top, right, bottom, left
@@ -5296,7 +5502,19 @@ declare module "geometry/Rect" {
      * @param {Points.Point} [origin]
      * @returns {Lines.Line[]}
      */
-    export const getLines: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Lines.Line[];
+    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Lines.Line[];
+    /**
+     * Returns the perimeter of `rect` (ie. sum of all edges)
+     * @param rect
+     * @returns
+     */
+    export const perimeter: (rect: Rect) => number;
+    /**
+     * Returns the area of `rect`
+     * @param rect
+     * @returns
+     */
+    export const area: (rect: Rect) => number;
 }
 declare module "geometry/Ellipse" {
     import { Path } from "geometry/Path";
@@ -5401,6 +5619,325 @@ declare module "geometry/Polar" {
      */
     export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
 }
+declare module "geometry/Shape" {
+    import { Point } from "geometry/Point";
+    /**
+     * Generates a starburst shape, returning an array of points. By default, initial point is top and horizontally-centred.
+     *
+     * ```
+     * // Generate a starburst with four spikes
+     * const pts = starburst(4, 100, 200);
+     * ```
+     *
+     * `points` of two produces a lozenge shape.
+     * `points` of three produces a triangle shape.
+     * `points` of five is the familiar 'star' shape.
+     *
+     * Note that the path will need to be closed back to the first point to enclose the shape.
+     *
+     * @example Create starburst and draw it. Note use of 'loop' flag to close the path
+     * ```
+     * const points = starburst(4, 100, 200);
+     * Drawing.connectedPoints(ctx, pts, {loop: true, fillStyle: `orange`, strokeStyle: `red`});
+     * ```
+     *
+     * Options:
+     * * initialAngleRadian: angle offset to begin from. This overrides the `-Math.PI/2` default.
+     *
+     * @param points Number of points in the starburst. Defaults to five, which produces a typical star
+     * @param innerRadius Inner radius. A proportionally smaller inner radius makes for sharper spikes. If unspecified, 50% of the outer radius is used.
+     * @param outerRadius Outer radius. Maximum radius of a spike to origin
+     * @param opts Options
+     * @param origin Origin, or {x:0:y:0} by default.
+     */
+    export const starburst: (outerRadius: number, points?: number, innerRadius?: number | undefined, origin?: Point, opts?: {
+        readonly initialAngleRadian?: number | undefined;
+    } | undefined) => readonly Point[];
+}
+declare module "geometry/Triangle" {
+    import { Points, Lines, Circles, Triangles, Rects } from "geometry/index";
+    /**
+     * Triangle.
+     *
+     * Helpers for creating:
+     *  - {@link fromFlatArray}: Create from [x1, y1, x2, y2, x3, y3]
+     *  - {@link fromPoints}: Create from three {x,y} sets
+     *  - {@link fromRadius}: Equilateral triangle of a given radius and center
+     */
+    export type Triangle = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+        readonly c: Points.Point;
+    };
+    /**
+     * A triangle consisting of three empty points (Points.Empty)
+     */
+    export const Empty: Readonly<{
+        a: Readonly<{
+            x: number;
+            y: number;
+        }>;
+        b: Readonly<{
+            x: number;
+            y: number;
+        }>;
+        c: Readonly<{
+            x: number;
+            y: number;
+        }>;
+    }>;
+    /**
+     * A triangle consisting of three placeholder points (Points.Placeholder)
+     */
+    export const Placeholder: Readonly<{
+        a: Readonly<{
+            x: number;
+            y: number;
+        }>;
+        b: Readonly<{
+            x: number;
+            y: number;
+        }>;
+        c: Readonly<{
+            x: number;
+            y: number;
+        }>;
+    }>;
+    /**
+     * Returns true if triangle is empty
+     * @param t
+     * @returns
+     */
+    export const isEmpty: (t: Triangle) => boolean;
+    /**
+     * Returns true if triangle is a placeholder
+     * @param t
+     * @returns
+     */
+    export const isPlaceholder: (t: Triangle) => boolean;
+    /**
+     * Applies `fn` to each of a triangle's corner points, returning the result.
+     *
+     * @example Add some random to the x of each corner
+     * ```
+     * const t = apply(tri, p => {
+     *  const r = 10;
+     *  return {
+     *    x: p.x + (Math.random()*r*2) - r,
+     *    y: p.y
+     *  }
+     * });
+     * ```
+     * @param t
+     * @param fn
+     * @returns
+     */
+    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string | undefined) => Points.Point) => Readonly<Triangles.Triangle>;
+    /**
+     * Throws an exception if the triangle is invalid
+     * @param t
+     * @param name
+     */
+    export const guard: (t: Triangle, name?: string) => void;
+    /**
+     * Returns true if the parameter appears to be a valid triangle
+     * @param p
+     * @returns
+     */
+    export const isTriangle: (p: number | unknown) => p is Triangles.Triangle;
+    /**
+     * Returns true if the two parameters have equal values
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqual: (a: Triangle, b: Triangle) => boolean;
+    /**
+     * Returns the corners (vertices) of the triangle as an array of points
+     * @param t
+     * @returns Array of length three
+     */
+    export const corners: (t: Triangle) => readonly Points.Point[];
+    /**
+     * Returns the edges (ie sides) of the triangle as an array of lines
+     * @param t
+     * @returns Array of length three
+     */
+    export const edges: (t: Triangle) => Lines.PolyLine;
+    /**
+     * Returns the lengths of the triangle sides
+     * @param t
+     * @returns Array of length three
+     */
+    export const lengths: (t: Triangle) => readonly number[];
+    /**
+     * Return the three interior angles of the triangle, in radians.
+     * @param t
+     * @returns
+     */
+    export const angles: (t: Triangle) => readonly number[];
+    /**
+     * Returns the three interior angles of the triangle, in degrees
+     * @param t
+     * @returns
+     */
+    export const anglesDegrees: (t: Triangle) => readonly number[];
+    /**
+     * Returns true if it is an equilateral triangle
+     * @param t
+     * @returns
+     */
+    export const isEquilateral: (t: Triangle) => boolean;
+    /**
+     * Returns true if it is an isoceles triangle
+     * @param t
+     * @returns
+     */
+    export const isIsoceles: (t: Triangle) => boolean;
+    /**
+     * Returns true if at least one interior angle is 90 degrees
+     * @param t
+     * @returns
+     */
+    export const isRightAngle: (t: Triangle) => boolean;
+    /**
+     * Returns true if triangle is oblique: No interior angle is 90 degrees
+     * @param t
+     * @returns
+     */
+    export const isOblique: (t: Triangle) => boolean;
+    /**
+     * Returns true if triangle is actue: all interior angles less than 90 degrees
+     * @param t
+     * @returns
+     */
+    export const isAcute: (t: Triangle) => boolean;
+    /**
+     * Returns true if triangle is obtuse: at least one interior angle is greater than 90 degrees
+     * @param t
+     * @returns
+     */
+    export const isObtuse: (t: Triangle) => boolean;
+    /**
+     * Returns simple centroid of triangle
+     * @param t
+     * @returns
+     */
+    export const centroid: (t: Triangle) => Points.Point;
+    /**
+     * Calculates perimeter of a triangle
+     * @param t
+     * @returns
+     */
+    export const perimeter: (t: Triangle) => number;
+    /**
+     * Calculates the area of a triangle
+     * @param t
+     * @returns
+     */
+    export const area: (t: Triangle) => number;
+    /**
+     * Returns the largest circle enclosed by triangle `t`.
+     * @param t
+     */
+    export const innerCircle: (t: Triangle) => Circles.CirclePositioned;
+    /**
+     * Returns the largest circle touching the corners of triangle `t`.
+     * @param t
+     * @returns
+     */
+    export const outerCircle: (t: Triangle) => Circles.CirclePositioned;
+    /**
+     * Returns an equilateral triangle centered at the origin.
+     *
+     * ```js
+     * // Create a triangle at 100,100 with radius of 60
+     * const tri = equilateralFromOrigin({x:100,y:100}, 60);
+     *
+     * // Triangle with point A upwards, B to the right, C to the left
+     * constr tri2 = equilateralFromOrigin({x:100,y:100}, 60, {initialAngleRadian: -Math.PI / 2});
+     * ```
+     *
+     *
+     * @param origin
+     * @param length
+     */
+    export const fromRadius: (origin: Points.Point, radius: number, opts?: {
+        readonly initialAngleRadian?: number;
+    }) => Triangle;
+    /**
+     * Returns the coordinates of triangle in a flat array form:
+     * [xA, yA, xB, yB, xC, yC]
+     * @param t
+     * @returns
+     */
+    export const toFlatArray: (t: Triangle) => readonly number[];
+    /**
+     * Returns a triangle from a set of coordinates in a flat array form:
+     * [xA, yA, xB, yB, xC, yC]
+     * @param coords
+     * @returns
+     */
+    export const fromFlatArray: (coords: readonly number[]) => Triangle;
+    /**
+     * Returns a triangle from an array of three points
+     * @param points
+     * @returns
+     */
+    export const fromPoints: (points: readonly Points.Point[]) => Triangle;
+    /**
+     * Returns the bounding box that encloses the triangle.
+     * @param t
+     * @param inflation If specified, box will be inflated by this much. Default: 0.
+     * @returns
+     */
+    export const bbox: (t: Triangle, inflation?: number) => Rects.RectPositioned;
+    export type BarycentricCoord = {
+        readonly a: number;
+        readonly b: number;
+        readonly c: number;
+    };
+    /**
+     * Returns the Barycentric coordinate of a point within a triangle
+     * {@link https://en.wikipedia.org/wiki/Barycentric_coordinate_system}
+     * @param t
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const barycentricCoord: (t: Triangle, a: Points.Point | number, b?: number | undefined) => BarycentricCoord;
+    /**
+     * Convert Barycentric coordinate to Cartesian
+     * @param t
+     * @param bc
+     * @returns
+     */
+    export const barycentricToCartestian: (t: Triangle, bc: BarycentricCoord) => Points.Point;
+    /**
+     * Returns true if point is within or on the boundary of triangle
+     * @param t
+     * @param a
+     * @param b
+     */
+    export const intersectsPoint: (t: Triangle, a: Points.Point | number, b?: number | undefined) => boolean;
+    /**
+     * Returns a triangle that is rotated by `angleRad`. By default it rotates
+     * around its center but an arbitrary `origin` point can be provided.
+     *
+     * ```js
+     * // Rotate triangle by 5 degrees
+     * rotate(triangle, degreeToRadian(5));
+     *
+     * // Rotate by 90 degrees
+     * rotate(triangle, Math.PI / 2);
+     * ```
+     * @param line Line to rotate
+     * @param amountRadian Angle in radians to rotate by
+     * @param origin Point to rotate around. If undefined, middle of line will be used
+     * @returns
+     */
+    export const rotate: (t: Triangle, amountRadian?: number | undefined, origin?: Points.Point | undefined) => Triangle;
+}
 declare module "geometry/index" {
     import * as Arcs from "geometry/Arc";
     import * as Beziers from "geometry/Bezier";
@@ -5414,18 +5951,43 @@ declare module "geometry/index" {
     import * as Ellipses from "geometry/Ellipse";
     export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses };
     export * as Polar from "geometry/Polar";
+    export * as Shapes from "geometry/Shape";
+    /**
+     * Triangle processing.
+     *
+     * Helpers for creating:
+     * - {@link Triangles.fromFlatArray}: Create from [x1, y1, x2, y2, x3, y3]
+     * - {@link Triangles.fromPoints}: Create from three {x,y} sets
+     * - {@link Triangles.fromRadius}: Equilateral triangle of a given radius and center
+     */
+    export * as Triangles from "geometry/Triangle";
     /**
      * Convert angle in degrees to angle in radians.
      * @param angleInDegrees
      * @returns
      */
-    export const degreeToRadian: (angleInDegrees: number) => number;
+    export function degreeToRadian(angleInDegrees: number): number;
+    /**
+     * Convert angles in degrees to angles in radians
+     * @param angleInDegrees
+     */
+    export function degreeToRadian(angleInDegrees: readonly number[]): readonly number[];
     /**
      * Convert angle in radians to angle in degrees
      * @param angleInRadians
      * @returns
      */
-    export const radianToDegree: (angleInRadians: number) => number;
+    export function radianToDegree(angleInRadians: number): number;
+    /**
+     * Convert angles in radians to angles in degrees
+     * @param angleInRadians
+     */
+    export function radianToDegree(angleInRadians: readonly number[]): readonly number[];
+    /**
+     * Angle from x-axis to point (ie. `Math.atan2`)
+     * @param point
+     * @returns
+     */
     export const radiansFromAxisX: (point: Points.Point) => number;
 }
 declare module "flow/StateMachine" {
@@ -6219,6 +6781,7 @@ declare module "visual/Drawing" {
     import * as Points from "geometry/Point";
     import * as Paths from "geometry/Path";
     import * as Lines from "geometry/Line";
+    import * as Triangles from "geometry/Triangle";
     import * as Circles from "geometry/Circle";
     import * as Arcs from "geometry/Arc";
     import * as Beziers from "geometry/Bezier";
@@ -6321,9 +6884,20 @@ declare module "visual/Drawing" {
     /**
      * Draws one or more circles. Will draw outline/fill depending on
      * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
-     * @param ctx
-     * @param circlesToDraw
-     * @param opts
+     *
+     * ```js
+     * // Draw a circle with radius of 10 at 0,0
+     * circle(ctx, {radius:10});
+     *
+     * // Draw a circle of radius 10 at 100,100
+     * circle(ctx, {radius: 10, x: 100, y: 100});
+     *
+     * // Draw two blue outlined circles
+     * circle(ctx, [ {radius: 5}, {radius: 10} ], {strokeStyle:`blue`});
+     * ```
+     * @param ctx Drawing context
+     * @param circlesToDraw Circle(s) to draw
+     * @param opts Drawing options
      */
     export const circle: (ctx: CanvasRenderingContext2D, circlesToDraw: Circles.CirclePositioned | readonly Circles.CirclePositioned[], opts?: DrawingOpts) => void;
     /**
@@ -6347,12 +6921,17 @@ declare module "visual/Drawing" {
     }>) => void;
     /**
      * Draws a line between all the given points.
+     * If a fillStyle is specified, it will be filled.
+     *
+     * See also:
+     * * {@link line}: Draw one or more lines
      *
      * @param ctx
      * @param pts
      */
     export const connectedPoints: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
         readonly loop?: boolean;
+        readonly fillStyle?: string;
         readonly strokeStyle?: string;
     }) => void;
     /**
@@ -6404,7 +6983,12 @@ declare module "visual/Drawing" {
      */
     export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined) => void;
     /**
-     * Draws one or more lines
+     * Draws one or more lines.
+     *
+     * Each line is drawn independently, ie it's not assumed lines are connected.
+     *
+     * See also:
+     * * {@link connectedPoints}: Draw a series of connected points
      * @param ctx
      * @param toDraw
      * @param opts
@@ -6412,6 +6996,15 @@ declare module "visual/Drawing" {
     export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: {
         readonly strokeStyle?: string;
         readonly debug?: boolean;
+    }) => void;
+    /**
+     * Draws one or more triangles
+     * @param ctx
+     * @param toDraw
+     * @param opts
+     */
+    export const triangle: (ctx: CanvasRenderingContext2D, toDraw: Triangles.Triangle | readonly Triangles.Triangle[], opts?: DrawingOpts & {
+        readonly filled?: boolean;
     }) => void;
     /**
      * Draws one or more rectangles
@@ -7082,6 +7675,7 @@ declare module "visual/Plot2" {
         type: string;
         get range(): DataRange;
         add(value: number): void;
+        clear(): void;
     }
     /**
      * Plot options
@@ -7155,6 +7749,7 @@ declare module "visual/Plot2" {
         get visualRange(): DataRange;
         scaleValue(value: number): number;
         add(value: number): void;
+        clear(): void;
     }
     class PlotArea extends Sg.CanvasBox {
         private plot;
@@ -7251,7 +7846,7 @@ declare module "visual/Plot2" {
         get seriesLength(): number;
         plot(o: any): void;
         createSeriesFromObject(o: any, prefix?: string): Series[];
-        createSeries(name?: string, type?: `stream` | `array`, initialData?: number[]): Series;
+        createSeries(name?: string, type?: `stream` | `array`, seriesOpts?: SeriesOpts): Series;
     }
 }
 declare module "visual/Palette" {
@@ -7341,7 +7936,7 @@ declare module "visual/Video" {
     /**
      * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
      *
-     * ```@example Using a function
+     * ```js @example Using a function
      * capture(sourceVideoEl, {
      *  onFrame(imageData => {
      *    // Do something with pixels...
@@ -7349,7 +7944,7 @@ declare module "visual/Video" {
      * });
      * ```
      *
-     * ```@example Using a worker
+     * ```js @example Using a worker
      * capture(sourceVideoEl, {
      *  workerScript: `./frameProcessor.js`
      * });
@@ -8162,11 +8757,15 @@ declare module "modulation/index" {
 }
 declare module "index" {
     /**
-     * Processing streams of data
+     * Processing streams of data. [Read more in the docs]{@link https://clinth.github.io/ixfx-docs/temporal/normalising/}
+     *
+     * * {@link movingAverage}: Calculates an average-over-time ({@link movingAverageLight} is a coarser, less memory-intensive version)
+     * * {@link frequencyMutable}: Count occurences of a value
+     * * {@link Normalise.stream}: Normalises a stream of values
+     * * {@link Normalise.array}: Normalises an array of values
      */
     export * as Temporal from "temporal/index";
     /**
-     * Geometry
      * Functions for different shapes, paths and coordinate spaces
      */
     export * as Geometry from "geometry/index";

@@ -1,9 +1,9 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-c4f8914d';
-import './NumericArrays-31f025d3';
-import './Timer-7b853923';
+import { a as KeyValue } from './KeyValue-25bbcefb';
+import './NumericArrays-20f70b74';
+import './Timer-504c3588';
 import 'fp-ts/Ord';
 
 declare type Bar = {

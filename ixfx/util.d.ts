@@ -33,7 +33,7 @@ declare const clamp: (v: number, min?: number, max?: number) => number;
  * getFieldByPath(d, `accel.x`); // 1
  * getFieldByPath(d, `gyro.z`);  // 6
  * getFieldByPath(d, `gyro`);    // {x:4, y:5, z:6}
- * getFieldByPath(d, ``);        // Returns d
+ * getFieldByPath(d, ``);        // Returns original object
  * ```
  *
  * If a field does not exist, `undefined` is returned.
@@ -53,6 +53,8 @@ declare const getFieldByPath: (o: any, path?: string) => any | undefined;
  * const paths = getFieldPaths(d);
  * // Yields [ `accel.x`, `accel.y`,`accel.z`,`gyro.x`,`gyro.y`,`gyro.z` ]
  * ```
+ *
+ * Use {@link getFieldByPath} to fetch data by this 'path' string.
  * @param o
  * @returns
  */

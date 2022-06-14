@@ -10,15 +10,18 @@ import {
   Point_exports,
   Polar_exports,
   Rect_exports,
+  Shape_exports,
+  Triangle_exports,
   degreeToRadian,
   radianToDegree,
   radiansFromAxisX
-} from "./chunk-EWJOOSYZ.js";
+} from "./chunk-UDDWVRTZ.js";
+import "./chunk-3DWD5YJK.js";
 import "./chunk-K2FHRTQU.js";
 import "./chunk-QW55TWGM.js";
-import "./chunk-X4YAGPZT.js";
-import "./chunk-DN3NVSOX.js";
-import "./chunk-MO4DU4X3.js";
+import "./chunk-EHDDJNDI.js";
+import "./chunk-LN3DFHLP.js";
+import "./chunk-JR6BAO3R.js";
 import "./chunk-IMPA6CRY.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-TIBI6QSU.js";
@@ -35,6 +38,8 @@ export {
   Point_exports as Points,
   Polar_exports as Polar,
   Rect_exports as Rects,
+  Shape_exports as Shapes,
+  Triangle_exports as Triangles,
   degreeToRadian,
   radianToDegree,
   radiansFromAxisX
