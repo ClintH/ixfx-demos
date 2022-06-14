@@ -1,7 +1,7 @@
 /**
  * pixels-overlay: draws on top of a camera feed
  * 
- * Please see README.md
+ * Please see README.md in parent folder.
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
@@ -15,11 +15,12 @@ const settings = {
   threshold: 30,
   // If true, the differencing is shown. If false, just the difference calculation is shown
   visualise: true,
+  frameIntervalTracker: intervalTracker(`fps`, 100),
+  // HTML Elements
   /** @type {HTMLCanvasElement} */
   canvasEl: document.getElementById(`canvas`),
   lblFps: document.getElementById(`lblFps`),
-  lblDifferences: document.getElementById(`lblDifferences`),
-  frameIntervalTracker: intervalTracker(`fps`, 100)
+  lblDifferences: document.getElementById(`lblDifferences`)
 }
 
 /**

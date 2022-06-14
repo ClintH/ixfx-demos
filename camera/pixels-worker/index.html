@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pixels-worker</title>
+</head>
+
+<body>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+  <section>
+    <h1>pixels-worker</h1>
+    <p>This demo only shows the calculated result - the percentage of pixels deemed different than the last frame.</p>
+    <button id="btnStart">Start</button>
+    <div id="lblFps"></div>
+    <div id="lblDifferences"></div>
+    <h2>Temporal</h2>
+    <p>Difference value with averaging via a Tracker</p>
+    <div id="lblDiffVu"></div>
+
+  </section>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>

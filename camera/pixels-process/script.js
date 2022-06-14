@@ -1,7 +1,7 @@
 /**
  * pixels-process: pixel-level manipulation of frames from a camera, drawing them to a canvas
  * 
- * Please see README.md
+ * Please see README.md in parent folder.
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
@@ -15,11 +15,12 @@ const settings = {
   threshold: 30,
   // If true, the differencing is shown. If false, just the difference calculation is shown
   visualise: true,
+  frameIntervalTracker: intervalTracker(`fps`, 100),
+  // HTML Elements
   /** @type {HTMLCanvasElement} */
   canvasEl: document.getElementById(`canvas`),
   lblFps: document.getElementById(`lblFps`),
-  lblDifferences: document.getElementById(`lblDifferences`),
-  frameIntervalTracker: intervalTracker(`fps`, 100)
+  lblDifferences: document.getElementById(`lblDifferences`)
 }
 
 /**
@@ -89,8 +90,6 @@ const update = (frame, ctx) => {
         if (diff > threshold) {
           differences++;
         } else {
-          // Pixel is not different, if `visualise` flag is true,
-          // set pixel to grayscale
           if (visualise) {
             // Pixel is the same as before, set it to
             // a translucent grayscale
@@ -104,6 +103,8 @@ const update = (frame, ctx) => {
     }
 
     // Write pixels to canvas
+    // Pixels that were different are unchanged, so they come through in original colour
+    // but pixels deemed same as last frame were changed to grayscale and translucent
     if (visualise) ctx.putImageData(frame, 0, 0);
 
     // Get a proportional difference, dividing by total number of pixels
