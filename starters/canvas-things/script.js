@@ -3,7 +3,7 @@ import {randomElement} from '../../ixfx/arrays.js';
 import {continuously} from '../../ixfx/flow.js';
 
 /**
- * Define our 'thing' (this is optional) which consists of x,y and msg fields
+ * Define our 'thing' (this is optional) which consists of scale,x,y,created and msg fields
  * @typedef {{x:number, y:number, scale:number, msg:string, created:number}} Thing
  */
 
@@ -14,7 +14,11 @@ const settings = {
   addIntervalMs: 100,
   // How much to let thing fall off edge before resetting it
   // This is needed or things can be reset too early
-  edgeGrace: 0.1
+  edgeMax: 1.05,
+  // Value to reset thing to if it goes past max
+  edgeMin: 0,
+  xSpeed: 0.01,
+  ySpeed: 0.001
 };
 
 // Initial state with empty values
@@ -25,6 +29,7 @@ let state = {
     center: {x: 0, y: 0}
   },
   ticks: 0,
+  /** @type Thing[] */
   things: []
 };
 
@@ -48,7 +53,7 @@ const addRandomThing = () => {
 
 /**
  * Deletes a thing
- * @param {*} t 
+ * @param {Thing} t 
  */
 const deleteThing = (t) => {
   state.things = state.things.filter(v => v !== t);
@@ -69,13 +74,17 @@ const deleteOlderThan = (milliseconds) => {
  * @param {Thing} t 
  */
 const updateThing = (t) => {
-  const {edgeGrace} = settings;
-  // Drift thing across screen (using relative coordinates)
-  t.x += 0.01;
-  if (t.x > 1 + edgeGrace) t.x = 0;
+  const {edgeMax, edgeMin, xSpeed, ySpeed} = settings;
 
-  t.y += 0.001;
-  if (t.y > 1 + edgeGrace) t.y = 0;
+  // Drift thing across screen (using relative coordinates)
+  t.x += xSpeed;
+  if (t.x > edgeMax) t.x = edgeMin; // Reset x
+
+  t.y += ySpeed;
+  if (t.y > edgeMax) {
+    t.x = t.y = edgeMin; // Reset y
+
+  }
 };
 
 /**

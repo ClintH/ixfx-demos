@@ -9,7 +9,7 @@ The loop is:
 
 In the demo, each thing consists of an x,y coordinate, scale and a string message. For particle-type effects, it's  common for things to have a coordinate which is updated and used as a basis for drawing, but it's entirely up to you.
 
-You will experience performance issues as the number of things you're updating increase. Make sure it's not possible for items to be continually being added without a limit, or some logic for deletion.
+You will experience performance issues as the number of things you're updating & drawing increase. Make sure it's not possible for items to be continually being added without a limit, or some logic for deletion.
 
 ## Adding things
 
