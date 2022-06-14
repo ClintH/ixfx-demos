@@ -3,7 +3,7 @@
  * See README.MD
  */
 import {movingAverage} from '../../ixfx/temporal.js';
-import {Analysers} from '../../ixfx/audio.js';
+import {AudioAnalysers} from '../../ixfx/io.js';
 import {clamp, flip} from '../../ixfx/util.js';
 
 const settings = {
@@ -89,7 +89,7 @@ const setup = () => {
     // Initialise analyser. 
     // Analyser runs in a loop, calling `onData` very fast. 
     // We use that loop to drive the sketch rather than make another
-    Analysers.peakLevel(onData);
+    AudioAnalysers.peakLevel(onData);
 
     // Disable button if start is clicked
     document.getElementById(`btnStart`).setAttribute(`disabled`, `true`);
