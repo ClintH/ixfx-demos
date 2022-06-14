@@ -1,28 +1,15 @@
 /**
- * Demonstates starting a video stream, accessing and manipulating pixel data
- * and then writing it back to a canvas.
+ * pixels-process: pixel-level manipulation of frames from a camera, drawing them to a canvas
  * 
- * In this case, the processing compares the current video frame to the last, 
- * counting the number of pixels which have changed. This is boiled down to a % in
- * state.differences.
- * 
- * To demo changing pixels, it sets all unchanged pixels to grayscale, and 
- * somewhat translucent. Only changed pixels are left alone.
- *
- * Settings:
- *  threshold: how much change in grayscale value counts as a changed pixel. Lower = more sensitive
- *  visualise: if 'false', the video feed is not shown
- * 
- * This technique works well if you only want to show processed pixels, and the
- * output matches the input dimensions.
- * 
- * For a variation, see the `camera-overlay` demo. In that one, we draw on top of the
- * video feed, rather than edit the pixels.
+ * Please see README.md
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
 import {intervalTracker} from '../../ixfx/temporal.js';
 
+/**
+ * Define settings
+ */
 const settings = {
   // Difference in grayscale value to count as a changed pixel
   threshold: 30,
@@ -35,37 +22,24 @@ const settings = {
   frameIntervalTracker: intervalTracker(`fps`, 100)
 }
 
+/**
+ * Define state
+ */
 let state = {
   fps: 0,
   lastFrame: new Uint8ClampedArray(),
   differences: 0
 }
 
+/**
+ * Update labels based on state
+ */
 const draw = () => {
   const {fps, differences} = state;
   const {lblFps, lblDifferences} = settings;
   lblFps.innerText = `FPS: ${fps}`;
   lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
 }
-
-// Returns pixel indexes for rgba values at x,y
-const rgbaIndexes = (width, x, y) => {
-  const p = y * (width * 4) + x * 4;
-  return [p, p + 1, p + 2, p + 3]
-}
-
-// Get the pixel values for a set of indexes
-const rgbaValues = (frame, indexes) => [
-  frame[indexes[0]],
-  frame[indexes[1]],
-  frame[indexes[2]],
-  frame[indexes[3]]
-];
-
-const rgbaString = (values) => `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${values[3]})`;
-
-// Returns a simple average of RGB (ignoring alpha)
-const grayscale = (values) => (values[0] + values[1] + values[2]) / 3;
 
 /**
  * In this simple frame processor, the current frame is compared
@@ -79,8 +53,13 @@ const update = (frame, ctx) => {
   const {data} = frame;
   const {lastFrame} = state;
   const {threshold, frameIntervalTracker, visualise} = settings;
+
+  // Counter for how many pixels have changed
   let differences = 0;
+
+  // Copy frame data
   const frameDataCopy = new Uint8ClampedArray(frame.data);
+
   if (lastFrame.length === 0) {
     // No previous frame
   } else {
@@ -88,19 +67,30 @@ const update = (frame, ctx) => {
     differences = 0;
     const w = frame.width;
     const h = frame.height;
+
+    // Proceed left-to-right
     for (let x = 0; x < w; x++) {
+      // ...top-to-bottom
       for (let y = 0; y < h; y++) {
+        // Get array indexes of pixel
         const indexes = rgbaIndexes(w, x, y);
+
+        // Get RGBA values and then compute grayscale value
         const pixel = rgbaValues(data, indexes);
         const pixelGray = grayscale(pixel);
 
         // Get the grayscale value of the same pixel in last frame
         const lastFramePixelGray = grayscale(rgbaValues(lastFrame, indexes));
 
+        // Calculate absolute difference (don't care if it's higher or lower)
         const diff = Math.abs(pixelGray - lastFramePixelGray);
+
+        // If difference is greater than the threshold, count it
         if (diff > threshold) {
           differences++;
         } else {
+          // Pixel is not different, if `visualise` flag is true,
+          // set pixel to grayscale
           if (visualise) {
             // Pixel is the same as before, set it to
             // a translucent grayscale
@@ -113,7 +103,7 @@ const update = (frame, ctx) => {
       }
     }
 
-    // Write pixels
+    // Write pixels to canvas
     if (visualise) ctx.putImageData(frame, 0, 0);
 
     // Get a proportional difference, dividing by total number of pixels
@@ -129,6 +119,42 @@ const update = (frame, ctx) => {
     differences
   }
 }
+
+/**
+ * Get array indexes for pixel at x,y. This is four indexes,
+ * for R, G, B and A.
+ * @param {number} width Width of frame
+ * @param {number} x X position
+ * @param {number} y Y position
+ * @returns number[]
+ */
+const rgbaIndexes = (width, x, y) => {
+  const p = y * (width * 4) + x * 4;
+  return [p, p + 1, p + 2, p + 3]
+}
+
+/**
+ * Get the pixel values for a set of indexes
+ * @param Uint8ClampedArray frame 
+ * @param {number[]} indexes 
+ * @returns number[]
+ */
+const rgbaValues = (frame, indexes) => [
+  frame[indexes[0]],
+  frame[indexes[1]],
+  frame[indexes[2]],
+  frame[indexes[3]]
+];
+
+//const rgbaString = (values) => `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${values[3]})`;
+
+/**
+ * Calculates grayscale value of a pixel (ignoring alpha)
+ * @param {number[]} values 
+ * @returns number
+ */
+const grayscale = (values) => (values[0] + values[1] + values[2]) / 3;
+
 
 const startVideo = async () => {
   const {canvasEl, visualise} = settings;
