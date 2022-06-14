@@ -1,5 +1,5 @@
-import { S as SimpleEventEmitter } from './Events-d79f0e59';
-import { ToString, IsEqual } from './util';
+import { S as SimpleEventEmitter } from './Events-d79f0e59.js';
+import { ToString, IsEqual } from './util.js';
 
 /**
  * @private

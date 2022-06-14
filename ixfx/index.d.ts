@@ -1655,17 +1655,37 @@ declare module "collections/Arrays" {
     export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
     /**
      * Returns an array with a value omitted. If value is not found, result will be a copy of input.
-     * Value checking is completed via the provided `comparer` function, or by default checking whether `a === b`.
+     * Value checking is completed via the provided `comparer` function. By default checking whether `a === b`. To compare based on value, use the `isEqualValueDefault` comparer.
      *
      * @example
      * ```js
      * const data = [100, 20, 40];
      * const filtered = without(data, 20); // [100, 40]
      * ```
+     *
+     * @example Using value-based comparison
+     * ```js
+     * const data = [{name: `Alice`}, {name:`Sam`}];
+     *
+     * // This wouldn't work as expected, because the default comparer uses instance,
+     * // not value:
+     * without(data, {name: `Alice`});
+     *
+     * // So instead we can use a value comparer:
+     * without(data, {name:`Alice`}, isEqualValueDefault);
+     * ```
+     *
+     * @example Use a function
+     * ```js
+     * const data = [{name: `Alice`}, {name:`Sam`}];
+     * without(data, {name:`ALICE`}, (a, b) => {
+     *  return (a.name.toLowerCase() === b.name.toLowerCase());
+     * });
+     * ```
      * @template V Type of array items
      * @param data Source array
      * @param value Value to remove
-     * @param comparer Comparison function. If not provided {@link isEqualDefault} is used, which compares using `===`
+     * @param comparer Comparison function. If not provided `Util.isEqualDefault` is used, which compares using `===`
      * @return Copy of array without value.
      */
     export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
@@ -4240,7 +4260,7 @@ declare module "geometry/Point" {
      * @param b
      * @returns
      */
-    export const getPointParam: (a: Point | number, b?: number | undefined) => Point;
+    export const getPointParam: (a?: number | Points.Point | undefined, b?: number | undefined) => Point;
     export const dotProduct: (...pts: readonly Point[]) => number;
     /**
      * An empty point of {x:0, y:0}
@@ -4275,13 +4295,9 @@ declare module "geometry/Point" {
      * @returns
      */
     export const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points: readonly Point[]) => Point;
-    /**
-     * Calculate distance between two points
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const distance: (a: Point, b: Point) => number;
+    export function distance(a: Point, b: Point): number;
+    export function distance(a: Point, x: number, y: number): number;
+    export function distance(a: Point): number;
     /**
      * Returns the distance from point `a` to the exterior of `shape`.
      *
@@ -6350,6 +6366,194 @@ declare module "io/NordicBleDevice" {
         constructor(device: BluetoothDevice, opts?: Opts);
     }
 }
+declare module "io/AudioVisualiser" {
+    import { Points } from "geometry/index";
+    import { Tracker } from "temporal/Tracker";
+    import { AudioAnalyser } from "io/AudioAnalyser";
+    export default class AudioVisualiser {
+        freqMaxRange: number;
+        audio: AudioAnalyser;
+        parent: HTMLElement;
+        lastPointer: Points.Point;
+        pointerDown: boolean;
+        pointerClicking: boolean;
+        pointerClickDelayMs: number;
+        pointerDelaying: boolean;
+        waveTracker: Tracker;
+        freqTracker: Tracker;
+        el: HTMLElement;
+        constructor(parentElem: HTMLElement, audio: AudioAnalyser);
+        renderFreq(freq: readonly number[]): void;
+        isExpanded(): boolean;
+        setExpanded(value: boolean): void;
+        clear(): void;
+        clearCanvas(canvas: HTMLCanvasElement | null): void;
+        renderWave(wave: readonly number[], bipolar?: boolean): void;
+        getPointerRelativeTo(elem: HTMLElement): {
+            x: number;
+            y: number;
+        };
+        onPointer(evt: MouseEvent | PointerEvent): void;
+    }
+}
+declare module "io/AudioAnalyser" {
+    import AudioVisualiser from "io/AudioVisualiser";
+    /**
+     * Options for audio processing
+     *
+     * fftSize: Must be a power of 2, from 32 - 32768. Higher number means
+     * more precision and higher CPU overhead
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
+     *
+     * smoothingTimeConstant: Range from 0-1, default is 0.8.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant
+     *
+     * debug: If true, additonal console logging will happen
+     */
+    export type Opts = Readonly<{
+        readonly showVis?: boolean;
+        /**
+         * FFT size. Must be a power of 2, from 32 - 32768. Higher number means
+         * more precision and higher CPU overhead
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
+         */
+        readonly fftSize?: number;
+        /**
+         * Range from 0-1, default is 0.8
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant
+         */
+        readonly smoothingTimeConstant?: number;
+        readonly debug?: boolean;
+    }>;
+    export type DataAnalyser = (node: AnalyserNode, analyser: AudioAnalyser) => void;
+    /**
+     * Basic audio analyser. Returns back waveform and FFT analysis. Use {@link peakLevel} if you want sound level, or {@link freq} if you just want FFT results.
+     *
+     * ```js
+     * const onData = (freq, wave, analyser) => {
+     *  // Demo: Get FFT results just for 100Hz-1KHz.
+     *  const freqSlice = analyser.sliceByFrequency(100,1000,freq);
+     *
+     *  // Demo: Get FFT value for a particular frequency (1KHz)
+     *  const amt = freq[analyser.getIndexForFrequency(1000)];
+     * }
+     * basic(onData, {fftSize: 512});
+     * ```
+     *
+     * An `Analyser` instance is returned and can be controlled:
+     * ```js
+     * const analyser = basic(onData);
+     * analyser.paused = true;
+     * ```
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     *
+     * @param onData Handler for data
+     * @param opts Options
+     * @returns Analyser instance
+     */
+    export const basic: (onData: (freq: Float32Array, wave: Float32Array, analyser: AudioAnalyser) => void, opts?: Opts) => AudioAnalyser;
+    /**
+     * Basic audio analyser. Returns FFT analysis. Use {@link peakLevel} if you want the sound level, or {@link basic} if you also want the waveform.
+     *
+     * ```js
+     * const onData = (freq, analyser) => {
+     *  // Demo: Print out each sound frequency (Hz) and amount of energy in that band
+     *  for (let i=0;i<freq.length;i++) {
+     *    const f = analyser.getFrequencyAtIndex(0);
+     *    console.log(`${i}. frequency: ${f} amount: ${freq[i]}`);
+     *  }
+     * }
+     * freq(onData, {fftSize:512});
+     * ```
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     *
+     * @param onData
+     * @param opts
+     * @returns
+     */
+    export const freq: (onData: (freq: Float32Array, analyser: AudioAnalyser) => void, opts?: Opts) => AudioAnalyser;
+    /**
+     * Basic audio analyser which reports the peak sound level.
+     *
+     * ```js
+     * peakLevel(level => {
+     *  console.log(level);
+     * });
+     * ```
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     * @param onData
+     * @param opts
+     * @returns
+     */
+    export const peakLevel: (onData: (level: number, analyser: AudioAnalyser) => void, opts?: Opts) => AudioAnalyser;
+    /**
+     * Helper for doing audio analysis. It takes case of connecting the audio stream, running in a loop and pause capability.
+     *
+     * Provide a function which works with an [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode), and does something with the result.
+     * ```js
+     * const myAnalysis = (node, analyser) => {
+     *  const freq = new Float32Array(node.frequencyBinCount);
+     *  node.getFloatFrequencyData(freq);
+     *  // Do something with frequency data...
+     * }
+     * const a = new Analyser(myAnalysis);
+     * ```
+     *
+     * Two helper functions provide ready-to-use Analysers:
+     * * {@link peakLevel} peak decibel reading
+     * * {@link freq} FFT results
+     * * {@link basic} FFT results and waveform
+     *
+     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
+     *
+     */
+    export class AudioAnalyser {
+        #private;
+        showVis: boolean;
+        fftSize: number;
+        smoothingTimeConstant: number;
+        debug: boolean;
+        visualiser: AudioVisualiser | undefined;
+        audioCtx: AudioContext | undefined;
+        analyserNode: AnalyserNode | undefined;
+        analyse: DataAnalyser;
+        constructor(analyse: DataAnalyser, opts?: Opts);
+        init(): void;
+        get paused(): boolean;
+        set paused(v: boolean);
+        private setup;
+        private onMicSuccess;
+        private analyseLoop;
+        /**
+         * Returns the maximum FFT value within the given frequency range
+         */
+        getFrequencyRangeMax(lowFreq: number, highFreq: number, freqData: readonly number[]): number;
+        /**
+         * Returns a sub-sampling of frequency analysis data that falls between
+         * `lowFreq` and `highFreq`.
+         * @param lowFreq Low frequency
+         * @param highFreq High frequency
+         * @param freqData Full-spectrum frequency data
+         * @returns Sub-sampling of analysis
+         */
+        sliceByFrequency(lowFreq: number, highFreq: number, freqData: readonly number[]): number[];
+        /**
+         * Returns the starting frequency for a given binned frequency index.
+         * @param index Array index
+         * @returns Sound frequency
+         */
+        getFrequencyAtIndex(index: number): number;
+        /**
+         * Returns a binned array index for a given frequency
+         * @param freq Sound frequency
+         * @returns Array index into frequency bins
+         */
+        getIndexForFrequency(freq: number): number;
+    }
+}
 declare module "io/EspruinoDevice" {
     import { NordicBleDevice } from "io/NordicBleDevice";
     /**
@@ -6631,6 +6835,8 @@ declare module "io/index" {
      * Generic support for Bluetooth LE devices
      */
     export * as Bluetooth from "io/NordicBleDevice";
+    export * as AudioAnalysers from "io/AudioAnalyser";
+    export * as AudioVisualisers from "io/AudioVisualiser";
     /**
      * Espruino-based devices connected via Bluetooth LE
      *
@@ -8256,198 +8462,6 @@ declare module "dom/index" {
      */
     export * as Forms from "dom/Forms";
 }
-declare module "audio/AudioVisualiser" {
-    import { Points } from "geometry/index";
-    import { Tracker } from "temporal/Tracker";
-    import { Analyser } from "audio/Analyser";
-    export default class Visualiser {
-        freqMaxRange: number;
-        audio: Analyser;
-        parent: HTMLElement;
-        lastPointer: Points.Point;
-        pointerDown: boolean;
-        pointerClicking: boolean;
-        pointerClickDelayMs: number;
-        pointerDelaying: boolean;
-        waveTracker: Tracker;
-        freqTracker: Tracker;
-        el: HTMLElement;
-        constructor(parentElem: HTMLElement, audio: Analyser);
-        renderFreq(freq: readonly number[]): void;
-        isExpanded(): boolean;
-        setExpanded(value: boolean): void;
-        clear(): void;
-        clearCanvas(canvas: HTMLCanvasElement | null): void;
-        renderWave(wave: readonly number[], bipolar?: boolean): void;
-        getPointerRelativeTo(elem: HTMLElement): {
-            x: number;
-            y: number;
-        };
-        onPointer(evt: MouseEvent | PointerEvent): void;
-    }
-}
-declare module "audio/Analyser" {
-    import AudioVisualiser from "audio/AudioVisualiser";
-    /**
-     * Options for audio processing
-     *
-     * fftSize: Must be a power of 2, from 32 - 32768. Higher number means
-     * more precision and higher CPU overhead
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
-     *
-     * smoothingTimeConstant: Range from 0-1, default is 0.8.
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant
-     *
-     * debug: If true, additonal console logging will happen
-     */
-    export type Opts = Readonly<{
-        readonly showVis?: boolean;
-        /**
-         * FFT size. Must be a power of 2, from 32 - 32768. Higher number means
-         * more precision and higher CPU overhead
-         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/fftSize
-         */
-        readonly fftSize?: number;
-        /**
-         * Range from 0-1, default is 0.8
-         * @see https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/smoothingTimeConstant
-         */
-        readonly smoothingTimeConstant?: number;
-        readonly debug?: boolean;
-    }>;
-    export type DataAnalyser = (node: AnalyserNode, analyser: Analyser) => void;
-    /**
-     * Basic audio analyser. Returns back waveform and FFT analysis. Use {@link peakLevel} if you want sound level, or {@link freq} if you just want FFT results.
-     *
-     * ```js
-     * const onData = (freq, wave, analyser) => {
-     *  // Demo: Get FFT results just for 100Hz-1KHz.
-     *  const freqSlice = analyser.sliceByFrequency(100,1000,freq);
-     *
-     *  // Demo: Get FFT value for a particular frequency (1KHz)
-     *  const amt = freq[analyser.getIndexForFrequency(1000)];
-     * }
-     * basic(onData, {fftSize: 512});
-     * ```
-     *
-     * An `Analyser` instance is returned and can be controlled:
-     * ```js
-     * const analyser = basic(onData);
-     * analyser.paused = true;
-     * ```
-     *
-     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
-     *
-     * @param onData Handler for data
-     * @param opts Options
-     * @returns Analyser instance
-     */
-    export const basic: (onData: (freq: Float32Array, wave: Float32Array, analyser: Analyser) => void, opts?: Opts) => Analyser;
-    /**
-     * Basic audio analyser. Returns FFT analysis. Use {@link peakLevel} if you want the sound level, or {@link basic} if you also want the waveform.
-     *
-     * ```js
-     * const onData = (freq, analyser) => {
-     *  // Demo: Print out each sound frequency (Hz) and amount of energy in that band
-     *  for (let i=0;i<freq.length;i++) {
-     *    const f = analyser.getFrequencyAtIndex(0);
-     *    console.log(`${i}. frequency: ${f} amount: ${freq[i]}`);
-     *  }
-     * }
-     * freq(onData, {fftSize:512});
-     * ```
-     *
-     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
-     *
-     * @param onData
-     * @param opts
-     * @returns
-     */
-    export const freq: (onData: (freq: Float32Array, analyser: Analyser) => void, opts?: Opts) => Analyser;
-    /**
-     * Basic audio analyser which reports the peak sound level.
-     *
-     * ```js
-     * peakLevel(level => {
-     *  console.log(level);
-     * });
-     * ```
-     *
-     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
-     * @param onData
-     * @param opts
-     * @returns
-     */
-    export const peakLevel: (onData: (level: number, analyser: Analyser) => void, opts?: Opts) => Analyser;
-    /**
-     * Helper for doing audio analysis. It takes case of connecting the audio stream, running in a loop and pause capability.
-     *
-     * Provide a function which works with an [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode), and does something with the result.
-     * ```js
-     * const myAnalysis = (node, analyser) => {
-     *  const freq = new Float32Array(node.frequencyBinCount);
-     *  node.getFloatFrequencyData(freq);
-     *  // Do something with frequency data...
-     * }
-     * const a = new Analyser(myAnalysis);
-     * ```
-     *
-     * Two helper functions provide ready-to-use Analysers:
-     * * {@link peakLevel} peak decibel reading
-     * * {@link freq} FFT results
-     * * {@link basic} FFT results and waveform
-     *
-     * Note: Browers won't allow microphone access unless the call has come from a user-interaction, eg pointerup event handler.
-     *
-     */
-    export class Analyser {
-        #private;
-        showVis: boolean;
-        fftSize: number;
-        smoothingTimeConstant: number;
-        debug: boolean;
-        visualiser: AudioVisualiser | undefined;
-        audioCtx: AudioContext | undefined;
-        analyserNode: AnalyserNode | undefined;
-        analyse: DataAnalyser;
-        constructor(analyse: DataAnalyser, opts?: Opts);
-        init(): void;
-        get paused(): boolean;
-        set paused(v: boolean);
-        private setup;
-        private onMicSuccess;
-        private analyseLoop;
-        /**
-         * Returns the maximum FFT value within the given frequency range
-         */
-        getFrequencyRangeMax(lowFreq: number, highFreq: number, freqData: readonly number[]): number;
-        /**
-         * Returns a sub-sampling of frequency analysis data that falls between
-         * `lowFreq` and `highFreq`.
-         * @param lowFreq Low frequency
-         * @param highFreq High frequency
-         * @param freqData Full-spectrum frequency data
-         * @returns Sub-sampling of analysis
-         */
-        sliceByFrequency(lowFreq: number, highFreq: number, freqData: readonly number[]): number[];
-        /**
-         * Returns the starting frequency for a given binned frequency index.
-         * @param index Array index
-         * @returns Sound frequency
-         */
-        getFrequencyAtIndex(index: number): number;
-        /**
-         * Returns a binned array index for a given frequency
-         * @param freq Sound frequency
-         * @returns Array index into frequency bins
-         */
-        getIndexForFrequency(freq: number): number;
-    }
-}
-declare module "audio/index" {
-    export * as Analysers from "audio/Analyser";
-    export * as Visualiser from "audio/AudioVisualiser";
-}
 declare module "modulation/Envelope" {
     import { SimpleEventEmitter } from "Events";
     /**
@@ -8821,7 +8835,6 @@ declare module "index" {
      *
      */
     export * as Dom from "dom/index";
-    export * as Audio from "audio/index";
     export * as Events from "Events";
     /**
      * The Modulation module contains functions for, well, modulating data.
