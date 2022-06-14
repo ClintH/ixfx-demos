@@ -1,5 +1,7 @@
 # flow
 
+[View demos online](https://clinth.github.io/ixfx-demos/flow/)
+
 Documentation
 * [State machine](https://clinth.github.io/ixfx-docs/flow/stateMachine/)
 * [Loops and intervals](https://clinth.github.io/ixfx-docs/flow/loops/)
