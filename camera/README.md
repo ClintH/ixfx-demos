@@ -13,8 +13,12 @@ Settings:
 
 ## pixel-overlay
 
-* Draws on top of the video feed, using the underlying Canvas element that the frame grabber uses. In this case, we aren't responsible for drawing the frames from the camera. It also shows how we don't need to show the video at all.
+Draws on top of the video feed, using the underlying Canvas element that the frame grabber uses. In this case, we aren't responsible for drawing the frames from the camera. It also shows how we don't need to show the video at all.
 
 ## pixel-process
 
-* In this demo, we draw camera frames to a canvas. Pixels deemed to be the same as the last frame are changed to grayscale and translucent. Pixels which are deemed different are left alone, so they come through in original colour.
+In this demo, we draw camera frames to a canvas. Pixels deemed to be the same as the last frame are changed to grayscale and translucent. Pixels which are deemed different are left alone, so they come through in original colour.
+
+## pixels-worker
+
+The same basic pixel-processing technique as the others, but this time calculated in a 'web worker'. This runs in parallel to your regular code, meaning that it doesn't slow down interactivity as much. This demo also shows how to use a tracker instance to average the difference data over a number of samples.
