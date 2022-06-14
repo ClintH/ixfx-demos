@@ -11,12 +11,12 @@ import {continuously} from '../../ixfx/flow.js';
 const settings = {
   msgs: [`🍎`, `🍏`, `🐈`, `🐝`, `🛹`, `🪂`, `🛰️`, `🦖`, `🐒`],
   max: 10,
-  addIntervalMs: 100,
+  addIntervalMs: 1000,
   // How much to let thing fall off edge before resetting it
   // This is needed or things can be reset too early
   edgeMax: 1.05,
   // Value to reset thing to if it goes past max
-  edgeMin: 0,
+  edgeMin: -0.05,
   xSpeed: 0.01,
   ySpeed: 0.001
 };
