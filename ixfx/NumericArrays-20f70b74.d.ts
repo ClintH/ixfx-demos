@@ -1,4 +1,4 @@
-import { H as HasCompletion } from './Timer-504c3588.js';
+import { H as HasCompletion } from './Timer-504c3588';
 
 declare type EasingFn = (x: number) => number;
 /**

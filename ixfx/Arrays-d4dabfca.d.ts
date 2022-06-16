@@ -1,5 +1,5 @@
-import { IsEqual } from './util.js';
-import { E as EasingName, w as weight, d as dotProduct, a as average, b as averageWeighted, m as min, c as maxIndex, e as minIndex, f as max, g as maxFast, h as minFast, M as MinMaxAvgTotal, i as minMaxAvg } from './NumericArrays-20f70b74.js';
+import { IsEqual } from './util';
+import { E as EasingName, w as weight, d as dotProduct, a as average, b as averageWeighted, m as min, c as maxIndex, e as minIndex, f as max, g as maxFast, h as minFast, M as MinMaxAvgTotal, i as minMaxAvg } from './NumericArrays-20f70b74';
 import * as d3Colour from 'd3-color';
 
 declare type Hsl = {

@@ -2816,7 +2816,11 @@ declare module "collections/SimpleMapArray" {
 }
 declare module "Events" {
     export type Listener<Events> = (ev: unknown, sender: SimpleEventEmitter<Events>) => void;
-    export class SimpleEventEmitter<Events> {
+    export interface ISimpleEventEmitter<Events> {
+        addEventListener<K extends keyof Events>(type: K, listener: (ev: Events[K], sender: SimpleEventEmitter<Events>) => void): void;
+        removeEventListener<K extends keyof Events>(type: K, listener: (ev: Events[K], sender: SimpleEventEmitter<Events>) => void): void;
+    }
+    export class SimpleEventEmitter<Events> implements ISimpleEventEmitter<Events> {
         #private;
         /**
          * Fire event
@@ -6299,12 +6303,338 @@ declare module "io/StringWriteBuffer" {
         add(str: string): void;
     }
 }
-declare module "io/BleDevice" {
+declare module "io/EspruinoBleDevice" {
+    import { EvalOpts, Options } from "io/Espruino";
+    import { NordicBleDevice } from "io/NordicBleDevice";
+    /**
+     * An Espruino BLE-connection
+     *
+     * Use the `puck` function to initialise and connect to a Puck.js.
+     * It must be called in a UI event handler for browser security reasons.
+     *
+     * ```js
+     * const e = await puck();
+     * ```
+     *
+     * Listen for events:
+     * ```js
+     * // Received something
+     * e.addEventListener(`data`, d => console.log(d.data));
+     * // Monitor connection state
+     * e.addEventListener(`change`, c => console.log(`${d.priorState} -> ${d.newState}`));
+     * ```
+     *
+     * Write to the device (note the \n for a new line at the end of the string). This will
+     * execute the code on the Espruino.
+     *
+     * ```js
+     * e.write(`digitalPulse(LED1,1,[10,500,10,500,10]);\n`);
+     * ```
+     *
+     * Run some code and return result:
+     * ```js
+     * const result = await e.eval(`2+2\n`);
+     * ```
+     */
+    export class EspruinoBleDevice extends NordicBleDevice {
+        evalTimeoutMs: number;
+        evalReplyBluetooth: boolean;
+        /**
+         * Creates instance. You probably would rather use {@link puck} to create.
+         * @param device
+         * @param opts
+         */
+        constructor(device: BluetoothDevice, opts?: Options);
+        /**
+         * Writes a script to Espruino.
+         *
+         * It will first send a CTRL+C to cancel any previous input, `reset()` to clear the board,
+         * and then the provided `code` followed by a new line.
+         *
+         * Use {@link eval} instead to execute remote code and get the result back.
+         *
+         * ```js
+         * // Eg from https://www.espruino.com/Web+Bluetooth
+         * writeScript(`
+         *  setInterval(() => Bluetooth.println(E.getTemperature()), 1000);
+         *  NRF.on('disconnect',()=>reset());
+         * `);
+         * ```
+         *
+         * @param code Code to send. A new line is added automatically.
+         */
+        writeScript(code: string): Promise<void>;
+        /**
+         * Sends some code to be executed on the Espruino. The result
+         * is packaged into JSON and sent back to your code. An exception is
+         * thrown if code can't be executed for some reason.
+         *
+         * ```js
+         * const sum = await e.eval(`2+2`);
+         * ```
+         *
+         * It will wait for a period of time for a well-formed response from the
+         * Espruino. This might not happen if there is a connection problem
+         * or a syntax error in the code being evaled. In cases like the latter,
+         * it will take up to `timeoutMs` (default 5 seconds) before we give up
+         * waiting for a correct response and throw an error.
+         *
+         * Tweaking of the timeout may be required if `eval()` is giving up too quickly
+         * or too slowly. A default timeout can be given when creating the class.
+         *
+         * Options:
+         *  timeoutMs: Timeout for execution. 5 seconds by default
+         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+         * @param code Code to run on the Espruino.
+         * @param opts Options
+         */
+        eval(code: string, opts?: EvalOpts): Promise<string>;
+    }
+}
+declare module "io/JsonDevice" {
     import { SimpleEventEmitter } from "Events";
     import { StateChangeEvent, StateMachine } from "flow/StateMachine";
     import { Codec } from "io/Codec";
     import { StringReceiveBuffer } from "io/StringReceiveBuffer";
     import { StringWriteBuffer } from "io/StringWriteBuffer";
+    export type Opts = {
+        readonly chunkSize?: number;
+        readonly name?: string;
+        readonly connectAttempts?: number;
+        readonly debug?: boolean;
+    };
+    export type DataEvent = {
+        readonly data: string;
+    };
+    type Events = {
+        readonly data: DataEvent;
+        readonly change: StateChangeEvent;
+    };
+    export abstract class JsonDevice extends SimpleEventEmitter<Events> {
+        states: StateMachine;
+        codec: Codec;
+        verboseLogging: boolean;
+        name: string;
+        connectAttempts: number;
+        chunkSize: number;
+        rxBuffer: StringReceiveBuffer;
+        txBuffer: StringWriteBuffer;
+        constructor(config?: Opts);
+        get isConnected(): boolean;
+        get isClosed(): boolean;
+        write(txt: string): void;
+        /**
+         * Writes text to output device
+         * @param txt
+         */
+        protected abstract writeInternal(txt: string): void;
+        close(): void;
+        /**
+         * Must change state
+         */
+        abstract onClosed(): void;
+        abstract onPreConnect(): Promise<void>;
+        connect(): Promise<void>;
+        /**
+         * Should throw if did not succeed.
+         */
+        protected abstract onConnectAttempt(): Promise<void>;
+        private onRx;
+        protected verbose(m: string): void;
+        protected log(m: string): void;
+        protected warn(m: unknown): void;
+    }
+}
+declare module "io/Serial" {
+    import { JsonDevice, Opts as JsonDeviceOpts } from "io/JsonDevice";
+    export type Opts = JsonDeviceOpts & {
+        readonly filters?: ReadonlyArray<SerialPortFilter>;
+        readonly baudRate?: number;
+    };
+    /**
+     * Serial device. Assumes data is sent with new line characters (\r\n) between messages.
+     *
+     * ```
+     * const s = new Device();
+     * s.addEventListener(`change`, evt => {
+     *  console.log(`State change ${evt.priorState} -> ${evt.newState}`);
+     *  if (evt.newState === `connected`) {
+     *    // Do something when connected...
+     *  }
+     * });
+     *
+     * // In a UI event handler...
+     * s.connect();
+     * ```
+     *
+     * Reading incoming data:
+     * ```
+     * // Parse incoming data as JSON
+     * s.addEventListener(`data`, evt => {
+     *  try {
+     *    const o = JSON.parse(evt.data);
+     *    // If we get this far, JSON is legit
+     *  } catch (ex) {
+     *  }
+     * });
+     * ```
+     *
+     * Writing to the microcontroller
+     * ```
+     * s.write(JSON.stringify({msg:"hello"}));
+     * ```
+     */
+    export class Device extends JsonDevice {
+        private config;
+        port: SerialPort | undefined;
+        tx: WritableStreamDefaultWriter<string> | undefined;
+        baudRate: number;
+        constructor(config?: Opts);
+        /**
+         * Writes text collected in buffer
+         * @param txt
+         */
+        protected writeInternal(txt: string): Promise<void>;
+        onClosed(): void;
+        onPreConnect(): Promise<void>;
+        onConnectAttempt(): Promise<void>;
+    }
+}
+declare module "io/EspruinoSerialDevice" {
+    import { EvalOpts } from "io/Espruino";
+    import { Device as SerialDevice, Opts as SerialOpts } from "io/Serial";
+    export type Opts = SerialOpts & {
+        readonly evalTimeoutMs?: number;
+    };
+    export class EspruinoSerialDevice extends SerialDevice {
+        evalTimeoutMs: number;
+        evalReplyBluetooth: boolean;
+        constructor(opts?: Opts);
+        /**
+         * Writes a script to Espruino.
+         *
+         * It will first send a CTRL+C to cancel any previous input, `reset()` to clear the board,
+         * and then the provided `code` followed by a new line.
+         *
+         * Use {@link eval} instead to execute remote code and get the result back.
+         *
+         * ```js
+         * // Eg from https://www.espruino.com/Web+Bluetooth
+         * writeScript(`
+         *  setInterval(() => Bluetooth.println(E.getTemperature()), 1000);
+         *  NRF.on('disconnect',()=>reset());
+         * `);
+         * ```
+         *
+         * @param code Code to send. A new line is added automatically.
+         */
+        writeScript(code: string): Promise<void>;
+        /**
+         * Sends some code to be executed on the Espruino. The result
+         * is packaged into JSON and sent back to your code. An exception is
+         * thrown if code can't be executed for some reason.
+         *
+         * ```js
+         * const sum = await e.eval(`2+2`);
+         * ```
+         *
+         * It will wait for a period of time for a well-formed response from the
+         * Espruino. This might not happen if there is a connection problem
+         * or a syntax error in the code being evaled. In cases like the latter,
+         * it will take up to `timeoutMs` (default 5 seconds) before we give up
+         * waiting for a correct response and throw an error.
+         *
+         * Tweaking of the timeout may be required if `eval()` is giving up too quickly
+         * or too slowly. A default timeout can be given when creating the class.
+         *
+         * Options:
+         *  timeoutMs: Timeout for execution. 5 seconds by default
+         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+         * @param code Code to run on the Espruino.
+         * @param opts Options
+         */
+        eval(code: string, opts?: EvalOpts): Promise<string>;
+    }
+}
+declare module "io/Espruino" {
+    import { EspruinoBleDevice } from "io/EspruinoBleDevice";
+    import { StateChangeEvent } from "flow/StateMachine";
+    import { ISimpleEventEmitter } from "Events";
+    import { EspruinoSerialDevice } from "io/EspruinoSerialDevice";
+    export type DataEvent = {
+        readonly data: string;
+    };
+    export type Events = {
+        readonly data: DataEvent;
+        readonly change: StateChangeEvent;
+    };
+    /**
+     * Options for device
+     */
+    export type Options = {
+        /**
+         * Default milliseconds to wait before giving up on a well-formed reply. 5 seconds is the default.
+         */
+        readonly evalTimeoutMs?: number;
+        /**
+         * Name of device. Only used for printing log mesages to the console
+         */
+        readonly name?: string;
+        /**
+         * If true, additional logging information is printed
+         */
+        readonly debug?: boolean;
+    };
+    /**
+     * Options for code evaluation
+     */
+    export type EvalOpts = {
+        /**
+         * Milliseconds to wait before giving up on well-formed reply. 5 seconds is the default.
+         */
+        readonly timeoutMs?: number;
+        /**
+         * If true (default), it assumes that anything received from the board
+         * is a response to the eval
+         */
+        readonly assumeExclusive?: boolean;
+    };
+    /**
+     * @inheritdoc EspruinoBleDevice
+     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
+     */
+    export const puck: (opts?: {
+        readonly name?: string;
+        readonly debug?: boolean;
+    }) => Promise<EspruinoBleDevice>;
+    /**
+     * @inheritdoc EspruinoSerialDevice
+     * @param opts
+     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
+     */
+    export const serial: (opts?: {
+        readonly name?: string;
+        readonly debug?: boolean;
+        readonly evalTimeoutMs?: number;
+    }) => Promise<EspruinoSerialDevice>;
+    /**
+     * @inheritdoc EspruinoDevice
+     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
+     */
+    export const connectBle: () => Promise<EspruinoBleDevice>;
+    export interface EspruinoDevice extends ISimpleEventEmitter<Events> {
+        write(m: string): void;
+        get evalTimeoutMs(): number;
+    }
+    export const deviceEval: (code: string, opts: EvalOpts | undefined, device: EspruinoDevice, evalReplyPrefix: string, debug: boolean, warn: (m: string) => void) => Promise<string>;
+}
+declare module "io/BleDevice" {
+    import { SimpleEventEmitter } from "Events";
+    import { StateMachine } from "flow/StateMachine";
+    import { Codec } from "io/Codec";
+    import { StringReceiveBuffer } from "io/StringReceiveBuffer";
+    import { StringWriteBuffer } from "io/StringWriteBuffer";
+    import { Events } from "io/Espruino";
     export type Opts = {
         readonly service: string;
         readonly rxGattCharacteristic: string;
@@ -6313,13 +6643,6 @@ declare module "io/BleDevice" {
         readonly name: string;
         readonly connectAttempts: number;
         readonly debug: boolean;
-    };
-    export type DataEvent = {
-        readonly data: string;
-    };
-    type Events = {
-        readonly data: DataEvent;
-        readonly change: StateChangeEvent;
     };
     export class BleDevice extends SimpleEventEmitter<Events> {
         private device;
@@ -6554,133 +6877,6 @@ declare module "io/AudioAnalyser" {
         getIndexForFrequency(freq: number): number;
     }
 }
-declare module "io/EspruinoDevice" {
-    import { NordicBleDevice } from "io/NordicBleDevice";
-    /**
-     * Options for device
-     */
-    export type Options = {
-        /**
-         * Default milliseconds to wait before giving up on a well-formed reply. 5 seconds is the default.
-         */
-        readonly evalTimeoutMs?: number;
-        /**
-         * Name of device. Only used for printing log mesages to the console
-         */
-        readonly name?: string;
-        /**
-         * If true, additional logging information is printed
-         */
-        readonly debug?: boolean;
-    };
-    /**
-     * Options for code evaluation
-     */
-    export type EvalOpts = {
-        /**
-         * Milliseconds to wait before giving up on well-formed reply. 5 seconds is the default.
-         */
-        readonly timeoutMs?: number;
-        /**
-         * If true (default), it assumes that anything received from the board
-         * is a response to the eval
-         */
-        readonly assumeExclusive?: boolean;
-    };
-    /**
-     * An Espruino BLE-connection
-     *
-     * Use the `puck` function to initialise and connect to a Puck.js.
-     * It must be called in a UI event handler for browser security reasons.
-     *
-     * ```js
-     * const e = await puck();
-     * ```
-     *
-     * Listen for events:
-     * ```js
-     * // Received something
-     * e.addEventListener(`data`, d => console.log(d.data));
-     * // Monitor connection state
-     * e.addEventListener(`change`, c => console.log(`${d.priorState} -> ${d.newState}`));
-     * ```
-     *
-     * Write to the device (note the \n for a new line at the end of the string). This will
-     * execute the code on the Espruino.
-     *
-     * ```js
-     * e.write(`digitalPulse(LED1,1,[10,500,10,500,10]);\n`);
-     * ```
-     *
-     * Run some code and return result:
-     * ```js
-     * const result = await e.eval(`2+2\n`);
-     * ```
-     */
-    export class EspruinoDevice extends NordicBleDevice {
-        evalTimeoutMs: number;
-        /**
-         * Creates instance. You probably would rather use {@link puck} to create.
-         * @param device
-         * @param opts
-         */
-        constructor(device: BluetoothDevice, opts?: Options);
-        /**
-         * Writes a script to Espruino.
-         *
-         * It will first send a CTRL+C to cancel any previous input, `reset()` to clear the board,
-         * and then the provided `code` followed by a new line.
-         * @param code Code to send. A new line is added automatically.
-         *
-         * ```js
-         * // Eg from https://www.espruino.com/Web+Bluetooth
-         * writeScript(`
-         * setInterval(() => Bluetooth.println(E.getTemperature()), 1000);
-         * NRF.on('disconnect',()=>reset());
-         * `);
-         * ```
-         */
-        writeScript(code: string): Promise<void>;
-        /**
-         * Sends some code to be executed on the Espruino. The result
-         * is packaged into JSON and sent back to your code. An exception is
-         * thrown if code can't be executed for some reason.
-         *
-         * ```js
-         * const sum = await e.eval(`2+2`);
-         * ```
-         *
-         * It will wait for a period of time for a well-formed response from the
-         * Espruino. This might not happen if there is a connection problem
-         * or a syntax error in the code being evaled. In cases like the latter,
-         * it will take up to `timeoutMs` (default 5 seconds) before we give up
-         * waiting for a correct response and throw an error.
-         *
-         * Tweaking of the timeout may be required if `eval()` is giving up too quickly
-         * or too slowly. A default timeout can be given when creating the class.
-         *
-         * Options:
-         *  timeoutMs: Timeout for execution. 5 seconds by default
-         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
-         * @param code Code to run on the Espruino.
-         * @param opts Options
-         */
-        eval(code: string, opts?: EvalOpts): Promise<string>;
-    }
-    /**
-     * @inheritdoc EspruinoDevice
-     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
-     */
-    export const puck: (opts?: {
-        readonly name?: string;
-        readonly debug?: boolean;
-    }) => Promise<EspruinoDevice>;
-    /**
-     * @inheritdoc EspruinoDevice
-     * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
-     */
-    export const connect: () => Promise<EspruinoDevice>;
-}
 declare module "io/Camera" {
     import * as Rects from "geometry/Rect";
     /**
@@ -6721,115 +6917,6 @@ declare module "io/Camera" {
      */
     export const start: (constraints?: Constraints) => Promise<StartResult | undefined>;
 }
-declare module "io/JsonDevice" {
-    import { SimpleEventEmitter } from "Events";
-    import { StateChangeEvent, StateMachine } from "flow/StateMachine";
-    import { Codec } from "io/Codec";
-    import { StringReceiveBuffer } from "io/StringReceiveBuffer";
-    import { StringWriteBuffer } from "io/StringWriteBuffer";
-    export type Opts = {
-        readonly chunkSize?: number;
-        readonly name?: string;
-        readonly connectAttempts?: number;
-        readonly debug?: boolean;
-    };
-    export type DataEvent = {
-        readonly data: string;
-    };
-    type Events = {
-        readonly data: DataEvent;
-        readonly change: StateChangeEvent;
-    };
-    export abstract class JsonDevice extends SimpleEventEmitter<Events> {
-        states: StateMachine;
-        codec: Codec;
-        verboseLogging: boolean;
-        name: string;
-        connectAttempts: number;
-        chunkSize: number;
-        rxBuffer: StringReceiveBuffer;
-        txBuffer: StringWriteBuffer;
-        constructor(config?: Opts);
-        get isConnected(): boolean;
-        get isClosed(): boolean;
-        write(txt: string): void;
-        /**
-         * Writes text to output device
-         * @param txt
-         */
-        protected abstract writeInternal(txt: string): void;
-        close(): void;
-        /**
-         * Must change state
-         */
-        abstract onClosed(): void;
-        abstract onPreConnect(): Promise<void>;
-        connect(): Promise<void>;
-        /**
-         * Should throw if did not succeed.
-         */
-        abstract onConnectAttempt(): Promise<void>;
-        private onRx;
-        protected verbose(m: string): void;
-        protected log(m: string): void;
-        protected warn(m: unknown): void;
-    }
-}
-declare module "io/Serial" {
-    import { JsonDevice, Opts as JsonDeviceOpts } from "io/JsonDevice";
-    export type Opts = JsonDeviceOpts & {
-        readonly filters?: ReadonlyArray<SerialPortFilter>;
-        readonly baudRate?: number;
-    };
-    /**
-     * Serial device. Assumes data is sent with new line characters (\r\n) between messages.
-     *
-     * ```
-     * const s = new Device();
-     * s.addEventListener(`change`, evt => {
-     *  console.log(`State change ${evt.priorState} -> ${evt.newState}`);
-     *  if (evt.newState === `connected`) {
-     *    // Do something when connected...
-     *  }
-     * });
-     *
-     * // In a UI event handler...
-     * s.connect();
-     * ```
-     *
-     * Reading incoming data:
-     * ```
-     * // Parse incoming data as JSON
-     * s.addEventListener(`data`, evt => {
-     *  try {
-     *    const o = JSON.parse(evt.data);
-     *    // If we get this far, JSON is legit
-     *  } catch (ex) {
-     *  }
-     * });
-     * ```
-     *
-     * Writing to the microcontroller
-     * ```
-     * s.write(JSON.stringify({msg:"hello"}));
-     * ```
-     */
-    export class Device extends JsonDevice {
-        private config;
-        port: SerialPort | undefined;
-        tx: WritableStreamDefaultWriter<string> | undefined;
-        baudRate: number;
-        constructor(config?: Opts);
-        /**
-         * Writes text collected in buffer
-         * @param txt
-         */
-        protected writeInternal(txt: string): Promise<void>;
-        onClosed(): void;
-        onPreConnect(): Promise<void>;
-        onConnectAttempt(): Promise<void>;
-    }
-}
 declare module "io/index" {
     /**
      * Generic support for Bluetooth LE devices
@@ -6841,10 +6928,10 @@ declare module "io/index" {
      * Espruino-based devices connected via Bluetooth LE
      *
      * Overview:
-     * * {@link puck}: Connect to a Puck.js
+     * * {@link puck}: Connect ./EspruinoBleDevice.js
      * * {@link connect}: Connect to a generic Espruino
      */
-    export * as Espruino from "io/EspruinoDevice";
+    export * as Espruino from "io/Espruino";
     export * as Camera from "io/Camera";
     /**
      * Microcontrollers such as Arduinos connected via USB serial
