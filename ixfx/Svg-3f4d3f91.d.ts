@@ -1,4 +1,4 @@
-import { g as CirclePositioned, f as Line, a as Point, e as Rect } from './Rect-200ed853';
+import { g as CirclePositioned, f as Line, a as Point, e as Rect } from './Rect-200ed853.js';
 
 /**
  * Creates and adds an SVG path element

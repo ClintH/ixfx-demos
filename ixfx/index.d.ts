@@ -1717,6 +1717,29 @@ declare module "collections/Arrays" {
      * @returns Map
      */
     export const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
+    /**
+     * Samples array
+     *
+     * @example By percentage - get half of the items
+     * ```
+     * const list = [1,2,3,4,5,6,7,8,9,10];
+     * const sub = sample(list, 0.5);
+     * // Yields:
+     * // [2, 4, 6, 8, 10]
+     * ```
+     *
+     * @example By steps - every third
+     * ```
+     * const list = [1,2,3,4,5,6,7,8,9,10];
+     * const sub = sample(list, 3);
+     * // Yields:
+     * // [3, 6, 9]
+     * ```
+     * @param array Array to sample
+     * @param amount Amount, given as a percentage (0..1) or the number of interval (ie 3 for every third item)
+     * @returns
+     */
+    export const sample: <V>(array: readonly V[], amount: number) => readonly V[];
 }
 declare module "Random" {
     import { randomIndex, randomElement } from "collections/Arrays";
@@ -8741,6 +8764,17 @@ declare module "modulation/Envelope" {
      * @returns New {@link Adsr} Envelope
      */
     export const adsr: (opts: EnvelopeOpts) => Adsr;
+    /**
+     * Creates and runs an envelope, sampling its values at `sampleRateMs`.
+     * ```
+     * // Sample an envelope every 5ms
+     * const values = adsrSample(opts, 5);
+     * ```
+     * @param opts Envelope options
+     * @param sampleRateMs Sample rate
+     * @returns
+     */
+    export const adsrSample: (opts: EnvelopeOpts, sampleRateMs: number) => Promise<readonly number[]>;
 }
 declare module "modulation/Oscillator" {
     import * as Timers from "flow/Timer";
