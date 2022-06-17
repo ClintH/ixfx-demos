@@ -1,5 +1,7 @@
 /** 
- * This script should be uploaded to the Espruino
+ * This script must be uploaded to the Espruino.
+ * 
+ * Use Espruino's web IDE for that.
  */
 
 const STATE_READY = 1;
@@ -61,6 +63,25 @@ function rtpMode(powers, durations) {
 
   hap.setMode('rtp');
   rtpRun(powers, durations, 0);
+}
+
+// Sequence some steps
+function sequence(steps) {
+  if (state !== STATE_READY) {
+    throw new Error('Not in STATE_READY');
+  }
+  hap.setSequence(steps);
+}
+
+function start() {
+  if (state !== STATE_READY) {
+    throw new Error('Not in STATE_READY');
+  }
+  hap.start();
+}
+
+function stop() {
+  hap.stop();
 }
 
 // Trigger an effect by name or index

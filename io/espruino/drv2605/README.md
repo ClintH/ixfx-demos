@@ -4,6 +4,8 @@ Controls a DRV2605 haptic driver. This demo only works in Chrome.
 
 [Read more about this module](http://www.espruino.com/DRV2605)
 
+See also the [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index.html)
+
 ## Getting started
 
 First upload the provided `espruino.js` to your board, which the example assumes is an Espruino Pico. Make sure the haptic board is connected up according to [instructions](http://www.espruino.com/DRV2605).
