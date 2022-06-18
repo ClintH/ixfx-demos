@@ -10,7 +10,14 @@ See also the [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index
 
 First upload the provided `espruino.js` to your board, which the example assumes is an Espruino Pico. Make sure the haptic board is connected up according to [instructions](http://www.espruino.com/DRV2605).
 
-Try running some functions in the Espruino IDE's REPL. These are the same functions we'll call from the browser.
+Wiring for an Espruino Pico:
+
+* DRV2605 GND -> Pico GND
+* DRV2605 VIN -> Pico 3.3V
+* DRV2605 SCL -> Pico B6
+* DRV2605 SDA -> Pico B7
+
+Try running some of the functions below in the Espruino IDE's REPL. These are the same functions we'll call from the browser.
 
 ```
 // Trigger effect #1 (it goes up to 127)
@@ -29,7 +36,7 @@ let durations = [100, 200, 100, 300, 200, 100];
 rtpMode(powers, durations);
 ```
 
-For the endurance of the motor, duration of each step is capped to 500ms. Call `rtpCancel()` to cancel a long-running sequence. Whilst the RTP sequence is running, it's not possible to trigger other effects.
+For the endurance of the motor, duration of each step is capped to 1000ms. Call `rtpCancel()` to cancel a long-running sequence. Whilst the RTP sequence is running, it's not possible to trigger other effects.
 
 ## From the browser
 
