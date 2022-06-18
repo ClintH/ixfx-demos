@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>point-centroid</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 230;
+      --bg: hsl(var(--hue), 100%, 93%);
+    }
+
+    body {
+      background-color: var(--bg);
+
+    }
+
+    h1 {
+      color: hsl(var(--hue), 100%, 10%);
+    }
+
+    .point {
+      background-color: hsl(var(--hue), 70%, 70%);
+      position: fixed;
+      border-radius: 100%;
+    }
+
+    #centroid {
+      background-color: unset;
+      border: 2px solid hsl(var(--hue), 70%, 70%);
+    }
+  </style>
+  <section>
+    <h1>point-centroid</h1>
+    <p>Click to add points. Centroid is shown as a hollow circle.</p>
+    <div id="centroid" class="point"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
