@@ -4381,6 +4381,22 @@ declare module "geometry/Point" {
      */
     export const angleBetween: (a: Point, b: Point) => number;
     /**
+     * Calculates the centroid of a set of points
+     *
+     * As per {@link https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points}
+     *
+     * ```js
+     * // Find centroid of a list of points
+     * const c1 = centroid(p1, p2, p3, ...);
+     *
+     * // Find centroid of an array of points
+     * const c2 = centroid(...pointsArray);
+     * ```
+     * @param points
+     * @returns A single point
+     */
+    export const centroid: (...points: readonly Point[]) => Point;
+    /**
      * Returns the minimum rectangle that can enclose all provided points
      * @param points
      * @returns
