@@ -6,20 +6,17 @@ const settings = {
   log: log(`#log`)
 }
 
-let state = {
-
-
-};
-
 const clearPointers = () => {
   const {currentEl} = settings;
   currentEl.innerHTML = ``;
 };
 
 const updatePointer = (ev) => {
-  const {currentEl} = settings;
+  const {currentEl, log} = settings;
   const {isPrimary, pointerType, pointerId, type, shiftKey, ctrlKey, metaKey} = ev;
   const {movementX, movementY, x, y, offsetX, offsetY, screenX, screenY} = ev;
+
+  log.log(`${ev.type} ${JSON.stringify(pointerEventSimplify(ev))}`);
 
   let el = document.getElementById(`ptr-${pointerId}`);
 
@@ -34,11 +31,6 @@ const updatePointer = (ev) => {
   if (metaKey) keys.push('meta');
   if (ctrlKey) keys.push(`ctrl`);
   const keyStr = keys.map(k => `<kbd>${k}</kbd>`).join(` `);
-
-  // const coords = [{x, y, label: ``}, {x: offsetX, y: offsetY, label: `offset`}, {x: screenX, y: screenY, label: `screen`}];
-  // const coordsStr = coords.map(c => {
-  //   return `${c.label} x: ${c.x} y: ${c.y}`
-  // }).join(', ');
 
   const r = (v) => Math.round(v);
 
@@ -83,36 +75,35 @@ const pointerEventSimplify = (ev) => {
 }
 
 const setup = () => {
-  const {pointerEl, log} = settings;
+  const {pointerEl} = settings;
 
   pointerEl.addEventListener(`pointermove`, ev => {
-    log.log(`pointermove ${JSON.stringify(pointerEventSimplify(ev))}`);
     console.log(ev);
     updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerenter`, ev => {
-
+    updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerleave`, ev => {
-
+    updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointercancel`, ev => {
-
+    updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerover`, ev => {
-
+    updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerdown`, ev => {
-
+    updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerup`, ev => {
-
+    updatePointer(ev);
   });
 
 

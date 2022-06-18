@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pointer playground</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 210;
+    --bg: hsl(var(--hue) 64% 37%);
+    --faint: hsl(var(--hue) 100% 15%);
+    --fg: hsl(var(--hue) 100% 90%);
+    --padding: 0.3em;
+  }
+
+
+  html,
+  body {
+    height: 100%;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  body {
+    overscroll-behavior: none;
+    overflow: hidden;
+    touch-action: none;
+    display: flex;
+  }
+
+  #penArea {
+    background-color: hsl(var(--hue) 100% 5%);
+    display: flex;
+    flex-direction: column;
+    touch-action: none;
+    user-select: none;
+    align-items: center;
+    justify-content: center;
+    width: 20vw;
+  }
+
+  .mono {
+    font-family: var(--mono-font);
+  }
+
+  section {
+    padding: var(--padding);
+  }
+
+  #ïnfoAreaA,
+  #infoAreaB {
+    flex-grow: 1;
+  }
+
+  .cell {
+    width: 3em;
+  }
+
+  #helpArea {
+    position: absolute;
+    background-color: white;
+    color: black;
+    padding: 2em;
+    width: 100vw;
+    display: none;
+    height: 100vh;
+  }
+
+  #helpArea>div {
+    overflow: scroll;
+    height: 100%;
+    max-width: 40vw;
+    margin: auto;
+  }
+</style>
+
+<body>
+  <section id="ïnfoAreaA">
+    <div>
+      <h1>Basic</h1>
+      <table>
+        <tr>
+          <td>Id</td>
+          <td id="pointerId"></td>
+        </tr>
+        <tr>
+          <td>Keys</td>
+          <td id="keys"></td>
+        </tr>
+        <tr>
+          <td>Button</td>
+          <td id="button"></td>
+        </tr>
+        <tr>
+          <td>Buttons</td>
+          <td id="buttons"></td>
+        </tr>
+        <tr>
+          <td>Width</td>
+          <td id="width"></td>
+        </tr>
+        <tr>
+          <td>Height</td>
+          <td id="height"></td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h1>Coords</h1>
+      <table>
+        <thead>
+          <td></td>
+          <td></td>
+          <td>movement</td>
+        </thead>
+        <tr>
+          <td>x</td>
+          <td class="mono cell" id="x"></td>
+          <td class="mono cell" id="movementX"></td>
+
+        </tr>
+        <tr>
+          <td>y</td>
+          <td class="mono cell" id="y"></td>
+          <td class="mono cell" id="movementY"></td>
+
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h1>Pressure</h1>
+      <table>
+        <tr>
+          <td>Pressure</td>
+          <td style="width:5em" class="mono" id="pressure"></td>
+        </tr>
+        <tr>
+          <td>Tangential</td>
+          <td class="mono""id=" tangentialPressure"></td>
+        </tr>
+
+      </table>
+    </div>
+
+  </section>
+  <section id="penArea">
+    <p>
+      Pen input here...
+    </p>
+
+    <button style="top:1em;position:absolute" id="btnHelpShow">Info</button>
+  </section>
+  <section id="infoAreaB">
+    <div>
+      <h1>Tilt</h1>
+      <table>
+        <tr>
+          <td>x</td>
+          <td class="mono" id="tiltX"></td>
+        </tr>
+        <tr>
+          <td>y</td>
+          <td class="mono" id="tiltY"></td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h1>Angles</h1>
+      <table>
+        <tr>
+          <td>azimuth</td>
+          <td style="width:6em" class="mono" id="azimuthAngle"></td>
+        </tr>
+        <tr>
+          <td>altitude</td>
+          <td style="width:6em" class="mono" id="altitudeAngle"></td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h1>Twist</h1>
+      <div id="twist" class="mono"></div>
+    </div>
+  </section>
+  <div id="helpArea">
+    <div>
+
+      <h1>Help</h1>
+      <button id="btnHelpClose">Close</button><br />
+
+      From the <a href="https://w3c.github.io/pointerevents/#pointerevent-interface">spec</a>...
+
+      <p>
+        width/height: 'contact' width/height in CSS pixels
+      </p>
+      <p>
+        pressure: pressure value (0..1 scale) if supported. 0.5 is used if the input device does not have pressure
+        sensing
+        and the button is being pressed.
+
+      </p>
+      <p>
+        tangentialPressure: barrel pressure (eg wheel on an airbrush stylus). (-1..1 scale)
+      </p>
+      <p>
+        tiltX: Angle in degrees (-90...90). A pen perpendicular to screen is around 0, tilted to the right progresses
+        toward 90, and left toward -90
+      </p>
+      <p>
+        tiltY: Angle in degrees (-90...90). A pen perpendicular to the screen is around 0. If the non-contact end is
+        tilted toward the top of the screen it will progress toward -90. If the non-contact end is tilted down toward
+        the
+        bottom of the screen it will increase to 90.
+      </p>
+      <p>
+        twist: Clockwise rotation in degrees (0...359) around the pen's own axis
+      </p>
+      <p>
+        altitudeAngle: Altitude in radians (0..π/2) of pen body to surface. 0 is parallel to screen (ie lying down) and
+        π/2 is perpendicular. Thus is refers to how steep the angle of stylus to screen is.
+      </p>
+      <p>
+        azimuthAngle: Azimuth angle in radians (0..π/2) of pen body. 0 means the stylus is angled at the 3 o'clock
+        position, π/2 at 6:00, π at 9:00 and 3π/2 at 12.
+      </p>
+    </div>
+
+  </div>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
