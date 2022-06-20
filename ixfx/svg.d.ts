@@ -1,2 +1,2 @@
-import './Rect-85ec40cd.js';
-export { C as CircleDrawingOpts, D as DrawingOpts, a as Elements, L as LineDrawingOpts, c as MarkerDrawingOpts, M as MarkerOpts, P as PathDrawingOpts, b as StrokeOpts, j as SvgHelper, T as TextDrawingOpts, d as TextPathDrawingOpts, h as applyOpts, g as applyPathOpts, i as applyStrokeOpts, f as createEl, e as createOrResolve, k as getBounds, m as makeHelper, r as remove, s as setBounds } from './Svg-2ce380d5.js';
+import './Point-38b2ac09.js';
+export { C as CircleDrawingOpts, D as DrawingOpts, a as Elements, L as LineDrawingOpts, c as MarkerDrawingOpts, M as MarkerOpts, P as PathDrawingOpts, b as StrokeOpts, k as SvgHelper, T as TextDrawingOpts, d as TextPathDrawingOpts, i as applyOpts, h as applyPathOpts, j as applyStrokeOpts, f as clear, g as createEl, e as createOrResolve, l as getBounds, m as makeHelper, r as remove, s as setBounds } from './Svg-84664d9e.js';

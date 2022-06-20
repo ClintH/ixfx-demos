@@ -1,11 +1,12 @@
 import {
   log,
   rx
-} from "./chunk-KTSRHEES.js";
+} from "./chunk-EWKG67CK.js";
 import {
   Forms_exports
-} from "./chunk-AQFU44DN.js";
+} from "./chunk-E3UQRORL.js";
 import {
+  clear,
   copyToClipboard,
   createAfter,
   createIn,
@@ -13,14 +14,16 @@ import {
   getTranslation,
   parentSize,
   parentSizeCanvas,
+  reconcileChildren,
   resizeObservable,
   resolveEl,
   themeChangeObservable,
   windowResize
-} from "./chunk-YSBGLMCM.js";
+} from "./chunk-YOC6YR6E.js";
 import "./chunk-6SYKIMQH.js";
 export {
   Forms_exports as Forms,
+  clear,
   copyToClipboard,
   createAfter,
   createIn,
@@ -29,6 +32,7 @@ export {
   log,
   parentSize,
   parentSizeCanvas,
+  reconcileChildren,
   resizeObservable,
   resolveEl,
   rx,

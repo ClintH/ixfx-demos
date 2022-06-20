@@ -596,6 +596,7 @@ declare module "collections/Map" {
      * @returns True if key is found
      */
     export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
+    export type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
     /**
      * Returns a function that fetches a value from a map, or generates and sets it if not present.
      * Undefined is never returned, because if `fn` yields that, an error is thrown.
@@ -611,8 +612,9 @@ declare module "collections/Map" {
      * const v = await m(`hello`);
      * const v1 = await m(`hello`); // Value exists, so it is returned.
      * ```
+     *
      */
-    export const getOrGenerate: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => (key: K, args?: Z | undefined) => Promise<V>;
+    export const getOrGenerate: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
     /**
      * @inheritdoc getOrGenerate
      * @param map
@@ -1689,6 +1691,7 @@ declare module "collections/Arrays" {
      * @return Copy of array without value.
      */
     export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
+    export const remove: <V>(data: readonly V[], index: number) => readonly V[];
     /**
      * Groups data by a grouper function, returning data as a map with string
      * keys and array values.
@@ -3811,12 +3814,6 @@ declare module "temporal/Tracker" {
      */
     export const intervalTracker: (id?: string | undefined, resetAfterSamples?: number | undefined) => IntervalTracker;
 }
-declare module "temporal/index" {
-    export * as Normalise from "temporal/Normalise";
-    export * from "temporal/FrequencyMutable";
-    export * from "temporal/MovingAverage";
-    export { tracker, intervalTracker } from "temporal/Tracker";
-}
 declare module "geometry/Path" {
     import { Rects, Points } from "geometry/index";
     export type Path = {
@@ -3850,876 +3847,6 @@ declare module "geometry/Path" {
     export type WithBeziers = {
         getBeziers(): readonly Path[];
     };
-}
-declare module "geometry/Line" {
-    import { Point } from "geometry/Point";
-    import { Path } from "geometry/Path";
-    import { Rects, Points } from "geometry/index";
-    /**
-     * A line, which consists of an `a` and `b` {@link Point}.
-     */
-    export type Line = {
-        readonly a: Points.Point;
-        readonly b: Points.Point;
-    };
-    /**
-     * A PolyLine, consisting of more than one line.
-     */
-    export type PolyLine = ReadonlyArray<Line>;
-    /**
-     * Returns true if `p` is a valid line, containing `a` and `b` Points.
-     * @param p Value to check
-     * @returns True if a valid line.
-     */
-    export const isLine: (p: Path | Line | Points.Point) => p is Line;
-    /**
-     * Returns true if `p` is a {@link PolyLine}, ie. an array of {@link Line}s.
-     * Validates all items in array.
-     * @param p
-     * @returns
-     */
-    export const isPolyLine: (p: any) => p is PolyLine;
-    /**
-     * Returns true if the lines have the same value
-     *
-     * @param {Line} a
-     * @param {Line} b
-     * @returns {boolean}
-     */
-    export const equals: (a: Line, b: Line) => boolean;
-    /**
-     * Applies `fn` to both start and end points.
-     *
-     * ```js
-     * // Line 10,10 -> 20,20
-     * const line = Lines.fromNumbers(10,10, 20,20);
-     *
-     * // Applies randomisation to x&y
-     * const rand = (p) => ({
-     *  x: p.x * Math.random(),
-     *  y: p.y * Math.random()
-     * });
-     *
-     * // Applies our randomisation function
-     * const line2 = apply(line, rand);
-     * ```
-     * @param line Line
-     * @param fn Function that takes a point and returns a point
-     * @returns
-     */
-    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => Readonly<Line>;
-    /**
-     * Throws an exception if:
-     * * line is undefined
-     * * a or b parameters are missing
-     *
-     * Does not validate points
-     * @param line
-     * @param paramName
-     */
-    export const guard: (line: Line, paramName?: string) => void;
-    /**
-     * Returns the angle in radians of a line, or two points
-     * ```js
-     * angleRadian(line);
-     * angleRadian(ptA, ptB);
-     * ```
-     * @param lineOrPoint
-     * @param b
-     * @returns
-     */
-    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
-    /**
-     * Multiplies start and end of line by x,y given in `p`.
-     * ```js
-     * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = multiply(l, {x:2, y:3});
-     * // Yields: 2,20 -> 3,30
-     * ```
-     * @param line
-     * @param point
-     * @returns
-     */
-    export const multiply: (line: Line, point: Points.Point) => Line;
-    /**
-     * Divides both start and end points by given x,y
-     * ```js
-     * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = divide(l, {x:2, y:4});
-     * // Yields: 0.5,0.25 -> 5,2.5
-     * ```
-     * @param line
-     * @param point
-     * @returns
-     */
-    export const divide: (line: Line, point: Points.Point) => Line;
-    /**
-     * Adds both start and end points by given x,y
-     * ```js
-     * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = sum(l, {x:2, y:4});
-     * // Yields: 3,5 -> 12,14
-     * ```
-     * @param line
-     * @param point
-     * @returns
-     */
-    export const sum: (line: Line, point: Points.Point) => Line;
-    /**
-     * Subtracts both start and end points by given x,y
-     * ```js
-     * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = subtract(l, {x:2, y:4});
-     * // Yields: -1,-3 -> 8,6
-     * ```
-     * @param line
-     * @param point
-     * @returns
-     */
-    export const subtract: (line: Line, point: Points.Point) => Line;
-    /**
-     * Normalises start and end points by given width and height. Useful
-     * for converting an absolutely-defined line to a relative one.
-     * ```js
-     * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = normaliseByRect(l, 10, 10);
-     * // Yields: 0.1,0.1 -> 1,1
-     * ```
-     * @param line
-     * @param width
-     * @param height
-     * @returns
-     */
-    export const normaliseByRect: (line: Line, width: number, height: number) => Line;
-    /**
-     * Returns true if `point` is within `maxRange` of `line`.
-     * ```js
-     * const line = Lines.fromNumbers(0,20,20,20);
-     * Lines.withinRange(line, {x:0,y:21}, 1); // True
-     * ```
-     * @param line
-     * @param point
-     * @param maxRange
-     * @returns True if point is within range
-     */
-    export const withinRange: (line: Line, point: Points.Point, maxRange: number) => boolean;
-    /**
-     * Returns the length of a line or length between two points
-     * ```js
-     * length(line);
-     * length(ptA, ptB);
-     * ```
-     * @param aOrLine Line or first point
-     * @param b Second point
-     * @returns
-     */
-    export const length: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => number;
-    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => Points.Point;
-    export const points: (aOrLine: Points.Point | Line, b?: Point | undefined) => readonly [Points.Point, Points.Point];
-    /**
-     * Returns the nearest point on `line` closest to `point`.
-     *
-     * ```js
-     * const pt = nearest(line, {x:10,y:10});
-     * ```
-     *
-     * If an array of lines is provided, it will be the closest point amongst all the lines
-     * @param line Line or array of lines
-     * @param point
-     * @returns Point {x,y}
-     */
-    export const nearest: (line: Line | readonly Line[], point: Points.Point) => Points.Point;
-    /**
-     * Calculates [slope](https://en.wikipedia.org/wiki/Slope) of line.
-     *
-     * @example
-     * ```js
-     * slope(line);
-     * slope(ptA, ptB)
-     * ```
-     * @param lineOrPoint Line or point. If point is provided, second point must be given too
-     * @param b Second point if needed
-     * @returns
-     */
-    export const slope: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
-    /**
-     * Returns a point perpendicular to `line` at a specified `distance`. Use negative
-     * distances for the other side of line.
-     * ```
-     * // Project a point 100 units away from line, at its midpoint.
-     * const pt = perpendicularPoint(line, 100, 0.5);
-     * ```
-     * @param line Line
-     * @param distance Distance from line. Use negatives to flip side
-     * @param amount Relative place on line to project point from. 0 projects from A, 0.5 from the middle, 1 from B.
-     */
-    export const perpendicularPoint: (line: Line, distance: number, amount?: number) => {
-        x: number;
-        y: number;
-    };
-    /**
-     * Returns a parallel line to `line` at `distance`.
-     * @param line
-     * @param distance
-     */
-    export const parallel: (line: Line, distance: number) => Line;
-    /**
-     * Scales a line from its midpoint
-     *
-     * @example Shorten by 50%, anchored at the midpoint
-     * ```js
-     * const l = {
-     *  a: {x:50, y:50}, b: {x: 100, y: 90}
-     * }
-     * const l2 = scaleFromMidpoint(l, 0.5);
-     * ```
-     * @param line
-     * @param factor
-     */
-    export const scaleFromMidpoint: (line: Line, factor: number) => Line;
-    /**
-     * Extends a line to intersection the x-axis at a specified location
-     * @param line Line to extend
-     * @param xIntersection Intersection of x-axis.
-     */
-    export const extendX: (line: Line, xIntersection: number) => Points.Point;
-    /**
-     * Returns a line extended from its `a` point by a specified distance
-     *
-     * ```js
-     * const line = {a: {x: 0, y:0}, b: {x:10, y:10} }
-     * const extended = extendFromStart(line, 2);
-     * ```
-     * @param ine
-     * @param distance
-     * @return Newly extended line
-     */
-    export const extendFromA: (line: Line, distance: number) => Line;
-    /**
-     * Returns the distance of `point` to the
-     * nearest point on `line`.
-     *
-     * ```js
-     * const d = distance(line, {x:10,y:10});
-     * ```
-     *
-     * If an array of lines is provided, the shortest distance is returned.
-     * @param line Line (or array of lines)
-     * @param point Point to check against
-     * @returns Distance
-     */
-    export const distance: (line: Line | ReadonlyArray<Line>, point: Points.Point) => number;
-    /**
-     * Calculates a point in-between `a` and `b`.
-     *
-     * ```js
-     * // Get {x,y} at 50% along line
-     * interpolate(0.5, line);
-     *
-     * // Get {x,y} at 80% between point A and B
-     * interpolate(0.8, ptA, ptB);
-     * ```
-     * @param amount Relative position, 0 being at a, 0.5 being halfway, 1 being at b
-     * @param a Start
-     * @param b End
-     * @returns Point between a and b
-     */
-    export function interpolate(amount: number, a: Points.Point, pointB: Points.Point): Points.Point;
-    export function interpolate(amount: number, line: Line): Points.Point;
-    /**
-     * Returns a string representation of two points
-     * @param a
-     * @param b
-     * @returns
-     */
-    export function toString(a: Points.Point, b: Points.Point): string;
-    /**
-     * Returns a string representation of a line
-     * @param line
-     */
-    export function toString(line: Line): string;
-    /**
-     * Returns a line from a basis of coordinates
-     * ```js
-     * // Line from 0,1 -> 10,15
-     * fromNumbers(0,1,10,15);
-     * ```
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     * @returns
-     */
-    export const fromNumbers: (x1: number, y1: number, x2: number, y2: number) => Line;
-    /**
-     * Returns an array representation of line: [a.x, a.y, b.x, b.y]
-     *
-     * See {@link fromArray} to create a line _from_ this representation.
-     *
-     * @export
-     * @param {Point} a
-     * @param {Point} b
-     * @returns {number[]}
-     */
-    export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
-    /**
-     * Returns an SVG description of line
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const toSvgString: (a: Points.Point, b: Points.Point) => readonly string[];
-    /**
-     * Returns a line from four numbers [x1,y1,x2,y2].
-     *
-     * See {@link toFlatArray} to create an array from a line.
-     *
-     * @param arr Array in the form [x1,y1,x2,y2]
-     * @returns Line
-     */
-    export const fromFlatArray: (arr: readonly number[]) => Line;
-    /**
-     * Returns a line from two points
-     * ```js
-     * // Line from 0,1 to 10,15
-     * fromPoints({x:0,y:1}, {x:10,y:15});
-     * ```
-     * @param a Start point
-     * @param b End point
-     * @returns
-     */
-    export const fromPoints: (a: Points.Point, b: Points.Point) => Line;
-    /**
-     * Returns an array of lines that connects provided points.
-     *
-     * Eg, if points a,b,c are provided, two lines are provided: a->b and b->c
-     * @param points
-     * @returns
-     */
-    export const joinPointsToLines: (...points: readonly Points.Point[]) => PolyLine;
-    /**
-     * Returns a {@link LinePath} from two points
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
-    /**
-     * Returns a rectangle that encompasses dimension of line
-     */
-    export const bbox: (line: Line) => Rects.RectPositioned;
-    /**
-     * Returns a path wrapper around a line instance. This is useful if there are a series
-     * of operations you want to do with the same line because you don't have to pass it
-     * in as an argument to each function.
-     *
-     * Note that the line is immutable, so a function like `sum` returns a new LinePath,
-     * wrapping the result of `sum`.
-     *
-     * ```js
-     * // Create a path
-     * const l = toPath(fromNumbers(0,0,10,10));
-     * l.length();
-     *
-     * // Mutate functions return a new path
-     * const ll = l.sum({x:10,y:10});
-     * ll.length();
-     * ```
-     * @param line
-     * @returns
-     */
-    export const toPath: (line: Line) => LinePath;
-    export type LinePath = Line & Path & {
-        toFlatArray(): readonly number[];
-        toPoints(): readonly Points.Point[];
-        rotate(amountRadian: number, origin: Points.Point): LinePath;
-        sum(point: Points.Point): LinePath;
-        divide(point: Points.Point): LinePath;
-        multiply(point: Points.Point): LinePath;
-        subtract(point: Points.Point): LinePath;
-        apply(fn: (point: Points.Point) => Points.Point): LinePath;
-    };
-    /**
-     * Returns a line that is rotated by `angleRad`. By default it rotates
-     * around its center, but an arbitrary `origin` point can be provided.
-     * If `origin` is a number, it's presumed to be a 0..1 percentage of the line.
-     *
-     * ```js
-     * // Rotates line by 0.1 radians around point 10,10
-     * rotate(line, 0.1, {x:10,y:10});
-     *
-     * // Rotate line by 5 degrees around its center
-     * rotate(line, degreeToRadian(5));
-     *
-     * // Rotate line by 5 degres around its end point
-     * rotate(line, degreeToRadian(5), line.b);
-     *
-     * // Rotate by 90 degrees at the 80% position
-     * rotated = rotate(line, Math.PI / 2, 0.8);
-     *
-     * ```
-     * @param line Line to rotate
-     * @param amountRadian Angle in radians to rotate by
-     * @param origin Point to rotate around. If undefined, middle of line will be used
-     * @returns
-     */
-    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
-}
-declare module "geometry/Point" {
-    import { Circles, Lines, Points, Rects } from "geometry/index";
-    /**
-     * A point, consisting of x, y and maybe z fields.
-     */
-    export type Point = {
-        readonly x: number;
-        readonly y: number;
-        readonly z?: number;
-    };
-    /**
-     *
-     * @ignore
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const getPointParam: (a?: number | Points.Point | undefined, b?: number | undefined) => Point;
-    export const dotProduct: (...pts: readonly Point[]) => number;
-    /**
-     * An empty point of {x:0, y:0}
-     */
-    export const Empty: Readonly<{
-        x: number;
-        y: number;
-    }>;
-    export const Placeholder: Readonly<{
-        x: number;
-        y: number;
-    }>;
-    export const isEmpty: (p: Point) => boolean;
-    export const isPlaceholder: (p: Point) => boolean;
-    /**
-     * Returns the 'minimum' point from an array of points, using a comparison function.
-     *
-     * @example Find point closest to a coordinate
-     * ```js
-     * const points = [...];
-     * const center = {x: 100, y: 100};
-     *
-     * const closestToCenter = findMinimum((a, b) => {
-     *  const aDist = distance(a, center);
-     *  const bDist = distance(b, center);
-     *  if (aDistance < bDistance) return a;
-     *  return b;
-     * }, points);
-     * ```
-     * @param compareFn Compare function returns the smallest of `a` or `b`
-     * @param points
-     * @returns
-     */
-    export const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points: readonly Point[]) => Point;
-    export function distance(a: Point, b: Point): number;
-    export function distance(a: Point, x: number, y: number): number;
-    export function distance(a: Point): number;
-    /**
-     * Returns the distance from point `a` to the exterior of `shape`.
-     *
-     * @example Distance from point to rectangle
-     * ```
-     * const distance = distanceToExterior(
-     *  {x: 50, y: 50},
-     *  {x: 100, y: 100, width: 20, height: 20}
-     * );
-     * ```
-     *
-     * @example Find closest shape to point
-     * ```
-     * import {minIndex} from '../collections/arrays.js';
-     * const shapes = [ some shapes... ]; // Shapes to compare against
-     * const pt = { x: 10, y: 10 };       // Comparison point
-     * const distances = shapes.map(v => distanceToExterior(pt, v));
-     * const closest = shapes[minIndex(...distances)];
-     * ```
-     * @param a Point
-     * @param shape Point, or a positioned Rect or Circle.
-     * @returns
-     */
-    export const distanceToExterior: (a: Point, shape: PointCalculableShape) => number;
-    /**
-     * Returns the distance from point `a` to the center of `shape`.
-     * @param a Point
-     * @param shape Point, or a positioned Rect or Circle.
-     * @returns
-     */
-    export const distanceToCenter: (a: Point, shape: PointCalculableShape) => number;
-    export type PointCalculableShape = Lines.PolyLine | Lines.Line | Rects.RectPositioned | Point | Circles.CirclePositioned;
-    /**
-     * Throws an error if point is invalid
-     * @param p
-     * @param name
-     */
-    export const guard: (p: Point, name?: string) => void;
-    /**
-     * Throws if parameter is not a valid point, or either x or y is 0
-     * @param pt
-     * @returns
-     */
-    export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
-    /**
-     * Returns the angle in radians between `a` and `b`.
-     * Eg if `a` is the origin, and `b` is another point,
-     * in degrees one would get 0 to -180 when `b` was above `a`.
-     *  -180 would be `b` in line with `a`.
-     * Same for under `a`.
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const angleBetween: (a: Point, b: Point) => number;
-    /**
-     * Calculates the centroid of a set of points
-     *
-     * As per {@link https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points}
-     *
-     * ```js
-     * // Find centroid of a list of points
-     * const c1 = centroid(p1, p2, p3, ...);
-     *
-     * // Find centroid of an array of points
-     * const c2 = centroid(...pointsArray);
-     * ```
-     * @param points
-     * @returns A single point
-     */
-    export const centroid: (...points: readonly Point[]) => Point;
-    /**
-     * Returns the minimum rectangle that can enclose all provided points
-     * @param points
-     * @returns
-     */
-    export const bbox: (...points: readonly Point[]) => Rects.RectPositioned;
-    /**
-     * Returns _true_ if the parameter has x and y fields
-     * @param p
-     * @returns
-     */
-    export const isPoint: (p: number | unknown) => p is Points.Point;
-    /**
-     * Returns point as an array in the form [x,y]. This can be useful for some libraries
-     * that expect points in array form.
-     *
-     * ```
-     * const p = {x: 10, y:5};
-     * const p2 = toArray(p); // yields [10,5]
-     * ```
-     * @param p
-     * @returns
-     */
-    export const toArray: (p: Point) => readonly number[];
-    /**
-     * Returns a human-friendly string representation `(x, y)`
-     * @param p
-     * @returns
-     */
-    export const toString: (p: Point) => string;
-    /**
-     * Returns _true_ if the points have identical values
-     *
-     * ```js
-     * const a = {x: 10, y: 10};
-     * const b = {x: 10, y: 10;};
-     * a === b        // False, because a and be are different objects
-     * isEqual(a, b)   // True, because a and b are same value
-     * ```
-     * @param a
-     * @param b
-     * @returns _True_ if points are equal
-     */
-    export const isEqual: (...p: readonly Point[]) => boolean;
-    /**
-     * Returns true if two points are within a specified range.
-     * Provide a point for the range to set different x/y range, or pass a number
-     * to use the same range for both axis.
-     *
-     * @example
-     * ```js
-     * withinRange({x:100,y:100}, {x:101, y:101}, 1); // True
-     * withinRange({x:100,y:100}, {x:105, y:101}, {x:5, y:1}); // True
-     * withinRange({x:100,y:100}, {x:105, y:105}, {x:5, y:1}); // False - y axis too far
-     * ```
-     * @param a
-     * @param b
-     * @param maxRange
-     * @returns
-     */
-    export const withinRange: (a: Point, b: Point, maxRange: Point | number) => boolean;
-    /**
-     * Returns a relative point between two points
-     * ```js
-     * interpolate(0.5, a, b); // Halfway point between a and b
-     * ```
-     *
-     * Alias for Lines.interpolate(amount, a, b);
-     *
-     * @param amount Relative amount, 0-1
-     * @param a
-     * @param b
-     * @returns {@link Point}
-     */
-    export const interpolate: (amount: number, a: Point, b: Point) => Point;
-    /**
-     * Returns a point from two coordinates or an array of [x,y]
-     * @example
-     * ```js
-     * let p = from([10, 5]); // yields {x:10, y:5}
-     * let p = from(10, 5);   // yields {x:10, y:5}
-     * let p = from(10);      // yields {x:10, y:0} 0 is used for default y
-     * let p = from();        // yields {x:0, y:0}  0 used for default x & y
-     * ```
-     * @param xOrArray
-     * @param [y]
-     * @returns Point
-     */
-    export const from: (xOrArray?: number | readonly number[] | undefined, y?: number | undefined) => Point;
-    /**
-     * Returns an array of points from an array of numbers.
-     *
-     * Array can be a continuous series of x, y values:
-     * ```
-     * [1,2,3,4] would yield: [{x:1, y:2}, {x:3, y:4}]
-     * ```
-     *
-     * Or it can be an array of arrays:
-     * ```
-     * [[1,2], [3,4]] would yield: [{x:1, y:2}, {x:3, y:4}]
-     * ```
-     * @param coords
-     * @returns
-     */
-    export const fromNumbers: (...coords: readonly ReadonlyArray<number>[] | readonly number[]) => readonly Point[];
-    /**
-     * Returns `a` minus `b`
-     *
-     * ie.
-     * ```js
-     * return {
-     *   x: a.x - b.x,
-     *   y: a.y - b.y
-     * };
-     * ```
-     * @param a Point a
-     * @param b Point b
-     * @returns Point
-     */
-    export function subtract(a: Point, b: Point): Point;
-    /**
-     * Returns `a` minus the given coordinates.
-     *
-     * ie:
-     * ```js
-     * return {
-     *  x: a.x - x,
-     *  y: a.y - y
-     * }
-     * ```
-     * @param a Point
-     * @param x X coordinate
-     * @param y Y coordinate
-     */
-    export function subtract(a: Point, x: number, y: number): Point;
-    /**
-     * Subtracts two sets of x,y pairs
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     */
-    export function subtract(x1: number, y1: number, x2: number, y2: number): Point;
-    /**
-     * Applies `fn` on `x` and `y` fields, returning all other fields as well
-     * ```js
-     * const p = {x:1.234, y:4.9};
-     * const p2 = apply(p, Math.round);
-     * // Yields: {x:1, y:5}
-     * ```
-     *
-     * The name of the field is provided as well. Here we only round the `x` field:
-     *
-     * ```js
-     * const p = {x:1.234, y:4.9};
-     * const p2 = apply(p, (v, field) => {
-     *  if (field === `x`) return Math.round(v);
-     *  return v;
-     * });
-     * ```
-     * @param pt
-     * @param fn
-     * @returns
-     */
-    export const apply: (pt: Point, fn: (v: number, field?: string | undefined) => number) => Point;
-    /**
-     * Reduces over points, treating x,y separately.
-     *
-     * ```
-     * // Sum x and y valuse
-     * const total = reduce(points, (p, acc) => {
-     *  return {x: p.x + acc.x, y: p.y + acc.y}
-     * });
-     * ```
-     * @param pts Points to reduce
-     * @param fn Reducer
-     * @param initial Initial value, uses {x:0,y:0} by default
-     * @returns
-     */
-    export const reduce: (pts: readonly Point[], fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
-    type Sum = {
-        /**
-         * Adds two sets of coordinates
-         */
-        (aX: number, aY: number, bX: number, bY: number): Point;
-        /**
-         * Add x,y to a
-         */
-        (a: Point, x: number, y?: number): Point;
-        /**
-         * Add two points
-         */
-        (a: Point, b?: Point): Point;
-    };
-    /**
-     * Returns `a` plus `b`
-     * ie.
-     * ```js
-     * return {
-     *   x: a.x + b.x,
-     *   y: a.y + b.y
-     * };
-     * ```
-     */
-    export const sum: Sum;
-    /**
-     * Returns `a` multiplied by `b`
-     *
-     * ie.
-     * ```js
-     * return {
-     *  x: a.x * b.x,
-    *   y: a.y * b.y
-     * }
-     * ```
-     * @param a
-     * @param b
-     * @returns
-     */
-    export function multiply(a: Point, b: Point): Point;
-    /**
-     * Returns `a` multipled by some x and/or y scaling factor
-     *
-     * ie.
-     * ```js
-     * return {
-     *  x: a.x * x
-    *   y: a.y * y
-     * }
-     * ```
-     * @export
-     * @parama Point to scale
-     * @param x Scale factor for x axis
-     * @param [y] Scale factor for y axis (defaults to no scaling)
-     * @returns Scaled point
-     */
-    export function multiply(a: Point, x: number, y?: number): Point;
-    /**
-     * Divides a / b
-     * @param a
-     * @param b
-     */
-    export function divide(a: Point, b: Point): Point;
-    /**
-     * Divides a point by x,y.
-     * ie: a.x / x, b.y / y
-     * @param a Point
-     * @param x X divisor
-     * @param y Y divisor
-     */
-    export function divide(a: Point, x: number, y: number): Point;
-    export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
-    /**
-     * Rotate a single point by a given amount in radians
-     * @param pt
-     * @param amountRadian
-     * @param origin
-     */
-    export function rotate(pt: Point, amountRadian: number, origin?: Point): Point;
-    /**
-     * Rotate several points by a given amount in radians
-     * @param pt Points
-     * @param amountRadian Amount to rotate in radians
-     * @param origin Origin to rotate around. Defaults to 0,0
-     */
-    export function rotate(pt: ReadonlyArray<Point>, amountRadian: number, origin?: Point): ReadonlyArray<Point>;
-    export const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadian: number) => number[][];
-    /**
-     * Normalise point as a unit vector
-     *
-     * @param ptOrX
-     * @param y
-     * @returns
-     */
-    export const normalise: (ptOrX: Point | number, y?: number | undefined) => Point;
-    /**
-     * Normalises a point by a given width and height
-     * @param pt Point
-     * @param width Width
-     * @param height Height
-     */
-    export function normaliseByRect(pt: Point, width: number, height: number): Point;
-    export function normaliseByRect(pt: Point, rect: Rects.Rect): Point;
-    /**
-     * Normalises x,y by width and height so it is on a 0..1 scale
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     */
-    export function normaliseByRect(x: number, y: number, width: number, height: number): Point;
-    /**
-     * Wraps a point to be within `ptMin` and `ptMax`.
-     * Note that max values are _exclusive_, meaning the return value will always be one less.
-     *
-     * Eg, if a view port is 100x100 pixels, wrapping the point 150,100 yields 50,99.
-     *
-     * ```js
-     * // Wraps 150,100 to on 0,0 -100,100 range
-     * wrap({x:150,y:100}, {x:100,y:100});
-     * ```
-     *
-     * If `ptMin` is not specified, {x:0,y:0} is used.
-     * @param pt Point to wrap
-     * @param ptMax Maximum value
-     * @param ptMin Minimum value, or {x:0, y:0} by default
-     * @returns Wrapped point
-     */
-    export const wrap: (pt: Point, ptMax: Point, ptMin?: Point) => Point;
-    /**
-     * Clamps a point to be between `min` and `max` (0 & 1 by default)
-     * @param pt Point
-     * @param min Minimum value (0 by default)
-     * @param max Maximum value (1 by default)
-     */
-    export function clamp(pt: Point, min?: number, max?: number): Point;
-    /**
-     * Clamps an x,y pair to be between `min` and `max` (0 & 1 by default)
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param min Minimum value (0 by default)
-     * @param max Maximum value (1 by default)
-     */
-    export function clamp(x: number, y: number, min?: number, max?: number): Point;
 }
 declare module "geometry/Arc" {
     import { Path } from "geometry/Path";
@@ -4919,6 +4046,444 @@ declare module "geometry/Bezier" {
     export const toPath: (cubicOrQuadratic: CubicBezier | QuadraticBezier) => CubicBezierPath | QuadraticBezierPath;
     export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
     export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
+}
+declare module "geometry/Line" {
+    import { Point } from "geometry/Point";
+    import { Path } from "geometry/Path";
+    import { Rects, Points } from "geometry/index";
+    /**
+     * A line, which consists of an `a` and `b` {@link Point}.
+     */
+    export type Line = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+    };
+    /**
+     * A PolyLine, consisting of more than one line.
+     */
+    export type PolyLine = ReadonlyArray<Line>;
+    /**
+     * Returns true if `p` is a valid line, containing `a` and `b` Points.
+     * @param p Value to check
+     * @returns True if a valid line.
+     */
+    export const isLine: (p: Path | Line | Points.Point) => p is Line;
+    /**
+     * Returns true if `p` is a {@link PolyLine}, ie. an array of {@link Line}s.
+     * Validates all items in array.
+     * @param p
+     * @returns
+     */
+    export const isPolyLine: (p: any) => p is PolyLine;
+    /**
+     * Returns true if the lines have the same value
+     *
+     * @param {Line} a
+     * @param {Line} b
+     * @returns {boolean}
+     */
+    export const equals: (a: Line, b: Line) => boolean;
+    /**
+     * Applies `fn` to both start and end points.
+     *
+     * ```js
+     * // Line 10,10 -> 20,20
+     * const line = Lines.fromNumbers(10,10, 20,20);
+     *
+     * // Applies randomisation to x&y
+     * const rand = (p) => ({
+     *  x: p.x * Math.random(),
+     *  y: p.y * Math.random()
+     * });
+     *
+     * // Applies our randomisation function
+     * const line2 = apply(line, rand);
+     * ```
+     * @param line Line
+     * @param fn Function that takes a point and returns a point
+     * @returns
+     */
+    export const apply: (line: Line, fn: (p: Points.Point) => Points.Point) => Readonly<Line>;
+    /**
+     * Throws an exception if:
+     * * line is undefined
+     * * a or b parameters are missing
+     *
+     * Does not validate points
+     * @param line
+     * @param paramName
+     */
+    export const guard: (line: Line, paramName?: string) => void;
+    /**
+     * Returns the angle in radians of a line, or two points
+     * ```js
+     * angleRadian(line);
+     * angleRadian(ptA, ptB);
+     * ```
+     * @param lineOrPoint
+     * @param b
+     * @returns
+     */
+    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
+    /**
+     * Multiplies start and end of line by x,y given in `p`.
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = multiply(l, {x:2, y:3});
+     * // Yields: 2,20 -> 3,30
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const multiply: (line: Line, point: Points.Point) => Line;
+    /**
+     * Divides both start and end points by given x,y
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = divide(l, {x:2, y:4});
+     * // Yields: 0.5,0.25 -> 5,2.5
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const divide: (line: Line, point: Points.Point) => Line;
+    /**
+     * Adds both start and end points by given x,y
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = sum(l, {x:2, y:4});
+     * // Yields: 3,5 -> 12,14
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const sum: (line: Line, point: Points.Point) => Line;
+    /**
+     * Subtracts both start and end points by given x,y
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = subtract(l, {x:2, y:4});
+     * // Yields: -1,-3 -> 8,6
+     * ```
+     * @param line
+     * @param point
+     * @returns
+     */
+    export const subtract: (line: Line, point: Points.Point) => Line;
+    /**
+     * Normalises start and end points by given width and height. Useful
+     * for converting an absolutely-defined line to a relative one.
+     * ```js
+     * // Line 1,1 -> 10,10
+     * const l = fromNumbers(1,1,10,10);
+     * const ll = normaliseByRect(l, 10, 10);
+     * // Yields: 0.1,0.1 -> 1,1
+     * ```
+     * @param line
+     * @param width
+     * @param height
+     * @returns
+     */
+    export const normaliseByRect: (line: Line, width: number, height: number) => Line;
+    /**
+     * Returns true if `point` is within `maxRange` of `line`.
+     * ```js
+     * const line = Lines.fromNumbers(0,20,20,20);
+     * Lines.withinRange(line, {x:0,y:21}, 1); // True
+     * ```
+     * @param line
+     * @param point
+     * @param maxRange
+     * @returns True if point is within range
+     */
+    export const withinRange: (line: Line, point: Points.Point, maxRange: number) => boolean;
+    /**
+     * Returns the length between two points
+     * ```js
+     * length(ptA, ptB);
+     * ```
+     * @param a First point
+     * @param b Second point
+     * @returns
+     */
+    export function length(a: Points.Point, b: Points.Point): number;
+    /**
+     * Returns length of line. If a polyline (array of lines) is provided,
+     * it is the sum total that is returned.
+     *
+     * ```js
+     * length(a: {x:0, y:0}, b: {x: 100, y:100});
+     * length(lines);
+     * ```
+     * @param line Line
+     */
+    export function length(line: Line | PolyLine): number;
+    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => Points.Point;
+    /**
+     * Returns [a,b] points from either a line parameter, or two points.
+     * It additionally applies the guardPoint function to ensure validity.
+     * This supports function overloading.
+     * @ignore
+     * @param aOrLine
+     * @param b
+     * @returns
+     */
+    export const getPointsParam: (aOrLine: Points.Point | Line, b?: Point | undefined) => readonly [Points.Point, Points.Point];
+    /**
+     * Returns the nearest point on `line` closest to `point`.
+     *
+     * ```js
+     * const pt = nearest(line, {x:10,y:10});
+     * ```
+     *
+     * If an array of lines is provided, it will be the closest point amongst all the lines
+     * @param line Line or array of lines
+     * @param point
+     * @returns Point {x,y}
+     */
+    export const nearest: (line: Line | readonly Line[], point: Points.Point) => Points.Point;
+    /**
+     * Calculates [slope](https://en.wikipedia.org/wiki/Slope) of line.
+     *
+     * @example
+     * ```js
+     * slope(line);
+     * slope(ptA, ptB)
+     * ```
+     * @param lineOrPoint Line or point. If point is provided, second point must be given too
+     * @param b Second point if needed
+     * @returns
+     */
+    export const slope: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
+    /**
+     * Returns a point perpendicular to `line` at a specified `distance`. Use negative
+     * distances for the other side of line.
+     * ```
+     * // Project a point 100 units away from line, at its midpoint.
+     * const pt = perpendicularPoint(line, 100, 0.5);
+     * ```
+     * @param line Line
+     * @param distance Distance from line. Use negatives to flip side
+     * @param amount Relative place on line to project point from. 0 projects from A, 0.5 from the middle, 1 from B.
+     */
+    export const perpendicularPoint: (line: Line, distance: number, amount?: number) => {
+        x: number;
+        y: number;
+    };
+    /**
+     * Returns a parallel line to `line` at `distance`.
+     * @param line
+     * @param distance
+     */
+    export const parallel: (line: Line, distance: number) => Line;
+    /**
+     * Scales a line from its midpoint
+     *
+     * @example Shorten by 50%, anchored at the midpoint
+     * ```js
+     * const l = {
+     *  a: {x:50, y:50}, b: {x: 100, y: 90}
+     * }
+     * const l2 = scaleFromMidpoint(l, 0.5);
+     * ```
+     * @param line
+     * @param factor
+     */
+    export const scaleFromMidpoint: (line: Line, factor: number) => Line;
+    /**
+     * Extends a line to intersection the x-axis at a specified location
+     * @param line Line to extend
+     * @param xIntersection Intersection of x-axis.
+     */
+    export const extendX: (line: Line, xIntersection: number) => Points.Point;
+    /**
+     * Returns a line extended from its `a` point by a specified distance
+     *
+     * ```js
+     * const line = {a: {x: 0, y:0}, b: {x:10, y:10} }
+     * const extended = extendFromStart(line, 2);
+     * ```
+     * @param ine
+     * @param distance
+     * @return Newly extended line
+     */
+    export const extendFromA: (line: Line, distance: number) => Line;
+    /**
+     * Returns the distance of `point` to the
+     * nearest point on `line`.
+     *
+     * ```js
+     * const d = distance(line, {x:10,y:10});
+     * ```
+     *
+     * If an array of lines is provided, the shortest distance is returned.
+     * @param line Line (or array of lines)
+     * @param point Point to check against
+     * @returns Distance
+     */
+    export const distance: (line: Line | ReadonlyArray<Line>, point: Points.Point) => number;
+    /**
+     * Calculates a point in-between `a` and `b`.
+     *
+     * ```js
+     * // Get {x,y} at 50% along line
+     * interpolate(0.5, line);
+     *
+     * // Get {x,y} at 80% between point A and B
+     * interpolate(0.8, ptA, ptB);
+     * ```
+     * @param amount Relative position, 0 being at a, 0.5 being halfway, 1 being at b
+     * @param a Start
+     * @param b End
+     * @returns Point between a and b
+     */
+    export function interpolate(amount: number, a: Points.Point, pointB: Points.Point): Points.Point;
+    export function interpolate(amount: number, line: Line): Points.Point;
+    /**
+     * Returns a string representation of two points
+     * @param a
+     * @param b
+     * @returns
+     */
+    export function toString(a: Points.Point, b: Points.Point): string;
+    /**
+     * Returns a string representation of a line
+     * @param line
+     */
+    export function toString(line: Line): string;
+    /**
+     * Returns a line from a basis of coordinates
+     * ```js
+     * // Line from 0,1 -> 10,15
+     * fromNumbers(0,1,10,15);
+     * ```
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @returns
+     */
+    export const fromNumbers: (x1: number, y1: number, x2: number, y2: number) => Line;
+    /**
+     * Returns an array representation of line: [a.x, a.y, b.x, b.y]
+     *
+     * See {@link fromArray} to create a line _from_ this representation.
+     *
+     * @export
+     * @param {Point} a
+     * @param {Point} b
+     * @returns {number[]}
+     */
+    export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
+    /**
+     * Returns an SVG description of line
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const toSvgString: (a: Points.Point, b: Points.Point) => readonly string[];
+    /**
+     * Returns a line from four numbers [x1,y1,x2,y2].
+     *
+     * See {@link toFlatArray} to create an array from a line.
+     *
+     * @param arr Array in the form [x1,y1,x2,y2]
+     * @returns Line
+     */
+    export const fromFlatArray: (arr: readonly number[]) => Line;
+    /**
+     * Returns a line from two points
+     * ```js
+     * // Line from 0,1 to 10,15
+     * fromPoints({x:0,y:1}, {x:10,y:15});
+     * ```
+     * @param a Start point
+     * @param b End point
+     * @returns
+     */
+    export const fromPoints: (a: Points.Point, b: Points.Point) => Line;
+    /**
+     * Returns an array of lines that connects provided points. Note that line is not closed.
+     *
+     * Eg, if points a,b,c are provided, two lines are provided: a->b and b->c.
+     * @param points
+     * @returns
+     */
+    export const joinPointsToLines: (...points: readonly Points.Point[]) => PolyLine;
+    /**
+     * Returns a {@link LinePath} from two points
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
+    /**
+     * Returns a rectangle that encompasses dimension of line
+     */
+    export const bbox: (line: Line) => Rects.RectPositioned;
+    /**
+     * Returns a path wrapper around a line instance. This is useful if there are a series
+     * of operations you want to do with the same line because you don't have to pass it
+     * in as an argument to each function.
+     *
+     * Note that the line is immutable, so a function like `sum` returns a new LinePath,
+     * wrapping the result of `sum`.
+     *
+     * ```js
+     * // Create a path
+     * const l = toPath(fromNumbers(0,0,10,10));
+     * l.length();
+     *
+     * // Mutate functions return a new path
+     * const ll = l.sum({x:10,y:10});
+     * ll.length();
+     * ```
+     * @param line
+     * @returns
+     */
+    export const toPath: (line: Line) => LinePath;
+    export type LinePath = Line & Path & {
+        toFlatArray(): readonly number[];
+        toPoints(): readonly Points.Point[];
+        rotate(amountRadian: number, origin: Points.Point): LinePath;
+        sum(point: Points.Point): LinePath;
+        divide(point: Points.Point): LinePath;
+        multiply(point: Points.Point): LinePath;
+        subtract(point: Points.Point): LinePath;
+        apply(fn: (point: Points.Point) => Points.Point): LinePath;
+    };
+    /**
+     * Returns a line that is rotated by `angleRad`. By default it rotates
+     * around its center, but an arbitrary `origin` point can be provided.
+     * If `origin` is a number, it's presumed to be a 0..1 percentage of the line.
+     *
+     * ```js
+     * // Rotates line by 0.1 radians around point 10,10
+     * rotate(line, 0.1, {x:10,y:10});
+     *
+     * // Rotate line by 5 degrees around its center
+     * rotate(line, degreeToRadian(5));
+     *
+     * // Rotate line by 5 degres around its end point
+     * rotate(line, degreeToRadian(5), line.b);
+     *
+     * // Rotate by 90 degrees at the 80% position
+     * rotated = rotate(line, Math.PI / 2, 0.8);
+     *
+     * ```
+     * @param line Line to rotate
+     * @param amountRadian Angle in radians to rotate by
+     * @param origin Point to rotate around. If undefined, middle of line will be used
+     * @returns
+     */
+    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
 }
 declare module "geometry/Circle" {
     import { Path } from "geometry/Path";
@@ -6049,6 +5614,636 @@ declare module "geometry/index" {
      */
     export const radiansFromAxisX: (point: Points.Point) => number;
 }
+declare module "geometry/Point" {
+    import { Circles, Lines, Points, Rects } from "geometry/index";
+    /**
+     * A point, consisting of x, y and maybe z fields.
+     */
+    export type Point = {
+        readonly x: number;
+        readonly y: number;
+        readonly z?: number;
+    };
+    /**
+     *
+     * @ignore
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const getPointParam: (a?: number | Points.Point | undefined, b?: number | undefined) => Point;
+    export const dotProduct: (...pts: readonly Point[]) => number;
+    /**
+     * An empty point of {x:0, y:0}
+     */
+    export const Empty: Readonly<{
+        x: number;
+        y: number;
+    }>;
+    export const Placeholder: Readonly<{
+        x: number;
+        y: number;
+    }>;
+    export const isEmpty: (p: Point) => boolean;
+    export const isPlaceholder: (p: Point) => boolean;
+    /**
+     * Returns the 'minimum' point from an array of points, using a comparison function.
+     *
+     * @example Find point closest to a coordinate
+     * ```js
+     * const points = [...];
+     * const center = {x: 100, y: 100};
+     *
+     * const closestToCenter = findMinimum((a, b) => {
+     *  const aDist = distance(a, center);
+     *  const bDist = distance(b, center);
+     *  if (aDistance < bDistance) return a;
+     *  return b;
+     * }, points);
+     * ```
+     * @param compareFn Compare function returns the smallest of `a` or `b`
+     * @param points
+     * @returns
+     */
+    export const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points: readonly Point[]) => Point;
+    export function distance(a: Point, b: Point): number;
+    export function distance(a: Point, x: number, y: number): number;
+    export function distance(a: Point): number;
+    /**
+     * Returns the distance from point `a` to the exterior of `shape`.
+     *
+     * @example Distance from point to rectangle
+     * ```
+     * const distance = distanceToExterior(
+     *  {x: 50, y: 50},
+     *  {x: 100, y: 100, width: 20, height: 20}
+     * );
+     * ```
+     *
+     * @example Find closest shape to point
+     * ```
+     * import {minIndex} from '../collections/arrays.js';
+     * const shapes = [ some shapes... ]; // Shapes to compare against
+     * const pt = { x: 10, y: 10 };       // Comparison point
+     * const distances = shapes.map(v => distanceToExterior(pt, v));
+     * const closest = shapes[minIndex(...distances)];
+     * ```
+     * @param a Point
+     * @param shape Point, or a positioned Rect or Circle.
+     * @returns
+     */
+    export const distanceToExterior: (a: Point, shape: PointCalculableShape) => number;
+    /**
+     * Returns the distance from point `a` to the center of `shape`.
+     * @param a Point
+     * @param shape Point, or a positioned Rect or Circle.
+     * @returns
+     */
+    export const distanceToCenter: (a: Point, shape: PointCalculableShape) => number;
+    export type PointCalculableShape = Lines.PolyLine | Lines.Line | Rects.RectPositioned | Point | Circles.CirclePositioned;
+    /**
+     * Throws an error if point is invalid
+     * @param p
+     * @param name
+     */
+    export const guard: (p: Point, name?: string) => void;
+    /**
+     * Throws if parameter is not a valid point, or either x or y is 0
+     * @param pt
+     * @returns
+     */
+    export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
+    /**
+     * Returns the angle in radians between `a` and `b`.
+     * Eg if `a` is the origin, and `b` is another point,
+     * in degrees one would get 0 to -180 when `b` was above `a`.
+     *  -180 would be `b` in line with `a`.
+     * Same for under `a`.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const angleBetween: (a: Point, b: Point) => number;
+    /**
+     * Calculates the centroid of a set of points
+     *
+     * As per {@link https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points}
+     *
+     * ```js
+     * // Find centroid of a list of points
+     * const c1 = centroid(p1, p2, p3, ...);
+     *
+     * // Find centroid of an array of points
+     * const c2 = centroid(...pointsArray);
+     * ```
+     * @param points
+     * @returns A single point
+     */
+    export const centroid: (...points: readonly Point[]) => Point;
+    /**
+     * Returns the minimum rectangle that can enclose all provided points
+     * @param points
+     * @returns
+     */
+    export const bbox: (...points: readonly Point[]) => Rects.RectPositioned;
+    /**
+     * Returns _true_ if the parameter has x and y fields
+     * @param p
+     * @returns
+     */
+    export const isPoint: (p: number | unknown) => p is Points.Point;
+    /**
+     * Returns point as an array in the form [x,y]. This can be useful for some libraries
+     * that expect points in array form.
+     *
+     * ```
+     * const p = {x: 10, y:5};
+     * const p2 = toArray(p); // yields [10,5]
+     * ```
+     * @param p
+     * @returns
+     */
+    export const toArray: (p: Point) => readonly number[];
+    /**
+     * Returns a human-friendly string representation `(x, y)`
+     * @param p
+     * @returns
+     */
+    export const toString: (p: Point) => string;
+    /**
+     * Returns _true_ if the points have identical values
+     *
+     * ```js
+     * const a = {x: 10, y: 10};
+     * const b = {x: 10, y: 10;};
+     * a === b        // False, because a and be are different objects
+     * isEqual(a, b)   // True, because a and b are same value
+     * ```
+     * @param a
+     * @param b
+     * @returns _True_ if points are equal
+     */
+    export const isEqual: (...p: readonly Point[]) => boolean;
+    /**
+     * Returns true if two points are within a specified range.
+     * Provide a point for the range to set different x/y range, or pass a number
+     * to use the same range for both axis.
+     *
+     * @example
+     * ```js
+     * withinRange({x:100,y:100}, {x:101, y:101}, 1); // True
+     * withinRange({x:100,y:100}, {x:105, y:101}, {x:5, y:1}); // True
+     * withinRange({x:100,y:100}, {x:105, y:105}, {x:5, y:1}); // False - y axis too far
+     * ```
+     * @param a
+     * @param b
+     * @param maxRange
+     * @returns
+     */
+    export const withinRange: (a: Point, b: Point, maxRange: Point | number) => boolean;
+    /**
+     * Returns a relative point between two points
+     * ```js
+     * interpolate(0.5, a, b); // Halfway point between a and b
+     * ```
+     *
+     * Alias for Lines.interpolate(amount, a, b);
+     *
+     * @param amount Relative amount, 0-1
+     * @param a
+     * @param b
+     * @returns {@link Point}
+     */
+    export const interpolate: (amount: number, a: Point, b: Point) => Point;
+    /**
+     * Returns a point from two coordinates or an array of [x,y]
+     * @example
+     * ```js
+     * let p = from([10, 5]); // yields {x:10, y:5}
+     * let p = from(10, 5);   // yields {x:10, y:5}
+     * let p = from(10);      // yields {x:10, y:0} 0 is used for default y
+     * let p = from();        // yields {x:0, y:0}  0 used for default x & y
+     * ```
+     * @param xOrArray
+     * @param [y]
+     * @returns Point
+     */
+    export const from: (xOrArray?: number | readonly number[] | undefined, y?: number | undefined) => Point;
+    /**
+     * Returns an array of points from an array of numbers.
+     *
+     * Array can be a continuous series of x, y values:
+     * ```
+     * [1,2,3,4] would yield: [{x:1, y:2}, {x:3, y:4}]
+     * ```
+     *
+     * Or it can be an array of arrays:
+     * ```
+     * [[1,2], [3,4]] would yield: [{x:1, y:2}, {x:3, y:4}]
+     * ```
+     * @param coords
+     * @returns
+     */
+    export const fromNumbers: (...coords: readonly ReadonlyArray<number>[] | readonly number[]) => readonly Point[];
+    /**
+     * Returns `a` minus `b`
+     *
+     * ie.
+     * ```js
+     * return {
+     *   x: a.x - b.x,
+     *   y: a.y - b.y
+     * };
+     * ```
+     * @param a Point a
+     * @param b Point b
+     * @returns Point
+     */
+    export function subtract(a: Point, b: Point): Point;
+    /**
+     * Returns `a` minus the given coordinates.
+     *
+     * ie:
+     * ```js
+     * return {
+     *  x: a.x - x,
+     *  y: a.y - y
+     * }
+     * ```
+     * @param a Point
+     * @param x X coordinate
+     * @param y Y coordinate
+     */
+    export function subtract(a: Point, x: number, y: number): Point;
+    /**
+     * Subtracts two sets of x,y pairs
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    export function subtract(x1: number, y1: number, x2: number, y2: number): Point;
+    /**
+     * Applies `fn` on `x` and `y` fields, returning all other fields as well
+     * ```js
+     * const p = {x:1.234, y:4.9};
+     * const p2 = apply(p, Math.round);
+     * // Yields: {x:1, y:5}
+     * ```
+     *
+     * The name of the field is provided as well. Here we only round the `x` field:
+     *
+     * ```js
+     * const p = {x:1.234, y:4.9};
+     * const p2 = apply(p, (v, field) => {
+     *  if (field === `x`) return Math.round(v);
+     *  return v;
+     * });
+     * ```
+     * @param pt
+     * @param fn
+     * @returns
+     */
+    export const apply: (pt: Point, fn: (v: number, field?: string | undefined) => number) => Point;
+    /**
+     * Reduces over points, treating x,y separately.
+     *
+     * ```
+     * // Sum x and y valuse
+     * const total = reduce(points, (p, acc) => {
+     *  return {x: p.x + acc.x, y: p.y + acc.y}
+     * });
+     * ```
+     * @param pts Points to reduce
+     * @param fn Reducer
+     * @param initial Initial value, uses {x:0,y:0} by default
+     * @returns
+     */
+    export const reduce: (pts: readonly Point[], fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
+    type Sum = {
+        /**
+         * Adds two sets of coordinates
+         */
+        (aX: number, aY: number, bX: number, bY: number): Point;
+        /**
+         * Add x,y to a
+         */
+        (a: Point, x: number, y?: number): Point;
+        /**
+         * Add two points
+         */
+        (a: Point, b?: Point): Point;
+    };
+    /**
+     * Returns `a` plus `b`
+     * ie.
+     * ```js
+     * return {
+     *   x: a.x + b.x,
+     *   y: a.y + b.y
+     * };
+     * ```
+     */
+    export const sum: Sum;
+    /**
+     * Returns `a` multiplied by `b`
+     *
+     * ie.
+     * ```js
+     * return {
+     *  x: a.x * b.x,
+    *   y: a.y * b.y
+     * }
+     * ```
+     * @param a
+     * @param b
+     * @returns
+     */
+    export function multiply(a: Point, b: Point): Point;
+    /**
+     * Returns `a` multipled by some x and/or y scaling factor
+     *
+     * ie.
+     * ```js
+     * return {
+     *  x: a.x * x
+    *   y: a.y * y
+     * }
+     * ```
+     * @export
+     * @parama Point to scale
+     * @param x Scale factor for x axis
+     * @param [y] Scale factor for y axis (defaults to no scaling)
+     * @returns Scaled point
+     */
+    export function multiply(a: Point, x: number, y?: number): Point;
+    /**
+     * Divides a / b
+     * @param a
+     * @param b
+     */
+    export function divide(a: Point, b: Point): Point;
+    /**
+     * Divides a point by x,y.
+     * ie: a.x / x, b.y / y
+     * @param a Point
+     * @param x X divisor
+     * @param y Y divisor
+     */
+    export function divide(a: Point, x: number, y: number): Point;
+    export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
+    /**
+     * Simple convex hull impementation. Returns a set of points which
+     * enclose `pts`.
+     *
+     * For a more power, see something like [Hull.js](https://github.com/AndriiHeonia/hull)
+     * @param pts
+     * @returns
+     */
+    export const convexHull: (...pts: readonly Point[]) => readonly Point[];
+    /**
+     * Returns -1 if either x/y of a is less than b's x/y
+     * Returns 1 if either x/y of a is greater than b's x/y
+     * Returns 0 if x/y of a and b are equal
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const compare: (a: Point, b: Point) => number;
+    export const compareByX: (a: Point, b: Point) => number;
+    /**
+     * Rotate a single point by a given amount in radians
+     * @param pt
+     * @param amountRadian
+     * @param origin
+     */
+    export function rotate(pt: Point, amountRadian: number, origin?: Point): Point;
+    /**
+     * Rotate several points by a given amount in radians
+     * @param pt Points
+     * @param amountRadian Amount to rotate in radians
+     * @param origin Origin to rotate around. Defaults to 0,0
+     */
+    export function rotate(pt: ReadonlyArray<Point>, amountRadian: number, origin?: Point): ReadonlyArray<Point>;
+    export const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadian: number) => number[][];
+    /**
+     * Normalise point as a unit vector
+     *
+     * @param ptOrX
+     * @param y
+     * @returns
+     */
+    export const normalise: (ptOrX: Point | number, y?: number | undefined) => Point;
+    /**
+     * Normalises a point by a given width and height
+     * @param pt Point
+     * @param width Width
+     * @param height Height
+     */
+    export function normaliseByRect(pt: Point, width: number, height: number): Point;
+    export function normaliseByRect(pt: Point, rect: Rects.Rect): Point;
+    /**
+     * Normalises x,y by width and height so it is on a 0..1 scale
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function normaliseByRect(x: number, y: number, width: number, height: number): Point;
+    /**
+     * Wraps a point to be within `ptMin` and `ptMax`.
+     * Note that max values are _exclusive_, meaning the return value will always be one less.
+     *
+     * Eg, if a view port is 100x100 pixels, wrapping the point 150,100 yields 50,99.
+     *
+     * ```js
+     * // Wraps 150,100 to on 0,0 -100,100 range
+     * wrap({x:150,y:100}, {x:100,y:100});
+     * ```
+     *
+     * If `ptMin` is not specified, {x:0,y:0} is used.
+     * @param pt Point to wrap
+     * @param ptMax Maximum value
+     * @param ptMin Minimum value, or {x:0, y:0} by default
+     * @returns Wrapped point
+     */
+    export const wrap: (pt: Point, ptMax: Point, ptMin?: Point) => Point;
+    /**
+     * Clamps a point to be between `min` and `max` (0 & 1 by default)
+     * @param pt Point
+     * @param min Minimum value (0 by default)
+     * @param max Maximum value (1 by default)
+     */
+    export function clamp(pt: Point, min?: number, max?: number): Point;
+    /**
+     * Clamps an x,y pair to be between `min` and `max` (0 & 1 by default)
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param min Minimum value (0 by default)
+     * @param max Maximum value (1 by default)
+     */
+    export function clamp(x: number, y: number, min?: number, max?: number): Point;
+    /**
+     * Tracks the relation between two points
+     *
+     * ```js
+     * // Start point: 50,50
+     * const t = track({x:50,y:50});
+     *
+     * // Compare to a 0,0
+     * const {angle, distance, centroid} = t({x:0,y:0});
+     * ```
+     *
+     * X,y coordinates can also be used as parameters:
+     * ```js
+     * const t = track(50, 50);
+     * const {angle, distance, centroid} = t(0, 0);
+     * ```
+     * @param start
+     * @returns
+     */
+    export const relation: (a: Point | number, b?: number | undefined) => (aa: Point | number, bb?: number | undefined) => {
+        angle: number;
+        distance: number;
+        centroid: Points.Point;
+    };
+}
+declare module "temporal/PointTracker" {
+    import * as Points from "geometry/Point";
+    import { GetOrGenerate } from "collections/Map";
+    import * as Line from "geometry/Line";
+    export type SeenInfo = {
+        readonly distance: number;
+        readonly centroid: Points.Point;
+        readonly angle: number;
+        readonly speed: number;
+    };
+    export type TimestampedPoint = Points.Point & {
+        readonly at: number;
+    };
+    /**
+     * A tracked point
+     */
+    export class TrackedPoint {
+        readonly id: string;
+        readonly storePoints: boolean;
+        relation: (aa: number | Points.Point, bb?: number | undefined) => {
+            angle: number;
+            distance: number;
+            centroid: Points.Point;
+        };
+        points: TimestampedPoint[];
+        lastPoint: TimestampedPoint;
+        constructor(id: string, start: Points.Point, storePoints: boolean);
+        get x(): number;
+        get y(): number;
+        /**
+         * Returns number of saved points (including start)
+         */
+        get size(): number;
+        /**
+         * Tracks a point, returning information on the relation between it
+         * and the start point.
+         *
+         * If multiple points are given, it's relation to the last point that is returned.
+         * @param p Point
+         */
+        seen(...p: Points.Point[] | TimestampedPoint[]): SeenInfo;
+        /**
+         * Returns a polyline representation of stored points.
+         * Returns an empty array if points were not saved, or there's only one.
+         */
+        get line(): Line.PolyLine;
+        /**
+         * Returns the total length of accumulated points.
+         * Returns 0 if points were not saved, or there's only one
+         */
+        get length(): number;
+        /**
+         * Returns the elapsed time, in milliseconds since the instance was created
+         */
+        get elapsed(): number;
+    }
+    /**
+     * Options for PointTracker
+     */
+    export type Opts = {
+        /**
+         * If true, intermediate points are stored
+         */
+        readonly trackIntermediatePoints?: boolean;
+    };
+    export const pointTracker: (opts: Opts) => PointTracker;
+    /**
+     * PointTracker. Mutable.
+     */
+    export class PointTracker {
+        store: Map<string, TrackedPoint>;
+        gog: GetOrGenerate<string, TrackedPoint, Points.Point>;
+        constructor(opts?: Opts);
+        /**
+         * Return number of named points being tracked
+         */
+        get size(): number;
+        /**
+         * For a given id, note that we have seen one or more points.
+         * @param id Id
+         * @param points Point(s)
+         * @returns Information about start to last point
+         */
+        seen(id: string, ...points: Points.Point[]): Promise<SeenInfo>;
+        /**
+         * Remove a tracked point by id.
+         * Use {@link reset} to clear them all.
+         * @param id
+         */
+        delete(id: string): void;
+        /**
+         * Remove all tracked points.
+         * Use {@link delete} to remove a single point by id.
+         */
+        reset(): void;
+        /**
+         * Enumerate ids
+         */
+        ids(): Generator<string, void, undefined>;
+        /**
+         * Enumerate tracked points
+         */
+        trackedPoints(): Generator<TrackedPoint, void, undefined>;
+        /**
+         * Returns TrackedPoints ordered with oldest first
+         * @returns
+         */
+        getTrackedPointsByAge(): readonly TrackedPoint[];
+        /**
+         * Enumerate last received points
+         *
+         * @example Calculate centroid of latest-received points
+         * ```js
+         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
+         * ```
+         */
+        lastPoints(): Generator<TimestampedPoint, void, unknown>;
+        /**
+         * Enumerate starting points
+         */
+        startPoints(): Generator<TimestampedPoint, void, unknown>;
+        /**
+         * Returns a tracked point by id, or undefined if not found
+         * @param id
+         * @returns
+         */
+        get(id: string): TrackedPoint | undefined;
+    }
+}
+declare module "temporal/index" {
+    export * as Normalise from "temporal/Normalise";
+    export * from "temporal/FrequencyMutable";
+    export * from "temporal/MovingAverage";
+    export { tracker, intervalTracker } from "temporal/Tracker";
+    export { pointTracker } from "temporal/PointTracker";
+}
 declare module "flow/StateMachine" {
     import { SimpleEventEmitter } from "Events";
     export interface Options {
@@ -6983,7 +7178,7 @@ declare module "io/index" {
 }
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
-    import { Points } from "geometry/index";
+    import * as Points from "geometry/Point";
     type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
         readonly el: V;
         readonly bounds: {
@@ -7077,6 +7272,11 @@ declare module "dom/Util" {
      */
     export const createIn: (parent: HTMLElement, tagName: string) => HTMLElement;
     /**
+     * Remove all child nodes from `parent`
+     * @param parent
+     */
+    export const clear: (parent: HTMLElement) => void;
+    /**
      * Observer when document's class changes
      *
      * ```js
@@ -7108,6 +7308,8 @@ declare module "dom/Util" {
      * @returns Promise
      */
     export const copyToClipboard: (obj: object) => Promise<unknown>;
+    export type CreateUpdateElement<V> = (item: V, el: HTMLElement | null) => HTMLElement;
+    export const reconcileChildren: <V>(parentEl: HTMLElement, list: ReadonlyMap<string, V>, createUpdate: CreateUpdateElement<V>) => void;
 }
 declare module "visual/Drawing" {
     import * as Points from "geometry/Point";
@@ -7596,6 +7798,7 @@ declare module "visual/Svg" {
      */
     export const createOrResolve: <V extends SVGElement>(parent: SVGElement, type: string, queryOrExisting?: string | V | undefined) => V;
     export const remove: <V extends SVGElement>(parent: SVGElement, queryOrExisting: string | V) => void;
+    export const clear: (parent: SVGElement) => void;
     /**
      * Creates an element of `type` and with `id` (if specified)
      * @param type Element type, eg `circle`
