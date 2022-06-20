@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>point-centroid</title>
+  <title>point-centroid-hull</title>
 </head>
 
 <body>
@@ -33,10 +33,22 @@
       background-color: unset;
       border: 2px solid hsl(var(--hue), 70%, 70%);
     }
+
+    #svg {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
   </style>
   <section>
-    <h1>point-centroid</h1>
-    <p>Click to add points. Centroid is shown as a hollow circle.</p>
+    <svg id="svg">
+
+    </svg>
+    <h1>point-centroid-hull</h1>
+    <p>Click to add points. Centroid is shown as a hollow circle, lines show the enclosing convex hull.</p>
     <div id="centroid" class="point"></div>
     <script type="module" src="script.js"></script>
   </section>
