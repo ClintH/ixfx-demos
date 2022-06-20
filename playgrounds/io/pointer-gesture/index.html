@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pointer-gesture</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 330;
+    --bg: hsl(var(--hue) 64% 87%);
+    --faint: hsl(var(--hue) 100% 15%);
+    --fg: hsl(var(--hue) 100% 9%);
+  }
+
+  html,
+  body {
+    height: 100%;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  body {
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+    display: flex;
+  }
+
+  #things {
+    width: 100%;
+    height: 100%;
+    cursor: none;
+  }
+
+  #things>div,
+  .thing {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    background-color: hsl(var(--hue) 100% 15%);
+    border-radius: 100%;
+  }
+
+  #centroid {
+    border: 3px solid hsl(var(--hue) 100% 15%);
+    background-color: unset;
+  }
+
+  #startCentroid {
+    border: 3px solid hsl(var(--hue) 100% 55%);
+    background-color: unset;
+  }
+
+  #stats {
+    position: fixed;
+    color: var(--fg);
+    left: 0;
+    top: 0;
+  }
+</style>
+
+<body>
+  <!-- <svg id="lines" width="100%" height="100%">
+    <line x1="50" y1="50" x2="350" y2="500" stroke="red" />
+  </svg> -->
+
+  <section id="things"></section>
+  <section id="stats">
+    <table>
+      <tr>
+        <td>2 finger rotation</td>
+        <td id="rotation"></td>
+      </tr>
+      <tr>
+        <td>Avg. distance to centroid</td>
+        <td id="distance"></td>
+      </tr>
+      <tr>
+        <td>Centroid travel</td>
+        <td id="centroidTravel"></td>
+      </tr>
+      <tr>
+        <td>Area</td>
+        <td id="area"></td>
+      </tr>
+    </table>
+  </section>
+  <div class="thing" id="centroid" style="left:-1000px;top:-1000px">centroid</div>
+  <div class="thing" id="startCentroid" style="left:-1000px;top:-1000px">centroid start</div>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
