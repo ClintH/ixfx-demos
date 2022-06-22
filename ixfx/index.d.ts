@@ -9023,6 +9023,14 @@ declare module "dom/PointerVisualise" {
      * pointerVis(document);
      * ```
      *
+     * Note you may need to set the following CSS properties on the target element:
+     *
+     * ```css
+     * touch-action: none;
+     * user-select: none;
+     * overscroll-behavior: none;
+     * ```
+     *
      * Options
      * * touchRadius/mouseRadius: size of circle for these kinds of pointer events
      * * trace: if true, intermediate events are captured and displayed

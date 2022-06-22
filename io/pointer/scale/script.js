@@ -1,0 +1,95 @@
+/**
+ * Demonstrates a 'pinch to zoom' style gesture
+ * 
+ */
+import {pointerVisualise} from '../../../ixfx/dom.js';
+import {Points} from '../../../ixfx/geometry.js';
+import {clamp} from '../../../ixfx/util.js';
+import {numberTracker, pointsTracker} from '../../../ixfx/temporal.js';
+
+// Pointer visualiser. Useful for debugging. It's what adds the red border
+pointerVisualise(document);
+
+// Setings
+const settings = {
+  containerEl: document.getElementById(`container`),
+  thingEl: document.getElementById(`thing`)
+}
+
+// State
+let state = {
+  // Track pointer locations
+  pointers: pointsTracker(),
+  // Track how the distance between two pointers changes
+  twoFingerDistance: numberTracker(),
+  // Current text scaling value
+  scale: 1
+}
+
+/**
+ * Called when the pointer moves
+ * @param {*} ev 
+ */
+const onPointerMove = (ev) => {
+  const {pointers, twoFingerDistance} = state;
+
+  pointers.seen(ev.pointerId, {x: ev.x, y: ev.y});
+
+  const byAge = pointers.valuesByAge();
+
+  // We need at least two pointers for gesture
+  if (byAge.length >= 2) {
+
+    // Calculate distance between first two touches
+    const distanceAbs = Points.distance(byAge[0], byAge[1]);
+
+    // Pop it into a numberTracker, because what we really
+    // care about is how much distances changes from its start value
+    twoFingerDistance.seen(distanceAbs);
+
+    // Read back the relative value (0..1 scale)  
+    const relative = twoFingerDistance.relativeDifference();
+
+    // -1 so that if there's no change in finger distance, v will be close to 0
+    // If there's a pinch, relative will be less than 1, so we make it negative
+    // If there's a grow gesture, relative will be greater than one, so it will be positive
+    const v = relative - 1;
+
+    // Halve it to reduce the impact on scaling
+    const vv = v * 0.5;
+
+    state.scale = clamp(state.scale + vv, 0.1, 20);
+    draw();
+  } else {
+    // If we don't get at least two touches,
+    // reset the tracker, because gesture has been cancelled
+    twoFingerDistance.reset();
+  }
+};
+
+/**
+ * Update screen with state
+ */
+const draw = () => {
+  const {thingEl} = settings;
+  const {scale} = state;
+  thingEl.style.transform = `scale(${scale})`;
+}
+
+/**
+ * Called when the touches end or runs out of the bounds of the viewport
+ * @param {PointerEvent} ev 
+ */
+const onLostPointer = (ev) => {
+  const {pointers} = state;
+
+  // Delete the pointer
+  pointers.delete(ev.pointerId);
+};
+
+const setup = () => {
+  document.addEventListener(`pointermove`, onPointerMove);
+  document.addEventListener(`pointerup`, onLostPointer);
+  document.addEventListener(`pointerleave`, onLostPointer);
+}
+setup();

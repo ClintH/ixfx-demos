@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pointer scale</title>
+  <script src="./script.js" type="module"></script>
+</head>
+
+<body>
+  <style>
+    body {
+      touch-action: none;
+      overflow: hidden;
+      user-select: none;
+      overscroll-behavior: none;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #thing {}
+
+    section {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    header {
+      margin: 1em;
+    }
+  </style>
+  <header>
+    <h1>pointer scale</h1>
+    <p>Demonstrate a 'pinch to zoom' style gesture.</p>
+
+  </header>
+  <section id="container">
+    <div id="thing">Hello.</div>
+  </section>
+</body>
+
+</html>
