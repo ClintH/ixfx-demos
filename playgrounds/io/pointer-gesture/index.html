@@ -14,6 +14,7 @@
     --bg: hsl(var(--hue) 64% 87%);
     --faint: hsl(var(--hue) 100% 15%);
     --fg: hsl(var(--hue) 100% 9%);
+    --padding: 0.3em;
   }
 
   html,
@@ -35,13 +36,13 @@
     display: flex;
   }
 
-  #things {
+  .pointers {
     width: 100%;
     height: 100%;
     cursor: none;
   }
 
-  #things>div,
+  .pointers>div,
   .thing {
     width: 100px;
     height: 100px;
@@ -50,14 +51,20 @@
     border-radius: 100%;
   }
 
+  #start-points>div {
+    opacity: 0.1;
+  }
+
   #centroid {
     border: 3px solid hsl(var(--hue) 100% 15%);
     background-color: unset;
+
   }
 
   #startCentroid {
-    border: 3px solid hsl(var(--hue) 100% 55%);
+    border: 3px solid hsl(var(--hue) 100% 75%);
     background-color: unset;
+    opacity: 0.1;
   }
 
   #stats {
@@ -65,6 +72,28 @@
     color: var(--fg);
     left: 0;
     top: 0;
+    padding: 1.3em;
+  }
+
+  h2 {
+    font-size: 1em;
+    margin: 0;
+    margin-top: calc(var(--padding) * 2);
+    padding: 0;
+  }
+
+  td {
+    margin: 0;
+    padding: 0;
+  }
+
+  tr>td:first-child {
+    padding-right: var(--padding);
+  }
+
+  #pointers>table {
+    border-bottom: 2px solid hsl(var(--hue) 50% 75%);
+    margin-bottom: var(--padding);
   }
 </style>
 
@@ -73,26 +102,41 @@
     <line x1="50" y1="50" x2="350" y2="500" stroke="red" />
   </svg> -->
 
-  <section id="things"></section>
+  <section class="pointers" id="start-points"></section>
+
+  <section class="pointers" id="current-points"></section>
   <section id="stats">
+    <h2>Two-finger</h2>
     <table>
       <tr>
-        <td>2 finger rotation</td>
-        <td id="rotation"></td>
+        <td>Rotation</td>
+        <td id="twoPtrRotation"></td>
       </tr>
       <tr>
-        <td>Avg. distance to centroid</td>
-        <td id="distance"></td>
+        <td>Distance</td>
+        <td id="twoPtrDistance"></td>
       </tr>
+    </table>
+    <h2>Three-finger</h2>
+    <table>
       <tr>
-        <td>Centroid travel</td>
+        <td>Area</td>
+        <td id="threePtrArea"></td>
+      </tr>
+    </table>
+    <h2>Centroid</h2>
+    <table>
+      <tr>
+        <td>Travel</td>
         <td id="centroidTravel"></td>
       </tr>
       <tr>
-        <td>Area</td>
-        <td id="area"></td>
+        <td>Angle</td>
+        <td id="centroidAngle"></td>
       </tr>
     </table>
+    <h2>Pointers</h2>
+    <div id="pointers"></div>
   </section>
   <div class="thing" id="centroid" style="left:-1000px;top:-1000px">centroid</div>
   <div class="thing" id="startCentroid" style="left:-1000px;top:-1000px">centroid start</div>

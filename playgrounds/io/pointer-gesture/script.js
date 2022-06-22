@@ -1,115 +1,166 @@
-import {Points, radianToDegree} from "../../../ixfx/geometry.js";
-import {reconcileChildren} from '../../../ixfx/dom.js';
-import {pointTracker} from "../../../ixfx/temporal.js";
-import {clamp} from "../../../ixfx/util.js";
-
-import * as Arrays from '../../../ixfx/arrays.js';
-
-/** @typedef {{rotation?: { initial:number, current:number}, averageDistance?:number, centroid?: {travel:number, pos:Points.Point, start:Points.Point}}} GestureState */
+import {Points, radianToDegree, Triangles} from "../../../ixfx/geometry.js";
+import {reconcileChildren, dataTableList} from '../../../ixfx/dom.js';
+import {numberTracker, pointsTracker, pointTracker} from "../../../ixfx/temporal.js";
 
 const settings = {
-  thingsEl: document.getElementById(`things`),
+  currentPointsEl: document.getElementById(`current-points`),
+  startPointsEl: document.getElementById(`start-points`),
   centroidEl: document.getElementById(`centroid`),
   startCentroidEl: document.getElementById(`startCentroid`),
-
   thingSize: 100
 };
 
-
 let state = {
-  /** @type PointTracker */
-  pointers: pointTracker({trackIntermediatePoints: false}),
-  /** @type GestureState */
-  gesture: {},
-  initialRotation: NaN,
-  rotation: NaN
+  /** @type PointsTracker */
+  pointers: pointsTracker({trackIntermediatePoints: false}),
+  twoFinger: {
+    rotation: numberTracker(),
+    distance: numberTracker()
+  },
+  threeFinger: {
+    area: numberTracker()
+  },
+  centroid: pointTracker(),
+  centroidAngle: 0
 };
+
+
+const gestureTwoFinger = (a, b) => {
+  if (a === undefined) throw new Error(`point a undefined`);
+  if (b === undefined) throw new Error(`point b undefined`);
+
+  const {twoFinger} = state;
+
+  // Absolute distance between points
+  const distanceAbs = Points.distance(a, b); // clamp(Points.distance(a, b) / maxDimension)
+  twoFinger.distance.seen(distanceAbs);
+
+  // Calculate rotation
+  const rotationAbs = radianToDegree(Points.angleBetween(a, b));
+  twoFinger.rotation.seen(rotationAbs / 180);
+};
+
+const gestureThreeFinger = (a, b, c) => {
+  if (a === undefined) throw new Error(`point a undefined`);
+  if (b === undefined) throw new Error(`point b undefined`);
+  if (c === undefined) throw new Error(`point c undefined`);
+
+  const tri = Triangles.fromPoints([a, b, c]);
+  state.threeFinger.area.seen(Triangles.area(tri));
+}
 
 /**
  * 
- * @param {TrackedPoint[]} byAge 
- * @param {GestureState} prevGestureState
- * @returns {GesureState} 
+ * @param {PointsTracker} pointers 
  */
-const gestureLengths = (byAge, prevGestureState) => {
-  const centroid = prevGestureState.centroid;
-  if (!centroid) throw new Error(`Needs centroid calculation`);
-
-  // Less than two points, can't calculate the distance
-  if (byAge.length < 2) {
-    return {
-      ...prevGestureState,
-      averageDistance: undefined
-    };
+const gestureCentroid = (pointers) => {
+  if (pointers.size < 2) {
+    state.centroid.reset();
+    return;
   }
-  // Calculate average length from all touches to centroid
-  const lengths = byAge.map(tp => Points.distance(tp, centroid.pos));
-  const lengthsSum = lengths.reduce((acc, v) => v + acc, 0);
 
-  // Compute total possible length
-  const halfMaxDimension = Math.max(window.innerWidth, window.innerHeight) / 2;
-
-  return {
-    ...prevGestureState,
-    averageDistance: clamp(lengthsSum / byAge.length / halfMaxDimension)
-  }
+  const centroid = Points.centroid(...Array.from(pointers.last()));
+  state.centroid.seen(centroid);
+  state.centroidAngle = radianToDegree(Points.angleBetween(centroid, state.centroid.initial));
 };
 
-const gestureRotation = (a, b, prevGestureState) => {
-  if (a === undefined || b === undefined) return {
-    ...prevGestureState, rotation: {}
-  };
 
-  // Track rotation of first two touches
-  const r = radianToDegree(Points.angleBetween(a, b));
-  const state = prevGestureState.rotation ?? {};
 
-  if (typeof state.initial === `undefined`) {
-    // First time we have two touches
-    state.initial = r;
+const update = () => {
+  const {pointers} = state;
+
+  gestureCentroid(pointers);
+
+  // Pointers sorted by age, oldest first
+  const byAge = pointers.trackedByAge();
+
+  if (byAge.length >= 2) {
+    // Got at least two touches
+    gestureTwoFinger(byAge[0].last, byAge[1].last);
   } else {
-    // Compute difference from initial
-    state.current = state.initial - r;
+    // Reset state regarding two-finger gestures
+    state.twoFinger.distance.reset();
+    state.twoFinger.rotation.reset();
   }
-  return {
-    ...prevGestureState,
-    rotation: state
-  };
-};
+
+  if (byAge.length >= 3) {
+    // Got at least three touches
+    gestureThreeFinger(byAge[0].last, byAge[1].last, byAge[2].last);
+  } else {
+    state.threeFinger.area.reset();
+  }
+
+  const displayMap = new Map();
+  for (const v of byAge) {
+    displayMap.set(v.id, {
+      id: v.id,
+      length: Math.round(v.length),
+      angle: Math.round(radianToDegree(Points.angleBetween(v.last, v.initial)))
+    });
+  }
+
+  dataTableList(`#pointers`, displayMap);
+  // Update visuals
+  draw();
+}
+
+const draw = () => {
+  const {centroidEl, startCentroidEl, thingSize, currentPointsEl, startPointsEl} = settings;
+  const {pointers, gesture} = state;
+  const {centroid, twoFinger, threeFinger} = state;
+
+  // Create or remove elements based on tracked points
+  reconcileChildren(currentPointsEl, pointers.store, (trackedPoint, el) => {
+    if (el === null) {
+      el = document.createElement(`div`);
+      el.innerText = trackedPoint.id;
+    }
+    positionEl(el, trackedPoint, thingSize);
+    return el;
+  });
+
+
+  reconcileChildren(startPointsEl, pointers.store, (trackedPoint, el) => {
+    if (el === null) {
+      el = document.createElement(`div`);
+      el.innerText = trackedPoint.id;
+    }
+    positionEl(el, trackedPoint.initial, thingSize);
+    return el;
+  });
+
+  // Update centroid circle
+  document.getElementById(`centroidTravel`).innerText = val(centroid.distanceFromStart());
+  if (centroid.initial === undefined) {
+    positionEl(startCentroidEl, {x: -1000, y: -1000}, thingSize);
+  } else {
+    positionEl(startCentroidEl, centroid.initial, thingSize);
+  }
+  if (centroid.last === undefined) {
+    positionEl(centroidEl, {x: -1000, y: -1000}, thingSize);
+  } else {
+    positionEl(centroidEl, centroid.last, thingSize);
+  }
+
+  document.getElementById(`threePtrArea`).innerText = pc(threeFinger.area.relativeDifference());
+  document.getElementById(`twoPtrDistance`).innerText = pc(twoFinger.distance.relativeDifference());
+  document.getElementById(`twoPtrRotation`).innerText = pc(twoFinger.rotation.difference());
+  document.getElementById(`centroidAngle`).innerText = val(state.centroidAngle);
+
+}
+
+const val = (v) => typeof v === `undefined` ? `` : Math.round(v);
+const pc = (v) => typeof v === `undefined` ? `` : Math.round(v * 100) + '%';
 
 /**
- * Calculate centroid of all touches
- * @param {PointTracker} pointers 
- * @param {GestureState} prevGestureState 
- * @returns {GestureState}
+ * 
+ * @param {PointerEvent} id 
  */
-const gestureCentroid = (pointers, prevGestureState) => {
-  if (pointers.size < 2) return {...prevGestureState, centroid: {}};
-  const prevState = prevGestureState.centroid ?? {};
-
-  const centroid = Points.centroid(...Array.from(pointers.lastPoints()));
-
-  let newState;
-  if (prevState.start) {
-    // Already have a start point
-    newState = {
-      pos: centroid,
-      start: prevState.start,
-      travel: Points.distance(prevState.start, centroid)
-    }
-  } else {
-    // Do not yet have a start point
-    newState = {
-      pos: centroid,
-      start: centroid,
-      travel: 0
-    };
-  }
-  return {
-    ...prevGestureState,
-    centroid: newState
-  };
+const stopTrackingPoint = (ev) => {
+  state.pointers.delete(ev.pointerId);
+  update();
 };
+
 
 /**
  * 
@@ -121,83 +172,20 @@ const trackPoint = (ev) => {
   const {pointers} = state;
 
   // Track point, associated with pointerId
-  const info = pointers.seen(ev.pointerId, {x: ev.x, y: ev.y});
-
+  pointers.seen(ev.pointerId, {x: ev.x, y: ev.y});
   update();
 };
 
+/**
+ * Position element
+ * @param {HTMLElement} el 
+ * @param {{x:number, y:number}} point 
+ * @param {number} size 
+ */
 const positionEl = (el, point, size) => {
   el.style.left = (point.x - size / 2) + `px`;
   el.style.top = (point.y - size / 2) + `px`;
 }
-
-
-const update = () => {
-  const {pointers, gesture} = state;
-
-  let s = state;
-  s = gestureCentroid(pointers, gesture);
-
-  // Pointers sorted by age, oldest first
-  const byAge = pointers.getTrackedPointsByAge();
-
-  s = gestureLengths(byAge, s);
-
-  // Pluck out first and second touch
-  const [first, second] = byAge;
-  s = gestureRotation(first, second, s);
-
-  state.gesture = s;
-
-  // Update visuals
-  draw();
-}
-
-const draw = () => {
-  const {centroidEl, startCentroidEl, thingSize, thingsEl} = settings;
-  const {pointers, gesture} = state;
-  const {centroid, rotation} = gesture;
-
-  // Create or remove elements based on tracked points
-  reconcileChildren(thingsEl, pointers.store, (trackedPoint, el) => {
-    if (el === null) {
-      el = document.createElement(`div`);
-      el.innerText = trackedPoint.id;
-    }
-    positionEl(el, trackedPoint.lastPoint, thingSize);
-    return el;
-  });
-
-  // Update centroid circle
-  if (typeof centroid.pos === `undefined`) {
-    positionEl(centroidEl, {x: -1000, y: -1000}, 100);
-  } else {
-    positionEl(centroidEl, centroid.pos, thingSize);
-  }
-  document.getElementById(`centroidTravel`).innerText = val(centroid.travel);
-
-  if (typeof centroid.start === `undefined`) {
-    positionEl(startCentroidEl, {x: -1000, y: -1000}, thingSize);
-  } else {
-    positionEl(startCentroidEl, centroid.start, thingSize);
-  }
-
-  document.getElementById(`rotation`).innerText = val(rotation.current);
-  document.getElementById(`distance`).innerText = pc(gesture.averageDistance);
-
-  document.getElementById(`distance`).innerText = pc(gesture.averageDistance);
-}
-
-const val = (v) => typeof v === `undefined` ? `` : Math.round(v);
-const pc = (v) => typeof v === `undefined` ? `` : Math.round(v * 100) + '%';
-/**
- * 
- * @param {PointerEvent} id 
- */
-const stopTrackingPoint = (ev) => {
-  state.pointers.delete(ev.pointerId);
-  update();
-};
 
 const setup = () => {
   document.addEventListener(`pointerup`, ev => stopTrackingPoint(ev));
