@@ -10,7 +10,18 @@
 
 <body>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=League+Spartan&display=swap');
+
+    :root {
+      --hue: 280;
+      --bg: hsl(var(--hue), 50%, 10%);
+      --fg: hsl(var(--hue), 20%, 80%);
+    }
+
     body {
+      color: var(--fg);
+      background-color: var(--bg);
+      font-family: 'League Spartan', sans-serif;
       touch-action: none;
       overflow: hidden;
       user-select: none;
@@ -20,8 +31,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    #thing {}
 
     section {
       flex-grow: 1;
