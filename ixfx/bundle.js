@@ -1,41 +1,42 @@
 import {
   temporal_exports
-} from "./chunk-SJWPIWEV.js";
+} from "./chunk-KC6LDMAI.js";
 import {
   visual_exports
-} from "./chunk-EFZAQSQZ.js";
-import "./chunk-4OYHJUE7.js";
+} from "./chunk-JN6F4XEB.js";
 import {
   Generators_exports
 } from "./chunk-Q6WTWIAD.js";
 import {
   io_exports
-} from "./chunk-K6YEOA6B.js";
+} from "./chunk-6LR7QULC.js";
 import {
   modulation_exports
-} from "./chunk-GK2QNN36.js";
+} from "./chunk-2BMOKQHA.js";
+import {
+  KeyValue_exports
+} from "./chunk-4ZNRI3HQ.js";
+import {
+  dom_exports
+} from "./chunk-VITCFX3Z.js";
+import "./chunk-GMLZQVYR.js";
+import "./chunk-D2PHFSAZ.js";
 import {
   geometry_exports
-} from "./chunk-XG4JXAZ2.js";
+} from "./chunk-FYZXBP3A.js";
 import {
   collections_exports
-} from "./chunk-2Q3G2A6K.js";
+} from "./chunk-XPRO47PR.js";
 import "./chunk-LTK4DV2D.js";
 import "./chunk-CGNAXYY4.js";
 import {
-  KeyValue_exports
-} from "./chunk-EJENDR66.js";
-import {
   Random_exports
-} from "./chunk-5JS26KLN.js";
-import {
-  dom_exports
-} from "./chunk-EWKG67CK.js";
+} from "./chunk-IKSWBEON.js";
 import {
   flow_exports
-} from "./chunk-L2C22FDT.js";
+} from "./chunk-24252M3C.js";
 import "./chunk-5L5XW7ZM.js";
-import "./chunk-L2QCS65W.js";
+import "./chunk-VDTZ52FD.js";
 import {
   clamp,
   clampIndex,
@@ -48,6 +49,7 @@ import {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  relativeDifference,
   roundUpToMultiple,
   runningiOS,
   scale,
@@ -57,7 +59,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-CJEVR63F.js";
+} from "./chunk-LO2A4AGL.js";
 import {
   Text_exports
 } from "./chunk-OE2F6QKM.js";
@@ -65,8 +67,8 @@ import "./chunk-U4IZE4J2.js";
 import {
   Events_exports
 } from "./chunk-764ABC7D.js";
-import "./chunk-E3UQRORL.js";
-import "./chunk-YOC6YR6E.js";
+import "./chunk-APO3DGFH.js";
+import "./chunk-4WOKD3SY.js";
 import "./chunk-6SYKIMQH.js";
 export {
   collections_exports as Collections,
@@ -93,6 +95,7 @@ export {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  relativeDifference,
   roundUpToMultiple,
   runningiOS,
   scale,

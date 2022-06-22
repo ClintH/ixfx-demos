@@ -10,6 +10,7 @@ import {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  relativeDifference,
   roundUpToMultiple,
   runningiOS,
   scale,
@@ -19,7 +20,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-CJEVR63F.js";
+} from "./chunk-LO2A4AGL.js";
 import "./chunk-OE2F6QKM.js";
 import "./chunk-U4IZE4J2.js";
 import "./chunk-6SYKIMQH.js";
@@ -35,6 +36,7 @@ export {
   isEqualValueDefault,
   isPowerOfTwo,
   proportion,
+  relativeDifference,
   roundUpToMultiple,
   runningiOS,
   scale,

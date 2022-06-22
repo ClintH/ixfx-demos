@@ -1,5 +1,5 @@
-export { F as FrequencyMutable, M as MovingAverage, N as Normalise, f as frequencyMutable, a as movingAverage, m as movingAverageLight, p as pointTracker } from './index-5bf583d4.js';
-export { i as intervalTracker, t as tracker } from './Tracker-ec5cafa7.js';
+export { F as FrequencyMutable, M as MovingAverage, N as Normalise, f as frequencyMutable, a as intervalTracker, c as movingAverage, m as movingAverageLight, p as pointTracker, b as pointsTracker } from './index-458e6a94.js';
+export { n as numberTracker } from './NumberTracker-67b7fcb8.js';
 import './NumericArrays-20f70b74.js';
 import './Timer-504c3588.js';
 import './util.js';
@@ -7,5 +7,5 @@ import './Events-5892cf2f.js';
 import './KeyValue-90e2cb76.js';
 import './Eq';
 import './Ordering';
-import './Point-38b2ac09.js';
-import './Map-d55a38ae.js';
+import './Point-dc50f72b.js';
+import './Map-858cb6b7.js';

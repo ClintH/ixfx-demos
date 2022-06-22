@@ -575,6 +575,23 @@ declare module "Util" {
      * @returns True if `x` is a power of two
      */
     export const isPowerOfTwo: (x: number) => boolean;
+    /**
+     * Returns the relative difference from the `initial` value
+     * ```js
+     * const rel = relativeDifference(100);
+     * rel(100); // 1
+     * rel(150); // 1.5
+     * rel(50);  // 0.5
+     * ```
+     *
+     * The code for this is simple:
+     * ```js
+     * const relativeDifference = (initial) => (v) => v/initial
+     * ```
+     * @param {number} initial
+     * @returns
+     */
+    export const relativeDifference: (initial: number) => (v: number) => number;
     export const runningiOS: () => boolean;
 }
 declare module "collections/Map" {
@@ -3039,6 +3056,91 @@ declare module "Iterable" {
     export const isIterable: (v: any) => v is Iterable<any>;
     export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
 }
+/**
+ *
+ * ```js
+ * chunks([1,2,3,4,5,6,7,8,9,10], 3);
+ * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+ * ```
+ * @param it
+ * @param size
+ */
+declare function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
+declare function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
+declare function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
+declare function equals<V>(it1: Iterable<V>, it2: Iterable<V>): Promise<boolean | undefined>;
+/**
+ * Returns true if `f` returns true for
+ * every item in iterable
+ * @param it
+ * @param f
+ * @returns
+ */
+declare function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
+/**
+ * Yields `v` for each item within `it`.
+ *
+ * ```js
+ * fill([1, 2, 3], 0);
+ * // Yields: [0, 0, 0]
+ * ```
+ * @param it
+ * @param v
+ */
+declare function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
+/**
+ * ```js
+ * filter([1, 2, 3, 4], e => e % 2 == 0);
+ * returns [2, 4]
+ * ```
+ * @param it
+ * @param f
+ */
+declare function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+/**
+ *
+ * ```js
+ * find([1, 2, 3, 4], e => e > 2);
+ * // Yields: 3
+ * ```
+ * @param it
+ * @param f
+ * @returns
+ */
+declare function find<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
+/**
+ * ```js
+ * flatten([1, [2, 3], [[4]]]);
+ * // Yields: [1, 2, 3, [4]];
+ * ```
+ * @param it
+ */
+declare function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
+/**
+ *
+ * @param it
+ * @param f
+ */
+declare function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
+declare function map<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<boolean, void, unknown>;
+declare function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+declare function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+/**
+ * Returns count from `start` for a given length
+ * ```js
+ * range(-5, 10);
+ * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+ * ```
+ * @param start
+ * @param len
+ */
+declare function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
+declare function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
+declare function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
+declare function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
+declare function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+declare function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
+declare function zip<V>(...its: AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
 declare module "KeyValue" {
     type Primitive = string | number;
     export type KeyValue = readonly [key: string, value: Primitive];
@@ -3732,14 +3834,401 @@ declare module "temporal/MovingAverage" {
         add(v: number): number;
     };
 }
-declare module "temporal/Tracker" {
+declare module "flow/StateMachine" {
+    import { SimpleEventEmitter } from "Events";
+    export interface Options {
+        readonly debug?: boolean;
+    }
+    export interface StateChangeEvent {
+        readonly newState: string;
+        readonly priorState: string;
+    }
+    export interface StopEvent {
+        readonly state: string;
+    }
+    type StateMachineEventMap = {
+        readonly change: StateChangeEvent;
+        readonly stop: StopEvent;
+    };
+    type StateEvent = (args: unknown, sender: StateMachine) => void;
+    type StateHandler = string | StateEvent | null;
+    export interface State {
+        readonly [event: string]: StateHandler;
+    }
+    export interface MachineDescription {
+        readonly [key: string]: string | readonly string[] | null;
+    }
+    /**
+     * Returns a machine description based on a list of strings. The final string is the final
+     * state.
+     *
+     * ```js
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.create(states[0], descriptionFromList(states));
+     * ```
+     * @param {...readonly} states
+     * @param {*} string
+     * @param {*} []
+     * @return {*}  {MachineDescription}
+     */
+    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
+    /**
+     * Returns a state machine based on a list of strings. The first string is used as the initial state,
+     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
+     *
+     * ```js
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.fromList(states);
+     * ```
+     */
+    export const fromList: (...states: readonly string[]) => StateMachine;
+    /**
+     * Creates a new state machine
+     * @param initial Initial state
+     * @param m Machine description
+     * @param opts Options
+     * @returns State machine instance
+     */
+    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
+    /**
+     * State machine
+     *
+     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
+     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
+     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
+     *
+     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
+     * ```
+     * const description = {
+     *  sleep: 'wakeup',
+     *  wakeup: ['coffee', 'breakfast'],
+     *  coffee: `bike`,
+     *  breakfast: `bike`,
+     *  bike: null
+     * }
+     * ```
+     * Create the machine with the starting state (`sleep`)
+     * ```
+     * const machine = StateMachine.create(`sleep`, description);
+     * ```
+     *
+     * Change the state by name:
+     * ```
+     * machine.state = `wakeup`
+     * ```
+     *
+     * Or request an automatic transition (will use first state if there are several options)
+     * ```
+     * machine.next();
+     * ```
+     *
+     * Check status
+     * ```
+     * if (machine.state === `coffee`) ...;
+     * if (machine.isDone()) ...
+     * ```
+     *
+     * Listen for state changes
+     * ```
+     * machine.addEventListener(`change`, (evt) => {
+     *  const {priorState, newState} = evt;
+     *  console.log(`State change from ${priorState} -> ${newState}`);
+     * });
+     * ```
+     * @export
+     * @class StateMachine
+     * @extends {SimpleEventEmitter<StateMachineEventMap>}
+     */
+    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
+        #private;
+        /**
+         * Create a state machine with initial state, description and options
+         * @param {string} initial Initial state
+         * @param {MachineDescription} m Machine description
+         * @param {Options} [opts={debug: false}] Options for machine
+         * @memberof StateMachine
+         */
+        constructor(initial: string, m: MachineDescription, opts?: Options);
+        get states(): readonly string[];
+        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
+        /**
+         * Moves to the next state if possible. If multiple states are possible, it will use the first.
+         * If machine is finalised, no error is thrown and null is returned.
+         *
+         * @returns {(string|null)} Returns new state, or null if machine is finalised
+         * @memberof StateMachine
+         */
+        next(): string | null;
+        /**
+         * Returns true if state machine is in its final state
+         *
+         * @returns
+         * @memberof StateMachine
+         */
+        get isDone(): boolean;
+        /**
+         * Resets machine to initial state
+         *
+         * @memberof StateMachine
+         */
+        reset(): void;
+        /**
+         * Checks whether a state change is valid.
+         *
+         * @static
+         * @param {string} priorState From state
+         * @param {string} newState To state
+         * @param {MachineDescription} description Machine description
+         * @returns {[boolean, string]} If valid: [true,''], if invalid: [false, 'Error msg here']
+         * @memberof StateMachine
+         */
+        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
+        isValid(newState: string): readonly [boolean, string];
+        /**
+         * Sets state. Throws an error if an invalid transition is attempted.
+         * Use `StateMachine.isValid` to check validity without changing.
+         *
+         * @memberof StateMachine
+         */
+        set state(newState: string);
+        /**
+       * Return current state
+       *
+       * @type {string}
+       * @memberof StateMachine
+       */
+        get state(): string;
+    }
+}
+declare module "flow/index" {
+    export * as StateMachine from "flow/StateMachine";
+    export * from "flow/Timer";
+    /**
+     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
+     * If `fn` returns _false_, iterator cancels.
+     *
+     * @example
+     * ```js
+     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
+     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
+     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
+     * ```
+     *
+     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
+     * @param iterator Iterable or array
+     * @param fn Function to call for each item. If function returns false, iteration cancels
+     */
+    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
+    /**
+     * Iterates over an async iterable or array, calling `fn` for each value, with optional
+     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
+     *
+     * Use {@link forEach} for a synchronous version.
+     *
+     * ```
+     * // Prints items from array every second
+     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
+     * ```
+     *
+     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
+     * ```
+     * await forEachAsync(count(5), i=> {
+     *  try {
+     *    await doSomething();
+     *    return false; // Succeeded, exit early
+     *  } catch (ex) {
+     *    console.log(ex);
+     *    return true; // Keep trying
+     *  }
+     * }, 5000);
+     * ```
+     * @param iterator
+     * @param fn
+     */
+    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number | undefined) => Promise<void>;
+    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
+    /**
+     * Runs `fn` a certain number of times, accumulating result into an array.
+     * If `fn` returns undefined, the result is ignored.
+     *
+     * ```js
+     * // Results will be an array with five random numbers
+     * const results = repeat(5, () => Math.random());
+     * ```
+     *
+     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
+     * that gives _false_ when repeating should stop.
+     *
+     * ```js
+     * // Keep running `fn` until we've accumulated 10 values
+     * // Useful if `fn` sometimes returns _undefined_
+     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
+     * ```
+     *
+     * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
+     *
+     * @param countOrPredicate Number of repeats or function returning false when to stop
+     * @param fn Function to run, must return a value to accumulate into array or _undefined_
+     * @returns Array of accumulated results
+     */
+    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
+}
+declare module "temporal/TrackedValue" {
+    import { GetOrGenerate } from "collections/Map";
+    export type Timestamped<V> = V & {
+        readonly at: number;
+    };
+    export type Opts = {
+        readonly storeIntermediate?: boolean;
+        readonly resetAfterSamples?: number;
+    };
+    export abstract class TrackerBase<V> {
+        readonly id: string;
+        seenCount: number;
+        protected storeIntermediate: boolean;
+        protected resetAfterSamples: number;
+        constructor(id: string, opts?: Opts);
+        reset(): void;
+        seen(...p: V[]): any;
+        abstract seenImpl(p: V[]): V[];
+        abstract get last(): V | undefined;
+        abstract get initial(): V | undefined;
+        abstract get elapsed(): number;
+        onSeen(_p: V[]): void;
+        abstract onReset(): void;
+    }
+    export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
+        values: V[];
+        timestamps: number[];
+        constructor(id: string, opts: Opts);
+        get last(): V | undefined;
+        get initial(): V | undefined;
+        /**
+       * Returns number of recorded values (this can include the initial value)
+       */
+        get size(): number;
+        /**
+         * Returns the elapsed time, in milliseconds since the instance was created
+         */
+        get elapsed(): number;
+        onReset(): void;
+        /**
+         * Tracks a value
+         */
+        seenImpl(p: V[]): V[];
+    }
+    /**
+     * A tracked value of type `V`.
+     */
+    export class ObjectTracker<V> extends TrackerBase<V> {
+        values: Timestamped<V>[];
+        constructor(id: string, opts: Opts);
+        /**
+         * Allows sub-classes to be notified when a reset happens
+         */
+        onReset(): void;
+        /**
+         * Tracks a value
+         */
+        seenImpl(p: V[] | Timestamped<V>[]): Timestamped<V>[];
+        /**
+         * Last seen value. If no values have been added, it will return the initial value
+         */
+        get last(): Timestamped<V>;
+        get initial(): Timestamped<V> | undefined;
+        /**
+         * Returns number of recorded values (this can include the initial value)
+         */
+        get size(): number;
+        /**
+         * Returns the elapsed time, in milliseconds since the instance was created
+         */
+        get elapsed(): number;
+    }
+    export class TrackedValueMap<V> {
+        store: Map<string, TrackerBase<V>>;
+        gog: GetOrGenerate<string, TrackerBase<V>, V>;
+        constructor(creator: (key: string, start: V | undefined) => TrackerBase<V>);
+        /**
+         * Return number of named points being tracked
+         */
+        get size(): number;
+        /**
+         * Returns true if `id` is stored
+         * @param id
+         * @returns
+         */
+        has(id: string): boolean;
+        /**
+         * For a given id, note that we have seen one or more values.
+         * @param id Id
+         * @param values Values(s)
+         * @returns Information about start to last value
+         */
+        seen(id: string, ...values: V[]): Promise<any>;
+        /**
+         * Creates or returns a TrackedValue instance for `id`.
+         * @param id
+         * @param values
+         * @returns
+         */
+        protected getTrackedValue(id: string, ...values: V[]): Promise<TrackerBase<V>>;
+        /**
+         * Remove a tracked value by id.
+         * Use {@link reset} to clear them all.
+         * @param id
+         */
+        delete(id: string): void;
+        /**
+         * Remove all tracked values.
+         * Use {@link delete} to remove a single value by id.
+         */
+        reset(): void;
+        /**
+         * Enumerate ids
+         */
+        ids(): Generator<string, void, undefined>;
+        /**
+         * Enumerate tracked values
+         */
+        values(): Generator<TrackerBase<V>, void, undefined>;
+        /**
+         * Returns TrackedValues ordered with oldest first
+         * @returns
+         */
+        trackedByAge(): readonly TrackerBase<V>[];
+        valuesByAge(): readonly V[];
+        /**
+         * Enumerate last received values
+         *
+         * @example Calculate centroid of latest-received values
+         * ```js
+         * const pointers = pointTracker();
+         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
+         * ```
+         */
+        last(): Generator<V | undefined, void, unknown>;
+        /**
+         * Enumerate starting values
+         */
+        initialValues(): Generator<V | undefined, void, unknown>;
+        /**
+         * Returns a tracked value by id, or undefined if not found
+         * @param id
+         * @returns
+         */
+        get(id: string): TrackerBase<V> | undefined;
+    }
+}
+declare module "temporal/NumberTracker" {
+    import { Opts as TrackOpts, Timestamped, PrimitiveTracker } from "temporal/TrackedValue";
     /**
      * Keeps track of the min, max and avg in a stream of values without actually storing them.
      *
      * Usage:
      *
      * ```js
-     *  const t = tracker();
+     *  const t = numberTracker();
      *  t.seen(10);
      *
      *  t.avg / t.min/ t.max / t.getMinMax()
@@ -3750,39 +4239,48 @@ declare module "temporal/Tracker" {
      * Trackers can automatically reset after a given number of samples
      * ```
      * // reset after 100 samples
-     * const t = tracker(`something`, 100);
+     * const t = numberTracker(`something`, 100);
      * ```
-     * @class Tracker
+     * @class NumberTracker
      */
-    export class Tracker {
-        samples: number;
+    export class NumberTracker extends PrimitiveTracker<number> {
         total: number;
         min: number;
         max: number;
-        id: string | undefined;
-        resetAfterSamples?: number;
-        constructor(id?: string | undefined, resetAfterSamples?: number);
         get avg(): number;
-        resetAvg(newId?: string | null): void;
-        reset(newId?: string | null): void;
-        seen(sample: number): void;
+        /**
+         * Difference between last value and initial.
+         * Eg. if last value was 10 and initial value was 5, 5 is returned (10 - 5)
+         * If either of those is missing, undefined is returned
+         */
+        difference(): number | undefined;
+        /**
+         * Relative difference between last value and initial.
+         * Eg if last value was 10 and initial value was 5, 2 is returned (200%)
+         */
+        relativeDifference(): number | undefined;
+        onReset(): void;
+        onSeen(values: Timestamped<number>[]): void;
         getMinMaxAvg(): {
             min: number;
             max: number;
             avg: number;
         };
     }
-    export const tracker: (id?: string | undefined, resetAfterSamples?: number | undefined) => Tracker;
+    export const numberTracker: (id?: string | undefined, opts?: TrackOpts | undefined) => NumberTracker;
+}
+declare module "temporal/IntervalTracker" {
+    import { NumberTracker } from "temporal/NumberTracker";
+    import { Opts as TrackOpts } from "temporal/TrackedValue";
     /**
      * A `Tracker` that tracks interval between calls to `mark()`
      *
      * @export
      * @class IntervalTracker
-     * @extends {Tracker}
+     * @extends {ValueTracker}
      */
-    export class IntervalTracker extends Tracker {
+    export class IntervalTracker extends NumberTracker {
         lastMark: number;
-        constructor(id?: string | undefined, resetAfterSamples?: number);
         mark(): void;
     }
     /**
@@ -3812,7 +4310,7 @@ declare module "temporal/Tracker" {
      * @param id Optional id of instance
      * @returns New interval tracker
      */
-    export const intervalTracker: (id?: string | undefined, resetAfterSamples?: number | undefined) => IntervalTracker;
+    export const intervalTracker: (id: string, opts: TrackOpts) => IntervalTracker;
 }
 declare module "geometry/Path" {
     import { Rects, Points } from "geometry/index";
@@ -5279,7 +5777,7 @@ declare module "geometry/Shape" {
     } | undefined) => readonly Point[];
 }
 declare module "geometry/Triangle" {
-    import { Points, Lines, Circles, Triangles, Rects } from "geometry/index";
+    import { Points, Lines, Circles, Rects } from "geometry/index";
     /**
      * Triangle.
      *
@@ -5356,7 +5854,7 @@ declare module "geometry/Triangle" {
      * @param fn
      * @returns
      */
-    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string | undefined) => Points.Point) => Readonly<Triangles.Triangle>;
+    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string | undefined) => Points.Point) => Readonly<Triangle>;
     /**
      * Throws an exception if the triangle is invalid
      * @param t
@@ -5368,7 +5866,7 @@ declare module "geometry/Triangle" {
      * @param p
      * @returns
      */
-    export const isTriangle: (p: number | unknown) => p is Triangles.Triangle;
+    export const isTriangle: (p: number | unknown) => p is Triangle;
     /**
      * Returns true if the two parameters have equal values
      * @param a
@@ -6083,6 +6581,11 @@ declare module "geometry/Point" {
      * @param max Maximum value (1 by default)
      */
     export function clamp(x: number, y: number, min?: number, max?: number): Point;
+    export type PointRelation = (a: Point | number, b?: number) => {
+        readonly angle: number;
+        readonly distance: number;
+        readonly centroid: Point;
+    };
     /**
      * Tracks the relation between two points
      *
@@ -6102,45 +6605,30 @@ declare module "geometry/Point" {
      * @param start
      * @returns
      */
-    export const relation: (a: Point | number, b?: number | undefined) => (aa: Point | number, bb?: number | undefined) => {
-        angle: number;
-        distance: number;
-        centroid: Points.Point;
-    };
+    export const relation: (a: Point | number, b?: number | undefined) => PointRelation;
 }
 declare module "temporal/PointTracker" {
     import * as Points from "geometry/Point";
-    import { GetOrGenerate } from "collections/Map";
     import * as Line from "geometry/Line";
-    export type SeenInfo = {
+    import { Timestamped, ObjectTracker, TrackedValueMap, Opts as TrackOpts } from "temporal/TrackedValue";
+    export type PointSeenInfo = {
         readonly distance: number;
         readonly centroid: Points.Point;
         readonly angle: number;
         readonly speed: number;
-    };
-    export type TimestampedPoint = Points.Point & {
-        readonly at: number;
+        readonly values: readonly Points.Point[];
     };
     /**
      * A tracked point
      */
-    export class TrackedPoint {
+    export class PointTracker extends ObjectTracker<Points.Point> {
         readonly id: string;
-        readonly storePoints: boolean;
-        relation: (aa: number | Points.Point, bb?: number | undefined) => {
-            angle: number;
-            distance: number;
-            centroid: Points.Point;
-        };
-        points: TimestampedPoint[];
-        lastPoint: TimestampedPoint;
-        constructor(id: string, start: Points.Point, storePoints: boolean);
+        readonly opts: TrackOpts;
+        relation: Points.PointRelation | undefined;
+        constructor(id: string, opts: TrackOpts);
         get x(): number;
         get y(): number;
-        /**
-         * Returns number of saved points (including start)
-         */
-        get size(): number;
+        onReset(): void;
         /**
          * Tracks a point, returning information on the relation between it
          * and the start point.
@@ -6148,267 +6636,54 @@ declare module "temporal/PointTracker" {
          * If multiple points are given, it's relation to the last point that is returned.
          * @param p Point
          */
-        seen(...p: Points.Point[] | TimestampedPoint[]): SeenInfo;
+        seen(...p: Points.Point[] | Timestamped<Points.Point>[]): PointSeenInfo;
         /**
          * Returns a polyline representation of stored points.
          * Returns an empty array if points were not saved, or there's only one.
          */
         get line(): Line.PolyLine;
         /**
+         * Returns distance from latest point to initial point.
+         * If there are less than two points, zero is returned.
+         * @returns
+         */
+        distanceFromStart(): number;
+        /**
+         * Returns angle from latest point to the initial point
+         * If there are less than two points, undefined is return.
+         * @returns
+         */
+        angleFromStart(): number | undefined;
+        /**
          * Returns the total length of accumulated points.
          * Returns 0 if points were not saved, or there's only one
          */
         get length(): number;
-        /**
-         * Returns the elapsed time, in milliseconds since the instance was created
-         */
-        get elapsed(): number;
+    }
+    export class TrackedPointMap extends TrackedValueMap<Points.Point> {
+        constructor(opts: TrackOpts);
     }
     /**
-     * Options for PointTracker
+     * Track several named points
+     * @param opts
+     * @returns
      */
-    export type Opts = {
-        /**
-         * If true, intermediate points are stored
-         */
-        readonly trackIntermediatePoints?: boolean;
-    };
-    export const pointTracker: (opts: Opts) => PointTracker;
+    export const pointsTracker: (opts: TrackOpts) => TrackedPointMap;
     /**
-     * PointTracker. Mutable.
+     * Track a single point
+     * @param id
+     * @param opts
+     * @returns
      */
-    export class PointTracker {
-        store: Map<string, TrackedPoint>;
-        gog: GetOrGenerate<string, TrackedPoint, Points.Point>;
-        constructor(opts?: Opts);
-        /**
-         * Return number of named points being tracked
-         */
-        get size(): number;
-        /**
-         * For a given id, note that we have seen one or more points.
-         * @param id Id
-         * @param points Point(s)
-         * @returns Information about start to last point
-         */
-        seen(id: string, ...points: Points.Point[]): Promise<SeenInfo>;
-        /**
-         * Remove a tracked point by id.
-         * Use {@link reset} to clear them all.
-         * @param id
-         */
-        delete(id: string): void;
-        /**
-         * Remove all tracked points.
-         * Use {@link delete} to remove a single point by id.
-         */
-        reset(): void;
-        /**
-         * Enumerate ids
-         */
-        ids(): Generator<string, void, undefined>;
-        /**
-         * Enumerate tracked points
-         */
-        trackedPoints(): Generator<TrackedPoint, void, undefined>;
-        /**
-         * Returns TrackedPoints ordered with oldest first
-         * @returns
-         */
-        getTrackedPointsByAge(): readonly TrackedPoint[];
-        /**
-         * Enumerate last received points
-         *
-         * @example Calculate centroid of latest-received points
-         * ```js
-         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
-         * ```
-         */
-        lastPoints(): Generator<TimestampedPoint, void, unknown>;
-        /**
-         * Enumerate starting points
-         */
-        startPoints(): Generator<TimestampedPoint, void, unknown>;
-        /**
-         * Returns a tracked point by id, or undefined if not found
-         * @param id
-         * @returns
-         */
-        get(id: string): TrackedPoint | undefined;
-    }
+    export const pointTracker: (id?: string | undefined, opts?: TrackOpts) => PointTracker;
 }
 declare module "temporal/index" {
     export * as Normalise from "temporal/Normalise";
     export * from "temporal/FrequencyMutable";
     export * from "temporal/MovingAverage";
-    export { tracker, intervalTracker } from "temporal/Tracker";
-    export { pointTracker } from "temporal/PointTracker";
-}
-declare module "flow/StateMachine" {
-    import { SimpleEventEmitter } from "Events";
-    export interface Options {
-        readonly debug?: boolean;
-    }
-    export interface StateChangeEvent {
-        readonly newState: string;
-        readonly priorState: string;
-    }
-    export interface StopEvent {
-        readonly state: string;
-    }
-    type StateMachineEventMap = {
-        readonly change: StateChangeEvent;
-        readonly stop: StopEvent;
-    };
-    type StateEvent = (args: unknown, sender: StateMachine) => void;
-    type StateHandler = string | StateEvent | null;
-    export interface State {
-        readonly [event: string]: StateHandler;
-    }
-    export interface MachineDescription {
-        readonly [key: string]: string | readonly string[] | null;
-    }
-    /**
-     * Returns a machine description based on a list of strings. The final string is the final
-     * state.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = StateMachine.create(states[0], descriptionFromList(states));
-     * ```
-     * @param {...readonly} states
-     * @param {*} string
-     * @param {*} []
-     * @return {*}  {MachineDescription}
-     */
-    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
-    /**
-     * Returns a state machine based on a list of strings. The first string is used as the initial state,
-     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = StateMachine.fromList(states);
-     * ```
-     */
-    export const fromList: (...states: readonly string[]) => StateMachine;
-    /**
-     * Creates a new state machine
-     * @param initial Initial state
-     * @param m Machine description
-     * @param opts Options
-     * @returns State machine instance
-     */
-    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
-    /**
-     * State machine
-     *
-     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
-     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
-     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
-     *
-     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
-     * ```
-     * const description = {
-     *  sleep: 'wakeup',
-     *  wakeup: ['coffee', 'breakfast'],
-     *  coffee: `bike`,
-     *  breakfast: `bike`,
-     *  bike: null
-     * }
-     * ```
-     * Create the machine with the starting state (`sleep`)
-     * ```
-     * const machine = StateMachine.create(`sleep`, description);
-     * ```
-     *
-     * Change the state by name:
-     * ```
-     * machine.state = `wakeup`
-     * ```
-     *
-     * Or request an automatic transition (will use first state if there are several options)
-     * ```
-     * machine.next();
-     * ```
-     *
-     * Check status
-     * ```
-     * if (machine.state === `coffee`) ...;
-     * if (machine.isDone()) ...
-     * ```
-     *
-     * Listen for state changes
-     * ```
-     * machine.addEventListener(`change`, (evt) => {
-     *  const {priorState, newState} = evt;
-     *  console.log(`State change from ${priorState} -> ${newState}`);
-     * });
-     * ```
-     * @export
-     * @class StateMachine
-     * @extends {SimpleEventEmitter<StateMachineEventMap>}
-     */
-    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
-        #private;
-        /**
-         * Create a state machine with initial state, description and options
-         * @param {string} initial Initial state
-         * @param {MachineDescription} m Machine description
-         * @param {Options} [opts={debug: false}] Options for machine
-         * @memberof StateMachine
-         */
-        constructor(initial: string, m: MachineDescription, opts?: Options);
-        get states(): readonly string[];
-        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
-        /**
-         * Moves to the next state if possible. If multiple states are possible, it will use the first.
-         * If machine is finalised, no error is thrown and null is returned.
-         *
-         * @returns {(string|null)} Returns new state, or null if machine is finalised
-         * @memberof StateMachine
-         */
-        next(): string | null;
-        /**
-         * Returns true if state machine is in its final state
-         *
-         * @returns
-         * @memberof StateMachine
-         */
-        get isDone(): boolean;
-        /**
-         * Resets machine to initial state
-         *
-         * @memberof StateMachine
-         */
-        reset(): void;
-        /**
-         * Checks whether a state change is valid.
-         *
-         * @static
-         * @param {string} priorState From state
-         * @param {string} newState To state
-         * @param {MachineDescription} description Machine description
-         * @returns {[boolean, string]} If valid: [true,''], if invalid: [false, 'Error msg here']
-         * @memberof StateMachine
-         */
-        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
-        isValid(newState: string): readonly [boolean, string];
-        /**
-         * Sets state. Throws an error if an invalid transition is attempted.
-         * Use `StateMachine.isValid` to check validity without changing.
-         *
-         * @memberof StateMachine
-         */
-        set state(newState: string);
-        /**
-       * Return current state
-       *
-       * @type {string}
-       * @memberof StateMachine
-       */
-        get state(): string;
-    }
+    export { numberTracker } from "temporal/NumberTracker";
+    export { intervalTracker } from "temporal/IntervalTracker";
+    export { pointTracker, pointsTracker } from "temporal/PointTracker";
 }
 declare module "io/Codec" {
     /**
@@ -6444,79 +6719,6 @@ declare module "io/StringReceiveBuffer" {
         addImpl(str: string): string;
         add(str: string): void;
     }
-}
-declare module "flow/index" {
-    export * as StateMachine from "flow/StateMachine";
-    export * from "flow/Timer";
-    /**
-     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
-     * If `fn` returns _false_, iterator cancels.
-     *
-     * @example
-     * ```js
-     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
-     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
-     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
-     * ```
-     *
-     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
-     * @param iterator Iterable or array
-     * @param fn Function to call for each item. If function returns false, iteration cancels
-     */
-    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
-    /**
-     * Iterates over an async iterable or array, calling `fn` for each value, with optional
-     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
-     *
-     * Use {@link forEach} for a synchronous version.
-     *
-     * ```
-     * // Prints items from array every second
-     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
-     * ```
-     *
-     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
-     * ```
-     * await forEachAsync(count(5), i=> {
-     *  try {
-     *    await doSomething();
-     *    return false; // Succeeded, exit early
-     *  } catch (ex) {
-     *    console.log(ex);
-     *    return true; // Keep trying
-     *  }
-     * }, 5000);
-     * ```
-     * @param iterator
-     * @param fn
-     */
-    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number | undefined) => Promise<void>;
-    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
-    /**
-     * Runs `fn` a certain number of times, accumulating result into an array.
-     * If `fn` returns undefined, the result is ignored.
-     *
-     * ```js
-     * // Results will be an array with five random numbers
-     * const results = repeat(5, () => Math.random());
-     * ```
-     *
-     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
-     * that gives _false_ when repeating should stop.
-     *
-     * ```js
-     * // Keep running `fn` until we've accumulated 10 values
-     * // Useful if `fn` sometimes returns _undefined_
-     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
-     * ```
-     *
-     * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
-     *
-     * @param countOrPredicate Number of repeats or function returning false when to stop
-     * @param fn Function to run, must return a value to accumulate into array or _undefined_
-     * @returns Array of accumulated results
-     */
-    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 }
 declare module "io/StringWriteBuffer" {
     import { QueueMutable } from "collections/index";
@@ -6925,7 +7127,6 @@ declare module "io/NordicBleDevice" {
 }
 declare module "io/AudioVisualiser" {
     import { Points } from "geometry/index";
-    import { Tracker } from "temporal/Tracker";
     import { AudioAnalyser } from "io/AudioAnalyser";
     export default class AudioVisualiser {
         freqMaxRange: number;
@@ -6936,8 +7137,8 @@ declare module "io/AudioVisualiser" {
         pointerClicking: boolean;
         pointerClickDelayMs: number;
         pointerDelaying: boolean;
-        waveTracker: Tracker;
-        freqTracker: Tracker;
+        waveTracker: import("temporal/NumberTracker").NumberTracker;
+        freqTracker: import("temporal/NumberTracker").NumberTracker;
         el: HTMLElement;
         constructor(parentElem: HTMLElement, audio: AudioAnalyser);
         renderFreq(freq: readonly number[]): void;
@@ -7190,8 +7391,10 @@ declare module "dom/Util" {
     type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
         readonly ctx: CanvasRenderingContext2D;
     };
+    export const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Observable<Event>;
     /**
-     * Resizes given canvas element to match window size. To resize canvas to match its parent, use {@link parentSizeCanvas}.
+     * Resizes given canvas element to match window size.
+     * To resize canvas to match its parent, use {@link parentSizeCanvas}.
      *
      * To make the canvas appear propery, it sets the following CSS:
      * ```css
@@ -7225,7 +7428,8 @@ declare module "dom/Util" {
      */
     export const getTranslation: (domQueryOrEl: string | HTMLElement) => Points.Point;
     /**
-     * Resizes given canvas element to its parent element. To resize canvas to match the viewport, use {@link fullSizeCanvas}.
+     * Resizes given canvas or SVG element to its parent element.
+     * To resize canvas to match the viewport, use {@link fullSizeCanvas}.
      *
      * Provide a callback for when resize happens.
      * @param domQueryOrEl Query string or reference to canvas element
@@ -7250,7 +7454,7 @@ declare module "dom/Util" {
      * @param domQueryOrEl
      * @returns
      */
-    export const resolveEl: <V extends HTMLElement>(domQueryOrEl: string | V) => V;
+    export const resolveEl: <V extends Element>(domQueryOrEl: string | V) => V;
     /**
      * Creates an element after `sibling`
      * ```
@@ -7271,6 +7475,28 @@ declare module "dom/Util" {
      * @returns New element
      */
     export const createIn: (parent: HTMLElement, tagName: string) => HTMLElement;
+    /**
+     * Creates a table based on a list of objects
+     * ```
+     * const t = dataTableList(parentEl, map);
+     *
+     * t(newMap)
+     * ```
+     */
+    export const dataTableList: (parentOrQuery: HTMLElement | string, data: ReadonlyMap<string, object>) => (data: ReadonlyMap<string, object>) => void;
+    /**
+     * Creates a HTML table where each row is a key-value pair from `data`.
+     * First column is the key, second column data.
+     *
+     * ```js
+     * const dt = dataTable(`#hostDiv`);
+     * dt({
+     *  name: `Blerg`,
+     *  height: 120
+     * });
+     * ```
+     */
+    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object | undefined) => (data: object) => void;
     /**
      * Remove all child nodes from `parent`
      * @param parent
@@ -7625,7 +7851,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.DrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
     /**
      * Creates or reuses a SVGLineElement.
      *
@@ -8782,6 +9008,29 @@ declare module "dom/Forms" {
      */
     export const select: (domQueryOrEl: string | HTMLSelectElement, onChanged?: ((currentVal: string) => void) | undefined, opts?: SelectOpts) => SelectHandler;
 }
+declare module "dom/PointerVisualise" {
+    export type Opts = {
+        readonly touchRadius?: number;
+        readonly mouseRadius?: number;
+        readonly trace?: boolean;
+        readonly hue?: number;
+    };
+    /**
+     * Visualises pointer events within a given element.
+     *
+     * ```js
+     * // Show pointer events for whole document
+     * pointerVis(document);
+     * ```
+     *
+     * Options
+     * * touchRadius/mouseRadius: size of circle for these kinds of pointer events
+     * * trace: if true, intermediate events are captured and displayed
+     * @param elOrQuery
+     * @param opts
+     */
+    export const pointerVisualise: (elOrQuery: HTMLElement | string, opts?: Opts) => void;
+}
 declare module "dom/index" {
     export * from "dom/Log";
     export * from "dom/DomRx";
@@ -8790,6 +9039,7 @@ declare module "dom/index" {
      * Functions for working with DOM elements
      */
     export * as Forms from "dom/Forms";
+    export * from "dom/PointerVisualise";
 }
 declare module "modulation/Envelope" {
     import { SimpleEventEmitter } from "Events";
@@ -9232,6 +9482,7 @@ declare module "__tests__/geometry/line.test" { }
 declare module "__tests__/geometry/point.test" { }
 declare module "__tests__/geometry/polar.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
+declare module "__tests__/temporal/numberTracker.test" { }
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";
