@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pointer playground</title>
+  <title>keys playground</title>
 </head>
 <style>
   :root {
@@ -60,6 +60,7 @@
     justify-content: center;
     align-items: center;
     background-color: hsl(var(--hue) 20% 5%);
+    user-select: none;
   }
 
   #currentArea {
@@ -103,7 +104,31 @@
     Move pointer in this zone.
   </section>
   <section id="currentArea">
-    <h1>Current</h1>
+    <h1>Pointer events</h1>
+    <div>
+      <label for="evPointerdown">pointerdown</label>
+      <input type="checkbox" checked id="evPointerdown">
+
+      <label for="evPointerup">pointerup</label>
+      <input type="checkbox" checked id="evPointerup">
+
+      <label for="evPointermove">pointermove</label>
+      <input type="checkbox" checked id="evPointermove">
+
+      <label for="evPointerenter">pointerenter</label>
+      <input type="checkbox" checked id="evPointerenter">
+
+      <label for="evPointerleave">pointerleave</label>
+      <input type="checkbox" checked id="evPointerleave">
+
+      <label for="evPointerover">pointerover</label>
+      <input type="checkbox" checked id="evPointerover">
+
+      <!-- <label for="evPointercancel">pointercancel</label>
+      <input type="checkbox" checked id="evPointercancel"> -->
+    </div>
+
+    <h2>Current</h2>
     <div>
       <button id="btnCurrentReset">Reset</button>
     </div>
@@ -113,7 +138,8 @@
   </section>
   <section id="logArea">
 
-    <h1>Log</h1>
+    <h2>Log</h2>
+    <button id="btnClearLog">Clear</button>
     <div id="log">
       ...
     </div>

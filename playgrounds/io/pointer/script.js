@@ -1,4 +1,4 @@
-import {log} from '../../../ixfx/dom.js';
+import {log, Forms} from '../../../ixfx/dom.js';
 
 const settings = {
   pointerEl: document.getElementById(`pointerArea`),
@@ -75,34 +75,51 @@ const pointerEventSimplify = (ev) => {
 }
 
 const setup = () => {
-  const {pointerEl} = settings;
+  const {pointerEl, log} = settings;
+
+  const chkPointermove = Forms.checkbox(`#evPointermove`);
+  const chkPointerenter = Forms.checkbox(`#evPointerenter`);
+  const chkPointerleave = Forms.checkbox(`#evPointerleave`);
+  //const chkPointercancel = Forms.checkbox(`#evPointercancel`);
+  const chkPointerover = Forms.checkbox(`#evPointerover`);
+  const chkPointerdown = Forms.checkbox(`#evPointerdown`);
+  const chkPointerup = Forms.checkbox(`#evPointerup`);
 
   pointerEl.addEventListener(`pointermove`, ev => {
+    if (!chkPointermove.checked) return;
     console.log(ev);
     updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerenter`, ev => {
+    if (!chkPointerenter.checked) return;
     updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerleave`, ev => {
+    if (!chkPointerleave.checked) return;
+
     updatePointer(ev);
   });
 
-  pointerEl.addEventListener(`pointercancel`, ev => {
-    updatePointer(ev);
-  });
+  // pointerEl.addEventListener(`pointercancel`, ev => {
+  //   if (!chkPointercancel.checked) return;
+  //   updatePointer(ev);
+  // });
 
   pointerEl.addEventListener(`pointerover`, ev => {
+    if (!chkPointerover.checked) return;
     updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerdown`, ev => {
+    if (!chkPointerdown.checked) return;
     updatePointer(ev);
   });
 
   pointerEl.addEventListener(`pointerup`, ev => {
+    if (!chkPointerup.checked) return;
+
     updatePointer(ev);
   });
 
@@ -110,5 +127,10 @@ const setup = () => {
   document.getElementById(`btnCurrentReset`).addEventListener(`click`, () => {
     clearPointers();
   });
+
+
+  document.getElementById(`btnClearLog`).addEventListener(`click`, () => {
+    log.clear();
+  })
 };
 setup();
