@@ -42,7 +42,7 @@ const update = () => {
   const distance = Points.distance(reference, p);
 
   // Angle
-  const angleDeg = radianToDegree(Points.angleBetween(reference, p));
+  const angleDeg = radianToDegree(Points.angle(reference, p));
 
   // Update state with calculations...
   state = {
