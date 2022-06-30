@@ -54,7 +54,7 @@ const setup = () => {
       window.innerHeight);
 
     // Calculate angle from center
-    const angleRadians = Points.angleBetween(relPointer, {x: 0.5, y: 0.5});
+    const angleRadians = Points.angle(relPointer, {x: 0.5, y: 0.5});
 
     state = {
       ...state,
