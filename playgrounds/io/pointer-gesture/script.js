@@ -36,7 +36,7 @@ const gestureTwoFinger = (a, b) => {
   twoFinger.distance.seen(distanceAbs);
 
   // Calculate rotation
-  const rotationAbs = radianToDegree(Points.angleBetween(a, b));
+  const rotationAbs = radianToDegree(Points.angle(a, b));
   twoFinger.rotation.seen(rotationAbs / 180);
 };
 
@@ -61,7 +61,7 @@ const gestureCentroid = (pointers) => {
 
   const centroid = Points.centroid(...Array.from(pointers.last()));
   state.centroid.seen(centroid);
-  state.centroidAngle = radianToDegree(Points.angleBetween(centroid, state.centroid.initial));
+  state.centroidAngle = radianToDegree(Points.angle(centroid, state.centroid.initial));
 };
 
 
@@ -95,7 +95,7 @@ const update = () => {
     displayMap.set(v.id, {
       id: v.id,
       length: Math.round(v.length),
-      angle: Math.round(radianToDegree(Points.angleBetween(v.last, v.initial)))
+      angle: Math.round(radianToDegree(Points.angle(v.last, v.initial)))
     });
   }
 
