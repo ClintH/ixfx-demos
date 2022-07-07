@@ -5,8 +5,8 @@
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
-import {intervalTracker} from '../../ixfx/temporal.js';
-
+import {intervalTracker} from '../../ixfx/data.js';
+import {defaultErrorHandler} from '../../ixfx/dom.js';
 /**
  * Define settings
  */
@@ -177,19 +177,15 @@ const startVideo = async () => {
       draw();
     }
   } catch (ex) {
-    console.error(ex);
     dispose();
+    throw ex;
   }
 }
 
 const setup = () => {
+  defaultErrorHandler();
   document.getElementById(`btnStart`).addEventListener(`click`, async () => {
-    try {
-      await startVideo();
-    } catch (ex) {
-      console.error(`Could not start video`);
-      console.error(ex);
-    }
+    await startVideo();
   });
 }
 setup();

@@ -5,7 +5,8 @@
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
-import {intervalTracker} from '../../ixfx/temporal.js';
+import {intervalTracker} from '../../ixfx/data.js';
+import {defaultErrorHandler} from '../../ixfx/dom.js';
 
 /**
  * Define settings
@@ -20,7 +21,9 @@ const settings = {
   /** @type {HTMLCanvasElement} */
   canvasEl: document.getElementById(`canvas`),
   lblFps: document.getElementById(`lblFps`),
-  lblDifferences: document.getElementById(`lblDifferences`)
+  lblDifferences: document.getElementById(`lblDifferences`),
+  lblError: document.getElementById(`error`),
+  lblErrorMsg: document.getElementById(`errorMsg`)
 }
 
 /**
@@ -172,14 +175,13 @@ const startVideo = async () => {
 }
 
 const setup = () => {
+  defaultErrorHandler();
+
   // Attempt to start video stream when button is pressed
   document.getElementById(`btnStart`).addEventListener(`click`, async () => {
-    try {
-      await startVideo();
-    } catch (ex) {
-      console.error(`Could not start video`);
-      console.error(ex);
-    }
+    await startVideo();
   });
+
 }
+
 setup();

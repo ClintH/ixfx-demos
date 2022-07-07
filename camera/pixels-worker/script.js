@@ -6,14 +6,15 @@
  */
 import {Camera} from '../../ixfx/io.js';
 import {Video} from '../../ixfx/visual.js';
-import {intervalTracker, tracker} from '../../ixfx/temporal.js';
+import {intervalTracker, numberTracker} from '../../ixfx/data.js';
+import {defaultErrorHandler} from '../../ixfx/dom.js';
 
 /**
  * Define settings
  */
 const settings = {
   worker: new Worker(`worker.js`),
-  diffTracker: tracker(`difference`, 200),
+  diffTracker: numberTracker(`difference`, 200),
   frameIntervalTracker: intervalTracker(`fps`, 100),
   // HTML elements for status
   lblFps: document.getElementById(`lblFps`),
@@ -80,15 +81,11 @@ const percentage = (v) => Math.round(v * 100) + `%`;
 
 const setup = () => {
   const {worker} = settings;
+  defaultErrorHandler();
 
   // Start camera when button is pressed
   document.getElementById(`btnStart`).addEventListener(`click`, async () => {
-    try {
-      await startVideo();
-    } catch (ex) {
-      console.error(`Could not start video`);
-      console.error(ex);
-    }
+    await startVideo();
   });
 
   // Listen for results from the worker
