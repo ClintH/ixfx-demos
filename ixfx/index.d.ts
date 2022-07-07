@@ -78,7 +78,7 @@ declare module "Text" {
      * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
      * @returns
      */
-    export const between: (source: string, start: string, end?: string | undefined, lastEndMatch?: boolean) => string | undefined;
+    export const between: (source: string, start: string, end?: string, lastEndMatch?: boolean) => string | undefined;
     /**
      * Returns first position of the given character code, or -1 if not found.
      * @param source Source string
@@ -232,30 +232,35 @@ declare module "Text" {
 }
 declare module "Util" {
     /**
-     * Clamps a value between min and max (both inclusive)
-     * Defaults to a 0-1 range, useful for percentages.
-     *
-     * @example Usage
+     * Returns `fallback` if `v` is NaN, otherwise returns `v`
+     * @param v
+     * @param fallback
+     * @returns
+     */
+    export const ifNaN: (v: number, fallback: number) => number;
+    /**
+     * Returns true if `x` is a power of two
+     * @param x
+     * @returns True if `x` is a power of two
+     */
+    export const isPowerOfTwo: (x: number) => boolean;
+    /**
+     * Returns the relative difference from the `initial` value
      * ```js
-     * // 0.5 - just fine, within default of 0 to 1
-     * clamp(0.5);
-     * // 1 - above default max of 1
-     * clamp(1.5);
-     * // 0 - below range
-     * clamp(-50, 0, 100);
-     * // 50 - within range
-     * clamp(50, 0, 50);
+     * const rel = relativeDifference(100);
+     * rel(100); // 1
+     * rel(150); // 1.5
+     * rel(50);  // 0.5
      * ```
      *
-     * For clamping integer ranges, consider {@link clampIndex}
-     * For clamping {x,y} points, consider {@link Points.clamp}.
-     *
-     * @param v Value to clamp
-     * @param Minimum value (inclusive)
-     * @param Maximum value (inclusive)
-     * @returns Clamped value
+     * The code for this is simple:
+     * ```js
+     * const relativeDifference = (initial) => (v) => v/initial
+     * ```
+     * @param {number} initial
+     * @returns
      */
-    export const clamp: (v: number, min?: number, max?: number) => number;
+    export const relativeDifference: (initial: number) => (v: number) => number;
     /**
      * Returns a field on object `o` by a dotted path.
      * ```
@@ -303,6 +308,314 @@ declare module "Util" {
      * @returns
      */
     export const roundUpToMultiple: (v: number, multiple: number) => number;
+    export type ToString<V> = (itemToMakeStringFor: V) => string;
+    /**
+     * Function that returns true if `a` and `b` are considered equal
+     */
+    export type IsEqual<V> = (a: V, b: V) => boolean;
+    /**
+     * Default comparer function is equiv to checking `a === b`
+     */
+    export const isEqualDefault: <V>(a: V, b: V) => boolean;
+    /**
+     * Comparer returns true if string representation of `a` and `b` are equal.
+     * Uses `toStringDefault` to generate a string representation (`JSON.stringify`)
+     * @returns True if the contents of `a` and `b` are equal
+     */
+    export const isEqualValueDefault: <V>(a: V, b: V) => boolean;
+    /**
+     * A default converter to string that uses JSON.stringify if its an object, or the thing itself if it's a string
+     */
+    export const toStringDefault: <V>(itemToMakeStringFor: V) => string;
+    export const runningiOS: () => boolean;
+}
+declare module "collections/Map" {
+    import { IsEqual, ToString } from "Util";
+    /**
+     * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
+     * what key value might be under.
+     *
+     * Having a comparer function is useful to check by value rather than object reference.
+     *
+     * @example Find key value based on string equality
+     * ```js
+     * hasKeyValue(map,`hello`, `samantha`, (a, b) => a === b);
+     * ```
+     * @param map Map to search
+     * @param key Key to search
+     * @param value Value to search
+     * @param comparer Function to determine match
+     * @returns True if key is found
+     */
+    export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
+    export type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
+    /**
+     * Returns a function that fetches a value from a map, or generates and sets it if not present.
+     * Undefined is never returned, because if `fn` yields that, an error is thrown.
+     *
+     * See {@link getOrGenerateSync} for a synchronous version.
+     *
+     * ```
+     * const m = getOrGenerate(new Map(), (key) => {
+     *  return key.toUppercase();
+     * });
+     *
+     * // Not contained in map, so it will run the uppercase function,
+     * // setting the value to the key 'hello'.
+     * const v = await m(`hello`);  // Yields 'HELLO'
+     * const v1 = await m(`hello`); // Value exists, so it is returned ('HELLO')
+     * ```
+     *
+     */
+    export const getOrGenerate: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
+    /**
+     * @inheritDoc getOrGenerate
+     * @param map
+     * @param fn
+     * @returns
+     */
+    export const getOrGenerateSync: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V) => (key: K, args?: Z | undefined) => V;
+    /**
+     * Adds items to a map only if their key doesn't already exist
+     *
+     * Uses provided {@link Util.ToString} function to create keys for items. Item is only added if it doesn't already exist.
+     * Thus the older item wins out, versus normal `Map.set` where the newest wins.
+     *
+     *
+     * @example
+     * ```js
+     * const map = new Map();
+     * const peopleArray = [ _some people objects..._];
+     * addUniqueByHash(map, p => p.name, ...peopleArray);
+     * ```
+     * @param set
+     * @param hashFunc
+     * @param values
+     * @returns
+     */
+    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
+    /**
+     * Returns true if _any_ key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
+     * if you only want to find a value under a certain key.
+     *
+     * Having a comparer function is useful to check by value rather than object reference.
+     * @example Finds value where name is 'samantha', regardless of other properties
+     * ```js
+     * hasAnyValue(map, {name:`samantha`}, (a, b) => a.name === b.name);
+     * ```
+     *
+     * Works by comparing `value` against all values contained in `map` for equality using the provided `comparer`.
+     *
+     * @param map Map to search
+     * @param value Value to find
+     * @param comparer Function that determines matching. Should return true if `a` and `b` are considered equal.
+     * @returns True if value is found
+     */
+    export const hasAnyValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer: IsEqual<V>) => boolean;
+    /**
+     * Returns values where `predicate` returns true.
+     *
+     * If you just want the first match, use `find`
+     *
+     * @example All people over thirty
+     * ```js
+     * // for-of loop
+     * for (const v of filter(people, person => person.age > 30)) {
+     *
+     * }
+     * // If you want an array
+     * const overThirty = Array.from(filter(people, person => person.age > 30));
+     * ```
+     * @param map Map
+     * @param predicate Filtering predicate
+     * @returns Values that match predicate
+     */
+    export function filter<V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean): Generator<V, void, unknown>;
+    /**
+     * Copies data to an array
+     * @param map
+     * @returns
+     */
+    export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
+    /**
+     * Returns the first found item that matches `predicate` or _undefined_.
+     *
+     * If you want all matches, use {@link filter}.
+     *
+     * @example First person over thirty
+     * ```js
+     * const overThirty = find(people, person => person.age > 30);
+     * ```
+     * @param map Map to search
+     * @param predicate Function that returns true for a matching item
+     * @returns Found item or _undefined_
+     */
+    export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
+    /**
+     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link mapToObj}.
+     *
+     * ```js
+     * const map = new Map();
+     * map.set(`name`, `Alice`);
+     * map.set(`pet`, `dog`);
+     *
+     * const o = mapToObjTransform(map, v => {
+     *  ...v,
+     *  registered: true
+     * });
+     *
+     * // Yields: { name: `Alice`, pet: `dog`, registered: true }
+     * ```
+     *
+     * If the goal is to create a new map with transformed values, use {@link transformMap}.
+     * @param m
+     * @param valueTransform
+     * @typeParam T Value type of input map
+     * @typeParam K Value type of destination map
+     * @returns
+     */
+    export const mapToObjTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => {
+        readonly [key: string]: K;
+    };
+    /**
+     * Zips together an array of keys and values into an object. Requires that
+     * `keys` and `values` are the same length.
+     *
+     * @example
+     * ```js
+     * const o = zipKeyValue([`a`, `b`, `c`], [0, 1, 2])
+     * Yields: { a: 0, b: 1, c: 2}
+     *```
+      * @param keys String keys
+      * @param values Values
+      * @typeParam V Type of values
+      * @return Object with keys and values
+      */
+    export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
+        [k: string]: V | undefined;
+    };
+    /**
+     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>, returning as a new Map.
+     *
+     * @example
+     * ```js
+     * const mapOfStrings = new Map();
+     * mapOfStrings.set(`a`, `10`);
+     * mapOfStrings.get(`a`); // Yields `10` (a string)
+     *
+     * // Convert a map of string->string to string->number
+     * const mapOfInts = transformMap(mapOfStrings, (value, key) => parseInt(value));
+     *
+     * mapOfInts.get(`a`); // Yields 10 (a proper number)
+     * ```
+     *
+     * If you want to combine values into a single object, consider instead  {@link mapToObjTransform}.
+     * @param source
+     * @param transformer
+     * @typeParam K Type of keys (generally a string)
+     * @typeParam V Type of input map values
+     * @typeParam R Type of output map values
+     * @returns
+     */
+    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
+    /**
+     * Converts a `Map` to a plain object, useful for serializing to JSON
+     *
+     * @example
+     * ```js
+     * const str = JSON.stringify(mapToObj(map));
+     * ```
+     * @param m
+     * @returns
+     */
+    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
+        readonly [key: string]: T;
+    };
+    /**
+     * Converts Map to Array with a provided `transformer` function. Useful for plucking out certain properties
+     * from contained values and for creating a new map based on transformed values from an input map.
+     *
+     * @example Get an array of ages from a map of Person objects
+     * ```js
+     * let person = { age: 29, name: `John`};
+     * map.add(person.name, person);
+     *
+     * const ages = mapToArray(map, (key, person) => person.age);
+     * // [29, ...]
+     * ```
+     *
+     * In the above example, the `transformer` function returns a number, but it could
+     * just as well return a transformed version of the input:
+     *
+     * ```js
+     * // Return with random heights and uppercased name
+     * mapToArray(map, (key, person) => ({
+     *  ...person,
+     *  height: Math.random(),
+     *  name: person.name.toUpperCase();
+     * }))
+     * // Yields:
+     * // [{height: 0.12, age: 29, name: "JOHN"}, ...]
+     * ```
+     * @param m
+     * @param transformer A function that takes a key and item, returning a new item.
+     * @returns
+     */
+    export const mapToArray: <K, V, R>(m: ReadonlyMap<K, V>, transformer: (key: K, item: V) => R) => readonly R[];
+}
+declare module "data/Clamp" {
+    /**
+     * Clamps a value between min and max (both inclusive)
+     * Defaults to a 0-1 range, useful for percentages.
+     *
+     * @example Usage
+     * ```js
+     * // 0.5 - just fine, within default of 0 to 1
+     * clamp(0.5);
+     * // 1 - above default max of 1
+     * clamp(1.5);
+     * // 0 - below range
+     * clamp(-50, 0, 100);
+     * // 50 - within range
+     * clamp(50, 0, 50);
+     * ```
+     *
+     * For clamping integer ranges, consider {@link clampIndex }
+     * For clamping `{ x, y }` points, consider {@link Geometry.Points.clamp | Geometry.Points.clamp}.
+     *
+     * @param v Value to clamp
+     * @param Minimum value (inclusive)
+     * @param Maximum value (inclusive)
+     * @returns Clamped value
+     */
+    export const clamp: (v: number, min?: number, max?: number) => number;
+    /**
+     * Clamps integer `v` between 0 (inclusive) and array length or length (exclusive).
+     * Returns value then will always be at least zero, and a valid array index.
+     *
+     * @example Usage
+     * ```js
+     * // Array of length 4
+     * const myArray = [`a`, `b`, `c`, `d`];
+     * clampIndex(0, myArray);    // 0
+     * clampIndex(4, myArray);    // 3
+     * clampIndex(-1, myArray);   // 0
+     *
+     * clampIndex(5, 3); // 2
+     * ```
+     *
+     * Throws an error if `v` is not an integer.
+     *
+     * For some data it makes sense that data might 'wrap around' if it exceeds the
+     * range. For example rotation angle. Consider using {@link wrap} for this.
+     *
+     * @param v Value to clamp (must be an interger)
+     * @param arrayOrLength Array, or length of bounds (must be an integer)
+     * @returns Clamped value, minimum will be 0, maximum will be one less than `length`.
+     */
+    export const clampIndex: (v: number, arrayOrLength: number | readonly any[]) => number;
+}
+declare module "data/Scale" {
     /**
      * Scales `v` from an input range to an output range (aka `map`)
      *
@@ -317,7 +630,7 @@ declare module "Util" {
      * ```
      *
      * If `v` is outside of the input range, it will likewise be outside of the output range.
-     * Use {@clamp} to ensure output range is maintained.
+     * Use {@link clamp} to ensure output range is maintained.
      *
      * If inMin and inMax are equal, outMax will be returned.
      *
@@ -335,39 +648,7 @@ declare module "Util" {
      * @param easing Easing function
      * @returns Scaled value
      */
-    export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
-    export type NumberFunction = () => number;
-    /**
-     * Flips a percentage-scale number: `1 - v`.
-     *
-     * The utility of this function is that it sanity-checks
-     * that `v` is in 0..1 scale.
-     *
-     * ```js
-     * flip(1);   // 0
-     * flip(0.5); // 0.5
-     * flip(0);   // 1
-     * ```
-     * @param v
-     * @returns
-     */
-    export const flip: (v: number | NumberFunction) => number;
-    /**
-     * Returns `fallback` if `v` is NaN, otherwise returns `v`
-     * @param v
-     * @param fallback
-     * @returns
-     */
-    export const ifNaN: (v: number, fallback: number) => number;
-    /**
-     * Scales a percentage-scale number, ie: `v * t`.
-     * The utility of this function is that it sanity-checks that
-     *  both parameters are in the 0..1 scale.
-     * @param v Value
-     * @param t Scale amount
-     * @returns Scaled value
-     */
-    export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
+    export const scale: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => number;
     /**
      * Scales an input percentage to a new percentage range.
      *
@@ -407,1719 +688,81 @@ declare module "Util" {
      * @returns
      */
     export const scalePercent: (v: number, outMin: number, outMax: number) => number;
-    /**
-     * Clamps integer `v` between 0 (inclusive) and array length or length (exclusive).
-     * Returns value then will always be at least zero, and a valid array index.
-     *
-     * @example Usage
-     * ```js
-     * // Array of length 4
-     * const myArray = [`a`, `b`, `c`, `d`];
-     * clampIndex(0, myArray);    // 0
-     * clampIndex(4, myArray);    // 3
-     * clampIndex(-1, myArray);   // 0
-     *
-     * clampIndex(5, 3); // 2
-     * ```
-     *
-     * Throws an error if `v` is not an integer.
-     * @param v Value to clamp (must be an interger)
-     * @param arrayOrLength Array, or length of bounds (must be an integer)
-     * @returns Clamped value, minimum will be 0, maximum will be one less than `length`.
-     */
-    export const clampIndex: (v: number, arrayOrLength: number | readonly any[]) => number;
-    /**
-     * Interpolates between `a` and `b` by `amount`. Aka `lerp`.
-     *
-     * @example Get the halfway point between 30 and 60
-     * ```js
-     * interpolate(0.5, 30, 60);
-     * ```
-     *
-     * Interpolation is often used for animation. In that case, `amount`
-     * would start at 0 and you would keep interpolating up to `1`
-     * @example
-     * ```js
-     * // Go back and forth between 0 and 1 by 0.1
-     * let pp = percentPingPong(0.1);
-     * continuously(() => {
-     *  // Get position in ping-pong
-     *  const amt = pp.next().value;
-     *  // interpolate between Math.PI and Math.PI*2
-     *  const v = interpolate(amt, Math.PI, Math.PI*2);
-     *  // do something with v...
-     * }).start();
-     * ```
-     *
-     * See also {@link Colour.interpolate}, {@link Points.interpolate}.
-     * @param amount Interpolation amount, between 0 and 1 inclusive
-     * @param a Start (ie when `amt` is 0)
-     * @param b End (ie. when `amt` is 1)
-     * @returns Interpolated value which will be between `a` and `b`.
-     */
-    export const interpolate: (amount: number, a: number, b: number) => number;
-    /**
-     * @private
-     */
-    export type ToString<V> = (itemToMakeStringFor: V) => string;
-    /**
-     * @private
-     */
-    export type IsEqual<V> = (a: V, b: V) => boolean;
-    /**
-     * Default comparer function is equiv to checking `a === b`
-     * @private
-     * @template V
-     * @param {V} a
-     * @param {V} b
-     * @return {*}  {boolean}
-     */
-    export const isEqualDefault: <V>(a: V, b: V) => boolean;
-    /**
-     * Comparer returns true if string representation of `a` and `b` are equal.
-     * Uses `toStringDefault` to generate a string representation (`JSON.stringify`)
-     * @private
-     * @template V
-     * @param {V} a
-     * @param {V} b
-     * @return {*}  {boolean} True if the contents of `a` and `b` are equal
-     */
-    export const isEqualValueDefault: <V>(a: V, b: V) => boolean;
-    /**
-     * A default converter to string that uses JSON.stringify if its an object, or the thing itself if it's a string
-     * @private
-     * @template V
-     * @param {V} itemToMakeStringFor
-     * @returns {string}
-     */
-    export const toStringDefault: <V>(itemToMakeStringFor: V) => string;
-    /**
-     * Wraps a number within a specified range, defaulting to degrees (0-360)
-     *
-     * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
-     * Eg: to add 200 to 200, we don't want 400, but 40.
-     *
-     * ```js
-     * const v = wrap(200+200, 0, 360); // 40
-     * ```
-     *
-     * Or if we minus 100 from 10, we don't want -90 but 270
-     * ```js
-     * const v = wrap(10-100, 0, 360); // 270
-     * ```
-     *
-     * `wrap` uses 0-360 as a default range, so both of these
-     * examples could just as well be:
-     *
-     * ```js
-     * wrap(200+200);  // 40
-     * wrap(10-100);  // 270
-     * ```
-     *
-     * Non-zero starting points can be used. A range of 20-70:
-     * ```js
-     * const v = wrap(-20, 20, 70); // 50
-     * ```
-     *
-     * Note that the minimum value is inclusive, while the maximum is _exclusive_.
-     * So with the default range of 0-360, 360 is never reached:
-     *
-     * ```js
-     * wrap(360); // 0
-     * wrap(361); // 1
-     * ```
-     *
-     * @param v Value to wrap
-     * @param min Integer minimum of range (default: 0). Inclusive
-     * @param max Integer maximum of range (default: 360). Exlusive
-     * @returns
-     */
-    export const wrapInteger: (v: number, min?: number, max?: number) => number;
-    /**
-     * Wraps floating point numbers. Defaults to a 0..1 scale.
-     * @param v
-     * @param min
-     * @param max
-     * @returns
-     */
-    export const wrap: (v: number, min?: number, max?: number) => number;
-    /**
-     * Performs a calculation within a wrapping number range. This is a lower-level function.
-     * See also: {@link wrapInteger} for simple wrapping within a range.
-     *
-     * `min` and `max` define the start and end of the valid range, inclusive. Eg for hue degrees it'd be 0, 360.
-     * `a` and `b` is the range you want to work in.
-     *
-     * For example, let's say you want to get the middle point between a hue of 30 and a hue of 330 (ie warmer colours):
-     * ```js
-     * wrapRange(0,360, (distance) => {
-     *  // for a:0 and b:330, distance would be 90 from 30 degrees to 330 (via zero)
-     *  return distance * 0.5; // eg return middle point
-     * }, 30, 330);
-     * ```
-     *
-     * The return value of the callback should be in the range of 0-distance. `wrapRange` will subsequently
-     * conform it to the `min` and `max` range before it's returned to the caller.
-     *
-     * @param a Output start (eg. 60)
-     * @param b Output end (eg 300)
-     * @param min Range start (eg 0)
-     * @param max Range end (eg 360)
-     * @param fn Returns a computed value from 0 to `distance`.
-     * @returns
-     */
-    export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
-    /**
-     * Returns true if `x` is a power of two
-     * @param x
-     * @returns True if `x` is a power of two
-     */
-    export const isPowerOfTwo: (x: number) => boolean;
-    /**
-     * Returns the relative difference from the `initial` value
-     * ```js
-     * const rel = relativeDifference(100);
-     * rel(100); // 1
-     * rel(150); // 1.5
-     * rel(50);  // 0.5
-     * ```
-     *
-     * The code for this is simple:
-     * ```js
-     * const relativeDifference = (initial) => (v) => v/initial
-     * ```
-     * @param {number} initial
-     * @returns
-     */
-    export const relativeDifference: (initial: number) => (v: number) => number;
-    export const runningiOS: () => boolean;
 }
-declare module "collections/Map" {
-    import { IsEqual, ToString } from "Util";
+declare module "data/Normalise" {
     /**
-     * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
-     * what key value might be under.
+     * Normalises numbers, adjusting min/max as new values are processed.
+     * Normalised return values will be in the range of 0-1 (inclusive).
      *
-     * Having a comparer function is useful to check by value rather than object reference.
-     *
-     * @example Find key value based on string equality
-     * ```js
-     * hasKeyValue(map,`hello`, `samantha`, (a, b) => a === b);
-     * ```
-     * @param map Map to search
-     * @param key Key to search
-     * @param value Value to search
-     * @param comparer Function to determine match
-     * @returns True if key is found
-     */
-    export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
-    export type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
-    /**
-     * Returns a function that fetches a value from a map, or generates and sets it if not present.
-     * Undefined is never returned, because if `fn` yields that, an error is thrown.
-     *
-     * See {@link getOrGenerateSync} for a synchronous version.
-     *
-     * ```
-     * const m = getOrGenerate(new Map(), (key) => {
-     *  return key.toUppercase();
-     * });
-     *
-     * // Not contained in map, so it will run the uppercase function
-     * const v = await m(`hello`);
-     * const v1 = await m(`hello`); // Value exists, so it is returned.
-     * ```
-     *
-     */
-    export const getOrGenerate: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
-    /**
-     * @inheritdoc getOrGenerate
-     * @param map
-     * @param fn
-     * @returns
-     */
-    export const getOrGenerateSync: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V) => (key: K, args?: Z | undefined) => V;
-    /**
-     * Adds items to a map only if their key doesn't already exist
-     *
-     * Uses provided {@link ToString} function to create keys for items. Item is only added if it doesn't already exist.
-     * Thus the older item wins out, versus normal `Map.set` where the newest wins.
-     *
+     * [Read more in the docs](https://clinth.github.io/ixfx-docs/temporal/normalising/)
      *
      * @example
      * ```js
-     * const map = new Map();
-     * const peopleArray = [ _some people objects..._];
-     * addUniqueByHash(map, p => p.name, ...peopleArray);
+     * import {Normalise} from 'https://unpkg.com/ixfx/dist/temporal.js'
+     * const s = Normalise.stream();
+     * s(2);    // 1 (because 2 is highest seen)
+     * s(1);    // 0 (because 1 is the lowest so far)
+     * s(1.5);  // 0.5 (50% of range 1-2)
+     * s(0.5);  // 0 (because it's the new lowest)
      * ```
-     * @param set
-     * @param hashFunc
-     * @param values
+     *
+     * Since normalisation is being adjusted as new min/max are encountered, it might
+     * be that value normalised to 1 at one time is different to what normalises to 1
+     * at a later time.
+     *
+     * If you already know what to expect of the number range, passingin `minDefault`
+     * and `maxDefault` primes the normalisation.
+     * ```js
+     * const s = Normalise.stream();
+     * s(5); // 1, because it's the highest seen
+     *
+     * // With priming:
+     * const s = Normalise.stream(0, 10);
+     * s(5); // 0.5, because we're expecting range 0-10
+     * ```
+     *
+     * Note that if a value exceeds the default range, normalisation adjusts.
      * @returns
      */
-    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
+    export const stream: (minDefault?: number, maxDefault?: number) => (v: number) => number;
     /**
-     * Returns true if _any_ key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
-     * if you only want to find a value under a certain key.
-     *
-     * Having a comparer function is useful to check by value rather than object reference.
-     * @example Finds value `samantha`, using string equality to match
-     * ```js
-     * hasAnyValue(map, `samantha`, (a, b) => a === b);
-     * ```
-     * @param map Map to search
-     * @param value Value to find
-     * @param comparer Function that determines matching
-     * @returns True if value is found
-     */
-    export const hasAnyValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer: IsEqual<V>) => boolean;
-    /**
-     * Returns items where `predicate` returns true.
-     *
-     * If you just want the first match, use `find`
-     *
-     * @example All people over thirty
-     * ```js
-     * const overThirty = filter(people, person => person.age > 30);
-     * ```
-     * @param map Map
-     * @param predicate Filtering predicate
-     * @returns Values that match predicate
-     */
-    export const filter: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => readonly V[];
-    /**
-     * Copies data to an array
-     * @param map
-     * @returns
-     */
-    export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
-    /**
-     * Returns the first found item that matches `predicate` or undefined.
-     *
-     * If you want all matches, use `filter`.
-     *
-     * @example First person over thirty
-     * ```js
-     * const overThirty = find(people, person => person.age > 30);
-     * ```
-     * @param map
-     * @param predicate
-     * @returns Found item or undefined
-     */
-    export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
-    /**
-     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link mapToObj}.
-     *
-     * @param m
-     * @param valueTransform
-     * @returns
-     */
-    export const mapToObjTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => {
-        readonly [key: string]: K;
-    };
-    /**
-     * Zips together an array of keys and values into an object. Requires that
-     * `keys` and `values` are the same length.
-     *
-     * @example
-     * ```js
-     * const o = zipKeyValue([`a`, `b`, `c`], [0, 1, 2])
-     * Yields: { a: 0, b: 1, c: 2}
-     *```
-      * @template V
-      * @param keys
-      * @param values
-      * @return
-      */
-    export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
-        [k: string]: V | undefined;
-    };
-    /**
-     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>
-     *
-     * @example
-     * ```js
-     * // Convert a map of string->string to string->number
-     * transformMap<string, string, number>(mapOfStrings, (value, key) => parseInt(value));
-     * ```
-     * @param source
-     * @param transformer
-     * @returns
-     */
-    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
-    /**
-     * Converts a `Map` to a plain object, useful for serializing to JSON
-     *
-     * @example
-     * ```js
-     * const str = JSON.stringify(mapToObj(map));
-     * ```
-     * @param m
-     * @returns
-     */
-    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
-        readonly [key: string]: T;
-    };
-    /**
-     * Converts Map<K,V> to Array<R> with a provided `transformer`
-     *
-     * @example Get a list of ages from a map of Person objects
-     * ```js
-     * let person = { age: 29, name: `John`};
-     * map.add(person.name, person);
-     * const ages = mapToArray<string, People, number>(map, (key, person) => person.age);
-     * // [29, ...]
-     * ```
-     *
-     * In the above example, the `transformer` function returns a single value, but it could
-     * just as well return an object:
-     * ```js
-     * mapToArray(map, (key, person) => ({
-     *  height: Math.random(),
-     *  name: person.name.toUpperCase();
-     * }))
-     * // Yields:
-     * // [{height: 0.12, name: "JOHN"}, ...]
-     * ```
-     * @param m
-     * @param transformer
-     * @returns
-     */
-    export const mapToArray: <K, V, R>(m: ReadonlyMap<K, V>, transformer: (key: K, item: V) => R) => readonly R[];
-}
-declare module "flow/Timer" {
-    /**
-     * Creates a timer
-     * @private
-     */
-    export type TimerSource = () => Timer;
-    /**
-     * A timer instance
-     * @private
-     */
-    export type Timer = {
-        reset(): void;
-        get elapsed(): number;
-    };
-    export type ModTimer = Timer & {
-        mod(amt: number): void;
-    };
-    /**
-     * @private
-     */
-    export type HasCompletion = {
-        get isDone(): boolean;
-    };
-    /**
-     * A resettable timeout, returned by {@link timeout}
-     */
-    export type Timeout = HasCompletion & {
-        start(altTimeoutMs?: number, args?: readonly unknown[]): void;
-        cancel(): void;
-        get isDone(): boolean;
-    };
-    /**
-     * Creates a debounce function.
+     * Normalises an array. By default uses the actual min/max of the array
+     * as the normalisation range. [Read more in the docs](https://clinth.github.io/ixfx-docs/temporal/normalising/)
      *
      * ```js
-     * // Create
-     * const d = debounce(fn, 1000);
-     *
-     * // Use
-     * d(); // Only calls fn after 1000s
+     * import {Normalise} from 'https://unpkg.com/ixfx/dist/temporal.js'
+     * // Yields: [0.5, 0.1, 0.0, 0.9, 1]
+     * Normalise.array([5,1,0,9,10]);
      * ```
      *
-     * @example Handle most recent pointermove event after 1000ms
+     * `minForced` and/or `maxForced` can
+     * be provided to use an arbitrary range.
      * ```js
-     * // Set up debounced handler
-     * const moveDebounced = debounce((elapsedMs, evt) => {
-     *    // Handle event
-     * }, 500);
-     *
-     * // Wire up event
-     * el.addEventListener(`pointermove`, moveDebounced);
-     * ```
-     *
-     * Debounced function can be awaited:
-     * ```js
-     * const d = debounce(fn, 1000);
-     * await d();
-     * ```
-     * @param callback
-     * @param timeoutMs
-     * @returns
-     */
-    export const debounce: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => DebouncedFunction;
-    /**
-     * Debounced function
-     * @private
-     */
-    export type DebouncedFunction = (...args: readonly unknown[]) => void;
-    /***
-     * Throttles a function. Callback only allowed to run after minimum of `intervalMinMs`.
-     *
-     * @example Only handle move event every 500ms
-     * ```js
-     * const moveThrottled = throttle( (elapsedMs, args) => {
-     *  // Handle ar
-     * }, 500);
-     * el.addEventListener(`pointermove`, moveThrottled)
-     * ```
-     *
-     * Note that `throttle` does not schedule invocations, but rather acts as a filter that
-     * sometimes allows follow-through to `callback`, sometimes not. There is an expectation then
-     * that the return function from `throttle` is repeatedly called, such as the case for handling
-     * a stream of data/events.
-     *
-     * @example Manual trigger
-     * ```js
-     * // Set up once
-     * const t = throttle( (elapsedMs, args) => { ... }, 5000);
-     *
-     * // Later, trigger throttle. Sometimes the callback will run,
-     * // with data passed in to args[0]
-     * t(data);
-     * ```
-     */
-    export const throttle: (callback: (elapsedMs: number, ...args: readonly unknown[]) => void | Promise<unknown>, intervalMinMs: number) => (...args: unknown[]) => Promise<void>;
-    export type IntervalAsync<V> = (() => V | Promise<V>) | Generator<V>;
-    /**
-     * Generates values from `produce` with `intervalMs` time delay.
-     * `produce` can be a simple function that returns a value, an async function, or a generator.
-     *
-     * @example Produce a random number every 500ms:
-     * ```
-     * const randomGenerator = interval(() => Math.random(), 1000);
-     * for await (const r of randomGenerator) {
-     *  // Random value every 1 second
-     *  // Warning: does not end by itself, a `break` statement is needed
-     * }
-     * ```
-     *
-     * @example Return values from a generator every 500ms:
-     * ```js
-     * // Make a generator that counts to 10
-     * const counter = count(10);
-     * for await (const v of interval(counter, 1000)) {
-     *  // Do something with `v`
-     * }
-     * ```
-     *
-     * If you just want to loop at a certain speed, consider using {@link continuously} instead.
-     * @template V Returns value of `produce` function
-     * @param intervalMs Interval between execution
-     * @param produce Function to call
-     * @template V Data type
-     * @returns
-     */
-    export const interval: <V>(produce: IntervalAsync<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
-    export type TimeoutSyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => void;
-    export type TimeoutAsyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => Promise<void>;
-    /**
-     * Returns a {@link Timeout} that can be triggered, cancelled and reset
-     *
-     * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
-     * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
-     *
-     * @example Essential functionality
-     * ```js
-     * const fn = () => {
-     *  console.log(`Executed`);
-     * };
-     * const t = timeout(fn, 60*1000);
-     * t.start();   // After 1 minute `fn` will run, printing to the console
-     * ```
-     *
-     * @example Control execution functionality
-     * ```
-     * t.cancel();  // Cancel it from running
-     * t.start();   // Schedule again after 1 minute
-     * t.start(30*1000); // Cancel that, and now scheduled after 30s
-     * t.isDone;    // True if a scheduled event is pending
-     * ```
-     *
-     * Callback function receives any additional parameters passed in from start.
-     * This can be useful for passing through event data:
-     *
-     * @example
-     * ```js
-     * const t = timeout( (elapsedMs, ...args) => {
-     *  // args contains event data
-     * }, 1000);
-     * el.addEventListener(`click`, t.start);
-     * ```
-     *
-     * Asynchronous callbacks can be used as well:
-     * ```js
-     * timeout(async () => {...}, 100);
-     * ```
-     *
-     * @param callback
-     * @param timeoutMs
-     * @returns {@link Timeout}
-     */
-    export const timeout: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => Timeout;
-    /**
-     * Runs a function continuously, returned by {@link Continuously}
-     */
-    export type Continuously = HasCompletion & {
-        /**
-         * Starts loop. If already running, it is reset
-         */
-        start(): void;
-        /**
-         * How many milliseconds since start() was last called
-         */
-        get elapsedMs(): number;
-        /**
-         * How many iterations of the loop since start() was last called
-         */
-        get ticks(): number;
-        /**
-         * Whether loop has finished
-         */
-        get isDone(): boolean;
-        /**
-         * Stops loop
-         */
-        cancel(): void;
-    };
-    export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
-    export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
-    /**
-     * Returns a {@link Continuously} that continuously executes `callback`. If callback returns _false_, loop exits.
-     *
-     * Call `start` to begin/reset loop. `cancel` stops loop.
-     *
-     * @example Animation loop
-     * ```js
-     * const draw = () => {
-     *  // Draw on canvas
-     * }
-     * continuously(draw).start(); // Run draw as fast as possible using `window.requestAnimationFrame`
-     * ```
-     *
-     * @example With delay
-     * ```js
-     * const fn = () => {
-     *  console.log(`1 minute`);
-     * }
-     * const c = continuously(fn, 60*1000);
-     * c.start(); // Runs `fn` every minute
-     * ```
-     *
-     * ```js
-     * c.cancel();
-     * c.elapsedMs;  // How many milliseconds have elapsed since start
-     * c.ticks;      // How many iterations of loop since start
-     * ```
-     *
-     * Asynchronous callback functions are supported too:
-     * ```js
-     * continuously(async () => { ..});
-     * ```
-     *
-     * Use `continuously` if you need a loop you can start and stop at will.
-     * Alternatives: {@link yieldAnimationRate}
-     * @param callback Function to run. If it returns false, loop exits.
-     * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
-     * @param intervalMs
-     * @returns
-     */
-    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void) | undefined) => Continuously;
-    /**
-     * Returns after `timeoutMs`.
-     *
-     * @example In an async function
-     * ```js
-     * console.log(`Hello`);
-     * await sleep(1000);
-     * console.log(`There`); // Prints one second after
-     * ```
-     *
-     * @example As a promise
-     * ```js
-     * console.log(`Hello`);
-     * sleep(1000)
-     *  .then(() => console.log(`There`)); // Prints one second after
-     * ```
-     *
-     * If a timeout of 0 is given, `requestAnimationFrame` is used instead of `setTimeout`.
-     *
-     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
-     *
-     * @param timeoutMs
-     * @return
-     */
-    export const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V | undefined>;
-    /**
-     * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
-     *
-     * @example
-     * ```js
-     * const result = await delay(async () => Math.random(), 1000);
-     * console.log(result); // Prints out result after one second
-     * ```
-     *
-     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
-     *
-     * @template V
-     * @param callback What to run after `timeoutMs`
-     * @param timeoutMs How long to delay
-     * @return Returns result of `callback`.
-     */
-    export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
-    export type CancelToken = {
-        readonly cancel: boolean;
-    };
-    /**
-     * Keeps executing `calback` until it runs without an exception being thrown.
-     *
-     * ```
-     * // Retry up to five times, starting at 200ms delay
-     * await retry(async () => {
-     *  // Do something, sometimes throwing an error
-     * }, 5, 200);
-     * ```
-     *
-     * Each loop will run at twice the duration of the last, beginning at `startingTimeoutMs`.
-     *
-     * @param callback Async code to run
-     * @param attempts Number of times to try
-     * @param startingTimeoutMs Time to sleep for first iteration
-     * @param cancelToken If provided, this is checked before and after each sleep to see if retry should continue. If cancelled, promise will be rejected
-     * @returns
-     */
-    export const retry: <V>(callback: () => Promise<V>, attempts?: number, startingTimeoutMs?: number, cancelToken?: CancelToken | undefined) => Promise<V>;
-    /**
-     * Wraps a timer, returning a relative elapsed value.
-     *
-     * ```js
-     * let t = relativeTimer(1000, msElapsedTimer());
-     * ```
-     *
-     * @private
-     * @param total
-     * @param timer
-     * @param clampValue If true, returned value never exceeds 1.0
-     * @returns
-     */
-    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
-    export const frequencyTimerSource: (frequency: number) => TimerSource;
-    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
-    /**
-     * A timer that uses clock time
-     * @private
-     * @returns {Timer}
-     */
-    export const msElapsedTimer: () => Timer;
-    /**
-     * A timer that progresses with each call
-     * @private
-     * @returns {Timer}
-     */
-    export const ticksElapsedTimer: () => Timer;
-    export type UpdateFailPolicy = `fast` | `slow` | `backoff`;
-    /**
-     * Calls the async `fn` to generate a value if there is no prior value or
-     * `intervalMs` has elapsed since value was last generated.
-     * @example
-     * ```js
-     * const f = updateOutdated(async () => {
-     *  const r = await fetch(`blah`);
-     *  return await r.json();
-     * }, 60*1000);
-     *
-     * // Result will be JSON from fetch. If fetch happened already in the
-     * // last 60s, return cached result. Otherwise it will fetch data
-     * const result = await f();
-     * ```
-     *
-     * Callback `fn` is passed how many milliseconds have elapsed since last update. It's
-     * minimum value will be `intervalMs`.
-     *
-     * ```js
-     * const f = updateOutdated(async elapsedMs => {
-     *  // Do something with elapsedMs?
-     * }, 60*1000;
-     * ```
-     *
-     * There are different policies for what to happen if `fn` fails. `slow` is the default.
-     * * `fast`: Invocation will happen immediately on next attempt
-     * * `slow`: Next invocation will wait `intervalMs` as if it was successful
-     * * `backoff`: Attempts will get slower and slower until next success. Interval is multipled by 1.2 each time.
-     *
-     * @param fn Async function to call. Must return a value.
-     * @param intervalMs Maximum age of cached result
-     * @param updateFail `slow` by default
-     * @returns Value
-     */
-    export const updateOutdated: <V>(fn: (elapsedMs?: number | undefined) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
-    /**
-     * Helper function for calling code that should fail after a timeout.
-     *
-     * ```js
-     * const onAborted = (reason:string) => {
-     *  // 'reason' is a string describing why it has aborted.
-     *  // ie: due to timeout or because done() was called with an error
-     * };
-     * const onComplete = (success:boolean) => {
-     *  // Called if we were aborted or finished succesfully.
-     *  // onComplete will be called after onAborted, if it was an error case
-     * }
-     *
-     * // If done() is not called after 1000, onAborted will be called
-     * // if done() is called or there was a timeout, onComplete is called
-     * const done = waitFor(1000, onAborted, onComplete);
-     *
-     * // Signal completed successfully (thus calling onComplete(true))
-     * done();
-     *
-     * // Signal there was an error (thus calling onAborted and onComplete(false))
-     * done(`Some error`);
-     * ```
-     *
-     * The completion handler is useful for removing event handlers.
-     *
-     * @param timeoutMs
-     * @param onAborted
-     * @param onComplete
-     * @returns
-     */
-    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string | undefined) => void;
-    /**
-     * Async generator that loops at a given `timeoutMs`.
-     *
-     * @example Loop runs every second
-     * ```
-     * // Loop forever
-     * (async () => {
-     *  const loop = delayLoop(1000);
-     *  while (true) {
-     *    await loop.next();
-     *
-     *    // Do something...
-     *    // Warning: loops forever
-     *  }
-     * })();
-     * ```
-     *
-     * @example For Await loop every second
-     * ```
-     * const loop = delayLoop(1000);
-     * for await (const o of loop) {
-     *  // Do something...
-     *  // Warning: loops forever
-     * }
-     * ```
-     * @param timeoutMs Delay. If 0 is given, `requestAnimationFrame` is used over `setTimeout`.
-     */
-    export function delayLoop(timeoutMs: number): AsyncGenerator<undefined, void, unknown>;
-}
-declare module "modulation/Easing" {
-    import { HasCompletion } from "flow/Timer";
-    export type EasingFn = (x: number) => number;
-    /**
-     * Creates an easing based on clock time
-     * @inheritdoc Easing
-     * @example Time based easing
-     * ```
-     * const t = time(`quintIn`, 5*1000); // Will take 5 seconds to complete
-     * ...
-     * t.compute(); // Get current value of easing
-     * t.reset();   // Reset to 0
-     * t.isDone;    // _True_ if finished
-     * ```
-     * @param nameOrFn Name of easing, or an easing function
-     * @param durationMs Duration in milliseconds
-     * @returns Easing
-     */
-    export const time: (nameOrFn: EasingName | EasingFn, durationMs: number) => Easing;
-    /**
-     * Creates an easing based on ticks
-     *
-     * @inheritdoc Easing
-     * @example Tick-based easing
-     * ```
-     * const t = tick(`sineIn`, 1000);   // Will take 1000 ticks to complete
-     * t.compute(); // Each call to `compute` progresses the tick count
-     * t.reset();   // Reset to 0
-     * t.isDone;    // _True_ if finished
-     * ```
-     * @param nameOrFn Name of easing, or an easing function
-     * @param durationTicks Duration in ticks
-     * @returns Easing
-     */
-    export const tick: (nameOrFn: EasingName | EasingFn, durationTicks: number) => Easing;
-    /**
-     * 'Ease' from `0` to `1` over a delicious curve. Commonly used for animation
-     * and basic modelling of phyical motion.
-     *
-     * Create via {@link tick} or {@link time}, call `compute` to calculate the next
-     * value in the progression, until you reach `1` or `isDone` returns true.
-     *
-     */
-    export type Easing = HasCompletion & {
-        /**
-         * Computes the current value of the easing
-         *
-         * @returns {number}
-         */
-        compute(): number;
-        /**
-         * Reset the easing
-         */
-        reset(): void;
-        /**
-         * Returns true if the easing is complete
-         *
-         * @returns {boolean}
-         */
-        get isDone(): boolean;
-    };
-    /**
-     * Creates an easing function using a simple cubic bezier defined by two points.
-     *
-     * Eg: https://cubic-bezier.com/#0,1.33,1,-1.25
-     *  a:0, b: 1.33, c: 1, d: -1.25
-     *
-     * ```js
-     * // Time-based easing using bezier
-     * const e = Easings.time(fromCubicBezier(1.33, -1.25), 1000);
-     * e.compute();
-     * ```
-     * @param b
-     * @param d
-     * @param t
-     * @returns Value
-     */
-    export const fromCubicBezier: (b: number, d: number) => EasingFn;
-    /**
-     * Returns a mix of two easing functions.
-     *
-     * ```js
-     * // Get a 50/50 mix of two easing functions at t=0.25
-     * mix(0.5, 0.25, sineIn, sineOut);
-     *
-     * // 10% of sineIn, 90% of sineOut
-     * mix(0.90, 0.25, sineIn, sineOut);
-     * ```
-     * @param amt
-     * @param balance
-     * @param easingA
-     * @param easingB
-     * @returns
-     */
-    export const mix: (amt: number, balance: number, easingA: EasingFn, easingB: EasingFn) => number;
-    export const crossfade: (amt: number, easingA: EasingFn, easingB: EasingFn) => number;
-    /**
-     * @private
-     */
-    export type EasingName = keyof typeof functions;
-    /**
-     * Returns an easing function by name, or _undefined_ if not found.
-     * This is a manual way of working with easing functions. If you want to
-     * ease over time or ticks, use {@link time} or {@link ticks}.
-     *
-     * ```js
-     * const fn = Easings.get(`sineIn`);
-     * // Returns 'eased' transformation of 0.5
-     * fn(0.5);
-     * ```
-     * @param easingName eg `sineIn`
-     * @returns Easing function
-     */
-    export const get: (easingName: EasingName) => EasingFn | undefined;
-    /**
-     * @private
-     * @returns Returns list of available easing names
-     */
-    export const getEasings: () => readonly string[];
-    /**
-     * Returns a roughly gaussian easing function
-     * @param stdDev
-     * @returns
-     */
-    export const gaussian: (stdDev?: number) => EasingFn;
-    export const functions: {
-        arch: (x: number) => number;
-        bell: EasingFn;
-        sineIn: (x: number) => number;
-        sineOut: (x: number) => number;
-        quadIn: (x: number) => number;
-        quadOut: (x: number) => number;
-        sineInOut: (x: number) => number;
-        quadInOut: (x: number) => number;
-        cubicIn: (x: number) => number;
-        cubicOut: (x: number) => number;
-        quartIn: (x: number) => number;
-        quartOut: (x: number) => number;
-        quintIn: (x: number) => number;
-        quintOut: (x: number) => number;
-        expoIn: (x: number) => number;
-        expoOut: (x: number) => number;
-        quintInOut: (x: number) => number;
-        expoInOut: (x: number) => number;
-        circIn: (x: number) => number;
-        circOut: (x: number) => number;
-        backIn: (x: number) => number;
-        backOut: (x: number) => number;
-        circInOut: (x: number) => number;
-        backInOut: (x: number) => number;
-        elasticIn: (x: number) => number;
-        elasticOut: (x: number) => number;
-        bounceIn: (x: number) => number;
-        bounceOut: (x: number) => number;
-        elasticInOut: (x: number) => number;
-        bounceInOut: (x: number) => number;
-    };
-}
-declare module "collections/NumericArrays" {
-    import * as Easings from "modulation/Easing";
-    /**
-     * Applies a function to the elements of an array, weighting them based on their relative position.
-     *
-     * ```js
-     * // Six items
-     * weight([1,1,1,1,1,1], Easings.gaussian());
-     *
-     * // Yields:
-     * // [0.02, 0.244, 0.85, 0.85, 0.244, 0.02]
-     * ```
-     *
-     * Function is expected to map (0..1) => (0..1), such as an {@link Easings.EasingFn}. The input to the
-     * function is the relative position of an element, so the first element will use fn(0), the middle (0.5) and so on.
-     * The output of the function s then multiplied by the original value.
-     *
-     * In the below example (which is also the default if `fn` is not specified), it is just the
-     * position which is used to proportion the contents.
-     *
-     * ```js
-     * weight([1,1,1,1,1,1], (relativePos) => relativePos);
-     * // Yields:
-     * // [0, 0.2, 0.4, 0.6, 0.8, 1]
-     * ```
-     *
-     * Non-numbers in `data` will be silently ignored.
-     * @param data Data to process. Assumed to be an array of numbers
-     * @param fn Function (number)=>number. Returns a weighting based on the given relative position. If unspecified (x) => x is used.
-     */
-    export const weight: (data: readonly number[], fn?: ((relativePos: number) => number) | undefined) => readonly number[];
-    /**
-     * Returns the dot product of two arbitrary-sized arrays. Assumed they are of the same length.
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const dotProduct: (values: ReadonlyArray<readonly number[]>) => number;
-    /**
-     * Calculates the average of all numbers in an array.
-     * Array items which aren't a valid number are ignored and do not factor into averaging.
-     *
-     * Use {@link minMaxAvg} if you want min, max and total as well.
-     *
-     * @example
-     * ```
-     * // Average of a list
-     * const avg = average(1, 1.4, 0.9, 0.1);
-     *
-     * // Average of a variable
-     * let data = [100,200];
-     * average(...data);
-     * ```
-     * @param data Data to average.
-     * @returns Average of array
-     */
-    export const average: (...data: readonly number[]) => number;
-    /**
-     * Computes an average of an array with a set of weights applied.
-     *
-     * Weights can be provided as an array, expected to be on 0..1 scale, with indexes
-     * matched up to input data. Ie. data at index 2 will be weighed by index 2 in the weightings array.
-     *
-     * ```js
-     * // All items weighted evenly
-     * averageWeighted([1,2,3], [1,1,1]); // 2
-     *
-     * // First item has full weight, second half, third quarter
-     * averageWeighted([1,2,3], [1, 0.5, 0.25]); // 1.57
-     *
-     * // With reversed weighting of [0.25,0.5,1] value is 2.42
-     * ```
-     *
-     * A function can alternatively be provided to compute the weighting based on array index, via {@link weight}.
-     *
-     * ```js
-     * averageWeighted[1,2,3], Easings.gaussian()); // 2.0
-     * ```
-     *
-     * This is the same as:
-     * ```js
-     * const data = [1,2,3];
-     * const w = weight(data, Easings.gaussian());
-     * const avg = averageWeighted(data, w); // 2.0
-     * ```
-     * @param data Data to average
-     * @param weightings Array of weightings that match up to data array, or an easing function
-     */
-    export const averageWeighted: (data: readonly number[], weightings: (readonly number[]) | Easings.EasingFn) => number;
-    /**
-     * Returns the minimum number out of `data`.
-     * Undefined and non-numbers are silently ignored.
-     * @param data
-     * @returns Minimum number
-     */
-    export const min: (...data: readonly number[]) => number;
-    /**
-     * Returns the index of the largest value
-     * @param data
-     * @returns
-     */
-    export const maxIndex: (...data: readonly number[]) => number;
-    /**
-     * Returns the index of the smallest value
-     * @param data
-     * @returns
-     */
-    export const minIndex: (...data: readonly number[]) => number;
-    /**
-     * Returns the maximum number out of `data`.
-     * Undefined and non-numbers are silently ignored.
-     * @param data
-     * @returns Maximum number
-     */
-    export const max: (...data: readonly number[]) => number;
-    /**
-     * Returns the maximum out of `data` without pre-filtering for speed.
-     *
-     * For most uses, {@link max} should suffice.
-     * @param data
-     * @returns Maximum
-     */
-    export const maxFast: (data: readonly number[] | Float32Array) => number;
-    /**
-     * Returns the maximum out of `data` without pre-filtering for speed.
-     *
-     * For most uses, {@link max} should suffice.
-     * @param data
-     * @returns Maximum
-     */
-    export const minFast: (data: readonly number[] | Float32Array) => number;
-    export type MinMaxAvgTotal = {
-        /**
-         * Smallest value in array
-         */
-        readonly min: number;
-        /**
-         * Total of all items
-         */
-        readonly total: number;
-        /**
-         * Largest value in array
-         */
-        readonly max: number;
-        /**
-         * Average value in array
-         */
-        readonly avg: number;
-    };
-    /**
-     * Returns the min, max, avg and total of the array.
-     * Any values that are invalid are silently skipped over.
-     *
-     * Use {@link average} if you only need average
-     *
-     * @param data
-     * @param startIndex If provided, starting index to do calculations (defaults full range)
-     * @param endIndex If provided, the end index to do calculations (defaults full range)
-     * @returns `{min, max, avg, total}`
-     */
-    export const minMaxAvg: (data: readonly number[], startIndex?: number | undefined, endIndex?: number | undefined) => MinMaxAvgTotal;
-}
-declare module "collections/Arrays" {
-    import { RandomSource } from "Random";
-    import { IsEqual } from "Util";
-    export * from "collections/NumericArrays";
-    /**
-     * Throws an error if `array` parameter is not a valid array
-     * @private
-     * @param array
-     * @param paramName
-     */
-    export const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
-    /**
-     * Throws if `index` is an invalid array index for `array`, and if
-     * `array` itself is not a valid array.
-     * @param array
-     * @param index
-     */
-    export const guardIndex: <V>(array: readonly V[], index: number, paramName?: string) => void;
-    /**
-     * Returns _true_ if all the contents of the array are identical
-     * @param array Array
-     * @param equality Equality checker. Uses string-conversion checking by default
-     * @returns
-     */
-    export const areValuesIdentical: <V>(array: readonly V[], equality?: IsEqual<V> | undefined) => boolean;
-    /**
-     * Zip ombines the elements of two or more arrays based on their index.
-     *
-     * ```js
-     * const a = [1,2,3];
-     * const b = [`red`, `blue`, `green`];
-     *
-     * const c = zip(a, b);
-     * // Yields:
-     * // [
-     * //   [1, `red`],
-     * //   [2, `blue`],
-     * //   [3, `green`]
-     * // ]
-     * ```
-     *
-     * Typically the arrays you zip together are all about the same logical item. Eg, in the above example
-     * perhaps `a` is size and `b` is colour. So thing #1 (at array index 0) is a red thing of size 1. Before
-     * zipping we'd access it by `a[0]` and `b[0]`. After zipping, we'd have c[0], which is array of [1, `red`].
-     * @param arrays
-     * @returns Zipped together array
-     */
-    export const zip: (...arrays: ReadonlyArray<any>) => ReadonlyArray<any>;
-    /**
-     * Returns an copy of `data` with specified length.
-     * If the input array is too long, it is truncated.
-     * If the input array is too short, it will the expanded based on the `expand` strategy
-     *  - undefined: fill with `undefined`
-     *  - repeat: repeat array elements from position 0
-     *  - first: continually use first element
-     *  - last: continually use last element
-     *
-     * ```js
-     * ensureLength([1,2,3], 2); // [1,2]
-     * ensureLength([1,2,3], 5, `undefined`); // [1,2,3,undefined,undefined]
-     * ensureLength([1,2,3], 5, `repeat`);    // [1,2,3,1,2]
-     * ensureLength([1,2,3], 5, `first`);     // [1,2,3,1,1]
-     * ensureLength([1,2,3], 5, `last`);      // [1,2,3,3,3]
-     * ```
-     * @param data
-     * @param length
-     */
-    export const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => readonly V[];
-    /**
-     * Return elements from `array` that match a given `predicate`, and moreover are between the given `startIndex` and `endIndex`.
-     *
-     * While this can be done with in the in-built `array.filter` function, it will needless iterate through the whole array. It also
-     * avoids another alternative of slicing the array before using `filter`.
-     * @param array
-     * @param predicate
-     * @param startIndex
-     * @param endIndex
-     */
-    export const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex: number, endIndex: number) => readonly V[];
-    /**
-     * Returns a random array index
-     * @param array
-     * @param rand Random generator. `Math.random` by default.
-     * @returns
-     */
-    export const randomIndex: <V>(array: ArrayLike<V>, rand?: RandomSource) => number;
-    /**
-     * Returns random element
-     * @param array
-     * @params rand Random generator. `Math.random` by default.
-     * @returns
-     */
-    export const randomElement: <V>(array: ArrayLike<V>, rand?: RandomSource) => V;
-    /**
-     * Removes a random item from an array, returning both the item and the new array as a result.
-     * Does not modify the original array unless `mutate` parameter is true.
-     *
-     * @example Without changing source
-     * ```js
-     * const data = [100, 20, 40];
-     * const {value, array} = randomPluck(data);
-     * // value: 20, array: [100, 40], data: [100, 20, 40];
-     * ```
-     *
-     * @example Mutating source
-     * ```js
-     * const data = [100, 20, 40];
-     * const {value} = randomPluck(data, true);
-     * // value: 20, data: [100, 40];
-     * ```
-     *
-     * @template V Type of array
-     * @param array Array to pluck item from
-     * @param mutate If _true_, changes input array. _False_ by default.
-     * @param random Random generatr. `Math.random` by default.
-     * @return Returns an object `{value:V|undefined, array:V[]}`
-     *
-     */
-    export const randomPluck: <V>(array: readonly V[], mutate?: boolean, rand?: RandomSource) => {
-        readonly value: V | undefined;
-        readonly array: V[];
-    };
-    /**
-     * Returns a shuffled copy of the input array.
-     * @example
-     * ```js
-     * const d = [1, 2, 3, 4];
-     * const s = shuffle(d);
-     * // d: [1, 2, 3, 4], s: [3, 1, 2, 4]
-     * ```
-     * @param dataToShuffle
-     * @param rand Random generator. `Math.random` by default.
-     * @returns Copy with items moved around randomly
-     * @template V Type of array items
-     */
-    export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
-    /**
-     * Returns an array with a value omitted. If value is not found, result will be a copy of input.
-     * Value checking is completed via the provided `comparer` function. By default checking whether `a === b`. To compare based on value, use the `isEqualValueDefault` comparer.
-     *
-     * @example
-     * ```js
-     * const data = [100, 20, 40];
-     * const filtered = without(data, 20); // [100, 40]
-     * ```
-     *
-     * @example Using value-based comparison
-     * ```js
-     * const data = [{name: `Alice`}, {name:`Sam`}];
-     *
-     * // This wouldn't work as expected, because the default comparer uses instance,
-     * // not value:
-     * without(data, {name: `Alice`});
-     *
-     * // So instead we can use a value comparer:
-     * without(data, {name:`Alice`}, isEqualValueDefault);
-     * ```
-     *
-     * @example Use a function
-     * ```js
-     * const data = [{name: `Alice`}, {name:`Sam`}];
-     * without(data, {name:`ALICE`}, (a, b) => {
-     *  return (a.name.toLowerCase() === b.name.toLowerCase());
-     * });
-     * ```
-     * @template V Type of array items
-     * @param data Source array
-     * @param value Value to remove
-     * @param comparer Comparison function. If not provided `Util.isEqualDefault` is used, which compares using `===`
-     * @return Copy of array without value.
-     */
-    export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
-    export const remove: <V>(data: readonly V[], index: number) => readonly V[];
-    /**
-     * Groups data by a grouper function, returning data as a map with string
-     * keys and array values.
-     *
-     * @example
-     * ```js
-     * const data = [
-     *  { age: 39, city: `London` }
-     *  { age: 14, city: `Copenhagen` }
-     *  { age: 23, city: `Stockholm` }
-     *  { age: 56, city: `London` }
-     * ];
-     * const map = groupBy(data, item => data.city);
-     * ```
-     *
-     * Returns a map:
-     * ```
-     * London: [{ age: 39, city: `London` }, { age: 56, city: `London` }]
-     * Stockhom: [{ age: 23, city: `Stockholm` }]
-     * Copenhagen: [{ age: 14, city: `Copenhagen` }]
-     * ```
-     * @param array Array to group
-     * @param grouper Function that returns a key for a given item
-     * @template K Type of key to group by. Typically string.
-     * @template V Type of values
-     * @returns Map
-     */
-    export const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
-    /**
-     * Samples array
-     *
-     * @example By percentage - get half of the items
-     * ```
-     * const list = [1,2,3,4,5,6,7,8,9,10];
-     * const sub = sample(list, 0.5);
-     * // Yields:
-     * // [2, 4, 6, 8, 10]
-     * ```
-     *
-     * @example By steps - every third
-     * ```
-     * const list = [1,2,3,4,5,6,7,8,9,10];
-     * const sub = sample(list, 3);
-     * // Yields:
-     * // [3, 6, 9]
-     * ```
-     * @param array Array to sample
-     * @param amount Amount, given as a percentage (0..1) or the number of interval (ie 3 for every third item)
-     * @returns
-     */
-    export const sample: <V>(array: readonly V[], amount: number) => readonly V[];
-}
-declare module "Random" {
-    import { randomIndex, randomElement } from "collections/Arrays";
-    import * as Easings from "modulation/Easing";
-    export { randomIndex as arrayIndex };
-    export { randomElement as arrayElement };
-    export { randomHue as hue } from "visual/Colour";
-    export const defaultRandom: () => number;
-    export type RandomSource = () => number;
-    /***
-     * Returns a random number, 0..1, weighted by a given easing function.
-     * Default easing is `quadIn`, which skews towards zero.
-     *
-     * ```js
-     * weighted();          // quadIn easing by default, which skews toward low values
-     * weighted(`quadOut`); // quadOut favours high values
-     * ```
-     *
-     * @param easingName Easing name. `quadIn` by default.
-     * @param rand Source random generator. `Math.random` by default.
-     * @returns Random number (0-1)
-     */
-    export const weighted: (easingName?: Easings.EasingName, rand?: RandomSource) => number;
-    /**
-     * Random integer, weighted according to an easing function.
-     * Number will be inclusive of `min` and below `max`.
-     *
-     * ```js
-     * // If only one parameter is provided, it's assumed to be the max:
-     * // Random number that might be 0 through to 99
-     * const r = weightedInteger(100);
-     *
-     * // If two numbers are given, it's assumed to be min, max
-     * // Random number that might be 20 through to 29
-     * const r = weightedInteger(20,30);
-     *
-     * // One number and string. First param is assumed to be
-     * // the max, second parameter the easing function
-     * const r = weightedInteger(100, `quadIn`)
-     * ```
-     *
-     * Useful for accessing a random array element:
-     * ```js
-     * const list = [`mango`, `kiwi`, `grape`];
-     * // Yields random item from list
-     * list[weightedInteger(list.length)];
-     * ```
-     *
-     * Note: result from easing function will be clamped to
-     * the min/max (by default 0-1);
-     *
-     * @param max Maximum (exclusive)
-     * @param min Minimum number (inclusive), 0 by default
-     * @param rand Source random generator. `Math.random` by default.
-     * @param easing Easing to use, uses `quadIn` by default
-     * @returns
-     */
-    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | "arch" | "bell" | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, easing?: "arch" | "bell" | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, rand?: RandomSource) => number;
-    /**
-     * Returns a random number with gaussian (ie bell-curved) distribution
-     * ```js
-     * // Yields a random number between 0..1
-     * // with a gaussian distribution
-     * gaussian();
-     * ```
-     *
-     * Distribution can also be skewed:
-     * ```js
-     * // Yields a skewed random value
-     * gaussian(10);
-     * ```
-     *
-     * Use the curried version in order to pass the random number generator elsewhere:
-     * ```js
-     * const g = gaussianSkewed(10);
-     * // Now it can be called without parameters
-     * g(); // Yields skewed random
-     *
-     * // Eg:
-     * shuffle(gaussianSkewed(10));
-     * ```
-     * @param skew
-     * @returns
-     */
-    export const gaussian: (skew?: number) => number;
-    /**
-     * Returns a function of skewed gaussian values.
-     *
-     * This 'curried' function is useful when be
-     * ```js
-     * const g = gaussianSkewed(10);
-     *
-     * // Now it can be called without parameters
-     * g(); // Returns skewed value
-     *
-     * // Eg:
-     * shuffle(gaussianSkewed(10));
-     * ```
-     * @param skew
-     * @returns
-     */
-    export const gaussianSkewed: (skew: number) => () => number;
-    /**
-     * Returns a random integer between `max` (exclusive) and `min` (inclusive)
-     * If `min` is not specified, 0 is used.
-     *
-     * ```js
-     * integer(10);    // Random number 0-9
-     * integer(5, 10); // Random number 5-9
-     * integer(-5);       // Random number from -4 to 0
-     * integer(-5, -10); // Random number from -10 to -6
-     * ```
-     * @param max
-     * @param min
-     * @returns
-     */
-    export const integer: (max: number, min?: number | undefined) => number;
-    /**
-     * Random a random float between `max` (exclusive) and `min` (inclusive).
-     * If `min` is not specified, 0 is used.
-     * @param max
-     * @param min
-     * @returns
-     */
-    export const float: (max: number, min?: number) => number;
-    /**
-     * Returns a string of random letters and numbers of a given `length`.
-     *
-     * ```js
-     * string(4); // eg. `4afd`
-     * ```
-     * @param length Length of random string
-     * @returns Random string
-     */
-    export const string: (length: number) => string;
-    export const shortGuid: () => string;
-}
-declare module "visual/Colour" {
-    import * as d3Colour from 'd3-color';
-    import { RandomSource } from "Random";
-    export type Hsl = {
-        h: number;
-        s: number;
-        l: number;
-        opacity?: number;
-    };
-    export type Rgb = {
-        r: number;
-        g: number;
-        b: number;
-        opacity?: number;
-    };
-    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
-    /**
-     * @private
-     */
-    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
-    /**
-     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
-     */
-    export type Colourish = string | d3Colour.ColorCommonInstance;
-    /**
-     * Options for interpolation
-     */
-    export type InterpolationOpts = {
-        /**
-         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
-         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
-         */
-        gamma?: number;
-        /**
-         * Colour space
-         */
-        space?: Spaces;
-        /**
-         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
-         */
-        long?: boolean;
-    };
-    /**
-     * Parses colour to {h,s,l}. `opacity` field is added if it exists on source.
-     * @param colour
-     * @returns
-     */
-    export const toHsl: (colour: Colourish) => Hsl;
-    /**
-     * Returns a full HSL colour string (eg `hsl(20,50%,75%)`) based on a index.
-     * It's useful for generating perceptually different shades as the index increments.
-     *
-     * ```
-     * el.style.backgroundColor = goldenAgeColour(10);
-     * ```
-     *
-     * Saturation and lightness can be specified, as numeric ranges of 0-1.
-     *
-     * @param saturation Saturation (0-1), defaults to 0.5
-     * @param lightness Lightness (0-1), defaults to 0.75
-     * @returns HSL colour string eg `hsl(20,50%,75%)`
-     */
-    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number) => string;
-    /**
-     * Returns a random hue component
-     * ```
-     * // Generate hue
-     * const h =randomHue(); // 0-359
-     *
-     * // Generate hue and assign as part of a HSL string
-     * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
-     * ```
-     *
-     *
-     * @param rand
-     * @returns
-     */
-    export const randomHue: (rand?: RandomSource) => number;
-    /**
-     * Parses colour to {r,g,b}. `opacity` field is added if it exists on source.
-     * @param colour
-     * @returns
-     */
-    export const toRgb: (colour: Colourish) => Rgb;
-    /**
-     * Returns a colour in hex format `#000000`
-     * @param colour
-     * @returns Hex format, including #
-     */
-    export const toHex: (colour: Colourish) => string;
-    /**
-     * Returns a variation of colour with its opacity multiplied by `amt`.
-     *
-     * ```js
-     * // Return a colour string for blue that is 50% opaque
-     * opacity(`blue`, 0.5);
-     * // eg: `rgba(0,0,255,0.5)`
-     *
-     * // Returns a colour string that is 50% more opaque
-     * opacity(`hsla(200,100%,50%,50%`, 0.5);
-     * // eg: `hsla(200,100%,50%,25%)`
-     * ```
-     * @param colour A valid CSS colour
-     * @param amt Amount to multiply opacity by
-     * @returns String representation of colour
-     */
-    export const opacity: (colour: Colourish, amt: number) => string;
-    /**
-     * Gets a CSS variable.
-     * @example Fetch --accent variable, or use `yellow` if not found.
-     * ```
-     * getCssVariable(`accent`, `yellow`);
-     * ```
-     * @param name Name of variable. Do not starting `--`
-     * @param fallbackColour Fallback colour if not found
-     * @param root  Element to search variable from
-     * @returns Colour or fallback.
-     */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
-    /**
-     * Interpolates between two colours, returning a string
-     *
-     * @example
-     * ```js
-     * // Get 50% between blue and red
-     * interpolate(0.5, `blue`, `red`);
-     *
-     * // Get midway point, with specified colour space
-     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
-     * ```
-     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
-     * @param from Starting colour
-     * @param to Final colour
-     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
-     * @returns String representation of colour, eg. `rgb(x,x,x)`
-     */
-    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts | undefined) => string;
-    /**
-     * Produces a scale of colours as a string array
-     *
-     * @example
-     * ```js
-     * // Yields array of 5 colour strings
-     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
-     * // Produces scale between three colours
-     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
-     * ```
-     * @param steps Number of colours
-     * @param opts Options for interpolation, or string colour space eg `hsl`
-     * @param colours From/end colours (or more)
-     * @returns
-     */
-    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
-}
-declare module "Debug" {
-    /**
-     * Returns a bundled collection of {@link logger}s
-     *
+     * // Forced range 0-100
+     * // Yields: [0.05, 0.01, 0.0, 0.09, 0.10]
+     * Normalise.array([5,1,0,9,10], 0, 100);
      * ```
-     * const con = logSet(`a`);
-     * con.log(`Hello`);  // console.log(`a Hello`);
-     * con.warn(`Uh-oh`); // console.warn(`a Uh-oh`);
-     * con.error(`Eek!`); // console.error(`a Eek!`);
-     * ```
-     * @param prefix
-     * @returns
-     */
-    export const logSet: (prefix: string) => {
-        log: (m: any) => void;
-        warn: (m: any) => void;
-        error: (m: any) => void;
-    };
-    /**
-     * Returns a console logging function which prefixes messages. This is
-     * useful for tracing messages from different components. Each prefix
-     * is assigned a colour, further helping to distinguish messages.
      *
-     * Use {@link logSet} to get a bundled set.
+     * Return values are clamped to always be 0-1, inclusive.
      *
-     * ```
-     * // Initialise once
-     * const log = logger(`a`);
-     * const error = logger(`a`, `error`);
-     * const warn = logger(`a`, `warn);
-     *
-     * // And then use
-     * log(`Hello`);    // console.log(`a Hello`);
-     * error(`Uh-oh`);  // console.error(`a Uh-oh`);
-     * warn(`Eek!`);    // console.warn(`a Eeek!`);
-     * ```
-     * @param prefix
-     * @param kind
-     * @returns
+     * @param values Values
+     * @param minForced If provided, this will be min value used
+     * @param maxForced If provided, this will be the max value used
      */
-    export const logger: (prefix: string, kind?: `log` | `warn` | `error`) => (m: any) => void;
+    export const array: (values: readonly number[], minForced?: number, maxForced?: number) => number[];
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
     import { ToString, IsEqual } from "Util";
-    /**
-     * @private
-     */
     export type ArrayKeys<K, V> = ReadonlyArray<readonly [key: K, value: V]>;
-    /**
-     * @private
-     */
     export type ObjKeys<K, V> = ReadonlyArray<{
         readonly key: K;
         readonly value: V;
     }>;
-    /**
-     * @private
-     */
     export type EitherKey<K, V> = ArrayKeys<K, V> | ObjKeys<K, V>;
-    /**
-     * @private
-     */
     export type MapSetOpts<V> = MapMultiOpts<V> & {
         readonly hash: ToString<V>;
     };
-    /**
-     * @private
-     */
     export type MapCircularOpts<V> = MapMultiOpts<V> & {
         readonly capacity: number;
     };
@@ -2132,13 +775,10 @@ declare module "collections/Interfaces" {
         add(destination: M | undefined, values: ReadonlyArray<V>): M;
         toArray(source: M): ReadonlyArray<V> | undefined;
         find(source: M, predicate: (v: V) => boolean): V | unknown;
-        filter(source: M, predicate: (v: V) => boolean): ReadonlyArray<V>;
+        filter(source: M, predicate: (v: V) => boolean): Iterable<V>;
         without(source: M, value: V): ReadonlyArray<V>;
         count(source: M): number;
     }>;
-    /**
-     * @private
-     */
     export type MapMultiOpts<V> = {
         /**
          * Returns a group for values added via `addValue`. Eg. maybe you want to
@@ -2154,16 +794,10 @@ declare module "collections/Interfaces" {
          */
         readonly groupBy?: ToString<V> | undefined;
     };
-    /**
-     * @private
-     */
     export type MapArrayOpts<V> = MapMultiOpts<V> & {
         readonly comparer?: IsEqual<V>;
         readonly toString?: ToString<V>;
     };
-    /**
-     * @private
-     */
     export type ValueSetEventMap<V> = {
         readonly add: {
             readonly value: V;
@@ -2289,43 +923,51 @@ declare module "collections/Interfaces" {
         get data(): readonly V[];
     }
     /**
-     * A set which stores unique items, determined by their value, rather
-     * than object reference. Create with {@link setMutable}. Mutable.
+     * A Set which stores unique items determined by their value, rather
+     * than object reference (unlike the default JS Set). Create with {@link setMutable}. Mutable.
      *
-     * By default the JSON.stringify() representation is used to compare
-     * objects.
+     * By default the `JSON.stringify()` representation is considered the 'key' for an object.
+     * Pass in a function to `setMutable` to define your own way of creating keys for values. The principle should
+     * be that objects that you consider identical should have the same string key value.
      *
-     * It fires `add`, `clear` and `delete` events.
+     * SetMutable fires `add`, `clear` and `delete` events.
      *
-     * Overview of functions
+     * @example Overview of functions
      * ```js
      * const s = setMutable();
      * s.add(item);    // Add one or more items. Items with same key are overriden.
-     * s.has(item);    // Returns true if item *value* is present
+     * s.has(item);    // Returns true if item value is present
      * s.clear();      // Remove everything
      * s.delete(item); // Delete item by value
      * s.toArray();    // Returns values as an array
      * s.values();     // Returns an iterator over values
      * ```
      *
-     * Usage
+     * @example Example usage
      * ```js
+     * // Data to add
      * const people = [
      *  {name: `Barry`, city: `London`}
      *  {name: `Sally`, city: `Bristol`}
      * ];
+     *
+     * // Create a set, defining how keys will be generated
      * const set = setMutable(person => {
-     *  // Key person objects by name and city (assi)
-     *  return `${person.name}-${person.city}`
+     *    // Key person objects by name and city.
+     *    // ie. Generated keys will be: `Barry-London`, `Sally-Bristol`
+     *    return `${person.name}-${person.city}`
      * });
+     *
+     * // Add list
      * set.add(...people);
      *
+     * // Demo:
      * set.has({name:`Barry`, city:`Manchester`})); // False, key is different (Barry-Manchester)
      * set.has({name:`Barry`, city:`London`}));     // True, we have Barry-London as a key
      * set.has(people[1]);   // True, key of object is found (Sally-Bristol)
      * ```
      *
-     * Events
+     * @example Events
      * ```js
      * set.addEventListener(`add`, ev => {
      *  console.log(`New item added: ${ev.value}`);
@@ -2336,15 +978,17 @@ declare module "collections/Interfaces" {
      */
     export interface SetMutable<V> extends SimpleEventEmitter<ValueSetEventMap<V>> {
         /**
-         * Add `values` to set
-         * @param v
+         * Add `values` to set.
+         * Corresponding keys will be generated according to the
+         * function provided to `setMutable`, or `JSON.stringify` by default.
+         * @param v Value(s) to add
          */
         add(...values: ReadonlyArray<V>): void;
         /**
          * Iterate over values
          * ```js
          * for (let value of set.values()) {
-         *  // use value...
+         *    // use value...
          * }
          * ```
          */
@@ -2354,12 +998,13 @@ declare module "collections/Interfaces" {
          */
         clear(): void;
         /**
-         * Deletes specified `value`
+         * Deletes specified value, if present.
          * @param value
+         * @returns True if value was found
          */
         delete(value: V): boolean;
         /**
-         * Returns _true_ if `value` is contained
+         * Returns _true_ if _value_ is contained in Set
          * @param v
          */
         has(value: V): boolean;
@@ -2373,15 +1018,56 @@ declare module "collections/Interfaces" {
      * Duplicate values can be added to the same or even a several keys.
      *
      * Three pre-defined MapOf's are available:
-     * * {@link mapArray} - Map of mutable arrays
-     * * {@link mapSet} - Map of mutable sets
-     * * {@link mapCircular} - Map of immutable circular arrays
+     * * {@link mapArray} - Map of arrays
+     * * {@link mapSet} - Map of unique items
+     * * {@link mapCircularMutable} - Hold a limited set of values per key
      *
-     * Several events can be listened to via `addEventListener`
-     * * addedKey, addedValue - when a new key is added, or when a new value is added
-     * * clear - when contents are cleared
-     * * deleteKey - when a key is deleted
+     * Adding
+     * ```js
+     * // Add one or more values using the predefined key function to generate a key
+     * map.addValue(value1, value2, ...);
+     * // Add one or more values under a specified key
+     * map.addKeyedValues(key, value1, value2, ...);
+     * ```
      *
+     * Finding/accessing
+     * ```js
+     * // Returns all values stored under key
+     * map.get(key);
+     * // Returns the first key where value is found, or _undefined_ if not found
+     * map.findKeyForValue(value);
+     * // Returns _true_  if value is stored under key
+     * map.hasKeyValue(key, value);
+     * // Returns _true_ if map contains key
+     * map.has(key);
+     * ```
+     *
+     * Removing
+     * ```js
+     * // Removes everything
+     * map.clear();
+     * // Delete values under key. Returns _true_ if key was found.
+     * map.delete(key);
+     * // Deletes specified value under key. Returns _true_ if found.
+     * map.deleteKeyValue(key, value);
+     * ```
+     *
+     * Metadata about the map:
+     * ```js
+     * map.isEmpty;         // True/false
+     * map.lengthMax;       // Largest count of items under any key
+     * map.count(key);      // Count of items stored under key, or 0 if key is not present.
+     * map.keys();          // Returns a string array of keys
+     * map.keysAndCounts(); // Returns an array of [string,number] for all keys and number of values for each key
+     * map.debugString();   // Returns a human-readable string dump of the contents
+     * ```
+     *
+     * Events can be listened to via `addEventListener`
+     * * `addedKey`, `addedValue` - when a new key is added, or when a new value is added
+     * * `clear` - when contents are cleared
+     * * `deleteKey` - when a key is deleted
+     *
+     * @example Event example
      * ```js
      * map.addEventLister(`addedKey`, ev => {
      *  console.log(`New key ${evt.key} seen.`);
@@ -2479,9 +1165,6 @@ declare module "collections/Interfaces" {
          */
         count(key: string): number;
     }
-    /**
-     * @private
-     */
     export type MapArrayEvents<V> = {
         readonly addedValues: {
             readonly values: ReadonlyArray<V>;
@@ -2537,7 +1220,7 @@ declare module "collections/Interfaces" {
      * A simple mutable map of arrays, without events. It can store multiple values
      * under the same key.
      *
-     * For a fancier approaches, consider {@link mapArray}, {@link mapCircular} or {@link mapSet}.
+     * For a fancier approaches, consider {@link mapArray}, {@link mapCircularMutable} or {@link mapSet}.
      *
      * @example
      * ```js
@@ -2573,19 +1256,6 @@ declare module "collections/Interfaces" {
          */
         clear(): void;
         keys(): IterableIterator<string>;
-    }
-    /**
-     * A mutable Set that compares by value
-     */
-    export interface SetMutable<V> {
-        /**
-         * Add item
-         */
-        add(item: V): void;
-        /**
-         * Retuns true if set contains item
-         */
-        has(item: V): boolean;
     }
     /**
      * An immutable map. Rather than changing the map, functions like `add` and `delete`
@@ -2673,7 +1343,7 @@ declare module "collections/Interfaces" {
         /**
          * Adds one or more items to map
          *
-         * Can add items in the form of [key,value] or {key, value}.
+         * Can add items in the form of [key,value] or `{key, value}`.
          * @example These all produce the same result
          * ```js
          * map.set(`hello`, `samantha`);
@@ -2825,7 +1495,7 @@ declare module "collections/Interfaces" {
          */
         get isFull(): boolean;
         /**
-         * Get the item at the top of the stack without removing it (like {@link pop} would do)
+         * Get the item at the top of the stack without removing it (like `pop` would do)
          * @returns Item at the top of the stack, or _undefined_ if empty.
          */
         get peek(): V | undefined;
@@ -2841,7 +1511,7 @@ declare module "collections/SimpleMapArray" {
      * A simple mutable map of arrays, without events. It can store multiple values
      * under the same key.
      *
-     * For a fancier approaches, consider {@link mapArray}, {@link mapCircular} or {@link mapSet}.
+     * For a fancier approaches, consider {@link mapArray}, {@link mapCircularMutable} or {@link mapSet}.
      *
      * @example
      * ```js
@@ -2897,252 +1567,8 @@ declare module "Events" {
         clearEventListeners(): void;
     }
 }
-declare module "Filters" {
-    export const threshold: (threshold: number) => (v: number) => boolean;
-    export const rangeInclusive: (min: number, max: number) => (v: number) => boolean;
-    export const filter: <V>(v: V, fn: (v: V) => boolean, skipValue: V | undefined) => V | undefined;
-}
-declare module "modulation/PingPong" {
-    /**
-     * Continually loops up and down between 0 and 1 by a specified interval.
-     * Looping returns start value, and is inclusive of 0 and 1.
-     *
-     * @example Usage
-     * ```js
-     * for (const v of percentPingPong(0.1)) {
-     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
-     * }
-     * ```
-     *
-     * @example Alternative:
-     * ```js
-     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
-     * const v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     *
-     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
-     *
-     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
-     * ```
-     * const pp = pingPongPercent(0.1, 0.4, 0.6);
-     * ```
-     * @param interval Amount to increment by. Defaults to 10%
-     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
-     */
-    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
-    /**
-     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
-     *
-     * In a loop:
-     * ```
-     * for (const c of pingPong(10, 0, 100)) {
-     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
-     * }
-     * ```
-     *
-     * Manual:
-     * ```
-     * const pp = pingPong(10, 0, 100);
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     * @param interval Amount to increment by. Use negative numbers to start counting down
-     * @param lower Lower bound (inclusive)
-     * @param upper Upper bound (inclusive, must be greater than start)
-     * @param start Starting point within bounds (defaults to `lower`)
-     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
-     */
-    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
-}
-declare module "Generators" {
-    export { pingPong, pingPongPercent } from "modulation/PingPong";
-    /**
-     * Generates a range of numbers, starting from `start` and counting by `interval`.
-     * If `end` is provided, generator stops when reached.
-     *
-     * Unlike {@link numericRange}, numbers might contain rounding errors
-     *
-     * ```js
-     * for (const c of numericRangeRaw(10, 100)) {
-     *  // 100, 110, 120 ...
-     * }
-     * ```
-     * @param interval Interval between numbers
-     * @param start Start
-     * @param end End (if undefined, range never ends)
-     */
-    export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
-    /**
-     * Generates a range of numbers, with a given interval.
-     *
-     * @example For-loop
-     * ```
-     * let loopForever = numericRange(0.1); // By default starts at 0 and counts upwards forever
-     * for (v of loopForever) {
-     *  console.log(v);
-     * }
-     * ```
-     *
-     * @example If you want more control over when/where incrementing happens...
-     * ```js
-     * let percent = numericRange(0.1, 0, 1);
-     *
-     * let percentResult = percent.next().value;
-     * ```
-     *
-     * Note that computations are internally rounded to avoid floating point math issues. So if the `interval` is very small (eg thousandths), specify a higher rounding
-     * number.
-     *
-     * @param interval Interval between numbers
-     * @param start Start. Defaults to 0
-     * @param end End (if undefined, range never ends)
-     * @param repeating Range loops from start indefinately. Default _false_
-     * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
-     */
-    export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
-    /**
-     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
-     * count decreases. If `offset` is provided, this is added to the return result.
-     * @example
-     * ```js
-     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
-     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
-     * for (const v of count(5, 5)) {
-     *  // Yields: 5, 6, 7, 8, 9
-     * }
-     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
-     * ```
-     *
-     * @example Used with forEach
-     * ```js
-     * // Prints `Hi` 5x
-     * forEach(count(5), () => console.log(`Hi`));
-     * ```
-     *
-     * If you want to accumulate return values, consider using
-     * {@link Flow.repeat}.
-     * @param amount Number of integers to yield
-     * @param offset Added to result
-     */
-    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
-    /**
-     * Returns a number range between 0.0-1.0.
-     *
-     * ```
-     * // Yields: [0, 0.2, 0.4, 0.6, 0.8, 1]
-     * const a = [...numericPercent(0.2)];
-     *
-     * // Repeating flag set to true:
-     * for (const v of numericPercent(0.2, true)) {
-     *  // Infinite loop. V loops back to 0 after hitting 1
-     * }
-     * ```
-     *
-     * If `repeating` is true, it loops back to 0 after reaching 1
-     * @param interval Interval (default: 0.01, ie. 1%)
-     * @param repeating Whether generator should loop (default: false)
-     * @param start Start (default: 0)
-     * @param end End (default: 1)
-     * @returns
-     */
-    export const numericPercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
-}
-declare module "Iterable" {
-    type WithEvents = {
-        addEventListener(type: string, callbackfn: any): void;
-        removeEventListener(type: string, callbackfn: any): void;
-    };
-    export const isAsyncIterable: (v: any) => v is AsyncIterable<any>;
-    export const isIterable: (v: any) => v is Iterable<any>;
-    export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
-}
-/**
- *
- * ```js
- * chunks([1,2,3,4,5,6,7,8,9,10], 3);
- * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
- * ```
- * @param it
- * @param size
- */
-declare function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
-declare function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
-declare function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
-declare function equals<V>(it1: Iterable<V>, it2: Iterable<V>): Promise<boolean | undefined>;
-/**
- * Returns true if `f` returns true for
- * every item in iterable
- * @param it
- * @param f
- * @returns
- */
-declare function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
-/**
- * Yields `v` for each item within `it`.
- *
- * ```js
- * fill([1, 2, 3], 0);
- * // Yields: [0, 0, 0]
- * ```
- * @param it
- * @param v
- */
-declare function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
-/**
- * ```js
- * filter([1, 2, 3, 4], e => e % 2 == 0);
- * returns [2, 4]
- * ```
- * @param it
- * @param f
- */
-declare function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
-/**
- *
- * ```js
- * find([1, 2, 3, 4], e => e > 2);
- * // Yields: 3
- * ```
- * @param it
- * @param f
- * @returns
- */
-declare function find<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
-/**
- * ```js
- * flatten([1, [2, 3], [[4]]]);
- * // Yields: [1, 2, 3, [4]];
- * ```
- * @param it
- */
-declare function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
-/**
- *
- * @param it
- * @param f
- */
-declare function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
-declare function map<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<boolean, void, unknown>;
-declare function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
-declare function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
-/**
- * Returns count from `start` for a given length
- * ```js
- * range(-5, 10);
- * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
- * ```
- * @param start
- * @param len
- */
-declare function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
-declare function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
-declare function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
-declare function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
-declare function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
-declare function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
-declare function zip<V>(...its: AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
 declare module "KeyValue" {
-    type Primitive = string | number;
+    export type Primitive = string | number;
     export type KeyValue = readonly [key: string, value: Primitive];
     export const byValueString: (reverse?: boolean) => import("fp-ts/Ord").Ord<KeyValue>;
     export const sortByKey: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
@@ -3152,208 +1578,39 @@ declare module "KeyValue" {
     export const getSorter: (sortStyle: `value` | `valueReverse` | `key` | `keyReverse`) => <A extends KeyValue>(as: A[]) => A[];
     export const minMaxAvg: (entries: readonly KeyValue[], conversionFn?: ((v: KeyValue) => number) | undefined) => import("collections/NumericArrays").MinMaxAvgTotal;
 }
-declare module "Match" {
-    type MatchFunction<V> = {
-        (v: V, index?: number, array?: V[]): boolean;
+declare module "geometry/Path" {
+    import { Rects, Points } from "geometry/index";
+    export type Path = {
+        length(): number;
+        /**
+           * Returns a point at a relative (0.0-1.0) position along the path
+           *
+           * @param {number} t Relative position (0.0-1.0)
+           * @returns {Point} Point
+           */
+        interpolate(t: number): Points.Point;
+        bbox(): Rects.RectPositioned;
+        toString(): string;
+        toSvgString(): readonly string[];
+        readonly kind: `compound` | `elliptical` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
     };
     /**
-     * Returns a function that filters a set of items by a set of filters
+     * Return the start point of a path
      *
-     * @template V
-     * @param {Iterable<MatchFunction<V>>} filters If filter returns true, item is included
-     * @param {{allFiltersMustMatch?: boolean}} [opts={}]
-     * @returns
+     * @param path
+     * @return Point
      */
-    export const filter: <V>(filters: Iterable<MatchFunction<V>>, opts?: {
-        allFiltersMustMatch?: boolean;
-    }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
-}
-declare module "Tristate" {
+    export const getStart: (path: Path) => Points.Point;
     /**
-     * Returns true if a is more sure than b
-     * @param a
-     * @param b
-     * @returns
+     * Return the end point of a path
+     *
+     * @param path
+     * @return Point
      */
-    export const comparer: (a: Tristate, b: Tristate) => number;
-    export type Tristate = `no` | `yes` | `maybe`;
-}
-declare module "temporal/Normalise" {
-    /**
-     * Normalises numbers, adjusting min/max as new values are processed.
-     * Normalised return values will be in the range of 0-1 (inclusive).
-     * [Read more in the docs]{@link https://clinth.github.io/ixfx-docs/temporal/normalising/}
-     *
-     * @example
-     * ```js
-     * const s = stream();
-     * s(2);    // 1 (because 2 is highest seen)
-     * s(1);    // 0 (because 1 is the lowest so far)
-     * s(1.5);  // 0.5 (50% of range 1-2)
-     * s(0.5);  // 0 (because it's the new lowest)
-     * ```
-     *
-     * Since normalisation is being adjusted as new min/max are encountered, it might
-     * be that value normalised to 1 at one time is different to what normalises to 1
-     * at a later time.
-     *
-     * If you already know what to expect of the number range, passingin `minDefault`
-     * and `maxDefault` primes the normalisation.
-     * ```js
-     * const s = stream();
-     * s(5); // 1, because it's the highest seen
-     *
-     * // With priming:
-     * const s = stream(0, 10);
-     * s(5); // 0.5, because we're expecting range 0-10
-     * ```
-     *
-     * Note that if a value exceeds the default range, normalisation adjusts.
-     * @returns
-     */
-    export const stream: (minDefault?: number | undefined, maxDefault?: number | undefined) => (v: number) => number;
-    /**
-     * Normalises an array. By default uses the actual min/max of the array
-     * as the normalisation range. [Read more in the docs]{@link https://clinth.github.io/ixfx-docs/temporal/normalising/}
-     *
-     * ```js
-     * // Yields: [0.5, 0.1, 0.0, 0.9, 1]
-     * array([5,1,0,9,10]);
-     * ```
-     *
-     * `minForced` and/or `maxForced` can
-     * be provided to use an arbitrary range.
-     * ```js
-     * // Forced range 0-100
-     * // Yields: [0.05, 0.01, 0.0, 0.09, 0.10]
-     * array([5,1,0,9,10], 0, 100);
-     * ```
-     *
-     * Return values are clamped to always be 0-1, inclusive.
-     *
-     * @param values Values
-     * @param minForced If provided, this will be min value used
-     * @param maxForced If provided, this will be the max value used
-     */
-    export const array: (values: readonly number[], minForced?: number | undefined, maxForced?: number | undefined) => number[];
-}
-declare module "temporal/FrequencyMutable" {
-    import { ToString } from "Util";
-    import { SimpleEventEmitter } from "Events";
-    import * as KeyValueUtil from "KeyValue";
-    import { KeyValues } from "index";
-    type FrequencyEventMap = {
-        readonly change: void;
+    export const getEnd: (path: Path) => Points.Point;
+    export type WithBeziers = {
+        getBeziers(): readonly Path[];
     };
-    /**
-     * Frequency keeps track of how many times a particular value is seen, but
-     * unlike a {@link Maps|Map} it does not store the data. By default compares
-     * items by value (via JSON.stringify).
-     *
-     * Create with {@link frequencyMutable}.
-     *
-     * Fires `change` event when items are added or it is cleared.
-     *
-     * Overview
-     * ```
-     * const fh = frequencyMutable();
-     * fh.add(value); // adds a value
-     * fh.clear();    // clears all data
-     * fh.keys() / .values() // returns an iterator for keys and values
-     * fh.toArray();  //  returns an array of data in the shape [[key,freq],[key,freq]...]
-     * ```
-     *
-     * Usage
-     * ```
-     * const fh = frequencyMutable();
-     * fh.add(`apples`); // Count an occurence of `apples`
-     * fh.add(`oranges)`;
-     * fh.add(`apples`);
-     *
-     * const fhData = fh.toArray(); // Expect result [[`apples`, 2], [`oranges`, 1]]
-     * fhData.forEach((d) => {
-     *  const [key,freq] = d;
-     *  console.log(`Key '${key}' occurred ${freq} time(s).`);
-     * })
-     * ```
-     *
-     * Custom key string
-     * ```
-     * const fh = frequencyMutable( person => person.name);
-     * // All people with name `Samantha` will be counted in same group
-     * fh.add({name:`Samantha`, city:`Brisbane`});
-     * ```
-     * @template V Type of items
-     */
-    export class FrequencyMutable<V> extends SimpleEventEmitter<FrequencyEventMap> {
-        #private;
-        /**
-         * Constructor
-         * @param keyString Function to key items. Uses JSON.stringify by default
-         */
-        constructor(keyString?: ToString<V> | undefined);
-        /**
-         * Clear data. Fires `change` event
-         */
-        clear(): void;
-        /**
-         * @returns Iterator over keys (ie. groups)
-         */
-        keys(): IterableIterator<string>;
-        /**
-         * @returns Iterator over frequency counts
-         */
-        values(): IterableIterator<number>;
-        /**
-         * @returns Copy of entries as an array of `[key, count]`
-         */
-        toArray(): [key: string, count: number][];
-        /**
-         * Returns a string with keys and counts, useful for debugging.
-         * @returns
-         */
-        debugString(): string;
-        /**
-         *
-         * @param value Value to count
-         * @returns Frequency of value, or _undefined_ if it does not exist
-         */
-        frequencyOf(value: V | string): number | undefined;
-        /**
-         *
-         * @param value Value to count
-         * @returns Relative frequency of `value`, or _undefined_ if it does not exist
-         */
-        relativeFrequencyOf(value: V | string): number | undefined;
-        /**
-         * @returns Copy of entries as an array
-         */
-        entries(): Array<KeyValueUtil.KeyValue>;
-        /**
-         *
-         * @returns Returns `{min,max,avg,total}`
-         */
-        minMaxAvg(): import("collections/NumericArrays").MinMaxAvgTotal;
-        /**
-         *
-         * @param sortStyle Sorting style (default: _value_, ie. count)
-         * @returns Sorted array of [key,frequency]
-         */
-        entriesSorted(sortStyle?: `value` | `valueReverse` | `key` | `keyReverse`): ReadonlyArray<KeyValues.KeyValue>;
-        /**
-         *
-         * @param values Values to add. Fires _change_ event after adding item(s)
-         */
-        add(...values: V[]): void;
-    }
-    /**
-     * Creates a FrequencyMutable
-     * @inheritdoc FrequencyMutable
-     * @template V Data type of items
-     * @param keyString Function to generate keys for items. If not specified, uses JSON.stringify
-     * @returns
-     */
-    export const frequencyMutable: <V>(keyString?: ToString<V> | undefined) => FrequencyMutable<V>;
 }
 declare module "collections/CircularArray" {
     import { CircularArray } from "collections/Interfaces";
@@ -3363,16 +1620,24 @@ declare module "collections/CircularArray" {
      *
      * `CircularArray` extends the regular JS array. Only use `add` to change the array if you want
      * to keep the `CircularArray` behaviour.
-     * @example
+     *
+     * @example Basic functions
      * ```js
      * let a = circularArray(10);
-     * a = a.add(`hello`); // Because it's immutable, capture the return result of `add`
-     * a.isFull;  // True if circular array is full
-     * a.pointer; // The current position in array it will write to
+     * a = a.add(`hello`);  // Because it's immutable, capture the return result of `add`
+     * a.isFull;            // True if circular array is full
+     * a.pointer;           // The current position in array it will write to
      * ```
-     * @template V Value of array items
-     * @param {number} capacity Capacity.
-     * @return {*}  {CircularArray<V>}
+     *
+     * Since it extends the regular JS array, you can access items as usual:
+     * @example Accessing
+     * ```js
+     * let a = circularArray(10);
+     * ... add some stuff ..
+     * a.forEach(item => console.log(item));
+     * ```
+     * @param capacity Maximum capacity before recycling array entries
+     * @return Circular array
      */
     export const circularArray: <V>(capacity: number) => CircularArray<V>;
 }
@@ -3380,7 +1645,10 @@ declare module "collections/MapMultiMutable" {
     import { SimpleEventEmitter } from "Events";
     import { ToString } from "Util";
     import { CircularArray, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutable, MapSetOpts, MultiValue } from "collections/Interfaces";
-    class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V>> {
+    /**
+     * @internal
+     */
+    export class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V>> {
         #private;
         readonly groupBy: ToString<V>;
         readonly type: MultiValue<V, M>;
@@ -3407,10 +1675,6 @@ declare module "collections/MapMultiMutable" {
         /**
          * Returns the array of values stored under `key`
          * or undefined if key does not exist
-         *
-         * @param {string} key
-         * @return {*}  {readonly}
-         * @memberof MutableMapArray
          */
         get(key: string): readonly V[] | undefined;
         getSource(key: string): M | undefined;
@@ -3428,14 +1692,16 @@ declare module "collections/MapMultiMutable" {
      * const hello = map.get(`hello`); // Get back values
      * ```
      *
-     * Takes options { comparer: {@link IsEqual}, toString: {@link ToString}}
+     * Takes options:
+     * * `comparer`: {@link Util.IsEqual}
+     * * `toString`: {@link Util.ToString}
      *
-     * A custom {@link ToString} function can be provided which is used when checking value equality (`has`, `without`)
+     * A custom {@link Util.ToString} function can be provided which is used when checking value equality (`has`, `without`)
      * ```js
      * const map = mapArray({toString:(v) => v.name}); // Compare values based on their `name` field;
      * ```
      *
-     * Alternatively, a {@link IsEqual} function can be used:
+     * Alternatively, a {@link Util.IsEqual} function can be used:
      * ```js
      * const map = mapArray({comparer: (a, b) => a.name === b.name });
      * ```
@@ -3449,7 +1715,10 @@ declare module "collections/MapMultiMutable" {
      * This means that only unique values are stored under each key. By default it
      * uses the JSON representation to compare items.
      *
-     * Options: { hash: {@link ToString} }
+     * Options: `{ hash: toStringFn } }`
+     *
+     * `hash` is a {@link Util.ToString} function: `(object) => string`. By default it uses
+     * `JSON.stringify`.
      *
      * @example Only storing the newest three items per key
      * ```js
@@ -3457,8 +1726,6 @@ declare module "collections/MapMultiMutable" {
      * map.add(`hello`, [1, 2, 3, 1, 2, 3]);
      * const hello = map.get(`hello`); // [1, 2, 3]
      * ```
-     *
-     * Provide a {@link ToString} function for custom equality checking
      *
      * @example
      * ```js
@@ -3468,32 +1735,35 @@ declare module "collections/MapMultiMutable" {
      * map.add(`hello`, {age:29, name: `Mary`}); // Value ignored as same name exists
      * ```
      * @param opts
-     * @returns {@link MapOfMutable}
+     * @returns
      */
-    export const mapSet: <V>(opts?: MapSetOpts<V> | undefined) => MapOfMutableImpl<V, ReadonlyMap<string, V>>;
+    export const mapSet: <V>(opts?: MapSetOpts<V> | undefined) => MapOfMutable<V, ReadonlyMap<string, V>>;
     /**
-     * Returns a {@link MapOfMutable} that uses a {@link CircularArray} to hold values.
+     * Returns a {@link MapOfMutable} that uses a {@link CircularArray} to hold values. Mutable.
      * This means that the number of values stored under each key will be limited to the defined
      * capacity.
      *
-     * Requires options: { capacity: number}
+     * Required option:
+     * * `capacity`: how many items to hold
      *
-     * @example Only storing the newest three items per key
+     * @example Only store the most recent three items per key
      * ```js
-     * const map = mapCircular({capacity: 3});
+     * const map = mapCircularMutable({capacity: 3});
      * map.add(`hello`, [1, 2, 3, 4, 5]);
      * const hello = map.get(`hello`); // [3, 4, 5]
      * ```
+     *
+     *
      * @param opts
      * @returns
      */
-    export const mapCircular: <V>(opts: MapCircularOpts<V>) => MapOfMutable<V, CircularArray<V>>;
+    export const mapCircularMutable: <V>(opts: MapCircularOpts<V>) => MapOfMutable<V, CircularArray<V>>;
 }
 declare module "collections/Set" {
     import { ToString } from "Util";
     import { SetMutable } from "collections/Interfaces";
     /**
-     * @inheritdoc SetMutable
+     * Creates a {@link SetMutable}.
      * @param keyString Function that produces a key for items. If unspecified uses JSON.stringify
      * @returns
      */
@@ -3508,36 +1778,48 @@ declare module "collections/Stack" {
         readonly discardPolicy?: DiscardPolicy;
     };
     /**
-     * Returns stack (immutable). Use {@link stackMutable} for a mutable one.
-     * @example
+     * Returns a stack. Immutable. Use {@link stackMutable} for a mutable alternative.
+     *
+     * The basic usage is `push`/`pop` to add/remove, returning the modified stack. Use the
+     * property `peek` to see what's on top.
+     *
+     * @example Basic usage
      * ```js
+     * // Create
      * let s = stack();
+     * // Add one or more items
      * s = s.push(1, 2, 3, 4);
-     * s.peek; // 4
+     * // See what's at the top of the stack
+     * s.peek;      // 4
+     *
+     * // Remove from the top of the stack, returning
+     * // a new stack without item
      * s = s.pop();
-     * s.peek; // 3
+     * s.peek;        // 3
      * ```
-     * @template V
-     * @param {StackOpts} [opts={}]
-     * @param {...V[]} startingItems
-     * @returns {Stack<V>}
+     * @param opts Options
+     * @param startingItems List of items to add to stack. Items will be pushed 'left to right', ie array index 0 will be bottom of the stack.
      */
     export const stack: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => Stack<V>;
     /**
-     * Creates a stack (mutable). Use {@link stack} for an immutable one.
+     * Creates a stack. Mutable. Use {@link stack} for an immutable alternative.
      *
-     * @example
+     * @example Basic usage
      * ```js
+     * // Create
      * const s = stackMutable();
+     * // Add one or more items
      * s.push(1, 2, 3, 4);
+     *
+     * // See what's on top
      * s.peek;  // 4
-     * s.pop;   // 4
+     *
+     * // Remove the top-most, and return it
+     * s.pop();   // 4
+     *
+     * // Now there's a new top-most element
      * s.peek;  // 3
      * ```
-     * @template V
-     * @param {StackOpts} opts
-     * @param {...V[]} startingItems
-     * @returns
      */
     export const stackMutable: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => StackMutable<V>;
 }
@@ -3662,10 +1944,42 @@ declare module "collections/MapImmutable" {
     export const del: <K, V>(map: ReadonlyMap<K, V>, key: K) => ReadonlyMap<K, V>;
     /**
      * Returns an {@link MapImmutable}.
-     * Use {@link mapMutable} as an alternatve.
+     * Use {@link mapMutable} as a mutable alternatve.
      *
-     * @param dataOrMap Optional initial data in the form of an array of {key:value} or [key,value]
-     * @returns {@link MapImmutable}
+     * @example Basic usage
+     * ```js
+     * // Creating
+     * let m = map();
+     * // Add
+     * m = m.add(["name", "sally"]);
+     * // Recall
+     * m.get("name");
+     * ```
+     *
+     * @example Enumerating
+     * ```js
+     * for (const [key, value] of map.entries()) {
+     *  console.log(`${key} = ${value}`);
+     * }
+     * ```
+     *
+     * @example Overview
+     * ```js
+     * // Create
+     * let m = map();
+     * // Add
+     * m = m.add(["name" , "sally"]);
+     * m.get("name");   // "sally";
+     * m.has("age");    // false
+     * m.has("name");   // true
+     * m.isEmpty;       // false
+     * m = m.delete("name");
+     * m.entries();     // Iterator of key value pairs
+     * ```
+     *
+     * Since it is immutable, `add()`, `delete()` and `clear()` return a new version with change.
+     *
+     * @param dataOrMap Optional initial data in the form of an array of `{ key: value }` or `[ key, value ]`
      */
     export const map: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V> | undefined) => MapImmutable<K, V>;
 }
@@ -3675,14 +1989,26 @@ declare module "collections/MapMutable" {
      * Returns a {@link MapMutable} (which just wraps the in-built Map)
      * Use {@link map} for the immutable alternative.
      *
-     * @param data Optional initial data in the form of an array of {key:value} or [key,value]
-     * @returns {@link MapMutable}
+     * @example Basic usage
+     * ```js
+     * const m = mapMutable();
+     * // Add one or more entries
+     * m.add(["name", "sally"]);
+     * // Alternatively:
+     * m.set("name", "sally");
+     * // Recall
+     * m.get("name");           // "sally"
+     * m.delete("name");
+     * m.isEmpty; // True
+     * m.clear();
+     * ```
+     * @param data Optional initial data in the form of an array of `{ key: value }` or `[ key, value ]`
      */
     export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
 }
 declare module "collections/index" {
     export * from "collections/Interfaces";
-    export { mapSet, mapCircular, mapArray } from "collections/MapMultiMutable";
+    export { mapSet, mapCircularMutable, mapArray } from "collections/MapMultiMutable";
     export { circularArray } from "collections/CircularArray";
     export { simpleMapArrayMutable } from "collections/SimpleMapArray";
     export { setMutable } from "collections/Set";
@@ -3690,6 +2016,7 @@ declare module "collections/index" {
     export { queue, queueMutable } from "collections/Queue";
     export { map } from "collections/MapImmutable";
     export { mapMutable } from "collections/MapMutable";
+    export { MapOfMutableImpl } from "collections/MapMultiMutable";
     /**
      * Stacks store items in order.
      *
@@ -3703,20 +2030,38 @@ declare module "collections/index" {
      *
      * The ixfx implementation allow you to set a capacity limit with three {@link DiscardPolicy |policies} for
      * how items are evicted.
+     *
      */
     export * as Stacks from "collections/Stack";
     /**
-     * Arrays are a list of data.
+     * Arrays are a list of data. ixfx provides a number of functions for working with arrays in an immutable manner.
+     * This means that the input array is not changed.
      *
-     * ixfx has several functions for working with arrays.
+     * For arrays of numbers:
+     * * {@link average}, {@link max}, {@link min}, {@link total}: Calculate average/max/min/total
+     * * {@link averageWeighted}: Calculate average, but applies a weighting function, eg to favour items at beginning of array
+     * * {@link minMaxAvg}: Find smallest, largest and average
+     * * {@link maxIndex}, {@link minIndex}: Return index of largest/smallest value
+     * * {@link dotProduct}: Returns the dot-product between two arrays
+     * * {@link weight}: Applies a weighting function to all values based on their index
      *
-     * For arrays of numbers: {@link average}, {@link minMaxAvg}
+     * Randomisation
+     * * {@link randomIndex}: Return a random array index
+     * * {@link randomElement}: Return a random value
+     * * {@link randomPluck}: Remove a random element from an array, returning it and the new array
+     * * {@link shuffle}: Returns a randomly-sorted copy of arra
      *
-     * Randomisation: {@link randomIndex}, {@link randomElement}, {@link shuffle}
+     * Finding/accessing
+     * * {@link filterBetween}: Same as `Array.filter` but only looks within a specified index range
+     * * {@link sample}: Returns a new array with a random sampling of input
+     * * {@link areValuesIdentical}: Returns true if all the values in the array are identical
      *
-     * Filtering: {@link without}
-     *
-     * Changing the shape: {@link groupBy}
+     * Changing the shape
+     * * {@link ensureLength}: Returns a copy of array with designated length, either padding it out or truncating as necessary
+     * * {@link groupBy}: Groups data into a new Map
+     * * {@link remove}: Remove an item by index
+     * * {@link without}: Returns an array with specified value omitted
+     * * {@link zip}: Groups together elements from several arrays based on their index
      */
     export * as Arrays from "collections/Arrays";
     /**
@@ -3747,810 +2092,29 @@ declare module "collections/index" {
      * for working with the standard JS Map class.
      *
      * ixfx also includes {@link MapMutable}, {@link MapImmutable}
+     *
+     * Overview:
+     * * {@link getOrGenerate}: Solves a common scenario of wanting a value by a particular key, or generating it if it doesn't exist
+     * * {@link filter}: Yields values in map that match a predicate
+     * * {@link find}: Finds the first value that matches a predicate, or _undefined_ if nothing found
+     * * {@link hasAnyValue}: Searches through all keys, returning true if any occurence of _value_ was found
+     *
+     * Transformations:
+     * * {@link toArray}: Returns the values of the map as an array
+     * * {@link mapToArray}: Applies a function to convert a map's values to an array
+     * * {@link mapToObj}: Coverts a Map to a plain object, useful for JSON serialising.
+     * * {@link mapToObjTransform}: Converts a map to a plain object, but applying a function to values
+     * * {@link transformMap}: Like `Array.map`, but for Maps. Useful for generating a map as a transform of an input map.
+     * * {@link zipKeyValue}: Given an array of keys and values, combines them together into a map
      */
     export * as Maps from "collections/Map";
-}
-declare module "temporal/MovingAverage" {
-    /**
-     * A moving average calculator (exponential weighted moving average) which does not keep track of
-     * previous samples. Less accurate, but uses less system resources.
-     *
-     * The `scaling` parameter determines smoothing. A value of `1` means that
-     * the latest value is used as the average - that is, no smoothing. Higher numbers
-     * introduce progressively more smoothing by weighting the accumulated prior average more heavily.
-     *
-     * `add()` adds a new value and returns the calculated average.
-     *
-     * ```
-     * const ma = movingAverageLight(); // default scaling of 3
-     * ma.add(50);  // 50
-     * ma.add(100); // 75
-     * ma.add(75);  // 75
-     * ma.add(0);   // 50
-     * ```
-     *
-     * Note that the final average of 50 is pretty far from the last value of 0. To make it more responsive,
-     * we could use a lower scaling factor: `movingAverageLight(2)`. This yields a final average of `37.5` instead.
-     *
-     * Use `clear()` to reset the moving average, or `compute()` to get the current value without adding.
-     * @param scaling Scaling factor. 1 is no smoothing. Default: 3
-     * @returns {@link MovingAverage}
-     */
-    export const movingAverageLight: (scaling?: number) => MovingAverage;
-    /**
-     * Creates a moving average for a set number of `samples`.
-     *
-     * Moving average are useful for computing the average over a recent set of numbers.
-     * A lower number of samples produces a computed value that is lower-latency yet more jittery.
-     * A higher number of samples produces a smoother computed value which takes longer to respond to
-     * changes in data.
-     *
-     * Sample size is considered with respect to the level of latency/smoothness trade-off, and also
-     * the rate at which new data is added to the moving average.
-     *
-    * `add` adds a number and returns the computed average. Call `compute` to
-     * get the average without adding a new value.
-     *
-     * ```js
-     * const ma = movingAverage(10);
-     * ma.add(10); // 10
-     * ma.add(5);  // 7.5
-     * ```
-     *
-     * `clear` clears the average.
-     *
-     * A weighting function can be provided to shape how the average is
-     * calculated - eg privileging the most recent data over older data.
-     * It uses `Arrays.averageWeighted` under the hood.
-     *
-     * ```js
-     * // Give more weight to data in middle of sampling window
-     * const ma = movingAverage(100, Easings.gaussian());
-     * ```
-     *
-     * Because it keeps track of `samples` previous data, there is a memory impact. A lighter version is {@link movingAverageLight} which does not keep a buffer of prior data, but can't be as easily fine-tuned.
-     * @param samples Number of samples to compute average from
-     * @param weightingFn Optional weighting function
-     * @returns
-     */
-    export const movingAverage: (samples?: number, weightingFn?: ((v: number) => number) | undefined) => MovingAverage;
-    /**
-     * Moving average.
-     * Create via {@link movingAverage} or {@link movingAverageLight}.
-     */
-    export type MovingAverage = {
-        /**
-         * Clear data
-         */
-        clear(): void;
-        /**
-         * Returns current average
-         */
-        compute(): number;
-        /**
-         * Adds a value, returning new average
-         * @param v Value to add
-         */
-        add(v: number): number;
-    };
-}
-declare module "flow/StateMachine" {
-    import { SimpleEventEmitter } from "Events";
-    export interface Options {
-        readonly debug?: boolean;
-    }
-    export interface StateChangeEvent {
-        readonly newState: string;
-        readonly priorState: string;
-    }
-    export interface StopEvent {
-        readonly state: string;
-    }
-    type StateMachineEventMap = {
-        readonly change: StateChangeEvent;
-        readonly stop: StopEvent;
-    };
-    type StateEvent = (args: unknown, sender: StateMachine) => void;
-    type StateHandler = string | StateEvent | null;
-    export interface State {
-        readonly [event: string]: StateHandler;
-    }
-    export interface MachineDescription {
-        readonly [key: string]: string | readonly string[] | null;
-    }
-    /**
-     * Returns a machine description based on a list of strings. The final string is the final
-     * state.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = StateMachine.create(states[0], descriptionFromList(states));
-     * ```
-     * @param {...readonly} states
-     * @param {*} string
-     * @param {*} []
-     * @return {*}  {MachineDescription}
-     */
-    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
-    /**
-     * Returns a state machine based on a list of strings. The first string is used as the initial state,
-     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = StateMachine.fromList(states);
-     * ```
-     */
-    export const fromList: (...states: readonly string[]) => StateMachine;
-    /**
-     * Creates a new state machine
-     * @param initial Initial state
-     * @param m Machine description
-     * @param opts Options
-     * @returns State machine instance
-     */
-    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
-    /**
-     * State machine
-     *
-     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
-     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
-     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
-     *
-     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
-     * ```
-     * const description = {
-     *  sleep: 'wakeup',
-     *  wakeup: ['coffee', 'breakfast'],
-     *  coffee: `bike`,
-     *  breakfast: `bike`,
-     *  bike: null
-     * }
-     * ```
-     * Create the machine with the starting state (`sleep`)
-     * ```
-     * const machine = StateMachine.create(`sleep`, description);
-     * ```
-     *
-     * Change the state by name:
-     * ```
-     * machine.state = `wakeup`
-     * ```
-     *
-     * Or request an automatic transition (will use first state if there are several options)
-     * ```
-     * machine.next();
-     * ```
-     *
-     * Check status
-     * ```
-     * if (machine.state === `coffee`) ...;
-     * if (machine.isDone()) ...
-     * ```
-     *
-     * Listen for state changes
-     * ```
-     * machine.addEventListener(`change`, (evt) => {
-     *  const {priorState, newState} = evt;
-     *  console.log(`State change from ${priorState} -> ${newState}`);
-     * });
-     * ```
-     * @export
-     * @class StateMachine
-     * @extends {SimpleEventEmitter<StateMachineEventMap>}
-     */
-    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
-        #private;
-        /**
-         * Create a state machine with initial state, description and options
-         * @param {string} initial Initial state
-         * @param {MachineDescription} m Machine description
-         * @param {Options} [opts={debug: false}] Options for machine
-         * @memberof StateMachine
-         */
-        constructor(initial: string, m: MachineDescription, opts?: Options);
-        get states(): readonly string[];
-        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
-        /**
-         * Moves to the next state if possible. If multiple states are possible, it will use the first.
-         * If machine is finalised, no error is thrown and null is returned.
-         *
-         * @returns {(string|null)} Returns new state, or null if machine is finalised
-         * @memberof StateMachine
-         */
-        next(): string | null;
-        /**
-         * Returns true if state machine is in its final state
-         *
-         * @returns
-         * @memberof StateMachine
-         */
-        get isDone(): boolean;
-        /**
-         * Resets machine to initial state
-         *
-         * @memberof StateMachine
-         */
-        reset(): void;
-        /**
-         * Checks whether a state change is valid.
-         *
-         * @static
-         * @param {string} priorState From state
-         * @param {string} newState To state
-         * @param {MachineDescription} description Machine description
-         * @returns {[boolean, string]} If valid: [true,''], if invalid: [false, 'Error msg here']
-         * @memberof StateMachine
-         */
-        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
-        isValid(newState: string): readonly [boolean, string];
-        /**
-         * Sets state. Throws an error if an invalid transition is attempted.
-         * Use `StateMachine.isValid` to check validity without changing.
-         *
-         * @memberof StateMachine
-         */
-        set state(newState: string);
-        /**
-       * Return current state
-       *
-       * @type {string}
-       * @memberof StateMachine
-       */
-        get state(): string;
-    }
-}
-declare module "flow/index" {
-    export * as StateMachine from "flow/StateMachine";
-    export * from "flow/Timer";
-    /**
-     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
-     * If `fn` returns _false_, iterator cancels.
-     *
-     * @example
-     * ```js
-     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
-     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
-     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
-     * ```
-     *
-     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
-     * @param iterator Iterable or array
-     * @param fn Function to call for each item. If function returns false, iteration cancels
-     */
-    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
-    /**
-     * Iterates over an async iterable or array, calling `fn` for each value, with optional
-     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
-     *
-     * Use {@link forEach} for a synchronous version.
-     *
-     * ```
-     * // Prints items from array every second
-     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
-     * ```
-     *
-     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
-     * ```
-     * await forEachAsync(count(5), i=> {
-     *  try {
-     *    await doSomething();
-     *    return false; // Succeeded, exit early
-     *  } catch (ex) {
-     *    console.log(ex);
-     *    return true; // Keep trying
-     *  }
-     * }, 5000);
-     * ```
-     * @param iterator
-     * @param fn
-     */
-    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number | undefined) => Promise<void>;
-    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
-    /**
-     * Runs `fn` a certain number of times, accumulating result into an array.
-     * If `fn` returns undefined, the result is ignored.
-     *
-     * ```js
-     * // Results will be an array with five random numbers
-     * const results = repeat(5, () => Math.random());
-     * ```
-     *
-     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
-     * that gives _false_ when repeating should stop.
-     *
-     * ```js
-     * // Keep running `fn` until we've accumulated 10 values
-     * // Useful if `fn` sometimes returns _undefined_
-     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
-     * ```
-     *
-     * If you don't need to accumulate return values, consider {@link Generators.count} with {@link Generators.forEach}.
-     *
-     * @param countOrPredicate Number of repeats or function returning false when to stop
-     * @param fn Function to run, must return a value to accumulate into array or _undefined_
-     * @returns Array of accumulated results
-     */
-    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
-}
-declare module "temporal/TrackedValue" {
-    import { GetOrGenerate } from "collections/Map";
-    export type Timestamped<V> = V & {
-        readonly at: number;
-    };
-    export type Opts = {
-        readonly storeIntermediate?: boolean;
-        readonly resetAfterSamples?: number;
-    };
-    export abstract class TrackerBase<V> {
-        readonly id: string;
-        seenCount: number;
-        protected storeIntermediate: boolean;
-        protected resetAfterSamples: number;
-        constructor(id: string, opts?: Opts);
-        reset(): void;
-        seen(...p: V[]): any;
-        abstract seenImpl(p: V[]): V[];
-        abstract get last(): V | undefined;
-        abstract get initial(): V | undefined;
-        abstract get elapsed(): number;
-        onSeen(_p: V[]): void;
-        abstract onReset(): void;
-    }
-    export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
-        values: V[];
-        timestamps: number[];
-        constructor(id: string, opts: Opts);
-        get last(): V | undefined;
-        get initial(): V | undefined;
-        /**
-       * Returns number of recorded values (this can include the initial value)
-       */
-        get size(): number;
-        /**
-         * Returns the elapsed time, in milliseconds since the instance was created
-         */
-        get elapsed(): number;
-        onReset(): void;
-        /**
-         * Tracks a value
-         */
-        seenImpl(p: V[]): V[];
-    }
-    /**
-     * A tracked value of type `V`.
-     */
-    export class ObjectTracker<V> extends TrackerBase<V> {
-        values: Timestamped<V>[];
-        constructor(id: string, opts: Opts);
-        /**
-         * Allows sub-classes to be notified when a reset happens
-         */
-        onReset(): void;
-        /**
-         * Tracks a value
-         */
-        seenImpl(p: V[] | Timestamped<V>[]): Timestamped<V>[];
-        /**
-         * Last seen value. If no values have been added, it will return the initial value
-         */
-        get last(): Timestamped<V>;
-        get initial(): Timestamped<V> | undefined;
-        /**
-         * Returns number of recorded values (this can include the initial value)
-         */
-        get size(): number;
-        /**
-         * Returns the elapsed time, in milliseconds since the instance was created
-         */
-        get elapsed(): number;
-    }
-    export class TrackedValueMap<V> {
-        store: Map<string, TrackerBase<V>>;
-        gog: GetOrGenerate<string, TrackerBase<V>, V>;
-        constructor(creator: (key: string, start: V | undefined) => TrackerBase<V>);
-        /**
-         * Return number of named points being tracked
-         */
-        get size(): number;
-        /**
-         * Returns true if `id` is stored
-         * @param id
-         * @returns
-         */
-        has(id: string): boolean;
-        /**
-         * For a given id, note that we have seen one or more values.
-         * @param id Id
-         * @param values Values(s)
-         * @returns Information about start to last value
-         */
-        seen(id: string, ...values: V[]): Promise<any>;
-        /**
-         * Creates or returns a TrackedValue instance for `id`.
-         * @param id
-         * @param values
-         * @returns
-         */
-        protected getTrackedValue(id: string, ...values: V[]): Promise<TrackerBase<V>>;
-        /**
-         * Remove a tracked value by id.
-         * Use {@link reset} to clear them all.
-         * @param id
-         */
-        delete(id: string): void;
-        /**
-         * Remove all tracked values.
-         * Use {@link delete} to remove a single value by id.
-         */
-        reset(): void;
-        /**
-         * Enumerate ids
-         */
-        ids(): Generator<string, void, undefined>;
-        /**
-         * Enumerate tracked values
-         */
-        values(): Generator<TrackerBase<V>, void, undefined>;
-        /**
-         * Returns TrackedValues ordered with oldest first
-         * @returns
-         */
-        trackedByAge(): readonly TrackerBase<V>[];
-        valuesByAge(): readonly V[];
-        /**
-         * Enumerate last received values
-         *
-         * @example Calculate centroid of latest-received values
-         * ```js
-         * const pointers = pointTracker();
-         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
-         * ```
-         */
-        last(): Generator<V | undefined, void, unknown>;
-        /**
-         * Enumerate starting values
-         */
-        initialValues(): Generator<V | undefined, void, unknown>;
-        /**
-         * Returns a tracked value by id, or undefined if not found
-         * @param id
-         * @returns
-         */
-        get(id: string): TrackerBase<V> | undefined;
-    }
-}
-declare module "temporal/NumberTracker" {
-    import { Opts as TrackOpts, Timestamped, PrimitiveTracker } from "temporal/TrackedValue";
-    /**
-     * Keeps track of the min, max and avg in a stream of values without actually storing them.
-     *
-     * Usage:
-     *
-     * ```js
-     *  const t = numberTracker();
-     *  t.seen(10);
-     *
-     *  t.avg / t.min/ t.max / t.getMinMax()
-     * ```
-     *
-     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation.
-     *
-     * Trackers can automatically reset after a given number of samples
-     * ```
-     * // reset after 100 samples
-     * const t = numberTracker(`something`, 100);
-     * ```
-     * @class NumberTracker
-     */
-    export class NumberTracker extends PrimitiveTracker<number> {
-        total: number;
-        min: number;
-        max: number;
-        get avg(): number;
-        /**
-         * Difference between last value and initial.
-         * Eg. if last value was 10 and initial value was 5, 5 is returned (10 - 5)
-         * If either of those is missing, undefined is returned
-         */
-        difference(): number | undefined;
-        /**
-         * Relative difference between last value and initial.
-         * Eg if last value was 10 and initial value was 5, 2 is returned (200%)
-         */
-        relativeDifference(): number | undefined;
-        onReset(): void;
-        onSeen(values: Timestamped<number>[]): void;
-        getMinMaxAvg(): {
-            min: number;
-            max: number;
-            avg: number;
-        };
-    }
-    export const numberTracker: (id?: string | undefined, opts?: TrackOpts | undefined) => NumberTracker;
-}
-declare module "temporal/IntervalTracker" {
-    import { NumberTracker } from "temporal/NumberTracker";
-    import { Opts as TrackOpts } from "temporal/TrackedValue";
-    /**
-     * A `Tracker` that tracks interval between calls to `mark()`
-     *
-     * @export
-     * @class IntervalTracker
-     * @extends {ValueTracker}
-     */
-    export class IntervalTracker extends NumberTracker {
-        lastMark: number;
-        mark(): void;
-    }
-    /**
-     * Returns a new {@link IntervalTracker} instance. IntervalTracker
-     * records the interval between each call to `mark`.
-     *
-     * ```js
-     * const t = intervalTracker();
-     *
-     * // Call `mark` to record an interval
-     * t.mark();
-     * ...
-     * t.mark();
-     *
-     * // Get average time in milliseconds between calls to `mark`
-     * t.avg;
-     *
-     * // Longest and shortest times are available too...
-     * t.min; t.max
-     * ```
-     *
-     * Interval tracker can automatically reset after a given number of samples:
-     * ```
-     * // Reset after 100 samples
-     * const t = intervalTracker(`tracker`, 100);
-     * ```
-     * @param id Optional id of instance
-     * @returns New interval tracker
-     */
-    export const intervalTracker: (id: string, opts: TrackOpts) => IntervalTracker;
-}
-declare module "geometry/Path" {
-    import { Rects, Points } from "geometry/index";
-    export type Path = {
-        length(): number;
-        /**
-         * Returns a point at a relative (0.0-1.0) position along the path
-         *
-         * @param {number} t Relative position (0.0-1.0)
-         * @returns {Point} Point
-         */
-        interpolate(t: number): Points.Point;
-        bbox(): Rects.RectPositioned;
-        toString(): string;
-        toSvgString(): readonly string[];
-        readonly kind: `compound` | `elliptical` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
-    };
-    /**
-     * Return the start point of a path
-     *
-     * @param {Path} path
-     * @return {*}  {Point}
-     */
-    export const getStart: (path: Path) => Points.Point;
-    /**
-     * Return the end point of a path
-     *
-     * @param {Path} path
-     * @return {*}  {Point}
-     */
-    export const getEnd: (path: Path) => Points.Point;
-    export type WithBeziers = {
-        getBeziers(): readonly Path[];
-    };
-}
-declare module "geometry/Arc" {
-    import { Path } from "geometry/Path";
-    import { Lines, Points, Rects } from "geometry/index";
-    /**
-     * Returns true if parameter is an arc
-     * @param p Arc or number
-     * @returns
-     */
-    export const isArc: (p: Arc | number | unknown) => p is Arc;
-    /**
-     * Returns true if parameter has a positioned (x,y)
-     * @param p Point, Arc or ArcPositiond
-     * @returns
-     */
-    export const isPositioned: (p: Points.Point | Arc | ArcPositioned) => p is Points.Point;
-    /**
-     * Arc, defined by radius, start and end point in radians, and whether it is counter-clockwise.
-     */
-    export type Arc = {
-        /**
-         * Radius of arc
-         */
-        readonly radius: number;
-        /**
-         * Start radian
-         */
-        readonly startRadian: number;
-        /**
-         * End radian
-         */
-        readonly endRadian: number;
-        /**
-         * If true, arc is counter-clockwise
-         */
-        readonly counterClockwise?: boolean;
-    };
-    /**
-     * An {@link Arc} that also has a position, given in x, y
-     */
-    export type ArcPositioned = Points.Point & Arc;
-    /**
-     * Returns an arc from degrees, rather than radians
-     * @param radius Radius of arc
-     * @param startDegrees Start angle in degrees
-     * @param endDegrees End angle in degrees
-     * @param origin Optional center of arc
-     * @returns Arc
-     */
-    export function fromDegrees(radius: number, startDegrees: number, endDegrees: number): Arc;
-    export function fromDegrees(radius: number, startDegrees: number, endDegrees: number, origin: Points.Point): ArcPositioned;
-    /**
-     * Returns a {@link Line} linking the start and end points of an {@link ArcPositioned}.
-     *
-     * @param arc
-     * @returns Line from start to end of arc
-     */
-    export const toLine: (arc: ArcPositioned) => Lines.Line;
-    /**
-     * Calculates a coordinate on an arc, based on an angle
-     * @param arc Arc
-     * @param angleRadian Angle of desired coordinate
-     * @param origin Origin of arc (0,0 used by default)
-     * @returns Coordinate
-     */
-    export const point: (arc: Arc | ArcPositioned, angleRadian: number, origin?: Points.Point | undefined) => Points.Point;
-    /**
-     * Throws an error if arc instance is invalid
-     * @param arc
-     */
-    export const guard: (arc: Arc | ArcPositioned) => void;
-    type Interpolate = {
-        (amount: number, arc: Arc, origin: Points.Point): Points.Point;
-        (amount: number, arc: ArcPositioned): Points.Point;
-    };
-    /**
-     * Compute relative position on arc
-     * @param arc Arc
-     * @param amount Relative position 0-1
-     * @param origin If arc is not positioned, pass in an origin
-     * @returns
-     */
-    export const interpolate: Interpolate;
-    /**
-     * Creates a {@link Path} instance from the arc. This wraps up some functions for convienence.
-     * @param arc
-     * @returns Path
-     */
-    export const toPath: (arc: ArcPositioned) => Path;
-    /**
-     * Calculates the length of the arc
-     * @param arc
-     * @returns Length
-     */
-    export const length: (arc: Arc) => number;
-    /**
-     * Calculates a {@link Rects.Rect|Rect} bounding box for arc.
-     * @param arc
-     * @returns Rectangle encompassing arc.
-     */
-    export const bbox: (arc: ArcPositioned | Arc) => Rects.RectPositioned | Rects.Rect;
-    type ToSvg = {
-        /**
-         * SVG path for arc description
-         * @param origin Origin of arc
-         * @param radius Radius
-         * @param startRadian Start
-         * @param endRadian End
-         */
-        (origin: Points.Point, radius: number, startRadian: number, endRadian: number, opts?: SvgOpts): readonly string[];
-        /**
-         * SVG path for non-positioned arc
-         */
-        (arc: Arc, origin: Points.Point, opts?: SvgOpts): readonly string[];
-        /**
-         * SVG path for positioned arc
-         */
-        (arc: ArcPositioned, opts?: SvgOpts): readonly string[];
-    };
-    /**
-     * Creates an SV path snippet for arc
-     * @returns
-     */
-    export const toSvg: ToSvg;
-    type SvgOpts = {
-        /**
-         * "If the arc should be greater or less than 180 degrees"
-         * ie. tries to maximise arc length
-         */
-        readonly largeArc?: boolean;
-        /**
-         * "If the arc should begin moving at positive angles"
-         * ie. the kind of bend it makes to reach end point
-         */
-        readonly sweep?: boolean;
-    };
-    /**
-     * Calculates the distance between the centers of two arcs
-     * @param a
-     * @param b
-     * @returns Distance
-     */
-    export const distanceCenter: (a: ArcPositioned, b: ArcPositioned) => number;
-    /**
-     * Returns true if the two arcs have the same values
-     *
-     * @param a
-     * @param b
-     * @returns {boolean}
-     */
-    export const isEquals: (a: Arc | ArcPositioned, b: Arc | ArcPositioned) => boolean;
-}
-declare module "geometry/Bezier" {
-    import { Paths, Points } from "geometry/index";
-    export type QuadraticBezier = {
-        readonly a: Points.Point;
-        readonly b: Points.Point;
-        readonly quadratic: Points.Point;
-    };
-    export type QuadraticBezierPath = Paths.Path & QuadraticBezier;
-    export type CubicBezier = {
-        readonly a: Points.Point;
-        readonly b: Points.Point;
-        readonly cubic1: Points.Point;
-        readonly cubic2: Points.Point;
-    };
-    export type CubicBezierPath = Paths.Path & CubicBezier;
-    export const isQuadraticBezier: (path: Paths.Path | QuadraticBezier | CubicBezier) => path is QuadraticBezier;
-    export const isCubicBezier: (path: Paths.Path | CubicBezier | QuadraticBezier) => path is CubicBezier;
-    /**
-     * Returns a new quadratic bezier with specified bend amount
-     *
-     * @param {QuadraticBezier} b Curve
-     * @param {number} [bend=0] Bend amount, from -1 to 1
-     * @returns {QuadraticBezier}
-     */
-    export const quadraticBend: (a: Points.Point, b: Points.Point, bend?: number) => QuadraticBezier;
-    /**
-     * Creates a simple quadratic bezier with a specified amount of 'bend'.
-     * Bend of -1 will pull curve down, 1 will pull curve up. 0 is no curve
-     * @param {Points.Point} start Start of curve
-     * @param {Points.Point} end End of curve
-     * @param {number} [bend=0] Bend amount, -1 to 1
-     * @returns {QuadraticBezier}
-     */
-    export const quadraticSimple: (start: Points.Point, end: Points.Point, bend?: number) => QuadraticBezier;
-    /**
-     * Returns a relative point on a simple quadratic
-     * @param start Start
-     * @param end  End
-     * @param bend Bend (-1 to 1)
-     * @param amt Amount
-     * @returns Point
-     */
-    export const computeQuadraticSimple: (start: Points.Point, end: Points.Point, bend: number, amt: number) => Points.Point;
-    export const quadraticToSvgString: (start: Points.Point, end: Points.Point, handle: Points.Point) => readonly string[];
-    export const toPath: (cubicOrQuadratic: CubicBezier | QuadraticBezier) => CubicBezierPath | QuadraticBezierPath;
-    export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
-    export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
 }
 declare module "geometry/Line" {
     import { Point } from "geometry/Point";
     import { Path } from "geometry/Path";
     import { Rects, Points } from "geometry/index";
     /**
-     * A line, which consists of an `a` and `b` {@link Point}.
+     * A line, which consists of an `a` and `b` {@link Points.Point}.
      */
     export type Line = {
         readonly a: Points.Point;
@@ -4622,7 +2186,7 @@ declare module "geometry/Line" {
      * @param b
      * @returns
      */
-    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
+    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point) => number;
     /**
      * Multiplies start and end of line by x,y given in `p`.
      * ```js
@@ -4723,7 +2287,7 @@ declare module "geometry/Line" {
      * @param line Line
      */
     export function length(line: Line | PolyLine): number;
-    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => Points.Point;
+    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Points.Point) => Points.Point;
     /**
      * Returns [a,b] points from either a line parameter, or two points.
      * It additionally applies the guardPoint function to ensure validity.
@@ -4733,7 +2297,7 @@ declare module "geometry/Line" {
      * @param b
      * @returns
      */
-    export const getPointsParam: (aOrLine: Points.Point | Line, b?: Point | undefined) => readonly [Points.Point, Points.Point];
+    export const getPointsParam: (aOrLine: Points.Point | Line, b?: Points.Point) => readonly [Points.Point, Points.Point];
     /**
      * Returns the nearest point on `line` closest to `point`.
      *
@@ -4744,7 +2308,7 @@ declare module "geometry/Line" {
      * If an array of lines is provided, it will be the closest point amongst all the lines
      * @param line Line or array of lines
      * @param point
-     * @returns Point {x,y}
+     * @returns Point `{ x, y }`
      */
     export const nearest: (line: Line | readonly Line[], point: Points.Point) => Points.Point;
     /**
@@ -4759,7 +2323,7 @@ declare module "geometry/Line" {
      * @param b Second point if needed
      * @returns
      */
-    export const slope: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
+    export const slope: (lineOrPoint: Line | Points.Point, b?: Points.Point) => number;
     /**
      * Returns a point perpendicular to `line` at a specified `distance`. Use negative
      * distances for the other side of line.
@@ -4872,7 +2436,7 @@ declare module "geometry/Line" {
     /**
      * Returns an array representation of line: [a.x, a.y, b.x, b.y]
      *
-     * See {@link fromArray} to create a line _from_ this representation.
+     * See {@link fromFlatArray} to create a line _from_ this representation.
      *
      * @export
      * @param {Point} a
@@ -4981,7 +2545,1062 @@ declare module "geometry/Line" {
      * @param origin Point to rotate around. If undefined, middle of line will be used
      * @returns
      */
-    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
+    export const rotate: (line: Line, amountRadian?: number, origin?: Points.Point | number) => Line;
+}
+declare module "geometry/Rect" {
+    import { Points, Lines } from "geometry/index";
+    export type Rect = {
+        readonly width: number;
+        readonly height: number;
+    };
+    export type RectPositioned = Points.Point & Rect;
+    export const empty: Readonly<{
+        width: 0;
+        height: 0;
+    }>;
+    export const emptyPositioned: Readonly<{
+        x: 0;
+        y: 0;
+        width: 0;
+        height: 0;
+    }>;
+    export const placeholder: Readonly<{
+        width: number;
+        height: number;
+    }>;
+    export const placeholderPositioned: Readonly<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    export const isEmpty: (rect: Rect) => boolean;
+    export const isPlaceholder: (rect: Rect) => boolean;
+    /**
+     * Returns true if parameter has a positioned (x,y)
+     * @param p Point, Rect or RectPositiond
+     * @returns
+     */
+    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
+    export const isRect: (p: number | unknown) => p is Rect;
+    /**
+     * Returns true if `p` is a positioned rectangle
+     * @param p
+     * @returns
+     */
+    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
+    export const fromElement: (el: HTMLElement) => Rect;
+    export const isEqualSize: (a: Rect, b: Rect) => boolean;
+    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
+    /**
+     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
+     *
+     * x,y coords from `a` will be unchanged
+     * @param a
+     * @param b
+     */
+    export function subtract(a: Rect, b: Rect): Rect;
+    /**
+     * Subtracts a width/height from `a`, returning result.
+     *
+     * x,y coords from a will be unchanged
+     * @param a
+     * @param width
+     * @param height
+     */
+    export function subtract(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Returns true if `point` is within, or on boundary of `rect`.
+     * @param rect
+     * @param point
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
+    /**
+     * Returns true if x,y coordinate is within, or on boundary of `rect`.
+     * @param rect
+     * @param x
+     * @param y
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
+    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the distance from the perimeter of `rect` to `pt`.
+     * If the point is within the rectangle, 0 is returned.
+     *
+     * If `rect` does not have an x,y it's assumed to be 0,0
+     * @param rect Rectangle
+     * @param pt Point
+     * @returns Distance
+     */
+    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
+    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
+    /**
+     * Returns a rectangle based on provided four corners.
+     *
+     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
+     *
+     * Does some sanity checking such as:
+     *  - x will be smallest of topLeft/bottomLeft
+     *  - y will be smallest of topRight/topLeft
+     *  - width will be largest between top/bottom left and right
+     *  - height will be largest between left and right top/bottom
+     */
+    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
+    export const guard: (rect: Rect, name?: string) => void;
+    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
+    /**
+     * Returns a point on the edge of rectangle
+     * ```js
+     * const r1 = {x: 10, y: 10, width: 100, height: 50};
+     * getEdgeX(r1, `right`);  // Yields: 110
+     * getEdgeX(r1, `bottom`); // Yields: 60
+     *
+     * const r2 = {width: 100, height: 50};
+     * getEdgeX(r2, `right`);  // Yields: 100
+     * getEdgeX(r2, `bottom`); // Yields: 50
+     * ```
+     * @param rect
+     * @param edge Which edge: right, left, bottom, top
+     * @returns
+     */
+    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export const multiply: (a: RectPositioned | Rect, b: Rect | number, c?: number) => RectPositioned | Rect;
+    /**
+     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
+     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
+     *
+     * ```js
+     * const p = center({x:10, y:20, width:100, height:50});
+     * const p2 = center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
+     * ```
+     * @param rect Rectangle
+     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
+     * @returns
+     */
+    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
+    /**
+     * Returns the length of each side of the rectangle (top, right, bottom, left)
+     * @param rect
+     * @returns
+     */
+    export const lengths: (rect: RectPositioned) => readonly number[];
+    /**
+     * Returns four lines based on each corner.
+     * Lines are given in order: top, right, bottom, left
+     *
+     * @param {(RectPositioned|Rect)} rect
+     * @param {Points.Point} [origin]
+     * @returns {Lines.Line[]}
+     */
+    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
+    /**
+     * Returns the perimeter of `rect` (ie. sum of all edges)
+     * @param rect
+     * @returns
+     */
+    export const perimeter: (rect: Rect) => number;
+    /**
+     * Returns the area of `rect`
+     * @param rect
+     * @returns
+     */
+    export const area: (rect: Rect) => number;
+}
+declare module "geometry/Point" {
+    import { Circles, Lines, Points, Rects } from "geometry/index";
+    import { RandomSource } from "Random";
+    /**
+     * A point, consisting of x, y and maybe z fields.
+     */
+    export type Point = {
+        readonly x: number;
+        readonly y: number;
+        readonly z?: number;
+    };
+    export type Point3d = Point & {
+        readonly z: number;
+    };
+    /**
+     *
+     * @ignore
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const getPointParam: (a?: Point | number, b?: number) => Point;
+    export const dotProduct: (...pts: readonly Point[]) => number;
+    /**
+     * An empty point of `{x:0, y:0}`
+     */
+    export const Empty: Readonly<{
+        x: 0;
+        y: 0;
+    }>;
+    export const Placeholder: Readonly<{
+        x: number;
+        y: number;
+    }>;
+    export const isEmpty: (p: Point) => boolean;
+    export const isPlaceholder: (p: Point) => boolean;
+    export const center: (shape?: Rects.Rect) => Point;
+    /**
+     * Returns the 'minimum' point from an array of points, using a comparison function.
+     *
+     * @example Find point closest to a coordinate
+     * ```js
+     * const points = [...];
+     * const center = {x: 100, y: 100};
+     *
+     * const closestToCenter = findMinimum((a, b) => {
+     *  const aDist = distance(a, center);
+     *  const bDist = distance(b, center);
+     *  if (aDistance < bDistance) return a;
+     *  return b;
+     * }, points);
+     * ```
+     * @param compareFn Compare function returns the smallest of `a` or `b`
+     * @param points
+     * @returns
+     */
+    export const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points: readonly Point[]) => Point;
+    export function distance(a: Point, b: Point): number;
+    export function distance(a: Point, x: number, y: number): number;
+    export function distance(a: Point): number;
+    /**
+     * Returns the distance from point `a` to the exterior of `shape`.
+     *
+     * @example Distance from point to rectangle
+     * ```
+     * const distance = distanceToExterior(
+     *  {x: 50, y: 50},
+     *  {x: 100, y: 100, width: 20, height: 20}
+     * );
+     * ```
+     *
+     * @example Find closest shape to point
+     * ```
+     * import {minIndex} from '../collections/arrays.js';
+     * const shapes = [ some shapes... ]; // Shapes to compare against
+     * const pt = { x: 10, y: 10 };       // Comparison point
+     * const distances = shapes.map(v => distanceToExterior(pt, v));
+     * const closest = shapes[minIndex(...distances)];
+     * ```
+     * @param a Point
+     * @param shape Point, or a positioned Rect or Circle.
+     * @returns
+     */
+    export const distanceToExterior: (a: Point, shape: PointCalculableShape) => number;
+    /**
+     * Returns the distance from point `a` to the center of `shape`.
+     * @param a Point
+     * @param shape Point, or a positioned Rect or Circle.
+     * @returns
+     */
+    export const distanceToCenter: (a: Point, shape: PointCalculableShape) => number;
+    export type PointCalculableShape = Lines.PolyLine | Lines.Line | Rects.RectPositioned | Point | Circles.CirclePositioned;
+    /**
+     * Throws an error if point is invalid
+     * @param p
+     * @param name
+     */
+    export const guard: (p: Point, name?: string) => void;
+    /**
+     * Throws if parameter is not a valid point, or either x or y is 0
+     * @param pt
+     * @returns
+     */
+    export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
+    /**
+     * Returns the angle in radians between `a` and `b`.
+     * Eg if `a` is the origin, and `b` is another point,
+     * in degrees one would get 0 to -180 when `b` was above `a`.
+     *  -180 would be `b` in line with `a`.
+     * Same for under `a`.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const angle: (a: Point, b?: Point) => number;
+    /**
+     * Calculates the [centroid](https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points) of a set of points
+     *
+     * ```js
+     * // Find centroid of a list of points
+     * const c1 = centroid(p1, p2, p3, ...);
+     *
+     * // Find centroid of an array of points
+     * const c2 = centroid(...pointsArray);
+     * ```
+     * @param points
+     * @returns A single point
+     */
+    export const centroid: (...points: readonly Point[]) => Point;
+    /**
+     * Returns the minimum rectangle that can enclose all provided points
+     * @param points
+     * @returns
+     */
+    export const bbox: (...points: readonly Point[]) => Rects.RectPositioned;
+    /**
+     * Returns _true_ if the parameter has x and y fields
+     * @param p
+     * @returns
+     */
+    export const isPoint: (p: number | unknown) => p is Points.Point;
+    export const isPoint3d: (p: Point | unknown) => p is Points.Point3d;
+    /**
+     * Returns point as an array in the form [x,y]. This can be useful for some libraries
+     * that expect points in array form.
+     *
+     * ```
+     * const p = {x: 10, y:5};
+     * const p2 = toArray(p); // yields [10,5]
+     * ```
+     * @param p
+     * @returns
+     */
+    export const toArray: (p: Point) => readonly number[];
+    /**
+     * Returns a human-friendly string representation `(x, y)`
+     * @param p
+     * @returns
+     */
+    export const toString: (p: Point) => string;
+    /**
+     * Returns _true_ if the points have identical values
+     *
+     * ```js
+     * const a = {x: 10, y: 10};
+     * const b = {x: 10, y: 10;};
+     * a === b        // False, because a and be are different objects
+     * isEqual(a, b)   // True, because a and b are same value
+     * ```
+     * @param a
+     * @param b
+     * @returns _True_ if points are equal
+     */
+    export const isEqual: (...p: readonly Point[]) => boolean;
+    /**
+     * Returns true if two points are within a specified range.
+     * Provide a point for the range to set different x/y range, or pass a number
+     * to use the same range for both axis.
+     *
+     * Note this simply compares x,y values it does not calcuate distance.
+     *
+     * @example
+     * ```js
+     * withinRange({x:100,y:100}, {x:101, y:101}, 1); // True
+     * withinRange({x:100,y:100}, {x:105, y:101}, {x:5, y:1}); // True
+     * withinRange({x:100,y:100}, {x:105, y:105}, {x:5, y:1}); // False - y axis too far
+     * ```
+     * @param a
+     * @param b
+     * @param maxRange
+     * @returns
+     */
+    export const withinRange: (a: Point, b: Point, maxRange: Point | number) => boolean;
+    /**
+     * Returns a relative point between two points
+     * ```js
+     * interpolate(0.5, a, b); // Halfway point between a and b
+     * ```
+     *
+     * Alias for Lines.interpolate(amount, a, b);
+     *
+     * @param amount Relative amount, 0-1
+     * @param a
+     * @param b
+     * @returns {@link Point}
+     */
+    export const interpolate: (amount: number, a: Point, b: Point) => Point;
+    /**
+     * Returns a point from two coordinates or an array of [x,y]
+     * @example
+     * ```js
+     * let p = from([10, 5]); // yields {x:10, y:5}
+     * let p = from(10, 5);   // yields {x:10, y:5}
+     * let p = from(10);      // yields {x:10, y:0} 0 is used for default y
+     * let p = from();        // yields {x:0, y:0}  0 used for default x & y
+     * ```
+     * @param xOrArray
+     * @param [y]
+     * @returns Point
+     */
+    export const from: (xOrArray?: number | readonly number[], y?: number) => Point;
+    /**
+     * Returns an array of points from an array of numbers.
+     *
+     * Array can be a continuous series of x, y values:
+     * ```
+     * [1,2,3,4] would yield: [{x:1, y:2}, {x:3, y:4}]
+     * ```
+     *
+     * Or it can be an array of arrays:
+     * ```
+     * [[1,2], [3,4]] would yield: [{x:1, y:2}, {x:3, y:4}]
+     * ```
+     * @param coords
+     * @returns
+     */
+    export const fromNumbers: (...coords: readonly ReadonlyArray<number>[] | readonly number[]) => readonly Point[];
+    /**
+     * Returns `a` minus `b`
+     *
+     * ie.
+     * ```js
+     * return {
+     *   x: a.x - b.x,
+     *   y: a.y - b.y
+     * };
+     * ```
+     * @param a Point a
+     * @param b Point b
+     * @returns Point
+     */
+    export function subtract(a: Point, b: Point): Point;
+    /**
+     * Returns `a` minus the given coordinates.
+     *
+     * ie:
+     * ```js
+     * return {
+     *  x: a.x - x,
+     *  y: a.y - y
+     * }
+     * ```
+     * @param a Point
+     * @param x X coordinate
+     * @param y Y coordinate (if omitted, x is used as well)
+     */
+    export function subtract(a: Point, x: number, y?: number): Point;
+    /**
+     * Subtracts two sets of x,y pairs
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    export function subtract(x1: number, y1: number, x2: number, y2: number): Point;
+    /**
+     * Applies `fn` on `x` and `y` fields, returning all other fields as well
+     * ```js
+     * const p = {x:1.234, y:4.9};
+     * const p2 = apply(p, Math.round);
+     * // Yields: {x:1, y:5}
+     * ```
+     *
+     * The name of the field is provided as well. Here we only round the `x` field:
+     *
+     * ```js
+     * const p = {x:1.234, y:4.9};
+     * const p2 = apply(p, (v, field) => {
+     *  if (field === `x`) return Math.round(v);
+     *  return v;
+     * });
+     * ```
+     * @param pt
+     * @param fn
+     * @returns
+     */
+    export const apply: (pt: Point, fn: (v: number, field?: string) => number) => Point;
+    /**
+     * Runs a sequential series of functions on `pt`. The output from one feeding into the next.
+     * ```js
+     * const p = transform(somePoint, Points.normalise, Points.invert);
+     * ```
+     * @param pt
+     * @param pipeline
+     * @returns
+     */
+    export const pipelineApply: (pt: Point, ...pipelineFns: readonly ((pt: Point) => Point)[]) => Point;
+    /**
+     * Returns a pipeline function that takes a point to be transformed through a series of functions
+     * ```js
+     * const p = pipeline(Points.normalise, Points.invert);
+     * p(somePoint); // run `somePoint` through normalise and then invert
+     * ```
+     * @param pipeline Pipeline of functions
+     * @returns
+     */
+    export const pipeline: (...pipeline: readonly ((pt: Point) => Point)[]) => (pt: Point) => Points.Point;
+    /**
+     * Reduces over points, treating x,y separately.
+     *
+     * ```
+     * // Sum x and y valuse
+     * const total = reduce(points, (p, acc) => {
+     *  return {x: p.x + acc.x, y: p.y + acc.y}
+     * });
+     * ```
+     * @param pts Points to reduce
+     * @param fn Reducer
+     * @param initial Initial value, uses `{ x:0, y:0 }` by default
+     * @returns
+     */
+    export const reduce: (pts: readonly Point[], fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
+    type Sum = {
+        /**
+         * Adds two sets of coordinates. If y is omitted, the parameter for x is added to both x and y
+         */
+        (aX: number, aY: number, bX: number, bY: number): Point;
+        /**
+         * Add x,y to a
+         */
+        (a: Point, x: number, y?: number): Point;
+        /**
+         * Add two points
+         */
+        (a: Point, b?: Point): Point;
+    };
+    /**
+     * Returns a Point of `a` plus `b`. ie:
+     *
+     * ```js
+     * return {
+     *   x: a.x + b.x,
+     *   y: a.y + b.y
+     * };
+     * ```
+     *
+     * Usage:
+     *
+     * ```js
+     * sum(ptA, ptB);
+     * sum(x1, y1, x2, y2);
+     * sum(ptA, x2, y2);
+     * sum(ptA, xAndY);
+     * ```
+     */
+    export const sum: Sum;
+    /**
+     * Returns `a` multiplied by `b`
+     *
+     * ie.
+     * ```js
+     * return {
+     *  x: a.x * b.x,
+    *   y: a.y * b.y
+     * }
+     * ```
+     * @param a
+     * @param b
+     * @returns
+     */
+    export function multiply(a: Point, b: Point): Point;
+    /**
+     * Multiply by a width,height:
+     * ```
+     * return {
+     *  x: a.x * rect.width,
+     *  y: a.y * rect.height
+     * };
+     * ```
+     * @param a
+     * @param rect
+     */
+    export function multiply(a: Point, rect: Rects.Rect): Point;
+    /**
+     * Returns `a` multipled by some x and/or y scaling factor
+     *
+     * ie.
+     * ```js
+     * return {
+     *  x: a.x * x
+    *   y: a.y * y
+     * }
+     * ```
+     *
+     * Usage:
+     * ```js
+     * multiply(pt, 10, 100); // Scale pt by x:10, y:100
+     * multiply(pt, Math.min(window.innerWidth, window.innerHeight)); // Scale both x,y by viewport with or height, whichever is smaller
+     * ```
+     * @export
+     * @parama Point to scale
+     * @param x Scale factor for x axis
+     * @param [y] Scale factor for y axis (if not specified, the x value is used)
+     * @returns Scaled point
+     */
+    export function multiply(a: Point, x: number, y?: number): Point;
+    /**
+     * Divides a / b:
+     * ```js
+     * return {
+     *  x: a.x / b.x,
+     *  y: a.y / b.y
+     * }
+     * ```
+     * @param a
+     * @param b
+     */
+    export function divide(a: Point, b: Point): Point;
+    /**
+     * Divides point a by rectangle:
+     * ```js
+     * return {
+     *  x: a.x / rect.width,
+     *  y: a.y / rect.hight
+     * };
+     * ```
+     * @param a
+     * @param Rect
+     */
+    export function divide(a: Point, rect: Rects.Rect): Point;
+    /**
+     * Divides a point by x,y.
+     * ```js
+     * return {
+     *  x: a.x / x,
+     *  y: b.y / y
+     * };
+     * ```
+     * @param a Point
+     * @param x X divisor
+     * @param y Y divisor. If unspecified, x divisor is used.
+     */
+    export function divide(a: Point, x: number, y?: number): Point;
+    /**
+     * Divides two sets of points:
+     * ```js
+     * return {
+     *  x: x1 / x2,
+     *  y: y1 / y2
+     * };
+     * ```
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
+    /**
+     * Simple convex hull impementation. Returns a set of points which
+     * enclose `pts`.
+     *
+     * For more power, see something like [Hull.js](https://github.com/AndriiHeonia/hull)
+     * @param pts
+     * @returns
+     */
+    export const convexHull: (...pts: readonly Point[]) => readonly Point[];
+    /**
+     * Returns -1 if either x/y of a is less than b's x/y
+     * Returns 1 if either x/y of a is greater than b's x/y
+     * Returns 0 if x/y of a and b are equal
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const compare: (a: Point, b: Point) => number;
+    export const compareByX: (a: Point, b: Point) => number;
+    /**
+     * Project `origin` by `distance` and `angle` (radians).
+     *
+     * To figure out rotation, imagine a horizontal line running through `origin`.
+     * * Rotation = 0 deg puts the point on the irhgt of origin, on same y-axis
+     * * Rotation = 90 deg/3:00 puts the point below origin, on the same x-axis
+     * * Rotation = 180 deg/6:00 puts the point on the left of origin on the same y-axis
+     * * Rotation = 270 deg/12:00 puts the point above the origin, on the same x-axis
+     *
+     * ```js
+     * // Yields a point 100 units away from 10,20 with 10 degrees rotation (ie slightlydown)
+     * const a = Points.project({x:10, y:20}, 100, degreeToRadian(10));
+     * ```
+     * @param origin
+     * @param distance
+     * @param angle
+     * @returns
+     */
+    export const project: (origin: Point, distance: number, angle: number) => {
+        x: number;
+        y: number;
+    };
+    /**
+     * Rotate a single point by a given amount in radians
+     * @param pt
+     * @param amountRadian
+     * @param origin
+     */
+    export function rotate(pt: Point, amountRadian: number, origin?: Point): Point;
+    /**
+     * Rotate several points by a given amount in radians
+     * @param pt Points
+     * @param amountRadian Amount to rotate in radians. If 0 is given, a copy of the input array is returned
+     * @param origin Origin to rotate around. Defaults to 0,0
+     */
+    export function rotate(pt: ReadonlyArray<Point>, amountRadian: number, origin?: Point): ReadonlyArray<Point>;
+    export const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadian: number) => number[][];
+    /**
+     * Normalise point as a unit vector.
+     *
+     * ```js
+     * normalise({x:10, y:20});
+     * normalise(10, 20);
+     * ```
+     * @param ptOrX Point, or x value
+     * @param y y value if first param is x
+     * @returns
+     */
+    export const normalise: (ptOrX: Point | number, y?: number) => Point;
+    /**
+     * Normalises a point by a given width and height
+     * @param pt Point
+     * @param width Width
+     * @param height Height
+     */
+    export function normaliseByRect(pt: Point, width: number, height: number): Point;
+    export function normaliseByRect(pt: Point, rect: Rects.Rect): Point;
+    /**
+     * Normalises x,y by width and height so it is on a 0..1 scale
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function normaliseByRect(x: number, y: number, width: number, height: number): Point;
+    /**
+     * Returns a random point on a 0..1 scale.
+     * ```js
+     * const pt = random(); // eg {x: 0.2549012, y:0.859301}
+     * ```
+     *
+     * A custom source of randomness can be provided:
+     * ```js
+     * const pt = random(weightedSkewed(`quadIn`));
+     * ```
+     * @param rando
+     * @returns
+     */
+    export const random: (rando?: RandomSource) => Point;
+    /**
+     * Wraps a point to be within `ptMin` and `ptMax`.
+     * Note that max values are _exclusive_, meaning the return value will always be one less.
+     *
+     * Eg, if a view port is 100x100 pixels, wrapping the point 150,100 yields 50,99.
+     *
+     * ```js
+     * // Wraps 150,100 to on 0,0 -100,100 range
+     * wrap({x:150,y:100}, {x:100,y:100});
+     * ```
+     *
+     * Wrap normalised point:
+     * ```js
+     * wrap({x:1.2, y:1.5}); // Yields: {x:0.2, y:0.5}
+     * ```
+     * @param pt Point to wrap
+     * @param ptMax Maximum value, or `{ x:1, y:1 }` by default
+     * @param ptMin Minimum value, or `{ x:0, y:0 }` by default
+     * @returns Wrapped point
+     */
+    export const wrap: (pt: Point, ptMax?: Point, ptMin?: Point) => Point;
+    /**
+     * Inverts one or more axis of a point
+     * ```js
+     * invert({x:10, y:10}); // Yields: {x:-10, y:-10}
+     * invert({x:10, y:10}, `x`); // Yields: {x:-10, y:10}
+     * ```
+     * @param pt Point to invert
+     * @param what Which axis. If unspecified, both axies are inverted
+     * @returns
+     */
+    export const invert: (pt: Point | Point3d, what?: `both` | `x` | `y` | `z`) => Point;
+    /**
+     * Returns a point with rounded x,y coordinates. By default uses `Math.round` to round.
+     * ```js
+     * toIntegerValues({x:1.234, y:5.567}); // Yields: {x:1, y:6}
+     * ```
+     *
+     * ```js
+     * toIntegerValues(pt, Math.ceil); // Use Math.ceil to round x,y of `pt`.
+     * ```
+     * @param pt Point to round
+     * @param rounder Rounding function, or Math.round by default
+     * @returns
+     */
+    export const toIntegerValues: (pt: Point, rounder?: (x: number) => number) => Point;
+    /**
+     * Clamps the magnitude of a point.
+     * This is useful when using a Point as a vector, to limit forces.
+     * @param pt
+     * @param m
+     * @returns
+     */
+    export const clampMagnitude: (pt: Point, m: number) => Point;
+    /**
+     * Clamps a point to be between `min` and `max` (0 & 1 by default)
+     * @param pt Point
+     * @param min Minimum value (0 by default)
+     * @param max Maximum value (1 by default)
+     */
+    export function clamp(pt: Point, min?: number, max?: number): Point;
+    /**
+     * Clamps an x,y pair to be between `min` and `max` (0 & 1 by default)
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param min Minimum value (0 by default)
+     * @param max Maximum value (1 by default)
+     */
+    export function clamp(x: number, y: number, min?: number, max?: number): Point;
+    export type PointRelation = (a: Point | number, b?: number) => {
+        /**
+         * Angle from start
+         */
+        readonly angle: number;
+        /**
+         * Distance from start
+         */
+        readonly distance: number;
+        /**
+         * Center point from start
+         */
+        readonly centroid: Point;
+        /**
+         * Average of all points seen
+         * This is calculated by summing x,y and dividing by total points
+         */
+        readonly average: Point;
+    };
+    /**
+     * Tracks the relation between two points
+     *
+     * ```js
+     * // Start point: 50,50
+     * const t = track({x:50,y:50});
+     *
+     * // Compare to a 0,0
+     * const {angle, distance, centroid} = t({x:0,y:0});
+     * ```
+     *
+     * X,y coordinates can also be used as parameters:
+     * ```js
+     * const t = track(50, 50);
+     * const {angle, distance, centroid} = t(0, 0);
+     * ```
+     * @param start
+     * @returns
+     */
+    export const relation: (a: Point | number, b?: number) => PointRelation;
+}
+declare module "geometry/Arc" {
+    import { Path } from "geometry/Path";
+    import { Lines, Points, Rects } from "geometry/index";
+    /**
+     * Returns true if parameter is an arc
+     * @param p Arc or number
+     * @returns
+     */
+    export const isArc: (p: Arc | number | unknown) => p is Arc;
+    /**
+     * Returns true if parameter has a positioned (x,y)
+     * @param p Point, Arc or ArcPositiond
+     * @returns
+     */
+    export const isPositioned: (p: Points.Point | Arc | ArcPositioned) => p is Points.Point;
+    /**
+     * Arc, defined by radius, start and end point in radians, and whether it is counter-clockwise.
+     */
+    export type Arc = {
+        /**
+         * Radius of arc
+         */
+        readonly radius: number;
+        /**
+         * Start radian
+         */
+        readonly startRadian: number;
+        /**
+         * End radian
+         */
+        readonly endRadian: number;
+        /**
+         * If true, arc is counter-clockwise
+         */
+        readonly counterClockwise?: boolean;
+    };
+    /**
+     * An {@link Geometry.Arcs.Arc} that also has a position, given in x, y
+     */
+    export type ArcPositioned = Points.Point & Arc;
+    /**
+     * Returns an arc from degrees, rather than radians
+     * @param radius Radius of arc
+     * @param startDegrees Start angle in degrees
+     * @param endDegrees End angle in degrees
+     * @param origin Optional center of arc
+     * @returns Arc
+     */
+    export function fromDegrees(radius: number, startDegrees: number, endDegrees: number): Arc;
+    export function fromDegrees(radius: number, startDegrees: number, endDegrees: number, origin: Points.Point): ArcPositioned;
+    /**
+     * Returns a {@link Geometry.Lines.Line} linking the start and end points of an {@link ArcPositioned}.
+     *
+     * @param arc
+     * @returns Line from start to end of arc
+     */
+    export const toLine: (arc: ArcPositioned) => Lines.Line;
+    /**
+     * Calculates a coordinate on an arc, based on an angle
+     * @param arc Arc
+     * @param angleRadian Angle of desired coordinate
+     * @param origin Origin of arc (0,0 used by default)
+     * @returns Coordinate
+     */
+    export const point: (arc: Arc | ArcPositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
+    /**
+     * Throws an error if arc instance is invalid
+     * @param arc
+     */
+    export const guard: (arc: Arc | ArcPositioned) => void;
+    type Interpolate = {
+        (amount: number, arc: Arc, origin: Points.Point): Points.Point;
+        (amount: number, arc: ArcPositioned): Points.Point;
+    };
+    /**
+     * Compute relative position on arc
+     * @param arc Arc
+     * @param amount Relative position 0-1
+     * @param origin If arc is not positioned, pass in an origin
+     * @returns
+     */
+    export const interpolate: Interpolate;
+    /**
+     * Creates a {@link Geometry.Paths.Path} instance from the arc. This wraps up some functions for convienence.
+     * @param arc
+     * @returns Path
+     */
+    export const toPath: (arc: ArcPositioned) => Path;
+    /**
+     * Calculates the length of the arc
+     * @param arc
+     * @returns Length
+     */
+    export const length: (arc: Arc) => number;
+    /**
+     * Calculates a {@link Geometry.Rects.Rect | Rect} bounding box for arc.
+     * @param arc
+     * @returns Rectangle encompassing arc.
+     */
+    export const bbox: (arc: ArcPositioned | Arc) => Rects.RectPositioned | Rects.Rect;
+    type ToSvg = {
+        /**
+         * SVG path for arc description
+         * @param origin Origin of arc
+         * @param radius Radius
+         * @param startRadian Start
+         * @param endRadian End
+         */
+        (origin: Points.Point, radius: number, startRadian: number, endRadian: number, opts?: SvgOpts): readonly string[];
+        /**
+         * SVG path for non-positioned arc
+         */
+        (arc: Arc, origin: Points.Point, opts?: SvgOpts): readonly string[];
+        /**
+         * SVG path for positioned arc
+         */
+        (arc: ArcPositioned, opts?: SvgOpts): readonly string[];
+    };
+    /**
+     * Creates an SV path snippet for arc
+     * @returns
+     */
+    export const toSvg: ToSvg;
+    export type SvgOpts = {
+        /**
+         * "If the arc should be greater or less than 180 degrees"
+         * ie. tries to maximise arc length
+         */
+        readonly largeArc?: boolean;
+        /**
+         * "If the arc should begin moving at positive angles"
+         * ie. the kind of bend it makes to reach end point
+         */
+        readonly sweep?: boolean;
+    };
+    /**
+     * Calculates the distance between the centers of two arcs
+     * @param a
+     * @param b
+     * @returns Distance
+     */
+    export const distanceCenter: (a: ArcPositioned, b: ArcPositioned) => number;
+    /**
+     * Returns true if the two arcs have the same values
+     *
+     * @param a
+     * @param b
+     * @returns {boolean}
+     */
+    export const isEquals: (a: Arc | ArcPositioned, b: Arc | ArcPositioned) => boolean;
+}
+declare module "geometry/Bezier" {
+    import { Paths, Points } from "geometry/index";
+    export type QuadraticBezier = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+        readonly quadratic: Points.Point;
+    };
+    export type QuadraticBezierPath = Paths.Path & QuadraticBezier;
+    export type CubicBezier = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+        readonly cubic1: Points.Point;
+        readonly cubic2: Points.Point;
+    };
+    export type CubicBezierPath = Paths.Path & CubicBezier;
+    export const isQuadraticBezier: (path: Paths.Path | QuadraticBezier | CubicBezier) => path is QuadraticBezier;
+    export const isCubicBezier: (path: Paths.Path | CubicBezier | QuadraticBezier) => path is CubicBezier;
+    /**
+     * Returns a new quadratic bezier with specified bend amount
+     *
+     * @param {QuadraticBezier} b Curve
+     * @param {number} [bend=0] Bend amount, from -1 to 1
+     * @returns {QuadraticBezier}
+     */
+    export const quadraticBend: (a: Points.Point, b: Points.Point, bend?: number) => QuadraticBezier;
+    /**
+     * Creates a simple quadratic bezier with a specified amount of 'bend'.
+     * Bend of -1 will pull curve down, 1 will pull curve up. 0 is no curve
+     * @param {Points.Point} start Start of curve
+     * @param {Points.Point} end End of curve
+     * @param {number} [bend=0] Bend amount, -1 to 1
+     * @returns {QuadraticBezier}
+     */
+    export const quadraticSimple: (start: Points.Point, end: Points.Point, bend?: number) => QuadraticBezier;
+    /**
+     * Returns a relative point on a simple quadratic
+     * @param start Start
+     * @param end  End
+     * @param bend Bend (-1 to 1)
+     * @param amt Amount
+     * @returns Point
+     */
+    export const computeQuadraticSimple: (start: Points.Point, end: Points.Point, bend: number, amt: number) => Points.Point;
+    export const quadraticToSvgString: (start: Points.Point, end: Points.Point, handle: Points.Point) => readonly string[];
+    export const toPath: (cubicOrQuadratic: CubicBezier | QuadraticBezier) => CubicBezierPath | QuadraticBezierPath;
+    export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
+    export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
 }
 declare module "geometry/Circle" {
     import { Path } from "geometry/Path";
@@ -5015,7 +3634,7 @@ declare module "geometry/Circle" {
      * @param Origin or offset of calculated point. By default uses center of circle or 0,0 if undefined
      * @returns Point oo circle
      */
-    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point | undefined) => Points.Point;
+    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
     /**
      * Computes relative position along circle
      * @param circle
@@ -5151,8 +3770,8 @@ declare module "geometry/CompoundPath" {
      * @param {Dimensions} [dimensions] Precalculated dimensions of paths, will be computed if omitted
      * @returns
      */
-    export const interpolate: (paths: readonly Paths.Path[], t: number, useWidth?: boolean | undefined, dimensions?: Dimensions | undefined) => Points.Point;
-    type Dimensions = {
+    export const interpolate: (paths: readonly Paths.Path[], t: number, useWidth?: boolean, dimensions?: Dimensions) => Points.Point;
+    export type Dimensions = {
         /**
          * Width of each path (based on bounding box)
          *
@@ -5242,7 +3861,7 @@ declare module "geometry/Grid" {
     }>;
     export type CardinalDirection = `` | `n` | `ne` | `e` | `se` | `s` | `sw` | `w` | `nw`;
     export type BoundsLogic = `unbounded` | `undefined` | `stop` | `wrap`;
-    type VisitorLogic = {
+    export type VisitorLogic = {
         readonly options?: IdentifyNeighbours;
         readonly select: NeighbourSelector;
     };
@@ -5255,8 +3874,14 @@ declare module "geometry/Grid" {
     export type Visitor = (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     export type NeighbourMaybe = readonly [keyof Neighbours, Cell | undefined];
     export type Neighbour = readonly [keyof Neighbours, Cell];
-    type NeighbourSelector = (neighbours: ReadonlyArray<Neighbour>) => Neighbour | undefined;
-    type IdentifyNeighbours = (grid: Grid, origin: Cell) => ReadonlyArray<Neighbour>;
+    /**
+     * Neighbour selector logic. For a given set of `neighbours` pick one to visit next.
+     */
+    export type NeighbourSelector = (neighbours: ReadonlyArray<Neighbour>) => Neighbour | undefined;
+    /**
+     * Identify neighbours logic. For a given `grid` and `origin`, return a list of neighbours
+     */
+    export type IdentifyNeighbours = (grid: Grid, origin: Cell) => ReadonlyArray<Neighbour>;
     /**
      * Returns _true_ if grids `a` and `b` are equal in value
      *
@@ -5287,10 +3912,7 @@ declare module "geometry/Grid" {
      * @param paramName
      * @param grid
      */
-    export const guardCell: (cell: Cell, paramName?: string, grid?: Readonly<{
-        readonly rows: number;
-        readonly cols: number;
-    }> | undefined) => void;
+    export const guardCell: (cell: Cell, paramName?: string, grid?: Grid) => void;
     /**
      * Returns _true_ if cell coordinates are above zero and within bounds of grid
      *
@@ -5340,7 +3962,7 @@ declare module "geometry/Grid" {
      * @param bounds How to handle edges of grid
      * @param directions Directions to return
      */
-    export const neighbours: (grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: readonly CardinalDirection[] | undefined) => Neighbours;
+    export const neighbours: (grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: ReadonlyArray<CardinalDirection>) => Neighbours;
     /**
      * Returns the visual midpoint of a cell (eg pixel coordinate)
      *
@@ -5374,7 +3996,7 @@ declare module "geometry/Grid" {
      */
     export const offsetCardinals: (grid: Grid, start: Cell, steps: number, bounds?: BoundsLogic) => Neighbours;
     /**
-     * Returns an {x,y} signed vector corresponding to the provided cardinal direction.
+     * Returns an `{ x, y }` signed vector corresponding to the provided cardinal direction.
      * ```js
      * const n = getVectorFromCardinal(`n`); // {x: 0, y: -1}
      * ```
@@ -5384,10 +4006,10 @@ declare module "geometry/Grid" {
      * const n = getVectorFromCardinal(`n`, 10); // {x: 0, y: -10}
      * ```
      *
-     * Blank direction returns {x: 0, y: 0}
+     * Blank direction returns `{ x: 0, y: 0 }`
      * @param cardinal Direction
      * @param multiplier Multipler
-     * @returns Signed vector in the form of {x,y}
+     * @returns Signed vector in the form of `{ x, y }`
      */
     export const getVectorFromCardinal: (cardinal: CardinalDirection, multiplier?: number) => Cell;
     /**
@@ -5447,11 +4069,11 @@ declare module "geometry/Grid" {
      *  }
      *  setTimeout(run, delayMs);
      * ```
-     * @param {(neighbourSelect: NeighbourSelector} neighbourSelect Select neighbour to visit
-     * @param {Grid} grid Grid to visit
-     * @param {Cell} start Starting cell
-     * @param {MutableStringSet<Cell>} [visited] Optional tracker of visited cells
-     * @returns {Iterable<Cell>}
+     * @param neighbourSelect Select neighbour to visit
+     * @param grid Grid to visit
+     * @param start Starting cell
+     * @param visited Optional tracker of visited cells
+     * @returns Cells
      */
     export const visitor: (logic: VisitorLogic, grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     export const visitorDepth: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
@@ -5499,144 +4121,13 @@ declare module "geometry/Grid" {
      * Enumerate all cells in an efficient manner. Runs left-to-right, top-to-bottom.
      * If end of grid is reached, iterator will wrap to ensure all are visited.
      *
-     * @param {Grid} grid
-     * @param {Cell} [start={x:0, y:0}]
+     * @param grid
+     * @param start
      */
     export const cells: (grid: Grid, start?: Cell) => Generator<{
         x: number;
         y: number;
     }, void, unknown>;
-}
-declare module "geometry/Rect" {
-    import { Points, Lines } from "geometry/index";
-    export type Rect = {
-        readonly width: number;
-        readonly height: number;
-    };
-    export type RectPositioned = Points.Point & Rect;
-    export const empty: Readonly<{
-        width: number;
-        height: number;
-    }>;
-    export const emptyPositioned: Readonly<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }>;
-    export const placeholder: Readonly<{
-        width: number;
-        height: number;
-    }>;
-    export const placeholderPositioned: Readonly<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }>;
-    export const isEmpty: (rect: Rect) => boolean;
-    export const isPlaceholder: (rect: Rect) => boolean;
-    /**
-     * Returns true if parameter has a positioned (x,y)
-     * @param p Point, Rect or RectPositiond
-     * @returns
-     */
-    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
-    export const isRect: (p: number | unknown) => p is Rect;
-    /**
-     * Returns true if `p` is a positioned rectangle
-     * @param p
-     * @returns
-     */
-    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
-    export const fromElement: (el: HTMLElement) => Rect;
-    export const isEqualSize: (a: Rect, b: Rect) => boolean;
-    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
-    /**
-     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
-     *
-     * x,y coords from `a` will be unchanged
-     * @param a
-     * @param b
-     */
-    export function subtract(a: Rect, b: Rect): Rect;
-    /**
-     * Subtracts a width/height from `a`, returning result.
-     *
-     * x,y coords from a will be unchanged
-     * @param a
-     * @param width
-     * @param height
-     */
-    export function subtract(a: Rect, width: number, height?: number): Rect;
-    /**
-     * Returns true if `point` is within, or on boundary of `rect`.
-     * @param rect
-     * @param point
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
-    /**
-     * Returns true if x,y coordinate is within, or on boundary of `rect`.
-     * @param rect
-     * @param x
-     * @param y
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
-    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    /**
-     * Returns the distance from the perimeter of `rect` to `pt`.
-     * If the point is within the rectangle, 0 is returned.
-     *
-     * If `rect` does not have an x,y it's assumed to be 0,0
-     * @param rect Rectangle
-     * @param pt Point
-     * @returns Distance
-     */
-    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
-    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
-    /**
-     * Returns a rectangle based on provided four corners.
-     *
-     * To create a rectangle that contains an arbitary set of points, use {@links Points.bbox}.
-     *
-     * Does some sanity checking such as:
-     *  - x will be smallest of topLeft/bottomLeft
-     *  - y will be smallest of topRight/topLeft
-     *  - width will be largest between top/bottom left and right
-     *  - height will be largest between left and right top/bottom
-     */
-    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
-    export const guard: (rect: Rect, name?: string) => void;
-    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Points.Point[];
-    export const getCenter: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => Points.Point;
-    /**
-     * Returns the length of each side of the rectangle (top, right, bottom, left)
-     * @param rect
-     * @returns
-     */
-    export const lengths: (rect: RectPositioned) => readonly number[];
-    /**
-     * Returns four lines based on each corner.
-     * Lines are given in order: top, right, bottom, left
-     *
-     * @param {(RectPositioned|Rect)} rect
-     * @param {Points.Point} [origin]
-     * @returns {Lines.Line[]}
-     */
-    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Lines.Line[];
-    /**
-     * Returns the perimeter of `rect` (ie. sum of all edges)
-     * @param rect
-     * @returns
-     */
-    export const perimeter: (rect: Rect) => number;
-    /**
-     * Returns the area of `rect`
-     * @param rect
-     * @returns
-     */
-    export const area: (rect: Rect) => number;
 }
 declare module "geometry/Ellipse" {
     import { Path } from "geometry/Path";
@@ -5742,7 +4233,7 @@ declare module "geometry/Polar" {
     export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
 }
 declare module "geometry/Shape" {
-    import { Point } from "geometry/Point";
+    import { Points } from "geometry/index";
     /**
      * Generates a starburst shape, returning an array of points. By default, initial point is top and horizontally-centred.
      *
@@ -5770,20 +4261,50 @@ declare module "geometry/Shape" {
      * @param innerRadius Inner radius. A proportionally smaller inner radius makes for sharper spikes. If unspecified, 50% of the outer radius is used.
      * @param outerRadius Outer radius. Maximum radius of a spike to origin
      * @param opts Options
-     * @param origin Origin, or {x:0:y:0} by default.
+     * @param origin Origin, or `{ x:0, y:0 }` by default.
      */
-    export const starburst: (outerRadius: number, points?: number, innerRadius?: number | undefined, origin?: Point, opts?: {
-        readonly initialAngleRadian?: number | undefined;
-    } | undefined) => readonly Point[];
+    export const starburst: (outerRadius: number, points?: number, innerRadius?: number, origin?: Points.Point, opts?: {
+        readonly initialAngleRadian?: number;
+    }) => readonly Points.Point[];
+    export type ArrowOpts = {
+        readonly arrowSize?: number;
+        readonly tailLength?: number;
+        readonly tailThickness?: number;
+        readonly angleRadian?: number;
+    };
+    /**
+     * Returns the points forming an arrow
+     *
+     * @example Create an arrow anchored by its tip at 100,100
+     * ```js
+     * const opts = {
+     *  tailLength: 10,
+     *  arrowSize: 20,
+     *  tailThickness: 5,
+     *  angleRadian: degreeToRadian(45)
+     * }
+     * const arrow = Shapes.arrow({x:100, y:100}, `tip`, opts); // Yields an array of points
+     *
+     * // Eg: draw points
+     * Drawing.connectedPoints(ctx, arrow, {strokeStyle: `red`, loop: true});
+     * ```
+     *
+     * @param origin Origin of arrow
+     * @param from Does origin describe the tip or tail?
+     * @param opts Options for arrow
+     * @returns
+     */
+    export const arrow: (origin: Points.Point, from: `tip` | `tail`, opts?: ArrowOpts) => readonly Points.Point[];
 }
 declare module "geometry/Triangle" {
-    import { Points, Lines, Circles, Rects } from "geometry/index";
+    import { Lines, Circles, Rects } from "geometry/index";
+    import * as Points from "geometry/Point";
     /**
      * Triangle.
      *
      * Helpers for creating:
      *  - {@link fromFlatArray}: Create from [x1, y1, x2, y2, x3, y3]
-     *  - {@link fromPoints}: Create from three {x,y} sets
+     *  - {@link fromPoints}: Create from three `{x,y}` sets
      *  - {@link fromRadius}: Equilateral triangle of a given radius and center
      */
     export type Triangle = {
@@ -5795,35 +4316,35 @@ declare module "geometry/Triangle" {
      * A triangle consisting of three empty points (Points.Empty)
      */
     export const Empty: Readonly<{
-        a: Readonly<{
+        a: {
             x: number;
             y: number;
-        }>;
-        b: Readonly<{
+        };
+        b: {
             x: number;
             y: number;
-        }>;
-        c: Readonly<{
+        };
+        c: {
             x: number;
             y: number;
-        }>;
+        };
     }>;
     /**
      * A triangle consisting of three placeholder points (Points.Placeholder)
      */
     export const Placeholder: Readonly<{
-        a: Readonly<{
+        a: {
             x: number;
             y: number;
-        }>;
-        b: Readonly<{
+        };
+        b: {
             x: number;
             y: number;
-        }>;
-        c: Readonly<{
+        };
+        c: {
             x: number;
             y: number;
-        }>;
+        };
     }>;
     /**
      * Returns true if triangle is empty
@@ -5854,7 +4375,7 @@ declare module "geometry/Triangle" {
      * @param fn
      * @returns
      */
-    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string | undefined) => Points.Point) => Readonly<Triangle>;
+    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string) => Points.Point) => Readonly<Triangle>;
     /**
      * Throws an exception if the triangle is invalid
      * @param t
@@ -5974,10 +4495,10 @@ declare module "geometry/Triangle" {
      *
      * ```js
      * // Create a triangle at 100,100 with radius of 60
-     * const tri = equilateralFromOrigin({x:100,y:100}, 60);
+     * const tri = fromRadius({x:100,y:100}, 60);
      *
      * // Triangle with point A upwards, B to the right, C to the left
-     * constr tri2 = equilateralFromOrigin({x:100,y:100}, 60, {initialAngleRadian: -Math.PI / 2});
+     * constr tri2 = fromRadius({x:100,y:100}, 60, {initialAngleRadian: -Math.PI / 2});
      * ```
      *
      *
@@ -5987,6 +4508,21 @@ declare module "geometry/Triangle" {
     export const fromRadius: (origin: Points.Point, radius: number, opts?: {
         readonly initialAngleRadian?: number;
     }) => Triangle;
+    /**
+     * Rotates the vertices of the triangle around one point (by default, `b`).
+     * @param triangle Triangle
+     * @param vertex Name of vertex: a, b or c.
+     */
+    export const rotateByVertex: (triangle: Triangle, amountRadian: number, vertex?: `a` | `b` | `c`) => Triangle;
+    /**
+     * Returns a triangle anchored at `origin` with a given `length` and `angleRadian`.
+     * The origin will be point `b` of the triangle, and the angle will be the angle for b.
+     * @param origin Origin
+     * @param length Length
+     * @param angleRadian Angle
+     * @returns
+     */
+    export const equilateralFromVertex: (origin?: Points.Point, length?: number, angleRadian?: number) => Triangle;
     /**
      * Returns the coordinates of triangle in a flat array form:
      * [xA, yA, xB, yB, xC, yC]
@@ -6020,14 +4556,14 @@ declare module "geometry/Triangle" {
         readonly c: number;
     };
     /**
-     * Returns the Barycentric coordinate of a point within a triangle
-     * {@link https://en.wikipedia.org/wiki/Barycentric_coordinate_system}
+     * Returns the [Barycentric coordinate](https://en.wikipedia.org/wiki/Barycentric_coordinate_system) of a point within a triangle
+     *
      * @param t
      * @param a
      * @param b
      * @returns
      */
-    export const barycentricCoord: (t: Triangle, a: Points.Point | number, b?: number | undefined) => BarycentricCoord;
+    export const barycentricCoord: (t: Triangle, a: Points.Point | number, b?: number) => BarycentricCoord;
     /**
      * Convert Barycentric coordinate to Cartesian
      * @param t
@@ -6041,7 +4577,7 @@ declare module "geometry/Triangle" {
      * @param a
      * @param b
      */
-    export const intersectsPoint: (t: Triangle, a: Points.Point | number, b?: number | undefined) => boolean;
+    export const intersectsPoint: (t: Triangle, a: Points.Point | number, b?: number) => boolean;
     /**
      * Returns a triangle that is rotated by `angleRad`. By default it rotates
      * around its center but an arbitrary `origin` point can be provided.
@@ -6058,7 +4594,7 @@ declare module "geometry/Triangle" {
      * @param origin Point to rotate around. If undefined, middle of line will be used
      * @returns
      */
-    export const rotate: (t: Triangle, amountRadian?: number | undefined, origin?: Points.Point | undefined) => Triangle;
+    export const rotate: (t: Triangle, amountRadian?: number, origin?: Points.Point) => Triangle;
 }
 declare module "geometry/index" {
     import * as Arcs from "geometry/Arc";
@@ -6071,15 +4607,15 @@ declare module "geometry/index" {
     import * as Points from "geometry/Point";
     import * as Rects from "geometry/Rect";
     import * as Ellipses from "geometry/Ellipse";
-    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses };
-    export * as Polar from "geometry/Polar";
-    export * as Shapes from "geometry/Shape";
+    import * as Polar from "geometry/Polar";
+    import * as Shapes from "geometry/Shape";
+    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes };
     /**
      * Triangle processing.
      *
      * Helpers for creating:
-     * - {@link Triangles.fromFlatArray}: Create from [x1, y1, x2, y2, x3, y3]
-     * - {@link Triangles.fromPoints}: Create from three {x,y} sets
+     * - {@link Triangles.fromFlatArray}: Create from `[ x1, y1, x2, y2, x3, y3 ]`
+     * - {@link Triangles.fromPoints}: Create from three `{ x, y }` sets
      * - {@link Triangles.fromRadius}: Equilateral triangle of a given radius and center
      */
     export * as Triangles from "geometry/Triangle";
@@ -6112,578 +4648,163 @@ declare module "geometry/index" {
      */
     export const radiansFromAxisX: (point: Points.Point) => number;
 }
-declare module "geometry/Point" {
-    import { Circles, Lines, Points, Rects } from "geometry/index";
-    /**
-     * A point, consisting of x, y and maybe z fields.
-     */
-    export type Point = {
-        readonly x: number;
-        readonly y: number;
-        readonly z?: number;
+declare module "flow/StateMachine" {
+    import { SimpleEventEmitter } from "Events";
+    export interface Options {
+        readonly debug?: boolean;
+    }
+    export interface StateChangeEvent {
+        readonly newState: string;
+        readonly priorState: string;
+    }
+    export interface StopEvent {
+        readonly state: string;
+    }
+    export type StateMachineEventMap = {
+        readonly change: StateChangeEvent;
+        readonly stop: StopEvent;
     };
+    export type StateEvent = (args: unknown, sender: StateMachine) => void;
+    export type StateHandler = string | StateEvent | null;
+    export interface State {
+        readonly [event: string]: StateHandler;
+    }
+    export interface MachineDescription {
+        readonly [key: string]: string | readonly string[] | null;
+    }
     /**
-     *
-     * @ignore
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const getPointParam: (a?: number | Points.Point | undefined, b?: number | undefined) => Point;
-    export const dotProduct: (...pts: readonly Point[]) => number;
-    /**
-     * An empty point of {x:0, y:0}
-     */
-    export const Empty: Readonly<{
-        x: number;
-        y: number;
-    }>;
-    export const Placeholder: Readonly<{
-        x: number;
-        y: number;
-    }>;
-    export const isEmpty: (p: Point) => boolean;
-    export const isPlaceholder: (p: Point) => boolean;
-    /**
-     * Returns the 'minimum' point from an array of points, using a comparison function.
-     *
-     * @example Find point closest to a coordinate
-     * ```js
-     * const points = [...];
-     * const center = {x: 100, y: 100};
-     *
-     * const closestToCenter = findMinimum((a, b) => {
-     *  const aDist = distance(a, center);
-     *  const bDist = distance(b, center);
-     *  if (aDistance < bDistance) return a;
-     *  return b;
-     * }, points);
-     * ```
-     * @param compareFn Compare function returns the smallest of `a` or `b`
-     * @param points
-     * @returns
-     */
-    export const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points: readonly Point[]) => Point;
-    export function distance(a: Point, b: Point): number;
-    export function distance(a: Point, x: number, y: number): number;
-    export function distance(a: Point): number;
-    /**
-     * Returns the distance from point `a` to the exterior of `shape`.
-     *
-     * @example Distance from point to rectangle
-     * ```
-     * const distance = distanceToExterior(
-     *  {x: 50, y: 50},
-     *  {x: 100, y: 100, width: 20, height: 20}
-     * );
-     * ```
-     *
-     * @example Find closest shape to point
-     * ```
-     * import {minIndex} from '../collections/arrays.js';
-     * const shapes = [ some shapes... ]; // Shapes to compare against
-     * const pt = { x: 10, y: 10 };       // Comparison point
-     * const distances = shapes.map(v => distanceToExterior(pt, v));
-     * const closest = shapes[minIndex(...distances)];
-     * ```
-     * @param a Point
-     * @param shape Point, or a positioned Rect or Circle.
-     * @returns
-     */
-    export const distanceToExterior: (a: Point, shape: PointCalculableShape) => number;
-    /**
-     * Returns the distance from point `a` to the center of `shape`.
-     * @param a Point
-     * @param shape Point, or a positioned Rect or Circle.
-     * @returns
-     */
-    export const distanceToCenter: (a: Point, shape: PointCalculableShape) => number;
-    export type PointCalculableShape = Lines.PolyLine | Lines.Line | Rects.RectPositioned | Point | Circles.CirclePositioned;
-    /**
-     * Throws an error if point is invalid
-     * @param p
-     * @param name
-     */
-    export const guard: (p: Point, name?: string) => void;
-    /**
-     * Throws if parameter is not a valid point, or either x or y is 0
-     * @param pt
-     * @returns
-     */
-    export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
-    /**
-     * Returns the angle in radians between `a` and `b`.
-     * Eg if `a` is the origin, and `b` is another point,
-     * in degrees one would get 0 to -180 when `b` was above `a`.
-     *  -180 would be `b` in line with `a`.
-     * Same for under `a`.
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const angleBetween: (a: Point, b: Point) => number;
-    /**
-     * Calculates the centroid of a set of points
-     *
-     * As per {@link https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points}
+     * Returns a machine description based on a list of strings. The final string is the final
+     * state.
      *
      * ```js
-     * // Find centroid of a list of points
-     * const c1 = centroid(p1, p2, p3, ...);
-     *
-     * // Find centroid of an array of points
-     * const c2 = centroid(...pointsArray);
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.create(states[0], descriptionFromList(states));
      * ```
-     * @param points
-     * @returns A single point
+     * @param states List of states
+     * @return MachineDescription
      */
-    export const centroid: (...points: readonly Point[]) => Point;
+    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
     /**
-     * Returns the minimum rectangle that can enclose all provided points
-     * @param points
-     * @returns
-     */
-    export const bbox: (...points: readonly Point[]) => Rects.RectPositioned;
-    /**
-     * Returns _true_ if the parameter has x and y fields
-     * @param p
-     * @returns
-     */
-    export const isPoint: (p: number | unknown) => p is Points.Point;
-    /**
-     * Returns point as an array in the form [x,y]. This can be useful for some libraries
-     * that expect points in array form.
-     *
-     * ```
-     * const p = {x: 10, y:5};
-     * const p2 = toArray(p); // yields [10,5]
-     * ```
-     * @param p
-     * @returns
-     */
-    export const toArray: (p: Point) => readonly number[];
-    /**
-     * Returns a human-friendly string representation `(x, y)`
-     * @param p
-     * @returns
-     */
-    export const toString: (p: Point) => string;
-    /**
-     * Returns _true_ if the points have identical values
+     * Returns a state machine based on a list of strings. The first string is used as the initial state,
+     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
      *
      * ```js
-     * const a = {x: 10, y: 10};
-     * const b = {x: 10, y: 10;};
-     * a === b        // False, because a and be are different objects
-     * isEqual(a, b)   // True, because a and b are same value
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.fromList(states);
      * ```
-     * @param a
-     * @param b
-     * @returns _True_ if points are equal
      */
-    export const isEqual: (...p: readonly Point[]) => boolean;
+    export const fromList: (...states: readonly string[]) => StateMachine;
     /**
-     * Returns true if two points are within a specified range.
-     * Provide a point for the range to set different x/y range, or pass a number
-     * to use the same range for both axis.
-     *
-     * @example
-     * ```js
-     * withinRange({x:100,y:100}, {x:101, y:101}, 1); // True
-     * withinRange({x:100,y:100}, {x:105, y:101}, {x:5, y:1}); // True
-     * withinRange({x:100,y:100}, {x:105, y:105}, {x:5, y:1}); // False - y axis too far
-     * ```
-     * @param a
-     * @param b
-     * @param maxRange
-     * @returns
+     * Creates a new state machine
+     * @param initial Initial state
+     * @param m Machine description
+     * @param opts Options
+     * @returns State machine instance
      */
-    export const withinRange: (a: Point, b: Point, maxRange: Point | number) => boolean;
+    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
     /**
-     * Returns a relative point between two points
-     * ```js
-     * interpolate(0.5, a, b); // Halfway point between a and b
-     * ```
+     * State machine
      *
-     * Alias for Lines.interpolate(amount, a, b);
+     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
+     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
+     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
      *
-     * @param amount Relative amount, 0-1
-     * @param a
-     * @param b
-     * @returns {@link Point}
-     */
-    export const interpolate: (amount: number, a: Point, b: Point) => Point;
-    /**
-     * Returns a point from two coordinates or an array of [x,y]
-     * @example
-     * ```js
-     * let p = from([10, 5]); // yields {x:10, y:5}
-     * let p = from(10, 5);   // yields {x:10, y:5}
-     * let p = from(10);      // yields {x:10, y:0} 0 is used for default y
-     * let p = from();        // yields {x:0, y:0}  0 used for default x & y
+     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
      * ```
-     * @param xOrArray
-     * @param [y]
-     * @returns Point
-     */
-    export const from: (xOrArray?: number | readonly number[] | undefined, y?: number | undefined) => Point;
-    /**
-     * Returns an array of points from an array of numbers.
-     *
-     * Array can be a continuous series of x, y values:
-     * ```
-     * [1,2,3,4] would yield: [{x:1, y:2}, {x:3, y:4}]
-     * ```
-     *
-     * Or it can be an array of arrays:
-     * ```
-     * [[1,2], [3,4]] would yield: [{x:1, y:2}, {x:3, y:4}]
-     * ```
-     * @param coords
-     * @returns
-     */
-    export const fromNumbers: (...coords: readonly ReadonlyArray<number>[] | readonly number[]) => readonly Point[];
-    /**
-     * Returns `a` minus `b`
-     *
-     * ie.
-     * ```js
-     * return {
-     *   x: a.x - b.x,
-     *   y: a.y - b.y
-     * };
-     * ```
-     * @param a Point a
-     * @param b Point b
-     * @returns Point
-     */
-    export function subtract(a: Point, b: Point): Point;
-    /**
-     * Returns `a` minus the given coordinates.
-     *
-     * ie:
-     * ```js
-     * return {
-     *  x: a.x - x,
-     *  y: a.y - y
+     * const description = {
+     *  sleep: 'wakeup',
+     *  wakeup: ['coffee', 'breakfast'],
+     *  coffee: `bike`,
+     *  breakfast: `bike`,
+     *  bike: null
      * }
      * ```
-     * @param a Point
-     * @param x X coordinate
-     * @param y Y coordinate
-     */
-    export function subtract(a: Point, x: number, y: number): Point;
-    /**
-     * Subtracts two sets of x,y pairs
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     */
-    export function subtract(x1: number, y1: number, x2: number, y2: number): Point;
-    /**
-     * Applies `fn` on `x` and `y` fields, returning all other fields as well
-     * ```js
-     * const p = {x:1.234, y:4.9};
-     * const p2 = apply(p, Math.round);
-     * // Yields: {x:1, y:5}
+     * Create the machine with the starting state (`sleep`)
+     * ```
+     * const machine = StateMachine.create(`sleep`, description);
      * ```
      *
-     * The name of the field is provided as well. Here we only round the `x` field:
+     * Change the state by name:
+     * ```
+     * machine.state = `wakeup`
+     * ```
      *
-     * ```js
-     * const p = {x:1.234, y:4.9};
-     * const p2 = apply(p, (v, field) => {
-     *  if (field === `x`) return Math.round(v);
-     *  return v;
+     * Or request an automatic transition (will use first state if there are several options)
+     * ```
+     * machine.next();
+     * ```
+     *
+     * Check status
+     * ```
+     * if (machine.state === `coffee`) ...;
+     * if (machine.isDone()) ...
+     * ```
+     *
+     * Listen for state changes
+     * ```
+     * machine.addEventListener(`change`, (evt) => {
+     *  const {priorState, newState} = evt;
+     *  console.log(`State change from ${priorState} -> ${newState}`);
      * });
-     * ```
-     * @param pt
-     * @param fn
-     * @returns
-     */
-    export const apply: (pt: Point, fn: (v: number, field?: string | undefined) => number) => Point;
-    /**
-     * Reduces over points, treating x,y separately.
-     *
-     * ```
-     * // Sum x and y valuse
-     * const total = reduce(points, (p, acc) => {
-     *  return {x: p.x + acc.x, y: p.y + acc.y}
-     * });
-     * ```
-     * @param pts Points to reduce
-     * @param fn Reducer
-     * @param initial Initial value, uses {x:0,y:0} by default
-     * @returns
-     */
-    export const reduce: (pts: readonly Point[], fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
-    type Sum = {
-        /**
-         * Adds two sets of coordinates
-         */
-        (aX: number, aY: number, bX: number, bY: number): Point;
-        /**
-         * Add x,y to a
-         */
-        (a: Point, x: number, y?: number): Point;
-        /**
-         * Add two points
-         */
-        (a: Point, b?: Point): Point;
-    };
-    /**
-     * Returns `a` plus `b`
-     * ie.
-     * ```js
-     * return {
-     *   x: a.x + b.x,
-     *   y: a.y + b.y
-     * };
-     * ```
-     */
-    export const sum: Sum;
-    /**
-     * Returns `a` multiplied by `b`
-     *
-     * ie.
-     * ```js
-     * return {
-     *  x: a.x * b.x,
-    *   y: a.y * b.y
-     * }
-     * ```
-     * @param a
-     * @param b
-     * @returns
-     */
-    export function multiply(a: Point, b: Point): Point;
-    /**
-     * Returns `a` multipled by some x and/or y scaling factor
-     *
-     * ie.
-     * ```js
-     * return {
-     *  x: a.x * x
-    *   y: a.y * y
-     * }
      * ```
      * @export
-     * @parama Point to scale
-     * @param x Scale factor for x axis
-     * @param [y] Scale factor for y axis (defaults to no scaling)
-     * @returns Scaled point
+     * @class StateMachine
+     * @extends {SimpleEventEmitter<StateMachineEventMap>}
      */
-    export function multiply(a: Point, x: number, y?: number): Point;
-    /**
-     * Divides a / b
-     * @param a
-     * @param b
-     */
-    export function divide(a: Point, b: Point): Point;
-    /**
-     * Divides a point by x,y.
-     * ie: a.x / x, b.y / y
-     * @param a Point
-     * @param x X divisor
-     * @param y Y divisor
-     */
-    export function divide(a: Point, x: number, y: number): Point;
-    export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
-    /**
-     * Simple convex hull impementation. Returns a set of points which
-     * enclose `pts`.
-     *
-     * For a more power, see something like [Hull.js](https://github.com/AndriiHeonia/hull)
-     * @param pts
-     * @returns
-     */
-    export const convexHull: (...pts: readonly Point[]) => readonly Point[];
-    /**
-     * Returns -1 if either x/y of a is less than b's x/y
-     * Returns 1 if either x/y of a is greater than b's x/y
-     * Returns 0 if x/y of a and b are equal
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const compare: (a: Point, b: Point) => number;
-    export const compareByX: (a: Point, b: Point) => number;
-    /**
-     * Rotate a single point by a given amount in radians
-     * @param pt
-     * @param amountRadian
-     * @param origin
-     */
-    export function rotate(pt: Point, amountRadian: number, origin?: Point): Point;
-    /**
-     * Rotate several points by a given amount in radians
-     * @param pt Points
-     * @param amountRadian Amount to rotate in radians
-     * @param origin Origin to rotate around. Defaults to 0,0
-     */
-    export function rotate(pt: ReadonlyArray<Point>, amountRadian: number, origin?: Point): ReadonlyArray<Point>;
-    export const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadian: number) => number[][];
-    /**
-     * Normalise point as a unit vector
-     *
-     * @param ptOrX
-     * @param y
-     * @returns
-     */
-    export const normalise: (ptOrX: Point | number, y?: number | undefined) => Point;
-    /**
-     * Normalises a point by a given width and height
-     * @param pt Point
-     * @param width Width
-     * @param height Height
-     */
-    export function normaliseByRect(pt: Point, width: number, height: number): Point;
-    export function normaliseByRect(pt: Point, rect: Rects.Rect): Point;
-    /**
-     * Normalises x,y by width and height so it is on a 0..1 scale
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     */
-    export function normaliseByRect(x: number, y: number, width: number, height: number): Point;
-    /**
-     * Wraps a point to be within `ptMin` and `ptMax`.
-     * Note that max values are _exclusive_, meaning the return value will always be one less.
-     *
-     * Eg, if a view port is 100x100 pixels, wrapping the point 150,100 yields 50,99.
-     *
-     * ```js
-     * // Wraps 150,100 to on 0,0 -100,100 range
-     * wrap({x:150,y:100}, {x:100,y:100});
-     * ```
-     *
-     * If `ptMin` is not specified, {x:0,y:0} is used.
-     * @param pt Point to wrap
-     * @param ptMax Maximum value
-     * @param ptMin Minimum value, or {x:0, y:0} by default
-     * @returns Wrapped point
-     */
-    export const wrap: (pt: Point, ptMax: Point, ptMin?: Point) => Point;
-    /**
-     * Clamps a point to be between `min` and `max` (0 & 1 by default)
-     * @param pt Point
-     * @param min Minimum value (0 by default)
-     * @param max Maximum value (1 by default)
-     */
-    export function clamp(pt: Point, min?: number, max?: number): Point;
-    /**
-     * Clamps an x,y pair to be between `min` and `max` (0 & 1 by default)
-     * @param x X coordinate
-     * @param y Y coordinate
-     * @param min Minimum value (0 by default)
-     * @param max Maximum value (1 by default)
-     */
-    export function clamp(x: number, y: number, min?: number, max?: number): Point;
-    export type PointRelation = (a: Point | number, b?: number) => {
-        readonly angle: number;
-        readonly distance: number;
-        readonly centroid: Point;
-    };
-    /**
-     * Tracks the relation between two points
-     *
-     * ```js
-     * // Start point: 50,50
-     * const t = track({x:50,y:50});
-     *
-     * // Compare to a 0,0
-     * const {angle, distance, centroid} = t({x:0,y:0});
-     * ```
-     *
-     * X,y coordinates can also be used as parameters:
-     * ```js
-     * const t = track(50, 50);
-     * const {angle, distance, centroid} = t(0, 0);
-     * ```
-     * @param start
-     * @returns
-     */
-    export const relation: (a: Point | number, b?: number | undefined) => PointRelation;
-}
-declare module "temporal/PointTracker" {
-    import * as Points from "geometry/Point";
-    import * as Line from "geometry/Line";
-    import { Timestamped, ObjectTracker, TrackedValueMap, Opts as TrackOpts } from "temporal/TrackedValue";
-    export type PointSeenInfo = {
-        readonly distance: number;
-        readonly centroid: Points.Point;
-        readonly angle: number;
-        readonly speed: number;
-        readonly values: readonly Points.Point[];
-    };
-    /**
-     * A tracked point
-     */
-    export class PointTracker extends ObjectTracker<Points.Point> {
-        readonly id: string;
-        readonly opts: TrackOpts;
-        relation: Points.PointRelation | undefined;
-        constructor(id: string, opts: TrackOpts);
-        get x(): number;
-        get y(): number;
-        onReset(): void;
+    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
+        #private;
         /**
-         * Tracks a point, returning information on the relation between it
-         * and the start point.
+         * Create a state machine with initial state, description and options
+         * @param string initial Initial state
+         * @param MachineDescription m Machine description
+         * @param Options Options for machine (defaults to `{debug:false}`)
+         * @memberof StateMachine
+         */
+        constructor(initial: string, m: MachineDescription, opts?: Options);
+        get states(): readonly string[];
+        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
+        /**
+         * Moves to the next state if possible. If multiple states are possible, it will use the first.
+         * If machine is finalised, no error is thrown and null is returned.
          *
-         * If multiple points are given, it's relation to the last point that is returned.
-         * @param p Point
+         * @returns {(string|null)} Returns new state, or null if machine is finalised
+         * @memberof StateMachine
          */
-        seen(...p: Points.Point[] | Timestamped<Points.Point>[]): PointSeenInfo;
+        next(): string | null;
         /**
-         * Returns a polyline representation of stored points.
-         * Returns an empty array if points were not saved, or there's only one.
-         */
-        get line(): Line.PolyLine;
-        /**
-         * Returns distance from latest point to initial point.
-         * If there are less than two points, zero is returned.
+         * Returns true if state machine is in its final state
+         *
          * @returns
+         * @memberof StateMachine
          */
-        distanceFromStart(): number;
+        get isDone(): boolean;
         /**
-         * Returns angle from latest point to the initial point
-         * If there are less than two points, undefined is return.
-         * @returns
+         * Resets machine to initial state
+         *
+         * @memberof StateMachine
          */
-        angleFromStart(): number | undefined;
+        reset(): void;
         /**
-         * Returns the total length of accumulated points.
-         * Returns 0 if points were not saved, or there's only one
+         * Checks whether a state change is valid.
+         *
+         * @static
+         * @param priorState From state
+         * @param newState To state
+         * @param description Machine description
+         * @returns If valid: [true,''], if invalid: [false, 'Error msg here']
+         * @memberof StateMachine
          */
-        get length(): number;
+        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
+        isValid(newState: string): readonly [boolean, string];
+        /**
+         * Gets or sets state. Throws an error if an invalid transition is attempted.
+         * Use `StateMachine.isValid` to check validity without changing.
+         *
+         * @memberof StateMachine
+         */
+        set state(newState: string);
+        get state(): string;
     }
-    export class TrackedPointMap extends TrackedValueMap<Points.Point> {
-        constructor(opts: TrackOpts);
-    }
-    /**
-     * Track several named points
-     * @param opts
-     * @returns
-     */
-    export const pointsTracker: (opts: TrackOpts) => TrackedPointMap;
-    /**
-     * Track a single point
-     * @param id
-     * @param opts
-     * @returns
-     */
-    export const pointTracker: (id?: string | undefined, opts?: TrackOpts) => PointTracker;
-}
-declare module "temporal/index" {
-    export * as Normalise from "temporal/Normalise";
-    export * from "temporal/FrequencyMutable";
-    export * from "temporal/MovingAverage";
-    export { numberTracker } from "temporal/NumberTracker";
-    export { intervalTracker } from "temporal/IntervalTracker";
-    export { pointTracker, pointsTracker } from "temporal/PointTracker";
 }
 declare module "io/Codec" {
     /**
@@ -6707,6 +4828,9 @@ declare module "io/Codec" {
     }
 }
 declare module "io/StringReceiveBuffer" {
+    /**
+     * Receives text
+     */
     export class StringReceiveBuffer {
         private onData;
         separator: string;
@@ -6719,6 +4843,605 @@ declare module "io/StringReceiveBuffer" {
         addImpl(str: string): string;
         add(str: string): void;
     }
+}
+declare module "flow/Sleep" {
+    /**
+     * Returns after `timeoutMs`.
+     *
+     * @example In an async function
+     * ```js
+     * console.log(`Hello`);
+     * await sleep(1000);
+     * console.log(`There`); // Prints one second after
+     * ```
+     *
+     * @example As a promise
+     * ```js
+     * console.log(`Hello`);
+     * sleep(1000)
+     *  .then(() => console.log(`There`)); // Prints one second after
+     * ```
+     *
+     * If a timeout of 0 is given, `requestAnimationFrame` is used instead of `setTimeout`.
+     *
+     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
+     *
+     * @param timeoutMs
+     * @return
+     */
+    export const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V | undefined>;
+}
+declare module "flow/Timer" {
+    import { HasCompletion } from "flow/index";
+    /**
+     * Creates a timer
+     */
+    export type TimerSource = () => Timer;
+    /**
+     * A timer instance
+     */
+    export type Timer = {
+        reset(): void;
+        get elapsed(): number;
+    };
+    export type ModTimer = Timer & {
+        mod(amt: number): void;
+    };
+    export const frequencyTimerSource: (frequency: number) => TimerSource;
+    /**
+     * Wraps a timer, returning a relative elapsed value.
+     *
+     * ```js
+     * let t = relativeTimer(1000, msElapsedTimer());
+     * ```
+     *
+     * @private
+     * @param total
+     * @param timer
+     * @param clampValue If true, returned value never exceeds 1.0
+     * @returns
+     */
+    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
+    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
+    /**
+     * A timer that uses clock time
+     * @private
+     * @returns {Timer}
+     */
+    export const msElapsedTimer: () => Timer;
+    /**
+     * A timer that progresses with each call
+     * @private
+     * @returns {Timer}
+     */
+    export const ticksElapsedTimer: () => Timer;
+}
+declare module "flow/Interval" {
+    export type IntervalAsync<V> = (() => V | Promise<V>) | Generator<V>;
+    /**
+     * Generates values from `produce` with `intervalMs` time delay.
+     * `produce` can be a simple function that returns a value, an async function, or a generator.
+     *
+     * @example Produce a random number every 500ms:
+     * ```
+     * const randomGenerator = interval(() => Math.random(), 1000);
+     * for await (const r of randomGenerator) {
+     *  // Random value every 1 second
+     *  // Warning: does not end by itself, a `break` statement is needed
+     * }
+     * ```
+     *
+     * @example Return values from a generator every 500ms:
+     * ```js
+     * // Make a generator that counts to 10
+     * const counter = count(10);
+     * for await (const v of interval(counter, 1000)) {
+     *  // Do something with `v`
+     * }
+     * ```
+     *
+     * If you just want to loop at a certain speed, consider using {@link continuously} instead.
+     * @template V Returns value of `produce` function
+     * @param intervalMs Interval between execution
+     * @param produce Function to call
+     * @template V Data type
+     * @returns
+     */
+    export const interval: <V>(produce: IntervalAsync<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
+}
+declare module "flow/Timeout" {
+    import { HasCompletion } from "flow/index";
+    export type TimeoutSyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => void;
+    export type TimeoutAsyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => Promise<void>;
+    /**
+     * A resettable timeout, returned by {@link timeout}
+     */
+    export type Timeout = HasCompletion & {
+        start(altTimeoutMs?: number, args?: readonly unknown[]): void;
+        cancel(): void;
+        get isDone(): boolean;
+    };
+    /**
+     * Returns a {@link Timeout} that can be triggered, cancelled and reset
+     *
+     * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
+     * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
+     *
+     * @example Essential functionality
+     * ```js
+     * const fn = () => {
+     *  console.log(`Executed`);
+     * };
+     * const t = timeout(fn, 60*1000);
+     * t.start();   // After 1 minute `fn` will run, printing to the console
+     * ```
+     *
+     * @example Control execution functionality
+     * ```
+     * t.cancel();  // Cancel it from running
+     * t.start();   // Schedule again after 1 minute
+     * t.start(30*1000); // Cancel that, and now scheduled after 30s
+     * t.isDone;    // True if a scheduled event is pending
+     * ```
+     *
+     * Callback function receives any additional parameters passed in from start.
+     * This can be useful for passing through event data:
+     *
+     * @example
+     * ```js
+     * const t = timeout( (elapsedMs, ...args) => {
+     *  // args contains event data
+     * }, 1000);
+     * el.addEventListener(`click`, t.start);
+     * ```
+     *
+     * Asynchronous callbacks can be used as well:
+     * ```js
+     * timeout(async () => {...}, 100);
+     * ```
+     *
+     * If you don't expect to need to control the timeout, consider using {@link delay},
+     * which can run a given function after a specified delay.
+     * @param callback
+     * @param timeoutMs
+     * @returns {@link Timeout}
+     */
+    export const timeout: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => Timeout;
+}
+declare module "flow/UpdateOutdated" {
+    export type UpdateFailPolicy = `fast` | `slow` | `backoff`;
+    /**
+     * Calls the async `fn` to generate a value if there is no prior value or
+     * `intervalMs` has elapsed since value was last generated.
+     * @example
+     * ```js
+     * const f = updateOutdated(async () => {
+     *  const r = await fetch(`blah`);
+     *  return await r.json();
+     * }, 60*1000);
+     *
+     * // Result will be JSON from fetch. If fetch happened already in the
+     * // last 60s, return cached result. Otherwise it will fetch data
+     * const result = await f();
+     * ```
+     *
+     * Callback `fn` is passed how many milliseconds have elapsed since last update. It's
+     * minimum value will be `intervalMs`.
+     *
+     * ```js
+     * const f = updateOutdated(async elapsedMs => {
+     *  // Do something with elapsedMs?
+     * }, 60*1000;
+     * ```
+     *
+     * There are different policies for what to happen if `fn` fails. `slow` is the default.
+     * * `fast`: Invocation will happen immediately on next attempt
+     * * `slow`: Next invocation will wait `intervalMs` as if it was successful
+     * * `backoff`: Attempts will get slower and slower until next success. Interval is multipled by 1.2 each time.
+     *
+     * @param fn Async function to call. Must return a value.
+     * @param intervalMs Maximum age of cached result
+     * @param updateFail `slow` by default
+     * @returns Value
+     */
+    export const updateOutdated: <V>(fn: (elapsedMs?: number) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
+}
+declare module "flow/Continuously" {
+    import { HasCompletion } from "flow/index";
+    /**
+     * Runs a function continuously, returned by {@link Continuously}
+     */
+    export type Continuously = HasCompletion & {
+        /**
+         * Starts loop. If already running, it is reset
+         */
+        start(): void;
+        /**
+         * How many milliseconds since start() was last called
+         */
+        get elapsedMs(): number;
+        /**
+         * How many iterations of the loop since start() was last called
+         */
+        get ticks(): number;
+        /**
+         * Whether loop has finished
+         */
+        get isDone(): boolean;
+        /**
+         * Stops loop
+         */
+        cancel(): void;
+    };
+    export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
+    export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
+    /**
+     * Returns a {@link Continuously} that continuously executes `callback`.
+     * If callback returns _false_, loop exits.
+     *
+     * Call `start` to begin/reset loop. `cancel` stops loop.
+     *
+     * @example Animation loop
+     * ```js
+     * const draw = () => {
+     *  // Draw on canvas
+     * }
+     *
+     * // Run draw() synchronised with monitor refresh rate via `window.requestAnimationFrame`
+     * continuously(draw).start();
+     * ```
+     *
+     * @example With delay
+     * ```js
+     * const fn = () => {
+     *  console.log(`1 minute`);
+     * }
+     * const c = continuously(fn, 60*1000);
+     * c.start(); // Runs `fn` every minute
+     * ```
+     *
+     * @example Control a 'continuously'
+     * ```js
+     * c.cancel();   // Stop the loop, cancelling any up-coming calls to `fn`
+     * c.elapsedMs;  // How many milliseconds have elapsed since start
+     * c.ticks;      // How many iterations of loop since start
+     * ```
+     *
+     * Asynchronous callback functions are supported too:
+     * ```js
+     * continuously(async () => { ..});
+     * ```
+     *
+     * The `callback` function can receive a few arguments:
+     * ```js
+     * continuously( (ticks, elapsedMs) => {
+     *  // ticks: how many times loop has run
+     *  // elapsedMs:  how long since last loop
+     * }).start();
+     * ```
+     *
+     * And if `callback` explicitly returns _false_, the loop will exit:
+     * ```js
+     * continuously((ticks) => {
+     *  // Stop after 100 iterations
+     *  if (ticks > 100) return false;
+     * }).start();
+     * ```
+     * @param callback Function to run. If it returns false, loop exits.
+     * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
+     * @param intervalMs
+     * @returns
+     */
+    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number, resetCallback?: ((ticks?: number, elapsedMs?: number) => boolean | void) | undefined) => Continuously;
+}
+declare module "flow/Debounce" {
+    import { TimeoutSyncCallback, TimeoutAsyncCallback } from "flow/Timeout";
+    /**
+     * Returns a debounce function which acts to filter calls to a given function `fn`.
+     *
+     * Eg, Let's create a debounced wrapped for a function:
+     * ```js
+     * const fn = () => console.log('Hello');
+     * const debouncedFn = debounce(fn, 1000);
+     * ```
+     *
+     * Now we can call `debouncedFn()` as often as we like, but it will only execute
+     * `fn()` after 1 second has elapsed since the last invocation. It essentially filters
+     * many calls to fewer calls. Each time `debounceFn()` is called, the timeout is
+     * reset, so potentially `fn` could never be called if the rate of `debounceFn` being called
+     * is faster than the provided timeout.
+     *
+     * Remember that to benefit from `debounce`, you must call the debounced wrapper, not the original function.
+     *
+     * ```js
+     * // Create
+     * const d = debounce(fn, 1000);
+     *
+     * // Don't do this if we want to benefit from the debounce
+     * fn();
+     *
+     * // Use the debounced wrapper
+     * d(); // Only calls fn after 1000s
+     * ```
+     *
+     * A practical use for this is handling high-frequency streams of data, where we don't really
+     * care about processing every event, only last event after a period. Debouncing is commonly
+     * used on microcontrollers to prevent button presses being counted twice.
+     *
+     * @example Handle most recent pointermove event after 1000ms
+     * ```js
+     * // Set up debounced handler
+     * const moveDebounced = debounce((elapsedMs, evt) => {
+     *    // Handle event
+     * }, 500);
+     *
+     * // Wire up event
+     * el.addEventListener(`pointermove`, moveDebounced);
+     * ```
+     *
+     * Arguments can be passed to the debounced function:
+     *
+     * ```js
+     * const fn = (x) => console.log(x);
+     * const d = debounce(fn, 1000);
+     * d(10);
+     * ```
+     *
+     * If the provided function is asynchronous, it's possible to await the debounced
+     * version as well. If the invocation was filtered, it returns instantly.
+     *
+     * ```js
+     * const d = debounce(fn, 1000);
+     * await d();
+     * ```
+     * @param callback Function to filter access to
+     * @param timeoutMs Minimum time between invocations
+     * @returns Debounce function
+     */
+    export const debounce: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => DebouncedFunction;
+    /**
+     * Debounced function
+     */
+    export type DebouncedFunction = (...args: readonly unknown[]) => void;
+}
+declare module "flow/Throttle" {
+    /***
+     * Throttles a function. Callback only allowed to run after minimum of `intervalMinMs`.
+     *
+     * @example Only handle move event every 500ms
+     * ```js
+     * const moveThrottled = throttle( (elapsedMs, args) => {
+     *  // Handle ar
+     * }, 500);
+     * el.addEventListener(`pointermove`, moveThrottled)
+     * ```
+     *
+     * Note that `throttle` does not schedule invocations, but rather acts as a filter that
+     * sometimes allows follow-through to `callback`, sometimes not. There is an expectation then
+     * that the return function from `throttle` is repeatedly called, such as the case for handling
+     * a stream of data/events.
+     *
+     * @example Manual trigger
+     * ```js
+     * // Set up once
+     * const t = throttle( (elapsedMs, args) => { ... }, 5000);
+     *
+     * // Later, trigger throttle. Sometimes the callback will run,
+     * // with data passed in to args[0]
+     * t(data);
+     * ```
+     */
+    export const throttle: (callback: (elapsedMs: number, ...args: readonly unknown[]) => void | Promise<unknown>, intervalMinMs: number) => (...args: unknown[]) => Promise<void>;
+}
+declare module "flow/WaitFor" {
+    /**
+     * Helper function for calling code that should fail after a timeout.
+     * In short, it allows you to signal when the function succeeded, to cancel it, or
+     * to be notified if it was canceled or completes.
+     *
+     *
+     * @example Verbose example
+     * ```js
+     * // This function is called by `waitFor` if it was cancelled
+     * const onAborted = (reason:string) => {
+     *  // 'reason' is a string describing why it has aborted.
+     *  // ie: due to timeout or because done() was called with an error
+     * };
+     *
+     * // This function is called by `waitFor` if it completed
+     * const onComplete = (success:boolean) => {
+     *  // Called if we were aborted or finished succesfully.
+     *  // onComplete will be called after onAborted, if it was an error case
+     * }
+     *
+     * // If done() is not called after 1000, onAborted will be called
+     * // if done() is called or there was a timeout, onComplete is called
+     * const done = waitFor(1000, onAborted, onComplete);
+     *
+     * // Signal completed successfully (thus calling onComplete(true))
+     * done();
+     *
+     * // Signal there was an error (thus calling onAborted and onComplete(false))
+     * done(`Some error`);
+     * ```
+     *
+     * The completion handler is useful for removing event handlers.
+     *
+     * @example Compact example
+     * ```js
+     * const done = waitFor(1000,
+     *  (reason) => {
+     *    console.log(`Aborted: ${reason}`);
+     *  },
+     *  (success) => {
+     *    console.log(`Completed. Success: ${success ?? `Yes!` : `No`}`)
+     *  });
+     *
+     * try {
+     *  runSomethingThatMightScrewUp();
+     *  done(); // Signal it succeeded
+     * } catch (e) {
+     *  done(e); // Signal there was an error
+     * }
+     * ```
+     * @param timeoutMs
+     * @param onAborted
+     * @param onComplete
+     * @returns
+     */
+    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string) => void;
+}
+declare module "flow/Delay" {
+    /**
+     * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
+     *
+     * @example Pause and wait for function
+     * ```js
+     * const result = await delay(async () => Math.random(), 1000);
+     * console.log(result); // Prints out result after one second
+     * ```
+     *
+     * If `await` is omitted, the function will run after the provided timeout, and code will continue to run.
+     *
+     * @example Schedule a function without waiting
+     * ```js
+     * delay(async () => {
+     *  console.log(Math.random())
+     * }, 1000);
+     * // Prints out a random number after 1 second.
+     * ```
+     *
+     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
+     *
+     *
+     * If you want to be able to cancel or re-run a delayed function, consider using
+     * {@link timeout} instead.
+     *
+     * @template V
+     * @param callback What to run after `timeoutMs`
+     * @param timeoutMs How long to delay
+     * @return Returns result of `callback`.
+     */
+    export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
+    /**
+     * Async generator that loops at a given `timeoutMs`.
+     *
+     * @example Loop runs every second
+     * ```
+     * // Loop forever
+     * (async () => {
+     *  const loop = delayLoop(1000);
+     *  while (true) {
+     *    await loop.next();
+     *
+     *    // Do something...
+     *    // Warning: loops forever
+     *  }
+     * })();
+     * ```
+     *
+     * @example For Await loop every second
+     * ```
+     * const loop = delayLoop(1000);
+     * for await (const o of loop) {
+     *  // Do something...
+     *  // Warning: loops forever
+     * }
+     * ```
+     * @param timeoutMs Delay. If 0 is given, `requestAnimationFrame` is used over `setTimeout`.
+     */
+    export function delayLoop(timeoutMs: number): AsyncGenerator<undefined, void, unknown>;
+}
+declare module "flow/index" {
+    import * as StateMachine from "flow/StateMachine";
+    export { StateMachine };
+    export * from "flow/Timer";
+    export * from "flow/Interval";
+    export * from "flow/Timeout";
+    export * from "flow/UpdateOutdated";
+    export * from "flow/Continuously";
+    export * from "flow/Debounce";
+    export * from "flow/Throttle";
+    export * from "flow/Sleep";
+    export * from "flow/WaitFor";
+    export * from "flow/Delay";
+    export type HasCompletion = {
+        get isDone(): boolean;
+    };
+    /**
+     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
+     * If `fn` returns _false_, iterator cancels.
+     *
+     * Over the default JS `forEach` function, this one allows you to exit the
+     * iteration early.
+     *
+     * @example
+     * ```js
+     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
+     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
+     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
+     * ```
+     *
+     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
+     * @param iterator Iterable or array
+     * @typeParam V Type of iterable
+     * @param fn Function to call for each item. If function returns _false_, iteration cancels
+     */
+    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
+    /**
+     * Iterates over an async iterable or array, calling `fn` for each value, with optional
+     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
+     *
+     * Use {@link forEach} for a synchronous version.
+     *
+     * ```
+     * // Prints items from array every second
+     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
+     * ```
+     *
+     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
+     * ```
+     * await forEachAsync(count(5), i=> {
+     *  try {
+     *    await doSomething();
+     *    return false; // Succeeded, exit early
+     *  } catch (ex) {
+     *    console.log(ex);
+     *    return true; // Keep trying
+     *  }
+     * }, 5000);
+     * ```
+     * @param iterator Iterable thing to loop over
+     * @param fn Function to invoke on each item. If it returns _false_ loop ends.
+     * @typeParam V Type of iterable
+     */
+    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number) => Promise<void>;
+    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
+    /**
+     * Runs `fn` a certain number of times, accumulating result into an array.
+     * If `fn` returns undefined, the result is ignored.
+     *
+     * ```js
+     * // Results will be an array with five random numbers
+     * const results = repeat(5, () => Math.random());
+     * ```
+     *
+     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
+     * that gives _false_ when repeating should stop.
+     *
+     * ```js
+     * // Keep running `fn` until we've accumulated 10 values
+     * // Useful if `fn` sometimes returns _undefined_
+     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
+     * ```
+     *
+     * If you don't need to accumulate return values, consider {@link Generators.count | Generators.count} with {@link Flow.forEach | Flow.forEach}.
+     *
+     * @param countOrPredicate Number of repeats or function returning false when to stop
+     * @param fn Function to run, must return a value to accumulate into array or _undefined_
+     * @returns Array of accumulated results
+     */
+    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
 }
 declare module "io/StringWriteBuffer" {
     import { QueueMutable } from "collections/index";
@@ -6738,6 +5461,30 @@ declare module "io/StringWriteBuffer" {
         onWrite(): Promise<boolean>;
         add(str: string): void;
     }
+}
+declare module "flow/Retry" {
+    export type CancelToken = {
+        readonly cancel: boolean;
+    };
+    /**
+     * Keeps executing `calback` until it runs without an exception being thrown.
+     *
+     * ```
+     * // Retry up to five times, starting at 200ms delay
+     * await retry(async () => {
+     *  // Do something, sometimes throwing an error
+     * }, 5, 200);
+     * ```
+     *
+     * Each loop will run at twice the duration of the last, beginning at `startingTimeoutMs`.
+     *
+     * @param callback Async code to run
+     * @param attempts Number of times to try
+     * @param startingTimeoutMs Time to sleep for first iteration
+     * @param cancelToken If provided, this is checked before and after each sleep to see if retry should continue. If cancelled, promise will be rejected
+     * @returns
+     */
+    export const retry: <V>(callback: () => Promise<V>, attempts?: number, startingTimeoutMs?: number, cancelToken?: CancelToken) => Promise<V>;
 }
 declare module "io/EspruinoBleDevice" {
     import { EvalOpts, Options } from "io/Espruino";
@@ -6833,20 +5580,50 @@ declare module "io/JsonDevice" {
     import { Codec } from "io/Codec";
     import { StringReceiveBuffer } from "io/StringReceiveBuffer";
     import { StringWriteBuffer } from "io/StringWriteBuffer";
-    export type Opts = {
+    /**
+     * Options for JsonDevice
+     */
+    export type JsonDeviceOpts = {
+        /**
+         * How much data to transfer at a time
+         */
         readonly chunkSize?: number;
+        /**
+         * Name of device. This is only used for assisting the console.log output
+         */
         readonly name?: string;
+        /**
+         * Number of times to automatically try to reconnect
+         */
         readonly connectAttempts?: number;
+        /**
+         * If true, additional logging will be done
+         */
         readonly debug?: boolean;
     };
-    export type DataEvent = {
+    /**
+     * Data received event
+     */
+    export type JsonDataEvent = {
+        /**
+         * Data received
+         */
         readonly data: string;
     };
-    type Events = {
-        readonly data: DataEvent;
+    /**
+     * Events emitted by JsonDevice
+     */
+    export type JsonDeviceEvents = {
+        /**
+         * Data received
+         */
+        readonly data: JsonDataEvent;
+        /**
+         * State changed
+         */
         readonly change: StateChangeEvent;
     };
-    export abstract class JsonDevice extends SimpleEventEmitter<Events> {
+    export abstract class JsonDevice extends SimpleEventEmitter<JsonDeviceEvents> {
         states: StateMachine;
         codec: Codec;
         verboseLogging: boolean;
@@ -6855,7 +5632,7 @@ declare module "io/JsonDevice" {
         chunkSize: number;
         rxBuffer: StringReceiveBuffer;
         txBuffer: StringWriteBuffer;
-        constructor(config?: Opts);
+        constructor(config?: JsonDeviceOpts);
         get isConnected(): boolean;
         get isClosed(): boolean;
         write(txt: string): void;
@@ -6882,8 +5659,9 @@ declare module "io/JsonDevice" {
     }
 }
 declare module "io/Serial" {
-    import { JsonDevice, Opts as JsonDeviceOpts } from "io/JsonDevice";
-    export type Opts = JsonDeviceOpts & {
+    import { JsonDevice, JsonDeviceOpts, JsonDeviceEvents, JsonDataEvent } from "io/JsonDevice";
+    export { JsonDeviceEvents, JsonDeviceOpts, JsonDataEvent };
+    export type SerialOpts = JsonDeviceOpts & {
         readonly filters?: ReadonlyArray<SerialPortFilter>;
         readonly baudRate?: number;
     };
@@ -6925,7 +5703,7 @@ declare module "io/Serial" {
         port: SerialPort | undefined;
         tx: WritableStreamDefaultWriter<string> | undefined;
         baudRate: number;
-        constructor(config?: Opts);
+        constructor(config?: SerialOpts);
         /**
          * Writes text collected in buffer
          * @param txt
@@ -6938,14 +5716,14 @@ declare module "io/Serial" {
 }
 declare module "io/EspruinoSerialDevice" {
     import { EvalOpts } from "io/Espruino";
-    import { Device as SerialDevice, Opts as SerialOpts } from "io/Serial";
-    export type Opts = SerialOpts & {
+    import { Device as SerialDevice, SerialOpts } from "io/Serial";
+    export type EspruinoSerialDeviceOpts = SerialOpts & {
         readonly evalTimeoutMs?: number;
     };
     export class EspruinoSerialDevice extends SerialDevice {
         evalTimeoutMs: number;
         evalReplyBluetooth: boolean;
-        constructor(opts?: Opts);
+        constructor(opts?: EspruinoSerialDeviceOpts);
         /**
          * Writes a script to Espruino.
          *
@@ -6996,7 +5774,8 @@ declare module "io/Espruino" {
     import { EspruinoBleDevice } from "io/EspruinoBleDevice";
     import { StateChangeEvent } from "flow/StateMachine";
     import { ISimpleEventEmitter } from "Events";
-    import { EspruinoSerialDevice } from "io/EspruinoSerialDevice";
+    import { EspruinoSerialDevice, EspruinoSerialDeviceOpts } from "io/EspruinoSerialDevice";
+    export { EspruinoBleDevice, EspruinoSerialDevice, EspruinoSerialDeviceOpts };
     export type DataEvent = {
         readonly data: string;
     };
@@ -7036,7 +5815,7 @@ declare module "io/Espruino" {
         readonly assumeExclusive?: boolean;
     };
     /**
-     * @inheritdoc EspruinoBleDevice
+     * Instantiates a Puck.js. See {@link EspruinoBleDevice} for more info.
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
     export const puck: (opts?: {
@@ -7044,7 +5823,7 @@ declare module "io/Espruino" {
         readonly debug?: boolean;
     }) => Promise<EspruinoBleDevice>;
     /**
-     * @inheritdoc EspruinoSerialDevice
+     * Create a serial-connected Espruino device. See {@link EspruinoSerialDevice} for more info.
      * @param opts
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
@@ -7054,7 +5833,8 @@ declare module "io/Espruino" {
         readonly evalTimeoutMs?: number;
     }) => Promise<EspruinoSerialDevice>;
     /**
-     * @inheritdoc EspruinoDevice
+     * Connects to a generic Espruino BLE device. See  {@link EspruinoBleDevice} for more info.
+     * Use {@link puck} if you're connecting to a Puck.js
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
     export const connectBle: () => Promise<EspruinoBleDevice>;
@@ -7115,7 +5895,7 @@ declare module "io/NordicBleDevice" {
         connectAttempts: number;
         debug: boolean;
     };
-    type Opts = {
+    export type Opts = {
         readonly chunkSize?: number;
         readonly name?: string;
         readonly connectAttempts?: number;
@@ -7124,6 +5904,244 @@ declare module "io/NordicBleDevice" {
     export class NordicBleDevice extends BleDevice {
         constructor(device: BluetoothDevice, opts?: Opts);
     }
+}
+declare module "data/TrackedValue" {
+    import { GetOrGenerate } from "collections/Map";
+    export type Timestamped<V> = V & {
+        readonly at: number;
+    };
+    /**
+     * Options
+     */
+    export type TrackedValueOpts = {
+        /**
+         * If true, intermediate points are stored. False by default
+         */
+        readonly storeIntermediate?: boolean;
+        /**
+         * If above zero, tracker will reset after this many samples
+         */
+        readonly resetAfterSamples?: number;
+    };
+    export abstract class TrackerBase<V> {
+        readonly id: string;
+        /**
+         * @ignore
+         */
+        seenCount: number;
+        /**
+        * @ignore
+        */
+        protected storeIntermediate: boolean;
+        /**
+        * @ignore
+        */
+        protected resetAfterSamples: number;
+        constructor(id: string, opts?: TrackedValueOpts);
+        /**
+         * Reset tracker
+         */
+        reset(): void;
+        seen(...p: V[]): any;
+        /**
+         * @ignore
+         * @param p
+         */
+        abstract seenImpl(p: V[]): V[];
+        abstract get last(): V | undefined;
+        /**
+         * Returns the initial value, or undefined
+         */
+        abstract get initial(): V | undefined;
+        /**
+         * Returns the elapsed milliseconds since the initial value
+         */
+        abstract get elapsed(): number;
+        /**
+         * @ignore
+         */
+        onSeen(_p: V[]): void;
+        /**
+         * @ignore
+         */
+        abstract onReset(): void;
+    }
+    export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
+        values: V[];
+        timestamps: number[];
+        constructor(id: string, opts: TrackedValueOpts);
+        get last(): V | undefined;
+        get initial(): V | undefined;
+        /**
+       * Returns number of recorded values (this can include the initial value)
+       */
+        get size(): number;
+        /**
+         * Returns the elapsed time, in milliseconds since the instance was created
+         */
+        get elapsed(): number;
+        onReset(): void;
+        /**
+         * Tracks a value
+         */
+        seenImpl(p: V[]): V[];
+    }
+    /**
+     * A tracked value of type `V`.
+     */
+    export class ObjectTracker<V> extends TrackerBase<V> {
+        values: Timestamped<V>[];
+        constructor(id: string, opts: TrackedValueOpts);
+        /**
+         * Allows sub-classes to be notified when a reset happens
+         * @ignore
+         */
+        onReset(): void;
+        /**
+         * Tracks a value
+         * @ignore
+         */
+        seenImpl(p: V[] | Timestamped<V>[]): Timestamped<V>[];
+        /**
+         * Last seen value. If no values have been added, it will return the initial value
+         */
+        get last(): Timestamped<V>;
+        /**
+         * Returns the initial value
+         */
+        get initial(): Timestamped<V> | undefined;
+        /**
+         * Returns number of recorded values (includes the initial value in the count)
+         */
+        get size(): number;
+        /**
+         * Returns the elapsed time, in milliseconds since the initial value
+         */
+        get elapsed(): number;
+    }
+    export class TrackedValueMap<V> {
+        store: Map<string, TrackerBase<V>>;
+        gog: GetOrGenerate<string, TrackerBase<V>, V>;
+        constructor(creator: (key: string, start: V | undefined) => TrackerBase<V>);
+        /**
+         * Return number of named points being tracked
+         */
+        get size(): number;
+        /**
+         * Returns true if `id` is stored
+         * @param id
+         * @returns
+         */
+        has(id: string): boolean;
+        /**
+         * For a given id, note that we have seen one or more values.
+         * @param id Id
+         * @param values Values(s)
+         * @returns Information about start to last value
+         */
+        seen(id: string, ...values: V[]): Promise<any>;
+        /**
+         * Creates or returns a TrackedValue instance for `id`.
+         * @param id
+         * @param values
+         * @returns
+         */
+        protected getTrackedValue(id: string, ...values: V[]): Promise<TrackerBase<V>>;
+        /**
+         * Remove a tracked value by id.
+         * Use {@link reset} to clear them all.
+         * @param id
+         */
+        delete(id: string): void;
+        /**
+         * Remove all tracked values.
+         * Use {@link delete} to remove a single value by id.
+         */
+        reset(): void;
+        /**
+         * Enumerate ids
+         */
+        ids(): Generator<string, void, undefined>;
+        /**
+         * Enumerate tracked values
+         */
+        values(): Generator<TrackerBase<V>, void, undefined>;
+        /**
+         * Returns TrackedValues ordered with oldest first
+         * @returns
+         */
+        trackedByAge(): readonly TrackerBase<V>[];
+        valuesByAge(): readonly V[];
+        /**
+         * Enumerate last received values
+         *
+         * @example Calculate centroid of latest-received values
+         * ```js
+         * const pointers = pointTracker();
+         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
+         * ```
+         */
+        last(): Generator<V | undefined, void, unknown>;
+        /**
+         * Enumerate starting values
+         */
+        initialValues(): Generator<V | undefined, void, unknown>;
+        /**
+         * Returns a tracked value by id, or undefined if not found
+         * @param id
+         * @returns
+         */
+        get(id: string): TrackerBase<V> | undefined;
+    }
+}
+declare module "data/NumberTracker" {
+    import { TrackedValueOpts as TrackOpts, Timestamped, PrimitiveTracker } from "data/TrackedValue";
+    export class NumberTracker extends PrimitiveTracker<number> {
+        total: number;
+        min: number;
+        max: number;
+        get avg(): number;
+        /**
+         * Difference between last value and initial.
+         * Eg. if last value was 10 and initial value was 5, 5 is returned (10 - 5)
+         * If either of those is missing, undefined is returned
+         */
+        difference(): number | undefined;
+        /**
+         * Relative difference between last value and initial.
+         * Eg if last value was 10 and initial value was 5, 2 is returned (200%)
+         */
+        relativeDifference(): number | undefined;
+        onReset(): void;
+        onSeen(values: Timestamped<number>[]): void;
+        getMinMaxAvg(): {
+            min: number;
+            max: number;
+            avg: number;
+        };
+    }
+    /**
+     * Keeps track of the min, max and avg in a stream of values without actually storing them.
+     *
+     * Usage:
+     *
+     * ```js
+     *  const t = numberTracker();
+     *  t.seen(10);
+     *
+     *  t.avg / t.min/ t.max / t.getMinMax()
+     * ```
+     *
+     * Use `reset()` to clear everything, or `resetAvg()` to only reset averaging calculation.
+     *
+     * Trackers can automatically reset after a given number of samples
+     * ```
+     * // reset after 100 samples
+     * const t = numberTracker(`something`, 100);
+     * ```
+     * @class NumberTracker
+     */
+    export const numberTracker: (id?: string, opts?: TrackOpts) => NumberTracker;
 }
 declare module "io/AudioVisualiser" {
     import { Points } from "geometry/index";
@@ -7137,8 +6155,8 @@ declare module "io/AudioVisualiser" {
         pointerClicking: boolean;
         pointerClickDelayMs: number;
         pointerDelaying: boolean;
-        waveTracker: import("temporal/NumberTracker").NumberTracker;
-        freqTracker: import("temporal/NumberTracker").NumberTracker;
+        waveTracker: import("data/NumberTracker").NumberTracker;
+        freqTracker: import("data/NumberTracker").NumberTracker;
         el: HTMLElement;
         constructor(parentElem: HTMLElement, audio: AudioAnalyser);
         renderFreq(freq: readonly number[]): void;
@@ -7348,7 +6366,7 @@ declare module "io/Camera" {
      * Be sure to call the dispose() function to stop the video stream and remove the created VIDEO element.
      *
      * @param constraints
-     * @returns Returns {videoEl,dispose}, where videoEl is the created VIDEO element, and dispose is a function for removing the element and stopping the video.
+     * @returns Returns `{ videoEl, dispose }`, where `videoEl` is the created VIDEO element, and `dispose` is a function for removing the element and stopping the video.
      */
     export const start: (constraints?: Constraints) => Promise<StartResult | undefined>;
 }
@@ -7359,12 +6377,15 @@ declare module "io/index" {
     export * as Bluetooth from "io/NordicBleDevice";
     export * as AudioAnalysers from "io/AudioAnalyser";
     export * as AudioVisualisers from "io/AudioVisualiser";
+    export { StringReceiveBuffer } from "io/StringReceiveBuffer";
+    export { StringWriteBuffer } from "io/StringWriteBuffer";
+    export { Codec } from "io/Codec";
     /**
      * Espruino-based devices connected via Bluetooth LE
      *
      * Overview:
      * * {@link puck}: Connect ./EspruinoBleDevice.js
-     * * {@link connect}: Connect to a generic Espruino
+     * * {@link Espruino.connectBle}: Connect to a generic Espruino via BLE
      */
     export * as Espruino from "io/Espruino";
     export * as Camera from "io/Camera";
@@ -7377,10 +6398,157 @@ declare module "io/index" {
      */
     export * as Serial from "io/Serial";
 }
+declare module "modulation/PingPong" {
+    /**
+     * Continually loops up and down between 0 and 1 by a specified interval.
+     * Looping returns start value, and is inclusive of 0 and 1.
+     *
+     * @example Usage
+     * ```js
+     * for (const v of percentPingPong(0.1)) {
+     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
+     * }
+     * ```
+     *
+     * @example Alternative:
+     * ```js
+     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
+     * const v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     *
+     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
+     *
+     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
+     * ```
+     * const pp = pingPongPercent(0.1, 0.4, 0.6);
+     * ```
+     * @param interval Amount to increment by. Defaults to 10%
+     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
+     */
+    export const pingPongPercent: (interval?: number, lower?: number, upper?: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
+    /**
+     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
+     *
+     * In a loop:
+     * ```
+     * for (const c of pingPong(10, 0, 100)) {
+     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
+     * }
+     * ```
+     *
+     * Manual:
+     * ```
+     * const pp = pingPong(10, 0, 100);
+     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     * @param interval Amount to increment by. Use negative numbers to start counting down
+     * @param lower Lower bound (inclusive)
+     * @param upper Upper bound (inclusive, must be greater than start)
+     * @param start Starting point within bounds (defaults to `lower`)
+     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
+     */
+    export const pingPong: (interval: number, lower: number, upper: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
+}
+declare module "Generators" {
+    export { pingPong, pingPongPercent } from "modulation/PingPong";
+    export { interval } from "flow/Interval";
+    export { delayLoop } from "flow/Delay";
+    /**
+     * Generates a range of numbers, starting from `start` and counting by `interval`.
+     * If `end` is provided, generator stops when reached.
+     *
+     * Unlike {@link numericRange}, numbers might contain rounding errors
+     *
+     * ```js
+     * for (const c of numericRangeRaw(10, 100)) {
+     *  // 100, 110, 120 ...
+     * }
+     * ```
+     * @param interval Interval between numbers
+     * @param start Start
+     * @param end End (if undefined, range never ends)
+     */
+    export const numericRangeRaw: (interval: number, start?: number, end?: number, repeating?: boolean) => Generator<number, void, unknown>;
+    /**
+     * Generates a range of numbers, with a given interval.
+     *
+     * @example For-loop
+     * ```
+     * let loopForever = numericRange(0.1); // By default starts at 0 and counts upwards forever
+     * for (v of loopForever) {
+     *  console.log(v);
+     * }
+     * ```
+     *
+     * @example If you want more control over when/where incrementing happens...
+     * ```js
+     * let percent = numericRange(0.1, 0, 1);
+     *
+     * let percentResult = percent.next().value;
+     * ```
+     *
+     * Note that computations are internally rounded to avoid floating point math issues. So if the `interval` is very small (eg thousandths), specify a higher rounding
+     * number.
+     *
+     * @param interval Interval between numbers
+     * @param start Start. Defaults to 0
+     * @param end End (if undefined, range never ends)
+     * @param repeating Range loops from start indefinately. Default _false_
+     * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
+     */
+    export const numericRange: (interval: number, start?: number, end?: number, repeating?: boolean, rounding?: number) => Generator<number, void, unknown>;
+    /**
+     * Yields `amount` integers, counting by one from zero. If a negative amount is used,
+     * count decreases. If `offset` is provided, this is added to the return result.
+     * @example
+     * ```js
+     * const a = [...count(5)]; // Yields five numbers: [0,1,2,3,4]
+     * const b = [...count(-5)]; // Yields five numbers: [0,-1,-2,-3,-4]
+     * for (const v of count(5, 5)) {
+     *  // Yields: 5, 6, 7, 8, 9
+     * }
+     * const c = [...count(5,1)]; // Yields [1,2,3,4,5]
+     * ```
+     *
+     * @example Used with forEach
+     * ```js
+     * // Prints `Hi` 5x
+     * forEach(count(5), () => console.log(`Hi`));
+     * ```
+     *
+     * If you want to accumulate return values, consider using
+     * {@link Flow.repeat}.
+     * @param amount Number of integers to yield
+     * @param offset Added to result
+     */
+    export const count: (amount: number, offset?: number) => Generator<number, void, unknown>;
+    /**
+     * Returns a number range between 0.0-1.0.
+     *
+     * ```
+     * // Yields: [0, 0.2, 0.4, 0.6, 0.8, 1]
+     * const a = [...numericPercent(0.2)];
+     *
+     * // Repeating flag set to true:
+     * for (const v of numericPercent(0.2, true)) {
+     *  // Infinite loop. V loops back to 0 after hitting 1
+     * }
+     * ```
+     *
+     * If `repeating` is true, it loops back to 0 after reaching 1
+     * @param interval Interval (default: 0.01, ie. 1%)
+     * @param repeating Whether generator should loop (default: false)
+     * @param start Start (default: 0)
+     * @param end End (default: 1)
+     * @returns
+     */
+    export const numericPercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
+}
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
     import * as Points from "geometry/Point";
-    type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
+    export type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
         readonly el: V;
         readonly bounds: {
             readonly width: number;
@@ -7388,7 +6556,7 @@ declare module "dom/Util" {
             readonly center: Points.Point;
         };
     };
-    type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
+    export type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
         readonly ctx: CanvasRenderingContext2D;
     };
     export const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Observable<Event>;
@@ -7496,7 +6664,7 @@ declare module "dom/Util" {
      * });
      * ```
      */
-    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object | undefined) => (data: object) => void;
+    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object) => (data: object) => void;
     /**
      * Remove all child nodes from `parent`
      * @param parent
@@ -7548,7 +6716,7 @@ declare module "visual/Drawing" {
     import * as Rects from "geometry/Rect";
     import * as Ellipses from "geometry/Ellipse";
     import { Stack } from "collections/index";
-    type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
+    export type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
     /**
      * Gets a 2d drawing context from canvas element or query, or throws an error
      * @param canvasElCtxOrQuery Canvas element reference or DOM query
@@ -7561,22 +6729,22 @@ declare module "visual/Drawing" {
      * @param canvasBounds Bounds of drawing (optional). Used for limiting `textBlock`
      * @returns
      */
-    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect | undefined) => {
-        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts | undefined): void;
-        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts | undefined): void;
-        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: (DrawingOpts & {
-            filled?: boolean | undefined;
-        }) | undefined): void;
-        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined): void;
-        connectedPoints(pointsToDraw: Points.Point[], opts?: (DrawingOpts & {
-            loop?: boolean | undefined;
-        }) | undefined): void;
-        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts | undefined): void;
-        dot(dotPosition: Points.Point | Points.Point[], opts?: (DrawingOpts & {
+    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect) => {
+        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts): void;
+        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts): void;
+        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: DrawingOpts & {
+            filled?: boolean;
+        }): void;
+        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts): void;
+        connectedPoints(pointsToDraw: Points.Point[], opts?: DrawingOpts & {
+            loop?: boolean;
+        }): void;
+        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts): void;
+        dot(dotPosition: Points.Point | Points.Point[], opts?: DrawingOpts & {
             radius: number;
-            outlined?: boolean | undefined;
-            filled?: boolean | undefined;
-        }) | undefined): void;
+            outlined?: boolean;
+            filled?: boolean;
+        }): void;
         circle(circlesToDraw: Circles.CirclePositioned | Circles.CirclePositioned[], opts: DrawingOpts): void;
         arc(arcsToDraw: Arcs.ArcPositioned | Arcs.ArcPositioned[], opts: DrawingOpts): void;
         textBlock(lines: string[], opts: DrawingOpts & {
@@ -7588,7 +6756,7 @@ declare module "visual/Drawing" {
     /**
      * Drawing options
      */
-    type DrawingOpts = {
+    export type DrawingOpts = {
         /**
          * Stroke style
          */
@@ -7602,6 +6770,11 @@ declare module "visual/Drawing" {
          */
         readonly debug?: boolean;
     };
+    export type LineOpts = {
+        readonly lineWidth?: number;
+        readonly lineCap?: CanvasLineCap;
+        readonly lineJoin?: CanvasLineJoin;
+    };
     /**
      * Draws one or more arcs.
      * @param ctx
@@ -7612,17 +6785,17 @@ declare module "visual/Drawing" {
     /**
      * A drawing stack operation
      */
-    type StackOp = (ctx: CanvasRenderingContext2D) => void;
+    export type StackOp = (ctx: CanvasRenderingContext2D) => void;
     /**
      * A drawing stack (immutable)
      */
-    type DrawingStack = Readonly<{
+    export type DrawingStack = Readonly<{
         /**
          * Push a new drawing op
          * @param op Operation to add
          * @returns stack with added op
          */
-        push(op: StackOp): DrawingStack;
+        push(...ops: readonly StackOp[]): DrawingStack;
         /**
          * Pops an operatiomn
          * @returns Drawing stack with item popped
@@ -7639,8 +6812,8 @@ declare module "visual/Drawing" {
      * @param stk Initial stack operations
      * @returns
      */
-    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp> | undefined) => DrawingStack;
-    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts | undefined) => void;
+    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp>) => DrawingStack;
+    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts) => void;
     /**
      * Draws one or more circles. Will draw outline/fill depending on
      * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
@@ -7703,7 +6876,7 @@ declare module "visual/Drawing" {
      */
     export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
         readonly fillStyle?: string;
-    }, labels?: readonly string[] | undefined) => void;
+    }, labels?: readonly string[]) => void;
     /**
      * Returns `point` with the canvas's translation matrix applied
      * @param ctx
@@ -7730,18 +6903,18 @@ declare module "visual/Drawing" {
      * @param pos
      * @param opts
      */
-    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: (DrawingOpts & {
-        readonly radius?: number | undefined;
-        readonly outlined?: boolean | undefined;
-        readonly filled?: boolean | undefined;
-    }) | undefined) => void;
+    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: DrawingOpts & {
+        readonly radius?: number;
+        readonly outlined?: boolean;
+        readonly filled?: boolean;
+    }) => void;
     /**
      * Draws a cubic or quadratic bezier
      * @param ctx
      * @param bezierToDraw
      * @param opts
      */
-    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined) => void;
+    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts) => void;
     /**
      * Draws one or more lines.
      *
@@ -7753,10 +6926,7 @@ declare module "visual/Drawing" {
      * @param toDraw
      * @param opts
      */
-    export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: {
-        readonly strokeStyle?: string;
-        readonly debug?: boolean;
-    }) => void;
+    export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: LineOpts & DrawingOpts) => void;
     /**
      * Draws one or more triangles
      * @param ctx
@@ -7783,7 +6953,7 @@ declare module "visual/Drawing" {
      * @param widthMultiple
      * @returns
      */
-    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null | undefined, padding?: number, widthMultiple?: number | undefined) => number;
+    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null, padding?: number, widthMultiple?: number) => number;
     /**
      * Draws a block of text. Each array item is considered a line.
      * @param ctx
@@ -7808,7 +6978,7 @@ declare module "visual/Drawing" {
 }
 declare module "visual/SvgMarkers" {
     import { MarkerOpts, DrawingOpts } from "visual/Svg";
-    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: (() => SVGElement) | undefined) => SVGMarkerElement;
+    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: () => SVGElement) => SVGMarkerElement;
     export const markerPrebuilt: (elem: SVGElement | null, opts: MarkerOpts, _context: DrawingOpts) => string;
 }
 declare module "visual/SvgElements" {
@@ -7831,8 +7001,8 @@ declare module "visual/SvgElements" {
      * @param opts Options Drawing options
      * @returns
      */
-    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
-    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts | undefined) => SVGPathElement;
+    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts, queryOrExisting?: string | SVGPathElement) => SVGPathElement;
+    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts) => SVGPathElement;
     /**
      * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
      * @param elem Element
@@ -7840,7 +7010,7 @@ declare module "visual/SvgElements" {
      * @param opts Drawing options
      * @returns SVGCircleElement
      */
-    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts | undefined) => SVGCircleElement;
+    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts) => SVGCircleElement;
     /**
      * Creates or reuses a `SVGCircleElement`.
      *
@@ -7851,7 +7021,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement) => SVGCircleElement;
     /**
      * Creates or reuses a SVGLineElement.
      *
@@ -7861,7 +7031,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts, queryOrExisting?: string | SVGLineElement) => SVGLineElement;
     /**
      * Updates a SVGLineElement instance with potentially changed line and drawing data
      * @param lineEl
@@ -7869,7 +7039,7 @@ declare module "visual/SvgElements" {
      * @param opts
      * @returns
      */
-    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts | undefined) => SVGLineElement;
+    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts) => SVGLineElement;
     /**
      * Updates an existing SVGTextPathElement instance with text and drawing options
      * @param el
@@ -7877,7 +7047,7 @@ declare module "visual/SvgElements" {
      * @param opts
      * @returns
      */
-    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: Svg.TextPathDrawingOpts | undefined) => SVGTextPathElement;
+    export const textPathUpdate: (el: SVGTextPathElement, text?: string, opts?: Svg.TextPathDrawingOpts) => SVGTextPathElement;
     /**
      * Creates or reuses a SVGTextPathElement.
      * @param pathRef
@@ -7887,7 +7057,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts | undefined, queryOrExisting?: string | SVGTextPathElement | undefined) => SVGTextPathElement;
+    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts, queryOrExisting?: string | SVGTextPathElement) => SVGTextPathElement;
     /**
      * Updates an existing SVGTextElement instance with position, text and drawing options
      * @param el
@@ -7896,7 +7066,7 @@ declare module "visual/SvgElements" {
      * @param opts
      * @returns
      */
-    export const textUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: Svg.TextDrawingOpts | undefined) => SVGTextElement;
+    export const textUpdate: (el: SVGTextElement, pos?: Points.Point, text?: string, opts?: Svg.TextDrawingOpts) => SVGTextElement;
     /**
      * Creates or reuses a SVGTextElement
      * @param pos Position of text
@@ -7906,7 +7076,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const text: (text: string, parent: SVGElement, pos?: Points.Point | undefined, opts?: Svg.TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    export const text: (text: string, parent: SVGElement, pos?: Points.Point, opts?: Svg.TextDrawingOpts, queryOrExisting?: string | SVGTextElement) => SVGTextElement;
     /**
      * Creates a square grid based at a center point, with cells having `spacing` height and width.
      *
@@ -8031,7 +7201,7 @@ declare module "visual/Svg" {
      * @param id Optional id to assign to element
      * @returns Element
      */
-    export const createEl: <V extends SVGElement>(type: string, id?: string | undefined) => V;
+    export const createEl: <V extends SVGElement>(type: string, id?: string) => V;
     /**
      * Applies path drawing options to given element
      * Applies: markerEnd, markerStart, markerMid
@@ -8106,24 +7276,18 @@ declare module "visual/Svg" {
          */
         query<V extends SVGElement>(selectors: string): V | null;
         /**
-         * Gets the width of the parent
+         * Gets/sets the width of the parent
          */
         get width(): number;
-        /**
-         * Sets the width of the parent
-         */
         set width(width: number);
         /**
          * Gets the parent
          */
         get parent(): SVGElement;
         /**
-         * Gets the height of the parent
+         * Gets/sets the height of the parent
          */
         get height(): number;
-        /**
-         * Sets the height of the parent
-         */
         set height(height: number);
         /**
          * Deletes all child elements
@@ -8143,12 +7307,12 @@ declare module "visual/Svg" {
      */
     export const setBounds: (svg: SVGElement, bounds: Rects.Rect) => void;
     /**
-     * @inheritdoc SvgHelper
+     * Creates a {@link SvgHelper} for the creating and management of SVG elements.
      * @param parent
      * @param parentOpts
      * @returns
      */
-    export const makeHelper: (parent: SVGElement, parentOpts?: (DrawingOpts & StrokeOpts) | undefined) => SvgHelper;
+    export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts & StrokeOpts) => SvgHelper;
 }
 declare module "visual/Plot" {
     import { CircularArray, MapOfMutable } from "collections/Interfaces";
@@ -8163,7 +7327,10 @@ declare module "visual/Plot" {
         clear(): void;
         dispose(): void;
     };
-    type Series = {
+    /**
+     * Series
+     */
+    export type Series = {
         min: number;
         max: number;
         range: number;
@@ -8172,7 +7339,10 @@ declare module "visual/Plot" {
         lastValue?: number;
         hoverValue?: number;
     };
-    type DrawingOpts = PlotOpts & {
+    /**
+     * Drawing options
+     */
+    export type DrawingOpts = PlotOpts & {
         x: Axis;
         y: Axis;
         ctx: CanvasRenderingContext2D;
@@ -8288,9 +7458,9 @@ declare module "visual/Plot" {
         showLegend?: boolean;
     };
     export const defaultAxis: (name: string) => Axis;
-    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours | undefined) => Series[];
+    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours) => Series[];
     export const add: (buffer: BufferType, value: number, series?: string) => void;
-    type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
+    export type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
     export const drawValue: (index: number, buffer: BufferType, drawing: DrawingOpts) => void;
     /**
      * Draws a `buffer` of data with `drawing` options.
@@ -8431,7 +7601,10 @@ declare module "visual/SceneGraph" {
 declare module "visual/Plot2" {
     import { Points, Rects } from "geometry/index";
     import * as Sg from "visual/SceneGraph";
-    interface DataSource {
+    /**
+     * A data source
+     */
+    export interface DataSource {
         dirty: boolean;
         type: string;
         get range(): DataRange;
@@ -8481,18 +7654,18 @@ declare module "visual/Plot2" {
          */
         visualRangeStretch?: boolean;
     };
-    type DataPoint = {
+    export type DataPoint = {
         value: number;
         index: number;
         title?: string;
     };
-    type DataHitPoint = (pt: Points.Point) => [point: DataPoint | undefined, distance: number];
-    type DataRange = {
+    export type DataHitPoint = (pt: Points.Point) => [point: DataPoint | undefined, distance: number];
+    export type DataRange = {
         min: number;
         max: number;
         changed?: boolean;
     };
-    class Series {
+    export class Series {
         private plot;
         name: string;
         colour: string;
@@ -8512,7 +7685,7 @@ declare module "visual/Plot2" {
         add(value: number): void;
         clear(): void;
     }
-    class PlotArea extends Sg.CanvasBox {
+    export class PlotArea extends Sg.CanvasBox {
         private plot;
         paddingPx: number;
         piPi: number;
@@ -8531,7 +7704,7 @@ declare module "visual/Plot2" {
         computeY(series: Series, rawValue: number): number;
         drawDataSet(series: Series, d: number[], ctx: CanvasRenderingContext2D): void;
     }
-    class Legend extends Sg.CanvasBox {
+    export class Legend extends Sg.CanvasBox {
         private plot;
         sampleSize: {
             width: number;
@@ -8545,7 +7718,7 @@ declare module "visual/Plot2" {
         protected drawSelf(ctx: CanvasRenderingContext2D): void;
         protected onNotify(msg: string, source: Sg.Box): void;
     }
-    class AxisX extends Sg.CanvasBox {
+    export class AxisX extends Sg.CanvasBox {
         private plot;
         paddingPx: number;
         colour?: string;
@@ -8555,7 +7728,7 @@ declare module "visual/Plot2" {
         protected drawSelf(ctx: CanvasRenderingContext2D): void;
         protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
     }
-    class AxisY extends Sg.CanvasBox {
+    export class AxisY extends Sg.CanvasBox {
         private plot;
         private _maxDigits;
         seriesToShow: string | undefined;
@@ -8644,7 +7817,7 @@ declare module "visual/Palette" {
         add(key: string, value: string): void;
         alias(from: string, to: string): void;
     };
-    export const create: (fallbacks?: readonly string[] | undefined) => Palette;
+    export const create: (fallbacks?: readonly string[]) => Palette;
 }
 declare module "visual/Video" {
     export type Capturer = {
@@ -8676,8 +7849,11 @@ declare module "visual/Video" {
         readonly canvasEl?: HTMLCanvasElement;
     };
     /**
-     * Generator that yields frames from a video element as ImageData.
-     * ```
+     * Generator that yields frames from a video element as [ImageData](https://developer.mozilla.org/en-US/docs/Web/API/ImageData).
+     *
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
      * const ctx = canvasEl.getContext(`2d`);
      * for await (const frame of Video.frames(videoEl)) {
      *   // TODO: Some processing of pixels
@@ -8690,6 +7866,10 @@ declare module "visual/Video" {
      * Under the hood it creates a hidden canvas where frames are drawn to. This is necessary
      * to read back pixel data. An existing canvas can be used if it is passed in as an option.
      *
+     * Options:
+     * * `canvasEl`: CANVAS element to use as a buffer (optional)
+     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
+     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
      * @param sourceVideoEl
      * @param opts
      */
@@ -8697,26 +7877,57 @@ declare module "visual/Video" {
     /**
      * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
      *
-     * ```js @example Using a function
-     * capture(sourceVideoEl, {
+     * @example Using a function
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * // Capture from a VIDEO element, handling frame data
+     * // imageData is ImageData type: https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+     * Video.capture(sourceVideoEl, {
      *  onFrame(imageData => {
      *    // Do something with pixels...
      *  });
      * });
      * ```
      *
-     * ```js @example Using a worker
-     * capture(sourceVideoEl, {
+     * @example Using a worker
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * Video.capture(sourceVideoEl, {
      *  workerScript: `./frameProcessor.js`
      * });
-     *
-     * // In frameProcessor.js...
      * ```
+     *
+     * In frameProcessor.js:
+     * ```
+     * const process = (frame) => {
+     *  // ...process frame
+     *
+     *  // Send image back?
+     *  self.postMessage({frame});
+     * };
+     *
+     * self.addEventListener(`message`, evt => {
+     *   const {pixels, width, height} = evt.data;
+     *   const frame = new ImageData(new Uint8ClampedArray(pixels),
+     *     width, height);
+     *
+     *   // Process it
+     *   process(frame);
+     * });
+     * ```
+     *
+     * Options:
+     * * `canvasEl`: CANVAS element to use as a buffer (optional)
+     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
+     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
+     * * `workerScript`: If this specified, this URL will be loaded as a Worker, and frame data will be automatically posted to it
      *
      * Implementation: frames are captured using a animation-speed loop to a hidden canvas. From there
      * the pixel data is extracted and sent to either destination. In future the intermediate drawing to a
      * canvas could be skipped if it becomes possible to get pixel data from an ImageBitmap.
-     * @param sourceVideoEl
+     * @param sourceVideoEl Source VIDEO element
      * @param opts
      * @returns
      */
@@ -8730,6 +7941,7 @@ declare module "visual/index" {
     import * as Palette from "visual/Palette";
     import * as Colour from "visual/Colour";
     import * as SceneGraph from "visual/SceneGraph";
+    import * as Video from "visual/Video";
     /**
      * Colour interpolation, scale generation and parsing
      *
@@ -8737,10 +7949,35 @@ declare module "visual/index" {
      * * {@link interpolate}: Blend colours
      * * {@link scale}: Produce colour scale
      * * {@link opacity}: Give a colour opacity
+     * * {@link randomHue}: Generate a random hue
+     * * {@link goldenAngleColour}: Pick perceptually different shades
+     *
+     * CSS
+     * * {@link getCssVariable}: Parse a CSS-defined colour
+     *
+     * Conversions: convert from 'blue', 'rgb(255,0,0)',  'hsl(0, 100%, 50%)' etc:
+     * * {@link toHex}: to a hex format string
+     * * {@link toHsl}: to a `{h, s, l}` object
+     * * {@link toRgb}: to a `{r, g, b}` object
      */
     export { Colour };
+    /**
+     * Working with video, either playback from a file or stream from a video camera.
+     *
+     * Overview
+     * * {@link frames}: Yields frames from a video camera
+     * * {@link capture}: Capture frames from a VIDEO element
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Video} from '../../ixfx/dist/visual.js';
+     * // Import from web
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     * ```
+     */
+    export { Video };
     export { Palette, Drawing, Svg, Plot, Plot2, SceneGraph };
-    export * as Video from "visual/Video";
 }
 declare module "dom/ShadowDom" {
     export const addShadowCss: (parentEl: HTMLElement, styles: string) => ShadowRoot;
@@ -8796,15 +8033,9 @@ declare module "dom/Log" {
     export const log: (domQueryOrEl: HTMLElement | string, opts?: LogOpts) => Log;
 }
 declare module "dom/DomRx" {
-    /**
-     * @private
-     */
     export type PluckOpts = {
         readonly pluck: string;
     };
-    /**
-     * @private
-     */
     export type TransformOpts = {
         transform(ev: Event): any;
     };
@@ -8841,7 +8072,7 @@ declare module "dom/DomRx" {
      * @param opts
      * @return
      */
-    export const rx: <V>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts | undefined) => Rx<V>;
+    export const rx: <V>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts) => Rx<V>;
 }
 declare module "dom/Forms" {
     /**
@@ -8887,7 +8118,7 @@ declare module "dom/Forms" {
      * @param live If true, event handler fires based on `input` event, rather than `change`
      * @returns
      */
-    export const numeric: (domIdOrEl: string | HTMLInputElement, onChanged?: ((currentVal: number) => void) | undefined, live?: boolean | undefined) => {
+    export const numeric: (domIdOrEl: string | HTMLInputElement, onChanged?: ((currentVal: number) => void) | undefined, live?: boolean) => {
         value: number;
     };
     /**
@@ -8924,7 +8155,7 @@ declare module "dom/Forms" {
      * @param onClick Callback when button is clicked
      * @returns
      */
-    export const button: (domQueryOrEl: string | HTMLButtonElement, onClick?: (() => void) | undefined) => {
+    export const button: (domQueryOrEl: string | HTMLButtonElement, onClick?: () => void) => {
         click(): void;
         disabled: boolean;
     };
@@ -8933,12 +8164,9 @@ declare module "dom/Forms" {
      */
     export interface SelectHandler {
         /**
-         * Sets disabled
+         * Gets/Sets disabled
          */
         set disabled(value: boolean);
-        /**
-         * Gets disabled
-         */
         get disabled(): boolean;
         /**
          * Gets value
@@ -9008,6 +8236,158 @@ declare module "dom/Forms" {
      */
     export const select: (domQueryOrEl: string | HTMLSelectElement, onChanged?: ((currentVal: string) => void) | undefined, opts?: SelectOpts) => SelectHandler;
 }
+declare module "data/PointTracker" {
+    import * as Points from "geometry/Point";
+    import * as Line from "geometry/Line";
+    import { Timestamped, ObjectTracker, TrackedValueMap, TrackedValueOpts as TrackOpts } from "data/TrackedValue";
+    export type PointSeenInfo = {
+        readonly distance: number;
+        readonly centroid: Points.Point;
+        readonly angle: number;
+        readonly speed: number;
+        readonly values: readonly Points.Point[];
+        /**
+         * Average of all points seen
+         */
+        readonly average: Points.Point;
+    };
+    export class PointTracker extends ObjectTracker<Points.Point> {
+        readonly id: string;
+        /**
+         * Function that yields the relation from initial point
+         */
+        relation: Points.PointRelation | undefined;
+        /**
+         * Info on last seen point
+         */
+        lastInfo: PointSeenInfo | undefined;
+        constructor(id: string, opts: TrackOpts);
+        /**
+         * Returns the last x coord
+         */
+        get x(): number;
+        /**
+         * Returns the last y coord
+         */
+        get y(): number;
+        /**
+         * @ignore
+         */
+        onReset(): void;
+        /**
+         * Tracks a point, returning information on the relation between it
+         * and the start point.
+         *
+         * If multiple points are given, it's relation to the last point that is returned.
+         * @param p Point
+         */
+        seen(...p: Points.Point[] | Timestamped<Points.Point>[]): PointSeenInfo;
+        /**
+         * Returns a polyline representation of stored points.
+         * Returns an empty array if points were not saved, or there's only one.
+         */
+        get line(): Line.PolyLine;
+        /**
+         * Returns distance from latest point to initial point.
+         * If there are less than two points, zero is returned.
+         * @returns Distance
+         */
+        distanceFromStart(): number;
+        /**
+         * Returns angle (in radians) from latest point to the initial point
+         * If there are less than two points, undefined is return.
+         * @returns Angle in radians
+         */
+        angleFromStart(): number | undefined;
+        /**
+         * Returns the total length of accumulated points.
+         * Returns 0 if points were not saved, or there's only one
+         */
+        get length(): number;
+    }
+    export class TrackedPointMap extends TrackedValueMap<Points.Point> {
+        constructor(opts: TrackOpts);
+    }
+    /**
+     * Track several named points. Call `seen()` to track a point. Mutable.
+     *
+     * Basic usage
+     * ```js
+     * const pt = pointsTracker();
+     *
+     * // Track a point under a given id
+     * document.addEventListener(`pointermove`, e => {
+     *  const info = await pt.seen(e.pointerId, { x: e.x, y: e.y });
+     *  // Yields some info on relation of the point to initial value
+     * });
+     * ```
+     *
+     * Do something with last values for all points
+     * ```js
+     * const c = Points.centroid(...Array.from(pointers.last()));
+     * ```
+     *
+     * More functions...
+     * ```js
+     * pt.size; // How many named points are being tracked
+     * pt.delete(id);  // Delete named point
+     * pt.reset();
+     * ```
+     *
+     * Accessors:
+     * ```js
+     * pt.get(id);  // Get named point (or _undefined_)
+     * pt.has(id); // Returns true if id exists
+     * pt.trackedByAge(); // Returns array of tracked points, sorted by age
+     * pt.valuesByAge(); // Returns array of tracked values, sorted by age
+     * ```
+     
+    * Iterators:
+     * ```js
+     * pt.values(); // Tracked values
+     * pt.ids(); // Iterator over ids
+     * pt.last(); // Last received value for each point
+     * pt.initialValues(); // Iterator over initial values for each point
+     * ```
+     * Options:
+     * * `storeIntermediate`: if true, all points are stored internally
+     * * `resetAfterSamples`: If set above 0, it will automatically reset after the given number of samples have been seen
+     * @param opts
+     * @returns
+     */
+    export const pointsTracker: (opts: TrackOpts) => TrackedPointMap;
+    /**
+     * A tracked point. Create via {@link pointTracker}. Mutable. Useful for monitoring how
+     * it changes over time. Eg. when a pointerdown event happens, to record the start position and then
+     * track the pointer as it moves until pointerup.
+     *
+     * ```js
+     * // Create a tracker
+     * const t = pointTracker(`pointer-0`);
+     *
+     * // ...and later, tell it when a point is seen
+     * const nfo = t.seen({x: evt.x, y:evt.y});
+     * // nfo gives us some details on the relation between the seen point, the start, and points in-between
+     * // nfo.angle, nfo.centroid, nfo.speed etc.
+     * ```
+     *
+     * Compute based on last seen point
+     * ```js
+     * t.angleFromStart();
+     * t.distanceFromStart();
+     * t.x / t.y
+     * t.length; // Total length of accumulated points
+     * t.elapsed; // Total duration since start
+     * t.lastInfo; // The PointSeenInfo for last seen point
+     * ```
+     *
+     * Housekeeping
+     * ```js
+     * t.reset(); // Reset tracker
+     * ```
+     */
+    export const pointTracker: (id?: string, opts?: TrackOpts) => PointTracker;
+}
 declare module "dom/PointerVisualise" {
     export type Opts = {
         readonly touchRadius?: number;
@@ -9039,6 +8419,28 @@ declare module "dom/PointerVisualise" {
      */
     export const pointerVisualise: (elOrQuery: HTMLElement | string, opts?: Opts) => void;
 }
+declare module "dom/ErrorHandler" {
+    /**
+     * Creates an error handler to show errors on-screen.
+     * This is useful when testing on mobile devices that lack access to the console.
+     *
+     * ```js
+     * const e = defaultErrorHandler();
+     * ```
+     *
+     * Manual control:
+     * ```js
+     * const e = defaultErrorHandler();
+     * e.show(someError);
+     * e.hide();
+     * ```
+     * @returns
+     */
+    export const defaultErrorHandler: () => {
+        show: (ex: Error | string | Event) => void;
+        hide: () => void;
+    };
+}
 declare module "dom/index" {
     export * from "dom/Log";
     export * from "dom/DomRx";
@@ -9048,6 +8450,7 @@ declare module "dom/index" {
      */
     export * as Forms from "dom/Forms";
     export * from "dom/PointerVisualise";
+    export * from "dom/ErrorHandler";
 }
 declare module "modulation/Envelope" {
     import { SimpleEventEmitter } from "Events";
@@ -9133,18 +8536,15 @@ declare module "modulation/Envelope" {
         readonly releaseDuration: number;
     };
     /**
-     * @private
+     * State change event
      */
     export interface StateChangeEvent {
         readonly newState: string;
         readonly priorState: string;
     }
-    /**
-     * @private
-     */
     export interface CompleteEvent {
     }
-    type Events = {
+    export type Events = {
         readonly change: StateChangeEvent;
         readonly complete: CompleteEvent;
     };
@@ -9156,6 +8556,7 @@ declare module "modulation/Envelope" {
      *
      * @example Setup
      * ```js
+     * import {adsr, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js'
      * const opts = {
      *  ...defaultAdsrOpts(),
      *  attackDuration: 1000,
@@ -9167,34 +8568,36 @@ declare module "modulation/Envelope" {
      *
      * @example Using
      * ```js
-     * env.trigger(); // Start envelop
+     * env.trigger(); // Start envelope
      * ...
      * // Get current value of envelope
      * const [state, scaled, raw] = env.compute();
      * ```
      *
-     * * `state` is string: `attack`, `decay`, `sustain`, `release`, `complete
-     * * `scaled` is a value scaled according to stage _levels_
-     * * `raw` is the progress from 0 to 1 within a stage
+     * * `state` is a string, one of the following: 'attack', 'decay', 'sustain', 'release', 'complete'
+     * * `scaled` is a value scaled according to the stage's _levels_
+     * * `raw` is the progress from 0 to 1 within a stage. ie. 0.5 means we're halfway through a stage.
      *
-     * ...normally you'd just want:
+     * Instead of `compute()`, most usage of the envelope is just fetching the `value` property, which returns the same scaled value of `compute()`:
+     *
      * ```js
-     * const value = env.value; // Get scaled
+     * const value = env.value; // Get scaled number
      * ```
      *
      * @example Hold & release
      * ```js
-     * env.trigger(true); // Pass in true to hold
+     * env.trigger(true);   // Pass in true to hold
      * ...envelope will stop at sustain stage...
-     * env.relese();      // Release into decay
+     * env.release();      // Release into decay
      * ```
      *
      * Check if it's done:
+     *
      * ```js
      * env.isDone; // True if envelope is completed
      * ```
      *
-     * Envelope has events to track activity: `change` and `complete`:
+     * Envelope has events to track activity: 'change' and 'complete':
      *
      * ```
      * env.addEventListener(`change`, ev => {
@@ -9236,7 +8639,7 @@ declare module "modulation/Envelope" {
         get isDone(): boolean;
     }
     /**
-     * @inheritdoc Adsr
+     * Creates an {@link Adsr} envelope.
      * @param opts
      * @returns New {@link Adsr} Envelope
      */
@@ -9253,23 +8656,315 @@ declare module "modulation/Envelope" {
      */
     export const adsrSample: (opts: EnvelopeOpts, sampleRateMs: number) => Promise<readonly number[]>;
 }
+declare module "modulation/Forces" {
+    /**
+     * Acknowledgements: much of the work here is an adapation from Daniel Shiffman's excellent _The Nature of Code_ website.
+     */
+    import { Points } from "geometry/index";
+    import { Point } from "geometry/Point";
+    import { Rect } from "geometry/Rect";
+    /**
+     * Logic for applying mass
+     */
+    export type MassApplication = `dampen` | `multiply` | `ignored`;
+    /**
+     * Basic properties of a thing that can be
+     * affected by forces
+     */
+    export type ForceAffected = {
+        /**
+         * Position. Probably best to use relative coordinates
+         */
+        readonly position?: Point;
+        /**
+         * Velocity vector.
+         * Probably don't want to assign this yourself, but rather have it computed based on acceleration and applied forces
+         */
+        readonly velocity?: Point;
+        /**
+         * Acceleration vector. Most applied forces will alter the acceleration, culminating in a new velocity being set and the
+         * acceleraton value zeroed
+         */
+        readonly acceleration?: Point;
+        /**
+         * Mass. The unit is undefined, again best to think of this being on a 0..1 scale. Mass is particularly important
+         * for the attraction/repulsion force, but other forces can incorporate mass too.
+         */
+        readonly mass?: number;
+        readonly angularAcceleration?: number;
+        readonly angularVelocity?: number;
+        readonly angle?: number;
+    };
+    /**
+     * A function that updates values of a thing.
+     *
+     * These can be created using the xxxForce functions, eg {@link attractionForce}, {@link accelerationForce}, {@link magnitudeForce}, {@link velocityForce}
+     */
+    export type ForceFn = (t: ForceAffected) => ForceAffected;
+    /**
+     * A vector to apply to acceleration or a force function
+     */
+    export type ForceKind = Points.Point | ForceFn;
+    /**
+     * Throws an error if `t` is not of the `ForceAffected` shape.
+     * @param t
+     * @param name
+     */
+    export const guard: (t: ForceAffected, name?: string) => void;
+    /**
+     * `constrainBounce` yields a function that affects `t`'s position and velocity such that it
+     * bounces within bounds.
+     *
+     * ```js
+     * // Setup bounce with area constraints
+     * // Reduce velocity by 10% with each impact
+     * const b = constrainBounce({ width:200, height:500 }, 0.9);
+     *
+     * // Thing
+     * const t = {
+     *  position: { x: 50,  y: 50 },
+     *  velocity: { x: 0.3, y: 0.01 }
+     * };
+     *
+     * // `b` returns an altereted version of `t`, with the
+     * // bounce logic applied.
+     * const bounced = b(t);
+     * ```
+     *
+     * `dampen` parameter allows velocity to be dampened with each bounce. A value
+     * of 0.9 for example reduces velocity by 10%. A value of 1.1 will increase velocity by
+     * 10% with each bounce.
+     * @param bounds Constraints of area
+     * @params dampen How much to dampen velocity by. Defaults to 1 meaning there is no damping.
+     * @returns A function that can perform bounce logic
+     */
+    export const constrainBounce: (bounds?: Rect, dampen?: number) => (t: ForceAffected) => ForceAffected;
+    /**
+     * For a given set of attractors, returns a function that a sets acceleration of attractee.
+     * Keep note though that this bakes-in the values of the attractor, it won't reflect changes to their state. For dynamic
+     * attractors, it might be easier to use `computeAttractionForce`.
+     *
+     * @example Force
+     * ```js
+     * const f = Forces.attractionForce(sun, gravity);
+     * earth = Forces.apply(earth, f);
+     * ```
+     *
+     * @example Everything mutually attracted
+     * ```js
+     * // Create a force with all things as attractors.
+     * const f = Forces.attractionForce(things, gravity);
+     * // Apply force to all things.
+     * // The function returned by attractionForce will automatically ignore self-attraction
+     * things = things.map(a => Forces.apply(a, f));
+     * ```
+     * @param attractors
+     * @param gravity
+     * @param distanceRange
+     * @returns
+     */
+    export const attractionForce: (attractors: readonly ForceAffected[], gravity: number, distanceRange?: {
+        readonly min?: number;
+        readonly max?: number;
+    }) => (attractee: ForceAffected) => ForceAffected;
+    /**
+     * Computes the attraction force between two things.
+     * Value for `gravity` will depend on what range is used for `mass`. It's probably a good idea
+     * to keep mass to mean something relative - ie 1 is 'full' mass, and adjust the `gravity`
+     * value until it behaves as you like. Keeping mass in 0..1 range makes it easier to apply to
+     * visual properties later.
+     *
+     * @example Attractee and attractor, gravity 0.005
+     * ```js
+     * const attractor = { position: { x:0.5, y:0.5 }, mass: 1 };
+     * const attractee = { position: Points.random(), mass: 0.01 };
+     * attractee = Forces.apply(attractee, Forces.computeAttractionForce(attractor, attractee, 0.005));
+     * ```
+     *
+     * @example Many attractees for one attractor, gravity 0.005
+     * ```js
+     * attractor =  { position: { x:0.5, y:0.5 }, mass: 1 };
+     * attractees = attractees.map(a => Forces.apply(a, Forces.computeAttractionForce(attractor, a, 0.005)));
+     * ```
+     *
+     * @example Everything mutually attracted
+     * ```js
+     * // Create a force with all things as attractors.
+     * const f = Forces.attractionForce(things, gravity);
+     * // Apply force to all things.
+     * // The function returned by attractionForce will automatically ignore self-attraction
+     * things = things.map(a => Forces.apply(a, f));
+     * ```
+     *
+     * `attractor` thing attracting (eg, earth)
+     * `attractee` thing being attracted (eg. satellite)
+     *
+     *
+     * `gravity` will have to be tweaked to taste.
+     * `distanceRange` clamps the computed distance. This affects how tightly the particles will orbit and can also determine speed. By default it is 0.001-0.7
+     * @param attractor Attractor (eg earth)
+     * @param attractee Attractee (eg satellite)
+     * @param gravity Gravity constant
+     * @param distanceRange Min/max that distance is clamped to.
+     * @returns
+     */
+    export const computeAttractionForce: (attractor: ForceAffected, attractee: ForceAffected, gravity: number, distanceRange?: {
+        readonly min?: number;
+        readonly max?: number;
+    }) => Points.Point;
+    /**
+     * Apply a series of force functions or forces to `t`. Null/undefined entries are skipped silently.
+     * It also updates the velocity and position of the returned version of `t`.
+     *
+     * ```js
+     * // Wind adds acceleration. Force is dampened by mass
+     * const wind = Forces.accelerationForce({ x: 0.00001, y: 0 }, `dampen`);
+     *
+     * // Gravity adds acceleration. Force is magnified by mass
+     * const gravity = Forces.accelerationForce({ x: 0, y: 0.0001 }, `multiply`);
+     *
+     * // Friction is calculated based on velocity. Force is magnified by mass
+     * const friction = Forces.velocityForce(0.00001, `multiply`);
+     *
+     *  // Flip movement velocity if we hit a wall. And dampen it by 10%
+     * const bouncer = Forces.constrainBounce({ width: 1, height: 1 }, 0.9);
+     *
+     * let t = {
+     *  position: Points.random(),
+     *  mass: 0.1
+     * };
+     *
+     * // Apply list of forces, returning a new version of the thing
+     * t = Forces.apply(t,
+     *   gravity,
+     *   wind,
+     *   friction,
+     *   bouncer
+     * );
+     * ```
+     */
+    export const apply: (t: ForceAffected, ...accelForces: readonly ForceKind[]) => ForceAffected;
+    /**
+     * Apples vector `v` to acceleration, scaling according to mass, based on the `mass` option.
+     * ```js
+     * const f = accelerationForce({ x:0.1, y:0 }, `dampen`);
+     * let t = { position: ..., acceleration: ... }
+     * t = f(t); // Apply force
+     * ```
+     * @param v
+     * @returns
+     */
+    export const accelerationForce: (v: Points.Point, mass: MassApplication) => ForceFn;
+    /**
+     * A force based on the square of the thing's velocity.
+     * It's like {@link velocityForce}, but here the velocity has a bigger impact.
+     *
+     * ```js
+     * const thing = {
+     *  position: { x: 0.5, y:0.5 },
+     *  velocity: { x: 0.001, y:0 }
+     * };
+     * const drag = magnitudeForce(0.1);
+     *
+     * // Apply drag force to thing, returning result
+     * const t = Forces.apply(thing, drag);
+     * ```
+     * @param force Force value
+     * @param mass How to factor in mass
+     * @returns Function that computes force
+     */
+    export const magnitudeForce: (force: number, mass: MassApplication) => ForceFn;
+    /**
+     * Force calculated from velocity of object. Reads velocity and influences acceleration.
+     *
+     * ```js
+     * let t = { position: Points.random(), mass: 0.1 };
+     * const friction = velocityForce(0.1, `dampen`);
+     *
+     * // Apply force, updating position and velocity
+     * t = Forces.apply(t, friction);
+     * ```
+     * @param force Force
+     * @param mass How to factor in mass
+     * @returns Function that computes force
+     */
+    export const velocityForce: (force: number, mass: MassApplication) => ForceFn;
+    export const angularForce: () => (t: ForceAffected) => Readonly<{
+        angle: number;
+        angularVelocity: number;
+        angularAcceleration: 0;
+        position?: Points.Point | undefined;
+        velocity?: Points.Point | undefined;
+        acceleration?: Points.Point | undefined;
+        mass?: number | undefined;
+    }>;
+    /**
+     * Yields a force function that applies the thing's acceleration.x to its angular acceleration.
+     * @param scaling Use this to scale the accel.x value. Defaults to 20 (ie accel.x*20). Adjust if rotation is too much or too little
+     * @returns
+     */
+    export const angleFromAccelerationForce: (scaling?: number) => (t: ForceAffected) => Readonly<{
+        angularAcceleration: number;
+        position?: Points.Point | undefined;
+        velocity?: Points.Point | undefined;
+        acceleration?: Points.Point | undefined;
+        mass?: number | undefined;
+        angularVelocity?: number | undefined;
+        angle?: number | undefined;
+    }>;
+    /**
+     * Yields a force function that applies the thing's velocity to its angular acceleration.
+     * This will mean it points in the direction of travel.
+     * @param interpolateAmt If provided, the angle will be interpolated toward by this amount. Defaults to 1, no interpolation
+     * @returns
+     */
+    export const angleFromVelocityForce: (interpolateAmt?: number) => (t: ForceAffected) => Readonly<{
+        angle: number;
+        position?: Points.Point | undefined;
+        velocity?: Points.Point | undefined;
+        acceleration?: Points.Point | undefined;
+        mass?: number | undefined;
+        angularAcceleration?: number | undefined;
+        angularVelocity?: number | undefined;
+    }>;
+    export const springForce: (pinnedAt: Points.Point, restingLength?: number) => (t: ForceAffected) => ForceAffected;
+    export const pendulumForce: (pinnedAt?: Points.Point, length?: number, gravity?: number, damping?: number) => (t: ForceAffected) => ForceAffected;
+    /**
+     * Compute velocity based on acceleration and current velocity
+     * @param acceleration Acceleration
+     * @param velocity Velocity
+     * @returns
+     */
+    export const computeVelocity: (acceleration: Points.Point, velocity: Points.Point) => Points.Point;
+    /**
+     * Compute position based on current position and velocity
+     * @param position Position
+     * @param velocity Velocity
+     * @returns New position
+     */
+    export const computePositionFromVelocity: (position: Points.Point, velocity: Points.Point) => Points.Point;
+    export const computePositionFromAngle: (distance: number, angle: number, origin: Points.Point) => Points.Point;
+}
 declare module "modulation/Oscillator" {
     import * as Timers from "flow/Timer";
     /**
      * Sine oscillator.
      *
      * ```js
+     * // Setup
      * const osc = sine(Timers.frequencyTimer(10));
      * const osc = sine(0.1);
-     * osc.next().value;
+     *
+     * // Call whenever a value is needed
+     * const v = osc.next().value;
      * ```
      *
-     * // Saw/tri pinch
+     * @example Saw/tri pinch
      * ```js
      * const v = Math.pow(osc.value, 2);
      * ```
      *
-     * // Saw/tri bulge
+     * @example Saw/tri bulge
      * ```js
      * const v = Math.pow(osc.value, 0.5);
      * ```
@@ -9283,27 +8978,39 @@ declare module "modulation/Oscillator" {
     export function sineBipolar(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
     /**
      * Triangle oscillator
+     *
      * ```js
+     * // Setup
      * const osc = triangle(Timers.frequencyTimer(0.1));
      * const osc = triangle(0.1);
-     * osc.next().value;
+     *
+     * // Call whenver a value is needed
+     * const v = osc.next().value;
      * ```
      */
     export function triangle(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
     /**
      * Saw oscillator
+     *
      * ```js
+     * // Setup
      * const osc = saw(Timers.frequencyTimer(0.1));
      * const osc = saw(0.1);
-     * osc.next().value;
+     *
+     * // Call whenever a value is needed
+     * const v = osc.next().value;
      * ```
      */
     export function saw(timerOrFreq: Timers.Timer): Generator<number, void, unknown>;
     /**
      * Square oscillator
+     *
      * ```js
+     * // Setup
      * const osc = square(Timers.frequencyTimer(0.1));
      * const osc = square(0.1);
+     *
+     * // Call whenever a value is needed
      * osc.next().value;
      * ```
      */
@@ -9311,37 +9018,97 @@ declare module "modulation/Oscillator" {
 }
 declare module "modulation/index" {
     import { RandomSource } from "Random";
+    import * as Easings from "modulation/Easing";
     /**
      * Easings module
      *
      * Overview:
-     * * {@link Easings.time} - Ease by time
-     * * {@link Easings.tick} - Ease by tick
-     * * {@link Easings.get}  - Get an easing function by name
+     * * {@link Easings.time}: Ease by time
+     * * {@link Easings.tick}: Ease by tick
+     * * {@link Easings.get}: Get an easing function by name
+     * * {@link Easings.crossfade}: Mix two synchronised easing functions (a slight shortcut over `mix`)
+     * * {@link Easings.mix}: Mix two easing functions
+     * * {@link Easings.gaussian}: Gaussian distribution (rough bell curve)
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Easings} from '../../ixfx/dist/modulation.js';
+     * Easings.time(...);
+     *
+     * // Import from web
+     * import {Easings} from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * Easings.time(...);
+     * ```
      */
-    export * as Easings from "modulation/Easing";
-    /**
-     * Envelope
-     */
+    export { Easings };
     export * from "modulation/Envelope";
     /**
-     * Oscillator
+     * Forces module can help to compute basic physical forces like gravity, friction, springs etc.
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Forces} from '../../ixfx/dist/modulation.js';
+     * Forces.attractionForce(...);
+     *
+     * // Import from web
+     * import {Forces} from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * Forces.attractionForce(...);
+     * ```
+     *
      */
-    export * as Oscillators from "modulation/Oscillator";
+    import * as Forces from "modulation/Forces";
+    export { Forces };
+    import * as Oscillators from "modulation/Oscillator";
+    /**
+     * Oscillators module has waveshapes for producing values with a specified frequency.
+     *
+     * Overview
+     * * {@link Oscillators.saw}: 'Sawtooth' wave
+     * * {@link Oscillators.sine}: Sine wave
+     * * {@link Oscillators.sineBipolar}: Sine wave with range of -1 to 1
+     * * {@link Oscillators.square}: Square wave
+     * * {@link Oscillators.triangle}: Triangle wave
+     *
+     * @example On-demand sampling
+     * ```js
+     * // Saw wave with frequency of 0.10hZ
+     * const osc = Oscillators.saw(0.1);
+     *
+     * // Whever we need to sample from the oscillator...
+     * const v = osc.next().value;
+     * ```
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Oscillators} from '../../ixfx/dist/modulation.js';
+     * Oscillators.saw(...);
+     *
+     * // Import from web
+     * import {Oscillators} from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * Oscillators.saw(...);
+     * ```
+     *
+     */
+    export { Oscillators };
     export type JitterOpts = {
         readonly type?: `rel` | `abs`;
         readonly clamped?: boolean;
     };
     /**
      * Jitters `value` by the absolute `jitter` amount.
-     * All values should be on a 0..1 scale, and return value by default clamped to 0..1
+     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1
      *
      * ```js
+     * import {jitter} from 'https://unpkg.com/ixfx/dist/modulation.js';
+     *
      * // Jitter 0.5 by 10% (absolute)
      * // yields range of 0.4-0.6
      * jitter(0.5, 0.1);
      *
-     * // Jitter 0.5 by 10% (relative)
+     * // Jitter 0.5 by 10% (relative, 10% of 0.5)
      * // yields range of 0.45-0.55
      * jitter(0.5, 0.1, {type:`rel`});
      * ```
@@ -9369,79 +9136,208 @@ declare module "modulation/index" {
 }
 declare module "index" {
     /**
-     * Processing streams of data. [Read more in the docs]{@link https://clinth.github.io/ixfx-docs/temporal/normalising/}
+     * Select a namespace below for more
      *
+     * * {@link Collections}: Working with lists, sets, maps
+     * * {@link Data}: Scaling, clamping, interpolating, averaging data
+     * * {@link Dom}: DOM manipulation
+     * * {@link Flow}: Delays, loops, State Machine, deboucing, throttling, timers
+     * * {@link Generators}: Generate data
+     * * {@link Geometry}: Working with various kinds of shapes and spatial calcuations
+     * * {@link Io}: Connect to Espruino, Arduino, sound and video inputs
+     * * {@link Modulation}: Envelopes, Oscillators, jittering
+     * * {@link Random}: Compute various forms of random numbers
+     * * {@link Text}: A few string processing functions
+     * * {@link Visual}: Colour, drawing, SVG and video
+     * @module
+     */
+    /**
+     * Processing streams of data. [Read more in the docs](https://clinth.github.io/ixfx-docs/temporal/normalising/)
+     *
+     * * {@link clamp}: Restrict a number to a given range
+     * * {@link clampIndex}: Restrict a number to be within the size of an array
+     * * {@link flip}: Invert a relative number
+     * * {@link interpolate}: Mix between two numbers by an amount
+     * * {@link interpolateAngle}: Mix between two angles by an amount
+     * * {@link scale}: Scale a value from an input range to an output range
+     * * {@link wrap}: Wraps a value to be within a range
+     * * {@link wrapInteger}: Wraps an integer to be within a range
+     *
+     * ### Averaging
      * * {@link movingAverage}: Calculates an average-over-time ({@link movingAverageLight} is a coarser, less memory-intensive version)
      * * {@link frequencyMutable}: Count occurences of a value
-     * * {@link Normalise.stream}: Normalises a stream of values
-     * * {@link Normalise.array}: Normalises an array of values
+     *
+     * ### Normalise sub-modukle
+     * * {@link Normalise.stream | Normalise.stream}: Normalises a stream of values
+     * * {@link Normalise.array | Normalise.array}: Normalises an array of values
+     *
+     * ### Trackers
+     * Trackers are useful for tracking a series of data over time.
+     * * {@link numberTracker}: Tracks min, max and average of a stream of numbers
+     * * {@link intervalTracker}: Tracks min, max and average time interval between events
+     * * {@link pointTracker}: Tracks the spatial change of x,y coordinates. Useful for tracking a mouse cursor, for example.
+     * * {@link pointsTracker}: Tracks changes in multiple x,y coordinates. Useful for tracking each finger touch on a screen, for example.
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {movingAverage} from '../../ixfx/dist/data.js';
+     * // Import from web
+     * import {movingAverage} from 'https://unpkg.com/ixfx/dist/data.js'
+     * ```
      */
-    export * as Temporal from "temporal/index";
+    export * as Data from "data/index";
     /**
      * Functions for different shapes, paths and coordinate spaces
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Lines, Points} from '../../ixfx/dist/geometry.js';
+     * // Import from web
+     * import {Lines, Points} from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * ```
      */
     export * as Geometry from "geometry/index";
     /**
      * Text processing
+     *
+     * Overview:
+     * * {@link between}: Return text between a start and end match
+     * * {@link countCharsFromStart}: Count the number of times a given set of characters appear at the beginning of a string
+     * * {@link omitChars}: Returns source with a given number of characters removed
+     * * {@link splitByLength}: Splits up a source string into x-charcter sized chunks
+     * * {@link startsEnds}: Returns true if a string starts and end with the given strings
+     * * {@link unwrap}: 'Unwraps' a string, removing characters if they appear at beginning and end
+     * * {@link untilMatch}: Returns from the start of a string until match has been found
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {between} from '../../ixfx/dist/text.js';
+     * // Import from web
+     * import {between} from 'https://unpkg.com/ixfx/dist/text.js'
+     * ```
      */
     export * as Text from "Text";
     /**
      * Input and output to devices, sensors and actuators
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Camera, Espruino} from '../../ixfx/dist/io.js';
+     * // Import from web
+     * import {Camera, Espruino} from 'https://unpkg.com/ixfx/dist/io.js'
+     * ```
      */
     export * as Io from "io/index";
     /**
      * Control execution
      *
-     * Overview:
-     * * {@link continuously} Run code in a loop, as fast as possible or with a delay between each execution
-     * * {@link timeout} Run code after a specified time delay
-     * * {@link sleep} Using `async await`, delay execution for a period
-     * * {@link delay} Using `async await`, run a given callback after a period
-     * * {@link forEach} / {@link forEachAsync} Loop over an iterable or array, with the possibility of early exit
-     * * {@link StateMachine} Manage state transitions
+     * Logic-oriented
+     *  * {@link StateMachine}: Manage state transitions
+     *
+     * Rate-oriented
+     * * {@link debounce}: Only handle invocation after a minimum time has elapsed
+     * * {@link throttle}: Only handle invocations at a maximum rate
+     *
+     * Time-oriented
+     * * {@link timeout}: Run code after a specified time delay
+     * * {@link sleep}: Using `async await`, delay execution for a period
+     * * {@link delay}: Using `async await`, run a given callback after a period
+     * * {@link interval}: Generates values from a given function with a given delay
+     * * {@link waitFor}: Calls a function and have the possibility to cancel if it takes too long
+     *
+     * Iteration over values
+     * * {@link forEach} / {@link forEachAsync}: Loop over an iterable or array, with the possibility of early exit
+     * * {@link repeat}: Runs a function a given number of times, collating results
+     *
+     * Loops
+     * * {@link continuously}: Run code in a loop, as fast as possible or with a delay between each execution
+     * * {@link delayLoop}: A generator that yields at a given rate
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {continuously, stateMachine} from '../../ixfx/dist/flow.js';
+     * // Import from web
+     * import {continuosly, stateMachine} from 'https://unpkg.com/ixfx/dist/flow.js'
+     * ```
      */
     export * as Flow from "flow/index";
     /**
      * Generators produce values on demand.
      *
-     * Overview
-     * * {@link count} Generate a set numbers, counting by one
-     * * {@link numericPercent} Generate a range of numbers on the percentage scale of 0-1
-     * * {@link numericRange} Generate a range of numbers
-     * * {@link pingPong} / {@link pingPongPercent} Generate numbers that repeat up and down between the set limits
+     * Overview:
+     * * {@link count}: Generate a set numbers, counting by one
+     * * {@link numericPercent}: Generate a range of numbers on the percentage scale of 0-1
+     * * {@link numericRange}: Generate a range of numbers
+     * * {@link pingPong} / {@link pingPongPercent}: Generate numbers that repeat up and down between the set limits
      *
+     * Aliases:
+     * * {@link delayLoop}: A generator that yields at a given rate
+     * * {@link interval}: Generates values from a given function with a given delay
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {count, interval} from '../../ixfx/dist/generators.js';
+     * // Import from web
+     * import {count, interval} from 'https://unpkg.com/ixfx/dist/generators.js'
+     * ```
      */
     export * as Generators from "Generators";
     /**
      * Visuals
      *
-     * Overview:
+     * Sub-modules:
+     * * {@link Video}: Working with video, either playback from a file or stream from a video camera.
+     * * {@link Drawing}: Canvas drawing helper
      * * {@link Colour}: Colour interpolation, scale generation and parsing
      * * {@link Palette}: Colour palette managment
      * * {@link Svg}: SVG helper
-     * * {@link Drawing}: Canvas drawing helper
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Colour} from '../../ixfx/dist/visual.js';
+     * // Import from web
+     * import {Colour} from 'https://unpkg.com/ixfx/dist/visual.js'
+     * ```
      */
     export * as Visual from "visual/index";
     /**
      * DOM module has some functions for easing DOM manipulation.
      *
-     * * {@link log} - log to DOM
-     * * {@link rx} - keep track of event data
-     * * {@link resolveEl} - resolve an element by query
+     * * {@link copyToClipboard}: Attempt to copy a string representation to clipboard
+     * * {@link fullSizeCanvas}: Keeps a canvas element at maximum size
+     * * {@link parentSize}: Sets width/height of an element according to size of parent
+     * * {@link getTranslation}: Returns the CSS translation of an element
+     * * {@link pointerVisualise}: Shows pointer events for debugging purposes
+     *
+     * Components
+     * * {@link dataTable}: Creates a HTML table from an object
+     * * {@link dataTableList}: Create a list of tables from a Map of data
+     * * {@link log}: log to DOM
+     * * {@link rx}: keep track of event data
+     *
+     * Basic DOM manipulation
+     * * {@link clear}: remove all child nodes from a parent
+     * * {@link resolveEl}: resolve an element by query or instance
      * * Create DOM elements: {@link createAfter}, {@link createIn}
-     *
-     *
      */
     export * as Dom from "dom/index";
     export * as Events from "Events";
     /**
      * The Modulation module contains functions for, well, modulating data.
      *
-     * Overview:
-     * * {@link adsr} - Modulate over a series of ADSR stages.
-     * * {@link Easings} - Ease from `0` to `1` over a specified duration.
-     * * {@link jitter} - Jitter a value
-     * * {@link Oscillators} - Waveforms
+     * Sub-modules:
+     * * {@link Easings}: Ease from `0` to `1` over a specified duration.
+     * * {@link Oscillators}: Waveforms
+     * * {@link Forces}: Forces such as bouncing, gravity, attraction/repulsion, springs
+     *
+     * Functions:
+     * * {@link adsr}: Modulate over a series of ADSR stages (ie. an envelope)
+     * * {@link jitter}: Jitter a value
      *
      * @example Importing
      * ```
@@ -9457,19 +9353,1640 @@ declare module "index" {
     /**
      * This module includes a variety of techniques for storing and retrieving data.
      *
-     * In short:
-     * * {@link Maps}: store/retrieve a value by a _key_. {@link MapOfMutable |MapOfs} allow storing multiple values under the same key.
-     * * {@link Arrays}: a list of data
-     * * {@link Sets}: a list of data with no duplicates
-     * * {@link Queues}: a list of ordered data, like a bakery queue
-     * * {@link Stacks}: a list of ordered data, like a stack of plates
+     * Helper functions for working with in-built Javascript collections
+     * * {@link Maps}
+     * * {@link Arrays}
+     *
+     * ### MutableSet
+     * Like a regular array, a set can store many items. However, duplicate items are ignored - it
+     * only keeps unique items. ixfx's {@link SetMutable | MutableSet} allows for considering items as identical by value, not
+     * just by reference as the default JS Set operates
+     *
+     * * {@link setMutable}: Create a {@link SetMutable}
+     *
+     * ### CircularArray
+     * {@link circularArray} extends a regular array, but only keeps the last _x_ number of items.
+     *
+     * ## Ordered collections
+     *
+     * {@link Queues}: a list of ordered data, like a bakery queue
+     * * Create with {@link queue} or {@link queueMutable}
+     *
+     * {@link Stacks}: a list of ordered data, like a stack of plates
+     * * Create with {@link stack} or {@link stackMutable}
+     *
+     * Both queue and stack come in mutable and immutable varieties and can limit items
+     * stored in varies ways.
+     *
+     * ### Map
+     *
+     * {@link MapImmutable} is a slight variant of the usual JS Map. It allows for a custom logic for computing keys
+     * for items based on a function.
+     *
+     * * Create with {@link map} or {@link mapMutable}
+     *
+     * ### Map-of
+     *
+     * {@link MapOfMutable} allows for several values to be stored under a single key. Unlike a regular JS Map
+     * which only allows a single value per key. MapOfMutable also has events for listening to changes
+     * in the data.
+     *
+     * * {@link mapArray}: Holds any number of items under a given key
+     * * {@link mapSet}: Holds any number of **unique** items under a given key
+     * * {@link mapCircularMutable}: Holds the most recent _x_ items under a given key
+     *
+     * For cases where events are not needed consider {@link simpleMapArrayMutable}. This is a bit more lightweight.
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {map} from '../../ixfx/dist/collections.js';
+     * // Import from web
+     * import {map} from 'https://unpkg.com/ixfx/dist/collections.js'
+     * ```
      */
     export * as Collections from "collections/index";
+    /**
+     * Totally rando.
+     *
+     * Overview:
+     * * {@link arrayElement} Random item from an array (alias of `Arrays.randomElement`)
+     * * {@link arrayIndex} Random index of an array (alias of `Arrays.randomIndex`)
+     * * {@link hue} Random hue - 0..359 number (alias of `Visual.Colour.randomHue`)
+     * * {@link float} Random floating point number within a given range
+     * * {@link integer} Random whole number within a given range
+     * * {@link string} Random string made up of letters and numbers
+     * * {@link shortGuid} Quasi-unique id generator
+     *
+     * Weighted random numbers:
+     * * {@link weighted} Weigh distribution with an easing function
+     * * {@link weightedInteger} As above, but whole numbers
+     * * {@link gaussian} Gaussian (bell curve-like) distribution
+     *
+     * @example Importing (with aliasing)
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {hue as randomHue, string as randomString} from '../../ixfx/dist/random.js';
+     * // Import from web
+     * import {hue as randomHue, string as randomString} from 'https://unpkg.com/ixfx/dist/random.js'
+     * ```
+     */
     export * as Random from "Random";
     export * as KeyValues from "KeyValue";
-    export * from "Util";
-    export { KeyValue } from "KeyValue";
+    export * as Util from "Util";
 }
+declare module "data/FrequencyMutable" {
+    import { ToString } from "Util";
+    import { SimpleEventEmitter } from "Events";
+    import * as KeyValueUtil from "KeyValue";
+    import { KeyValues } from "index";
+    export type FrequencyEventMap = {
+        readonly change: void;
+    };
+    export class FrequencyMutable<V> extends SimpleEventEmitter<FrequencyEventMap> {
+        #private;
+        /**
+         * Constructor
+         * @param keyString Function to key items. Uses JSON.stringify by default
+         */
+        constructor(keyString?: ToString<V> | undefined);
+        /**
+         * Clear data. Fires `change` event
+         */
+        clear(): void;
+        /**
+         * @returns Iterator over keys (ie. groups)
+         */
+        keys(): IterableIterator<string>;
+        /**
+         * @returns Iterator over frequency counts
+         */
+        values(): IterableIterator<number>;
+        /**
+         * @returns Copy of entries as an array of `[key, count]`
+         */
+        toArray(): [key: string, count: number][];
+        /**
+         * Returns a string with keys and counts, useful for debugging.
+         * @returns
+         */
+        debugString(): string;
+        /**
+         *
+         * @param value Value to count
+         * @returns Frequency of value, or _undefined_ if it does not exist
+         */
+        frequencyOf(value: V | string): number | undefined;
+        /**
+         *
+         * @param value Value to count
+         * @returns Relative frequency of `value`, or _undefined_ if it does not exist
+         */
+        relativeFrequencyOf(value: V | string): number | undefined;
+        /**
+         * @returns Copy of entries as an array
+         */
+        entries(): Array<KeyValueUtil.KeyValue>;
+        /**
+         *
+         * @returns Returns `{min,max,avg,total}`
+         */
+        minMaxAvg(): import("collections/NumericArrays").MinMaxAvgTotal;
+        /**
+         *
+         * @param sortStyle Sorting style (default: _value_, ie. count)
+         * @returns Sorted array of [key,frequency]
+         */
+        entriesSorted(sortStyle?: `value` | `valueReverse` | `key` | `keyReverse`): ReadonlyArray<KeyValues.KeyValue>;
+        /**
+         *
+         * @param values Values to add. Fires _change_ event after adding item(s)
+         */
+        add(...values: V[]): void;
+    }
+    /**
+     * Frequency keeps track of how many times a particular value is seen, but
+     * unlike a Map it does not store the data. By default compares
+     * items by value (via JSON.stringify).
+     *
+     * Create with {@link frequencyMutable}.
+     *
+     * Fires `change` event when items are added or it is cleared.
+     *
+     * Overview
+     * ```
+     * const fh = frequencyMutable();
+     * fh.add(value); // adds a value
+     * fh.clear();    // clears all data
+     * fh.keys() / .values() // returns an iterator for keys and values
+     * fh.toArray();  //  returns an array of data in the shape [[key,freq],[key,freq]...]
+     * ```
+     *
+     * Usage
+     * ```
+     * const fh = frequencyMutable();
+     * fh.add(`apples`); // Count an occurence of `apples`
+     * fh.add(`oranges)`;
+     * fh.add(`apples`);
+     *
+     * const fhData = fh.toArray(); // Expect result [[`apples`, 2], [`oranges`, 1]]
+     * fhData.forEach((d) => {
+     *  const [key,freq] = d;
+     *  console.log(`Key '${key}' occurred ${freq} time(s).`);
+     * })
+     * ```
+     *
+     * Custom key string
+     * ```
+     * const fh = frequencyMutable( person => person.name);
+     * // All people with name `Samantha` will be counted in same group
+     * fh.add({name:`Samantha`, city:`Brisbane`});
+     * ```
+     * @template V Type of items
+     */
+    export const frequencyMutable: <V>(keyString?: ToString<V> | undefined) => FrequencyMutable<V>;
+}
+declare module "data/MovingAverage" {
+    /**
+     * A moving average calculator (exponential weighted moving average) which does not keep track of
+     * previous samples. Less accurate, but uses less system resources.
+     *
+     * The `scaling` parameter determines smoothing. A value of `1` means that
+     * the latest value is used as the average - that is, no smoothing. Higher numbers
+     * introduce progressively more smoothing by weighting the accumulated prior average more heavily.
+     *
+     * `add()` adds a new value and returns the calculated average.
+     *
+     * ```
+     * const ma = movingAverageLight(); // default scaling of 3
+     * ma.add(50);  // 50
+     * ma.add(100); // 75
+     * ma.add(75);  // 75
+     * ma.add(0);   // 50
+     * ```
+     *
+     * Note that the final average of 50 is pretty far from the last value of 0. To make it more responsive,
+     * we could use a lower scaling factor: `movingAverageLight(2)`. This yields a final average of `37.5` instead.
+     *
+     * Use `clear()` to reset the moving average, or `compute()` to get the current value without adding.
+     * @param scaling Scaling factor. 1 is no smoothing. Default: 3
+     * @returns {@link MovingAverage}
+     */
+    export const movingAverageLight: (scaling?: number) => MovingAverage;
+    /**
+     * Creates a moving average for a set number of `samples`.
+     *
+     * Moving average are useful for computing the average over a recent set of numbers.
+     * A lower number of samples produces a computed value that is lower-latency yet more jittery.
+     * A higher number of samples produces a smoother computed value which takes longer to respond to
+     * changes in data.
+     *
+     * Sample size is considered with respect to the level of latency/smoothness trade-off, and also
+     * the rate at which new data is added to the moving average.
+     *
+    * `add` adds a number and returns the computed average. Call `compute` to
+     * get the average without adding a new value.
+     *
+     * ```js
+     * const ma = movingAverage(10);
+     * ma.add(10); // 10
+     * ma.add(5);  // 7.5
+     * ```
+     *
+     * `clear` clears the average.
+     *
+     * A weighting function can be provided to shape how the average is
+     * calculated - eg privileging the most recent data over older data.
+     * It uses `Arrays.averageWeighted` under the hood.
+     *
+     * ```js
+     * // Give more weight to data in middle of sampling window
+     * const ma = movingAverage(100, Easings.gaussian());
+     * ```
+     *
+     * Because it keeps track of `samples` previous data, there is a memory impact. A lighter version is {@link movingAverageLight} which does not keep a buffer of prior data, but can't be as easily fine-tuned.
+     * @param samples Number of samples to compute average from
+     * @param weightingFn Optional weighting function
+     * @returns
+     */
+    export const movingAverage: (samples?: number, weightingFn?: ((v: number) => number) | undefined) => MovingAverage;
+    /**
+     * Moving average.
+     * Create via {@link movingAverage} or {@link movingAverageLight}.
+     */
+    export type MovingAverage = {
+        /**
+         * Clear data
+         */
+        clear(): void;
+        /**
+         * Returns current average
+         */
+        compute(): number;
+        /**
+         * Adds a value, returning new average
+         * @param v Value to add
+         */
+        add(v: number): number;
+    };
+}
+declare module "data/IntervalTracker" {
+    import { NumberTracker } from "data/NumberTracker";
+    import { TrackedValueOpts as TrackOpts } from "data/TrackedValue";
+    /**
+     * A `Tracker` that tracks interval between calls to `mark()`
+     *
+     * @export
+     * @class IntervalTracker
+     * @extends {ValueTracker}
+     */
+    export class IntervalTracker extends NumberTracker {
+        lastMark: number;
+        mark(): void;
+    }
+    /**
+     * Returns a new {@link IntervalTracker} instance. IntervalTracker
+     * records the interval between each call to `mark`.
+     *
+     * ```js
+     * const t = intervalTracker();
+     *
+     * // Call `mark` to record an interval
+     * t.mark();
+     * ...
+     * t.mark();
+     *
+     * // Get average time in milliseconds between calls to `mark`
+     * t.avg;
+     *
+     * // Longest and shortest times are available too...
+     * t.min; t.max
+     * ```
+     *
+     * Interval tracker can automatically reset after a given number of samples:
+     * ```
+     * // Reset after 100 samples
+     * const t = intervalTracker(`tracker`, 100);
+     * ```
+     * @param id Optional id of instance
+     * @returns New interval tracker
+     */
+    export const intervalTracker: (id: string, opts: TrackOpts) => IntervalTracker;
+}
+declare module "data/Flip" {
+    import { NumberFunction } from "data/index";
+    /**
+     * Flips a percentage-scale number: `1 - v`.
+     *
+     * The utility of this function is that it sanity-checks
+     * that `v` is in 0..1 scale.
+     *
+     * ```js
+     * flip(1);   // 0
+     * flip(0.5); // 0.5
+     * flip(0);   // 1
+     * ```
+     * @param v
+     * @returns
+     */
+    export const flip: (v: number | NumberFunction) => number;
+}
+declare module "data/Wrap" {
+    /**
+     * Wraps am integer number within a specified range, defaulting to degrees (0-360)
+     *
+     * This is useful for calculations involving degree angles and hue, which wrap from 0-360.
+     * Eg: to add 200 to 200, we don't want 400, but 40.
+     *
+     * ```js
+     * const v = wrap(200+200, 0, 360); // 40
+     * ```
+     *
+     * Or if we minus 100 from 10, we don't want -90 but 270
+     * ```js
+     * const v = wrap(10-100, 0, 360); // 270
+     * ```
+     *
+     * `wrap` uses 0-360 as a default range, so both of these
+     * examples could just as well be:
+     *
+     * ```js
+     * wrap(200+200);  // 40
+     * wrap(10-100);  // 270
+     * ```
+     *
+     * Non-zero starting points can be used. A range of 20-70:
+     * ```js
+     * const v = wrap(-20, 20, 70); // 50
+     * ```
+     *
+     * Note that the minimum value is inclusive, while the maximum is _exclusive_.
+     * So with the default range of 0-360, 360 is never reached:
+     *
+     * ```js
+     * wrap(360); // 0
+     * wrap(361); // 1
+     * ```
+     *
+     * If you just want to lock values to a range without wrapping, consider {@link clamp}.
+     *
+     * @param v Value to wrap
+     * @param min Integer minimum of range (default: 0). Inclusive
+     * @param max Integer maximum of range (default: 360). Exlusive
+     * @returns
+     */
+    export const wrapInteger: (v: number, min?: number, max?: number) => number;
+    /**
+     * Wraps floating point numbers to be within a range (default: 0..1).
+     *
+     * This logic makes sense for some things like rotation angle.
+     *
+     * If you just want to lock values to a range without wrapping, consider {@clamp}.
+     *
+     * ```js
+     * wrap(1.2);   // 0.2
+     * wrap(2);     // 1.0
+     * wrap(-0.2); // 0.8
+     * ```
+     *
+     * A range can be provided too:
+     * ```js
+     * wrap(30, 20, 50);  	 // 30
+     * wrap(60, 20, 50);    //  30
+     * ```
+     * @param v
+     * @param min
+     * @param max
+     * @returns
+     */
+    export const wrap: (v: number, min?: number, max?: number) => number;
+    /**
+     * Performs a calculation within a wrapping number range. This is a lower-level function.
+     * See also: {@link wrapInteger} for simple wrapping within a range.
+     *
+     * `min` and `max` define the start and end of the valid range, inclusive. Eg for hue degrees it'd be 0, 360.
+     * `a` and `b` is the range you want to work in.
+     *
+     * For example, let's say you want to get the middle point between a hue of 30 and a hue of 330 (ie warmer colours):
+     * ```js
+     * wrapRange(0,360, (distance) => {
+     *  // for a:0 and b:330, distance would be 90 from 30 degrees to 330 (via zero)
+     *  return distance * 0.5; // eg return middle point
+     * }, 30, 330);
+     * ```
+     *
+     * The return value of the callback should be in the range of 0-distance. `wrapRange` will subsequently
+     * conform it to the `min` and `max` range before it's returned to the caller.
+     *
+     * @param a Output start (eg. 60)
+     * @param b Output end (eg 300)
+     * @param min Range start (eg 0)
+     * @param max Range end (eg 360)
+     * @param fn Returns a computed value from 0 to `distance`.
+     * @returns
+     */
+    export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
+}
+declare module "data/index" {
+    export * as Normalise from "data/Normalise";
+    export * from "data/FrequencyMutable";
+    export * from "data/MovingAverage";
+    export * from "data/NumberTracker";
+    export * from "data/IntervalTracker";
+    export * from "data/PointTracker";
+    export * from "data/TrackedValue";
+    export * from "data/Clamp";
+    export * from "data/Scale";
+    export * from "data/Flip";
+    export * from "data/Interpolate";
+    export * from "data/Wrap";
+    export const piPi: number;
+    export type NumberFunction = () => number;
+}
+declare module "data/Interpolate" {
+    /**
+     * Interpolates between `a` and `b` by `amount`. Aka `lerp`.
+     *
+     * @example Get the halfway point between 30 and 60
+     * ```js
+     * interpolate(0.5, 30, 60);
+     * ```
+     *
+     * Interpolation is often used for animation. In that case, `amount`
+     * would start at 0 and you would keep interpolating up to `1`
+     * @example
+     * ```js
+     * // Go back and forth between 0 and 1 by 0.1
+     * let pp = percentPingPong(0.1);
+     * continuously(() => {
+     *  // Get position in ping-pong
+     *  const amt = pp.next().value;
+     *  // interpolate between Math.PI and Math.PI*2
+     *  const v = interpolate(amt, Math.PI, Math.PI*2);
+     *  // do something with v...
+     * }).start();
+     * ```
+     *
+     * See also {@link Visual.Colour.interpolate | Visual.Colour.interpolate }, {@link Geometry.Points.interpolate | Geometry.Points.interpolate}.
+     * @param amount Interpolation amount, between 0 and 1 inclusive
+     * @param a Start (ie when `amt` is 0)
+     * @param b End (ie. when `amt` is 1)
+     * @returns Interpolated value which will be between `a` and `b`.
+     */
+    export const interpolate: (amount: number, a: number, b: number) => number;
+    export const interpolateAngle: (amount: number, angleA: number, angleB: number) => number;
+}
+declare module "modulation/Easing" {
+    import { HasCompletion } from "flow/index";
+    export type EasingFn = (x: number) => number;
+    /**
+     * Creates an easing based on clock time
+     * @example Time based easing
+     * ```
+     * const t = time(`quintIn`, 5*1000); // Will take 5 seconds to complete
+     * ...
+     * t.compute(); // Get current value of easing
+     * t.reset();   // Reset to 0
+     * t.isDone;    // _True_ if finished
+     * ```
+     * @param nameOrFn Name of easing, or an easing function
+     * @param durationMs Duration in milliseconds
+     * @returns Easing
+     */
+    export const time: (nameOrFn: EasingName | EasingFn, durationMs: number) => Easing;
+    /**
+     * Creates an easing based on ticks
+     *
+     * @example Tick-based easing
+     * ```
+     * const t = tick(`sineIn`, 1000);   // Will take 1000 ticks to complete
+     * t.compute(); // Each call to `compute` progresses the tick count
+     * t.reset();   // Reset to 0
+     * t.isDone;    // _True_ if finished
+     * ```
+     * @param nameOrFn Name of easing, or an easing function
+     * @param durationTicks Duration in ticks
+     * @returns Easing
+     */
+    export const tick: (nameOrFn: EasingName | EasingFn, durationTicks: number) => Easing;
+    /**
+     * 'Ease' from `0` to `1` over a delicious curve. Commonly used for animation
+     * and basic modelling of phyical motion.
+     *
+     * Create via {@link tick} or {@link time}, call `compute` to calculate the next
+     * value in the progression, until you reach `1` or `isDone` returns true.
+     *
+     */
+    export type Easing = HasCompletion & {
+        /**
+         * Computes the current value of the easing
+         *
+         * @returns {number}
+         */
+        compute(): number;
+        /**
+         * Reset the easing
+         */
+        reset(): void;
+        /**
+         * Returns true if the easing is complete
+         *
+         * @returns {boolean}
+         */
+        get isDone(): boolean;
+    };
+    /**
+     * Creates an easing function using a simple cubic bezier defined by two points.
+     *
+     * Eg: https://cubic-bezier.com/#0,1.33,1,-1.25
+     *  a:0, b: 1.33, c: 1, d: -1.25
+     *
+     * ```js
+     * // Time-based easing using bezier
+     * const e = Easings.time(fromCubicBezier(1.33, -1.25), 1000);
+     * e.compute();
+     * ```
+     * @param b
+     * @param d
+     * @param t
+     * @returns Value
+     */
+    export const fromCubicBezier: (b: number, d: number) => EasingFn;
+    /**
+     * Returns a mix of two easing functions.
+     *
+     * ```js
+     * // Get a 50/50 mix of two easing functions at t=0.25
+     * mix(0.5, 0.25, sineIn, sineOut);
+     *
+     * // 10% of sineIn, 90% of sineOut
+     * mix(0.90, 0.25, sineIn, sineOut);
+     * ```
+     * @param amt 'Progress' value passed to the easing functions
+     * @param balance Mix between a and b
+     * @param easingA
+     * @param easingB
+     * @returns Numeric value
+     */
+    export const mix: (amt: number, balance: number, easingA: EasingFn, easingB: EasingFn) => number;
+    /**
+     * Returns a 'crossfade' of two easing functions, synchronised with the progress through the easing. That is:
+     * * 0.0 will yield 100% of easingA at its `easing(0)` value.
+     * * 0.2 will yield 80% of a, 20% of b, with both at their `easing(0.2)` values
+     * * 0.5 will yield 50% of both functions both at their `easing(0.5)` values
+     * * 0.8 will yield 20% of a, 80% of a, with both at their `easing(0.8)` values
+     * * 1.0 will yield 100% of easingB at its `easing(1)` value.
+     *
+     * So easingB will only ever kick in at higher `amt` values and `easingA` will only be present in lower valus.
+     * @param amt
+     * @param easingA
+     * @param easingB
+     * @returns Numeric value
+     */
+    export const crossfade: (amt: number, easingA: EasingFn, easingB: EasingFn) => number;
+    /**
+     * @private
+     */
+    export type EasingName = keyof typeof functions;
+    /**
+     * Returns an easing function by name, or _undefined_ if not found.
+     * This is a manual way of working with easing functions. If you want to
+     * ease over time or ticks, use `Flow.Timer.msElapsedTimer` or `Flow.Timer.ticksElapsedTimer`.
+     *
+     * ```js
+     * const fn = Easings.get(`sineIn`);
+     * // Returns 'eased' transformation of 0.5
+     * fn(0.5);
+     * ```
+     * @param easingName eg `sineIn`
+     * @returns Easing function
+     */
+    export const get: (easingName: EasingName) => EasingFn | undefined;
+    /**
+     * @private
+     * @returns Returns list of available easing names
+     */
+    export const getEasings: () => readonly string[];
+    /**
+     * Returns a roughly gaussian easing function
+     * @param stdDev
+     * @returns
+     */
+    export const gaussian: (stdDev?: number) => EasingFn;
+    export const functions: {
+        arch: (x: number) => number;
+        bell: EasingFn;
+        sineIn: (x: number) => number;
+        sineOut: (x: number) => number;
+        quadIn: (x: number) => number;
+        quadOut: (x: number) => number;
+        sineInOut: (x: number) => number;
+        quadInOut: (x: number) => number;
+        cubicIn: (x: number) => number;
+        cubicOut: (x: number) => number;
+        quartIn: (x: number) => number;
+        quartOut: (x: number) => number;
+        quintIn: (x: number) => number;
+        quintOut: (x: number) => number;
+        expoIn: (x: number) => number;
+        expoOut: (x: number) => number;
+        quintInOut: (x: number) => number;
+        expoInOut: (x: number) => number;
+        circIn: (x: number) => number;
+        circOut: (x: number) => number;
+        backIn: (x: number) => number;
+        backOut: (x: number) => number;
+        circInOut: (x: number) => number;
+        backInOut: (x: number) => number;
+        elasticIn: (x: number) => number;
+        elasticOut: (x: number) => number;
+        bounceIn: (x: number) => number;
+        bounceOut: (x: number) => number;
+        elasticInOut: (x: number) => number;
+        bounceInOut: (x: number) => number;
+    };
+}
+declare module "collections/NumericArrays" {
+    import * as Easings from "modulation/Easing";
+    /**
+     * Applies a function `fn` to the elements of an array, weighting them based on their relative position.
+     *
+     * ```js
+     * // Six items
+     * weight([1,1,1,1,1,1], Easings.gaussian());
+     *
+     * // Yields:
+     * // [0.02, 0.244, 0.85, 0.85, 0.244, 0.02]
+     * ```
+     *
+     * `fn` is expected to map (0..1) => (0..1), such as an {@link Modulation.Easings.EasingFn}. The input to the
+     * `fn` is the relative position of an element. Thus the first element will be 0, the middle 0.5 and so on.
+     * The output of `fn` is then multiplied by the original value.
+     *
+     * In the below example (which is also the default if `fn` is not specified), the relative position is
+     * how values are weighted:
+     *
+     * ```js
+     * weight([1,1,1,1,1,1], (relativePos) => relativePos);
+     * // Yields:
+     * // [0, 0.2, 0.4, 0.6, 0.8, 1]
+     * ```
+     *
+     * Non-numbers in `data` will be silently ignored (this filtering happens first, so relative index values are sane still).
+     *
+     * @param data Array of numbers
+     * @param fn Returns a weighting based on the given relative position. If unspecified, `(x) => x` is used.
+     */
+    export const weight: (data: readonly number[], fn?: ((relativePos: number) => number) | undefined) => readonly number[];
+    /**
+     * Returns the dot product of two arbitrary-sized arrays. Assumed they are of the same length.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const dotProduct: (values: ReadonlyArray<readonly number[]>) => number;
+    /**
+     * Calculates the average of all numbers in an array.
+     * Array items which aren't a valid number are ignored and do not factor into averaging.
+     *
+     * Use {@link minMaxAvg} if you want min, max and total as well.
+     *
+     * @example
+     * ```
+     * // Average of a list
+     * const avg = average(1, 1.4, 0.9, 0.1);
+     *
+     * // Average of a variable
+     * let data = [100,200];
+     * average(...data);
+     * ```
+     * @param data Data to average.
+     * @returns Average of array
+     */
+    export const average: (...data: readonly number[]) => number;
+    /**
+     * Computes an average of an array with a set of weights applied.
+     *
+     * Weights can be provided as an array, expected to be on 0..1 scale, with indexes
+     * matched up to input data. Ie. data at index 2 will be weighed by index 2 in the weightings array.
+     *
+     * ```js
+     * // All items weighted evenly
+     * averageWeighted([1,2,3], [1,1,1]); // 2
+     *
+     * // First item has full weight, second half, third quarter
+     * averageWeighted([1,2,3], [1, 0.5, 0.25]); // 1.57
+     *
+     * // With reversed weighting of [0.25,0.5,1] value is 2.42
+     * ```
+     *
+     * A function can alternatively be provided to compute the weighting based on array index, via {@link weight}.
+     *
+     * ```js
+     * averageWeighted[1,2,3], Easings.gaussian()); // 2.0
+     * ```
+     *
+     * This is the same as:
+     * ```js
+     * const data = [1,2,3];
+     * const w = weight(data, Easings.gaussian());
+     * const avg = averageWeighted(data, w); // 2.0
+     * ```
+     * @param data Data to average
+     * @param weightings Array of weightings that match up to data array, or an easing function
+     */
+    export const averageWeighted: (data: readonly number[], weightings: (readonly number[]) | Easings.EasingFn) => number;
+    /**
+     * Returns the minimum number out of `data`.
+     * Undefined and non-numbers are silently ignored.
+     * @param data
+     * @returns Minimum number
+     */
+    export const min: (...data: readonly number[]) => number;
+    /**
+     * Returns the index of the largest value.
+     * ```js
+     * const v = [ 10, 40, 5 ];
+     * maxIndex(v); // Yields 1
+     * ```
+     * @param data Array of numbers
+     * @returns Index of largest value
+     */
+    export const maxIndex: (...data: readonly number[]) => number;
+    /**
+     * Returns the index of the smallest value.
+     *
+     * ```js
+     * const v = [ 10, 40, 5 ];
+     * minIndex(v); // Yields 2
+     * ```
+     * @param data Array of numbers
+     * @returns Index of smallest value
+     */
+    export const minIndex: (...data: readonly number[]) => number;
+    /**
+     * Returns the maximum number out of `data`.
+     * Undefined and non-numbers are silently ignored.
+     * @param data List of numbers
+     * @returns Maximum number
+     */
+    export const max: (...data: readonly number[]) => number;
+    /**
+     * Returns the total of `data`.
+     * Undefined and non-numbers are silently ignored
+     * @param data Array of numbers
+     * @returns Total
+     */
+    export const total: (...data: readonly number[]) => number;
+    /**
+     * Returns the maximum out of `data` without pre-filtering for speed.
+     *
+     * For most uses, {@link max} should suffice.
+     * @param data
+     * @returns Maximum
+     */
+    export const maxFast: (data: readonly number[] | Float32Array) => number;
+    /**
+     * Returns the maximum out of `data` without pre-filtering for speed.
+     *
+     * For most uses, {@link max} should suffice.
+     * @param data
+     * @returns Maximum
+     */
+    export const minFast: (data: readonly number[] | Float32Array) => number;
+    export type MinMaxAvgTotal = {
+        /**
+         * Smallest value in array
+         */
+        readonly min: number;
+        /**
+         * Total of all items
+         */
+        readonly total: number;
+        /**
+         * Largest value in array
+         */
+        readonly max: number;
+        /**
+         * Average value in array
+         */
+        readonly avg: number;
+    };
+    /**
+     * Returns the min, max, avg and total of the array.
+     * Any values that are invalid are silently skipped over.
+     *
+     * ```js
+     * const v = [10, 2, 4.2, 99];
+     * const mma = minMaxAvg(v);
+     * Yields: { min: 2, max: 99, total: 115.2, avg: 28.8 }
+     * ```
+     *
+     * Use {@link average}, {@link max}, {@link min} or {@link total} if you only need one of these.
+     *
+     * A start and end range can be provided if the calculation should be restricted to a part
+     * of the input array. By default the whole array is used.
+     *
+     * @param data
+     * @param startIndex If provided, starting index to do calculations (defaults full range)
+     * @param endIndex If provided, the end index to do calculations (defaults full range)
+     * @returns `{min, max, avg, total}`
+     */
+    export const minMaxAvg: (data: readonly number[], startIndex?: number, endIndex?: number) => MinMaxAvgTotal;
+}
+declare module "collections/Arrays" {
+    import { RandomSource } from "Random";
+    import { IsEqual } from "Util";
+    export * from "collections/NumericArrays";
+    /**
+     * Throws an error if `array` parameter is not a valid array
+     * @private
+     * @param array
+     * @param paramName
+     */
+    export const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
+    /**
+     * Throws if `index` is an invalid array index for `array`, and if
+     * `array` itself is not a valid array.
+     * @param array
+     * @param index
+     */
+    export const guardIndex: <V>(array: readonly V[], index: number, paramName?: string) => void;
+    /**
+     * Returns _true_ if all the contents of the array are identical.
+     *
+     * @example Uses default equality function:
+     * ```js
+     * const a1 = [10, 10, 10];
+     * areValuesIdentical(a1); // True
+     *
+     * const a2 = [ {name:`Jane`}, {name:`John} ];
+     * areValuesIdentical(a2); // True, because JSON version captures value
+     * ```
+     *
+     * If we want to compare by value for objects that aren't readily
+     * converted to JSON, you need to provide a function:
+     * ```js
+     * areValuesIdentical(someArray, (a, b) => {
+     *  return (a.eventType === b.eventType);
+     * });
+     * ```
+     * @param array Array
+     * @param equality Equality checker. Uses string-conversion checking by default
+     * @returns
+     */
+    export const areValuesIdentical: <V>(array: readonly V[], equality?: IsEqual<V> | undefined) => boolean;
+    /**
+     * Zip ombines the elements of two or more arrays based on their index.
+     *
+     * ```js
+     * const a = [1,2,3];
+     * const b = [`red`, `blue`, `green`];
+     *
+     * const c = zip(a, b);
+     * // Yields:
+     * // [
+     * //   [1, `red`],
+     * //   [2, `blue`],
+     * //   [3, `green`]
+     * // ]
+     * ```
+     *
+     * Typically the arrays you zip together are all about the same logical item. Eg, in the above example
+     * perhaps `a` is size and `b` is colour. So thing #1 (at array index 0) is a red thing of size 1. Before
+     * zipping we'd access it by `a[0]` and `b[0]`. After zipping, we'd have c[0], which is array of [1, `red`].
+     * @param arrays
+     * @returns Zipped together array
+     */
+    export const zip: (...arrays: ReadonlyArray<any>) => ReadonlyArray<any>;
+    /**
+     * Returns an copy of `data` with specified length.
+     * If the input array is too long, it is truncated.
+     *
+     * If the input array is too short, it will be expanded based on the `expand` strategy:
+     *  - 'undefined': fill with `undefined`
+     *  - 'repeat': repeat array elements, starting from position 0
+     *  - 'first': continually use first element
+     *  - 'last': continually use last element
+     *
+     * @example
+     * ```js
+     * ensureLength([1,2,3], 2); // [1,2]
+     * ensureLength([1,2,3], 5, `undefined`); // [1,2,3,undefined,undefined]
+     * ensureLength([1,2,3], 5, `repeat`);    // [1,2,3,1,2]
+     * ensureLength([1,2,3], 5, `first`);     // [1,2,3,1,1]
+     * ensureLength([1,2,3], 5, `last`);      // [1,2,3,3,3]
+     * ```
+     * @param data Input array to expand
+     * @param length Desired length
+     * @param expand Expand strategy
+     * @typeParam V Type of array
+     */
+    export const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => readonly V[];
+    /**
+     * Return elements from `array` that match a given `predicate`, and moreover are between
+     * the given `startIndex` and `endIndex` (both inclusive).
+     *
+     * While this can be done with in the in-built `array.filter` function, it will
+     * needlessly iterate through the whole array. It also avoids another alternative
+     * of slicing the array before using `filter`.
+     *
+     * ```js
+     * // Return 'registered' people between and including array indexes 5-10
+     * const filtered = filterBetween(people, person => person.registered, 5, 10);
+     * ```
+     * @param array Array to filter
+     * @param predicate Filter function
+     * @param startIndex Start index (defaults to 0)
+     * @param endIndex End index (defaults to last index)
+     */
+    export const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex?: number, endIndex?: number) => readonly V[];
+    /**
+     * Returns a random array index.
+     *
+     * ```js
+     * const v = [`blue`, `red`, `orange`];
+     * randomIndex(v); // Yields 0, 1 or 2
+     * ```
+     *
+     * Use {@link randomElement} if you want a value from `array`, not index.
+     *
+     * @param array Array
+     * @param rand Random generator. `Math.random` by default.
+     * @returns
+     */
+    export const randomIndex: <V>(array: ArrayLike<V>, rand?: RandomSource) => number;
+    /**
+     * Returns random element.
+     * ```js
+     * const v = [`blue`, `red`, `orange`];
+     * randomElement(v); // Yields `blue`, `red` or `orange`
+     * ```
+     *
+     * Use {@link randomIndex} if you want a random index within `array`.
+     *
+     * @param array
+     * @params rand Random generator. `Math.random` by default.
+     * @returns
+     */
+    export const randomElement: <V>(array: ArrayLike<V>, rand?: RandomSource) => V;
+    /**
+     * Removes a random item from an array, returning both the item and the new array as a result.
+     * Does not modify the original array unless `mutate` parameter is true.
+     *
+     * @example Without changing source
+     * ```js
+     * const data = [100, 20, 40];
+     * const {value, array} = randomPluck(data);
+     * // value: 20, array: [100, 40], data: [100, 20, 40];
+     * ```
+     *
+     * @example Mutating source
+     * ```js
+     * const data = [100, 20, 40];
+     * const {value} = randomPluck(data, true);
+     * // value: 20, data: [100, 40];
+     * ```
+     *
+     * @template V Type of array
+     * @param array Array to pluck item from
+     * @param mutate If _true_, changes input array. _False_ by default.
+     * @param random Random generatr. `Math.random` by default.
+     * @return Returns an object `{value:V|undefined, array:V[]}`
+     *
+     */
+    export const randomPluck: <V>(array: readonly V[], mutate?: boolean, rand?: RandomSource) => {
+        readonly value: V | undefined;
+        readonly array: V[];
+    };
+    /**
+     * Returns a shuffled copy of the input array.
+     * @example
+     * ```js
+     * const d = [1, 2, 3, 4];
+     * const s = shuffle(d);
+     * // d: [1, 2, 3, 4], s: [3, 1, 2, 4]
+     * ```
+     * @param dataToShuffle
+     * @param rand Random generator. `Math.random` by default.
+     * @returns Copy with items moved around randomly
+     * @template V Type of array items
+     */
+    export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
+    /**
+     * Returns an array with a value omitted. If value is not found, result will be a copy of input.
+     * Value checking is completed via the provided `comparer` function.
+     * By default checking whether `a === b`. To compare based on value, use the `isEqualValueDefault` comparer.
+     *
+     * @example
+     * ```js
+     * const data = [100, 20, 40];
+     * const filtered = without(data, 20); // [100, 40]
+     * ```
+     *
+     * @example Using value-based comparison
+     * ```js
+     * const data = [{name: `Alice`}, {name:`Sam`}];
+     *
+     * // This wouldn't work as expected, because the default comparer uses instance,
+     * // not value:
+     * without(data, {name: `Alice`});
+     *
+     * // So instead we can use a value comparer:
+     * without(data, {name:`Alice`}, isEqualValueDefault);
+     * ```
+     *
+     * @example Use a function
+     * ```js
+     * const data = [{name: `Alice`}, {name:`Sam`}];
+     * without(data, {name:`ALICE`}, (a, b) => {
+     *  return (a.name.toLowerCase() === b.name.toLowerCase());
+     * });
+     * ```
+     *
+     * Consider {@link remove} to remove an item by index.
+     *
+     * @template V Type of array items
+     * @param data Source array
+     * @param value Value to remove
+     * @param comparer Comparison function. If not provided `Util.isEqualDefault` is used, which compares using `===`
+     * @return Copy of array without value.
+     */
+    export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
+    /**
+     * Removes an element at `index` index from `data`, returning the resulting array without modifying the original.
+     *
+     * ```js
+     * const v = [ 100, 20, 50 ];
+     * const vv = remove(2);
+     *
+     * Yields:
+     *  v: [ 100, 20, 50 ]
+     * vv: [ 100, 20 ]
+     * ```
+     *
+     * Consider {@link without} if you want to remove an item by value.
+     *
+     * Throws an exception if `index` is outside the range of `data` array.
+     * @param data Input array
+     * @param index Index to remove
+     * @typeParam V Type of array
+     * @returns
+     */
+    export const remove: <V>(data: readonly V[], index: number) => readonly V[];
+    /**
+     * Groups data by a function `grouper`, returning data as a map with string
+     * keys and array values. Multiple values can be assigned to the same group.
+     *
+     * `grouper` must yield a string designated group for a given item.
+     *
+     * @example
+     * ```js
+     * const data = [
+     *  { age: 39, city: `London` }
+     *  { age: 14, city: `Copenhagen` }
+     *  { age: 23, city: `Stockholm` }
+     *  { age: 56, city: `London` }
+     * ];
+     *
+     * // Whatever the function returns will be the designated group
+     * // for an item
+     * const map = groupBy(data, item => data.city);
+     * ```
+     *
+     * This yields a Map with keys London, Stockholm and Copenhagen, and the corresponding values.
+     *
+     * ```
+     * London: [{ age: 39, city: `London` }, { age: 56, city: `London` }]
+     * Stockhom: [{ age: 23, city: `Stockholm` }]
+     * Copenhagen: [{ age: 14, city: `Copenhagen` }]
+     * ```
+     * @param array Array to group
+     * @param grouper Function that returns a key for a given item
+     * @typeParam K Type of key to group by. Typically string.
+     * @typeParam V Type of values
+     * @returns Map
+     */
+    export const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
+    /**
+     * Samples array
+     *
+     * @example By percentage - get half of the items
+     * ```
+     * const list = [1,2,3,4,5,6,7,8,9,10];
+     * const sub = sample(list, 0.5);
+     * // Yields:
+     * // [2, 4, 6, 8, 10]
+     * ```
+     *
+     * @example By steps - every third
+     * ```
+     * const list = [1,2,3,4,5,6,7,8,9,10];
+     * const sub = sample(list, 3);
+     * // Yields:
+     * // [3, 6, 9]
+     * ```
+     * @param array Array to sample
+     * @param amount Amount, given as a percentage (0..1) or the number of interval (ie 3 for every third item)
+     * @returns
+     */
+    export const sample: <V>(array: readonly V[], amount: number) => readonly V[];
+}
+declare module "Random" {
+    import { randomIndex, randomElement } from "collections/Arrays";
+    import * as Easings from "modulation/Easing";
+    export { randomIndex as arrayIndex };
+    export { randomElement as arrayElement };
+    export { randomHue as hue } from "visual/Colour";
+    /**
+     * Default random number generator: `Math.random`.
+     */
+    export const defaultRandom: () => number;
+    /**
+     * A random source.
+     *
+     * Predefined sources: {@link defaultRandom}, {@link gaussianSkewed}, {@link weightedSkewed}
+     */
+    export type RandomSource = () => number;
+    /***
+     * Returns a random number, 0..1, weighted by a given easing function.
+     * Default easing is `quadIn`, which skews towards zero.
+     *
+     * ```js
+     * weighted();          // quadIn easing by default, which skews toward low values
+     * weighted(`quadOut`); // quadOut favours high values
+     * ```
+     *
+     * Use {@link weightedSkewed} for a curried version that can be used as a {@link RandomSource}:
+     *
+     * ```js
+     * const w = weightedSkewed(`quadIn`);
+     * w(); // Produce a random number
+     * ```
+     * @param easingName Easing name. `quadIn` by default.
+     * @param rand Source random generator. `Math.random` by default.
+     * @returns Random number (0-1)
+     */
+    export const weighted: (easingName?: Easings.EasingName, rand?: RandomSource) => number;
+    /**
+     * Returns a curried version of {@link weighted}.
+     *
+     * ```js
+     * const w = weightedSkewed(`quadIn`);   // Returns a function
+     * w(); // Produce a random number
+     * ```
+     * @param easingName
+     * @param rand
+     * @returns
+     */
+    export const weightedSkewed: (easingName?: Easings.EasingName, rand?: RandomSource) => RandomSource;
+    /**
+     * Random integer, weighted according to an easing function.
+     * Number will be inclusive of `min` and below `max`.
+     *
+     * ```js
+     * // If only one parameter is provided, it's assumed to be the max:
+     * // Random number that might be 0 through to 99
+     * const r = weightedInteger(100);
+     *
+     * // If two numbers are given, it's assumed to be min, max
+     * // Random number that might be 20 through to 29
+     * const r = weightedInteger(20,30);
+     *
+     * // One number and string. First param is assumed to be
+     * // the max, second parameter the easing function
+     * const r = weightedInteger(100, `quadIn`)
+     * ```
+     *
+     * Useful for accessing a random array element:
+     * ```js
+     * const list = [`mango`, `kiwi`, `grape`];
+     * // Yields random item from list
+     * list[weightedInteger(list.length)];
+     * ```
+     *
+     * Note: result from easing function will be clamped to
+     * the min/max (by default 0-1);
+     *
+     * @param max Maximum (exclusive)
+     * @param min Minimum number (inclusive), 0 by default
+     * @param rand Source random generator. `Math.random` by default.
+     * @param easing Easing to use, uses `quadIn` by default
+     * @returns
+     */
+    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | Easings.EasingName, easing?: Easings.EasingName, rand?: RandomSource) => number;
+    /**
+     * Returns a random number with gaussian (ie bell-curved) distribution
+     * ```js
+     * // Yields a random number between 0..1
+     * // with a gaussian distribution
+     * gaussian();
+     * ```
+     *
+     * Distribution can also be skewed:
+     * ```js
+     * // Yields a skewed random value
+     * gaussian(10);
+     * ```
+     *
+     * Use the curried version in order to pass the random number generator elsewhere:
+     * ```js
+     * const g = gaussianSkewed(10);
+     * // Now it can be called without parameters
+     * g(); // Yields skewed random
+     *
+     * // Eg:
+     * shuffle(gaussianSkewed(10));
+     * ```
+     * @param skew Skew factor. Defaults to 1, no skewing. Above 1 will skew to left, below 1 will skew to right
+     * @returns
+     */
+    export const gaussian: (skew?: number) => number;
+    /**
+     * Returns a function of skewed gaussian values.
+     *
+     * This 'curried' function is useful when passing to other functions
+     * ```js
+     * // Curry
+     * const g = gaussianSkewed(10);
+     *
+     * // Now it can be called without parameters
+     * g(); // Returns skewed value
+     *
+     * // Eg:
+     * shuffle(gaussianSkewed(10));
+     * ```
+     * @param skew Skew factor. Defaults to 1, no skewing. Above 1 will skew to left, below 1 will skew to right
+     * @returns
+     */
+    export const gaussianSkewed: (skew?: number) => () => number;
+    /**
+     * Returns a random integer between `max` (exclusive) and `min` (inclusive)
+     * If `min` is not specified, 0 is used.
+     *
+     * ```js
+     * integer(10);    // Random number 0-9
+     * integer(5, 10); // Random number 5-9
+     * integer(-5);       // Random number from -4 to 0
+     * integer(-5, -10); // Random number from -10 to -6
+     * ```
+     * @param max
+     * @param min
+     * @returns
+     */
+    export const integer: (max: number, min?: number) => number;
+    /**
+     * Random a random float between `max` (exclusive) and `min` (inclusive).
+     * 1 and 0 are used as default max and min, respectively.
+     *
+     * ```js
+     * // Random number between 0..1 (but not including 1)
+     * // (this would be identical to Math.random())
+     * const v = float();
+     * // Random float between 0..100 (but not including 100)
+     * const v = float(100);
+     * // Random float between 20..40 (possibily including 20, but always lower than 40)
+     * const v = float(20, 40);
+     * ```
+     * @param max
+     * @param min
+     * @returns
+     */
+    export const float: (max?: number, min?: number) => number;
+    /**
+     * Returns a string of random letters and numbers of a given `length`.
+     *
+     * ```js
+     * string(4); // eg. `4afd`
+     * ```
+     * @param length Length of random string
+     * @returns Random string
+     */
+    export const string: (length: number) => string;
+    export const shortGuid: () => string;
+}
+declare module "visual/Colour" {
+    import * as d3Colour from 'd3-color';
+    import { RandomSource } from "Random";
+    export type Hsl = {
+        h: number;
+        s: number;
+        l: number;
+        opacity?: number;
+    };
+    export type Rgb = {
+        r: number;
+        g: number;
+        b: number;
+        opacity?: number;
+    };
+    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
+    /**
+     * @private
+     */
+    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
+    /**
+     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
+     */
+    export type Colourish = string | d3Colour.ColorCommonInstance;
+    /**
+     * Options for interpolation
+     */
+    export type InterpolationOpts = {
+        /**
+         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
+         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
+         */
+        gamma?: number;
+        /**
+         * Colour space
+         */
+        space?: Spaces;
+        /**
+         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
+         */
+        long?: boolean;
+    };
+    /**
+     * Parses colour to `{ h, s, l }`. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toHsl: (colour: Colourish) => Hsl;
+    /**
+     * Returns a full HSL colour string (eg `hsl(20,50%,75%)`) based on a index.
+     * It's useful for generating perceptually different shades as the index increments.
+     *
+     * ```
+     * el.style.backgroundColor = goldenAgeColour(10);
+     * ```
+     *
+     * Saturation and lightness can be specified, as numeric ranges of 0-1.
+     *
+     * @param saturation Saturation (0-1), defaults to 0.5
+     * @param lightness Lightness (0-1), defaults to 0.75
+     * @returns HSL colour string eg `hsl(20,50%,75%)`
+     */
+    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number) => string;
+    /**
+     * Returns a random hue component
+     * ```
+     * // Generate hue
+     * const h =randomHue(); // 0-359
+     *
+     * // Generate hue and assign as part of a HSL string
+     * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
+     * ```
+     *
+     *
+     * @param rand
+     * @returns
+     */
+    export const randomHue: (rand?: RandomSource) => number;
+    /**
+     * Parses colour to `{ r, g, b }`. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toRgb: (colour: Colourish) => Rgb;
+    /**
+     * Returns a colour in hex format `#000000`
+     * @param colour
+     * @returns Hex format, including #
+     */
+    export const toHex: (colour: Colourish) => string;
+    /**
+     * Returns a variation of colour with its opacity multiplied by `amt`.
+     *
+     * ```js
+     * // Return a colour string for blue that is 50% opaque
+     * opacity(`blue`, 0.5);
+     * // eg: `rgba(0,0,255,0.5)`
+     *
+     * // Returns a colour string that is 50% more opaque
+     * opacity(`hsla(200,100%,50%,50%`, 0.5);
+     * // eg: `hsla(200,100%,50%,25%)`
+     * ```
+     * @param colour A valid CSS colour
+     * @param amt Amount to multiply opacity by
+     * @returns String representation of colour
+     */
+    export const opacity: (colour: Colourish, amt: number) => string;
+    /**
+     * Gets a CSS variable.
+     * @example Fetch --accent variable, or use `yellow` if not found.
+     * ```
+     * getCssVariable(`accent`, `yellow`);
+     * ```
+     * @param name Name of variable. Do not starting `--`
+     * @param fallbackColour Fallback colour if not found
+     * @param root  Element to search variable from
+     * @returns Colour or fallback.
+     */
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
+    /**
+     * Interpolates between two colours, returning a string
+     *
+     * @example
+     * ```js
+     * // Get 50% between blue and red
+     * interpolate(0.5, `blue`, `red`);
+     *
+     * // Get midway point, with specified colour space
+     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
+     * ```
+     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
+     * @param from Starting colour
+     * @param to Final colour
+     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
+     * @returns String representation of colour, eg. `rgb(x,x,x)`
+     */
+    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
+    /**
+     * Produces a scale of colours as a string array
+     *
+     * @example
+     * ```js
+     * // Yields array of 5 colour strings
+     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
+     * // Produces scale between three colours
+     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
+     * ```
+     * @param steps Number of colours
+     * @param opts Options for interpolation, or string colour space eg `hsl`
+     * @param colours From/end colours (or more)
+     * @returns
+     */
+    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
+}
+declare module "Debug" {
+    /**
+     * Returns a bundled collection of {@link logger}s
+     *
+     * ```
+     * const con = logSet(`a`);
+     * con.log(`Hello`);  // console.log(`a Hello`);
+     * con.warn(`Uh-oh`); // console.warn(`a Uh-oh`);
+     * con.error(`Eek!`); // console.error(`a Eek!`);
+     * ```
+     * @param prefix
+     * @returns
+     */
+    export const logSet: (prefix: string) => {
+        log: (m: any) => void;
+        warn: (m: any) => void;
+        error: (m: any) => void;
+    };
+    /**
+     * Returns a console logging function which prefixes messages. This is
+     * useful for tracing messages from different components. Each prefix
+     * is assigned a colour, further helping to distinguish messages.
+     *
+     * Use {@link logSet} to get a bundled set.
+     *
+     * ```
+     * // Initialise once
+     * const log = logger(`a`);
+     * const error = logger(`a`, `error`);
+     * const warn = logger(`a`, `warn);
+     *
+     * // And then use
+     * log(`Hello`);    // console.log(`a Hello`);
+     * error(`Uh-oh`);  // console.error(`a Uh-oh`);
+     * warn(`Eek!`);    // console.warn(`a Eeek!`);
+     * ```
+     * @param prefix
+     * @param kind
+     * @returns
+     */
+    export const logger: (prefix: string, kind?: `log` | `warn` | `error`) => (m: any) => void;
+}
+declare module "Filters" {
+    export const threshold: (threshold: number) => (v: number) => boolean;
+    export const rangeInclusive: (min: number, max: number) => (v: number) => boolean;
+    export const filter: <V>(v: V, fn: (v: V) => boolean, skipValue: V | undefined) => V | undefined;
+}
+declare module "Iterable" {
+    type WithEvents = {
+        addEventListener(type: string, callbackfn: any): void;
+        removeEventListener(type: string, callbackfn: any): void;
+    };
+    export const isAsyncIterable: (v: any) => v is AsyncIterable<any>;
+    export const isIterable: (v: any) => v is Iterable<any>;
+    export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
+}
+/**
+ *
+ * ```js
+ * chunks([1,2,3,4,5,6,7,8,9,10], 3);
+ * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+ * ```
+ * @param it
+ * @param size
+ */
+declare function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
+declare function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
+declare function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
+declare function equals<V>(it1: Iterable<V>, it2: Iterable<V>): Promise<boolean | undefined>;
+/**
+ * Returns true if `f` returns true for
+ * every item in iterable
+ * @param it
+ * @param f
+ * @returns
+ */
+declare function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
+/**
+ * Yields `v` for each item within `it`.
+ *
+ * ```js
+ * fill([1, 2, 3], 0);
+ * // Yields: [0, 0, 0]
+ * ```
+ * @param it
+ * @param v
+ */
+declare function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
+/**
+ * ```js
+ * filter([1, 2, 3, 4], e => e % 2 == 0);
+ * returns [2, 4]
+ * ```
+ * @param it
+ * @param f
+ */
+declare function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+/**
+ *
+ * ```js
+ * find([1, 2, 3, 4], e => e > 2);
+ * // Yields: 3
+ * ```
+ * @param it
+ * @param f
+ * @returns
+ */
+declare function find<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
+/**
+ * ```js
+ * flatten([1, [2, 3], [[4]]]);
+ * // Yields: [1, 2, 3, [4]];
+ * ```
+ * @param it
+ */
+declare function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
+/**
+ *
+ * @param it
+ * @param f
+ */
+declare function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
+declare function map<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<boolean, void, unknown>;
+declare function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+declare function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+/**
+ * Returns count from `start` for a given length
+ * ```js
+ * range(-5, 10);
+ * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+ * ```
+ * @param start
+ * @param len
+ */
+declare function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
+declare function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
+declare function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
+declare function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
+declare function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+declare function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
+declare function zip<V>(...its: AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
+declare module "Match" {
+    type MatchFunction<V> = {
+        (v: V, index?: number, array?: V[]): boolean;
+    };
+    /**
+     * Returns a function that filters a set of items by a set of filters
+     *
+     * @template V
+     * @param {Iterable<MatchFunction<V>>} filters If filter returns true, item is included
+     * @param {{allFiltersMustMatch?: boolean}} [opts={}]
+     * @returns
+     */
+    export const filter: <V>(filters: Iterable<MatchFunction<V>>, opts?: {
+        allFiltersMustMatch?: boolean;
+    }) => (vArray: Iterable<V>) => Generator<V, void, unknown>;
+}
+declare module "Tristate" {
+    /**
+     * Returns true if a is more sure than b
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const comparer: (a: Tristate, b: Tristate) => number;
+    export type Tristate = `no` | `yes` | `maybe`;
+}
+declare module "__tests__/colour.test" { }
 declare module "__tests__/frequencyMutable.test" { }
 declare module "__tests__/generators.test" { }
 declare module "__tests__/guards.test" { }
@@ -9585,4 +11102,16 @@ declare module "components/FrequencyHistogramPlot" {
 declare module "components/index" {
     export { HistogramVis } from "components/HistogramVis";
     export { FrequencyHistogramPlot } from "components/FrequencyHistogramPlot";
+}
+declare module "data/Proportion" {
+    import { NumberFunction } from "data/index";
+    /**
+     * Scales a percentage-scale number, ie: `v * t`.
+     * The utility of this function is that it sanity-checks that
+     *  both parameters are in the 0..1 scale.
+     * @param v Value
+     * @param t Scale amount
+     * @returns Scaled value
+     */
+    export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
 }
