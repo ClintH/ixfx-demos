@@ -1,6 +1,6 @@
 import {Arcs} from '../../ixfx/geometry.js'
 import {Svg} from '../../ixfx/visual.js';
-import {scalePercent} from '../../ixfx/util.js';
+import {scalePercent} from '../../ixfx/data.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 

@@ -1,6 +1,6 @@
 import {Points, radianToDegree, Triangles} from "../../../ixfx/geometry.js";
 import {reconcileChildren, dataTableList} from '../../../ixfx/dom.js';
-import {numberTracker, pointsTracker, pointTracker} from "../../../ixfx/temporal.js";
+import {numberTracker, pointsTracker, pointTracker} from "../../../ixfx/data.js";
 
 const settings = {
   currentPointsEl: document.getElementById(`current-points`),

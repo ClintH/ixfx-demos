@@ -4,8 +4,8 @@
  */
 import {pointerVisualise} from '../../../ixfx/dom.js';
 import {Points} from '../../../ixfx/geometry.js';
-import {clamp} from '../../../ixfx/util.js';
-import {numberTracker, pointsTracker} from '../../../ixfx/temporal.js';
+import {clamp} from '../../../ixfx/data.js';
+import {numberTracker, pointsTracker} from '../../../ixfx/data.js';
 
 // Pointer visualiser. Useful for debugging. It's what adds the red border
 pointerVisualise(document);

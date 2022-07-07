@@ -2,9 +2,9 @@
  * Uses a moving average to smooth out audio levels from the microphone.
  * See README.MD
  */
-import {movingAverage} from '../../ixfx/temporal.js';
+import {movingAverage} from '../../ixfx/data.js';
 import {AudioAnalysers} from '../../ixfx/io.js';
-import {clamp, flip} from '../../ixfx/util.js';
+import {clamp, flip} from '../../ixfx/data.js';
 
 const settings = {
   // Calculate an average over 100 samples

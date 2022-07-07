@@ -10,7 +10,7 @@ import {Grids, Points} from '../../ixfx/geometry.js'
 import * as Modulation from '../../ixfx/modulation.js'
 import * as Flow from '../../ixfx/flow.js'
 import * as Dom from '../../ixfx/dom.js';
-import {scalePercent} from '../../ixfx/util.js';
+import {scalePercent} from '../../ixfx/data.js';
 
 // Define settings
 const settings = {

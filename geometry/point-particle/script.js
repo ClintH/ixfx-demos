@@ -2,7 +2,7 @@ import * as Dom from '../../ixfx/dom.js';
 import {Points} from '../../ixfx/geometry.js';
 import {repeat} from '../../ixfx/flow.js';
 import {jitter} from '../../ixfx/modulation.js';
-import {flip} from '../../ixfx/util.js';
+import {flip} from '../../ixfx/data.js';
 
 const randomPoint = () => ({
   x: Math.random(),

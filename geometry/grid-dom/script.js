@@ -25,8 +25,8 @@ let state = {
  * @returns 
  */
 const getCellFromElement = (el) => ({
-  x: parseInt(el.getAttribute(`data - x`)),
-  y: parseInt(el.getAttribute(`data - y`))
+  x: parseInt(el.getAttribute(`data-x`)),
+  y: parseInt(el.getAttribute(`data-y`))
 });
 
 const onCellClick = (ev) => {
@@ -42,7 +42,7 @@ const updateDom = () => {
   // Grab what we need from settings and state
   const {feedbackEl} = settings;
   const {lastClicked} = state;
-  feedbackEl.innerHTML = `Clicked ${lastClicked.x}, ${lastClicked.y}`;
+  feedbackEl.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
 }
 
 /**

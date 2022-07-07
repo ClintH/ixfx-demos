@@ -2,7 +2,7 @@
  * Demonstrates using two movingAverage instances to smooth
  * pointer x,y positions in order to position an element.
  */
-import {movingAverage} from '../../ixfx/temporal.js';
+import {movingAverage} from '../../ixfx/data.js';
 import {Points} from '../../ixfx/geometry.js';
 
 const settings = {

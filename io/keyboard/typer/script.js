@@ -2,8 +2,8 @@
  * This sketch demonstrates using key events to make a
  * very simple typewriter.
  */
-import {flip, clamp, scale} from "../../../ixfx/util.js";
-import {intervalTracker} from "../../../ixfx/temporal.js";
+import {flip, clamp, scale} from "../../../ixfx/data.js";
+import {intervalTracker} from "../../../ixfx/data.js";
 
 const settings = {
   hintEl: document.getElementById(`hint`),
