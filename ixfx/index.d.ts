@@ -2255,7 +2255,7 @@ declare module "geometry/Line" {
      * // Line 10,10 -> 20,20
      * const line = Lines.fromNumbers(10,10, 20,20);
      *
-     * // Applies randomisation to x&y
+     * // Applies randomisation to both x and y.
      * const rand = (p) => ({
      *  x: p.x * Math.random(),
      *  y: p.y * Math.random()
@@ -2291,10 +2291,11 @@ declare module "geometry/Line" {
      */
     export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point) => number;
     /**
-     * Multiplies start and end of line by x,y given in `p`.
+     * Multiplies start and end of line by point.x, point.y.
+     *
      * ```js
      * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
+     * const l = fromNumbers(1, 1, 10, 10);
      * const ll = multiply(l, {x:2, y:3});
      * // Yields: 2,20 -> 3,30
      * ```
@@ -2481,6 +2482,24 @@ declare module "geometry/Line" {
      */
     export const extendFromA: (line: Line, distance: number) => Line;
     /**
+     * Yields every integer point along `line`.
+     *
+     * @example Basic usage
+     * ```js
+     * const l = { a: {x: 0, y: 0}, b: {x: 100, y: 100} };
+     * for (const p of pointsOfLine(l)) {
+     *  // Do something with point `p`...
+     * }
+     * ```
+     *
+     * Some precision is lost as start and end
+     * point is also returned as an integer.
+     *
+     * Uses [Bresenham's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
+     * @param line Line
+     */
+    export function pointsOfLine(line: Line): Generator<Points.Point>;
+    /**
      * Returns the distance of `point` to the
      * nearest point on `line`.
      *
@@ -2510,6 +2529,16 @@ declare module "geometry/Line" {
      * @returns Point between a and b
      */
     export function interpolate(amount: number, a: Points.Point, pointB: Points.Point): Points.Point;
+    /**
+     * Calculates a point in-between `line`'s start and end points.
+     *
+     * ```js
+     * // Get {x, y } at 50% along line
+     * interpolate(0.5, line);
+     * ```
+     * @param amount 0..1
+     * @param line Line
+     */
     export function interpolate(amount: number, line: Line): Points.Point;
     /**
      * Returns a string representation of two points
@@ -2641,7 +2670,6 @@ declare module "geometry/Line" {
      *
      * // Rotate by 90 degrees at the 80% position
      * rotated = rotate(line, Math.PI / 2, 0.8);
-     *
      * ```
      * @param line Line to rotate
      * @param amountRadian Angle in radians to rotate by
