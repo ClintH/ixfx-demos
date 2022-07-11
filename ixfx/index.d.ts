@@ -230,7 +230,110 @@ declare module "Text" {
     export const startsEnds: (source: string, start: string, end?: string) => boolean;
     export const htmlEntities: (source: string) => string;
 }
+declare module "IterableAsync" {
+    /**
+     *
+     * ```js
+     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
+     * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+     * ```
+     * @param it
+     * @param size
+     */
+    export function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
+    export function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
+    export function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
+    export function equals<V>(it1: Iterable<V>, it2: Iterable<V>): Promise<boolean | undefined>;
+    /**
+     * Returns true if `f` returns true for
+     * every item in iterable
+     * @param it
+     * @param f
+     * @returns
+     */
+    export function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
+    /**
+     * Yields `v` for each item within `it`.
+     *
+     * ```js
+     * fill([1, 2, 3], 0);
+     * // Yields: [0, 0, 0]
+     * ```
+     * @param it
+     * @param v
+     */
+    export function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * ```js
+     * filter([1, 2, 3, 4], e => e % 2 == 0);
+     * returns [2, 4]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     *
+     * ```js
+     * find([1, 2, 3, 4], e => e > 2);
+     * // Yields: 3
+     * ```
+     * @param it
+     * @param f
+     * @returns
+     */
+    export function find<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
+    /**
+     * ```js
+     * flatten([1, [2, 3], [[4]]]);
+     * // Yields: [1, 2, 3, [4]];
+     * ```
+     * @param it
+     */
+    export function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
+    /**
+     *
+     * @param it
+     * @param f
+     */
+    export function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
+    export function map<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<boolean, void, unknown>;
+    export function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+    export function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+    /**
+     * Returns count from `start` for a given length
+     * ```js
+     * range(-5, 10);
+     * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+     * ```
+     * @param start
+     * @param len
+     */
+    export function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
+    export function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
+    export function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
+    export function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
+    export function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Returns an array of values from an iterator.
+     *
+     * ```js
+     * const data = await toArray(adsrSample(opts, 10));
+     * ```
+     *
+     * Note: If the iterator is infinite, be sure to provide a `count` or the function
+     * will never return.
+     *
+     * @param it Asynchronous iterable
+     * @param count Number of items to return, by default all.
+     * @returns
+     */
+    export function toArray<V>(it: AsyncIterable<V>, count?: number): Promise<readonly V[]>;
+    export function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
+    export function zip<V>(...its: AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
+}
 declare module "Util" {
+    export * as IterableAsync from "IterableAsync";
     /**
      * Returns `fallback` if `v` is NaN, otherwise returns `v`
      * @param v
@@ -6452,6 +6555,7 @@ declare module "modulation/PingPong" {
 }
 declare module "Generators" {
     export { pingPong, pingPongPercent } from "modulation/PingPong";
+    export * as IterableAsync from "IterableAsync";
     export { interval } from "flow/Interval";
     export { delayLoop } from "flow/Delay";
     /**
@@ -8646,15 +8750,33 @@ declare module "modulation/Envelope" {
     export const adsr: (opts: EnvelopeOpts) => Adsr;
     /**
      * Creates and runs an envelope, sampling its values at `sampleRateMs`.
+     *
      * ```
-     * // Sample an envelope every 5ms
-     * const values = adsrSample(opts, 5);
+     * import {adsrSample, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js';
+     * import {IterableAsync} from  'https://unpkg.com/ixfx/dist/util.js';
+     *
+     * const opts = {
+     *  ...defaultAdsrOpts(),
+     *  attackDuration: 1000,
+     *  releaseDuration: 1000,
+     *  sustainLevel: 1,
+     *  attackBend: 1,
+     *  decayBend: -1
+     * };
+     *
+     * // Sample an envelope every 5ms into an array
+     * const data = await IterableAsync.toArray(adsrSample(opts, 20));
+     *
+     * // Work with values as sampled
+     * for await (const v of adsrSample(opts, 5)) {
+     *  // Work with envelope value `v`...
+     * }
      * ```
      * @param opts Envelope options
      * @param sampleRateMs Sample rate
      * @returns
      */
-    export const adsrSample: (opts: EnvelopeOpts, sampleRateMs: number) => Promise<readonly number[]>;
+    export function adsrSample(opts: EnvelopeOpts, sampleRateMs: number): AsyncGenerator<number, void, unknown>;
 }
 declare module "modulation/Forces" {
     /**
@@ -9741,7 +9863,7 @@ declare module "data/Wrap" {
      *
      * This logic makes sense for some things like rotation angle.
      *
-     * If you just want to lock values to a range without wrapping, consider {@clamp}.
+     * If you just want to lock values to a range without wrapping, consider {@link clamp}.
      *
      * ```js
      * wrap(1.2);   // 0.2
@@ -10259,6 +10381,20 @@ declare module "collections/Arrays" {
      * @returns Zipped together array
      */
     export const zip: (...arrays: ReadonlyArray<any>) => ReadonlyArray<any>;
+    /**
+     * Returns an interleaving of two or more arrays. All arrays must be the same length.
+     *
+     * ```js
+     * const a = [`a`, `b`, `c`];
+     * const b = [`1`, `2`, `3`];
+     * const c = interleave(a, b);
+     * // Yields:
+     * // [`a`, `1`, `b`, `2`, `c`, `3`]
+     * ```
+     * @param arrays
+     * @returns
+     */
+    export const interleave: <V>(...arrays: readonly (readonly V[])[]) => readonly V[];
     /**
      * Returns an copy of `data` with specified length.
      * If the input array is too long, it is truncated.
@@ -10875,91 +11011,6 @@ declare module "Iterable" {
     export const isIterable: (v: any) => v is Iterable<any>;
     export const eventsToIterable: <V>(eventSource: WithEvents, eventType: string) => AsyncIterator<any, any, undefined>;
 }
-/**
- *
- * ```js
- * chunks([1,2,3,4,5,6,7,8,9,10], 3);
- * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
- * ```
- * @param it
- * @param size
- */
-declare function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
-declare function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
-declare function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
-declare function equals<V>(it1: Iterable<V>, it2: Iterable<V>): Promise<boolean | undefined>;
-/**
- * Returns true if `f` returns true for
- * every item in iterable
- * @param it
- * @param f
- * @returns
- */
-declare function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
-/**
- * Yields `v` for each item within `it`.
- *
- * ```js
- * fill([1, 2, 3], 0);
- * // Yields: [0, 0, 0]
- * ```
- * @param it
- * @param v
- */
-declare function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
-/**
- * ```js
- * filter([1, 2, 3, 4], e => e % 2 == 0);
- * returns [2, 4]
- * ```
- * @param it
- * @param f
- */
-declare function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
-/**
- *
- * ```js
- * find([1, 2, 3, 4], e => e > 2);
- * // Yields: 3
- * ```
- * @param it
- * @param f
- * @returns
- */
-declare function find<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
-/**
- * ```js
- * flatten([1, [2, 3], [[4]]]);
- * // Yields: [1, 2, 3, [4]];
- * ```
- * @param it
- */
-declare function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
-/**
- *
- * @param it
- * @param f
- */
-declare function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
-declare function map<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<boolean, void, unknown>;
-declare function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
-declare function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
-/**
- * Returns count from `start` for a given length
- * ```js
- * range(-5, 10);
- * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
- * ```
- * @param start
- * @param len
- */
-declare function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
-declare function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
-declare function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
-declare function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
-declare function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
-declare function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
-declare function zip<V>(...its: AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
 declare module "Match" {
     type MatchFunction<V> = {
         (v: V, index?: number, array?: V[]): boolean;

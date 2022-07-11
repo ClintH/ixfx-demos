@@ -8,6 +8,7 @@ import {
   groupBy,
   guardArray,
   guardIndex,
+  interleave,
   max,
   maxFast,
   maxIndex,
@@ -25,10 +26,11 @@ import {
   weight,
   without,
   zip
-} from "./chunk-DPA4YF3N.js";
-import "./chunk-CAFP7EUC.js";
+} from "./chunk-ZK3PLABC.js";
+import "./chunk-PFVVT4TF.js";
 import "./chunk-OE2F6QKM.js";
-import "./chunk-R6HFEWH5.js";
+import "./chunk-7DDII3J4.js";
+import "./chunk-W3UVQWKP.js";
 import "./chunk-7QLZ7J2O.js";
 import "./chunk-ZPSON7YL.js";
 import "./chunk-XWGJ33MJ.js";
@@ -48,6 +50,7 @@ export {
   groupBy,
   guardArray,
   guardIndex,
+  interleave,
   max,
   maxFast,
   maxIndex,

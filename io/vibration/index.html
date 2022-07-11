@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vibration</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 90;
+    --bg: hsl(var(--hue) 64% 37%);
+    --button-bg: hsl(var(--hue) 64% 17%);
+    --button-fg: hsl(var(--hue) 64% 57%);
+
+    --faint: hsl(var(--hue) 100% 15%);
+    --fg: hsl(var(--hue) 100% 90%);
+  }
+
+  html,
+  body {
+    height: 100%;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  button {
+    padding: 1em;
+    border: none;
+    margin: 1em;
+    color: var(--button-fg);
+    border-radius: 10%;
+    background-color: var(--button-bg);
+  }
+
+  button[disabled] {
+    opacity: 0.5;
+  }
+
+  body {
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+    display: flex;
+  }
+
+  section {
+    flex-grow: 1;
+    margin: 2em;
+  }
+
+  #lblEnv {
+    font-style: italic;
+  }
+</style>
+
+<body>
+  <section>
+    <h1>vibration</h1>
+    <p>⚠️ This only works with Chrome on Android.</p>
+
+    <h2>HTML</h2>
+    <p>This demonstrates vibration patterns associated with DOM elements</p>
+    <!-- Vibrate for 10ms -->
+    <button data-vibrate="10" class="vibrate">A</button>
+    <!-- Vibrate for 10ms, off for 30ms and then on for 20 -->
+    <button data-vibrate="10, 30, 20" class="vibrate">B</button>
+
+    <h2>Envelope</h2>
+    <p>This demonstrates using an envelope to control vibration</p>
+    <div id="lblEnv">&nbsp;</div>
+    <button disabled id="btnEnv">Run</button>
+  </section>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
