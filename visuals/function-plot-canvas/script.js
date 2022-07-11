@@ -1,4 +1,5 @@
 import {scale, clamp} from '../../ixfx/data.js';
+import {jitter} from '../../ixfx/modulation.js';
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings
@@ -34,7 +35,11 @@ const update = () => {
 }
 
 // Example functions
-const sineA = (ticks, x) => Math.sin(x + ticks);
+// A pure sine: const sineA = (ticks, x) => Math.sin(x + ticks);
+const sineApure = (ticks, x) => Math.sin(x + ticks);
+// With noise
+const sineA = (ticks, x) => jitter(Math.sin(x + ticks), 0.005, {clamped: false});
+
 const sineB = (ticks, x) => (Math.sin(x + ticks) + Math.sin(2 * x)) / 2;
 const sineC = (ticks, x) => (Math.sin(x + ticks) + Math.cos(2 * x)) / 2;
 const sineD = (ticks, x) => (Math.sin(x + ticks) + Math.tanh(x)) / 2;
@@ -103,16 +108,14 @@ const draw = (ctx) => {
  */
 const plotFunction = (fn, ctx, opts = {}) => {
   const {timeDivider, verticalPadding} = settings;
-  const {bounds, ticks} = state;
+  const {ticks} = state;
 
-  const w = bounds.width;
-  const h = bounds.height - (verticalPadding * 2);
-  const offset = opts.offset ?? 0;
+  const w = state.bounds.width;
+  const h = state.bounds.height - (verticalPadding * 2);
   const fnTimeDivider = opts.timeDivider ?? timeDivider;
 
   // Use 100 points divided across width of screen
   const sampleWidth = Math.min(1, Math.floor(w / 100));
-  let count = 0;
   for (let x = 0; x <= w; x += sampleWidth) {
     const v = clamp(fn(ticks / fnTimeDivider, x / w), -1, 1);
     const y = scale(v, -1, 1, 0, h) + verticalPadding;
@@ -123,7 +126,6 @@ const plotFunction = (fn, ctx, opts = {}) => {
     } else {
       ctx.lineTo(x, y);
     }
-    count++;
   }
 
   // Apply visual settings
