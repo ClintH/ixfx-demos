@@ -2487,7 +2487,7 @@ declare module "geometry/Line" {
      * @example Basic usage
      * ```js
      * const l = { a: {x: 0, y: 0}, b: {x: 100, y: 100} };
-     * for (const p of pointsOfLine(l)) {
+     * for (const p of pointsOf(l)) {
      *  // Do something with point `p`...
      * }
      * ```
@@ -2498,7 +2498,7 @@ declare module "geometry/Line" {
      * Uses [Bresenham's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
      * @param line Line
      */
-    export function pointsOfLine(line: Line): Generator<Points.Point>;
+    export function pointsOf(line: Line): Generator<Points.Point>;
     /**
      * Returns the distance of `point` to the
      * nearest point on `line`.
@@ -2722,6 +2722,20 @@ declare module "geometry/Rect" {
     export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
     export const fromElement: (el: HTMLElement) => Rect;
     export const isEqualSize: (a: Rect, b: Rect) => boolean;
+    /**
+     * Returns a rectangle from width, height
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(width: number, height: number): Rect;
+    /**
+     * Returns a rectangle from x,y,width,height
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
     export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
     /**
      * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
@@ -2797,6 +2811,26 @@ declare module "geometry/Rect" {
      */
     export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
     export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Returns `rect` divided by the width,height of `normaliseBy`. This can be useful for
+     * normalising based on camera frame.
+     * ```js
+     * const frameSize = {width: 640, height: 320};
+     * const object = { x: 320, y: 160, width: 64, height: 32};
+     *
+     * const n = normaliseByRect(object, frameSize);
+     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
+     * ```
+     *
+     * Height and width can be supplied instead of a rectangle too:
+     * ```js
+     * const n = normaliseByRect(object, 640, 320);
+     * ```
+     * @param rect
+     * @param normaliseBy
+     * @returns
+     */
+    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
     /**
      * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
      *
@@ -4427,9 +4461,356 @@ declare module "geometry/Shape" {
      */
     export const arrow: (origin: Points.Point, from: `tip` | `tail`, opts?: ArrowOpts) => readonly Points.Point[];
 }
+declare module "geometry/TriangleEquilateral" {
+    import { Circle } from "geometry/Circle";
+    import { Point } from "geometry/Point";
+    import { Triangle } from "geometry/Triangle";
+    export type TriangleEquilateral = {
+        readonly length: number;
+    } | number;
+    /**
+     * Returns a positioned `Triangle` from an equilateral triangle definition.
+     * By default the rotation is such that point `a` and `c` are lying on the horizontal,
+     * and `b` is the upward-facing tip.
+     *
+     * Default is a triangle pointing upwards with b at the top, c to the left and b to right on the baseline.
+     *
+     * Example rotation values in radians:
+     * * ▶️ 0: a and c on vertical, b at the tip
+     * * ◀️ Math.PI: `c`and `a` are on vertical, with `b` at the tip.
+     * * 🔽 Math.PI/2: `c` and `a` are on horizontal, `c` to the left. `b` at the bottom.
+     * * 🔼 Math.PI*1.5: `c` and `a` are on horizontal, `c` to the right. `b` at the top. (default)
+     * @param t
+     * @param origin
+     * @param rotationRad
+     * @returns
+     */
+    export const fromCenter: (t: TriangleEquilateral, origin?: Point, rotationRad?: number) => Triangle;
+    /**
+     * Calculate center from the given point A
+     * @param t
+     * @param ptA
+     * @returns
+     */
+    export const centerFromA: (t: TriangleEquilateral, ptA?: Point) => Point;
+    /**
+     * Calculate center from the given point B
+     * @param t
+     * @param ptB
+     * @returns
+     */
+    export const centerFromB: (t: TriangleEquilateral, ptB?: Point) => Point;
+    /**
+     * Calculate center from the given point C
+     * @param t
+     * @param ptC
+     * @returns
+     */
+    export const centerFromC: (t: TriangleEquilateral, ptC?: Point) => Point;
+    /**
+     * Returns the height (or rise) of an equilateral triangle.
+     * Ie. from one vertex to the perpendicular edge.
+     * (line marked x in the diagram below)
+     *
+     * ```
+     *      .
+     *     .x .
+     *    . x  .
+     *   .  x   .
+     *  ..........
+     * ```
+     * @param t
+     */
+    export const height: (t: TriangleEquilateral) => number;
+    export const perimeter: (t: TriangleEquilateral) => number;
+    export const area: (t: TriangleEquilateral) => number;
+    /**
+     * Circle that encompasses all points of triangle
+     * @param t
+     */
+    export const circumcircle: (t: TriangleEquilateral) => Circle;
+    /**
+     * Circle that is inside the edges of the triangle
+     * @param t
+     * @returns
+     */
+    export const incircle: (t: TriangleEquilateral) => Circle;
+}
+declare module "geometry/TriangleRight" {
+    import { Points, Triangles } from "geometry/index";
+    import { Circle } from "geometry/Circle";
+    export type Right = {
+        readonly adjacent?: number;
+        readonly hypotenuse?: number;
+        readonly opposite?: number;
+    };
+    export type DefinedRight = {
+        readonly adjacent: number;
+        readonly hypotenuse: number;
+        readonly opposite: number;
+    };
+    /**
+     * Returns a positioned triangle from a point for A.
+     *
+     * ```
+     *             c (90 deg)
+     *             .
+     *          .   .
+     *       .       .
+     *    .           .
+     * a .............. b
+     * ```
+     * @param t
+     * @param origin
+     * @returns
+     */
+    export const fromA: (t: Right, origin?: Points.Point) => Triangles.Triangle;
+    /**
+     * Returns a positioned triangle from a point for B.
+     *
+     * ```
+     *             c (90 deg)
+     *             .
+     *          .   .
+     *       .       .
+     *    .           .
+     * a .............. b
+     * ```
+     * @param t
+     * @param origin
+     * @returns
+     */
+    export const fromB: (t: Right, origin?: Points.Point) => Triangles.Triangle;
+    /**
+     * Returns a positioned triangle from a point for C.
+     *
+     * ```
+     *             c (90 deg)
+     *             .
+     *          .   .
+     *       .       .
+     *    .           .
+     * a .............. b
+     * ```
+     * @param t
+     * @param origin
+     * @returns
+     */
+    export const fromC: (t: Right, origin?: Points.Point) => Triangles.Triangle;
+    /**
+     * Returns a right triangle with all lengths defined.
+     * At least two lengths must already exist
+     * @param t
+     * @returns
+     */
+    export const resolveLengths: (t: Right) => DefinedRight;
+    /**
+     * Height of right-triangle
+     * @param t
+     * @returns
+     */
+    export const height: (t: Right) => number;
+    /**
+     * Returns the lengths of the hypotenuse split into p and q segments.
+     * In other words, if one makes a line from the right-angle vertex down to hypotenuse.
+     *
+     * [See here](https://rechneronline.de/pi/right-triangle.php)
+     * @param t
+     * @returns
+     */
+    export const hypotenuseSegments: (t: Right) => readonly [p: number, q: number];
+    export const perimeter: (t: Right) => number;
+    export const area: (t: Right) => number;
+    /**
+     * Angle (in radians) between hypotenuse and adjacent edge
+     * @param t
+     * @returns
+     */
+    export const angleAtPointA: (t: Right) => number;
+    /**
+     * Angle (in radians) between opposite edge and hypotenuse
+     * @param t
+     * @returns
+     */
+    export const angleAtPointB: (t: Right) => number;
+    /**
+     * Returns the median line lengths a, b and c in an array.
+     *
+     * The median lines are the lines from each vertex to the center.
+     *
+     * @param t
+     * @returns
+     */
+    export const medians: (t: Right) => readonly [a: number, b: number, c: number];
+    /**
+     * The circle which passes through the points of the triangle
+     * @param t
+     * @returns
+     */
+    export const circumcircle: (t: Right) => Circle;
+    /**
+     * Circle enclosed by triangle
+     * @param t
+     * @returns
+     */
+    export const incircle: (t: Right) => Circle;
+    /**
+     * Returns the opposite length of a right-angle triangle,
+     * marked here
+     *
+     * ```
+     *    .  <
+     *   ..  <
+     * ....  <
+     * ```
+     *
+     * This is just:
+     * ```js
+     * opposite = Math.tan(angle) * adjacent
+     * ```
+     * @param angleRad
+     * @param adjacent
+     * @returns
+     */
+    export const oppositeFromAdjacent: (angleRad: number, adjacent: number) => number;
+    /**
+     * Returns the opposite length of a right-angle triangle,
+     * marked here
+     *
+     * ```
+     *    .  <
+     *   ..  <
+     * ....  <
+     * ```
+     *
+     * This is just:
+     * ```js
+     * opposite = Math.tan(angle) * adjacent
+     * ```
+     * @param angleRad
+     * @param hypotenuse
+     * @returns
+     */
+    export const oppositeFromHypotenuse: (angleRad: number, hypotenuse: number) => number;
+    /**
+     * Returns the adjecent length of a right-angle triangle,
+     * marked here
+     * ```
+     *    .
+     *   ..  o
+     * ....
+     * ^^^^
+     * ```
+     * This is just:
+     * ```js
+     * opposite = Math.tan(angle) * adjacent
+     * ```
+     * @param angleRad
+     * @param adjacent
+     * @returns
+     */
+    export const adjacentFromHypotenuse: (angleRad: number, hypotenuse: number) => number;
+    /**
+     * Returns the adjecent length of a right-angle triangle,
+     * marked here
+     * ```
+     *    .
+     *   ..  o
+     * ....
+     * ^^^^
+     * ```
+     * This is just:
+     * ```js
+     * opposite = Math.tan(angle) * adjacent
+     * ```
+     * @param angleRad
+     * @param opposite
+     * @returns
+     */
+    export const adjacentFromOpposite: (angleRad: number, opposite: number) => number;
+    /**
+     * Returns the hypotenuse length of a right-angle triangle,
+     * marked here
+     * ```
+     *      .
+     * >   ..
+     * >  ...
+     * > ....  opp
+     *  .....
+     *   adj
+     * ```
+     * This is just:
+     * ```js
+     * opposite = Math.tan(angle) * adjacent
+     * ```
+     * @param angleRad
+     * @param adjacent
+     * @returns
+     */
+    export const hypotenuseFromOpposite: (angleRad: number, opposite: number) => number;
+    /**
+     * Returns the hypotenuse length of a right-angle triangle,
+     * marked here
+     * ```
+     *      .
+     * >   ..
+     * >  ...
+     * > ....  opp
+     *  .....
+     *   adj
+     * ```
+     * This is just:
+     * ```js
+     * opposite = Math.tan(angle) * adjacent
+     * ```
+     * @param angleRad
+     * @param adjacent
+     * @returns
+     */
+    export const hypotenuseFromAdjacent: (angleRad: number, adjacent: number) => number;
+}
+declare module "geometry/TriangleIsosceles" {
+    import { Points, Triangles } from "geometry/index";
+    import { Circle } from "geometry/Circle";
+    export type Isosceles = {
+        readonly legs: number;
+        readonly base: number;
+    };
+    export const baseAngle: (t: Isosceles) => number;
+    export const apexAngle: (t: Isosceles) => number;
+    export const height: (t: Isosceles) => number;
+    export const legHeights: (t: Isosceles) => number;
+    export const perimeter: (t: Isosceles) => number;
+    export const area: (t: Isosceles) => number;
+    export const circumcircle: (t: Isosceles) => Circle;
+    export const incircle: (t: Isosceles) => Circle;
+    export const medians: (t: Isosceles) => readonly [a: number, b: number, c: number];
+    /**
+     * Returns a positioned `Triangle` based on a center origin.
+     * Center is determined by the intesecting of the medians.
+     *
+     * See: https://rechneronline.de/pi/isosceles-triangle.php
+     * @param t
+     * @param origin
+     * @returns
+     */
+    export const fromCenter: (t: Isosceles, origin?: Points.Point) => Triangles.Triangle;
+    export const fromA: (t: Isosceles, origin?: Points.Point) => Triangles.Triangle;
+    export const fromB: (t: Isosceles, origin?: Points.Point) => Triangles.Triangle;
+    export const fromC: (t: Isosceles, origin?: Points.Point) => Triangles.Triangle;
+}
 declare module "geometry/Triangle" {
     import { Lines, Circles, Rects } from "geometry/index";
     import * as Points from "geometry/Point";
+    /**
+     * Functions for working with equilateral triangles, defined by length
+     */
+    export * as Equilateral from "geometry/TriangleEquilateral";
+    /**
+     * Functions for working with right-angled triangles, defined by two of three edges
+     */
+    export * as Right from "geometry/TriangleRight";
+    export * as Isosceles from "geometry/TriangleIsosceles";
     /**
      * Triangle.
      *
@@ -4748,6 +5129,10 @@ declare module "geometry/index" {
      * - {@link Triangles.fromFlatArray}: Create from `[ x1, y1, x2, y2, x3, y3 ]`
      * - {@link Triangles.fromPoints}: Create from three `{ x, y }` sets
      * - {@link Triangles.fromRadius}: Equilateral triangle of a given radius and center
+     *
+     * There are two sub-modules for dealing with particular triangles:
+     * - {@link Triangles.Equilateral}: Equilateral triangls
+     * - {@link Triangles.Right}: Right-angled triangles
      */
     export * as Triangles from "geometry/Triangle";
     /**
@@ -5203,6 +5588,8 @@ declare module "flow/Continuously" {
          * Stops loop
          */
         cancel(): void;
+        set intervalMs(ms: number);
+        get intervalMs(): number;
     };
     export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
     export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
@@ -6501,6 +6888,179 @@ declare module "io/Camera" {
      */
     export const start: (constraints?: Constraints) => Promise<StartResult | undefined>;
 }
+declare module "visual/Video" {
+    export type Capturer = {
+        start(): void;
+        cancel(): void;
+        readonly canvasEl: HTMLCanvasElement;
+    };
+    export type ManualCapturer = {
+        capture(): ImageData;
+        readonly canvasEl: HTMLCanvasElement;
+        dispose(): void;
+    };
+    export type CaptureOpts = {
+        readonly maxIntervalMs?: number;
+        readonly showCanvas?: boolean;
+        readonly workerScript?: string;
+        readonly onFrame?: (pixels: ImageData) => void;
+    };
+    export type ManualCaptureOpts = {
+        /**
+         * If true, the intermediate canvas is shown
+         * The intermediate canvas is where captures from the source are put in order
+         * to get the ImageData
+         */
+        readonly showCanvas?: boolean;
+        /**
+         * If specified, this function will be called after ImageData is captured
+         * from the intermediate canvs. This allows for drawing on top of the
+         * captured image.
+         */
+        readonly postCaptureDraw?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+    };
+    /**
+     * Options for frames generator
+     */
+    export type FramesOpts = {
+        /**
+         * Max frame rate (millis per frame), or 0 for animation speed
+         */
+        readonly maxIntervalMs?: number;
+        /**
+         * False by default, created canvas will be hidden
+         */
+        readonly showCanvas?: boolean;
+        /**
+         * If provided, this canvas will be used as the buffer rather than creating one.
+         */
+        readonly canvasEl?: HTMLCanvasElement;
+    };
+    /**
+     * Generator that yields frames from a video element as [ImageData](https://developer.mozilla.org/en-US/docs/Web/API/ImageData).
+     *
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * const ctx = canvasEl.getContext(`2d`);
+     * for await (const frame of Video.frames(videoEl)) {
+     *   // TODO: Some processing of pixels
+     *
+     *   // Draw image on to the visible canvas
+     *   ctx.putImageData(frame, 0, 0);
+     * }
+     * ```
+     *
+     * Under the hood it creates a hidden canvas where frames are drawn to. This is necessary
+     * to read back pixel data. An existing canvas can be used if it is passed in as an option.
+     *
+     * Options:
+     * * `canvasEl`: CANVAS element to use as a buffer (optional)
+     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
+     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
+     * @param sourceVideoEl
+     * @param opts
+     */
+    export function frames(sourceVideoEl: HTMLVideoElement, opts?: FramesOpts): AsyncIterable<ImageData>;
+    /**
+     * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
+     *
+     * @example Using a function
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * // Capture from a VIDEO element, handling frame data
+     * // imageData is ImageData type: https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+     * Video.capture(sourceVideoEl, {
+     *  onFrame(imageData => {
+     *    // Do something with pixels...
+     *  });
+     * });
+     * ```
+     *
+     * @example Using a worker
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * Video.capture(sourceVideoEl, {
+     *  workerScript: `./frameProcessor.js`
+     * });
+     * ```
+     *
+     * In frameProcessor.js:
+     * ```
+     * const process = (frame) => {
+     *  // ...process frame
+     *
+     *  // Send image back?
+     *  self.postMessage({frame});
+     * };
+     *
+     * self.addEventListener(`message`, evt => {
+     *   const {pixels, width, height} = evt.data;
+     *   const frame = new ImageData(new Uint8ClampedArray(pixels),
+     *     width, height);
+     *
+     *   // Process it
+     *   process(frame);
+     * });
+     * ```
+     *
+     * Options:
+     * * `canvasEl`: CANVAS element to use as a buffer (optional)
+     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
+     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
+     * * `workerScript`: If this specified, this URL will be loaded as a Worker, and frame data will be automatically posted to it
+     *
+     * Implementation: frames are captured using a animation-speed loop to a hidden canvas. From there
+     * the pixel data is extracted and sent to either destination. In future the intermediate drawing to a
+     * canvas could be skipped if it becomes possible to get pixel data from an ImageBitmap.
+     * @param sourceVideoEl Source VIDEO element
+     * @param opts
+     * @returns
+     */
+    export const capture: (sourceVideoEl: HTMLVideoElement, opts?: CaptureOpts) => Capturer;
+    export const manualCapture: (sourceVideoEl: HTMLVideoElement, opts?: ManualCaptureOpts) => ManualCapturer;
+}
+declare module "io/FrameProcessor" {
+    export type Sources = `` | `camera`;
+    import * as Camera from "io/Camera";
+    import * as Video from "visual/Video";
+    export type Opts = {
+        readonly showCanvas?: boolean;
+        readonly showPreview?: boolean;
+        /**
+         * If specified, this function will be called after ImageData is captured
+         * from the intermediate canvs. This allows for drawing on top of the
+         * captured image.
+         */
+        readonly postCaptureDraw?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+    };
+    export class FrameProcessor {
+        private _source;
+        private _state;
+        private _teardownNeeded;
+        private _cameraConstraints;
+        private _cameraStartResult;
+        private _cameraCapture;
+        private _showCanvas;
+        private _showPreview;
+        private _postCaptureDraw;
+        private _timer;
+        constructor(opts?: Opts);
+        showPreview(enabled: boolean): void;
+        showCanvas(enabled: boolean): void;
+        getCapturer(): Video.ManualCapturer | undefined;
+        useCamera(constraints?: Camera.Constraints): Promise<void>;
+        private initCamera;
+        dispose(): void;
+        private init;
+        private teardown;
+        getFrame(): ImageData | undefined;
+        getTimestamp(): number;
+        private getFrameCamera;
+    }
+}
 declare module "io/index" {
     /**
      * Generic support for Bluetooth LE devices
@@ -6520,6 +7080,7 @@ declare module "io/index" {
      */
     export * as Espruino from "io/Espruino";
     export * as Camera from "io/Camera";
+    export { FrameProcessor } from "io/FrameProcessor";
     /**
      * Microcontrollers such as Arduinos connected via USB serial
      *
@@ -7951,120 +8512,6 @@ declare module "visual/Palette" {
     };
     export const create: (fallbacks?: readonly string[]) => Palette;
 }
-declare module "visual/Video" {
-    export type Capturer = {
-        start(): void;
-        cancel(): void;
-        readonly canvasEl: HTMLCanvasElement;
-    };
-    export type CaptureOpts = {
-        readonly maxIntervalMs?: number;
-        readonly showCanvas?: boolean;
-        readonly workerScript?: string;
-        readonly onFrame?: (pixels: ImageData) => void;
-    };
-    /**
-     * Options for frames generator
-     */
-    export type FramesOpts = {
-        /**
-         * Max frame rate (millis per frame), or 0 for animation speed
-         */
-        readonly maxIntervalMs?: number;
-        /**
-         * False by default, created canvas will be hidden
-         */
-        readonly showCanvas?: boolean;
-        /**
-         * If provided, this canvas will be used as the buffer rather than creating one.
-         */
-        readonly canvasEl?: HTMLCanvasElement;
-    };
-    /**
-     * Generator that yields frames from a video element as [ImageData](https://developer.mozilla.org/en-US/docs/Web/API/ImageData).
-     *
-     * ```js
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     *
-     * const ctx = canvasEl.getContext(`2d`);
-     * for await (const frame of Video.frames(videoEl)) {
-     *   // TODO: Some processing of pixels
-     *
-     *   // Draw image on to the visible canvas
-     *   ctx.putImageData(frame, 0, 0);
-     * }
-     * ```
-     *
-     * Under the hood it creates a hidden canvas where frames are drawn to. This is necessary
-     * to read back pixel data. An existing canvas can be used if it is passed in as an option.
-     *
-     * Options:
-     * * `canvasEl`: CANVAS element to use as a buffer (optional)
-     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
-     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
-     * @param sourceVideoEl
-     * @param opts
-     */
-    export function frames(sourceVideoEl: HTMLVideoElement, opts?: FramesOpts): AsyncIterable<ImageData>;
-    /**
-     * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
-     *
-     * @example Using a function
-     * ```js
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     *
-     * // Capture from a VIDEO element, handling frame data
-     * // imageData is ImageData type: https://developer.mozilla.org/en-US/docs/Web/API/ImageData
-     * Video.capture(sourceVideoEl, {
-     *  onFrame(imageData => {
-     *    // Do something with pixels...
-     *  });
-     * });
-     * ```
-     *
-     * @example Using a worker
-     * ```js
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     *
-     * Video.capture(sourceVideoEl, {
-     *  workerScript: `./frameProcessor.js`
-     * });
-     * ```
-     *
-     * In frameProcessor.js:
-     * ```
-     * const process = (frame) => {
-     *  // ...process frame
-     *
-     *  // Send image back?
-     *  self.postMessage({frame});
-     * };
-     *
-     * self.addEventListener(`message`, evt => {
-     *   const {pixels, width, height} = evt.data;
-     *   const frame = new ImageData(new Uint8ClampedArray(pixels),
-     *     width, height);
-     *
-     *   // Process it
-     *   process(frame);
-     * });
-     * ```
-     *
-     * Options:
-     * * `canvasEl`: CANVAS element to use as a buffer (optional)
-     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
-     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
-     * * `workerScript`: If this specified, this URL will be loaded as a Worker, and frame data will be automatically posted to it
-     *
-     * Implementation: frames are captured using a animation-speed loop to a hidden canvas. From there
-     * the pixel data is extracted and sent to either destination. In future the intermediate drawing to a
-     * canvas could be skipped if it becomes possible to get pixel data from an ImageBitmap.
-     * @param sourceVideoEl Source VIDEO element
-     * @param opts
-     * @returns
-     */
-    export const capture: (sourceVideoEl: HTMLVideoElement, opts?: CaptureOpts) => Capturer;
-}
 declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
     import * as Svg from "visual/Svg";
@@ -9249,7 +9696,8 @@ declare module "modulation/index" {
     };
     /**
      * Jitters `value` by the absolute `jitter` amount.
-     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1
+     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1. Pass `clamped:false` as an option
+     * to allow for arbitary ranges.
      *
      * ```js
      * import {jitter} from 'https://unpkg.com/ixfx/dist/modulation.js';
@@ -9276,6 +9724,12 @@ declare module "modulation/index" {
      * import {weighted} from 'https://unpkg.com/ixfx/dist/random.js';
      * jitter(0.5, 0.1, {}, weighted);
      * ```
+     *
+     * Options
+     * * clamped: If false, `value`s out of percentage range can be used and return value may
+     *    beyond percentage range. True by default
+     * * type: if `rel`, `jitter` is considered to be a percentage relative to `value`
+     *         if `abs`, `jitter` is considered to be an absolute value (default)
      * @param value Value to jitter
      * @param jitter Absolute amount to jitter by
      * @param opts Jitter options
@@ -10889,9 +11343,10 @@ declare module "visual/Colour" {
      *
      * @param saturation Saturation (0-1), defaults to 0.5
      * @param lightness Lightness (0-1), defaults to 0.75
+     * @param alpha Opacity (0-1), defaults to 1.0
      * @returns HSL colour string eg `hsl(20,50%,75%)`
      */
-    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number) => string;
+    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string | undefined;
     /**
      * Returns a random hue component
      * ```
@@ -11085,6 +11540,7 @@ declare module "__tests__/geometry/grid.test" { }
 declare module "__tests__/geometry/line.test" { }
 declare module "__tests__/geometry/point.test" { }
 declare module "__tests__/geometry/polar.test" { }
+declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }
 declare module "components/HistogramVis" {
