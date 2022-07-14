@@ -17,8 +17,8 @@ You'll also note that the data is jittery, with objects popping in and out of ex
 
 Quick start:
 1. Running a local web server, open `index.html`. It may take a moment to load the TensorFlow model.
-2. Click `Start` in the top-right panel to use your camera
-3 Take a look at the shape of the raw data streaming in the console
+2. Click `Start` in the top-right panel to use your camera.
+3. Take a look at the shape of the raw data streaming in the console
 
 The next step is to comment out these lines in _index.html_. This will remove the corner panel.
 
@@ -30,7 +30,7 @@ The next step is to comment out these lines in _index.html_. This will remove th
 
 Now, use a separate browser window with _source.html_ loaded. This way as you tinker in _index_ (see below for more info on this), you won't have to re-initialise the TensorFlow model and connect to the camera.
 
-*Note* that your browser may stop or slow down processing in the separate window if it is minimised or behind other windows. Just resize it so its small and have it occupy some space on your screen.
+**Note:** that your browser may stop or slow down processing in the separate window if it is minimised or behind other windows. Just resize it so its small and have it occupy some space on your screen.
 
 ## Architecture
 
