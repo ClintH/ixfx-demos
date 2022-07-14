@@ -48,8 +48,10 @@
   }
 
   #sourceSection {
-    width: 20vw;
-    height: 20vw;
+    max-width: 320px;
+    max-height: 240px;
+    aspect-ratio: 320 / 240;
+    height: 30vw;
     position: absolute;
     right: 0;
     top: 0;
@@ -66,9 +68,14 @@
   <h1>pose-detection</h1>
   <p id="intro"> <a href="source.html" target="_blank">Start a source in a new
       window</a>, or use the panel in the corner.</p>
+
+  <!-- If you're not using the panel, comment-out these lines... -->
+  <button id="btnCloseFrame">Close panel</button>
   <section id="sourceSection">
     <iframe src="source.html"></iframe>
   </section>
+  <!-- ----  -->
+
   <script type="module" src="index.js"></script>
   <canvas id="canvas"></canvas>
 </body>

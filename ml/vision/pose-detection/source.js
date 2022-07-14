@@ -48,7 +48,7 @@ const settings = {
   visDotRadius: 5,
   videoOpacity: 0.9,
   // If the score of a point is below this, it won't connect in a line
-  keypointLineThreshold: 0.4,
+  keypointLineThreshold: 0.3,
   keypointShowThresold: 0.3,
   lblStatusEl: document.getElementById(`lblStatus`),
   dataEl: document.getElementById(`data`),
@@ -84,8 +84,6 @@ const compute = async (frame) => {
     pose.keypoints = pose.keypoints.map(kp => ({...kp, x: kp.x / w, y: kp.y / h}));
   })
   state.poses = poses;
-  console.log(state.poses);
-
 };
 
 const displayTextResults = () => {

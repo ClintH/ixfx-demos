@@ -2,6 +2,7 @@ import {Remote} from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import * as Dom from '../../../ixfx/dom.js';
 
 const settings = {
+  keypointScoreThreshold: 0.4,
   remote: new Remote(),
   canvasEl: document.getElementById(`canvas`),
   labelFont: `"Segoe UI", Roboto, Helvetica, Arial, sans-serif`
@@ -14,94 +15,85 @@ let state = {
     center: {x: 0, y: 0}
   },
   ticks: 0,
-  /** @type {DetectedObject[]} */
-  predictions: [],
+  /** @type {Poses[]} */
+  poses: [],
   colours: new Map()
 };
 
 /**
- * Received predictions
- * @param {DetectedObject[]} predictions 
+ * Received poses
+ * @param {Pose[]} predictions 
  */
-const onPredictions = (predictions) => {
-  console.log(predictions);
+const onPoses = (poses) => {
+  console.log(poses);
   state = {
     ...state,
-    predictions: predictions
+    poses: poses
   }
 }
 
 
 /**
- * Draw predictions
+ * Draw poses
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const {predictions} = state;
-
-  predictions.forEach(p => drawPrediction(p, ctx));
+  const {poses} = state;
+  poses.forEach(p => drawPose(p, ctx));
 }
 
 /**
  * 
- * @param {DetectedObject} p 
+ * @param {Pose} p 
  * @param {CanvasRenderingContext2D} ctx 
  */
-const drawPrediction = (p, ctx) => {
-  const {labelFont} = settings;
+const drawPose = (p, ctx) => {
+  const {keypointScoreThreshold} = settings;
   const {bounds, colours} = state;
+  const w = bounds.width;
+  const h = bounds.height;
+
+  const radius = 3;
+  const textOffsetY = radius * 3;
+  const hue = 90;
 
   ctx.fillStyle = `black`;
+  ctx.strokeStyle = `black`;
+  ctx.textBaseline = `top`;
 
-  // Position of detected object comes in relative terms,
+  // Positions comes in relative terms,
   // so we need to map to viewport size. Also want to
   // mirror x,y so it feels more normal 
-  const pos = {
-    x: (1 - p.bbox.x) * bounds.width,
-    y: (1 - p.bbox.y) * bounds.height
-  };
+  const absPoint = (point) => ({
+    x: (1 - point.x) * bounds.width,
+    y: (1 - point.y) * bounds.height
+  });
 
-  const rect = {
-    width: p.bbox.width * bounds.width,
-    height: p.bbox.height * bounds.height
-  }
+  // Draw each keypoint
+  p.keypoints.forEach(kp => {
+    if (kp.score < keypointScoreThreshold) return;
+    const abs = absPoint(kp);
 
-  // Radius of circle will be width/height of found object,
-  // whatever is larger
-  const radius = Math.max(rect.width, rect.height);
+    // Translate canvas to be centered on predicted object
+    ctx.save();
+    ctx.translate(abs.x, abs.y);
 
-  // Opacity based on score. It's dropped to allow high-ranking
-  // predictions to visually overlap
-  const opacity = p.score / 2;
+    // Draw a circle
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-  // Get or create a random hue for each seen class
-  if (!colours.has(p.class)) colours.set(p.class, Math.random() * 360);
+    // Draw label for key point
+    const txtSize = drawCenteredText(kp.name, ctx, 0, textOffsetY);
 
-  const hue = colours.get(p.class);
+    // Draw score
+    drawCenteredText(Math.floor(kp.score * 100) + '%', ctx, 0, textOffsetY + txtSize.fontBoundingBoxAscent + txtSize.fontBoundingBoxDescent);
 
-  // Translate canvas to be centered on predicted object
-  ctx.save();
-  ctx.translate(pos.x, pos.y);
+    // Undo translate transform
+    ctx.restore();
+  });
 
-  // Draw a circle
-  ctx.beginPath();
-  ctx.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
-  ctx.fillStyle = `hsla(${hue}, 50%, 50%, ${opacity})`;
-  ctx.strokeStyle = `hsla(${hue}, 30%, 50%, ${opacity * 2})`
-  ctx.fill();
-  ctx.stroke();
 
-  // Draw label for predicted class
-  // .. scale font roughly based on radius
-  ctx.font = `${Math.floor(radius / 3)}px ${labelFont}`;
-  ctx.fillStyle = `hsla(${hue}, 30%, 20%, ${opacity / 2})`;
-  const txtSize = drawCenteredText(p.class, ctx);
-
-  // Draw score
-  drawCenteredText(Math.floor(p.score * 100) + '%', ctx, 0, txtSize.fontBoundingBoxAscent);
-
-  // Undo translate transform
-  ctx.restore();
 }
 
 // Draw text centered by taking into account its drawn size
@@ -110,8 +102,8 @@ const drawCenteredText = (msg, ctx, offsetX, offsetY) => {
   const y = offsetY ?? 0;
   const txt = ctx.measureText(msg);
   ctx.fillText(msg,
-    -txt.width / 2 + x,
-    -txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent / 2 + y);
+    -(txt.width / 2) + x,
+    -((txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent) / 2) + y);
   return txt;
 }
 
@@ -140,7 +132,7 @@ const setup = async () => {
   // Listen for data from the remote
   remote.onData = (d) => {
     if (d.data && Array.isArray(d.data)) {
-      onPredictions(d.data);
+      onPoses(d.data);
     } else {
       console.warn('Got data we did not expect');
       console.log(d);
@@ -167,15 +159,40 @@ const setup = async () => {
     window.requestAnimationFrame(loop);
   }
   window.requestAnimationFrame(loop);
+
+  document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
+    document.getElementById(`sourceSection`)?.remove();
+    evt.target.remove(); // Remove button too
+  })
 }
 setup();
 
-// Ported from the https://github.com/tensorflow/tfjs-models/blob/master/coco-ssd/src/index.ts
+// https://github.com/tensorflow/tfjs-models/blob/676a0aa26f89c9864d73f4c7389ac7ec61e1b8a8/pose-detection/src/types.ts
 /**
- * @typedef DetectedObject
+ * @typedef Keypoint
  * @type {object}
- * @property {{x:number, y:number, width:number, height:number}} bbox
- * @property {string} class
- * @property {number} score
+ * @property {number} x
+ * @property {number} y
+ * @property {number} [z]
+ * @property {number} [score]
+ * @property {string} [name]
  */
 
+/**
+ * @typedef Box
+ * @type {object}
+ * @property {number} width
+ * @property {number} height
+ * @property {number} xMax
+ * @property {number} xMin
+ * @property {number} yMax
+ * @property {number} yMin
+ */
+
+/**
+ * @typedef Pose
+ * @type {object}
+ * @property {Keypoint[]} keypoints
+ * @property {number} [score]
+ * @property {Box} [box]
+ */
