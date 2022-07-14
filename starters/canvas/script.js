@@ -52,7 +52,7 @@ const draw = (ctx) => {
 }
 
 /**
- * 
+ * Clears canvas
  * @param {CanvasRenderingContext2D} ctx 
  */
 const clear = (ctx) => {

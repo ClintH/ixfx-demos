@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pose-detecction</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 200;
+    --bg: hsl(var(--hue) 64% 87%);
+    --fg: hsl(var(--hue) 100% 10%);
+    --padding: 0.3em;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+    background-color: var(--bg);
+    overscroll-behavior: contain;
+    touch-action: none;
+    margin: 1em;
+    padding: 1em;
+  }
+
+  .button {
+    border: 1px solid var(--fg);
+    padding: var(--padding);
+    background-color: hsl(var(--hue) 64% 77%);
+    color: var(--fg);
+    transition: all ease-out 0.5s;
+  }
+
+  .button:hover {
+    background-color: hsl(var(--hue) 64% 37%);
+    color: var(--bg);
+    transition: all ease-in 0.3s;
+  }
+
+  .button:link {
+    text-decoration: none;
+  }
+
+  #sourceSection {
+    width: 20vw;
+    height: 20vw;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  #sourceSection iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+</style>
+
+<body>
+  <h1>pose-detection</h1>
+  <p id="intro"> <a href="source.html" target="_blank">Start a source in a new
+      window</a>, or use the panel in the corner.</p>
+  <section id="sourceSection">
+    <iframe src="source.html"></iframe>
+  </section>
+  <script type="module" src="index.js"></script>
+  <canvas id="canvas"></canvas>
+</body>
+
+</html>

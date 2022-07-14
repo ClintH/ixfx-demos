@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>object-detection source</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 260;
+    --bg: hsl(var(--hue) 64% 5%);
+    --bg-overlay: hsla(var(--hue) 64% 5% / 0.5);
+    --button-bg: hsl(var(--hue) 64% 17%);
+    --button-fg: hsl(var(--hue) 64% 57%);
+    --faint: hsl(var(--hue) 100% 15%);
+    --fg: hsl(var(--hue) 100% 90%);
+  }
+
+  html,
+  body {
+    font-family: var(--font);
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  .overlay {
+    background-color: var(--bg-overlay);
+    padding: 1em;
+  }
+
+  button {
+    margin-right: 2em;
+    padding: 0.3em;
+  }
+
+  h1 {
+    font-size: 1.1em;
+  }
+
+  video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+  }
+
+  #data {
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+    font-family: var(--mono-font);
+    padding: 1em;
+  }
+
+  @media (max-width: 600px) {
+    body {
+      font-size: 10px;
+    }
+
+    h1 {
+      display: none;
+    }
+  }
+</style>
+
+<body>
+  <div class="overlay">
+    <h1>object-detection source</h1>
+    <div id="lblStatus"></div>
+    <div id="controls" style="display:none">
+      Camera: <button disabled id="btnCameraStart">Start</button> <button disabled id="btnCameraStop">Stop</button>
+      <label>Show <input id="chkCameraShow" type="checkbox"></label>
+    </div>
+  </div>
+
+  <div class="overlay" id="data">
+  </div>
+  <script type="module" src="source.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"> </script>
+</body>
+
+</html>

@@ -91,6 +91,7 @@ body {
 }
 
 .demos .source,
+.demos .readme,
 .pill {
   text-transform: uppercase;
   font-size: 0.5em;
@@ -100,16 +101,22 @@ body {
   transition: opacity 0.2s ease-in;
 }
 
+.demos .readme,
 .demos .source {
   border: 1px solid var(--shade-bg);
   color: var(--shade-bg);
 
 }
 
+.demos .readme::before {
+  content: "Readme";
+}
+
 .demos .source::before {
   content: "Source";
 }
 
+.demos .readme:hover,
 .demos .source:hover,
 .pill:hover {
   opacity: 1;

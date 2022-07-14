@@ -37,6 +37,7 @@ const update = () => {
 // Example functions
 // A pure sine: const sineA = (ticks, x) => Math.sin(x + ticks);
 const sineApure = (ticks, x) => Math.sin(x + ticks);
+
 // With noise
 const sineA = (ticks, x) => jitter(Math.sin(x + ticks), 0.005, {clamped: false});
 
