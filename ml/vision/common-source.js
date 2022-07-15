@@ -342,10 +342,14 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
 
     // @ts-ignore
     if (state.cameraConstraints.facingMode === `back`) state.cameraConstraints.facingMode = `environment`;
+    // @ts-ignore
+    if (state.cameraConstraints.facingMode === `front`) state.cameraConstraints.facingMode = `user`;
 
     if (selCameraSource) {
       if (state.cameraConstraints.facingMode === `environment`) {
         /** @type {HTMLSelectElement} */(selCameraSource).value = `back`;
+      } else if (state.cameraConstraints.facingMode === `user`) {
+        /** @type {HTMLSelectElement} */(selCameraSource).value = `front`;
       } else {
         /** @type {HTMLSelectElement} */(selCameraSource).value = state.cameraConstraints.facingMode ?? ``;
       }
@@ -373,6 +377,7 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
   btnCameraStart?.addEventListener(`click`, async () => {
     settings.frameProcessor = new FrameProcessor(settings.frameProcessorOpts);
 
+    console.log(state.cameraConstraints);
     await settings.frameProcessor.useCamera(state.cameraConstraints);
     settings.loop.start();
 
@@ -405,10 +410,9 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
   });
 
   selCameraSource?.addEventListener(`change`, () => {
-
     const v = /** @type {HTMLSelectElement} */(selCameraSource).value;
     if (v === `back`) state.cameraConstraints.facingMode = `environment`;
-
+    else if (v === `front`) state.cameraConstraints.facingMode = `user`;
   });
 }
 
