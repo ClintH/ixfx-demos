@@ -5,6 +5,7 @@
 		}
 	],
 	"settings": {
+		"js/ts.implicitProjectConfig.checkJs": true,
 		"liveServer.settings.root": "./",
 		// "liveServer.settings.mount": [
 		// 	[

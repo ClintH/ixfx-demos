@@ -6855,13 +6855,35 @@ declare module "io/Camera" {
      * @param filterKind Defaults `videoinput`
      */
     export const dumpDevices: (filterKind?: string) => Promise<void>;
+    /**
+     * Constraints when requesting a camera source
+     */
     export type Constraints = {
+        /**
+         * Camera facing: user is front-facing, environment is a rear camera
+         */
         readonly facingMode?: `user` | `environment`;
+        /**
+         * Maximum resolution
+         */
         readonly max?: Rects.Rect;
+        /**
+         * Minimum resolution
+         */
         readonly min?: Rects.Rect;
     };
+    /**
+     * Result from starting a camera
+     */
     export type StartResult = {
+        /**
+         * Call dispose to stop the camera feed and remove any created resources,
+         * such as a VIDEO element
+         */
         readonly dispose: () => void;
+        /**
+         * Video element camera is connected to
+         */
         readonly videoEl: HTMLVideoElement;
     };
     /**
@@ -6869,10 +6891,10 @@ declare module "io/Camera" {
      * VIDEO element for frame capture. The VIDEO element is created automatically.
      *
      *
-     * ```
-     * import { frames } from 'visual.js';
+     * ```js
+     * import {Camera} from 'https://unpkg.com/ixfx/dist/visual.js'
      * try
-     *  const { videoEl, dispose } = await start();
+     *  const { videoEl, dispose } = await Camera.start();
      *  for await (const frame of frames(videoEl)) {
      *   // Do something with pixels...
      *  }
@@ -6881,8 +6903,24 @@ declare module "io/Camera" {
      * }
      * ```
      *
-     * Be sure to call the dispose() function to stop the video stream and remove the created VIDEO element.
+     * Be sure to call the dispose() function to stop the video stream and remov
+     * the created VIDEO element.
      *
+     * _Constraints_ can be specified to select a camera and resolution:
+     * ```js
+     * import {Camera} from 'https://unpkg.com/ixfx/dist/visual.js'
+     * try
+     *  const { videoEl, dispose } = await Camera.start({
+     *    facingMode: `environment`,
+     *    max: { width: 640, height: 480 }
+     *  });
+     *  for await (const frame of frames(videoEl)) {
+     *   // Do something with pixels...
+     *  }
+     * } catch (ex) {
+     *  console.error(`Video could not be started`);
+     * }
+     * ```
      * @param constraints
      * @returns Returns `{ videoEl, dispose }`, where `videoEl` is the created VIDEO element, and `dispose` is a function for removing the element and stopping the video.
      */
@@ -7026,7 +7064,7 @@ declare module "io/FrameProcessor" {
     export type Sources = `` | `camera`;
     import * as Camera from "io/Camera";
     import * as Video from "visual/Video";
-    export type Opts = {
+    export type FrameProcessorOpts = {
         readonly showCanvas?: boolean;
         readonly showPreview?: boolean;
         /**
@@ -7047,7 +7085,7 @@ declare module "io/FrameProcessor" {
         private _showPreview;
         private _postCaptureDraw;
         private _timer;
-        constructor(opts?: Opts);
+        constructor(opts?: FrameProcessorOpts);
         showPreview(enabled: boolean): void;
         showCanvas(enabled: boolean): void;
         getCapturer(): Video.ManualCapturer | undefined;
@@ -7080,7 +7118,7 @@ declare module "io/index" {
      */
     export * as Espruino from "io/Espruino";
     export * as Camera from "io/Camera";
-    export { FrameProcessor } from "io/FrameProcessor";
+    export { FrameProcessor, FrameProcessorOpts } from "io/FrameProcessor";
     /**
      * Microcontrollers such as Arduinos connected via USB serial
      *
