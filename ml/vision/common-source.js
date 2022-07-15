@@ -36,6 +36,7 @@
  * * Draws a line connecting points {x,y}
  */
 import {FrameProcessor} from '../../ixfx/io.js';
+import {Camera} from '../../ixfx/io.js';
 import {defaultErrorHandler} from '../../ixfx/dom.js';
 import {continuously} from '../../ixfx/flow.js';
 
@@ -323,7 +324,7 @@ function postCaptureDraw(ctx, width, height) {
  * @param {FrameProcessorOpts} frameProcessorOpts
  * @param {CameraConstraints} cameraConstraints
  */
-export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
+export const setup = async (onFrame, frameProcessorOpts, cameraConstraints) => {
   addUi();
 
   const btnCameraStart = document.getElementById(`cs-btnCameraStart`);
@@ -333,6 +334,15 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
   const chkDataShow = document.getElementById(`cs-chkDataShow`);
   const selCameraSource = document.getElementById(`cs-cameraSource`);
   const dataEl = document.getElementById(`cs-data`);
+
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  for (const d of devices) {
+    if (d.kind !== `videoinput`) continue;
+    const opt = document.createElement('option');
+    opt.setAttribute(`data-id`, d.deviceId);
+    opt.innerText = d.label;
+    selCameraSource?.append(opt);
+  }
 
   settings.onFrame = onFrame;
 
@@ -347,11 +357,14 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
 
     if (selCameraSource) {
       if (state.cameraConstraints.facingMode === `environment`) {
-        /** @type {HTMLSelectElement} */(selCameraSource).value = `back`;
+        /** @type {HTMLSelectElement} */(selCameraSource).selectedIndex = 1;;
       } else if (state.cameraConstraints.facingMode === `user`) {
-        /** @type {HTMLSelectElement} */(selCameraSource).value = `front`;
-      } else {
-        /** @type {HTMLSelectElement} */(selCameraSource).value = state.cameraConstraints.facingMode ?? ``;
+        /** @type {HTMLSelectElement} */(selCameraSource).selectedIndex = 0;
+      }
+      if (state.cameraConstraints.deviceId) {
+        // Find & select option by id
+        const opt = selCameraSource.querySelector(`[data-id="${cameraConstraints.deviceId}"]`);
+        /** @type {HTMLOptionElement} */(opt).selected = true;
       }
     }
   };
@@ -375,23 +388,27 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
   });
 
   btnCameraStart?.addEventListener(`click`, async () => {
+    // Set up frame processor
     settings.frameProcessor = new FrameProcessor(settings.frameProcessorOpts);
-
-    console.log(state.cameraConstraints);
     await settings.frameProcessor.useCamera(state.cameraConstraints);
+
+    // Start loop to pull frames from camera
     settings.loop.start();
 
+    // Update UI
     /** @type {HTMLButtonElement}*/(btnCameraStart).disabled = true;
     /** @type {HTMLSelectElement}*/(selCameraSource).disabled = true;
     /** @type {HTMLButtonElement}*/(btnCameraStop).disabled = false;
   });
 
   btnCameraStop?.addEventListener(`click`, async () => {
+    // Stop loop and dispose of frame processor
     settings.loop.cancel();
     settings.frameProcessor?.dispose();
     settings.frameProcessor = undefined;
-    if (dataEl) dataEl.innerHTML = ``;
 
+    // Update UI
+    if (dataEl) dataEl.innerHTML = ``;
     /** @type {HTMLButtonElement}*/(btnCameraStart).disabled = false;
     /** @type {HTMLSelectElement}*/(selCameraSource).disabled = false;
     /** @type {HTMLButtonElement}*/(btnCameraStop).disabled = true;
@@ -400,6 +417,7 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
   chkSourceShow?.addEventListener(`change`, () => {
     state.displaySource = !state.displaySource;
 
+    // If both are off, hide canvas entirely
     const showCanvas = state.displaySource || state.displayData;
     settings.frameProcessor?.showCanvas(showCanvas);
   });
@@ -411,8 +429,24 @@ export const setup = (onFrame, frameProcessorOpts, cameraConstraints) => {
 
   selCameraSource?.addEventListener(`change`, () => {
     const v = /** @type {HTMLSelectElement} */(selCameraSource).value;
-    if (v === `back`) state.cameraConstraints.facingMode = `environment`;
-    else if (v === `front`) state.cameraConstraints.facingMode = `user`;
+    if (v === `back`) {
+      state.cameraConstraints.facingMode = `environment`;
+      state.cameraConstraints.deviceId = undefined;
+    }
+    else if (v === `front`) {
+      state.cameraConstraints.facingMode = `user`;
+      state.cameraConstraints.deviceId = undefined;
+    } else {
+      const opts = /** @type {HTMLSelectElement} */(selCameraSource).selectedOptions;
+      const opt = opts.item(0);
+      if (opt !== null) {
+        state.cameraConstraints.facingMode = undefined;
+        // @ts-ignore
+        state.cameraConstraints.deviceId = opt.getAttribute(`data-id`);
+      } else {
+        console.warn('Weirdness, no item selected');
+      }
+    }
   });
 }
 
@@ -541,4 +575,6 @@ export const enableTextDisplayResults = (v) => {
  * @property {('user'|'environment')} [facingMode]
  * @property {{width:number,height:number}} [min]
  * @property {{width:number,height:number}} [max]
+ * @property {{width:number,height:number}} [ideal]
+ * @property {string} [deviceId]
  */

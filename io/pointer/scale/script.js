@@ -8,7 +8,7 @@ import {clamp} from '../../../ixfx/data.js';
 import {numberTracker, pointsTracker} from '../../../ixfx/data.js';
 
 // Pointer visualiser. Useful for debugging. It's what adds the red border
-pointerVisualise(document);
+pointerVisualise(document.body);
 
 // Setings
 const settings = {
@@ -50,6 +50,9 @@ const onPointerMove = (ev) => {
     // Read back the relative value (0..1 scale)  
     const relative = twoFingerDistance.relativeDifference();
 
+    // If we don't have all the data, undefined is returned
+    if (relative === undefined) return;
+
     // -1 so that if there's no change in finger distance, v will be close to 0
     // If there's a pinch, relative will be less than 1, so we make it negative
     // If there's a grow gesture, relative will be greater than one, so it will be positive
@@ -73,7 +76,7 @@ const onPointerMove = (ev) => {
 const draw = () => {
   const {thingEl} = settings;
   const {scale} = state;
-  thingEl.style.transform = `scale(${scale})`;
+  if (thingEl) thingEl.style.transform = `scale(${scale})`;
 }
 
 /**
@@ -84,7 +87,7 @@ const onLostPointer = (ev) => {
   const {pointers} = state;
 
   // Delete the pointer
-  pointers.delete(ev.pointerId);
+  pointers.delete(ev.pointerId.toString());
 };
 
 const setup = () => {

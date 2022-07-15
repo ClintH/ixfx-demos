@@ -38,7 +38,7 @@ const settings = {
   /** @type {CommonSource.FrameProcessorOpts} */
   frameProcessorOpts: {showCanvas: true, postCaptureDraw},
   /** @type {CommonSource.CameraConstraints} */
-  cameraConstraints: {facingMode: `environment`},
+  cameraConstraints: {facingMode: `user`},
   remote: new Remote(),
   // If the score of a point is below this, it won't connect in a line
   keypointLineThreshold: 0.3,
@@ -182,8 +182,30 @@ const drawPoints = (ctx, map, ...names) => {
   CommonSource.drawLine(ctx, ...pts);
 }
 
+/**
+ * Find a camera by its label
+ * @param {string} find 
+ * @returns 
+ */
+const selectCamera = async (find) => {
+  find = find.toLocaleLowerCase();
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  for (const d of devices) {
+    if (d.kind !== `videoinput`) continue;
+    if (d.label.toLocaleLowerCase().indexOf(find) >= 0) {
+      settings.cameraConstraints.deviceId = d.deviceId;
+      return true;
+    }
+  }
+  console.log(`Could not find camera matching: ${find}`);
+  return false;
+}
+
 const setup = async () => {
-  CommonSource.setup(onFrame, settings.frameProcessorOpts, settings.cameraConstraints);
+  // Eg: choose a specific camera
+  await selectCamera(`logitech`);
+
+  await CommonSource.setup(onFrame, settings.frameProcessorOpts, settings.cameraConstraints);
   CommonSource.status(`Loading detector...`);
 
   // tfjsWasm.setWasmPaths(
