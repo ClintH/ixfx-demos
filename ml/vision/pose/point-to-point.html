@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pose-detection</title>
+  <title>pose / point-to-point</title>
 </head>
 <style>
   :root {
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
-    --hue: 200;
+    --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 60;
     --bg: hsl(var(--hue) 64% 87%);
     --fg: hsl(var(--hue) 100% 10%);
     --padding: 0.3em;
@@ -29,24 +29,6 @@
     padding: 1em;
   }
 
-  .button {
-    border: 1px solid var(--fg);
-    padding: var(--padding);
-    background-color: hsl(var(--hue) 64% 77%);
-    color: var(--fg);
-    transition: all ease-out 0.5s;
-  }
-
-  .button:hover {
-    background-color: hsl(var(--hue) 64% 37%);
-    color: var(--bg);
-    transition: all ease-in 0.3s;
-  }
-
-  .button:link {
-    text-decoration: none;
-  }
-
   #sourceSection {
     max-width: 320px;
     max-height: 240px;
@@ -62,21 +44,45 @@
     height: 100%;
     border: none;
   }
+
+  section {
+    font-size: 3em;
+  }
 </style>
 
 <body>
-  <h1>pose-detection</h1>
-  <p id="intro"> <a href="source.html" target="_blank">Start a source in a new
-      window</a>, or use the panel in the corner.</p>
+  <h1>pose / point-to-point</h1>
+  <p id="intro"> <a href="source.html" target="_blank">Start the source in a new
+      window</a>, or click the yellow tick in the corner panel.</p>
+  <p>Demonstration of calculating some basic geometric relations between parts of the body.</p>
 
   <!-- If you're not using the panel, comment-out these lines... -->
-  <button id="btnCloseFrame">Close panel</button>
+  <button id="btnCloseFrame">Stop corner source</button>
   <section id="sourceSection">
     <iframe src="source.html"></iframe>
   </section>
   <!-- ----  -->
 
-  <script type="module" src="index.js"></script>
+  <section>
+    <div>
+      Ankle-foot-hip angle:
+      <div id="dataAngle">?</div>
+    </div>
+    <div>
+      Wrist distance:
+      <div id="dataDistance">?</div>
+    </div>
+    <div>
+      Head rotation:
+      <div id="dataHeadRotation">?</div>
+    </div>
+    <div>
+      Hand-to-hip:
+      <div id="dataHandToHip">?</div>
+    </div>
+  </section>
+
+  <script type="module" src="point-to-point.js"></script>
   <canvas id="canvas"></canvas>
 </body>
 

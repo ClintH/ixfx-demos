@@ -1,15 +1,17 @@
 # pose-detection
 
-[TFJS readme](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection)
+* [Main readme for all ml-vision](../README.md)
+* [TFJS readme](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection)
+
 
 ## Getting started
 
 Quick start:
-1. Running a local web server, open `index.html`. It may take a moment to load the TensorFlow model.
+1. Running a local web server, open `points.html`. It may take a moment to load the TensorFlow model.
 2. Click `Start` in the top-right panel to use your camera.
 3. Take a look at the shape of the raw data streaming in the console
 
-The next step is to comment out the following lines in _index.html_. This will remove the corner panel.
+The next step is to comment out the following lines in _points.html_. This will remove the corner panel.
 
 ```html
 <button id="btnCloseFrame">Close panel</button>
@@ -18,15 +20,21 @@ The next step is to comment out the following lines in _index.html_. This will r
 </section>
 ```
 
-Now, use a separate browser window with _source.html_ loaded. This way as you tinker in _index_ (see [Architecture](#architecture) for more info on this), you won't have to re-initialise the TensorFlow model and connect to the camera.
+Now, use a separate browser window with _source.html_ loaded. This way as you tinker, you won't have to re-initialise the TensorFlow model and connect to the camera. See [the main README](../README.md) for more info on this.
 
-**Note:** Your browser may stop or slow down processing in the separate window if it is minimised or behind other windows. Just resize it so its small and have it occupy some space on your screen.
+**Note:** Your browser may stop or slow down processing in the separate window if it is minimised or behind other windows. Resize it so its small and have it occupy some space on your screen.
 
 ## Models
 
-The TensorFlow.js pose detection library has three models: MoveNet, PoseNet. For most cases, MoveNet is the model to choose, but read on for the differences.
+The TensorFlow.js pose detection library has three models: _MoveNet_, _BlazePose_ and _PoseNet_. For most cases, MoveNet is the model to choose, but read on for the differences.
 
-The model can be selected via `settings.model`.
+The model can be set through the `settings.model` variable (in `source.js`):
+
+```js
+const settings = {
+  model: `MoveNet`,
+}
+```
 
 Pose detection models can:
 * Identify key points point of the human body in reference to the camera frame.
@@ -46,12 +54,20 @@ Has three modes:
 2. _SinglePose.Thunder:_ optimised for accuracy, only a single body
 3. _MultiPose.Lightning:_ slower than 'SinglePose.Lightning' but can detect up to six bodies and also returns a bounding box for each pose.
 
-The mode can be set via `settings.moveNet.modelType`.
+The mode can be set the `moveNet.modelType` variable (in `source.js`):
+
+```js
+const moveNet = {
+  enableTracking: false,
+  enableSmoothing: true,
+  modelType: `MultiPose.Lightning`
+};
+```
 
 Read more about MoveNet:
 
 * [Introduction](https://blog.tensorflow.org/2021/05/next-generation-pose-detection-with-movenet-and-tensorflowjs.html)
-* [Github](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/movenet)
+* [GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/movenet)
 
 ## BlazePose
 
@@ -62,11 +78,21 @@ BlazePose has 'lite', 'full' and 'heavy' modes, set via `settings.blazePose.mode
 * _heavy:_ most accurate, but most heavyweight
 * _full:_ a balance
 
+It's configured with the `blazePose` variable (in `source.js`):
+
+```js
+const blazePose = {
+  runtime: `tfjs`,
+  enableSmoothing: true,
+  modelType: `full`
+};
+```
+
 ### Runtime
 
-BlazePose can run using two different _runtimes_, 'mediapipe' and 'tfjs'. 'tfjs' is the default, because it works best across all platforms. If you are not using iOS, switch to 'mediapipe' for higher performance. 
+BlazePose can run using two different 'runtimes', _mediapipe_ and _tfjs_. _tfjs_ is the default, because it works best across all platforms. If you are not using iOS, switch to _mediapipe_ for higher performance. 
 
-If the 'mediapipe' runtime is selected, ensure you have these SCRIPT tags:
+If the _mediapipe_ runtime is selected, ensure you have these SCRIPT tags:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
@@ -85,26 +111,9 @@ If you have the 'tfjs' runtime selected, ensure you have these SCRIPT tags:
 Read more about BlazePose:
 
 * [Introduction](https://blog.tensorflow.org/2021/05/high-fidelity-pose-tracking-with-mediapipe-blazepose-and-tfjs.html)
-* [BlazePose TFJS Github](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
-* [BlazePose Mediapipe Github](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
+* [BlazePose TFJS GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
+* [BlazePose Mediapipe GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
 
-
-## Architecture
-
-This sketch is made up of two components: _source_ and _index_.
-
-* _source_ (.html & .js) connects to a video source, does the ML inferences and dispatches the results.
-* _index_ (.html & .js) receives data from _source_ and visualises it.
-
-The benefit of this separation is:
-1. You can use a different device, like your mobile phone, as a source
-2. You can use multiple sources of data - eg different cameras covering different angles - or consume the data in multiple places
-3. Most of your tinkering will be on the _use_ of the data, not its production so you can avoid slow TensorFlow model reloading and camera initialisation.
-4. It's easier to test because you can generate data to see how your sketch responds
-
-If you need to mess with machine learning parameters or how data is pre-processed, you'll need to dip into _source_. If you're just tinkering with how the data is being used, work in _index_.
-
-Communication between _source_ and _index_ is handled via [remote](https://github.com/clinth/remote), and should automatically work between browser tabs. With a little extra configuration it can also connect over WebSockets to enable cross-device communication.
 
 ## Troubleshooting
 

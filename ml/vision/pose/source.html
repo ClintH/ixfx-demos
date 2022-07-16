@@ -55,11 +55,24 @@
       display: none;
     }
   }
+
+  #btnToggleUi {
+    border: none;
+    background: none;
+  }
+
+  .header {
+    display: flex;
+  }
 </style>
 
-<body>
-  <div class="overlay">
-    <h1>pose-detection</h1>
+<body data-server-no-reload>
+  <div class="overlay header">
+    <h1 style="display:inline">pose-detection</h1>
+    <div style="flex-grow: 1; text-align:end; padding-right:1em">
+      <button title="Toggle UI" id="btnToggleUi">🔼</button>
+    </div>
+
   </div>
   <script type="module" src="source.js"></script>
 

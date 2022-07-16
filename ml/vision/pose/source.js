@@ -2,10 +2,11 @@
  * You probably don't want to be tinkering in here.
  * It's only for adjusting ML parameters or pre-processing.
  * 
- * Functions
- * * compute() calls into TensorFlow.js an normalises data
- * * read() the main loop that calls compute(), sends data and calls the display functions
- * * setup() does TFJS initialisation based on settings, moveNet/blazePose
+ * Key functions
+ * * onFrame(): called when an image frame is received from source. It does inferences, and hands it over to `handlePoses()`
+ * * onPlayback(): this is called when playback data is received
+ * * handlePoses(): this takes in poses from either `onFrame` or `onPlayback`, does some post-processing, drawing and dispatches via remote 
+ * * setup() does TFJS initialisation based on settings
  * * postCaptureDraw(): Draws visuals on top of capture canvas
  */
 
@@ -34,22 +35,50 @@ const blazePose = {
 };
 
 const settings = {
+  /**
+   * Which model to use
+   */
   model: `MoveNet`,
+  /**
+   * Options for the frame processor
+   */
   /** @type {CommonSource.FrameProcessorOpts} */
-  frameProcessorOpts: {showCanvas: true, postCaptureDraw},
-  /** @type {CommonSource.CameraConstraints} */
-  cameraConstraints: {facingMode: `user`},
+  frameProcessorOpts: {
+    showCanvas: true,
+    postCaptureDraw,
+    cameraConstraints: {
+      facingMode: `user`
+    },
+  },
   remote: new Remote(),
-  // If the score of a point is below this, it won't connect in a line
-  keypointLineThreshold: 0.3,
-  keypointShowThresold: 0.3,
+  // If points are lower than this score, throw them away
+  keypointDiscardThreshold: 0.3,
+  playbackRateMs: 50,
+  // Visual settings
+  lineWidth: 5,
+  pointRadius: 10,
+  labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
 }
 
 let state = {
+  /**
+   * Instantiated detector
+   */
   /** @type {CommonSource.PoseDetector|undefined} */
   detector: undefined,
+  /**
+   * Last set of poses
+   */
   /** @type {CommonSource.Pose[]} */
   poses: [],
+  /**
+   * Last set of poses, normalised
+   */
+  /** @type {CommonSource.Pose[]} */
+  normalised: [],
+  /**
+   * How quickly to read from source (ms)
+   */
   sourceReadMs: 10,
 }
 
@@ -60,11 +89,28 @@ let state = {
 const onFrame = async (frame, frameRect, timestamp) => {
   const {detector} = state;
 
+  // Get poses from TensorFlow.js
   /** @type {CommonSource.Pose[]} */
   const poses = await detector?.estimatePoses(frame, {}, timestamp);
 
+  // Process them
+  handlePoses(poses, frameRect);
+}
+
+/**
+ * Handles a pose, directly from TFJS or via recorder playback
+ * @param {CommonSource.Pose[]} poses 
+ * @param {{width:number,height:number}} frameRect 
+ */
+const handlePoses = (poses, frameRect) => {
   const w = frameRect.width;
   const h = frameRect.height;
+
+  // Throw away points below threshold
+  poses.forEach(p => {
+    // @ts-ignore
+    p.keypoints = p.keypoints.filter(kp => kp.score > settings.keypointDiscardThreshold);
+  });
 
   // Normalise x,y of key points on 0..1 scale, based on size of source frame
   const normalised = poses.map(pose => ({
@@ -75,15 +121,37 @@ const onFrame = async (frame, frameRect, timestamp) => {
       y: kp.y / h
     }))
   }));
+
   state.normalised = normalised;
   state.poses = poses;
 
   // Send normalised data via Remote
-  setTimeout(() => settings.remote.broadcast(state.normalised), 0);
+  if (state.normalised.length > 0) {
+    setTimeout(() => settings.remote.broadcast(state.normalised), 0);
+  }
 
   // Update text display
-  CommonSource.displayListResults(() => state.poses.map((p) => p.score ? `${Math.floor(p.score * 100)}%` : `?`));
+  CommonSource.displayListResults(() => state.poses.map((p, poseIndex) => p.score ? `<span style="color: hsl(${getPoseHue(poseIndex)},100%,50%)">${Math.floor(p.score * 100)}%</span>` : `?`));
+
+  // Pass data down to be used by recorder, if active
+  CommonSource.onRecordData(poses, frameRect);
 }
+
+/**
+ * Received data via playback
+ * @param {CommonSource.Pose[]} frame
+ * @param {number} index
+ * @param {CommonSource.Recording} rec 
+ */
+const onPlayback = (frame, index, rec) => {
+  // Run normalisation and send data as usual...
+  handlePoses(frame, rec.frameSize);
+
+  // Manually trigger drawing
+  const c = CommonSource.getDrawingContext();
+  if (c === undefined) return;
+  postCaptureDraw(c.ctx, c.width, c.height);
+};
 
 async function createDetector() {
   const {model} = settings;
@@ -132,6 +200,7 @@ async function createDetector() {
   }
 }
 
+const getPoseHue = (poseIndex) => Math.round((poseIndex) * 137.508);
 /**
  * Called after a frame is captured from the video source.
  * This allows us to draw on top of the frame after it has been analysed.
@@ -142,43 +211,54 @@ async function createDetector() {
 function postCaptureDraw(ctx, width, height) {
   const {poses} = state;
 
+  ctx.font = `12pt ${settings.labelFont}`;
+
   // Draw each pose
   poses.forEach((pose, poseIndex) => {
     // Generate distinctive hue for each pose
-    const poseHue = Math.round((poseIndex + 1) * 137.508);
+    const poseHue = getPoseHue(poseIndex);
 
     // Keep track of points by name
     const map = new Map();
 
     // Draw each key point as a labelled dot
     pose.keypoints.forEach(kp => {
+      const score = kp.score;
+
       map.set(kp.name, kp);
 
       ctx.save();
       ctx.translate(kp.x, kp.y);
 
       // Opacity of dot based on score
-      ctx.fillStyle = `hsla(${poseHue},100%,30%,${kp.score})`;
-      CommonSource.drawDot(ctx, 0, 0, 5);
+      ctx.fillStyle = ctx.strokeStyle = `hsla(${poseHue},100%,30%,${score})`;
 
-      CommonSource.drawCenteredText(ctx, kp.name ?? `?`, 0, 10);
+      CommonSource.drawDot(ctx, 0, 0, settings.pointRadius, true, false);
+      ctx.fillStyle = `black`;
+      CommonSource.drawCenteredText(ctx, kp.name ?? `?`, 0, settings.pointRadius * 2);
       ctx.restore();
     });
 
     // Connect some lines
     ctx.strokeStyle = `hsl(${poseHue}, 50%, 50%)`;
-    drawPoints(ctx, map, `right_shoulder`, `left_shoulder`, `left_hip`, `right_hip`, `right_shoulder`);
-    drawPoints(ctx, map, `right_ear`, `right_eye`, `nose`, `left_eye`, `left_ear`);
-    drawPoints(ctx, map, `left_shoulder`, `left_elbow`, `left_wrist`);
-    drawPoints(ctx, map, `right_shoulder`, `right_elbow`, `right_wrist`);
-    drawPoints(ctx, map, `right_hip`, `right_knee`, `right_ankle`);
-    drawPoints(ctx, map, `left_hip`, `left_knee`, `left_ankle`);
+    connectPoints(ctx, map, `right_shoulder`, `left_shoulder`, `left_hip`, `right_hip`, `right_shoulder`);
+    connectPoints(ctx, map, `right_ear`, `right_eye`, `nose`, `left_eye`, `left_ear`);
+    connectPoints(ctx, map, `left_shoulder`, `left_elbow`, `left_wrist`);
+    connectPoints(ctx, map, `right_shoulder`, `right_elbow`, `right_wrist`);
+    connectPoints(ctx, map, `right_hip`, `right_knee`, `right_ankle`);
+    connectPoints(ctx, map, `left_hip`, `left_knee`, `left_ankle`);
   });
 };
 
-// Draw a series of keypoints
-const drawPoints = (ctx, map, ...names) => {
+/**
+ * Draw a series of keypoints
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {Map<string,{x:number,y:number}>} map 
+ * @param  {...string} names 
+ */
+const connectPoints = (ctx, map, ...names) => {
   const pts = names.map(n => map.get(n));
+  ctx.lineWidth = settings.lineWidth;
   CommonSource.drawLine(ctx, ...pts);
 }
 
@@ -193,7 +273,7 @@ const selectCamera = async (find) => {
   for (const d of devices) {
     if (d.kind !== `videoinput`) continue;
     if (d.label.toLocaleLowerCase().indexOf(find) >= 0) {
-      settings.cameraConstraints.deviceId = d.deviceId;
+      settings.frameProcessorOpts.cameraConstraints.deviceId = d.deviceId;
       return true;
     }
   }
@@ -203,9 +283,9 @@ const selectCamera = async (find) => {
 
 const setup = async () => {
   // Eg: choose a specific camera
-  await selectCamera(`logitech`);
+  //await selectCamera(`logitech`);
 
-  await CommonSource.setup(onFrame, settings.frameProcessorOpts, settings.cameraConstraints);
+  await CommonSource.setup(onFrame, onPlayback, settings.frameProcessorOpts, settings.playbackRateMs);
   CommonSource.status(`Loading detector...`);
 
   // tfjsWasm.setWasmPaths(
@@ -220,6 +300,13 @@ const setup = async () => {
     CommonSource.setReady(false);
     return;
   }
+
+  document.getElementById(`btnToggleUi`)?.addEventListener(`click`, evt => {
+    const enabled = CommonSource.toggleUi();
+    const el = evt.target;
+    if (el == null) return;
+    /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`
+  })
 }
 setup();
 
