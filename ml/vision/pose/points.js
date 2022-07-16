@@ -3,9 +3,14 @@
 import {Remote} from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 
 import * as Dom from '../../../ixfx/dom.js';
+import {Points} from '../../../ixfx/geometry.js';
+import {interpolate} from '../../../ixfx/data.js';
 
 const settings = {
-  keypointScoreThreshold: 0.4,
+  // Ignores points under this threshold
+  keypointScoreThreshold: 0.3,
+  // Interpolation amount applied
+  smoothingAmt: 0.1,
   remote: new Remote(),
   canvasEl: /** @type {HTMLCanvasElement} */(document.getElementById(`canvas`)),
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
@@ -19,7 +24,8 @@ let state = {
   },
   /** @type {Pose[]} */
   poses: [],
-  colours: new Map()
+  /** @type {Pose|undefined} */
+  smoothedPose: undefined
 };
 
 /**
@@ -27,13 +33,50 @@ let state = {
  * @param {Pose[]} poses 
  */
 const onPoses = (poses) => {
+  const {smoothingAmt} = settings;
   console.log(poses);
   state = {
     ...state,
     poses: poses
   }
+
+  // Make a smoothed version fo the first pose
+  if (poses.length > 0) {
+    state.smoothedPose = smoothPose(smoothingAmt, state.smoothedPose, poses[0]);
+  }
 }
 
+
+/**
+ * 
+ * @param {Pose|undefined} a 
+ * @param {Pose} b 
+ */
+const smoothPose = (amt, a, b) => {
+  if (a === undefined && b === undefined) return;
+  if (a === undefined) return b;
+
+  // Assumes keypoint indexes match up.
+  // if the source is discarding points, this will break us
+  return {
+    ...b,
+    keypoints: a.keypoints.map((kp, index) => smoothKeypoint(amt, kp, b.keypoints[index]))
+  };
+}
+
+const smoothKeypoint = (amt, a, b) => {
+  // Interpolate the score
+  const score = interpolate(amt, a.score, b.score);
+
+  // Interpolate the x,y
+  const pos = Points.interpolate(amt, a, b);
+
+  // Combine together and return
+  return {
+    ...pos,
+    score
+  }
+}
 
 /**
  * Draw poses
@@ -41,7 +84,9 @@ const onPoses = (poses) => {
  */
 const draw = (ctx) => {
   const {poses} = state;
-  poses.forEach(p => drawPose(p, ctx));
+  //poses.forEach(p => drawPose(p, ctx));
+  if (state.smoothedPose === undefined) return;
+  drawPose(ctx, state.smoothedPose);
 }
 
 /**
@@ -49,7 +94,7 @@ const draw = (ctx) => {
  * @param {Pose} p 
  * @param {CanvasRenderingContext2D} ctx 
  */
-const drawPose = (p, ctx) => {
+const drawPose = (ctx, p) => {
   const {keypointScoreThreshold, labelFont} = settings;
   const {bounds} = state;
 

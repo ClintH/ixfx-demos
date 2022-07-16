@@ -51,8 +51,6 @@ const settings = {
     },
   },
   remote: new Remote(),
-  // If points are lower than this score, throw them away
-  keypointDiscardThreshold: 0.3,
   playbackRateMs: 50,
   // Visual settings
   lineWidth: 5,
@@ -105,12 +103,6 @@ const onFrame = async (frame, frameRect, timestamp) => {
 const handlePoses = (poses, frameRect) => {
   const w = frameRect.width;
   const h = frameRect.height;
-
-  // Throw away points below threshold
-  poses.forEach(p => {
-    // @ts-ignore
-    p.keypoints = p.keypoints.filter(kp => kp.score > settings.keypointDiscardThreshold);
-  });
 
   // Normalise x,y of key points on 0..1 scale, based on size of source frame
   const normalised = poses.map(pose => ({

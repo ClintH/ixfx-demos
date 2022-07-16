@@ -2536,6 +2536,8 @@ declare module "geometry/Line" {
      * // Get {x, y } at 50% along line
      * interpolate(0.5, line);
      * ```
+     *
+     * Any additional properties from `b`  are returned on the result as well.
      * @param amount 0..1
      * @param line Line
      */
@@ -7178,6 +7180,7 @@ declare module "modulation/PingPong" {
      *
      * @example Usage
      * ```js
+     * import {percentPingPong} from 'https://unpkg.com/ixfx/dist/modulation.js';
      * for (const v of percentPingPong(0.1)) {
      *  // v will go up and down. Make sure you have a break somewhere because it is infinite
      * }
@@ -10494,6 +10497,7 @@ declare module "data/Interpolate" {
      *
      * @example Get the halfway point between 30 and 60
      * ```js
+     * import {interpolate} from 'https://unpkg.com/ixfx/dist/data.js';
      * interpolate(0.5, 30, 60);
      * ```
      *
@@ -10501,6 +10505,9 @@ declare module "data/Interpolate" {
      * would start at 0 and you would keep interpolating up to `1`
      * @example
      * ```js
+     * import {interpolate} from 'https://unpkg.com/ixfx/dist/data.js';
+     * import {percentPingPong} from 'https://unpkg.com/ixfx/dist/modulation.js'
+     *
      * // Go back and forth between 0 and 1 by 0.1
      * let pp = percentPingPong(0.1);
      * continuously(() => {
