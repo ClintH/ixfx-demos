@@ -19,8 +19,8 @@ import * as CommonSource from '../common-source.js';
 const moveNet = {
   // Attempt to link points to separate bodies
   enableTracking: false,
-  // Smooth out jitter
-  enableSmoothing: true,
+  // Smooth out jitter - doesn't seem to have a meaningful effect so disabled
+  enableSmoothing: false,
   // SinglePose.Lightning (default, fastest), SinglePose.Thunder or MultiPose.Lightning
   modelType: `MultiPose.Lightning`
 };
@@ -84,8 +84,12 @@ let state = {
  * Called by CommonSource when there is a new image to process
  * @type {CommonSource.OnFrame}
  */
-const onFrame = async (frame, frameRect, timestamp) => {
+const onFrame = async (frame, frameRect, timestamp_) => {
   const {detector} = state;
+
+  // Get timestamp that ixfx's Video.manualCapture stamps on to ImageData 
+  // @ts-ignore
+  const timestamp = frame.currentTime ?? timestamp_;
 
   // Get poses from TensorFlow.js
   /** @type {CommonSource.Pose[]} */

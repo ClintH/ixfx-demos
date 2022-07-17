@@ -9,8 +9,10 @@ import {interpolate} from '../../../ixfx/data.js';
 const settings = {
   // Ignores points under this threshold
   keypointScoreThreshold: 0.3,
-  // Interpolation amount applied
-  smoothingAmt: 0.1,
+
+  // Interpolation amount applied per frame (0...1)
+  // Lower = less jitter & more latency. Higher = more jitter & lower latency
+  smoothingAmt: 0.2,
   remote: new Remote(),
   canvasEl: /** @type {HTMLCanvasElement} */(document.getElementById(`canvas`)),
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
@@ -33,19 +35,22 @@ let state = {
  * @param {Pose[]} poses 
  */
 const onPoses = (poses) => {
-  const {smoothingAmt} = settings;
   console.log(poses);
   state = {
     ...state,
     poses: poses
   }
 
-  // Make a smoothed version fo the first pose
-  if (poses.length > 0) {
-    state.smoothedPose = smoothPose(smoothingAmt, state.smoothedPose, poses[0]);
-  }
 }
 
+const update = () => {
+  const {poses} = state;
+  const {smoothingAmt} = settings;
+
+  if (poses.length === 0) return;
+  state.smoothedPose = smoothPose(smoothingAmt, state.smoothedPose, poses[0]);
+
+}
 
 /**
  * 
@@ -196,12 +201,14 @@ const setup = async () => {
 
   const ctx = /** @type {CanvasRenderingContext2D}*/(canvasEl.getContext(`2d`));
 
+  // Loop
   const loop = () => {
+    update();
+
     // Clear and draw current state
     clear(ctx);
     draw(ctx);
 
-    // Loop
     window.requestAnimationFrame(loop);
   }
   window.requestAnimationFrame(loop);

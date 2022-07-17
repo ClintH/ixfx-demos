@@ -89,6 +89,10 @@ const mapKeypoints = (pose) => {
   return m;
 }
 
+const update = () => {
+
+};
+
 /**
  * Uses calculates performed in onPoses and updates screen.
  * This function runs in a fast loop
@@ -190,10 +194,10 @@ const setup = async () => {
     }
   }
 
+  // Continually update & redraw
   const loop = () => {
+    update();
     draw();
-
-    // Loop
     window.requestAnimationFrame(loop);
   }
   window.requestAnimationFrame(loop);
