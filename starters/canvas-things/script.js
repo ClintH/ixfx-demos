@@ -1,6 +1,6 @@
 import * as Dom from '../../ixfx/dom.js';
-import {randomElement} from '../../ixfx/arrays.js';
-import {continuously} from '../../ixfx/flow.js';
+import { randomElement } from '../../ixfx/arrays.js';
+import { continuously } from '../../ixfx/flow.js';
 
 /**
  * Define our 'thing' (this is optional) which consists of scale,x,y,created and msg fields
@@ -8,7 +8,7 @@ import {continuously} from '../../ixfx/flow.js';
  */
 
 // Define settings
-const settings = {
+const settings = Object.freeze({
   msgs: [`🍎`, `🍏`, `🐈`, `🐝`, `🛹`, `🪂`, `🛰️`, `🦖`, `🐒`],
   max: 10,
   addIntervalMs: 1000,
@@ -18,15 +18,17 @@ const settings = {
   // Value to reset thing to if it goes past max
   edgeMin: -0.1,
   xSpeed: 0.01,
-  ySpeed: 0.001
-};
+  ySpeed: 0.001,
+  /** @type {HTMLCanvasElement|null} */
+  canvasEl: document.querySelector(`#canvas`)
+});
 
 // Initial state with empty values
 let state = {
   bounds: {
     width: 0,
     height: 0,
-    center: {x: 0, y: 0}
+    center: { x: 0, y: 0 }
   },
   ticks: 0,
   /** @type Thing[] */
@@ -34,57 +36,66 @@ let state = {
 };
 
 /**
- * Adds a thing
+ * Adds a thing.
  * @param {Thing} t 
  */
 const addThing = (t) => {
-  t.created = Date.now();
-  state.things.push(t);
+  updateState({ things: [...state.things, Object.freeze(t)] });
 };
 
+/**
+ * Adds a random thing
+ */
 const addRandomThing = () => {
   addThing({
     scale: Math.random(),
     x: Math.random(),
     y: Math.random(),
+    created: Date.now(),
     msg: randomElement(settings.msgs)
   });
-}
+};
 
 /**
  * Deletes a thing
  * @param {Thing} t 
  */
 const deleteThing = (t) => {
-  state.things = state.things.filter(v => v !== t);
-}
+  updateState({
+    things: state.things.filter(v => v !== t)
+  });
+};
 
 /**
- * Deletes all things older than given milliseconds.
+ * Returns all things younger than given milliseconds.
  * It assumes things have a `created` field
+ * @param {Thing[]} things
  * @param {number} milliseconds 
  */
-const deleteOlderThan = (milliseconds) => {
+const deleteOlderThan = (things, milliseconds) => {
   const cutoff = Date.now() - milliseconds;
-  state.things = state.things.filter(v => v.created >= cutoff);
-}
+  return things.filter(v => v.created >= cutoff);
+};
 
 /**
- * Updates a single thing
+ * Updates a single thing, returning a changed copy
  * @param {Thing} t 
+ * @returns {Thing}
  */
 const updateThing = (t) => {
-  const {edgeMax, edgeMin, xSpeed, ySpeed} = settings;
+  const { edgeMax, edgeMin, xSpeed, ySpeed } = settings;
 
   // Drift thing across screen (using relative coordinates)
-  t.x += xSpeed;
-  if (t.x > edgeMax) t.x = edgeMin; // Reset x
-
-  t.y += ySpeed;
-  if (t.y > edgeMax) {
-    t.x = t.y = edgeMin; // Reset y
-
+  let x = t.x + xSpeed;
+  if (x > edgeMax) {
+    x = edgeMin; // Reset x
   }
+
+  let y = t.y + ySpeed;
+  if (y > edgeMax) {
+    x = y = edgeMin; // Reset x & y
+  }
+  return Object.freeze({ ...t, x, y });
 };
 
 /**
@@ -93,7 +104,7 @@ const updateThing = (t) => {
  * @param {Thing} t 
  */
 const drawThing = (ctx, t) => {
-  const {bounds} = state;
+  const { bounds } = state;
 
   // Save state of drawing context before we translate
   ctx.save();
@@ -107,8 +118,8 @@ const drawThing = (ctx, t) => {
   // Draw the 'msg' property of thing
   ctx.fillStyle = `black`;
   ctx.font = `${t.scale * 12}em Futura,Helvetica,Segoe,Arial`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = `center`;
+  ctx.textBaseline = `top`;
   ctx.shadowBlur = 1;
   ctx.shadowColor = `gray`;
   ctx.shadowOffsetX = 5;
@@ -117,29 +128,43 @@ const drawThing = (ctx, t) => {
 
   // Undo the translation
   ctx.restore();
-}
+};
 
 // Update state of world
 const update = () => {
-  const {ticks} = state;
-  state = {
-    ...state,
-    ticks: ticks + 1
-  }
+  const ticks = state.ticks + 1;
 
-  // Update things
-  state.things.forEach(t => updateThing(t));
+  // Update things, creating new instances
+  let things = state.things.map(t => updateThing(t));
 
   // Eg: delete things older than 1second
-  // deleteOlderThan(1000);
-}
+  // things = deleteOlderThan(things, 1000);
+
+  updateState({ ticks, things });
+};
+
+const useState = () => {
+  const { canvasEl } = settings;
+  const { things } = state;
+
+  // Get drawing context, or exit if element is missing
+  const ctx = canvasEl?.getContext(`2d`);
+  if (ctx === undefined || ctx === null) return;
+
+  // Clear canvas
+  clear(ctx);
+
+  // Draw things
+  things.forEach(t => drawThing(ctx, t));
+
+};
 
 /**
- * 
+ * Clear canvas
  * @param {CanvasRenderingContext2D} ctx 
  */
 const clear = (ctx) => {
-  const {width, height} = state.bounds;
+  const { width, height } = state.bounds;
 
   // Make background transparent
   ctx.clearRect(0, 0, width, height);
@@ -151,43 +176,46 @@ const clear = (ctx) => {
   // Fade out previously painted pixels
   //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
   //ctx.fillRect(0, 0, width, height);
-}
+};
 
+/**
+ * 
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
 /**
  * Setup and run main loop 
  */
 const setup = () => {
+  const { canvasEl, addIntervalMs } = settings;
+
   // Keep our primary canvas full size
-  /** @type {HTMLCanvasElement} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl.getContext(`2d`);
+  if (canvasEl) {
+    Dom.fullSizeCanvas(canvasEl, args => {
+      state = {
+        ...state,
+        bounds: args.bounds
+      };
+    });
+  }
 
-  Dom.fullSizeCanvas(canvasEl, args => {
-    // Update state with new size of canvas
-    state = {
-      ...state,
-      bounds: args.bounds
-    }
-  });
-
+  // Keep updating and using state
   continuously(() => {
-    // Update state
     update();
-
-    // Clear canvas
-    clear(ctx);
-
-    // Draw things
-    state.things.forEach(t => drawThing(ctx, t));
+    useState();
   }).start();
-
 
   // Every addIntervalMs add a thing if we're under the the max
   continuously(() => {
-    const {max: maxThings} = settings;
-    if (state.things.length >= maxThings) return;
+    const { max } = settings;
+    if (state.things.length >= max) return;
 
     addRandomThing();
-  }, settings.addIntervalMs).start();
-}
+  }, addIntervalMs).start();
+};
 setup();

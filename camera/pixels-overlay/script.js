@@ -3,28 +3,30 @@
  * 
  * Please see README.md in parent folder.
  */
-import {Camera} from '../../ixfx/io.js';
-import {Video} from '../../ixfx/visual.js';
-import {intervalTracker} from '../../ixfx/data.js';
-import {defaultErrorHandler} from '../../ixfx/dom.js';
+import { Camera } from '../../ixfx/io.js';
+import { Video } from '../../ixfx/visual.js';
+import { intervalTracker } from '../../ixfx/data.js';
+import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 /**
  * Define settings
  */
-const settings = {
+const settings = Object.freeze({
   // Difference in grayscale value to count as a changed pixel
   threshold: 30,
   // If true, the differencing is shown. If false, just the difference calculation is shown
   visualise: true,
-  frameIntervalTracker: intervalTracker(`fps`, 100),
+  frameIntervalTracker: intervalTracker(`fps`, { resetAfterSamples: 100 }),
   // HTML Elements
-  /** @type {HTMLCanvasElement} */
-  canvasEl: document.getElementById(`canvas`),
-  lblFps: document.getElementById(`lblFps`),
-  lblDifferences: document.getElementById(`lblDifferences`),
-  lblError: document.getElementById(`error`),
-  lblErrorMsg: document.getElementById(`errorMsg`)
-}
+  /** @type {HTMLCanvasElement|null} */
+  canvasEl: document.querySelector(`#canvas`),
+  /** @type {HTMLElement|null} */
+  lblFps: document.querySelector(`#lblFps`),
+  /** @type {HTMLElement|null} */
+  lblDifferences: document.querySelector(`#lblDifferences`),
+  lblError: document.querySelector(`#error`),
+  lblErrorMsg: document.querySelector(`#errorMsg`)
+});
 
 /**
  * Define state
@@ -33,18 +35,18 @@ let state = {
   fps: 0,
   lastFrame: new Uint8ClampedArray(),
   differences: 0
-}
+};
 
 /**
  * Uses calculated state to update labels
  */
-const draw = () => {
-  const {fps, differences} = state;
-  const {lblFps, lblDifferences} = settings;
-  lblFps.innerText = `FPS: ${fps}`;
-  lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
-}
+const useState = () => {
+  const { fps, differences } = state;
+  const { lblFps, lblDifferences } = settings;
 
+  if (lblFps) lblFps.innerText = `FPS: ${fps}`;
+  if (lblDifferences) lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
+};
 
 /**
  * In this simple frame processor, the current frame is compared
@@ -55,10 +57,11 @@ const draw = () => {
  * @param {CanvasRenderingContext2D} ctx
  */
 const update = (frame, ctx) => {
-  const {data} = frame;
-  const {lastFrame} = state;
-  const {threshold, frameIntervalTracker, visualise} = settings;
+  const { data } = frame;
+  const { lastFrame } = state;
+  const { threshold, frameIntervalTracker, visualise } = settings;
   let differences = 0;
+
   if (lastFrame.length === 0) {
     // No previous frame
   } else {
@@ -102,13 +105,23 @@ const update = (frame, ctx) => {
   frameIntervalTracker.mark();
 
   // Update state with latest calculations
-  state = {
-    ...state,
+  updateState({
     fps: Math.round(1000 / frameIntervalTracker.avg),
     lastFrame: data,
     differences
+  });
+};
+
+/**
+ * Updates state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
   };
-}
+};
 
 /**
  * Get array indexes for pixel at x,y. This is four indexes,
@@ -120,12 +133,12 @@ const update = (frame, ctx) => {
  */
 const rgbaIndexes = (width, x, y) => {
   const p = y * (width * 4) + x * 4;
-  return [p, p + 1, p + 2, p + 3]
-}
+  return [p, p + 1, p + 2, p + 3];
+};
 
 /**
- * Get the pixel values for a set of indexes
- * @param Uint8ClampedArray frame 
+ * Get the pixel values for a set of indexes.
+ * @param {Uint8ClampedArray} frame 
  * @param {number[]} indexes 
  * @returns number[]
  */
@@ -143,14 +156,19 @@ const rgbaValues = (frame, indexes) => [
  */
 const grayscale = (values) => (values[0] + values[1] + values[2]) / 3;
 
-
 /**
  * Starts video stream
  */
 const startVideo = async () => {
-  const {canvasEl, visualise} = settings;
-  const {videoEl, dispose} = await Camera.start();
-  const ctx = canvasEl.getContext(`2d`);
+  const { canvasEl, visualise } = settings;
+
+  // Init camera
+  const { videoEl, dispose } = await Camera.start();
+
+  // Get drawing context if possible
+  const ctx = canvasEl?.getContext(`2d`);
+  if (canvasEl === null || ctx === null || ctx === undefined) return;
+
   canvasEl.width = videoEl.videoWidth;
   canvasEl.height = videoEl.videoHeight;
 
@@ -159,12 +177,12 @@ const startVideo = async () => {
 
   try {
     // Video.frames generator loops forever, returning ImageData from video stream
-    for await (const frame of Video.frames(videoEl, {canvasEl})) {
+    for await (const frame of Video.frames(videoEl, { canvasEl })) {
       // Update calculations
       update(frame, ctx);
 
       // Update labels
-      draw();
+      useState();
     }
   } catch (ex) {
     console.error(ex);
@@ -172,16 +190,16 @@ const startVideo = async () => {
     // Clean up camera
     dispose();
   }
-}
+};
 
 const setup = () => {
+  // Show unexpected errors on the page to help debugger;
   defaultErrorHandler();
 
   // Attempt to start video stream when button is pressed
-  document.getElementById(`btnStart`).addEventListener(`click`, async () => {
+  document.querySelector(`#btnStart`)?.addEventListener(`click`, async () => {
     await startVideo();
   });
-
-}
+};
 
 setup();

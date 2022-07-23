@@ -4,23 +4,26 @@
  * 
  * Please see README.md in parent folder.
  */
-import {Camera} from '../../ixfx/io.js';
-import {Video} from '../../ixfx/visual.js';
-import {intervalTracker, numberTracker} from '../../ixfx/data.js';
-import {defaultErrorHandler} from '../../ixfx/dom.js';
+import { Camera } from '../../ixfx/io.js';
+import { Video } from '../../ixfx/visual.js';
+import { intervalTracker, numberTracker } from '../../ixfx/data.js';
+import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 /**
  * Define settings
  */
-const settings = {
+const settings = Object.freeze({
   worker: new Worker(`worker.js`),
-  diffTracker: numberTracker(`difference`, 200),
-  frameIntervalTracker: intervalTracker(`fps`, 100),
+  diffTracker: numberTracker(`difference`, { resetAfterSamples: 200 }),
+  frameIntervalTracker: intervalTracker(`fps`, { resetAfterSamples: 100 }),
   // HTML elements for status
-  lblFps: document.getElementById(`lblFps`),
-  lblDifferences: document.getElementById(`lblDifferences`),
-  lblDiffVu: document.getElementById(`lblDiffVu`)
-}
+  /** @type {HTMLElement|null} */
+  lblFps: document.querySelector(`#lblFps`),
+  /** @type {HTMLElement|null} */
+  lblDifferences: document.querySelector(`#lblDifferences`),
+  /** @type {HTMLElement|null} */
+  lblDiffVu: document.querySelector(`#lblDiffVu`)
+});
 
 /**
  * Define state
@@ -29,20 +32,21 @@ let state = {
   fps: 0,
   differences: 0,
   diffVu: ``
-}
+};
 
+const useState = () => {
+  const { fps, differences, diffVu } = state;
+  const { lblFps, lblDifferences, lblDiffVu } = settings;
 
-const draw = () => {
-  const {fps, differences, diffVu} = state;
-  const {lblFps, lblDifferences} = settings;
-  lblFps.innerText = `FPS: ${fps}`;
-  lblDifferences.innerText = `Differences: ${percentage(differences)}`;
-  lblDiffVu.innerHTML = diffVu;
-}
+  // Update HTML labels
+  if (lblFps) lblFps.innerText = `FPS: ${fps}`;
+  if (lblDifferences) lblDifferences.innerText = `Differences: ${percentage(differences)}`;
+  if (lblDiffVu) lblDiffVu.innerHTML = diffVu;
+};
 
 const startVideo = async () => {
-  const {worker, frameIntervalTracker} = settings;
-  const {videoEl, dispose} = await Camera.start();
+  const { worker, frameIntervalTracker } = settings;
+  const { videoEl, dispose } = await Camera.start();
 
   try {
     // Video.frames generator loops forever, returning ImageData from video stream
@@ -58,10 +62,9 @@ const startVideo = async () => {
 
       frameIntervalTracker.mark(); // Keep track of how long it takes us to process frames
 
-      state = {
-        ...state,
+      updateState({
         fps: Math.round(1000 / frameIntervalTracker.avg)
-      }
+      });
     }
   } catch (ex) {
     console.error(ex);
@@ -69,7 +72,18 @@ const startVideo = async () => {
     // Clean up camera
     dispose();
   }
-}
+};
+
+/**
+ * Updates state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
 
 /**
  * Returns a human-friendly percentage string
@@ -78,33 +92,30 @@ const startVideo = async () => {
  */
 const percentage = (v) => Math.round(v * 100) + `%`;
 
-
 const setup = () => {
-  const {worker} = settings;
+  const { worker } = settings;
   defaultErrorHandler();
 
   // Start camera when button is pressed
-  document.getElementById(`btnStart`).addEventListener(`click`, async () => {
+  document.querySelector(`#btnStart`)?.addEventListener(`click`, async () => {
     await startVideo();
   });
 
   // Listen for results from the worker
   worker.addEventListener(`message`, evt => {
     const d = evt.data;
-    const {diffTracker} = settings;
+    const { diffTracker } = settings;
 
     diffTracker.seen(d.differences);
     const mma = diffTracker.getMinMaxAvg();
 
     // Add what the worker sends to the state
-    state = {
-      ...state,
+    updateState({
       ...d,
       diffVu: `max: ${percentage(mma.max)}<br /> avg: ${percentage(mma.avg)}<br /> min: ${percentage(mma.min)}`
-    };
+    });
 
-    // Update since we have new state.
-    draw();
+    useState();
   });
-}
+};
 setup();

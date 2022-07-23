@@ -2,10 +2,10 @@
  * Generates a stacked set of gradients based on a given
  * angle interval. Gradient hues are rotated over time.
  */
-import {continuously} from '../../ixfx/flow.js';
+import { continuously } from '../../ixfx/flow.js';
 import * as Generators from '../../ixfx/generators.js';
 
-const settings = {
+const settings = Object.freeze({
   // Opacity of gradient stop
   opacity: 0.8,
   // Interval between hues
@@ -14,19 +14,19 @@ const settings = {
   stop: 0.65,
   // Loop continually between 0-359
   offsetRange: Generators.numericRange(1, 0, 359, true)
-}
+});
 
 let state = {
   // Current hue offset
   offset: 0,
   // Set to hues in setup
-  hues: [],
-}
+  hues: [ 0, 1, 2 ], // Dummy values to start
+};
 
 // Assigns gradients to body, based on settings and state
-const setGradient = () => {
-  const {opacity, stop} = settings;
-  const {offset, hues} = state;
+const useState = () => {
+  const { opacity, stop } = settings;
+  const { offset, hues } = state;
 
   // Add current offset to hues
   const huesOffset = hues.map(h => h + offset);
@@ -39,24 +39,37 @@ const setGradient = () => {
 
   // Assign CSS to body
   document.body.style.background = gradients.join(`, `);
-}
+};
 
 // Calculate a new hue offset
 const update = () => {
-  const {offsetRange} = settings;
-  state.offset = offsetRange.next().value || 0;
-}
+  const { offsetRange } = settings;
+  updateState({ 
+    offset: offsetRange.next().value || 0 
+  });
+};
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
 
 // Setup
 const setup = () => {
-  const {interval} = settings;
+  const { interval } = settings;
 
   // Generate a set of hues
-  state.hues = [...Generators.numericRange(interval, 0, 360)];
+  updateState({ hues: [ ...Generators.numericRange(interval, 0, 360) ] });
 
   continuously(() => {
     update();
-    setGradient();
+    useState();
   }).start();
-}
+};
 setup();

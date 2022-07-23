@@ -10,7 +10,7 @@ Read more about ixfx:
 * [ixfx repository](https://github.com/clinth/ixfx/) 
 * [API documentation](https://clinth.github.io/ixfx/)
 
-# Getting startde
+# Getting started
 
 ## Editing and running online
 
@@ -69,7 +69,7 @@ The JS files are organised into main chunks:
   * Another benefit is you'll get some level of type-checking and warnings if you try to use a setting that does not exist
   * The properties of `settings` should never be changed. Using `Object.freeze()` can enforce that, as shown below.
 * state: a variable which changes identity as values change. 
-  * Eg, instead of `state.x = 'foo'`, most code will use `state = { ...state, x: 'foo' }`. Note how we don't change (or _mutate_) `state`, but rather define a whole new state which is assigned to `state`. This it the principle of _immutability_. `Object.freeze()` again could be used to prevent changes.
+  * Eg, instead of `state.x = 'foo'`, most code will use `state = { ...state, x: 'foo' }`. Note how we don't change (or _mutate_) `state`, but rather define a whole new state which is assigned to `state`. This it the principle of _immutability_.
 * updateState(): applies and validates a change to `state`
   * Having a central place where `state` is updated means you can do 'sanity checks' to ensure `state` stays how the rest of your code expects.
 * useState(): uses the values in `state` to make some kind of expression, eg drawing to the canvas or updating the DOM

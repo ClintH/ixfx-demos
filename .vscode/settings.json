@@ -5,5 +5,9 @@
     "**/node_modules": true,
     "**/ixfx": true,
     "**/*.code-search": true
+  },
+  "eslint.format.enable": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
   }
 }

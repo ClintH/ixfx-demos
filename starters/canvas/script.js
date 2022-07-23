@@ -10,31 +10,33 @@ const settings = Object.freeze({
 });
 
 // Initial state with empty values
-let state = Object.freeze({
+let state = {
   bounds: {
     width: 0,
     height: 0,
-    center: {x: 0, y: 0}
+    center: { x: 0, y: 0 }
   },
   ticks: 0
-});
+};
 
-// Update state of world
-const updateState = () => {
-  const {ticks} = state;
-  state = Object.freeze({
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
     ...state,
-    ticks: ticks + 1
-  });
-}
+    ...s
+  };
+};
 
 /**
  * Draw the current state
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const {bounds, ticks} = state;
-  const {dotColour, textColour, radius} = settings;
+  const { bounds, ticks } = state;
+  const { dotColour, textColour, radius } = settings;
 
   // Translate so 0,0 is the middle
   ctx.save();
@@ -51,14 +53,14 @@ const draw = (ctx) => {
 
   // Unwind translation
   ctx.restore();
-}
+};
 
 /**
  * Clears canvas
  * @param {CanvasRenderingContext2D} ctx 
  */
 const clear = (ctx) => {
-  const {width, height} = state.bounds;
+  const { width, height } = state.bounds;
 
   // Make background transparent
   ctx.clearRect(0, 0, width, height);
@@ -70,10 +72,10 @@ const clear = (ctx) => {
   // Fade out previously painted pixels
   //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
   //ctx.fillRect(0, 0, width, height);
-}
+};
 
 const useState = () => {
-  const {canvasEl} = settings;
+  const { canvasEl } = settings;
   if (canvasEl === null) return; // Canvas element is missing :`(
 
   const ctx = canvasEl.getContext(`2d`);
@@ -90,21 +92,17 @@ const useState = () => {
  * Setup and run main loop 
  */
 const setup = () => {
-  const {canvasEl} = settings;
-  if (canvasEl === null) return;
+  const { canvasEl } = settings;
   Dom.fullSizeCanvas(canvasEl, args => {
     // Update state with new size of canvas
-    state = {
-      ...state,
-      bounds: args.bounds
-    }
+    updateState({ bounds: args.bounds });
   });
 
   const loop = () => {
-    updateState();
+    updateState({ ticks: state.ticks + 1 });
     useState();
     window.requestAnimationFrame(loop);
-  }
+  };
   window.requestAnimationFrame(loop);
-}
+};
 setup();

@@ -6,14 +6,13 @@
  * Please see README.md in the parent folder.
  */
 
-
 /**
  * Define settings
  */
-const settings = {
+const settings = Object.freeze({
   // Difference in grayscale value to count as a changed pixel
   threshold: 30,
-};
+});
 
 /**
  * Define state
@@ -26,9 +25,9 @@ let state = {
  * Process image data
  * @param {ImageData} frame 
  */
-const process = (frame) => {
-  const {lastFrame} = state;
-  const {threshold} = settings;
+const processFrame = (frame) => {
+  const { lastFrame } = state;
+  const { threshold } = settings;
 
   if (lastFrame.length === 0) {
     // No previous frame
@@ -68,20 +67,30 @@ const process = (frame) => {
     differences /= (w * h);
 
     // Send calculation back to main thread
-    self.postMessage({differences});
+    self.postMessage({ differences });
   }
 
+  updateState({
+    lastFrame: frame.data
+  });
+};
+
+/**
+ * Updates state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
   state = {
     ...state,
-    lastFrame: frame.data
-  }
-}
+    ...s
+  };
+};
 
 // Returns pixel indexes for rgba values at x,y
 const rgbaIndexes = (width, x, y) => {
   const p = y * (width * 4) + x * 4;
-  return [p, p + 1, p + 2, p + 3]
-}
+  return [p, p + 1, p + 2, p + 3];
+};
 
 // Get the pixel values for a set of indexes
 const rgbaValues = (frame, indexes) => [
@@ -91,22 +100,21 @@ const rgbaValues = (frame, indexes) => [
   frame[indexes[3]]
 ];
 
-const rgbaString = (values) => `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${values[3]})`;
+//const rgbaString = (values) => `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${values[3]})`;
 
 // Returns a simple average of RGB (ignoring alpha)
 const grayscale = (values) => (values[0] + values[1] + values[2]) / 3;
-
 
 const setup = () => {
   // Process message from script.js
   self.addEventListener(`message`, evt => {
     // It sends us the pixel data and dimensions of frame
-    const {pixels, width, height} = evt.data;
+    const { pixels, width, height } = evt.data;
     const frame = new ImageData(new Uint8ClampedArray(pixels),
       width, height);
 
     // Process it
-    process(frame);
+    processFrame(frame);
   });
 };
 setup();
