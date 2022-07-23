@@ -2,12 +2,15 @@
  * Rotates a CSS linear gradient based on the angle of pointer to
  * the middle of the screen.
  * 
- * Demonstrates: screen-to-relative coordinates, CSS linear gradients, CSS background clipping
+ * Demonstrates: screen-to-relative coordinates, 
+ *  CSS linear gradients, 
+ *  CSS background clipping
  */
 import { Points } from '../../ixfx/geometry.js';
 
 /**
- * Define our 'thing' (this is optional) which consists of scale,x,y,created and msg fields
+ * Define our 'thing' (this is optional) which consists of 
+ * scale,x,y,created and msg fields
  * @typedef {[stop:number, colour:string]} GradientStop
  */
 
@@ -47,7 +50,10 @@ const setGradient = () => {
 
   // Produce CSS linear-gradient
   // We need to offset the radians by a quarter turn
-  const linearGradient = `linear-gradient(${angleRadians + Math.PI / 2}rad, ${hues.join(`, `)}`;
+  const linearGradient = `linear-gradient(
+    ${angleRadians + Math.PI / 2}rad, 
+    ${hues.join(`, `
+  )}`;
 
   // Assign CSS to text element
   textEl.style.background = linearGradient;
@@ -73,7 +79,8 @@ const updateState = (s) => {
 const setup = () => {
   document.addEventListener(`pointermove`, evt => {
     // Transform screen coordinate to relative coordinate
-    const relPointer = Points.normaliseByRect({ x: evt.clientX, y: evt.clientY },
+    const relPointer = Points.normaliseByRect(
+      { x: evt.clientX, y: evt.clientY },
       window.innerWidth,
       window.innerHeight);
 

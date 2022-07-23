@@ -14,7 +14,8 @@ import { defaultErrorHandler } from '../../ixfx/dom.js';
 const settings = Object.freeze({
   // Difference in grayscale value to count as a changed pixel
   threshold: 30,
-  // If true, the differencing is shown. If false, just the difference calculation is shown
+  // If true, the differencing is shown. If false, just the
+  // difference calculation is shown
   visualise: true,
   frameIntervalTracker: intervalTracker(`fps`, { resetAfterSamples: 100 }),
   // HTML Elements
@@ -45,7 +46,8 @@ const useState = () => {
   const { lblFps, lblDifferences } = settings;
 
   if (lblFps) lblFps.innerText = `FPS: ${fps}`;
-  if (lblDifferences) lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
+  if (lblDifferences) 
+    lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
 };
 
 /**
@@ -133,7 +135,7 @@ const updateState = (s) => {
  */
 const rgbaIndexes = (width, x, y) => {
   const p = y * (width * 4) + x * 4;
-  return [p, p + 1, p + 2, p + 3];
+  return [ p, p + 1, p + 2, p + 3 ];
 };
 
 /**
@@ -176,7 +178,8 @@ const startVideo = async () => {
   if (!visualise) canvasEl.style.display = `none`;
 
   try {
-    // Video.frames generator loops forever, returning ImageData from video stream
+    // Video.frames generator loops forever, 
+    // returning ImageData from video stream
     for await (const frame of Video.frames(videoEl, { canvasEl })) {
       // Update calculations
       update(frame, ctx);

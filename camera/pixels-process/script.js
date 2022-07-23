@@ -1,5 +1,6 @@
 /**
- * pixels-process: pixel-level manipulation of frames from a camera, drawing them to a canvas
+ * pixels-process: pixel-level manipulation of frames from a camera, 
+ * drawing them to a canvas
  * 
  * Please see README.md in parent folder.
  */
@@ -11,7 +12,8 @@ import { defaultErrorHandler } from '../../ixfx/dom.js';
 const settings = Object.freeze({
   // Difference in grayscale value to count as a changed pixel
   threshold: 30,
-  // If true, the differencing is shown. If false, just the difference calculation is shown
+  // If true, the differencing is shown. If false, 
+  // just the difference calculation is shown
   visualise: true,
   frameIntervalTracker: intervalTracker(`fps`, { resetAfterSamples: 100 }),
   // HTML Elements
@@ -38,15 +40,16 @@ const useState = () => {
   const { visualise, lblFps, lblDifferences, canvasEl } = settings;
 
   if (lblFps) lblFps.innerText = `FPS: ${fps}`;
-  if (lblDifferences) lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
+  if (lblDifferences) 
+    lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
 
   // Get drawing context if possible
   const ctx = canvasEl?.getContext(`2d`);
   if (canvasEl === null || !ctx) return;
 
-  // Write pixels to canvas
-  // Pixels that were different are unchanged, so they come through in original colour
-  // but pixels deemed same as last frame were changed to grayscale and translucent
+  // Write pixels to canvas. Pixels that were different are unchanged, 
+  // so they come through in original colour but pixels deemed same 
+  // as last frame were changed to grayscale and translucent
   if (visualise) ctx.putImageData(visFrame, 0, 0);
 
 };
@@ -115,7 +118,8 @@ const update = (frame) => {
     differences /= (w * h);
   }
 
-  frameIntervalTracker.mark(); // Keep track of how long it takes us to process frames
+  // Keep track of how long it takes us to process frames
+  frameIntervalTracker.mark(); 
 
   updateState({
     fps: Math.round(1000 / frameIntervalTracker.avg),
@@ -146,7 +150,7 @@ const updateState = (s) => {
  */
 const rgbaIndexes = (width, x, y) => {
   const p = y * (width * 4) + x * 4;
-  return [p, p + 1, p + 2, p + 3];
+  return [ p, p + 1, p + 2, p + 3 ];
 };
 
 /**
@@ -162,7 +166,10 @@ const rgbaValues = (frame, indexes) => [
   frame[indexes[3]]
 ];
 
-//const rgbaString = (values) => `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${values[3]})`;
+/**
+const rgbaString = (values) => `rgba(${values[0]}, 
+  ${values[1]}, ${values[2]}, ${values[3]})`;
+*/
 
 /**
  * Calculates grayscale value of a pixel (ignoring alpha)
@@ -188,7 +195,8 @@ const startVideo = async () => {
   if (!visualise) canvasEl.style.display = `none`;
 
   try {
-    // Video.frames generator loops forever, returning ImageData from video stream
+    // Video.frames generator loops forever, 
+    // returning ImageData from video stream
     for await (const frame of Video.frames(videoEl)) {
       // Update calculations
       update(frame);

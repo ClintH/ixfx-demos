@@ -106,3 +106,4 @@ const setup = () => {
   window.requestAnimationFrame(loop);
 };
 setup();
+

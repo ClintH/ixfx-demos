@@ -40,7 +40,8 @@ const useState = () => {
 
   // Update HTML labels
   if (lblFps) lblFps.innerText = `FPS: ${fps}`;
-  if (lblDifferences) lblDifferences.innerText = `Differences: ${percentage(differences)}`;
+  if (lblDifferences) 
+    lblDifferences.innerText = `Differences: ${percentage(differences)}`;
   if (lblDiffVu) lblDiffVu.innerHTML = diffVu;
 };
 
@@ -49,7 +50,8 @@ const startVideo = async () => {
   const { videoEl, dispose } = await Camera.start();
 
   try {
-    // Video.frames generator loops forever, returning ImageData from video stream
+    // Video.frames generator loops forever,
+    // returning ImageData from video stream
     for await (const frame of Video.frames(videoEl)) {
 
       // Post frame to the worker for processing
@@ -58,9 +60,10 @@ const startVideo = async () => {
         width: frame.width,
         height: frame.height,
         channels: 4
-      }, [frame.data.buffer]);
+      }, [ frame.data.buffer ]);
 
-      frameIntervalTracker.mark(); // Keep track of how long it takes us to process frames
+      // Keep track of how long it takes us to process frames
+      frameIntervalTracker.mark(); 
 
       updateState({
         fps: Math.round(1000 / frameIntervalTracker.avg)
@@ -112,7 +115,10 @@ const setup = () => {
     // Add what the worker sends to the state
     updateState({
       ...d,
-      diffVu: `max: ${percentage(mma.max)}<br /> avg: ${percentage(mma.avg)}<br /> min: ${percentage(mma.min)}`
+      diffVu: `
+       max: ${percentage(mma.max)}<br />
+       avg: ${percentage(mma.avg)}<br />
+       min: ${percentage(mma.min)}`
     });
 
     useState();

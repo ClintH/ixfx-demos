@@ -1,9 +1,8 @@
-import {pingPongPercent, count} from '../../ixfx/generators.js';
-import {forEach} from '../../ixfx/flow.js';
+import { pingPongPercent, count } from '../../ixfx/generators.js';
+import { forEach } from '../../ixfx/flow.js';
 import * as Dom from '../../ixfx/dom.js';
 
-// Define settings
-const settings = {
+const settings = Object.freeze({
   outerColour: `indigo`,
   innerColour: `pink`,
   piPi: Math.PI * 2,
@@ -12,31 +11,32 @@ const settings = {
   // % to reduce radius by for each circle
   radiusDecay: 0.8,
   // Proportion of viewport size to radius
-  radiusViewProportion: 0.45 /* 45% keeps it within screen */
-};
+  radiusViewProportion: 0.45 /* 45% keeps it within screen */,
+  canvasEl: /** @type {HTMLCanvasElement} */(Dom.resolveEl(`#canvas`))
+});
 
-// Initial state with empty values
 let state = {
   pingPong: 0,
-  bounds: {width: 0, height: 0, center: {x: 0, y: 0}}
+  bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
+  radius: 0
 };
 
 // Update state of world
 const update = () => {
-  const {pingPong, radiusViewProportion} = settings;
-  const {bounds} = state;
+  const { pingPong, radiusViewProportion } = settings;
+  const { bounds } = state;
 
   // Define radius in proportion to viewport size
   const radius = Math.min(bounds.width, bounds.height) * radiusViewProportion;
 
   // Update state
-  state = {
+  updateState({
     bounds,
     radius,
     // Get a new value from the generator
     pingPong: pingPong.next().value,
-  }
-}
+  });
+};
 
 /**
  * Draw a gradient-filled circle
@@ -45,9 +45,9 @@ const update = () => {
  */
 const drawGradientCircle = (ctx, radius) => {
   // Grab state/settings we need
-  const {pingPong, bounds} = state;
-  const {piPi} = settings;
-  const {center} = bounds;
+  const { pingPong, bounds } = state;
+  const { piPi } = settings;
+  const { center } = bounds;
 
   // Let inner circle of gradient grow in and out.
   const inner = pingPong * radius;
@@ -57,7 +57,7 @@ const drawGradientCircle = (ctx, radius) => {
     ...bounds,
     width: radius,
     height: radius
-  }
+  };
 
   // Create a gradient 'brush' based on size of circle
   ctx.fillStyle = getGradient(ctx, inner, circleBounds);
@@ -66,14 +66,25 @@ const drawGradientCircle = (ctx, radius) => {
   ctx.beginPath();
   ctx.arc(center.x, center.y, radius, 0, piPi);
   ctx.fill();
-}
+};
+
+const useState = () => {
+  const { canvasEl }= settings;
+  
+  const ctx = canvasEl.getContext(`2d`);
+  if (ctx === null) return;
+
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  draw(ctx);
+};
+
 /**
  * Draw the current state
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  let {radius} = state;
-  const {radiusDecay} = settings;
+  let { radius } = state;
+  const { radiusDecay } = settings;
 
   // Uses ixfx's forEach and count to run the body 10 times
   forEach(count(10), () => {
@@ -83,32 +94,38 @@ const draw = (ctx) => {
     // Diminish radius
     radius *= radiusDecay;
   });
-}
+};
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
   // Keep our primary canvas full size
-  /** @type {HTMLCanvasElement} */
-  const canvasEl = Dom.resolveEl(`#canvas`);
-  const ctx = canvasEl.getContext(`2d`);
-  Dom.fullSizeCanvas(canvasEl, args => {
+  Dom.fullSizeCanvas(settings.canvasEl, args => {
     // Update state with new size of canvas
-    state = {
-      ...state,
+    updateState({
       bounds: args.bounds
-    }
+    });
   });
 
   const loop = () => {
     update();
-    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    draw(ctx);
+    useState();  
     window.requestAnimationFrame(loop);
-  }
+  };
   window.requestAnimationFrame(loop);
-}
+};
 setup();
 
 /**
@@ -117,7 +134,7 @@ setup();
  * @param {{width:number, height:number, center: {x:number, y:number}}} bounds 
  */
 const getGradient = (ctx, inner, bounds) => {
-  const {outerColour, innerColour} = settings;
+  const { outerColour, innerColour } = settings;
 
   const c = bounds.center;
 
@@ -134,4 +151,4 @@ const getGradient = (ctx, inner, bounds) => {
   g.addColorStop(1, outerColour);  // Outer circle
 
   return g;
-}
+};

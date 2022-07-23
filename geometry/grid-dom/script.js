@@ -4,52 +4,63 @@
  * This makes it easy to use CSS styling and DOM elements for further interaction.
  */
 
-import {Grids} from '../../ixfx/geometry.js'
-
+import { Grids } from '../../ixfx/geometry.js';
 
 // Define settings
-const settings = {
-  grid: {rows: 10, cols: 10, size: 10},
+const settings = Object.freeze({
+  grid: { rows: 10, cols: 10, size: 10 },
   gridEl: document.getElementById(`grid`),
   feedbackEl: document.getElementById(`feedback`)
-};
+});
 
 // Initialise state
 let state = {
-  lastClicked: {x: 0, y: 0}
+  lastClicked: { x: 0, y: 0 }
 };
 
 /**
- * Returns a cell based on an HTML element that has data-x and data-y attributes set
+ * Returns a cell based on an HTML element that has data-x and data-y attributes set.
+ * 
+ * Returns -1 for x/y if attribute is not found.
  * @param {HTMLElement} el 
  * @returns 
  */
 const getCellFromElement = (el) => ({
-  x: parseInt(el.getAttribute(`data-x`)),
-  y: parseInt(el.getAttribute(`data-y`))
+  x: parseInt(el.getAttribute(`data-x`) ?? `-1`),
+  y: parseInt(el.getAttribute(`data-y`) ?? `-1`)
 });
 
 const onCellClick = (ev) => {
   const cell = getCellFromElement(ev.target);
-  state = {
-    ...state,
+  updateState({
     lastClicked: cell
-  };
-  updateDom();
+  });
+  useState();
 };
 
-const updateDom = () => {
-  // Grab what we need from settings and state
-  const {feedbackEl} = settings;
-  const {lastClicked} = state;
-  feedbackEl.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
-}
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
+
+const useState = () => {
+  const { feedbackEl } = settings;
+  const { lastClicked } = state;
+  if (feedbackEl) feedbackEl.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
+};
 
 /**
  * Setup 
  */
 const setup = () => {
-  const {grid, gridEl} = settings;
+  const { grid, gridEl } = settings;
+  if (gridEl === null) return;
 
   for (const row of Grids.rows(grid)) {
     // Make HTML for each cell. This produces an array of strings
@@ -64,6 +75,6 @@ const setup = () => {
   }
 
   gridEl.addEventListener(`click`, onCellClick);
-}
+};
 
 setup();

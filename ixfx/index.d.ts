@@ -7369,14 +7369,14 @@ declare module "dom/Util" {
      * @param timeoutMs Timeout for debouncing events
      * @returns
      */
-    export const parentSize: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    export const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
     /**
      * Source: https://zellwk.com/blog/translate-in-javascript
      * @param domQueryOrEl
      */
     export const getTranslation: (domQueryOrEl: string | HTMLElement) => Points.Point;
     /**
-     * Resizes given canvas or SVG element to its parent element.
+     * Resizes given canvas to its parent element.
      * To resize canvas to match the viewport, use {@link fullSizeCanvas}.
      *
      * Provide a callback for when resize happens.
@@ -7991,11 +7991,17 @@ declare module "visual/Svg" {
     export const applyPathOpts: (elem: SVGElement, opts: PathDrawingOpts) => void;
     /**
      * Applies drawing options to given SVG element.
-     * Applies: fillStyle, strokeStyle, strokeWidth, strokeDash
+     * Applies: fillStyle
      * @param elem Element
      * @param opts Drawing options
      */
     export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
+    /**
+     * Applies drawing options to given SVG element.
+     * Applies: strokeStyle, strokeWidth, strokeDash, strokeLineCap
+     * @param elem Element
+     * @param opts
+     */
     export const applyStrokeOpts: (elem: SVGElement, opts: StrokeOpts) => void;
     /**
      * Helper to make SVG elements with a common parent.

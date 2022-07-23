@@ -1,24 +1,25 @@
-import {throttle} from '../../ixfx/flow.js';
+import { throttle } from '../../ixfx/flow.js';
 
-const settings = {
+const settings = Object.freeze({
   log: document.getElementById(`log`),
   raw: document.getElementById(`raw`),
   resetBtn: document.getElementById(`btnReset`)
-}
+});
 
 const onMove = (elapsedMs, ...args) => {
-  const {log} = settings;
-  console.log(`Elapsed: ${elapsedMs}`);
-  console.log(args);
+  const { log } = settings;
+  
+  //console.log(`Elapsed: ${elapsedMs}`);
+  //console.log(args);
 
   /** @type {PointerEvent} */
   const pointerEvt = args[0];
 
-  log.append(`!`);
-}
+  log?.append(`!`);
+};
 
 const setup = () => {
-  const {log, raw, resetBtn} = settings;
+  const { log, raw, resetBtn } = settings;
   const moveThrottled = throttle(onMove, 500);
 
   // Swallow some events to avoid touch screen issues
@@ -28,14 +29,14 @@ const setup = () => {
     ev.preventDefault();
 
     // For comparison also show unthrottled
-    raw.append(`!`);
+    raw?.append(`!`);
     moveThrottled(ev);
   });
 
   // Reset button
-  resetBtn.addEventListener(`click`, () => {
-    log.innerHTML = ``;
-    raw.innerHTML = ``;
+  resetBtn?.addEventListener(`click`, () => {
+    if (log) log.innerHTML = ``;
+    if (raw) raw.innerHTML = ``;
   });
-}
+};
 setup();

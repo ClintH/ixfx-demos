@@ -3,13 +3,19 @@ import { randomElement } from '../../ixfx/arrays.js';
 import { continuously } from '../../ixfx/flow.js';
 
 /**
- * Define our 'thing' (this is optional) which consists of scale,x,y,created and msg fields
- * @typedef {{x:number, y:number, scale:number, msg:string, created:number}} Thing
+ * Define our 'thing' (this is optional) which consists of 
+ * scale,x,y,created and msg fields
+ * @typedef {{
+ *  x:number, 
+ *  y:number, 
+ *  scale:number, 
+ *  msg:string, 
+ *  created:number}} Thing
  */
 
 // Define settings
 const settings = Object.freeze({
-  msgs: [`🍎`, `🍏`, `🐈`, `🐝`, `🛹`, `🪂`, `🛰️`, `🦖`, `🐒`],
+  msgs: [ `🍎`, `🍏`, `🐈`, `🐝`, `🛹`, `🪂`, `🛰️`, `🦖`, `🐒` ],
   max: 10,
   addIntervalMs: 1000,
   // How much to let thing fall off edge before resetting it
@@ -40,7 +46,7 @@ let state = {
  * @param {Thing} t 
  */
 const addThing = (t) => {
-  updateState({ things: [...state.things, Object.freeze(t)] });
+  updateState({ things: [ ...state.things, Object.freeze(t) ] });
 };
 
 /**
