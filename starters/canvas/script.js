@@ -1,29 +1,31 @@
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings
-const settings = {
+const settings = Object.freeze({
   dotColour: `black`,
   textColour: `white`,
-  radius: 100
-};
+  radius: 100,
+  /** @type {HTMLCanvasElement|null} */
+  canvasEl: document.querySelector(`#canvas`)
+});
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
     center: {x: 0, y: 0}
   },
   ticks: 0
-};
+});
 
 // Update state of world
-const update = () => {
+const updateState = () => {
   const {ticks} = state;
-  state = {
+  state = Object.freeze({
     ...state,
     ticks: ticks + 1
-  }
+  });
 }
 
 /**
@@ -70,15 +72,26 @@ const clear = (ctx) => {
   //ctx.fillRect(0, 0, width, height);
 }
 
+const useState = () => {
+  const {canvasEl} = settings;
+  if (canvasEl === null) return; // Canvas element is missing :`(
+
+  const ctx = canvasEl.getContext(`2d`);
+  if (ctx === null) return;
+
+  // Clear canvas
+  clear(ctx);
+
+  // Draw new things
+  draw(ctx);
+};
+
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  // Keep our primary canvas full size
-  /** @type {HTMLCanvasElement} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl.getContext(`2d`);
-
+  const {canvasEl} = settings;
+  if (canvasEl === null) return;
   Dom.fullSizeCanvas(canvasEl, args => {
     // Update state with new size of canvas
     state = {
@@ -88,16 +101,8 @@ const setup = () => {
   });
 
   const loop = () => {
-    // Update state
-    update();
-
-    // Clear canvas
-    clear(ctx);
-
-    // Draw new things
-    draw(ctx);
-
-    // Loop
+    updateState();
+    useState();
     window.requestAnimationFrame(loop);
   }
   window.requestAnimationFrame(loop);
