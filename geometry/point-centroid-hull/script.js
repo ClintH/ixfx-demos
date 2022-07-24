@@ -1,55 +1,62 @@
-/**
- * This demo shows the Points' centroid and convexHull functions.
- * 
- * Calculates happen in `update()`.
- */
-import {Lines, Points} from '../../ixfx/geometry.js';
-import {Svg} from '../../ixfx/visual.js';
+import { Lines, Points } from '../../ixfx/geometry.js';
+import { Svg } from '../../ixfx/visual.js';
 
 // Define settings
-const settings = {
+const settings = Object.freeze({
   pointSize: 20,
-  centroidEl: document.getElementById(`centroid`),
-  svgEl: document.getElementById(`svg`),
   lineStyle: {
     strokeStyle: `black`,
     strokeWidth: 3
   }
-};
+});
 
 // Initial state with empty values
 let state = {
   /** @type Points.Point[] */
   points: [],
-  /** @type Points.Point[] */
+  /** @type readonly Points.Point[] */
   convexHull: [],
   /** @type Points.Point */
-  centroid: {x: 0, y: 0}
+  centroid: { x: 0, y: 0 }
+};
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
 };
 
 const update = () => {
-  state.centroid = Points.centroid(...state.points);
-  state.convexHull = Points.convexHull(...state.points);
-  draw();
-}
+  updateState({
+    centroid: Points.centroid(...state.points),
+    convexHull: Points.convexHull(...state.points)
+  });
+  useState();
+};
 
-/**
- * Updates visuals
- */
-const draw = () => {
-  const {centroidEl, pointSize, svgEl, lineStyle} = settings;
-  const {centroid, convexHull} = state;
+const useState = () => {
+  const {  pointSize, lineStyle } = settings;
+  const { centroid, convexHull } = state;
 
+  const centroidEl =  document.getElementById(`centroid`);
+  const svgEl = /** @type {SVGSVGElement|null} */(document.getElementById(`svg`));
+  
   // Position centroid
-  positionThing(centroidEl, centroid, pointSize);
+  if (centroidEl) positionThing(centroidEl, centroid, pointSize);
 
   // Create lines that form hull
+  if (!svgEl) return;
   const lines = Lines.joinPointsToLines(...convexHull, convexHull[0]); // Add first point to close path
   Svg.clear(svgEl);
   lines.forEach((l, index) => {
     Svg.Elements.line(l, svgEl, lineStyle, `#line-${index}`);
   });
-}
+};
 
 /**
  * Positions an element
@@ -63,21 +70,23 @@ const positionThing = (el, point, size) => {
   el.style.left = (point.x - size / 2) + `px`;
   el.style.top = (point.y - size / 2) + `px`;
   el.title = Points.toString(point);
-}
+};
 
 /**
  * Adds a point
  * @param {Points.Point} point 
  */
 const addPoint = (point) => {
-  const {pointSize} = settings;
+  const { pointSize } = settings;
 
   // Add to list of points
-  state.points.push(point);
-
+  updateState({
+    points: [ ...state.points, point ]
+  });
+  
   // Create element for point
   const el = document.createElement(`div`);
-  el.classList.add('point');
+  el.classList.add(`point`);
 
   // Position it
   positionThing(el, point, pointSize);
@@ -94,7 +103,7 @@ const addPoint = (point) => {
 const setup = () => {
   // Add a point when clicking the document
   document.addEventListener(`click`, evt => {
-    addPoint({x: evt.x, y: evt.y});
-  })
-}
+    addPoint({ x: evt.x, y: evt.y });
+  });
+};
 setup();

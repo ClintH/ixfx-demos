@@ -16,8 +16,7 @@ const settings = Object.freeze({
   colour: `hotpink`,
   piPi: Math.PI * 2,
   grid: { rows: 10, cols: 10 },
-  modulators: new Map(),
-  canvasEl: /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`))
+  modulators: new Map()
 });
 
 let state = {
@@ -63,8 +62,10 @@ const update = () => {
 };
 
 const useState = () => {
-  const { canvasEl, grid } = settings;
+  const {  grid } = settings;
   const { cellSize, modValues } = state;
+
+  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
 
   const ctx = /** @type {HTMLCanvasElement} */(canvasEl).getContext(`2d`);
   if (ctx === null || ctx === undefined || canvasEl === null) return;
@@ -164,10 +165,10 @@ const drawCell = (modValue, rect, ctx) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  const { grid, canvasEl } = settings;
+  const { grid } = settings;
 
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(canvasEl, args => {
+  Dom.fullSizeCanvas(`#canvas`, args => {
     // Set grid cell size to be proportional to size of viewport
     const minDimension = Math.min(args.bounds.width, args.bounds.height);
     const maxDimension = Math.max(args.bounds.width, args.bounds.height);

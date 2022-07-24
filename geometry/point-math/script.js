@@ -1,17 +1,4 @@
-/**
- * Demonstrates moving an element toward a point, over time.
- * 
- * It also shows working with relative coordinates.
- */
-import {Points, radianToDegree} from '../../ixfx/geometry.js';
-
-// Define settings
-const settings = {
-  thingEl: document.getElementById(`thing`),
-  referenceEl: document.getElementById(`reference`),
-  distanceEl: document.getElementById(`lblDistance`),
-  angleDegEl: document.getElementById(`lblAngleDeg`),
-};
+import { Points, radianToDegree } from '../../ixfx/geometry.js';
 
 // Initial state with empty values
 let state = {
@@ -28,13 +15,13 @@ let state = {
     y: Math.random()
   },
   distance: 0,
-  pointer: {x: 0, y: 0}
+  pointer: { x: 0, y: 0 }
 };
 
 // Update state of world
 const update = () => {
 
-  const {pointer, reference} = state;
+  const { pointer, reference } = state;
 
   const p = pointer;
   // Demo some calculations
@@ -50,15 +37,15 @@ const update = () => {
     location: pointer,
     distance,
     angleDeg
-  }
-}
+  };
+};
 
 /**
  * @param el {HTMLElement}
  * @param pos {{x:number, y:number}}
  */
 const relativePosition = (el, pos) => {
-  const {bounds} = state;
+  const { bounds } = state;
   pos = Points.multiply(pos, bounds.width, bounds.height);
 
   const b = el.getBoundingClientRect();
@@ -67,9 +54,16 @@ const relativePosition = (el, pos) => {
 };
 
 const draw = () => {
-  const {thingEl, referenceEl, distanceEl, angleDegEl} = settings;
-  const {location, reference, distance, angleDeg} = state;
+  const { location, reference, distance, angleDeg } = state;
+  const thingEl = document.getElementById(`thing`);
+  const referenceEl = document.getElementById(`reference`);
+  const distanceEl = document.getElementById(`lblDistance`);
+  const angleDegEl = document.getElementById(`lblAngleDeg`);
 
+  if (!thingEl) return;
+  if (!referenceEl) return;
+  if (!distanceEl || !angleDegEl) return;
+  
   // Position element that tracks pointer
   relativePosition(thingEl, location);
 
@@ -79,7 +73,7 @@ const draw = () => {
   // Update labels
   distanceEl.innerText = distance.toPrecision(2);
   angleDegEl.innerText = Math.round(angleDeg).toString();
-}
+};
 
 /**
  * Setup and run main loop 
@@ -94,20 +88,20 @@ const setup = () => {
         width: window.innerWidth,
         height: window.innerHeight
       }
-    }
-  }
+    };
+  };
   document.addEventListener(`resize`, onResize);
   onResize();
 
   document.addEventListener(`pointermove`, e => {
-    const {bounds} = state;
+    const { bounds } = state;
     const x = e.clientX;
     const y = e.clientY;
     state = {
       ...state,
       // Make pointer position relative (on 0..1 scale)
       pointer: Points.divide(x, y, bounds.width, bounds.height)
-    }
+    };
   });
 
   const loop = () => {
@@ -119,7 +113,7 @@ const setup = () => {
 
     // Loop
     window.requestAnimationFrame(loop);
-  }
+  };
   window.requestAnimationFrame(loop);
-}
+};
 setup();

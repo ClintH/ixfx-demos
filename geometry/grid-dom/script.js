@@ -8,9 +8,7 @@ import { Grids } from '../../ixfx/geometry.js';
 
 // Define settings
 const settings = Object.freeze({
-  grid: { rows: 10, cols: 10, size: 10 },
-  gridEl: document.getElementById(`grid`),
-  feedbackEl: document.getElementById(`feedback`)
+  grid: { rows: 10, cols: 10, size: 10 }
 });
 
 // Initialise state
@@ -50,8 +48,8 @@ const updateState = (s) => {
 };
 
 const useState = () => {
-  const { feedbackEl } = settings;
   const { lastClicked } = state;
+  const feedbackEl = document.getElementById(`feedback`);
   if (feedbackEl) feedbackEl.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
 };
 
@@ -59,7 +57,10 @@ const useState = () => {
  * Setup 
  */
 const setup = () => {
-  const { grid, gridEl } = settings;
+  const { grid } = settings;
+
+  const gridEl = document.getElementById(`grid`);
+
   if (gridEl === null) return;
 
   for (const row of Grids.rows(grid)) {
