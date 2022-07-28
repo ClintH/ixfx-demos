@@ -8,11 +8,20 @@
  * * handlePoses(): this takes in poses from either `onFrame` or `onPlayback`, does some post-processing, drawing and dispatches via remote 
  * * setup() does TFJS initialisation based on settings
  * * postCaptureDraw(): Draws visuals on top of capture canvas
+ * 
+ * Also supports two URL query parameters to set default settings
+ * eg: source.html?modelType=MoveNet&moveNetModelType=MultiPose.Lightning
+ * 
+ * Query Parameters:
+ * * modelType: PoseNet, BlazePose
+ * * moveNetModelType: MultiPose.Lightning, SinglePose.Lightning, SinglePose.Thunder
  */
 
 // @ts-ignore
-import {Remote} from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
+import { Remote } from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
 import * as CommonSource from '../common-source.js';
+
+const searchParams = new URLSearchParams(window.location.search);
 
 // Settings when using MoveNet
 /** @type {CommonSource.MoveNetModelConfig} */
@@ -22,7 +31,7 @@ const moveNet = {
   // Smooth out jitter - doesn't seem to have a meaningful effect so disabled
   enableSmoothing: false,
   // SinglePose.Lightning (default, fastest), SinglePose.Thunder or MultiPose.Lightning
-  modelType: `MultiPose.Lightning`
+  modelType: searchParams.get(`moveNetModelType`) ?? `SinglePose.Lightning`
 };
 
 // Settings when using BlazePose
@@ -34,11 +43,11 @@ const blazePose = {
   modelType: `full` // lite, full, heavy
 };
 
-const settings = {
+const settings = Object.freeze({
   /**
    * Which model to use
    */
-  model: `MoveNet`,
+  model: searchParams.get(`model`) ?? `MoveNet`,
   /**
    * Options for the frame processor
    */
@@ -56,7 +65,7 @@ const settings = {
   lineWidth: 5,
   pointRadius: 10,
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
-}
+});
 
 let state = {
   /**
@@ -78,14 +87,14 @@ let state = {
    * How quickly to read from source (ms)
    */
   sourceReadMs: 10,
-}
+};
 
 /**
  * Called by CommonSource when there is a new image to process
  * @type {CommonSource.OnFrame}
  */
 const onFrame = async (frame, frameRect, timestamp_) => {
-  const {detector} = state;
+  const { detector } = state;
 
   // Get timestamp that ixfx's Video.manualCapture stamps on to ImageData 
   // @ts-ignore
@@ -97,7 +106,7 @@ const onFrame = async (frame, frameRect, timestamp_) => {
 
   // Process them
   handlePoses(poses, frameRect);
-}
+};
 
 /**
  * Handles a pose, directly from TFJS or via recorder playback
@@ -118,8 +127,7 @@ const handlePoses = (poses, frameRect) => {
     }))
   }));
 
-  state.normalised = normalised;
-  state.poses = poses;
+  updateState({ normalised, poses });
 
   // Send normalised data via Remote
   if (state.normalised.length > 0) {
@@ -131,17 +139,29 @@ const handlePoses = (poses, frameRect) => {
 
   // Pass data down to be used by recorder, if active
   CommonSource.onRecordData(poses, frameRect);
-}
+};
+
+/**
+ * Updates state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
+
 
 /**
  * Received data via playback
- * @param {CommonSource.Pose[]} frame
+ * @param {CommonSource.Pose[]|CommonSource.ObjectPrediction[]} frame
  * @param {number} index
  * @param {CommonSource.Recording} rec 
  */
 const onPlayback = (frame, index, rec) => {
   // Run normalisation and send data as usual...
-  handlePoses(frame, rec.frameSize);
+  handlePoses(/** @type {CommonSource.Pose[]}*/(frame), rec.frameSize);
 
   // Manually trigger drawing
   const c = CommonSource.getDrawingContext();
@@ -150,53 +170,55 @@ const onPlayback = (frame, index, rec) => {
 };
 
 async function createDetector() {
-  const {model} = settings;
+  const { model } = settings;
 
   /** @type {CommonSource.PoseDetectionLib} */
   // @ts-ignore
+  // eslint-disable-next-line no-undef
   const pd = poseDetection;
 
   switch (model) {
-    case `PoseNet`:
-      CommonSource.status(`PoseNet`);
-      CommonSource.enableTextDisplayResults(true);
+  case `PoseNet`:
+    CommonSource.status(`PoseNet`);
+    CommonSource.enableTextDisplayResults(true);
+    return pd.createDetector(model, {
+      quantBytes: 4,
+      architecture: `MobileNetV1`,
+      outputStride: 16,
+      inputResolution: { width: 640, height: 480 },
+      multiplier: 0.75
+    });
+  case `BlazePose`:
+    if (blazePose.runtime === undefined) blazePose.runtime = `mediapipe`;
+    CommonSource.status(`BlazePose (${blazePose.modelType}) on ${blazePose.runtime}`);
+    CommonSource.enableTextDisplayResults(false);  // We don't get anything meaningful to show
+
+    if (blazePose.runtime === `mediapipe`) {
       return pd.createDetector(model, {
-        quantBytes: 4,
-        architecture: 'MobileNetV1',
-        outputStride: 16,
-        inputResolution: {width: 500, height: 500},
-        multiplier: 0.75
+        ...blazePose,
+        solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1635988162`
       });
-    case `BlazePose`:
-      if (blazePose.runtime === undefined) settings.runtime = 'mediapipe';
-      CommonSource.status(`BlazePose (${blazePose.modelType}) on ${blazePose.runtime}`);
-      CommonSource.enableTextDisplayResults(false);  // We don't get anything meaningful to show
+    } else if (blazePose.runtime === `tfjs`) {
+      return pd.createDetector(model, blazePose);
+    } else {
+      throw new Error(`Expecting 'mediapipe' or 'tfjs' for settings.runtime`);
+    }
+  case `MoveNet`:
+    CommonSource.enableTextDisplayResults(true);
 
-      if (blazePose.runtime === 'mediapipe') {
-        return pd.createDetector(model, {
-          ...blazePose,
-          solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1635988162`
-        });
-      } else if (blazePose.runtime === 'tfjs') {
-        return pd.createDetector(model, blazePose);
-      } else {
-        throw new Error(`Expecting 'mediapipe' or 'tfjs' for settings.runtime`);
-      }
-    case `MoveNet`:
-      CommonSource.enableTextDisplayResults(true);
-
-      if (moveNet.modelType === undefined) moveNet.modelType = `SinglePose.Lightning`;
-      CommonSource.status(`MoveNet (${moveNet.modelType})`);
-      if (moveNet.modelType !== `SinglePose.Lightning` && moveNet.modelType !== `SinglePose.Thunder` && moveNet.modelType !== `MultiPose.Lightning`) {
-        throw new Error(`Expected settings.modelType to be 'SinglePose.Thunder', 'SinglePose.Lightning' or 'MultiPose.Lightning'. Got ${moveNet.modelType}`);
-      }
-      return pd.createDetector(model, moveNet);
-    default:
-      console.error(`Expected settings.model to be 'PoseNet', 'BlazePose' or 'MoveNet'`);
+    if (moveNet.modelType === undefined) moveNet.modelType = `SinglePose.Lightning`;
+    CommonSource.status(`MoveNet (${moveNet.modelType})`);
+    if (moveNet.modelType !== `SinglePose.Lightning` && moveNet.modelType !== `SinglePose.Thunder` && moveNet.modelType !== `MultiPose.Lightning`) {
+      throw new Error(`Expected settings.modelType to be 'SinglePose.Thunder', 'SinglePose.Lightning' or 'MultiPose.Lightning'. Got ${moveNet.modelType}`);
+    }
+    return pd.createDetector(model, moveNet);
+  default:
+    console.error(`Expected settings.model to be 'PoseNet', 'BlazePose' or 'MoveNet'`);
   }
 }
 
 const getPoseHue = (poseIndex) => Math.round((poseIndex) * 137.508);
+
 /**
  * Called after a frame is captured from the video source.
  * This allows us to draw on top of the frame after it has been analysed.
@@ -205,7 +227,7 @@ const getPoseHue = (poseIndex) => Math.round((poseIndex) * 137.508);
  * @param {number} height 
  */
 function postCaptureDraw(ctx, width, height) {
-  const {poses} = state;
+  const { poses } = state;
 
   ctx.font = `12pt ${settings.labelFont}`;
 
@@ -244,7 +266,7 @@ function postCaptureDraw(ctx, width, height) {
     connectPoints(ctx, map, `right_hip`, `right_knee`, `right_ankle`);
     connectPoints(ctx, map, `left_hip`, `left_knee`, `left_ankle`);
   });
-};
+}
 
 /**
  * Draw a series of keypoints
@@ -256,7 +278,7 @@ const connectPoints = (ctx, map, ...names) => {
   const pts = names.map(n => map.get(n));
   ctx.lineWidth = settings.lineWidth;
   CommonSource.drawLine(ctx, ...pts);
-}
+};
 
 /**
  * Find a camera by its label
@@ -275,7 +297,7 @@ const selectCamera = async (find) => {
   }
   console.log(`Could not find camera matching: ${find}`);
   return false;
-}
+};
 
 const setup = async () => {
   // Eg: choose a specific camera
@@ -288,10 +310,10 @@ const setup = async () => {
   //   `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`);
 
   try {
-    state.detector = await createDetector();
+    updateState({ detector: await createDetector() });
     CommonSource.setReady(true);
   } catch (e) {
-    CommonSource.status('Could not load detector: ' + e);
+    CommonSource.status(`Could not load detector: ` + e);
     console.error(e);
     CommonSource.setReady(false);
     return;
@@ -301,8 +323,8 @@ const setup = async () => {
     const enabled = CommonSource.toggleUi();
     const el = evt.target;
     if (el == null) return;
-    /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`
-  })
-}
+    /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
+  });
+};
 setup();
 

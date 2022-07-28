@@ -1,11 +1,11 @@
 // @ts-ignore
-import {Remote} from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import {Points, radianToDegree} from '../../../ixfx/geometry.js';
+import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
+import { Points, radianToDegree } from '../../../ixfx/geometry.js';
 
-const settings = {
+const settings = Object.freeze({
   keypointScoreThreshold: 0.4,
   remote: new Remote(),
-}
+});
 
 let state = {
   /** @type {Pose[]} */
@@ -18,7 +18,17 @@ let state = {
   headRotation: undefined,
   /** @type {number|undefined} */
   handToHip: undefined,
+};
 
+/**
+ * Updates state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
 };
 
 /**
@@ -26,10 +36,7 @@ let state = {
  * @param {Pose[]} poses 
  */
 const onPoses = (poses) => {
-  state = {
-    ...state,
-    poses: poses
-  }
+  updateState({ poses  });
 
   // Need at least one pose
   if (poses.length === 0) return;
@@ -49,15 +56,15 @@ const onPoses = (poses) => {
   const leftAngle = angleBetweenPoints(...mapGet(`left_knee`, `left_ankle`, `left_hip`));
 
   // Use which ever body side has data
-  state.kneeAnkleAngle = rightAngle || leftAngle;
+  const kneeAnkleAngle = rightAngle || leftAngle;
 
   // Wrist-to-wrist distance
   // @ts-ignore
-  state.wristDistance = distanceBetweenPoints(...mapGet(`right_wrist`, `left_wrist`));
+  const wristDistance = distanceBetweenPoints(...mapGet(`right_wrist`, `left_wrist`));
 
   // Tilting head to left/right
   // @ts-ignore
-  state.headRotation = pointBalance(...mapGet(`right_ear`, `nose`, `left_ear`));
+  const headRotation = pointBalance(...mapGet(`right_ear`, `nose`, `left_ear`));
 
   // Touching a hip: Get shortest distance between either wrist and left hip
   const leftHip = Math.min(
@@ -72,11 +79,13 @@ const onPoses = (poses) => {
     // @ts-ignore
     distanceBetweenPointsOrInfinity(...mapGet(`left_wrist`, `right_hip`))
   );
-  state.handToHip = Math.min(leftHip, rightHip);
+  const handToHip = Math.min(leftHip, rightHip);
 
 
   // Speed of elbow movement
-}
+
+  updateState({ wristDistance, handToHip, kneeAnkleAngle, headRotation });
+};
 
 /**
  * Map keypoints so we can access them by name
@@ -87,7 +96,7 @@ const mapKeypoints = (pose) => {
   const m = new Map();
   pose.keypoints.forEach(kp => m.set(kp.name, kp));
   return m;
-}
+};
 
 const update = () => {
 
@@ -98,7 +107,7 @@ const update = () => {
  * This function runs in a fast loop
  */
 const draw = () => {
-  const {kneeAnkleAngle, wristDistance, headRotation, handToHip} = state;
+  const { kneeAnkleAngle, wristDistance, headRotation, handToHip } = state;
 
   // Ankle-knee-hip angle
   const kneeAnkleAngleDeg = kneeAnkleAngle === undefined ? `?` : radianToDegree(kneeAnkleAngle).toString();
@@ -112,7 +121,7 @@ const draw = () => {
 
   // Either hand-to-hip distance
   /** @type {HTMLElement} */(document.getElementById(`dataHandToHip`)).innerText = handToHip?.toString() ?? `?`;
-}
+};
 
 /**
  * Returns the x-axis 'balance' of point `b` between `a` and `c`.
@@ -150,7 +159,7 @@ const distanceBetweenPointsOrInfinity = (a, b) => {
   const d = distanceBetweenPoints(a, b);
   if (d === undefined) return Number.POSITIVE_INFINITY;
   return d;
-}
+};
 
 /**
  * Returns the distance between two points or 'undefined' if either
@@ -182,32 +191,32 @@ const angleBetweenPoints = (a, b, c) => {
 
 
 const setup = async () => {
-  const {remote} = settings;
+  const { remote } = settings;
 
   // Listen for data from the remote
   remote.onData = (d) => {
     if (d.data && Array.isArray(d.data)) {
       onPoses(d.data);
     } else {
-      console.warn('Got data we did not expect');
+      console.warn(`Got data we did not expect`);
       console.log(d);
     }
-  }
+  };
 
   // Continually update & redraw
   const loop = () => {
     update();
     draw();
     window.requestAnimationFrame(loop);
-  }
+  };
   window.requestAnimationFrame(loop);
 
   document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
     document.getElementById(`sourceSection`)?.remove();
     const el = evt.target;
     if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
-  })
-}
+  });
+};
 setup();
 
 /**

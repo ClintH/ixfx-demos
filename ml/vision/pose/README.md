@@ -1,14 +1,22 @@
 # pose-detection
 
 * [Main readme for all ml-vision](../README.md)
-* [TFJS readme](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection)
+* [TFJS Pose Detection readme](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection)
 
+Overview of sketches:
+
+| sketch                  | demonstrates                                                |
+|-------------------------|-------------------------------------------------------------|
+| points                  | smoothing a pose                                            |
+| points-multiple-sources | handling multiple sources and multiple poses                |
+| point-to-point          | calculations based on relationship between points           |
+| source                  | a common data source (loaded in a new window) for the others |
 
 ## Getting started
 
 Quick start:
-1. Running a local web server, open `points.html`. It may take a moment to load the TensorFlow model.
-2. Click `Start` in the top-right panel to use your camera.
+1. Running a local web server, open `points.html` in your browser. It may take a moment to load the TensorFlow model.
+2. Click the yellow checkmark in the top-right panel to use your camera.
 3. Take a look at the shape of the raw data streaming in the console
 
 The next step is to comment out the following lines in _points.html_. This will remove the corner panel.
@@ -20,7 +28,7 @@ The next step is to comment out the following lines in _points.html_. This will 
 </section>
 ```
 
-Now, use a separate browser window with _source.html_ loaded. This way as you tinker, you won't have to re-initialise the TensorFlow model and connect to the camera. See [the main README](../README.md) for more info on this.
+Now, use a separate browser window with _source.html_ loaded. This way, as you tinker you won't have to re-initialise the TensorFlow model and connect to the camera. See [the main README](../README.md) for more info on this.
 
 **Note:** Your browser may stop or slow down processing in the separate window if it is minimised or behind other windows. Resize it so its small and have it occupy some space on your screen.
 
@@ -114,6 +122,11 @@ Read more about BlazePose:
 * [BlazePose TFJS GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
 * [BlazePose Mediapipe GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
 
+## URL parameters
+
+_source.html_ can be loaded with URL parameters to make minor adjustments without modifying code. Please see _source.js_ for more details.
+
+For example: `source.html?modelType=MoveNet&moveNetModelType=MultiPose.Lightning` will use the MoveNet model, with MultiPose.Lightning, for detecting multiple poses.
 
 ## Troubleshooting
 

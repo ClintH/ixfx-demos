@@ -40,25 +40,15 @@
  * drawLine(ctx, ...pts)
  * * Draws a line connecting points {x,y}
  */
-import {FrameProcessor} from '../../ixfx/io.js';
-import {Camera} from '../../ixfx/io.js';
-import {defaultErrorHandler} from '../../ixfx/dom.js';
-import {continuously, interval} from '../../ixfx/flow.js';
+import { FrameProcessor } from '../../ixfx/io.js';
+import { Camera } from '../../ixfx/io.js';
+import { defaultErrorHandler } from '../../ixfx/dom.js';
+import { continuously, interval } from '../../ixfx/flow.js';
 
-const settings = {
-  loop: continuously(read),
-
+// Settings determined by caller
+const caller = {
   /** @type {FrameProcessor|undefined} */
   frameProcessor: undefined,
-  /** @type {FrameProcessorOpts} */
-  frameProcessorOpts: {
-    showCanvas: true,
-    cameraConstraints: {
-      facingMode: `user`,
-      max: {height: 480, width: 640},
-      min: {height: 270, width: 360}
-    }
-  },
   /** @type {OnFrame|undefined} */
   onFrame: undefined,
   /** @type {OnPlayback|undefined} */
@@ -66,13 +56,26 @@ const settings = {
   /** @type {postCaptureDrawCallback|undefined} */
   postCaptureDrawCallback: undefined,
   playbackRateMs: 1000,
+  /** @type {FrameProcessorOpts} */
+  frameProcessorOpts: {
+    showCanvas: true,
+    cameraConstraints: {
+      facingMode: `user`,
+      max: { height: 480, width: 640 },
+      min: { height: 270, width: 360 }
+    }
+  },
+};
+
+const settings = Object.freeze({
+  loop: continuously(read),
   // Rendering
   defaultDotRadius: 5,
   videoOpacity: 0.5
-}
+});
 
 let state = {
-  frameSize: {width: 0, height: 0},
+  frameSize: { width: 0, height: 0 },
   sourceReadMs: 10,
   freeze: false,
   enableTextResults: true,
@@ -84,7 +87,7 @@ let state = {
   recorder: ``,
   /** @type {Recording|undefined} */
   currentRecording: undefined
-}
+};
 
 /**
  * Runs in a loop via `continuously`
@@ -93,7 +96,7 @@ let state = {
 async function read() {
   if (state.freeze) return; // When frozen, skip everything
   const start = performance.now();
-  const fp = settings.frameProcessor;
+  const fp = caller.frameProcessor;
 
   if (fp !== undefined) {
     // Request a frame from the source
@@ -101,16 +104,27 @@ async function read() {
 
     if (frame !== undefined) {
       // If we haven't yet noted the frame size, do so now
-      if (state.frameSize.width === 0) state.frameSize = {width: frame.width, height: frame.height}
+      if (state.frameSize.width === 0) updateState({ frameSize: { width: frame.width, height: frame.height } });
 
       // Dispatch frame
-      if (settings.onFrame) await settings.onFrame(frame, state.frameSize, fp.getTimestamp());
+      if (caller.onFrame) await caller.onFrame(frame, state.frameSize, fp.getTimestamp());
     }
   }
   // Adjust loop speed based on how quickly we're able to process
   const elapsed = performance.now() - start;
   settings.loop.intervalMs = Math.floor(elapsed * 1.1);
 }
+
+/**
+ * Updates state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
+  state = {
+    ...state,
+    ...s
+  };
+};
 
 /**
  * Display HTML/text results
@@ -120,7 +134,7 @@ export const displayTextResults = (htmlFn) => {
   if (!state.enableTextResults || !state.displayData) return;
   const el = document.getElementById(`cs-data`);
   if (el) el.innerHTML = htmlFn();
-}
+};
 
 
 /**
@@ -136,16 +150,16 @@ export const displayListResults = (listFn, numbered = true) => {
   let max = Math.max(state.lastListCount, list.length);
   let toAdd = max - list.length;
 
-  for (let i = 0; i < max - list.length; i++) list.push('&nbsp;');
-  let html = numbered ? '<ol>' : '<ul>';
-  html += list.map(txt => `<li>${txt}</li>`).join('\n');
-  html += numbered ? '</ol>' : '</ul>';
+  for (let i = 0; i < toAdd; i++) list.push(`&nbsp;`);
+  let html = numbered ? `<ol>` : `<ul>`;
+  html += list.map(txt => `<li>${txt}</li>`).join(`\n`);
+  html += numbered ? `</ol>` : `</ul>`;
 
   const el = document.getElementById(`cs-data`);
   if (el) el.innerHTML = html;
 
-  state.lastListCount = max;
-}
+  updateState({ lastListCount: max });
+};
 
 /**
  * Display text in the status line
@@ -154,7 +168,7 @@ export const displayListResults = (listFn, numbered = true) => {
 export const status = (msg) => {
   const el = document.getElementById(`cs-lblStatus`);
   if (el) el.innerText = msg;
-}
+};
 
 /**
  * Draws centered text (assuming canvas has been offset already)
@@ -172,7 +186,7 @@ export const drawCenteredText = (ctx, msg, offsetX, offsetY) => {
     -txt.width / 2 + x,
     -txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent / 2 + y);
   return txt;
-}
+};
 
 /**
  * Draws a dot
@@ -190,7 +204,7 @@ export const drawDot = (ctx, x, y, radius = -1, fill = true, stroke = false) => 
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
   ctx.closePath();
-}
+};
 
 /**
  * Draw a set of {x,y} pairs as a connected line.
@@ -211,39 +225,39 @@ export const drawLine = (ctx, ...pts) => {
     drawn++;
   }
   if (drawn > 1) ctx.stroke();
-}
+};
 
 export const setReady = (ready) => {
 
   const btnCameraStart = document.getElementById(`cs-btnCameraStart`);
 
-  document.querySelectorAll('.needs-ready').forEach(el => {
+  document.querySelectorAll(`.needs-ready`).forEach(el => {
     if (ready) {
       el.classList.add(`ready`);
     } else {
       el.classList.remove(`ready`);
     }
-  })
+  });
   if (btnCameraStart)  /** @type {HTMLButtonElement}*/(btnCameraStart).disabled = false;
-}
+};
 
 export const clearRecordings = () => {
   localStorage.setItem(`recordings`, JSON.stringify([]));
   updateRecordingsUi(getRecordings());
+};
 
-}
 /**
- * 
+ * Gets a localStorage-persisted recording of pose data
  * @returns {Recording[]}
  */
 const getRecordings = () => {
   const recordingsStr = localStorage.getItem(`recordings`);
-  const recordings = recordingsStr === null ? [] : JSON.parse(recordingsStr)
+  const recordings = recordingsStr === null ? [] : JSON.parse(recordingsStr);
   return recordings;
-}
+};
 
 /**
- * 
+ * Updates the recordings SELECT element based on localStorage
  * @param {Recording[]} recordings 
  * @returns 
  */
@@ -253,7 +267,7 @@ const updateRecordingsUi = (recordings) => {
   if (el === null) return;
   el.innerHTML = ``;
   recordings.forEach(r => {
-    const opt = document.createElement('option');
+    const opt = document.createElement(`option`);
     opt.setAttribute(`data-name`, r.name);
     opt.innerText = `${r.name} (${r.data.length})`;
     el.append(opt);
@@ -272,7 +286,7 @@ export const startRecorderPlayback = async () => {
   const el = document.getElementById(`cs-selRecording`);
   if (el === null) return;
 
-  const name = /** @type {HTMLSelectElement} */(el).selectedOptions[0].getAttribute('data-name');
+  const name = /** @type {HTMLSelectElement} */(el).selectedOptions[0].getAttribute(`data-name`);
 
   const rec = getRecordings().find(r => r.name === name);
   if (rec === undefined) {
@@ -280,7 +294,7 @@ export const startRecorderPlayback = async () => {
     return;
   }
 
-  const onPlayback = settings.onPlayback;
+  const onPlayback = caller.onPlayback;
   if (onPlayback === undefined) return;
 
   // Stop camera
@@ -291,7 +305,7 @@ export const startRecorderPlayback = async () => {
   /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnRecord`)).disabled = true;
 
   let index = 0;
-  state.recorder = `playing`;
+  updateState({ recorder:`playing` });
   continuously(() => {
     const d = rec.data[index];
     recorderStatus(`${index + 1}/${rec.data.length}`);
@@ -303,17 +317,17 @@ export const startRecorderPlayback = async () => {
       stopRecorderPlayback();
       return false; // Stop loop
     }
-  }, settings.playbackRateMs).start();
+  }, caller.playbackRateMs).start();
 };
 
 const stopRecorderPlayback = () => {
-  state.recorder = ``;
+  updateState({ recorder: `` });
   let btn = document.getElementById(`cs-btnPlayback`);
   if (btn !== null) btn.innerText = `play_arrow`;
 
   /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnRecord`)).disabled = false;
 
-}
+};
 
 /**
  * Returns the drawing context and dimensions for the image capturer.
@@ -321,7 +335,7 @@ const stopRecorderPlayback = () => {
  * @returns {{width:number,height:number,ctx:CanvasRenderingContext2D}|undefined}
  */
 export const getDrawingContext = () => {
-  const canvasEl = settings.frameProcessor?.getCapturer()?.canvasEl;
+  const canvasEl = caller.frameProcessor?.getCapturer()?.canvasEl;
   if (canvasEl === undefined) return;
   const ctx = canvasEl.getContext(`2d`);
   if (ctx === null) return;
@@ -329,12 +343,12 @@ export const getDrawingContext = () => {
     width: canvasEl.width,
     height: canvasEl.height,
     ctx: ctx
-  }
+  };
 };
 
 const stopRecording = async () => {
   if (state.recorder !== `recording`) return;
-  state.recorder = ``;
+  updateState({ recorder: `` });
   /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnPlayback`)).disabled = false;
 
   recorderStatus(``);
@@ -342,7 +356,7 @@ const stopRecording = async () => {
   const rec = state.currentRecording;
   if (rec === undefined) return;
 
-  const name = prompt("Recording name", rec.name);
+  const name = prompt(`Recording name`, rec.name);
   if (name === null) return; // cancelled
   rec.name = name;
 
@@ -351,7 +365,7 @@ const stopRecording = async () => {
 
   localStorage.setItem(`recordings`, JSON.stringify(recordings));
   updateRecordingsUi(recordings);
-  state.currentRecording = undefined;
+  updateState({ currentRecording: undefined });
 };
 
 const startRecording = async () => {
@@ -359,12 +373,12 @@ const startRecording = async () => {
     await stopRecording();
   }
   recorderStatus(`Ready...`);
-  state.currentRecording = {
+  updateState({ currentRecording: {
     name: new Date().toLocaleString(),
     data: [],
-    frameSize: {width: 0, height: 0}
-  }
-  state.recorder = `recording`;
+    frameSize: { width: 0, height: 0 }
+  },
+  recorder: `recording` });
   /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnPlayback`)).disabled = true;
 
 
@@ -494,7 +508,7 @@ const addUi = () => {
   </style>
   `;
   document.body.insertAdjacentHTML(`beforeend`, css);
-}
+};
 
 /**
  * Called after a frame is captured from the video source.
@@ -504,7 +518,7 @@ const addUi = () => {
  * @param {number} height 
  */
 function postCaptureDraw(ctx, width, height) {
-  const {videoOpacity} = settings;
+  const { videoOpacity } = settings;
 
   if (state.displaySource) {
     // Clear canvas with some translucent white to fade out video
@@ -516,7 +530,7 @@ function postCaptureDraw(ctx, width, height) {
   ctx.fillRect(0, 0, width, height);
 
   if (state.displayData) {
-    settings.postCaptureDraw(ctx, width, height);
+    caller.postCaptureDraw(ctx, width, height);
   }
 }
 
@@ -529,7 +543,7 @@ function postCaptureDraw(ctx, width, height) {
 export const toggleUi = (enabled) => {
   if (enabled === undefined) {
     enabled = !state.uiVisible;
-  };
+  }
 
   const uiElements = document.querySelectorAll(`.cs-ui`);
   uiElements.forEach(uiEl => {
@@ -537,7 +551,7 @@ export const toggleUi = (enabled) => {
   });
   state.uiVisible = enabled;
   return enabled;
-}
+};
 
 /**
  * Set up
@@ -560,25 +574,25 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   const dataEl = document.getElementById(`cs-data`);
 
   if (!(`mediaDevices` in navigator)) {
-    console.warn(`navigator.mediaDevices is missing -- are you running over https:// or http://127.0.01 ?`)
+    console.warn(`navigator.mediaDevices is missing -- are you running over https:// or http://127.0.01 ?`);
   }
 
   const devices = await navigator.mediaDevices.enumerateDevices();
   for (const d of devices) {
     if (d.kind !== `videoinput`) continue;
-    const opt = document.createElement('option');
+    const opt = document.createElement(`option`);
     opt.setAttribute(`data-id`, d.deviceId);
     opt.innerText = d.label;
     selCamera?.append(opt);
   }
 
-  settings.onFrame = onFrame;
-  settings.onPlayback = onPlayback;
-  if (playbackRateMs) settings.playbackRateMs = playbackRateMs;
+  caller.onFrame = onFrame;
+  caller.onPlayback = onPlayback;
+  if (playbackRateMs) caller.playbackRateMs = playbackRateMs;
 
   // Override default settings with what has been provided
   if (frameProcessorOpts.cameraConstraints) {
-    let cc = {...settings.frameProcessorOpts.cameraConstraints, ...frameProcessorOpts.cameraConstraints};
+    let cc = { ...caller.frameProcessorOpts.cameraConstraints, ...frameProcessorOpts.cameraConstraints };
 
     // @ts-ignore
     if (cc.facingMode === `back`) cc.facingMode = `environment`;
@@ -587,7 +601,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
 
     if (selCamera) {
       if (cc.facingMode === `environment`) {
-        /** @type {HTMLSelectElement} */(selCamera).selectedIndex = 1;;
+        /** @type {HTMLSelectElement} */(selCamera).selectedIndex = 1;
       } else if (cc.facingMode === `user`) {
         /** @type {HTMLSelectElement} */(selCamera).selectedIndex = 0;
       }
@@ -597,18 +611,18 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
         /** @type {HTMLOptionElement} */(opt).selected = true;
       }
     }
-    settings.frameProcessorOpts.cameraConstraints = cc;
+    caller.frameProcessorOpts.cameraConstraints = cc;
   } else {
     // use existing
-    frameProcessorOpts.cameraConstraints = settings.frameProcessorOpts.cameraConstraints;
+    frameProcessorOpts.cameraConstraints = caller.frameProcessorOpts.cameraConstraints;
   }
 
   if (frameProcessorOpts !== undefined) {
-    settings.frameProcessorOpts = frameProcessorOpts;
+    caller.frameProcessorOpts = frameProcessorOpts;
   }
 
   // Intercept drawing
-  settings.postCaptureDraw = frameProcessorOpts.postCaptureDraw;
+  caller.postCaptureDraw = frameProcessorOpts.postCaptureDraw;
   frameProcessorOpts.postCaptureDraw = postCaptureDraw;
 
   setReady(false);
@@ -630,7 +644,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
 
     // If both are off, hide canvas entirely
     const showCanvas = state.displaySource || state.displayData;
-    settings.frameProcessor?.showCanvas(showCanvas);
+    caller.frameProcessor?.showCanvas(showCanvas);
   });
 
   chkDataShow?.addEventListener(`change`, () => {
@@ -640,7 +654,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
 
   selCamera?.addEventListener(`change`, () => {
     const v = /** @type {HTMLSelectElement} */(selCamera).value;
-    const cc = settings.frameProcessorOpts.cameraConstraints;
+    const cc = caller.frameProcessorOpts.cameraConstraints;
 
     if (v === `back`) {
       cc.facingMode = `environment`;
@@ -657,10 +671,10 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
         // @ts-ignore
         cc.deviceId = opt.getAttribute(`data-id`);
       } else {
-        console.warn('Weirdness, no item selected');
+        console.warn(`Weirdness, no item selected`);
       }
     }
-    settings.frameProcessorOpts.cameraConstraints = cc;
+    caller.frameProcessorOpts.cameraConstraints = cc;
   });
 
   btnRecord?.addEventListener(`click`, () => {
@@ -685,7 +699,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   });
 
   updateRecordingsUi(getRecordings());
-}
+};
 
 const setCamera = async (start) => {
   const dataEl = document.getElementById(`cs-data`);
@@ -693,43 +707,43 @@ const setCamera = async (start) => {
   const selCamera = document.getElementById(`cs-selCamera`);
 
   if (start) {
-      /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = true;
+    /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = true;
     try {
-        // Start
-        /** @type {HTMLSelectElement}*/(selCamera).disabled = true;
-
+      // Start
+      /** @type {HTMLSelectElement}*/(selCamera).disabled = true;
+    
       // Set up frame processor
-      settings.frameProcessor = new FrameProcessor(settings.frameProcessorOpts);
-      await settings.frameProcessor.useCamera();
-
+      caller.frameProcessor = new FrameProcessor(caller.frameProcessorOpts);
+      await caller.frameProcessor.useCamera();
+    
       // Start loop to pull frames from camera
       settings.loop.start();
-
+    
       // Update UI
       if (btnCameraStartStop) btnCameraStartStop.innerText = `stop_circle`;
     } finally {
-       /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = false;
+      /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = false;
     }
   } else {
     // Stop loop and dispose of frame processor
     settings.loop.cancel();
-    settings.frameProcessor?.dispose();
-    settings.frameProcessor = undefined;
+    caller.frameProcessor?.dispose();
+    caller.frameProcessor = undefined;
 
     // Update UI
     if (dataEl) dataEl.innerHTML = ``;
     if (btnCameraStartStop) btnCameraStartStop.innerText = `check_circle`;
-  /** @type {HTMLSelectElement}*/(selCamera).disabled = false;
+    /** @type {HTMLSelectElement}*/(selCamera).disabled = false;
   }
-}
+};
 
 /**
  * Enable or disable footer text display
  * @param {boolean} v 
  */
 export const enableTextDisplayResults = (v) => {
-  state.enableTextResults = v;
-}
+  updateState({ enableTextResults: v });
+};
 
 // https://github.com/tensorflow/tfjs-models/blob/676a0aa26f89c9864d73f4c7389ac7ec61e1b8a8/pose-detection/src/types.ts
 /**
@@ -817,19 +831,20 @@ export const enableTextDisplayResults = (v) => {
 
 /**
  * @callback OnPlayback
- * @param {Pose[]} frame
+ * @param {Pose[]|ObjectPrediction[]} frame
  * @param {number} index
  * @param {Recording} rec
  * @returns void
  */
-
- //detector?.estimatePoses(frame, {}, settings.frameProcessor.getTimestamp());
 
 /**
  * @typedef PoseDetector
  * @type {object}
  * @property {PoseDetectorEstimatePoses} estimatePoses
  */
+
+
+
 
 /**
  * @typedef PoseDetectorEstimatePoses
@@ -867,4 +882,30 @@ export const enableTextDisplayResults = (v) => {
  * @property {string} name
  * @property {Pose[][]} data
  * @property {{width:number,height:number}} frameSize
+ */
+
+
+
+// Ported from the https://github.com/tensorflow/tfjs-models/blob/master/coco-ssd/src/index.ts
+/**
+ * @typedef {object} ObjectPrediction
+ * @property {readonly [x:number, y:number, width:number, height:number]} bbox
+ * @property {string} class
+ * @property {number} score
+ */
+
+
+/**
+ * Detect objects for an image returning a list of bounding boxes with
+ * assocated class and score.
+ * @callback ObjectDetectorDetect
+ * @param {ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement} img
+ * @param {number} [maxNumBoxes] The maximum number of bounding boxes of detected objects. There can be multiple objects of the same class, but at different ocations. Defaults to 20.
+ * @param {number} [minScore] The minimum score of the returned bounding boxes of detected objects. Value between 0 and 1. Defaults to 0.5.
+ * @returns {ObjectPrediction[]}
+ */
+
+/**
+ * @typedef {object} ObjectDetector
+ * @property {ObjectDetectorDetect} detect
  */

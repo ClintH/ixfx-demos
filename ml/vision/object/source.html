@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>object-detection source</title>
+  <title>pose-detection source</title>
 </head>
 <style>
   :root {
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
-    --hue: 260;
+    --hue: 200;
     --bg: hsl(var(--hue) 64% 5%);
     --bg-overlay: hsla(var(--hue) 64% 5% / 0.5);
     --button-bg: hsl(var(--hue) 64% 17%);
@@ -21,10 +21,11 @@
 
   html,
   body {
-    font-family: var(--font);
+    box-sizing: border-box;
   }
 
   body {
+    font-family: var(--font);
     margin: 0;
     background-color: var(--bg);
     color: var(--fg);
@@ -33,35 +34,16 @@
     overflow: hidden;
   }
 
-  .overlay {
+  .overlay,
+  .cs-ui {
     background-color: var(--bg-overlay);
-    padding: 1em;
-  }
-
-  button {
-    margin-right: 2em;
-    padding: 0.3em;
+    padding-left: 1em;
+    padding-top: 1em;
   }
 
   h1 {
     font-size: 1.1em;
-  }
-
-  video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    width: 100%;
-    height: 100%;
-  }
-
-  #data {
-    position: fixed;
-    bottom: 0;
-    width: 100vw;
-    font-family: var(--mono-font);
-    padding: 1em;
+    margin: 0;
   }
 
   @media (max-width: 600px) {
@@ -73,20 +55,26 @@
       display: none;
     }
   }
+
+  #btnToggleUi {
+    border: none;
+    background: none;
+  }
+
+  .header {
+    display: flex;
+  }
 </style>
 
-<body>
-  <div class="overlay">
-    <h1>object-detection source</h1>
-    <div id="lblStatus"></div>
-    <div id="controls" style="display:none">
-      Camera: <button disabled id="btnCameraStart">Start</button> <button disabled id="btnCameraStop">Stop</button>
-      <label>Show <input id="chkCameraShow" type="checkbox"></label>
+<body data-server-no-reload>
+  <div class="overlay header">
+    <h1 style="display:inline">object-detection</h1>
+    <div style="flex-grow: 1; text-align:end; padding-right:1em">
+      <button title="Toggle UI" id="btnToggleUi">🔼</button>
     </div>
   </div>
 
-  <div class="overlay" id="data">
-  </div>
+  <div class="overlay" id="data"></div>
   <script type="module" src="source.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"> </script>

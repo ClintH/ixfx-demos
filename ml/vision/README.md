@@ -72,7 +72,12 @@ localStorage.setItem(`recordings`, JSON.stringify(recordings));
 
 # Troubleshooting
 
+## https
+
 Your code will not be able to access media devices like a camera if it's being loaded from an insecure connection.
 
 If you're running a local server, make sure you're using http://127.0.0.1 as the address. If you're running from an online hosting service, make sure you're accessing via `https://`.
 
+## getUserMedia timeout
+
+Repeated 'opening' of the camera while tinkering can seem to cause an issue in some browsers. An internal call to `getUserMedia` hangs indefinitely, rather than returning the camera stream or throwing an error. Thus we use ixfx's `waitFor` function to trigger a timeout error, so at least you're aware when it's happening. If this does happen, closing all browser windows and starting again seems to fix the problem.

@@ -2726,18 +2726,65 @@ declare module "geometry/Rect" {
     export const isEqualSize: (a: Rect, b: Rect) => boolean;
     /**
      * Returns a rectangle from width, height
+     * ```js
+     * const r = Rects.fromNumbers(100, 200);
+     * // {width: 100, height: 200}
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
      * @param width
      * @param height
      */
     export function fromNumbers(width: number, height: number): Rect;
     /**
      * Returns a rectangle from x,y,width,height
+     * ```js
+     * const r = Rects.fromNumbers(10, 20, 100, 200);
+     * // {x: 10, y: 20, width: 100, height: 200}
+     * ```
+     *
+     * Use the spread operator (...) if the source is an array:
+     * ```js
+     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
      * @param x
      * @param y
      * @param width
      * @param height
      */
     export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
+    type RectArray = readonly [width: number, height: number];
+    type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: Rect): RectArray;
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: RectPositioned): RectPositionedArray;
     export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
     /**
      * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
@@ -6918,6 +6965,11 @@ declare module "io/Camera" {
          * If specified, will try to use this media device id
          */
         readonly deviceId?: string;
+        /**
+         * Number of milliseconds to wait on `getUserMedia` before giving up.
+         * Defaults to 30seconds
+         */
+        readonly startTimeoutMs?: number;
     };
     /**
      * Result from starting a camera
@@ -11494,7 +11546,7 @@ declare module "visual/Colour" {
      * ```
      * getCssVariable(`accent`, `yellow`);
      * ```
-     * @param name Name of variable. Do not starting `--`
+     * @param name Name of variable. Omit the `--`
      * @param fallbackColour Fallback colour if not found
      * @param root  Element to search variable from
      * @returns Colour or fallback.
