@@ -2,12 +2,12 @@
  * This code isn't meant for extending - it's just meant for running in
  * the browser, providing a REPL environment
  */
-import {Espruino} from '../../../ixfx/io.js';
-import {log} from '../../../ixfx/dom.js';
-import {forEachAsync} from '../../../ixfx/flow.js';
-import {stackMutable} from '../../../ixfx/collections.js';
+import { Espruino } from '../../../ixfx/io.js';
+import { log } from '../../../ixfx/dom.js';
+import { forEachAsync } from '../../../ixfx/flow.js';
+import { stackMutable } from '../../../ixfx/collections.js';
 
-const settings = {
+const settings = Object.freeze({
   log: log(`#log`, {
     css: `
     .recv { color: hsl(var(--hue-primary), 88%, 96%);}
@@ -17,47 +17,47 @@ const settings = {
   }),
   /** @type {HTMLInputElement} */
   txtInput: document.getElementById(`txtInput`)
-}
+});
 
 let state = {
   espruino: undefined,
   history: stackMutable(),
   historyIndex: 0
-}
+};
 
 const inputSel = () => {
-  const {txtInput} = settings;
+  const { txtInput } = settings;
   txtInput.focus();
   txtInput.setSelectionRange(0, txtInput.value.length);
-}
+};
 
 const inputSet = (what) => {
-  const {txtInput} = settings;
+  const { txtInput } = settings;
   txtInput.value = what;
   txtInput.setSelectionRange(0, txtInput.value.length);
-}
+};
 
 const setDisconnected = (disconnected) => {
-  const {txtInput} = settings;
+  const { txtInput } = settings;
   if (disconnected) {
     document.body.classList.add(`disconnected`);
-    txtInput.setAttribute(`disabled`, "true");
-    document.getElementById(`btnSend`).setAttribute(`disabled`, "true");
+    txtInput.setAttribute(`disabled`, `true`);
+    document.getElementById(`btnSend`).setAttribute(`disabled`, `true`);
     document.getElementById(`btnConnect`).removeAttribute(`disabled`);
-    document.getElementById(`btnDisconnect`).setAttribute(`disabled`, "true");
+    document.getElementById(`btnDisconnect`).setAttribute(`disabled`, `true`);
   } else {
     document.body.classList.remove(`disconnected`);
     txtInput.removeAttribute(`disabled`);
     document.getElementById(`btnSend`).removeAttribute(`disabled`);
-    document.getElementById(`btnConnect`).setAttribute(`disabled`, "true");
+    document.getElementById(`btnConnect`).setAttribute(`disabled`, `true`);
     document.getElementById(`btnDisconnect`).removeAttribute(`disabled`);
     inputSel();
   }
-}
+};
 
 const send = async (what) => {
-  const {log, txtInput} = settings;
-  const {espruino, history} = state;
+  const { log, txtInput } = settings;
+  const { espruino, history } = state;
   if (espruino === undefined) return;
 
   if (what === undefined) what = txtInput.value;
@@ -69,21 +69,21 @@ const send = async (what) => {
     ...state,
     history,
     historyIndex: history.data.length - 1
-  }
+  };
   log.log(`> ${what}`).classList.add(`sent`);
 
   try {
-    const result = await espruino.eval(what, {timeoutMs: 1000, assumeExclusive: true});
+    const result = await espruino.eval(what, { timeoutMs: 1000, assumeExclusive: true });
     log.log(`< ${result}`).classList.add(`recv`);
   } catch (ex) {
     log.error(ex);
   }
   inputSel();
-}
+};
 
 document.getElementById(`btnDemo`).addEventListener(`click`, async () => {
-  const {log} = settings;
-  const {espruino} = state;
+  const { log } = settings;
+  const { espruino } = state;
   const demos = `
   // https://www.espruino.com/Puck.js
   // LED on/off
@@ -107,7 +107,7 @@ document.getElementById(`btnDemo`).addEventListener(`click`, async () => {
 
   await forEachAsync(demos.trim().split(`\n`), async (demo) => {
     demo = demo.trim();
-    if (demo.startsWith('//') || (espruino === undefined || !espruino.isConnected)) {
+    if (demo.startsWith(`//`) || (espruino === undefined || !espruino.isConnected)) {
       log.log(demo).classList.add(`meta`);
     } else {
       await send(demo);
@@ -119,13 +119,13 @@ document.getElementById(`btnDemo`).addEventListener(`click`, async () => {
 document.getElementById(`btnSend`).addEventListener(`click`, () => send());
 
 document.getElementById(`btnDisconnect`).addEventListener(`click`, () => {
-  const {espruino} = state;
+  const { espruino } = state;
   if (espruino === undefined) return;
   espruino.disconnect();
 });
 
 document.getElementById(`btnConnect`).addEventListener(`click`, async () => {
-  const {log} = settings;
+  const { log } = settings;
 
   try {
     // Connect to a generic Espruino
@@ -142,7 +142,7 @@ document.getElementById(`btnConnect`).addEventListener(`click`, async () => {
       } else {
         setDisconnected(true);
       }
-    })
+    });
     setDisconnected(false);
   } catch (ex) {
     log.error(ex);
@@ -150,26 +150,26 @@ document.getElementById(`btnConnect`).addEventListener(`click`, async () => {
 });
 
 const setup = () => {
-  const {txtInput} = settings;
+  const { txtInput } = settings;
   setDisconnected(true);
 
   txtInput.addEventListener(`keyup`, evt => {
-    const {history} = state;
-    let {historyIndex} = state;
+    const { history } = state;
+    let { historyIndex } = state;
     if (evt.key === `ArrowUp` || evt.key === `ArrowDown`) {
       if (evt.key === `ArrowUp`) {
-        historyIndex = Math.max(0, historyIndex - 1)
+        historyIndex = Math.max(0, historyIndex - 1);
       } else if (evt.key === `ArrowDown`) {
-        historyIndex = Math.min(history.data.length - 1, historyIndex + 1)
+        historyIndex = Math.min(history.data.length - 1, historyIndex + 1);
       }
-      state = {...state, historyIndex}
-      console.log(historyIndex + '. ' + history.data[historyIndex]);
+      state = { ...state, historyIndex };
+      console.log(historyIndex + `. ` + history.data[historyIndex]);
       inputSet(history.data[historyIndex]);
       evt.preventDefault();
     } else if (evt.key === `Enter`) {
       send();
       evt.preventDefault();
     }
-  })
-}
+  });
+};
 setup();

@@ -45,17 +45,6 @@ const update = () => {
   });
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 const useState = () => {
   const { movedEl } = settings;
   const { coord } = state;
@@ -100,6 +89,17 @@ const setup = () => {
     useState();
     window.requestAnimationFrame(loop);
   };
-  window.requestAnimationFrame(loop);
+  loop();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

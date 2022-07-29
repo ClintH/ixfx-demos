@@ -1,46 +1,43 @@
-import {scale, clamp} from '../../ixfx/data.js';
-import {jitter} from '../../ixfx/modulation.js';
+import { scale, clamp } from '../../ixfx/data.js';
+import { jitter } from '../../ixfx/modulation.js';
 import * as Dom from '../../ixfx/dom.js';
 
-// Define settings
-const settings = {
+const settings = Object.freeze({
   // Reduce this for speedier waves
   timeDivider: 80,
   // Default width for plot
   lineWidth: 10,
   // Default style for plot
   strokeStyle: `pink`,
-  canvasEl: document.querySelector(`#canvas`),
   // Vertical space in pixels from top and bottom of screen
   verticalPadding: 50
-};
+});
 
 // State keeps track of viewport dimensions and elapsed 'ticks'
 let state = {
   bounds: {
     width: 0,
     height: 0,
-    center: {x: 0, y: 0}
+    center: { x: 0, y: 0 }
   },
   ticks: 0
 };
 
 // Update state of world
 const update = () => {
-  const {ticks} = state;
+  const { ticks } = state;
   state = {
     ...state,
     ticks: ticks + 1
-  }
-}
+  };
+};
 
 // Example functions
 // A pure sine: const sineA = (ticks, x) => Math.sin(x + ticks);
 const sineApure = (ticks, x) => Math.sin(x + ticks);
 
 // With noise
-const sineA = (ticks, x) => jitter(Math.sin(x + ticks), 0.005, {clamped: false});
-
+const sineA = (ticks, x) => jitter(Math.sin(x + ticks), 0.005, { clamped: false });
 const sineB = (ticks, x) => (Math.sin(x + ticks) + Math.sin(2 * x)) / 2;
 const sineC = (ticks, x) => (Math.sin(x + ticks) + Math.cos(2 * x)) / 2;
 const sineD = (ticks, x) => (Math.sin(x + ticks) + Math.tanh(x)) / 2;
@@ -50,7 +47,7 @@ const sineD = (ticks, x) => (Math.sin(x + ticks) + Math.tanh(x)) / 2;
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const {timeDivider} = settings;
+  const { timeDivider } = settings;
   // Plot a series of functions...
 
   // To plot, the function should return a value between -1 and 1, and take two parameters.
@@ -60,7 +57,7 @@ const draw = (ctx) => {
   // offset and timeDivider options allow the function to be offset and its time scaling changed
   // this allows functions to have changed phases and varying speeds.
 
-  plotFunction(sineA, ctx, {strokeStyle: `lightblue`});
+  plotFunction(sineA, ctx, { strokeStyle: `lightblue` });
 
   plotFunction(sineB, ctx, {
     strokeStyle: `salmon`,
@@ -69,13 +66,18 @@ const draw = (ctx) => {
 
   plotFunction(sineC, ctx, {
     strokeStyle: `lightgreen`,
-    offset: 2,
     timeDivider: timeDivider * 0.5
+  });
+
+  // These two waves use the same function,
+  // but with a slight offset
+  plotFunction(sineD, ctx, {
+    strokeStyle: `yellow`
   });
 
   plotFunction(sineD, ctx, {
     strokeStyle: `lightyellow`,
-    offset: 3
+    offset: 0.1
   });
 
   // More examples
@@ -94,7 +96,7 @@ const draw = (ctx) => {
   // A line that angles from top-left to bottom-right
   // `x` parameter is given as 0 ... 1
   // plotFunction((ticks, x) => x * 2 - 1, ctx, {strokeStyle: `pink`});
-}
+};
 
 /**
  * Plots a function that yields values -1 to 1.
@@ -105,27 +107,28 @@ const draw = (ctx) => {
  * * timeDivider: overrides settings.timeDivider
  * @param {(ticks:number, x:number) => number} fn Function to plot
  * @param {CanvasRenderingContext2D} ctx Canvas context to draw on
- * @param {{strokeStyle?:string, lineWidth?:number, timeDivider?:number}} opts Options for this plot 
+ * @param {{strokeStyle?:string, lineWidth?:number, offset?:number, timeDivider?:number}} opts Options for this plot 
  */
 const plotFunction = (fn, ctx, opts = {}) => {
-  const {timeDivider, verticalPadding} = settings;
-  const {ticks} = state;
+  const { timeDivider, verticalPadding } = settings;
+  const { ticks } = state;
 
   const w = state.bounds.width;
   const h = state.bounds.height - (verticalPadding * 2);
   const fnTimeDivider = opts.timeDivider ?? timeDivider;
+  const offset = opts.offset ?? 0;
 
   // Use 100 points divided across width of screen
   const sampleWidth = Math.min(1, Math.floor(w / 100));
   for (let x = 0; x <= w; x += sampleWidth) {
-    const v = clamp(fn(ticks / fnTimeDivider, x / w), -1, 1);
+    const v = clamp(fn((ticks / fnTimeDivider) + offset, x / w), -1, 1);
     const y = scale(v, -1, 1, 0, h) + verticalPadding;
 
     if (x === 0) {
       ctx.beginPath();
-      ctx.moveTo(x, y);
+      ctx.moveTo(x , y);
     } else {
-      ctx.lineTo(x, y);
+      ctx.lineTo(x , y);
     }
   }
 
@@ -133,12 +136,13 @@ const plotFunction = (fn, ctx, opts = {}) => {
   ctx.strokeStyle = opts.strokeStyle ?? settings.strokeStyle;
   ctx.lineWidth = opts.lineWidth ?? settings.lineWidth;
   ctx.stroke();
-}
+};
 
-const loop = () => {
-  const {canvasEl} = settings;
-  const ctx = canvasEl.getContext(`2d`);
-
+const useState = () => {
+  const canvasEl = document.getElementById(`canvas`);
+  const ctx = /** @type {HTMLCanvasElement} */(canvasEl).getContext(`2d`);
+  if (!ctx) return;
+  
   // Update state
   update();
 
@@ -154,16 +158,14 @@ const loop = () => {
   // Draw based on state
   draw(ctx);
 
-  // Loop
-  window.requestAnimationFrame(loop);
-}
+};
 
 /**
  * Clear canvas
  * @param {CanvasRenderingContext2D} ctx 
  */
 const clear = (ctx) => {
-  const {width, height} = state.bounds;
+  const { width, height } = state.bounds;
 
   // Make background transparent
   //ctx.clearRect(0, 0, width, height);
@@ -176,22 +178,33 @@ const clear = (ctx) => {
   ctx.globalCompositeOperation = `source-over`;
   ctx.fillStyle = `hsla(200, 100%, 10%, 0.1)`;
   ctx.fillRect(0, 0, width, height);
-}
+};
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  const {canvasEl} = settings;
-
-  Dom.fullSizeCanvas(canvasEl, args => {
-    // Update state with new size of canvas
-    state = {
-      ...state,
+  Dom.fullSizeCanvas(`#canvas`, args => {
+    updateState({
       bounds: args.bounds
-    }
+    });
   });
 
-  window.requestAnimationFrame(loop);
-}
+  const loop = () => {
+    useState();
+    window.requestAnimationFrame(loop);
+  };
+  loop();
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

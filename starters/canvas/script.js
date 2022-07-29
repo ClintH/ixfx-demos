@@ -19,15 +19,18 @@ let state = {
   ticks: 0
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
+const useState = () => {
+  const { canvasEl } = settings;
+  if (canvasEl === null) return; // Canvas element is missing :`(
+
+  const ctx = canvasEl.getContext(`2d`);
+  if (ctx === null) return;
+
+  // Clear canvas
+  clear(ctx);
+
+  // Draw new things
+  draw(ctx);
 };
 
 /**
@@ -74,20 +77,6 @@ const clear = (ctx) => {
   //ctx.fillRect(0, 0, width, height);
 };
 
-const useState = () => {
-  const { canvasEl } = settings;
-  if (canvasEl === null) return; // Canvas element is missing :`(
-
-  const ctx = canvasEl.getContext(`2d`);
-  if (ctx === null) return;
-
-  // Clear canvas
-  clear(ctx);
-
-  // Draw new things
-  draw(ctx);
-};
-
 /**
  * Setup and run main loop 
  */
@@ -103,7 +92,18 @@ const setup = () => {
     useState();
     window.requestAnimationFrame(loop);
   };
-  window.requestAnimationFrame(loop);
+  loop();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
 

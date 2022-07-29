@@ -12,7 +12,6 @@ const settings = Object.freeze({
   radiusDecay: 0.8,
   // Proportion of viewport size to radius
   radiusViewProportion: 0.45 /* 45% keeps it within screen */,
-  canvasEl: /** @type {HTMLCanvasElement} */(Dom.resolveEl(`#canvas`))
 });
 
 let state = {
@@ -69,10 +68,9 @@ const drawGradientCircle = (ctx, radius) => {
 };
 
 const useState = () => {
-  const { canvasEl }= settings;
-  
-  const ctx = canvasEl.getContext(`2d`);
-  if (ctx === null) return;
+  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
+  const ctx = canvasEl?.getContext(`2d`);
+  if (!ctx || !canvasEl) return;
 
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
   draw(ctx);
@@ -97,22 +95,11 @@ const draw = (ctx) => {
 };
 
 /**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Setup and run main loop 
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(settings.canvasEl, args => {
+  Dom.fullSizeCanvas(`#canvas`, args => {
     // Update state with new size of canvas
     updateState({
       bounds: args.bounds
@@ -124,7 +111,7 @@ const setup = () => {
     useState();  
     window.requestAnimationFrame(loop);
   };
-  window.requestAnimationFrame(loop);
+  loop();
 };
 setup();
 
@@ -133,7 +120,7 @@ setup();
  * @param {CanvasRenderingContext2D} ctx 
  * @param {{width:number, height:number, center: {x:number, y:number}}} bounds 
  */
-const getGradient = (ctx, inner, bounds) => {
+function getGradient (ctx, inner, bounds) {
   const { outerColour, innerColour } = settings;
 
   const c = bounds.center;
@@ -151,4 +138,16 @@ const getGradient = (ctx, inner, bounds) => {
   g.addColorStop(1, outerColour);  // Outer circle
 
   return g;
-};
+}
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
+

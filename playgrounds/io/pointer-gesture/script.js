@@ -1,18 +1,18 @@
-import {Points, radianToDegree, Triangles} from "../../../ixfx/geometry.js";
-import {reconcileChildren, dataTableList} from '../../../ixfx/dom.js';
-import {numberTracker, pointsTracker, pointTracker} from "../../../ixfx/data.js";
+import { Points, radianToDegree, Triangles } from "../../../ixfx/geometry.js";
+import { reconcileChildren, dataTableList } from '../../../ixfx/dom.js';
+import { numberTracker, pointsTracker, pointTracker } from "../../../ixfx/data.js";
 
-const settings = {
+const settings = Object.freeze({
   currentPointsEl: document.getElementById(`current-points`),
   startPointsEl: document.getElementById(`start-points`),
   centroidEl: document.getElementById(`centroid`),
   startCentroidEl: document.getElementById(`startCentroid`),
   thingSize: 100
-};
+});
 
 let state = {
   /** @type PointsTracker */
-  pointers: pointsTracker({trackIntermediatePoints: false}),
+  pointers: pointsTracker({ trackIntermediatePoints: false }),
   twoFinger: {
     rotation: numberTracker(),
     distance: numberTracker()
@@ -29,7 +29,7 @@ const gestureTwoFinger = (a, b) => {
   if (a === undefined) throw new Error(`point a undefined`);
   if (b === undefined) throw new Error(`point b undefined`);
 
-  const {twoFinger} = state;
+  const { twoFinger } = state;
 
   // Absolute distance between points
   const distanceAbs = Points.distance(a, b); // clamp(Points.distance(a, b) / maxDimension)
@@ -45,9 +45,9 @@ const gestureThreeFinger = (a, b, c) => {
   if (b === undefined) throw new Error(`point b undefined`);
   if (c === undefined) throw new Error(`point c undefined`);
 
-  const tri = Triangles.fromPoints([a, b, c]);
+  const tri = Triangles.fromPoints([ a, b, c ]);
   state.threeFinger.area.seen(Triangles.area(tri));
-}
+};
 
 /**
  * 
@@ -67,7 +67,7 @@ const gestureCentroid = (pointers) => {
 
 
 const update = () => {
-  const {pointers} = state;
+  const { pointers } = state;
 
   gestureCentroid(pointers);
 
@@ -102,12 +102,12 @@ const update = () => {
   dataTableList(`#pointers`, displayMap);
   // Update visuals
   draw();
-}
+};
 
 const draw = () => {
-  const {centroidEl, startCentroidEl, thingSize, currentPointsEl, startPointsEl} = settings;
-  const {pointers, gesture} = state;
-  const {centroid, twoFinger, threeFinger} = state;
+  const { centroidEl, startCentroidEl, thingSize, currentPointsEl, startPointsEl } = settings;
+  const { pointers, gesture } = state;
+  const { centroid, twoFinger, threeFinger } = state;
 
   // Create or remove elements based on tracked points
   reconcileChildren(currentPointsEl, pointers.store, (trackedPoint, el) => {
@@ -132,12 +132,12 @@ const draw = () => {
   // Update centroid circle
   document.getElementById(`centroidTravel`).innerText = val(centroid.distanceFromStart());
   if (centroid.initial === undefined) {
-    positionEl(startCentroidEl, {x: -1000, y: -1000}, thingSize);
+    positionEl(startCentroidEl, { x: -1000, y: -1000 }, thingSize);
   } else {
     positionEl(startCentroidEl, centroid.initial, thingSize);
   }
   if (centroid.last === undefined) {
-    positionEl(centroidEl, {x: -1000, y: -1000}, thingSize);
+    positionEl(centroidEl, { x: -1000, y: -1000 }, thingSize);
   } else {
     positionEl(centroidEl, centroid.last, thingSize);
   }
@@ -147,10 +147,10 @@ const draw = () => {
   document.getElementById(`twoPtrRotation`).innerText = pc(twoFinger.rotation.difference());
   document.getElementById(`centroidAngle`).innerText = val(state.centroidAngle);
 
-}
+};
 
 const val = (v) => typeof v === `undefined` ? `` : Math.round(v);
-const pc = (v) => typeof v === `undefined` ? `` : Math.round(v * 100) + '%';
+const pc = (v) => typeof v === `undefined` ? `` : Math.round(v * 100) + `%`;
 
 /**
  * 
@@ -169,10 +169,10 @@ const stopTrackingPoint = (ev) => {
 const trackPoint = (ev) => {
   if (ev.pointerType === `mouse`) return;
   ev.preventDefault();
-  const {pointers} = state;
+  const { pointers } = state;
 
   // Track point, associated with pointerId
-  pointers.seen(ev.pointerId, {x: ev.x, y: ev.y});
+  pointers.seen(ev.pointerId, { x: ev.x, y: ev.y });
   update();
 };
 
@@ -185,7 +185,7 @@ const trackPoint = (ev) => {
 const positionEl = (el, point, size) => {
   el.style.left = (point.x - size / 2) + `px`;
   el.style.top = (point.y - size / 2) + `px`;
-}
+};
 
 const setup = () => {
   document.addEventListener(`pointerup`, ev => stopTrackingPoint(ev));
@@ -193,5 +193,5 @@ const setup = () => {
   document.addEventListener(`pointerdown`, ev => trackPoint(ev));
   document.addEventListener(`pointermove`, ev => trackPoint(ev));
   document.addEventListener(`contextmenu`, ev => ev.preventDefault());
-}
+};
 setup();

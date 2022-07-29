@@ -1,20 +1,20 @@
 /**
  * This playground is not meant for extending in code
  */
-import {Espruino} from '../../../ixfx/io.js';
+import { Espruino } from '../../../ixfx/io.js';
 import snarkdown from './snarkdown.es.js';
 import * as Dom from '../../../ixfx/dom.js';
-import {Plot2, Colour} from '../../../ixfx/visual.js';
+import { Plot2, Colour } from '../../../ixfx/visual.js';
 
-Split(['#editor', '#data'], {
-  sizes: [50, 50],
+Split([ `#editor`, `#data` ], {
+  sizes: [ 50, 50 ],
   direction: `horizontal`
-})
+});
 
-Split(['#plot', '#stream'], {
-  sizes: [50, 50],
+Split([ `#plot`, `#stream` ], {
+  sizes: [ 50, 50 ],
   direction: `vertical`
-})
+});
 
 let state = {
   jsonWarning: false,
@@ -23,7 +23,7 @@ let state = {
   frozen: false
 };
 
-const settings = {
+const settings = Object.freeze({
   log: Dom.log(`#log`, {
     capacity: 50,
     timestamp: true
@@ -35,7 +35,7 @@ const settings = {
   }),
   txtCode: document.getElementById(`txtCode`),
   dlgHelp: document.getElementById(`dlgHelp`)
-}
+});
 
 const onConnected = (connected) => {
   if (connected) {
@@ -45,18 +45,18 @@ const onConnected = (connected) => {
     document.getElementById(`btnSend`).setAttribute(`disabled`, `true`);
     document.getElementById(`btnConnect`).removeAttribute(`disabled`);
   }
-}
+};
 
 const logWelcome = () => {
-  const {log} = settings;
+  const { log } = settings;
   log.log(`eg: Bluetooth.println(JSON.stringify(v));`);
-  log.log(`eg: let v =  { light: Puck.light() };`)
+  log.log(`eg: let v =  { light: Puck.light() };`);
   log.log(`Once connected, tap 'Send' to upload code. Code should send back string-formatted JSON to be properly displayed in this playground.`);
   log.log(`Power on your Espruino, and tap 'Connect'.`);
-}
+};
 
 const connect = async () => {
-  const {log, plot} = settings;
+  const { log, plot } = settings;
   let p;
   try {
     // Connect to Puck
@@ -86,7 +86,7 @@ const connect = async () => {
       } catch (ex) {
         console.warn(ex);
       }
-    }
+    };
     // Listen for events
     p.addEventListener(`change`, evt => {
       log.log(`${evt.priorState} -> ${evt.newState}`);
@@ -105,12 +105,12 @@ const connect = async () => {
   } catch (ex) {
     console.error(ex);
   }
-}
+};
 
 
 const send = () => {
-  const {p} = state;
-  const {log, plot} = settings;
+  const { p } = state;
+  const { log, plot } = settings;
   if (p === undefined) return; // No Espruino
 
   // @ts-ignore
@@ -128,7 +128,7 @@ const send = () => {
 };
 
 const setup = () => {
-  const {log, plot, txtCode, dlgHelp} = settings;
+  const { log, plot, txtCode, dlgHelp } = settings;
 
   // Setup plotter
   plot.axisX.visible = false;
@@ -147,15 +147,15 @@ const setup = () => {
     plot.clear();
   });
   document.getElementById(`btnHelp`).addEventListener(`click`, async evt => {
-    const contentEl = dlgHelp.querySelector('section');
+    const contentEl = dlgHelp.querySelector(`section`);
     dlgHelp.showModal();
     try {
-      let resp = await fetch('README.md');
+      let resp = await fetch(`README.md`);
       if (resp.ok) {
         const md = await resp.text();
         contentEl.innerHTML = snarkdown(md);
       } else {
-        contentEl.innerHTML = 'Could not load help :/';
+        contentEl.innerHTML = `Could not load help :/`;
         console.log(resp);
       }
     } catch (ex) {
@@ -182,7 +182,7 @@ const setup = () => {
   onConnected(false);
 
   logWelcome();
-}
+};
 setup();
 
 // Test

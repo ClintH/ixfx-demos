@@ -93,16 +93,6 @@ const draw = (ctx) => {
   }
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 /**
  * Setup and run main loop 
@@ -159,3 +149,13 @@ const bounds = (el) => {
   };
 };
 
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

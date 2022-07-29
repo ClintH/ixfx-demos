@@ -185,16 +185,6 @@ const clear = (ctx) => {
 };
 
 /**
- * 
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-/**
  * Setup and run main loop 
  */
 const setup = () => {
@@ -225,3 +215,14 @@ const setup = () => {
   }, addIntervalMs).start();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

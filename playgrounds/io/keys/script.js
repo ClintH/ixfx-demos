@@ -1,9 +1,9 @@
-import {log, Forms} from '../../../ixfx/dom.js';
+import { log, Forms } from '../../../ixfx/dom.js';
 
-const settings = {
+const settings = Object.freeze({
   lastEl: document.getElementById(`last`),
-  log: log(`#log`, {timestamp: true})
-}
+  log: log(`#log`, { timestamp: true })
+});
 
 /**
  * 
@@ -11,8 +11,8 @@ const settings = {
  */
 const extract = (ev) => {
   // Pull out some fields from the KeyEvent
-  const {altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type} = ev;
-  return {altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type}
+  const { altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type } = ev;
+  return { altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type };
 };
 
 /**
@@ -34,7 +34,7 @@ const toString = (ev) => {
 };
 
 const setup = () => {
-  const {log, lastEl} = settings;
+  const { log, lastEl } = settings;
 
   const chkKeydown = Forms.checkbox(`#evKeydown`);
   const chkKeyup = Forms.checkbox(`#evKeyup`);

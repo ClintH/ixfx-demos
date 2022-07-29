@@ -74,17 +74,6 @@ const updateSvg = (arcEl) => {
 };
 
 /**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Setup and run main loop 
  */
 const setup = () => {
@@ -110,7 +99,7 @@ const setup = () => {
     updateSvg(arcEl);
     window.requestAnimationFrame(loop);
   };
-  window.requestAnimationFrame(loop);
+  loop();
 };
 
 const windowBounds = () => ({
@@ -121,7 +110,16 @@ const windowBounds = () => ({
     y: window.innerHeight / 2
   }
 });
-
 setup();
 
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
 

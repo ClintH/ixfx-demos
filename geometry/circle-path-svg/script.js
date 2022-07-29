@@ -3,7 +3,6 @@ import { Svg } from '../../ixfx/visual.js';
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
 
-// Define settings
 const settings = Object.freeze({
   // Colour for text
   textStyle: `#54BAB9`,
@@ -15,7 +14,6 @@ const settings = Object.freeze({
   genLoop: Generators.numericPercent(0.001, true)
 });
 
-// State
 let state = {
   loop: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
@@ -35,17 +33,6 @@ const update = () => {
   updateState({
     loop: v
   });
-};
-
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
 };
 
 const useState = () => {
@@ -103,7 +90,7 @@ const setup = () => {
     useState();
     window.requestAnimationFrame(loop);
   };
-  window.requestAnimationFrame(loop);
+  loop();
 };
 
 const windowBounds = () => ({
@@ -114,7 +101,15 @@ const windowBounds = () => ({
     y: window.innerHeight / 2
   }
 });
-
 setup();
 
-
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
