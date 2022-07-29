@@ -54,7 +54,7 @@ And then to boot up a server, run
 npm start
 ```
 
-This will open a browser at `http://127.0.0.13000`
+This will open a browser at `http://127.0.0.13000`.
 
 # Good to know
 

@@ -78,7 +78,7 @@ declare module "Text" {
      * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
      * @returns
      */
-    export const between: (source: string, start: string, end?: string | undefined, lastEndMatch?: boolean) => string | undefined;
+    export const between: (source: string, start: string, end?: string, lastEndMatch?: boolean) => string | undefined;
     /**
      * Returns first position of the given character code, or -1 if not found.
      * @param source Source string
@@ -751,7 +751,7 @@ declare module "data/Scale" {
      * @param easing Easing function
      * @returns Scaled value
      */
-    export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
+    export const scale: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => number;
     /**
      * Scales an input percentage to a new percentage range.
      *
@@ -827,7 +827,7 @@ declare module "data/Normalise" {
      * Note that if a value exceeds the default range, normalisation adjusts.
      * @returns
      */
-    export const stream: (minDefault?: number | undefined, maxDefault?: number | undefined) => (v: number) => number;
+    export const stream: (minDefault?: number, maxDefault?: number) => (v: number) => number;
     /**
      * Normalises an array. By default uses the actual min/max of the array
      * as the normalisation range. [Read more in the docs](https://clinth.github.io/ixfx-docs/temporal/normalising/)
@@ -852,7 +852,7 @@ declare module "data/Normalise" {
      * @param minForced If provided, this will be min value used
      * @param maxForced If provided, this will be the max value used
      */
-    export const array: (values: readonly number[], minForced?: number | undefined, maxForced?: number | undefined) => number[];
+    export const array: (values: readonly number[], minForced?: number, maxForced?: number) => number[];
 }
 declare module "collections/Interfaces" {
     import { SimpleEventEmitter } from "Events";
@@ -2289,7 +2289,7 @@ declare module "geometry/Line" {
      * @param b
      * @returns
      */
-    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
+    export const angleRadian: (lineOrPoint: Line | Points.Point, b?: Points.Point) => number;
     /**
      * Multiplies start and end of line by point.x, point.y.
      *
@@ -2391,7 +2391,7 @@ declare module "geometry/Line" {
      * @param line Line
      */
     export function length(line: Line | PolyLine): number;
-    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Point | undefined) => Points.Point;
+    export const midpoint: (aOrLine: Points.Point | Line, pointB?: Points.Point) => Points.Point;
     /**
      * Returns [a,b] points from either a line parameter, or two points.
      * It additionally applies the guardPoint function to ensure validity.
@@ -2401,7 +2401,7 @@ declare module "geometry/Line" {
      * @param b
      * @returns
      */
-    export const getPointsParam: (aOrLine: Points.Point | Line, b?: Point | undefined) => readonly [Points.Point, Points.Point];
+    export const getPointsParam: (aOrLine: Points.Point | Line, b?: Points.Point) => readonly [Points.Point, Points.Point];
     /**
      * Returns the nearest point on `line` closest to `point`.
      *
@@ -2427,7 +2427,7 @@ declare module "geometry/Line" {
      * @param b Second point if needed
      * @returns
      */
-    export const slope: (lineOrPoint: Line | Points.Point, b?: Point | undefined) => number;
+    export const slope: (lineOrPoint: Line | Points.Point, b?: Points.Point) => number;
     /**
      * Returns a point perpendicular to `line` at a specified `distance`. Use negative
      * distances for the other side of line.
@@ -2678,7 +2678,7 @@ declare module "geometry/Line" {
      * @param origin Point to rotate around. If undefined, middle of line will be used
      * @returns
      */
-    export const rotate: (line: Line, amountRadian?: number | undefined, origin?: number | Point | undefined) => Line;
+    export const rotate: (line: Line, amountRadian?: number, origin?: Points.Point | number) => Line;
 }
 declare module "geometry/Rect" {
     import { Points, Lines } from "geometry/index";
@@ -2688,14 +2688,14 @@ declare module "geometry/Rect" {
     };
     export type RectPositioned = Points.Point & Rect;
     export const empty: Readonly<{
-        width: number;
-        height: number;
+        width: 0;
+        height: 0;
     }>;
     export const emptyPositioned: Readonly<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
+        x: 0;
+        y: 0;
+        width: 0;
+        height: 0;
     }>;
     export const placeholder: Readonly<{
         width: number;
@@ -2757,8 +2757,14 @@ declare module "geometry/Rect" {
      * @param height
      */
     export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
-    type RectArray = readonly [width: number, height: number];
-    type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
+    /**
+     * Rectangle as array
+     */
+    export type RectArray = readonly [width: number, height: number];
+    /**
+     * Positioned rectangle as array
+     */
+    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
     /**
      * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
      *
@@ -2842,7 +2848,7 @@ declare module "geometry/Rect" {
     export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
     export const guard: (rect: Rect, name?: string) => void;
     export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Points.Point[];
+    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
     /**
      * Returns a point on the edge of rectangle
      * ```js
@@ -2879,7 +2885,7 @@ declare module "geometry/Rect" {
      * @param normaliseBy
      * @returns
      */
-    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number | undefined) => Rect | RectPositioned;
+    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
     /**
      * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
      *
@@ -2901,7 +2907,7 @@ declare module "geometry/Rect" {
      *
      * Multiplication applies to the first parameter's x/y fields, if present.
      */
-    export const multiply: (a: RectPositioned | Rect, b: Rect | number, c?: number | undefined) => RectPositioned | Rect;
+    export const multiply: (a: RectPositioned | Rect, b: Rect | number, c?: number) => RectPositioned | Rect;
     /**
      * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
      *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
@@ -2914,7 +2920,7 @@ declare module "geometry/Rect" {
      * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
      * @returns
      */
-    export const center: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => Points.Point;
+    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
     /**
      * Returns the length of each side of the rectangle (top, right, bottom, left)
      * @param rect
@@ -2929,7 +2935,7 @@ declare module "geometry/Rect" {
      * @param {Points.Point} [origin]
      * @returns {Lines.Line[]}
      */
-    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point | undefined) => readonly Lines.Line[];
+    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
     /**
      * Returns the perimeter of `rect` (ie. sum of all edges)
      * @param rect
@@ -2964,14 +2970,14 @@ declare module "geometry/Point" {
      * @param b
      * @returns
      */
-    export const getPointParam: (a?: number | Points.Point | undefined, b?: number | undefined) => Point;
+    export const getPointParam: (a?: Point | number, b?: number) => Point;
     export const dotProduct: (...pts: readonly Point[]) => number;
     /**
      * An empty point of `{x:0, y:0}`
      */
     export const Empty: Readonly<{
-        x: number;
-        y: number;
+        x: 0;
+        y: 0;
     }>;
     export const Placeholder: Readonly<{
         x: number;
@@ -2979,7 +2985,7 @@ declare module "geometry/Point" {
     }>;
     export const isEmpty: (p: Point) => boolean;
     export const isPlaceholder: (p: Point) => boolean;
-    export const center: (shape?: Rects.Rect | undefined) => Point;
+    export const center: (shape?: Rects.Rect) => Point;
     /**
      * Returns the 'minimum' point from an array of points, using a comparison function.
      *
@@ -3091,7 +3097,7 @@ declare module "geometry/Point" {
      * @param c
      * @returns
      */
-    export const angle: (a: Point, b?: Points.Point | undefined, c?: Points.Point | undefined) => number;
+    export const angle: (a: Point, b?: Point, c?: Point) => number;
     /**
      * Calculates the [centroid](https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points) of a set of points
      *
@@ -3197,7 +3203,7 @@ declare module "geometry/Point" {
      * @param [y]
      * @returns Point
      */
-    export const from: (xOrArray?: number | readonly number[] | undefined, y?: number | undefined) => Point;
+    export const from: (xOrArray?: number | readonly number[], y?: number) => Point;
     /**
      * Returns an array of points from an array of numbers.
      *
@@ -3273,7 +3279,7 @@ declare module "geometry/Point" {
      * @param fn
      * @returns
      */
-    export const apply: (pt: Point, fn: (v: number, field?: string | undefined) => number) => Point;
+    export const apply: (pt: Point, fn: (v: number, field?: string) => number) => Point;
     /**
      * Runs a sequential series of functions on `pt`. The output from one feeding into the next.
      * ```js
@@ -3511,7 +3517,7 @@ declare module "geometry/Point" {
      * @param y y value if first param is x
      * @returns
      */
-    export const normalise: (ptOrX: Point | number, y?: number | undefined) => Point;
+    export const normalise: (ptOrX: Point | number, y?: number) => Point;
     /**
      * Normalises a point by a given width and height
      * @param pt Point
@@ -3541,7 +3547,7 @@ declare module "geometry/Point" {
      * @param rando
      * @returns
      */
-    export const random: (rando?: RandomSource | undefined) => Point;
+    export const random: (rando?: RandomSource) => Point;
     /**
      * Wraps a point to be within `ptMin` and `ptMax`.
      * Note that max values are _exclusive_, meaning the return value will always be one less.
@@ -3649,7 +3655,7 @@ declare module "geometry/Point" {
      * @param start
      * @returns
      */
-    export const relation: (a: Point | number, b?: number | undefined) => PointRelation;
+    export const relation: (a: Point | number, b?: number) => PointRelation;
 }
 declare module "geometry/Arc" {
     import { Path } from "geometry/Path";
@@ -3715,7 +3721,7 @@ declare module "geometry/Arc" {
      * @param origin Origin of arc (0,0 used by default)
      * @returns Coordinate
      */
-    export const point: (arc: Arc | ArcPositioned, angleRadian: number, origin?: Points.Point | undefined) => Points.Point;
+    export const point: (arc: Arc | ArcPositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
     /**
      * Throws an error if arc instance is invalid
      * @param arc
@@ -3882,7 +3888,7 @@ declare module "geometry/Circle" {
      * @param Origin or offset of calculated point. By default uses center of circle or 0,0 if undefined
      * @returns Point oo circle
      */
-    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point | undefined) => Points.Point;
+    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
     /**
      * Computes relative position along circle
      * @param circle
@@ -4018,7 +4024,7 @@ declare module "geometry/CompoundPath" {
      * @param {Dimensions} [dimensions] Precalculated dimensions of paths, will be computed if omitted
      * @returns
      */
-    export const interpolate: (paths: readonly Paths.Path[], t: number, useWidth?: boolean | undefined, dimensions?: Dimensions | undefined) => Points.Point;
+    export const interpolate: (paths: readonly Paths.Path[], t: number, useWidth?: boolean, dimensions?: Dimensions) => Points.Point;
     export type Dimensions = {
         /**
          * Width of each path (based on bounding box)
@@ -4160,10 +4166,7 @@ declare module "geometry/Grid" {
      * @param paramName
      * @param grid
      */
-    export const guardCell: (cell: Cell, paramName?: string, grid?: Readonly<{
-        readonly rows: number;
-        readonly cols: number;
-    }> | undefined) => void;
+    export const guardCell: (cell: Cell, paramName?: string, grid?: Grid) => void;
     /**
      * Returns _true_ if cell coordinates are above zero and within bounds of grid
      *
@@ -4213,7 +4216,7 @@ declare module "geometry/Grid" {
      * @param bounds How to handle edges of grid
      * @param directions Directions to return
      */
-    export const neighbours: (grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: readonly CardinalDirection[] | undefined) => Neighbours;
+    export const neighbours: (grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: ReadonlyArray<CardinalDirection>) => Neighbours;
     /**
      * Returns the visual midpoint of a cell (eg pixel coordinate)
      *
@@ -4514,9 +4517,9 @@ declare module "geometry/Shape" {
      * @param opts Options
      * @param origin Origin, or `{ x:0, y:0 }` by default.
      */
-    export const starburst: (outerRadius: number, points?: number, innerRadius?: number | undefined, origin?: Points.Point, opts?: {
-        readonly initialAngleRadian?: number | undefined;
-    } | undefined) => readonly Points.Point[];
+    export const starburst: (outerRadius: number, points?: number, innerRadius?: number, origin?: Points.Point, opts?: {
+        readonly initialAngleRadian?: number;
+    }) => readonly Points.Point[];
     export type ArrowOpts = {
         readonly arrowSize?: number;
         readonly tailLength?: number;
@@ -4571,7 +4574,7 @@ declare module "geometry/TriangleEquilateral" {
      * @param rotationRad
      * @returns
      */
-    export const fromCenter: (t: TriangleEquilateral, origin?: Point, rotationRad?: number | undefined) => Triangle;
+    export const fromCenter: (t: TriangleEquilateral, origin?: Point, rotationRad?: number) => Triangle;
     /**
      * Calculate center from the given point A
      * @param t
@@ -4973,7 +4976,7 @@ declare module "geometry/Triangle" {
      * @param fn
      * @returns
      */
-    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string | undefined) => Points.Point) => Readonly<Triangle>;
+    export const apply: (t: Triangle, fn: (p: Points.Point, label?: string) => Points.Point) => Readonly<Triangle>;
     /**
      * Throws an exception if the triangle is invalid
      * @param t
@@ -5161,7 +5164,7 @@ declare module "geometry/Triangle" {
      * @param b
      * @returns
      */
-    export const barycentricCoord: (t: Triangle, a: Points.Point | number, b?: number | undefined) => BarycentricCoord;
+    export const barycentricCoord: (t: Triangle, a: Points.Point | number, b?: number) => BarycentricCoord;
     /**
      * Convert Barycentric coordinate to Cartesian
      * @param t
@@ -5175,7 +5178,7 @@ declare module "geometry/Triangle" {
      * @param a
      * @param b
      */
-    export const intersectsPoint: (t: Triangle, a: Points.Point | number, b?: number | undefined) => boolean;
+    export const intersectsPoint: (t: Triangle, a: Points.Point | number, b?: number) => boolean;
     /**
      * Returns a triangle that is rotated by `angleRad`. By default it rotates
      * around its center but an arbitrary `origin` point can be provided.
@@ -5192,7 +5195,7 @@ declare module "geometry/Triangle" {
      * @param origin Point to rotate around. If undefined, middle of line will be used
      * @returns
      */
-    export const rotate: (t: Triangle, amountRadian?: number | undefined, origin?: Points.Point | undefined) => Triangle;
+    export const rotate: (t: Triangle, amountRadian?: number, origin?: Points.Point) => Triangle;
 }
 declare module "geometry/index" {
     import * as Arcs from "geometry/Arc";
@@ -5646,7 +5649,7 @@ declare module "flow/UpdateOutdated" {
      * @param updateFail `slow` by default
      * @returns Value
      */
-    export const updateOutdated: <V>(fn: (elapsedMs?: number | undefined) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
+    export const updateOutdated: <V>(fn: (elapsedMs?: number) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
 }
 declare module "flow/Continuously" {
     import { HasCompletion } from "flow/index";
@@ -5736,7 +5739,7 @@ declare module "flow/Continuously" {
      * @param intervalMs
      * @returns
      */
-    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number | undefined, resetCallback?: ((ticks?: number | undefined, elapsedMs?: number | undefined) => boolean | void) | undefined) => Continuously;
+    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number, resetCallback?: ((ticks?: number, elapsedMs?: number) => boolean | void) | undefined) => Continuously;
 }
 declare module "flow/Debounce" {
     import { TimeoutSyncCallback, TimeoutAsyncCallback } from "flow/Timeout";
@@ -5893,7 +5896,7 @@ declare module "flow/WaitFor" {
      * @param onComplete
      * @returns
      */
-    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string | undefined) => void;
+    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string) => void;
 }
 declare module "flow/Delay" {
     /**
@@ -6019,7 +6022,7 @@ declare module "flow/index" {
      * @param fn Function to invoke on each item. If it returns _false_ loop ends.
      * @typeParam V Type of iterable
      */
-    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number | undefined) => Promise<void>;
+    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number) => Promise<void>;
     export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
     /**
      * Runs `fn` a certain number of times, accumulating result into an array.
@@ -6088,7 +6091,7 @@ declare module "flow/Retry" {
      * @param cancelToken If provided, this is checked before and after each sleep to see if retry should continue. If cancelled, promise will be rejected
      * @returns
      */
-    export const retry: <V>(callback: () => Promise<V>, attempts?: number, startingTimeoutMs?: number, cancelToken?: CancelToken | undefined) => Promise<V>;
+    export const retry: <V>(callback: () => Promise<V>, attempts?: number, startingTimeoutMs?: number, cancelToken?: CancelToken) => Promise<V>;
 }
 declare module "io/EspruinoBleDevice" {
     import { EvalOpts, Options } from "io/Espruino";
@@ -6745,7 +6748,7 @@ declare module "data/NumberTracker" {
      * ```
      * @class NumberTracker
      */
-    export const numberTracker: (id?: string | undefined, opts?: TrackOpts | undefined) => NumberTracker;
+    export const numberTracker: (id?: string, opts?: TrackOpts) => NumberTracker;
 }
 declare module "io/AudioVisualiser" {
     import { Points } from "geometry/index";
@@ -7257,7 +7260,7 @@ declare module "modulation/PingPong" {
      * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
      * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
      */
-    export const pingPongPercent: (interval?: number, lower?: number | undefined, upper?: number | undefined, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+    export const pingPongPercent: (interval?: number, lower?: number, upper?: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
     /**
      * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
      *
@@ -7279,7 +7282,7 @@ declare module "modulation/PingPong" {
      * @param start Starting point within bounds (defaults to `lower`)
      * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
      */
-    export const pingPong: (interval: number, lower: number, upper: number, start?: number | undefined, rounding?: number) => Generator<number, never, unknown>;
+    export const pingPong: (interval: number, lower: number, upper: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
 }
 declare module "Generators" {
     export { pingPong, pingPongPercent } from "modulation/PingPong";
@@ -7301,7 +7304,7 @@ declare module "Generators" {
      * @param start Start
      * @param end End (if undefined, range never ends)
      */
-    export const numericRangeRaw: (interval: number, start?: number, end?: number | undefined, repeating?: boolean) => Generator<number, void, unknown>;
+    export const numericRangeRaw: (interval: number, start?: number, end?: number, repeating?: boolean) => Generator<number, void, unknown>;
     /**
      * Generates a range of numbers, with a given interval.
      *
@@ -7329,7 +7332,7 @@ declare module "Generators" {
      * @param repeating Range loops from start indefinately. Default _false_
      * @param rounding A rounding that matches the interval avoids floating-point math hikinks. Eg if the interval is 0.1, use a rounding of 10
      */
-    export const numericRange: (interval: number, start?: number, end?: number | undefined, repeating?: boolean, rounding?: number | undefined) => Generator<number, void, unknown>;
+    export const numericRange: (interval: number, start?: number, end?: number, repeating?: boolean, rounding?: number) => Generator<number, void, unknown>;
     /**
      * Yields `amount` integers, counting by one from zero. If a negative amount is used,
      * count decreases. If `offset` is provided, this is added to the return result.
@@ -7496,7 +7499,7 @@ declare module "dom/Util" {
      * });
      * ```
      */
-    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object | undefined) => (data: object) => void;
+    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object) => (data: object) => void;
     /**
      * Remove all child nodes from `parent`
      * @param parent
@@ -7561,22 +7564,22 @@ declare module "visual/Drawing" {
      * @param canvasBounds Bounds of drawing (optional). Used for limiting `textBlock`
      * @returns
      */
-    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect | undefined) => {
-        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts | undefined): void;
-        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts | undefined): void;
-        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: (DrawingOpts & {
-            filled?: boolean | undefined;
-        }) | undefined): void;
-        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined): void;
-        connectedPoints(pointsToDraw: Points.Point[], opts?: (DrawingOpts & {
-            loop?: boolean | undefined;
-        }) | undefined): void;
-        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts | undefined): void;
-        dot(dotPosition: Points.Point | Points.Point[], opts?: (DrawingOpts & {
+    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect) => {
+        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts): void;
+        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts): void;
+        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: DrawingOpts & {
+            filled?: boolean;
+        }): void;
+        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts): void;
+        connectedPoints(pointsToDraw: Points.Point[], opts?: DrawingOpts & {
+            loop?: boolean;
+        }): void;
+        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts): void;
+        dot(dotPosition: Points.Point | Points.Point[], opts?: DrawingOpts & {
             radius: number;
-            outlined?: boolean | undefined;
-            filled?: boolean | undefined;
-        }) | undefined): void;
+            outlined?: boolean;
+            filled?: boolean;
+        }): void;
         circle(circlesToDraw: Circles.CirclePositioned | Circles.CirclePositioned[], opts: DrawingOpts): void;
         arc(arcsToDraw: Arcs.ArcPositioned | Arcs.ArcPositioned[], opts: DrawingOpts): void;
         textBlock(lines: string[], opts: DrawingOpts & {
@@ -7644,8 +7647,8 @@ declare module "visual/Drawing" {
      * @param stk Initial stack operations
      * @returns
      */
-    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp> | undefined) => DrawingStack;
-    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts | undefined) => void;
+    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp>) => DrawingStack;
+    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts) => void;
     /**
      * Draws one or more circles. Will draw outline/fill depending on
      * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
@@ -7708,7 +7711,7 @@ declare module "visual/Drawing" {
      */
     export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
         readonly fillStyle?: string;
-    }, labels?: readonly string[] | undefined) => void;
+    }, labels?: readonly string[]) => void;
     /**
      * Returns `point` with the canvas's translation matrix applied
      * @param ctx
@@ -7735,18 +7738,18 @@ declare module "visual/Drawing" {
      * @param pos
      * @param opts
      */
-    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: (DrawingOpts & {
-        readonly radius?: number | undefined;
-        readonly outlined?: boolean | undefined;
-        readonly filled?: boolean | undefined;
-    }) | undefined) => void;
+    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: DrawingOpts & {
+        readonly radius?: number;
+        readonly outlined?: boolean;
+        readonly filled?: boolean;
+    }) => void;
     /**
      * Draws a cubic or quadratic bezier
      * @param ctx
      * @param bezierToDraw
      * @param opts
      */
-    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts | undefined) => void;
+    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts) => void;
     /**
      * Draws one or more lines.
      *
@@ -7785,7 +7788,7 @@ declare module "visual/Drawing" {
      * @param widthMultiple
      * @returns
      */
-    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null | undefined, padding?: number, widthMultiple?: number | undefined) => number;
+    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null, padding?: number, widthMultiple?: number) => number;
     /**
      * Draws a block of text. Each array item is considered a line.
      * @param ctx
@@ -7810,7 +7813,7 @@ declare module "visual/Drawing" {
 }
 declare module "visual/SvgMarkers" {
     import { MarkerOpts, DrawingOpts } from "visual/Svg";
-    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: (() => SVGElement) | undefined) => SVGMarkerElement;
+    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: () => SVGElement) => SVGMarkerElement;
     export const markerPrebuilt: (elem: SVGElement | null, opts: MarkerOpts, _context: DrawingOpts) => string;
 }
 declare module "visual/SvgElements" {
@@ -7833,8 +7836,8 @@ declare module "visual/SvgElements" {
      * @param opts Options Drawing options
      * @returns
      */
-    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts | undefined, queryOrExisting?: string | SVGPathElement | undefined) => SVGPathElement;
-    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts | undefined) => SVGPathElement;
+    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts, queryOrExisting?: string | SVGPathElement) => SVGPathElement;
+    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts) => SVGPathElement;
     /**
      * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
      * @param elem Element
@@ -7842,7 +7845,7 @@ declare module "visual/SvgElements" {
      * @param opts Drawing options
      * @returns SVGCircleElement
      */
-    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts | undefined) => SVGCircleElement;
+    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts) => SVGCircleElement;
     /**
      * Creates or reuses a `SVGCircleElement`.
      *
@@ -7853,7 +7856,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts | undefined, queryOrExisting?: string | SVGCircleElement | undefined) => SVGCircleElement;
+    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement) => SVGCircleElement;
     /**
      * Creates or reuses a SVGLineElement.
      *
@@ -7863,7 +7866,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts | undefined, queryOrExisting?: string | SVGLineElement | undefined) => SVGLineElement;
+    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts, queryOrExisting?: string | SVGLineElement) => SVGLineElement;
     /**
      * Updates a SVGLineElement instance with potentially changed line and drawing data
      * @param lineEl
@@ -7871,7 +7874,7 @@ declare module "visual/SvgElements" {
      * @param opts
      * @returns
      */
-    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts | undefined) => SVGLineElement;
+    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts) => SVGLineElement;
     /**
      * Updates an existing SVGTextPathElement instance with text and drawing options
      * @param el
@@ -7879,7 +7882,7 @@ declare module "visual/SvgElements" {
      * @param opts
      * @returns
      */
-    export const textPathUpdate: (el: SVGTextPathElement, text?: string | undefined, opts?: Svg.TextPathDrawingOpts | undefined) => SVGTextPathElement;
+    export const textPathUpdate: (el: SVGTextPathElement, text?: string, opts?: Svg.TextPathDrawingOpts) => SVGTextPathElement;
     /**
      * Creates or reuses a SVGTextPathElement.
      * @param pathRef
@@ -7889,7 +7892,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts | undefined, queryOrExisting?: string | SVGTextPathElement | undefined) => SVGTextPathElement;
+    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts, queryOrExisting?: string | SVGTextPathElement) => SVGTextPathElement;
     /**
      * Updates an existing SVGTextElement instance with position, text and drawing options
      * @param el
@@ -7898,7 +7901,7 @@ declare module "visual/SvgElements" {
      * @param opts
      * @returns
      */
-    export const textUpdate: (el: SVGTextElement, pos?: Points.Point | undefined, text?: string | undefined, opts?: Svg.TextDrawingOpts | undefined) => SVGTextElement;
+    export const textUpdate: (el: SVGTextElement, pos?: Points.Point, text?: string, opts?: Svg.TextDrawingOpts) => SVGTextElement;
     /**
      * Creates or reuses a SVGTextElement
      * @param pos Position of text
@@ -7908,7 +7911,7 @@ declare module "visual/SvgElements" {
      * @param queryOrExisting
      * @returns
      */
-    export const text: (text: string, parent: SVGElement, pos?: Points.Point | undefined, opts?: Svg.TextDrawingOpts | undefined, queryOrExisting?: string | SVGTextElement | undefined) => SVGTextElement;
+    export const text: (text: string, parent: SVGElement, pos?: Points.Point, opts?: Svg.TextDrawingOpts, queryOrExisting?: string | SVGTextElement) => SVGTextElement;
     /**
      * Creates a square grid based at a center point, with cells having `spacing` height and width.
      *
@@ -8033,7 +8036,7 @@ declare module "visual/Svg" {
      * @param id Optional id to assign to element
      * @returns Element
      */
-    export const createEl: <V extends SVGElement>(type: string, id?: string | undefined) => V;
+    export const createEl: <V extends SVGElement>(type: string, id?: string) => V;
     /**
      * Applies path drawing options to given element
      * Applies: markerEnd, markerStart, markerMid
@@ -8150,7 +8153,7 @@ declare module "visual/Svg" {
      * @param parentOpts
      * @returns
      */
-    export const makeHelper: (parent: SVGElement, parentOpts?: (DrawingOpts & StrokeOpts) | undefined) => SvgHelper;
+    export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts & StrokeOpts) => SvgHelper;
 }
 declare module "visual/Plot" {
     import { CircularArray, MapOfMutable } from "collections/Interfaces";
@@ -8296,7 +8299,7 @@ declare module "visual/Plot" {
         showLegend?: boolean;
     };
     export const defaultAxis: (name: string) => Axis;
-    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours | undefined) => Series[];
+    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours) => Series[];
     export const add: (buffer: BufferType, value: number, series?: string) => void;
     export type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
     export const drawValue: (index: number, buffer: BufferType, drawing: DrawingOpts) => void;
@@ -8655,7 +8658,7 @@ declare module "visual/Palette" {
         add(key: string, value: string): void;
         alias(from: string, to: string): void;
     };
-    export const create: (fallbacks?: readonly string[] | undefined) => Palette;
+    export const create: (fallbacks?: readonly string[]) => Palette;
 }
 declare module "visual/index" {
     import * as Drawing from "visual/Drawing";
@@ -8796,7 +8799,7 @@ declare module "dom/DomRx" {
      * @param opts
      * @return
      */
-    export const rx: <V>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts | undefined) => Rx<V>;
+    export const rx: <V>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts) => Rx<V>;
 }
 declare module "dom/Forms" {
     /**
@@ -8842,7 +8845,7 @@ declare module "dom/Forms" {
      * @param live If true, event handler fires based on `input` event, rather than `change`
      * @returns
      */
-    export const numeric: (domIdOrEl: string | HTMLInputElement, onChanged?: ((currentVal: number) => void) | undefined, live?: boolean | undefined) => {
+    export const numeric: (domIdOrEl: string | HTMLInputElement, onChanged?: ((currentVal: number) => void) | undefined, live?: boolean) => {
         value: number;
     };
     /**
@@ -8879,7 +8882,7 @@ declare module "dom/Forms" {
      * @param onClick Callback when button is clicked
      * @returns
      */
-    export const button: (domQueryOrEl: string | HTMLButtonElement, onClick?: (() => void) | undefined) => {
+    export const button: (domQueryOrEl: string | HTMLButtonElement, onClick?: () => void) => {
         click(): void;
         disabled: boolean;
     };
@@ -9110,7 +9113,7 @@ declare module "data/PointTracker" {
      * t.reset(); // Reset tracker
      * ```
      */
-    export const pointTracker: (id?: string | undefined, opts?: TrackOpts) => PointTracker;
+    export const pointTracker: (id?: string, opts?: TrackOpts) => PointTracker;
 }
 declare module "dom/PointerVisualise" {
     export type Opts = {
@@ -9634,7 +9637,7 @@ declare module "modulation/Forces" {
     export const angularForce: () => (t: ForceAffected) => Readonly<{
         angle: number;
         angularVelocity: number;
-        angularAcceleration: number;
+        angularAcceleration: 0;
         position?: Points.Point | undefined;
         velocity?: Points.Point | undefined;
         acceleration?: Points.Point | undefined;
@@ -10945,7 +10948,7 @@ declare module "collections/NumericArrays" {
      * @param endIndex If provided, the end index to do calculations (defaults full range)
      * @returns `{min, max, avg, total}`
      */
-    export const minMaxAvg: (data: readonly number[], startIndex?: number | undefined, endIndex?: number | undefined) => MinMaxAvgTotal;
+    export const minMaxAvg: (data: readonly number[], startIndex?: number, endIndex?: number) => MinMaxAvgTotal;
 }
 declare module "collections/Arrays" {
     import { RandomSource } from "Random";
@@ -11067,7 +11070,7 @@ declare module "collections/Arrays" {
      * @param startIndex Start index (defaults to 0)
      * @param endIndex End index (defaults to last index)
      */
-    export const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex?: number | undefined, endIndex?: number | undefined) => readonly V[];
+    export const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex?: number, endIndex?: number) => readonly V[];
     /**
      * Returns a random array index.
      *
@@ -11341,7 +11344,7 @@ declare module "Random" {
      * @param easing Easing to use, uses `quadIn` by default
      * @returns
      */
-    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | "arch" | "bell" | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, easing?: "arch" | "bell" | "sineIn" | "sineOut" | "quadIn" | "quadOut" | "sineInOut" | "quadInOut" | "cubicIn" | "cubicOut" | "quartIn" | "quartOut" | "quintIn" | "quintOut" | "expoIn" | "expoOut" | "quintInOut" | "expoInOut" | "circIn" | "circOut" | "backIn" | "backOut" | "circInOut" | "backInOut" | "elasticIn" | "elasticOut" | "bounceIn" | "bounceOut" | "elasticInOut" | "bounceInOut" | undefined, rand?: RandomSource) => number;
+    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | Easings.EasingName, easing?: Easings.EasingName, rand?: RandomSource) => number;
     /**
      * Returns a random number with gaussian (ie bell-curved) distribution
      * ```js
@@ -11401,7 +11404,7 @@ declare module "Random" {
      * @param min
      * @returns
      */
-    export const integer: (max: number, min?: number | undefined) => number;
+    export const integer: (max: number, min?: number) => number;
     /**
      * Random a random float between `max` (exclusive) and `min` (inclusive).
      * 1 and 0 are used as default max and min, respectively.
@@ -11551,7 +11554,7 @@ declare module "visual/Colour" {
      * @param root  Element to search variable from
      * @returns Colour or fallback.
      */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement | undefined) => string;
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
     /**
      * Interpolates between two colours, returning a string
      *
@@ -11569,7 +11572,7 @@ declare module "visual/Colour" {
      * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
      * @returns String representation of colour, eg. `rgb(x,x,x)`
      */
-    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts | undefined) => string;
+    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
     /**
      * Produces a scale of colours as a string array
      *

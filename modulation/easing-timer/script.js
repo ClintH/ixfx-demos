@@ -1,44 +1,43 @@
 import * as Flow from '../../ixfx/flow.js';
-import {Easings} from '../../ixfx/modulation.js';
+import { Easings } from '../../ixfx/modulation.js';
 
-// Define settings
-const settings = {
+const settings = Object.freeze({
   // thing to move
   thingEl: document.getElementById(`thing`),
   // setup easing
   easing: Easings.time(`sineIn`, 1000)
-}
+});
 
-// Initialise state
 let state = {
   amt: 0,
   isDone: false,
 };
 
 // Update state with value from easing
-const updateState = () => {
-  const {easing} = settings;
-  state = {
-    ...state,
+const onTick = () => {
+  const { easing } = settings;
+  updateState({
     amt: easing.compute(),
     isDone: easing.isDone
-  }
+  });
 
   // Trigger a visual refresh
-  updateVisual();
+  useState();
 
   // Return false if envelope is done, stopping animation
   return !easing.isDone;
-}
+};
 
 // Make a human-friendly percentage
-const percentage = (v) => Math.floor(v * 100) + '%';
+const percentage = (v) => Math.floor(v * 100) + `%`;
 
 // Update visuals
-const updateVisual = () => {
+const useState = () => {
   // Grab relevant field from settings & state
-  const {thingEl} = settings;
-  const {amt, isDone} = state;
+  const { thingEl } = settings;
+  const { amt, isDone } = state;
+
+  if (!thingEl) return;
 
   if (isDone) {
     thingEl.classList.add(`isDone`);
@@ -53,16 +52,17 @@ const updateVisual = () => {
 
   // Move element
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
-}
+};
 
 const setup = () => {
   // Run loop. This will call `updateState` until it returns false
-  const run = Flow.continuously(updateState);
+  const run = Flow.continuously(onTick);
 
   // Called on pointerup or keyup. 
   // Triggers easing function
   const trigger = () => {
-    const {easing, thingEl} = settings;
+    const { easing, thingEl } = settings;
+    if (!thingEl) return;
     easing.reset();
     run.start();
     thingEl.classList.remove(`isDone`);
@@ -73,5 +73,16 @@ const setup = () => {
   // Wire up events
   document.addEventListener(`pointerup`, trigger);
   document.addEventListener(`keyup`, trigger);
-}
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

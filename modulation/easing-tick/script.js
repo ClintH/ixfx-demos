@@ -1,46 +1,55 @@
-import {Easings} from '../../ixfx/modulation.js';
+import { Easings } from '../../ixfx/modulation.js';
 
-// Define settings
-const settings = {
+const settings = Object.freeze({
   // thing we'll move
   thingEl: document.getElementById(`thing`),
   // setup easing
   easing: Easings.tick(`sineIn`, 100)
-}
+});
 
-// Initialise state
 let state = {
   amt: 0,
   isDone: false
 };
 
-// Called on pointerup/keyup 
-const updateState = (ev) => {
-  ev.preventDefault();
-  const {easing} = settings;
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+const updateState = (s) => {
   state = {
     ...state,
+    ...s
+  };
+};
+
+const onPointerOrKeyUp = (ev) => {
+  ev.preventDefault();
+  const { easing } = settings;
+  updateState({
     amt: easing.compute(), // Progresses easing by one tick
     isDone: easing.isDone
-  }
+  });
 
   // Trigger a visual refresh
-  updateVisual();
+  useState();
 
   // Return false if envelope is done, stopping animation
   return !easing.isDone;
-}
+};
 
 // Make a human-friendly percentage
-const percentage = (v) => Math.floor(v * 100) + '%';
+const percentage = (v) => Math.floor(v * 100) + `%`;
 
 // Update visuals
-const updateVisual = () => {
+const useState = () => {
   // Grab relevant fields from settings & state
-  const {thingEl} = settings;
-  const {amt, isDone} = state;
+  const { thingEl } = settings;
+  const { amt, isDone } = state;
 
-  if (isDone) {
+  if (!thingEl) return;
+
+  if (isDone)  {
     thingEl.classList.add(`isDone`);
   }
 
@@ -53,10 +62,12 @@ const updateVisual = () => {
 
   // Move element
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
-}
+};
 
 const reset = (ev) => {
-  const {thingEl, easing} = settings;
+  const { thingEl, easing } = settings;
+
+  if (!thingEl) return;
 
   // Don't reset if circle is clicked 
   if (ev.target === thingEl) return;
@@ -69,11 +80,12 @@ const reset = (ev) => {
 };
 
 const setup = () => {
-  const {thingEl} = settings;
+  const { thingEl } = settings;
+  if (!thingEl) return;
 
   // Handle events
   document.addEventListener(`pointerdown`, reset);
-  document.addEventListener(`keydown`, updateState);
-  thingEl.addEventListener(`click`, updateState);
-}
+  document.addEventListener(`keydown`, onPointerOrKeyUp);
+  thingEl.addEventListener(`click`, onPointerOrKeyUp);
+};
 setup();

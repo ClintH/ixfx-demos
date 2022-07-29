@@ -37,7 +37,7 @@ module.exports = {
   "logSnippet": true,
   "rewriteRules": [],
   "open": `local`,
-  "browser": `Microsoft Edge Canary`,
+  "browser": `default`,
   "cors": true,
   "xip": false,
   "hostnameSuffix": false,
