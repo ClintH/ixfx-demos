@@ -32,16 +32,6 @@ const update = () => {
   });
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 const useState = () => {
   const { location, bounds } = state;
@@ -97,3 +87,14 @@ const setup = () => {
   window.requestAnimationFrame(loop);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

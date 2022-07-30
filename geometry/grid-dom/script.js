@@ -36,17 +36,6 @@ const onCellClick = (ev) => {
   useState();
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 const useState = () => {
   const { lastClicked } = state;
   const feedbackEl = document.getElementById(`feedback`);
@@ -79,3 +68,14 @@ const setup = () => {
 };
 
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

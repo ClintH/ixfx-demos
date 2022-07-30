@@ -10,7 +10,18 @@
 
 <body>
   <style>
+    :root {
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+      --hue: 100;
+      --bg: hsl(var(--hue) 50% 70%);
+      --fg: hsl(var(--hue) 90% 10%);
+    }
+
     body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--fg);
       touch-action: none;
       overflow: hidden;
       user-select: none;

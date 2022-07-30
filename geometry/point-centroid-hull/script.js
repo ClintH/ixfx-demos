@@ -20,17 +20,6 @@ let state = {
   centroid: { x: 0, y: 0 }
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 const update = () => {
   updateState({
     centroid: Points.centroid(...state.points),
@@ -107,3 +96,14 @@ const setup = () => {
   });
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

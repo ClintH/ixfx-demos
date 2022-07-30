@@ -1,39 +1,30 @@
 import * as Dom from '../../ixfx/dom.js';
-import {Points} from '../../ixfx/geometry.js';
-import {repeat} from '../../ixfx/flow.js';
-import {jitter} from '../../ixfx/modulation.js';
-import {flip} from '../../ixfx/data.js';
+import { Points } from '../../ixfx/geometry.js';
+import { repeat } from '../../ixfx/flow.js';
+import { jitter } from '../../ixfx/modulation.js';
+import { flip } from '../../ixfx/data.js';
 
-const randomPoint = () => ({
-  x: Math.random(),
-  y: Math.random(),
-  radius: Math.random()
-});
-
-// Define settings
-const settings = {
+const settings = Object.freeze({
   // Drawing settings
   dotColour: `#fed9b7`,
   bgColour: `hsla(194, 100%, 33%, 40%)`,
   radiusMax: 10,
-
   particles: 300
-};
+});
 
-// Initial state with empty values
 let state = {
   bounds: {
     width: 0,
     height: 0,
-    center: {x: 0, y: 0}
+    center: { x: 0, y: 0 }
   },
   // Generate random points
   points: repeat(settings.particles, randomPoint)
 };
 
 // Update state of world
-const update = () => {
-  const {points} = state;
+const onTick = () => {
+  const { points } = state;
 
   // Alter points
   const pts = points.map(pt => {
@@ -47,11 +38,10 @@ const update = () => {
     return p;
   });
 
-  state = {
-    ...state,
+  updateState({
     points: pts
-  }
-}
+  });
+};
 
 /**
  * Each point is drawn as a circle
@@ -59,11 +49,11 @@ const update = () => {
  * @param {{x:number, y:number,radius:number}} pt 
  */
 const drawPoint = (ctx, pt) => {
-  const {radiusMax, dotColour} = settings;
-  const {width, height} = state.bounds;
+  const { radiusMax, dotColour } = settings;
+  const { width, height } = state.bounds;
 
   // Convert relative x,y coords to screen coords
-  const {x, y} = Points.multiply(pt, {x: width, y: height});
+  const { x, y } = Points.multiply(pt, { x: width, y: height });
 
   // Calculate radius based on relative random radius
   // and the max radius.
@@ -81,28 +71,40 @@ const drawPoint = (ctx, pt) => {
 
   // Unwind translation
   ctx.restore();
-}
+};
 
 /**
  * Draw the current state
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const {points} = state;
+  const { points } = state;
 
   // Draw each points
   points.forEach(p => {
     drawPoint(ctx, p);
   });
-}
+};
 
+const useState = () => {
+  /** @type {HTMLCanvasElement|null}} */
+  const canvasEl = document.querySelector(`#canvas`);
+  const ctx = canvasEl?.getContext(`2d`);
+  if (!ctx) return;
+
+  // Clear canvas
+  clear(ctx);
+
+  // Draw new things
+  draw(ctx);
+};
 /**
  * 
  * @param {CanvasRenderingContext2D} ctx 
  */
 const clear = (ctx) => {
-  const {width, height} = state.bounds;
-  const {bgColour} = settings;
+  const { width, height } = state.bounds;
+  const { bgColour } = settings;
 
   // Make background transparent
   //ctx.clearRect(0, 0, width, height);
@@ -116,38 +118,44 @@ const clear = (ctx) => {
   // Fade out previously painted pixels
   //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
   //ctx.fillRect(0, 0, width, height);
-}
+};
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
   // Keep our primary canvas full size
-  /** @type {HTMLCanvasElement} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl.getContext(`2d`);
-
-  Dom.fullSizeCanvas(canvasEl, args => {
+  Dom.fullSizeCanvas(`#canvas`, args => {
     // Update state with new size of canvas
-    state = {
-      ...state,
+    updateState({
       bounds: args.bounds
-    }
+    });
   });
 
   const loop = () => {
-    // Update state
-    update();
-
-    // Clear canvas
-    clear(ctx);
-
-    // Draw new things
-    draw(ctx);
-
-    // Loop
+    onTick();
+    useState();
     window.requestAnimationFrame(loop);
-  }
-  window.requestAnimationFrame(loop);
-}
+  };
+  loop();
+};
 setup();
+
+function randomPoint() {
+  return {
+    x: Math.random(),
+    y: Math.random(),
+    radius: Math.random()
+  };
+}
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

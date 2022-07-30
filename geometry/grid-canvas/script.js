@@ -27,17 +27,6 @@ let state = {
 
 const keyForCell = (cell) => cell.x + `-` + cell.y;
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 // Update state of world
 const update = () => {
   const { grid } = settings;
@@ -205,3 +194,13 @@ const setup = () => {
 };
 setup();
 
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

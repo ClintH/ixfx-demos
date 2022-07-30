@@ -53,17 +53,6 @@ const update = () => {
 };
 
 /**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Draw a line based on relative coordinates
  * @param {CanvasRenderingContext2D} ctx 
  * @param {{a:{x:number,y:number}, b:{x:number,y:number}}} line 
@@ -151,3 +140,14 @@ const setup = () => {
   window.requestAnimationFrame(loop);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

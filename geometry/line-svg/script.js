@@ -30,17 +30,6 @@ const update = () => {
 };
 
 /**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Update line
  */
 const updateSvg = () => {
@@ -132,5 +121,16 @@ const windowBounds = () => ({
 });
 
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
 
 

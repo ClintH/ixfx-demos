@@ -2,23 +2,23 @@
  * Sends a small script to the Espruino so that it sends a temperature
  * reading every five seconds.
  */
-import {delay} from '../../../ixfx/flow.js';
-import {Espruino} from '../../../ixfx/io.js';
+import { delay } from '../../../ixfx/flow.js';
+import { Espruino } from '../../../ixfx/io.js';
 
-const settings = {
-  lblDataEl: document.getElementById(`lblData`),
+const settings = Object.freeze({
   script: `setInterval(()=>Bluetooth.println(E.getTemperature()), 5000);NRF.on('disconnect',()=>reset());`
-}
+});
 
 let state = {
   temp: 0,
-  pointer: {x: 0, y: 0}
+  pointer: { x: 0, y: 0 }
 };
 
-const display = () => {
-  const {temp, pointer} = state;
-  const {lblDataEl} = settings;
-
+const useState = () => {
+  const { temp, pointer } = state;
+  const lblDataEl =document.getElementById(`lblData`);
+  if (!lblDataEl) return;
+  
   if (Number.isNaN(temp)) {
     lblDataEl.innerText = `?°`;
   } else {
@@ -32,27 +32,26 @@ const display = () => {
     ${offsetX * 2}px ${offsetY * 2}px 0px hsl(53deg 99% 40%),
     ${offsetX * 3}px ${offsetY * 3}px 0px hsl(180deg 100% 37%)`;
   lblDataEl.style.textShadow = css;
-}
+};
 
 const setup = () => {
-  const {script} = settings;
+  const { script } = settings;
   const onConnected = (connected) => {
-    document.getElementById(`preamble`).style.display = connected ? `none` : `block`;
-    document.getElementById(`lblData`).style.display = connected ? `contents` : `none`;
-  }
+    setCssDisplay(`preamble`, connected ? `none` : `block`);
+    setCssDisplay(`lblData`,  connected ? `contents` : `none`);
+  };
 
   document.addEventListener(`pointermove`, evt => {
-    state = {
-      ...state,
+    updateState({
       pointer: {
         x: evt.clientX / window.innerWidth,
         y: evt.clientY / window.innerHeight
       }
-    }
-    display();
+    });
+    useState();
   });
 
-  document.getElementById(`btnConnect`).addEventListener(`click`, async () => {
+  document.getElementById(`btnConnect`)?.addEventListener(`click`, async () => {
     try {
       // Connect to Puck
       const p = await Espruino.puck();
@@ -68,11 +67,10 @@ const setup = () => {
         try {
           const temp = parseFloat(evt.data);
 
-          state = {
-            ...state,
+          updateState({
             temp
-          };
-          display();
+          });
+          useState();
         } catch (ex) {
           console.warn(`Cannot convert to float: ${evt.data}`);
         }
@@ -87,5 +85,22 @@ const setup = () => {
       console.error(ex);
     }
   });
-}
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
+
+function setCssDisplay(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = value;
+}

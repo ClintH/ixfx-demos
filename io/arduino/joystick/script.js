@@ -1,14 +1,11 @@
 /**
  * Receives JSON from a microcontroller
  */
-import {Serial} from '../../../ixfx/io.js';
+import { Serial } from '../../../ixfx/io.js';
 
-const settings = {
-  serial: new Serial.Device({name: `Arduino`, debug: true}),
-  lblX: document.getElementById(`lblX`),
-  lblY: document.getElementById(`lblY`),
-  lblSwitch: document.getElementById(`lblSwitch`)
-}
+const settings = Object.freeze({
+  serial: new Serial.Device({ name: `Arduino`, debug: true }),
+});
 
 // Initial state
 let state = {
@@ -18,7 +15,7 @@ let state = {
 };
 
 const connect = async () => {
-  const {serial} = settings;
+  const { serial } = settings;
   try {
     // Listen for events
     serial.addEventListener(`change`, evt => {
@@ -31,41 +28,61 @@ const connect = async () => {
   } catch (ex) {
     console.error(ex);
   }
-}
+};
+
+const setCssDisplay = (id, value) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = value;
+};
+
+const setHtml = (id, value) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = value;
+};
 
 // Called when port is disconnected/connected
 const onConnected = (connected) => {
-  document.getElementById(`preamble`).style.display = connected ? `none` : `block`;
-  document.getElementById(`connected`).style.display = connected ? `block` : `none`;
-}
+  setCssDisplay(`preamble`, connected ? `none` : `block`);
+  setCssDisplay(`connected`, connected ? `block` : `none`);
+};
 
 /**
  * Updates UI with current values
  */
-const update = () => {
-  const {lblX, lblY, lblSwitch} = settings;
-  const {x, y, sw} = state;
-  lblX.innerText = x.toString();
-  lblY.innerHTML = y.toString();
-  lblSwitch.innerHTML = sw ? `Pressed` : `Not pressed`;
-}
+const useState = () => {
+  const { x, y, sw } = state;
+  setHtml(`lblX`, x.toString());
+  setHtml(`lblY`, y.toString());
+  setHtml(`lblSwitch`, sw ? `Pressed` : `Not pressed`);
+};
 
 const setup = () => {
-  const {serial} = settings;
-  document.getElementById(`btnConnect`).addEventListener(`click`, connect);
+  const { serial } = settings;
+  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
   serial.addEventListener(`data`, evt => {
     try {
       const o = JSON.parse(evt.data);
-
-      state = {
-        ...state,
+      updateState({
         ...o
-      };
-      update();
+      });
+      useState();
     } catch (ex) {
-
+      console.log(ex);
     }
-  })
+  });
 
-}
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

@@ -63,16 +63,6 @@ const update = () => {
   });
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 /**
  * Draws a line using relative coordinates
@@ -189,3 +179,14 @@ const setup = () => {
   window.requestAnimationFrame(loop);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

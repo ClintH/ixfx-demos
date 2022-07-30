@@ -67,17 +67,6 @@ const useState = () => {
 };
 
 /**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Setup and run main loop 
  */
 const setup = () => {
@@ -123,4 +112,13 @@ const windowBounds = () => ({
 
 setup();
 
-
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

@@ -5,10 +5,10 @@
  * https://www.espruino.com/Puck.js#accelerometer-gyro
  * https://www.espruino.com/Reference#l_Puck_accelOn
  */
-import {delay} from '../../../ixfx/flow.js';
-import {Espruino} from '../../../ixfx/io.js';
+import { delay } from '../../../ixfx/flow.js';
+import { Espruino } from '../../../ixfx/io.js';
 
-const settings = {
+const settings = Object.freeze({
   lblAccEl: document.getElementById(`lblAcc`),
   lblGyroEl: document.getElementById(`lblGyro`),
   script: `setInterval(()=>Bluetooth.println(JSON.stringify(Puck.accel())), 5000);NRF.on('disconnect',()=>reset());`,
@@ -18,27 +18,34 @@ const settings = {
     Bluetooth.println(JSON.stringify(a));
   });
   NRF.on('disconnect',()=>reset());`
-}
+});
 
 let state = {
-  acc: {x: 0, y: 0, z: 0},
-  gyro: {x: 0, y: 0, z: 0}
+  acc: { x: 0, y: 0, z: 0 },
+  gyro: { x: 0, y: 0, z: 0 }
 };
 
-const display = () => {
-  const {acc, gyro} = state;
-  const {lblAccEl, lblGyroEl} = settings;
+const useState = () => {
+  const { acc, gyro } = state;
+  const { lblAccEl, lblGyroEl } = settings;
 
-  lblAccEl.innerText = `acc:   x: ${acc.x} y: ${acc.y} z: ${acc.z}`;
-  lblGyroEl.innerText = `gyro: x: ${gyro.x} y: ${gyro.y} z: ${gyro.z}`;
-}
+  setHtml(`lblAccEl`,  `acc:   x: ${acc.x} y: ${acc.y} z: ${acc.z}`);
+  setHtml(`lblGyroEl`, `gyro: x: ${gyro.x} y: ${gyro.y} z: ${gyro.z}`);
+};
+
+const setHtml = (id, value) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = value;
+};
+
 
 const setup = () => {
-  const {script} = settings;
+  const { script } = settings;
   const onConnected = (connected) => {
-    document.getElementById(`preamble`).style.display = connected ? `none` : `block`;
-    document.getElementById(`data`).style.display = connected ? `block` : `none`;
-  }
+    setCssDisplay(`preamble`,  connected ? `none` : `block`);
+    setCssDisplay(`data`, connected ? `block` : `none`);
+  };
 
   const connect = async () => {
     try {
@@ -54,16 +61,15 @@ const setup = () => {
 
         try {
           const d = JSON.parse(data);
-          state = {
-            ...state,
+          updateState({
             acc: d.acc,
             gyro: d.gyro
-          }
-          display();
+          });
+          useState();
         } catch (ex) {
           console.warn(ex);
         }
-      }
+      };
       // Listen for events
       p.addEventListener(`change`, evt => {
         console.log(`${evt.priorState} -> ${evt.newState}`);
@@ -80,8 +86,25 @@ const setup = () => {
     } catch (ex) {
       console.error(ex);
     }
-  }
+  };
 
-  document.getElementById(`btnConnect`).addEventListener(`click`, connect);
-}
+  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
+
+function setCssDisplay(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = value;
+}

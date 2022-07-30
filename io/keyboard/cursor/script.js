@@ -2,15 +2,13 @@
  * Simple demo of moving an element by cursor keys.
  * See README.md
  */
-import {getTranslation} from '../../../ixfx/dom.js';
-import {Points} from "../../../ixfx/geometry.js";
+import { getTranslation } from '../../../ixfx/dom.js';
+import { Points } from "../../../ixfx/geometry.js";
 
-const settings = {
-  hintEl: document.getElementById(`hint`),
-  thingEl: document.getElementById(`thing`),
+const settings = Object.freeze({
   // How many pixels to move with each key press
   pixelSteps: 1
-}
+});
 
 let state = {
   up: false,
@@ -25,32 +23,35 @@ let state = {
  * @returns 
  */
 const onKeydown = (evt) => {
-  const {hintEl} = settings;
+  const hintEl = document.getElementById(`hint`);
+  if (!hintEl) return;
+
   // Hide hint box after a key event
   hintEl.classList.add(`hidden`);
 
   switch (evt.code) {
-    case `ArrowUp`:
-      state.up = true;
-      break;
-    case `ArrowDown`:
-      state.down = true;
-      break;
-    case `ArrowLeft`:
-      state.left = true;
-      break;
-    case `ArrowRight`:
-      state.right = true;
-      break;
-    default:
-      logKeyEvent(evt, `keydown`);
-      return;
+  case `ArrowUp`:
+    updateState({ up:true });
+    break;
+  case `ArrowDown`:
+    updateState({ down:true });
+    break;
+  case `ArrowLeft`:
+    updateState({ left:true });
+    break;
+  case `ArrowRight`:
+    updateState({ right:true });
+    break;
+  default:
+    logKeyEvent(evt, `keydown`);
+    return;
   }
-  update();
+  useState();
 };
 
-const update = () => {
-  const {thingEl} = settings;
+const useState = () => {
+  const thingEl = document.getElementById(`thing`);
+  if (!thingEl) return;
 
   // 1 for right, -1 for left, otherwise 0
   let x = state.right ? 1 :
@@ -60,15 +61,15 @@ const update = () => {
   let y = state.down ? 1 :
     state.up ? -1 : 0;
 
-  moveEl(thingEl, {x, y});
-}
+  moveEl(thingEl, { x, y });
+};
 /**
  * Move element by a given x & y
  * @param {HTMLElement} el 
  * @param {{x:number,y:number}} vector 
  */
 const moveEl = (el, vector) => {
-  const {pixelSteps} = settings;
+  const { pixelSteps } = settings;
   const xPx = vector.x * pixelSteps;
   const yPx = vector.y * pixelSteps;
 
@@ -84,29 +85,41 @@ const moveEl = (el, vector) => {
  */
 const onKeyup = (evt) => {
   switch (evt.code) {
-    case `ArrowUp`:
-      state.up = false;
-      break;
-    case `ArrowDown`:
-      state.down = false;
-      break;
-    case `ArrowLeft`:
-      state.left = false;
-      break;
-    case `ArrowRight`:
-      state.right = false;
-      break;
-    default:
-      logKeyEvent(evt, `keydown`);
+  case `ArrowUp`:
+    updateState({ up:false });
+    break;
+  case `ArrowDown`:
+    updateState({ down:false });
+    break;
+  case `ArrowLeft`:
+    updateState({ left:false });
+    break;
+  case `ArrowRight`:
+    updateState({ right:false });
+    break;
+  default:
+    logKeyEvent(evt, `keydown`);
   }
+  useState();
 };
 
 // Display key event info to console
-const logKeyEvent = (evt, prefix = 'key') => console.log(`${prefix} code: ${evt.code} key: ${evt.key} alt: ${evt.altKey} ctrl: ${evt.ctrlKey} meta: ${evt.metaKey} shift: ${evt.shiftKey}`);
+const logKeyEvent = (evt, prefix = `key`) => console.log(`${prefix} code: ${evt.code} key: ${evt.key} alt: ${evt.altKey} ctrl: ${evt.ctrlKey} meta: ${evt.metaKey} shift: ${evt.shiftKey}`);
 
 const setup = () => {
   // Listen for keydown/keyup
   document.addEventListener(`keydown`, onKeydown);
   document.addEventListener(`keyup`, onKeyup);
-}
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

@@ -2,6 +2,7 @@ import { Points, radianToDegree } from '../../ixfx/geometry.js';
 
 // Initial state with empty values
 let state = {
+  angleDeg: 0,
   bounds: {
     width: 0,
     height: 0
@@ -19,8 +20,7 @@ let state = {
 };
 
 // Update state of world
-const update = () => {
-
+const onTick = () => {
   const { pointer, reference } = state;
 
   const p = pointer;
@@ -32,12 +32,11 @@ const update = () => {
   const angleDeg = radianToDegree(Points.angle(reference, p));
 
   // Update state with calculations...
-  state = {
-    ...state,
+  updateState({
     location: pointer,
     distance,
     angleDeg
-  };
+  });
 };
 
 /**
@@ -53,7 +52,7 @@ const relativePosition = (el, pos) => {
   el.style.transform = `translate(${p.x}px, ${p.y}px)`;
 };
 
-const draw = () => {
+const useState = () => {
   const { location, reference, distance, angleDeg } = state;
   const thingEl = document.getElementById(`thing`);
   const referenceEl = document.getElementById(`reference`);
@@ -79,16 +78,14 @@ const draw = () => {
  * Setup and run main loop 
  */
 const setup = () => {
-
   // Keep track of screen size whenever it resizes
   const onResize = () => {
-    state = {
-      ...state,
+    updateState({
       bounds: {
         width: window.innerWidth,
         height: window.innerHeight
       }
-    };
+    });
   };
   document.addEventListener(`resize`, onResize);
   onResize();
@@ -97,23 +94,28 @@ const setup = () => {
     const { bounds } = state;
     const x = e.clientX;
     const y = e.clientY;
-    state = {
-      ...state,
+    updateState({
       // Make pointer position relative (on 0..1 scale)
       pointer: Points.divide(x, y, bounds.width, bounds.height)
-    };
+    });
   });
 
   const loop = () => {
-    // Update state
-    update();
-
-    // Update elements
-    draw();
-
-    // Loop
+    onTick();
+    useState();
     window.requestAnimationFrame(loop);
   };
-  window.requestAnimationFrame(loop);
+  loop();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

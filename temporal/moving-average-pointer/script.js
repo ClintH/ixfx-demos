@@ -25,13 +25,12 @@ const addAverage = (absX, absY) => {
   const { avgX, avgY } = settings;
 
   // Add relative x,y to their respective movingAverage instance
-  state = {
-    ...state,
+  updateState ({
     avg: {
       x: avgX.add(absX / window.innerWidth),
       y: avgY.add(absY / window.innerHeight)
     }
-  };
+  });
 };
 
 const useState = () => {

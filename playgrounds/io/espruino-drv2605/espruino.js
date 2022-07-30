@@ -1,3 +1,5 @@
+/* eslint-disable */ 
+// @ts-nocheck
 /** 
  * This script must be uploaded to the Espruino. 
  * Use Espruino's web IDE for that. It provides a set of 

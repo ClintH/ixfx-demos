@@ -30,17 +30,6 @@ let state = {
   points: repeat(100, randomPoint)
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 const useState = () => {
   const { points } = state;
   
@@ -152,3 +141,14 @@ const setup = () => {
   window.requestAnimationFrame(loop);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

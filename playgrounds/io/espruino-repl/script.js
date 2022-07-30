@@ -15,8 +15,8 @@ const settings = Object.freeze({
     `,
     reverse: true
   }),
-  /** @type {HTMLInputElement} */
-  txtInput: document.getElementById(`txtInput`)
+  
+  txtInput: /** @type {HTMLInputElement|null} */(document.getElementById(`txtInput`))
 });
 
 let state = {

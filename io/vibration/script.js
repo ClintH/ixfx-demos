@@ -2,14 +2,13 @@
  * Uses Chrome's vibrate API
  * See README.md
  */
-import {defaultErrorHandler} from '../../ixfx/dom.js';
-import {adsrSample, defaultAdsrOpts} from '../../ixfx/modulation.js';
-import {IterableAsync} from '../../ixfx/util.js';
-import {repeat} from '../../ixfx/flow.js';
-import {interleave} from '../../ixfx/arrays.js';
+import { defaultErrorHandler } from '../../ixfx/dom.js';
+import { adsrSample, defaultAdsrOpts } from '../../ixfx/modulation.js';
+import { IterableAsync } from '../../ixfx/util.js';
+import { repeat } from '../../ixfx/flow.js';
+import { interleave } from '../../ixfx/arrays.js';
 
-
-const settings = {
+const settings = Object.freeze({
   // Set up envelope
   envOpts: {
     ...defaultAdsrOpts(),
@@ -23,37 +22,21 @@ const settings = {
   envScale: 100,
   // How many millis to be off between each envelope value
   restMs: 10
-}
+});
 
 let state = {
+  env: null,
   // Array to sample envelope into
+  /** @type {readonly number[]} */
   envData: []
 };
-
-// Update state - this is called by runLoop
-const update = () => {
-  const {env} = settings;
-
-  // Get state from envelope
-  const [stage, scaled, raw] = env.compute();
-  state = {
-    ...state,
-    amt: scaled,
-    stage,
-    raw
-  }
-
-  console.log()
-  // Return false if envelope is done. This will stop the run loop
-  return (!Number.isNaN(scaled));
-}
 
 /**
  * Handle a pointer down
  * @param {PointerEvent} evt 
  */
 const onPointerDown = evt => {
-  const t = evt.target;
+  const t = /** @type {HTMLElement} */(evt.target);
 
   // Only care about BUTTONs with `vibrate` class
   if (t.nodeName !== `BUTTON`) return;
@@ -64,7 +47,10 @@ const onPointerDown = evt => {
   if (pattern === null || pattern.length === 0) return;
 
   // Break up pattern into an array
-  const patternArray = pattern.split(', ');
+  const patternArray = pattern
+    .split(`, `)
+    .map(str => parseFloat(str));
+  
   console.log(`Pattern:`);
   console.log(patternArray);
 
@@ -73,7 +59,7 @@ const onPointerDown = evt => {
   } else {
     throw new Error(`Browser does not support vibrate`);
   }
-}
+};
 
 const setup = async () => {
 
@@ -83,7 +69,7 @@ const setup = async () => {
   // We get vales from 0...1
   const btnEnv = document.getElementById(`btnEnv`);
   const lblEnvEl = document.getElementById(`lblEnv`);
-  lblEnvEl.innerText = `Sampling envelope...`;
+  if (lblEnvEl) lblEnvEl.innerText = `Sampling envelope...`;
 
   IterableAsync.toArray(adsrSample(settings.envOpts, settings.sampleRateMs)).then(env => {
     // Map them to milliseconds, based on scaling setting
@@ -93,21 +79,29 @@ const setup = async () => {
     const pauses = repeat(env.length, () => settings.restMs);
 
     // Combine them together with ixfx's interleave function
-    state.envData = interleave(env, pauses);
+    updateState({ envData: interleave(env, pauses) });
 
-    btnEnv.disabled = false;
-    lblEnvEl.innerText = `Envelope sampled.`;
+    if (btnEnv) /** @type {HTMLButtonElement} */(btnEnv).disabled = false;
+    if (lblEnvEl) lblEnvEl.innerText = `Envelope sampled.`;
   });
 
   document.addEventListener(`pointerdown`, onPointerDown);
 
-  btnEnv.addEventListener(`click`, () => {
+  btnEnv?.addEventListener(`click`, () => {
     console.log(`Running:`);
     console.log(state.envData);
     navigator.vibrate(state.envData);
   });
-}
+};
 setup();
 
-
-
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}

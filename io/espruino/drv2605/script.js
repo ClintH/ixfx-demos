@@ -1,23 +1,17 @@
-import {Espruino} from '../../../ixfx/io.js';
-
-const settings = {
-  // Container for things that should respond to pointer move events
-  containerEl: document.getElementById(`things`),
-}
+import { Espruino } from '../../../ixfx/io.js';
 
 // Keep track of Espruino instance
 let state = {
+  /** @type {Espruino.EspruinoSerialDevice|null} */
   espruino: null
 };
 
 const setup = () => {
-  const {containerEl} = settings;
-
   // Hide or show UI depending on connection state
   const onConnected = (connected) => {
-    document.getElementById(`preamble`).style.display = connected ? `none` : `block`;
-    containerEl.style.display = connected ? `flex` : `none`;
-  }
+    setCssDisplay(`preamble`, connected ? `none` : `block`);
+    setCssDisplay(`things`, connected ? `flex` : `none`);
+  };
 
   const connect = async () => {
     try {
@@ -37,19 +31,19 @@ const setup = () => {
 
       onConnected(true);
 
-      state.espruino = p;
+      updateState({ espruino: p });
 
     } catch (ex) {
       console.error(ex);
       onConnected(false);
     }
-  }
+  };
 
   // Connect when button is clicked
-  document.getElementById(`btnConnect`).addEventListener(`click`, connect);
+  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
 
-  containerEl.addEventListener(`pointerenter`, (evt) => {
-    const {espruino} = state;
+  document.getElementById(`things`)?.addEventListener(`pointerenter`, (evt) => {
+    const { espruino } = state;
 
     // Check we initialised OK
     if (espruino === null || espruino === undefined) {
@@ -58,7 +52,7 @@ const setup = () => {
     }
 
     // Get the data-trigger attribute from the HTML element
-    const trigger = evt.target.getAttribute(`data-trigger`);
+    const trigger = /** @type {HTMLElement} */(evt.target).getAttribute(`data-trigger`);
     if (trigger === null) return; // Don't have one
 
     // Print it out for debug purposes
@@ -66,6 +60,23 @@ const setup = () => {
 
     // Send command to Pico
     espruino.write(`trigger('${trigger}')\n`);
-  }, {capture: true});
-}
+  }, { capture: true });
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
+
+function setCssDisplay(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = value;
+}

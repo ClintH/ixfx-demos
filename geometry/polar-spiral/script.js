@@ -3,44 +3,54 @@
  */
 import * as Generators from '../../ixfx/generators.js';
 import * as Dom from '../../ixfx/dom.js';
-import {scalePercent} from '../../ixfx/data.js';
-import {Polar} from '../../ixfx/geometry.js';
+import { scalePercent } from '../../ixfx/data.js';
+import { Polar } from '../../ixfx/geometry.js';
 
-// Define settings
-const settings = {
+const settings = Object.freeze({
   colour: `gray`,
   lineWidth: 2,
   slowPp: Generators.pingPongPercent(0.0001),
   fastPp: Generators.pingPongPercent(0.001),
   steps: 1000
-}
+});
 
-// Initialise state with empty values
 let state = {
   slow: 0,
   fast: 0,
-  bounds: {width: 0, height: 0, center: {x: 0, y: 0}}
+  bounds: { width: 0, height: 0, center: { x: 0, y: 0 } }
 };
 
 // Update state of world
-const update = () => {
-  const {slowPp, fastPp} = settings;
+const onTick = () => {
+  const { slowPp, fastPp } = settings;
 
   // Update state
-  state = {
-    ...state,
+  updateState({
     // Get a new value from the generator
     slow: slowPp.next().value,
     fast: fastPp.next().value
-  }
-}
+  });
+};
+
+const useState = () => {
+  /** @type {HTMLCanvasElement|null}} */
+  const canvasEl = document.querySelector(`#canvas`);
+  const ctx = canvasEl?.getContext(`2d`);
+  if (!ctx || !canvasEl) return;
+    
+  // Clear
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  
+  // Draw state
+  draw(ctx);
+};
 
 /**
  * Draw the current state
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const {slow, fast, bounds} = state;
+  const { slow, fast, bounds } = state;
   const c = bounds.center;
   const steps = settings.steps;
   ctx.lineWidth = settings.lineWidth;
@@ -64,34 +74,36 @@ const draw = (ctx) => {
     if (coord.step >= steps) break;
   }
   ctx.stroke(); // Draw line
-}
+};
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
   // Keep our primary canvas full size too
-  /** @type {HTMLCanvasElement} */
-  const canvasEl = Dom.resolveEl(`#canvas`);
-  Dom.fullSizeCanvas(canvasEl, args => {
+  Dom.fullSizeCanvas(`#canvas`, args => {
     // Update state with new size of canvas
-    state = {
-      ...state,
+    updateState({
       bounds: args.bounds
-    }
+    });
   });
 
-  const ctx = canvasEl.getContext(`2d`);
-
   const loop = () => {
-    // Clear
-    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    // Update state
-    update();
-    // Draw state
-    draw(ctx);
+    onTick();
+    useState();
     window.requestAnimationFrame(loop);
-  }
-  window.requestAnimationFrame(loop);
-}
+  };
+  loop();
+};
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
+}
