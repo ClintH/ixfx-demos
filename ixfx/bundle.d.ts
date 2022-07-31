@@ -7,7 +7,7 @@ export { G as Generators } from './Generators-bacb4afe.js';
 export { i as Visual } from './index-9a906f22.js';
 export { i as Dom } from './index-3299aa1a.js';
 export { E as Events } from './Events-170d1411.js';
-export { i as Modulation } from './index-63df600e.js';
+export { i as Modulation } from './index-1edc2e68.js';
 export { i as Collections } from './index-def4c5ca.js';
 export { R as Random } from './Arrays-33583474.js';
 export { K as KeyValues } from './KeyValue-67ed417a.js';

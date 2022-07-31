@@ -1,92 +1,76 @@
 import * as Dom from '../../ixfx/dom.js';
-import { Points } from '../../ixfx/geometry.js';
 import { repeat } from '../../ixfx/flow.js';
 import { jitter } from '../../ixfx/modulation.js';
-import { flip } from '../../ixfx/data.js';
+import { flip, clamp } from '../../ixfx/data.js';
+import { gaussian } from '../../ixfx/random.js';
+
+/**
+ * @typedef Particle
+ * @property {number} x
+ * @property {number} y
+ * @property {number} age
+ * @property {number} weight
+ * @property {number} intensity
+ */
 
 const settings = Object.freeze({
+  // How much to age with each loop (% of current age)
+  agePerLoop: 0.02,
+  // How many particles to spawn each loop
+  spawnPerLoop: 3,
+  // How much to float upwards each loop (also affected by randomness and weight). Percentage of screen height
+  yMovement: 0.01,
+  // Maximum jitter on x-axis (%)
+  xJitter: 0.03,
   // Drawing settings
-  dotColour: `#fed9b7`,
-  bgColour: `hsla(194, 100%, 33%, 40%)`,
-  radiusMax: 10,
-  particles: 300
+  dotHue: `194`,
+  bgHue: `194`,
+  radiusMax: 30,
+  radiusMin: 20
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {Particle[]} */
+  particles: [],
+  pointer: { x: 0, y: 0 },
+  /** @type {boolean} */
+  pointerDown: false,
   bounds: {
     width: 0,
     height: 0,
     center: { x: 0, y: 0 }
-  },
-  // Generate random points
-  points: repeat(settings.particles, randomPoint)
-};
+  }
+});
 
-// Update state of world
+// Runs at animation speed
 const onTick = () => {
-  const { points } = state;
+  const { yMovement, spawnPerLoop, agePerLoop, xJitter } = settings;
+  const { particles }  = state;
 
-  // Alter points
-  const pts = points.map(pt => {
-    const p = {
-      // Jitter x,y based on a max amount multiplied by the inverse
-      // of the radius. So smaller things will jitter more than larger
-      x: jitter(pt.x, 0.001 * flip(pt.radius)),
-      y: jitter(pt.y, 0.002 * flip(pt.radius)),
-      radius: pt.radius
-    };
-    return p;
-  });
+  // 1. Age particles, deleting those that are too old
+  const aged = particles
+    .map(p => ({ ...p, age: p.age * flip(agePerLoop) }))
+    .filter(p => p.age > 0.001);
 
+  // 2. Spawn new particles
+  const withNew = [ ...aged, ...repeat(spawnPerLoop, createParticle) ];
+
+  // 3. Move particles: some jitter applied to X, and drift upwards
+  const moved = withNew.map(p => ({
+    ...p, 
+    x: jitter(clamp(p.x), xJitter * flip(p.weight), { type: `rel`, random: gaussian }),
+    y: p.y - (p.weight*yMovement*Math.random())
+  }));
+
+  // 3. Update state for later drawing
   updateState({
-    points: pts
-  });
-};
-
-/**
- * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} ctx 
- * @param {{x:number, y:number,radius:number}} pt 
- */
-const drawPoint = (ctx, pt) => {
-  const { radiusMax, dotColour } = settings;
-  const { width, height } = state.bounds;
-
-  // Convert relative x,y coords to screen coords
-  const { x, y } = Points.multiply(pt, { x: width, y: height });
-
-  // Calculate radius based on relative random radius
-  // and the max radius.
-  const radius = radiusMax * pt.radius;
-
-  // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(x, y);
-
-  // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = dotColour;
-  ctx.fill();
-
-  // Unwind translation
-  ctx.restore();
-};
-
-/**
- * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
- */
-const draw = (ctx) => {
-  const { points } = state;
-
-  // Draw each points
-  points.forEach(p => {
-    drawPoint(ctx, p);
+    particles: moved
   });
 };
 
 const useState = () => {
+  const { particles } = state;
+
   /** @type {HTMLCanvasElement|null}} */
   const canvasEl = document.querySelector(`#canvas`);
   const ctx = canvasEl?.getContext(`2d`);
@@ -95,29 +79,62 @@ const useState = () => {
   // Clear canvas
   clear(ctx);
 
-  // Draw new things
-  draw(ctx);
+  ctx.globalCompositeOperation = `lighter`;
+
+  // Draw particles  
+  particles.forEach(p => {
+    drawPoint(ctx, p);
+  });
 };
+
 /**
- * 
+ * Each point is drawn as a circle
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {Particle} pt 
+ */
+const drawPoint = (ctx, pt) => {
+  const { radiusMax, radiusMin, dotHue } = settings;
+  const { width, height } = state.bounds;
+
+  // Calculate radius based on relative 
+  // random radius, max radius & age of particle
+  const radius = (radiusMax - radiusMin) * (pt.weight * pt.age) + (radiusMin* pt.age);
+
+  // Calculate colour for dot, with age determining the opacity
+  const fillStyle = `hsla(${dotHue}, 60%, ${Math.floor(pt.intensity*100)}%, ${pt.age})`;
+
+  // Translate so 0,0 is the middle
+  ctx.save();
+  ctx.translate(pt.x*width, pt.y*height);
+
+  // Fill a circle
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+
+  // Unwind translation
+  ctx.restore();
+};
+
+/**
+ * Clears the canvas
  * @param {CanvasRenderingContext2D} ctx 
  */
 const clear = (ctx) => {
   const { width, height } = state.bounds;
-  const { bgColour } = settings;
+  const { bgHue } = settings;
 
-  // Make background transparent
-  //ctx.clearRect(0, 0, width, height);
+  // Clear screen  
+  // ctx.globalCompositeOperation = `source-over`;
+  // ctx.fillStyle = `hsl(${bgHue}, 100%, 33%)`;
+  // ctx.fillRect(0, 0, width, height);
 
-  // Clear with a colour
-  ctx.fillStyle = bgColour;
-
-  ctx.globalCompositeOperation = `luminosity`; // Changing the composition style can give an interesting effect...
+  // Use the composite operation to leave some
+  // traces behind
+  ctx.fillStyle = `hsla(${bgHue}, 100%, 50%, 0.5)`;
+  ctx.globalCompositeOperation = `luminosity`;
   ctx.fillRect(0, 0, width, height);
-
-  // Fade out previously painted pixels
-  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //ctx.fillRect(0, 0, width, height);
 };
 
 /**
@@ -132,20 +149,58 @@ const setup = () => {
     });
   });
 
+  // Animation loop
   const loop = () => {
     onTick();
     useState();
     window.requestAnimationFrame(loop);
   };
   loop();
+
+  const defaultPosition = () => {
+    updateState({ pointer: {
+      x: 0.5, //window.innerWidth / 2,
+      y: 0.5, //window.innerHeight / 2
+    } });
+  };
+  defaultPosition();
+  
+  // Keep track of pointer moving
+  document.addEventListener(`pointermove`, evt => {
+    updateState({ pointer: {
+      x: evt.x/window.innerWidth,
+      y: evt.y/window.innerHeight
+    } });
+  });
+
+  // Keep track of pointer up/down status
+  document.addEventListener(`pointerdown`, evt => {
+    updateState({ pointerDown: true });
+  });
+
+  document.addEventListener(`pointerup`, evt => {
+    updateState({ pointerDown: false });
+  });
+
+  document.addEventListener(`pointerleave`, evt => {
+    defaultPosition();
+  });
 };
 setup();
 
-function randomPoint() {
+/**
+ * 
+ * @returns {Particle}
+ */
+function createParticle() {
+  const { pointer, pointerDown } = state;
   return {
-    x: Math.random(),
-    y: Math.random(),
-    radius: Math.random()
+    ...pointer,
+    weight: Math.random(),
+    age: 1,
+    // If pointer is down 50% intensity, otherwise 1%
+    // Would be nicer to use an envelope here so it ramps up and down.
+    intensity: pointerDown ? 0.5 : 0.01
   };
 }
 
