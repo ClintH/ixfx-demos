@@ -167,6 +167,7 @@ const setup = () => {
   
   // Keep track of pointer moving
   document.addEventListener(`pointermove`, evt => {
+    evt.preventDefault();
     updateState({ pointer: {
       x: evt.x/window.innerWidth,
       y: evt.y/window.innerHeight
@@ -175,10 +176,12 @@ const setup = () => {
 
   // Keep track of pointer up/down status
   document.addEventListener(`pointerdown`, evt => {
+    evt.preventDefault();
     updateState({ pointerDown: true });
   });
 
   document.addEventListener(`pointerup`, evt => {
+    evt.preventDefault();
     updateState({ pointerDown: false });
   });
 

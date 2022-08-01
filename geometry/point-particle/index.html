@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <title>point-particle</title>
 </head>
 
@@ -16,7 +16,11 @@
 
     body {
       background-color: var(--bg);
-
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: auto;
+      touch-action: none;
     }
 
     h1 {
