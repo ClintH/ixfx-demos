@@ -27,12 +27,14 @@ let state = {
 
 /**
  * Called when the pointer moves
- * @param {*} ev 
+ * @param {PointerEvent} ev 
  */
 const onPointerMove = (ev) => {
   const { pointers, twoFingerDistance } = state;
 
-  pointers.seen(ev.pointerId, { x: ev.x, y: ev.y });
+  ev.preventDefault();
+
+  pointers.seen(ev.pointerId.toString(), { x: ev.x, y: ev.y });
 
   const byAge = pointers.valuesByAge();
 
@@ -84,6 +86,7 @@ const useState = () => {
  */
 const onLostPointer = (ev) => {
   const { pointers } = state;
+  ev.preventDefault();
 
   // Delete the pointer
   pointers.delete(ev.pointerId.toString());
@@ -93,6 +96,10 @@ const setup = () => {
   document.addEventListener(`pointermove`, onPointerMove);
   document.addEventListener(`pointerup`, onLostPointer);
   document.addEventListener(`pointerleave`, onLostPointer);
+
+  document.addEventListener(`wheel`, evt => {
+    evt.preventDefault();
+  }, { passive:false });
 };
 setup();
 

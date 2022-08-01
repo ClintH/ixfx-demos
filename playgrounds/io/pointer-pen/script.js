@@ -26,8 +26,11 @@ const updatePointer = (ev) => {
 
   shtml(`keys`, keyStr);
   shtml(`pressure`, pc(ev.pressure));
-  shtml(`altitudeAngle`, ev.altitudeAngle.toPrecision(3));
-  shtml(`azimuthAngle`, ev.azimuthAngle.toPrecision(3));
+  
+  const altAngle = ev.altitudeAngle ?? 0;
+  const aziAngle = ev.azimuthAngle ?? 0;
+  shtml(`altitudeAngle`, altAngle.toPrecision(3));
+  shtml(`azimuthAngle`, aziAngle.toPrecision(3));
 
   console.log(ev);
 };
@@ -37,11 +40,13 @@ const pc = (v) => {
 };
 
 const shtml = (id, v) => {
-  document.getElementById(id).innerHTML = v;
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = v;
 };
 
 const setup = () => {
   const { penEl, helpEl } = settings;
+  if (!penEl) return;
 
   penEl.addEventListener(`pointermove`, ev => {
     updatePointer(ev);
@@ -71,13 +76,12 @@ const setup = () => {
 
   });
 
-  document.getElementById(`btnHelpClose`).addEventListener(`click`, () => {
-    helpEl.style.display = `none`;
+  document.getElementById(`btnHelpClose`)?.addEventListener(`click`, () => {
+    if (helpEl) helpEl.style.display = `none`;
   });
 
-  document.getElementById(`btnHelpShow`).addEventListener(`click`, () => {
-    helpEl.style.display = `block`;
-
+  document.getElementById(`btnHelpShow`)?.addEventListener(`click`, () => {
+    if (helpEl) helpEl.style.display = `block`;
   });
 
 };

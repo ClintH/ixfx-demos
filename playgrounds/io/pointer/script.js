@@ -8,9 +8,14 @@ const settings = Object.freeze({
 
 const clearPointers = () => {
   const { currentEl } = settings;
+  if (!currentEl) return;
   currentEl.innerHTML = ``;
 };
 
+/**
+ * 
+ * @param {PointerEvent} ev 
+ */
 const updatePointer = (ev) => {
   const { currentEl, log } = settings;
   const { isPrimary, pointerType, pointerId, type, shiftKey, ctrlKey, metaKey } = ev;
@@ -23,7 +28,7 @@ const updatePointer = (ev) => {
   if (el === null) {
     el = document.createElement(`div`);
     el.id = `ptr-${pointerId}`;
-    currentEl.append(el);
+    currentEl?.append(el);
   }
 
   const keys = [];
@@ -69,25 +74,23 @@ const pointerEventSimplify = (ev) => {
 
   if (ev.altitudeAngle) r.altitudeAngle = ev.altitudeAngle;
   if (ev.azimuthAngle) r.azimuthAngle = ev.azimuthAngle;
-
+  if (ev.webkitForce) r.webkitForce = ev.webkitForce;
   return r;
 
 };
 
 const setup = () => {
   const { pointerEl, log } = settings;
-
+  if (!pointerEl) return;
   const chkPointermove = Forms.checkbox(`#evPointermove`);
   const chkPointerenter = Forms.checkbox(`#evPointerenter`);
   const chkPointerleave = Forms.checkbox(`#evPointerleave`);
-  //const chkPointercancel = Forms.checkbox(`#evPointercancel`);
   const chkPointerover = Forms.checkbox(`#evPointerover`);
   const chkPointerdown = Forms.checkbox(`#evPointerdown`);
   const chkPointerup = Forms.checkbox(`#evPointerup`);
 
   pointerEl.addEventListener(`pointermove`, ev => {
     if (!chkPointermove.checked) return;
-    console.log(ev);
     updatePointer(ev);
   });
 
@@ -102,11 +105,6 @@ const setup = () => {
     updatePointer(ev);
   });
 
-  // pointerEl.addEventListener(`pointercancel`, ev => {
-  //   if (!chkPointercancel.checked) return;
-  //   updatePointer(ev);
-  // });
-
   pointerEl.addEventListener(`pointerover`, ev => {
     if (!chkPointerover.checked) return;
     updatePointer(ev);
@@ -119,8 +117,21 @@ const setup = () => {
 
   pointerEl.addEventListener(`pointerup`, ev => {
     if (!chkPointerup.checked) return;
-
     updatePointer(ev);
+  });
+
+  pointerEl.addEventListener(`webkitmouseforcedown`, ev => {
+    if (!chkPointerdown.checked) return;
+    updatePointer(ev);
+
+  });
+  pointerEl.addEventListener(`webkitmouseforceup`, ev => {
+    if (!chkPointerup.checked) return;
+    updatePointer(ev);
+
+  });
+  pointerEl.addEventListener(`webkitforcechanged`, ev => {
+    console.log(ev);
   });
 
 

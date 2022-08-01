@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>keys playground</title>
+  <title>pointer playground</title>
 </head>
 <style>
   :root {
@@ -50,17 +50,21 @@
   }
 
   #pointerArea {
+    min-width: 15vw;
+
     grid-row-start: 1;
     grid-column-start: 1;
-
     grid-row-end: 3;
     grid-column-end: 2;
+
     display: flex;
     align-content: center;
     justify-content: center;
     align-items: center;
     background-color: hsl(var(--hue) 20% 5%);
     user-select: none;
+    -webkit-user-select: none;
+    cursor: crosshair;
   }
 
   #currentArea {
