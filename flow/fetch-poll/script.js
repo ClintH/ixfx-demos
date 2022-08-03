@@ -19,20 +19,9 @@ const settings = Object.freeze({
 });
 
 // Initialises state. It will keep the last data fetched
-let state = {
+let state = Object.freeze({
   response: {}
-};
-
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
+});
 
 continuously(async () => {
   const { dataEl } = settings;
@@ -69,3 +58,14 @@ const status = (m) => {
   const { statusEl } = settings;
   if (statusEl) statusEl.innerText = new Date().toLocaleTimeString() + ` ` + m;
 };
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

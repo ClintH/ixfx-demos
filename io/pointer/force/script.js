@@ -44,10 +44,10 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
 

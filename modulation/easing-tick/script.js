@@ -7,21 +7,12 @@ const settings = Object.freeze({
   easing: Easings.tick(`sineIn`, 100)
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   amt: 0,
+  /** @type {boolean} */
   isDone: false
-};
-
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
+});
 
 const onPointerOrKeyUp = (ev) => {
   ev.preventDefault();
@@ -89,3 +80,14 @@ const setup = () => {
   thingEl.addEventListener(`click`, onPointerOrKeyUp);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

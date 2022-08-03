@@ -26,12 +26,13 @@ const settings = Object.freeze({
   textEl: document.querySelector(`#text`),
 });
 
-let state = {
+let state = Object.freeze({
   // Relative pointer position
   pointer: { x: 0, y: 0 },
   // Angle of pointer to middle of screen
+  /** @type {number} */
   angleRadians: 0
-};
+});
 
 // Assigns gradient to text based on state
 const setGradient = () => {
@@ -64,16 +65,6 @@ const setGradient = () => {
   textEl.style.webkitTextFillColor = `transparent`;
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 // Setup
 const setup = () => {
@@ -100,3 +91,14 @@ const setup = () => {
   setGradient();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

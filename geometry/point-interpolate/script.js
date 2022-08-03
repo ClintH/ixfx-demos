@@ -6,7 +6,7 @@ const settings = Object.freeze({
 });
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0
@@ -16,7 +16,7 @@ let state = {
     y: Math.random()
   },
   pointer: { x: 0, y: 0 }
-};
+});
 
 // Update state of world
 const update = () => {
@@ -92,9 +92,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

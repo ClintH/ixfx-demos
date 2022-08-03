@@ -16,12 +16,16 @@ Split([ `#plot`, `#stream` ], {
   direction: `vertical`
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {boolean} */
   jsonWarning: false,
+  /** @type {boolean} */
   clearedWelcome: false,
+  /** @type {Espruino.EspruinoDevice|undefined} */
   p: undefined,
+  /** @type {boolean} */
   frozen: false
-};
+});
 
 const settings = Object.freeze({
   log: Dom.log(`#log`, {
@@ -33,17 +37,17 @@ const settings = Object.freeze({
     autoSize: true,
     axisColour: Colour.getCssVariable(`fg`)
   }),
-  txtCode: document.getElementById(`txtCode`),
-  dlgHelp: document.getElementById(`dlgHelp`)
+  txtCode: /** @type {HTMLTextAreaElement} */(document.getElementById(`txtCode`)),
+  dlgHelp: /** @type {HTMLDialogElement} */(document.getElementById(`dlgHelp`))
 });
 
 const onConnected = (connected) => {
   if (connected) {
-    document.getElementById(`btnConnect`).setAttribute(`disabled`, `true`);
-    document.getElementById(`btnSend`).removeAttribute(`disabled`);
+    document.getElementById(`btnConnect`)?.setAttribute(`disabled`, `true`);
+    document.getElementById(`btnSend`)?.removeAttribute(`disabled`);
   } else {
-    document.getElementById(`btnSend`).setAttribute(`disabled`, `true`);
-    document.getElementById(`btnConnect`).removeAttribute(`disabled`);
+    document.getElementById(`btnSend`)?.setAttribute(`disabled`, `true`);
+    document.getElementById(`btnConnect`)?.removeAttribute(`disabled`);
   }
 };
 
@@ -61,16 +65,16 @@ const connect = async () => {
   try {
     // Connect to Puck
     p = await Espruino.puck();
-    state.p = p;
+    updateState({ p });
     const onData = (evt) => {
       const data = evt.data.trim(); // Remove line breaks etc
 
       if (!data.startsWith(`{`) || !data.endsWith(`}`)) {
         if (!state.jsonWarning) {
           console.warn(`Plotter expects JSON response`);
-          state.jsonWarning = true;
+          updateState({ jsonWarning: true });
         } else {
-          state.jsonWarning = true;
+          updateState({ jsonWarning: true });
         }
         log.log(data);
         return;
@@ -96,7 +100,7 @@ const connect = async () => {
     p.addEventListener(`data`, onData);
     if (!state.clearedWelcome) {
       log.clear();
-      state.clearedWelcome = true;
+      updateState({ clearedWelcome: true });
     }
     plot.clear();
     plot.frozen = false;
@@ -110,7 +114,7 @@ const connect = async () => {
 
 const send = () => {
   const { p } = state;
-  const { log, plot } = settings;
+  const { log, plot,txtCode } = settings;
   if (p === undefined) return; // No Espruino
 
   // @ts-ignore
@@ -141,13 +145,13 @@ const setup = () => {
   // Setup UI
   Dom.Forms.textAreaKeyboard(txtCode);
 
-
-  document.getElementById(`btnClear`).addEventListener(`click`, () => {
+  document.getElementById(`btnClear`)?.addEventListener(`click`, () => {
     log.clear();
     plot.clear();
   });
-  document.getElementById(`btnHelp`).addEventListener(`click`, async evt => {
+  document.getElementById(`btnHelp`)?.addEventListener(`click`, async evt => {
     const contentEl = dlgHelp.querySelector(`section`);
+    if (!contentEl) return;
     dlgHelp.showModal();
     try {
       let resp = await fetch(`README.md`);
@@ -163,27 +167,38 @@ const setup = () => {
       contentEl.innerHTML = `Could not load help :/`;
     }
   });
-  document.getElementById(`btnHelpClose`).addEventListener(`click`, evt => {
+  document.getElementById(`btnHelpClose`)?.addEventListener(`click`, evt => {
     dlgHelp.close();
   });
 
-  document.getElementById(`btnFreeze`).addEventListener(`click`, () => {
-    state.frozen = !state.frozen;
+  document.getElementById(`btnFreeze`)?.addEventListener(`click`, () => {
+    updateState({ frozen: !state.frozen });
   });
-  document.getElementById(`btnSend`).addEventListener(`click`, send);
-  document.getElementById(`txtCode`).addEventListener(`keyup`, evt => {
+  document.getElementById(`btnSend`)?.addEventListener(`click`, send);
+  document.getElementById(`txtCode`)?.addEventListener(`keyup`, evt => {
     if (evt.key === `Enter` && evt.ctrlKey) {
       send();
     }
   });
 
 
-  document.getElementById(`btnConnect`).addEventListener(`click`, connect);
+  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
   onConnected(false);
 
   logWelcome();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}
 
 // Test
 /*

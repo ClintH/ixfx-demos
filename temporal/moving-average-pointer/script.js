@@ -10,10 +10,10 @@ const settings = Object.freeze({
   avgY: movingAverage(100),
 });
 
-let state = {
+let state = Object.freeze({
   avg: { x: 0, y: 0 },
   pointer: { x: 0, y: 0 }
-};
+});
 
 const update = () => {
   const { pointer } = state;
@@ -90,9 +90,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

@@ -25,12 +25,14 @@ const settings = Object.freeze({
   lblDifferences: document.querySelector(`#lblDifferences`)
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   fps: 0,
   lastFrame: new Uint8ClampedArray(), // Empty array
   visFrame: new ImageData(1, 1), // Dummy image data
+  /** @type {number} */
   differences: 0
-};
+});
 
 /**
  * Update labels based on state
@@ -130,17 +132,6 @@ const update = (frame) => {
 };
 
 /**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Get array indexes for pixel at x,y. This is four indexes,
  * for R, G, B and A.
  * @param {number} width Width of frame
@@ -215,3 +206,14 @@ const setup = () => {
   });
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

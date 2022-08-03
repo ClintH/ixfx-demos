@@ -20,18 +20,22 @@ const settings = Object.freeze({
 });
 
 // Initialise state with empty values
-let state = {
+let state = Object.freeze({
   // Multiplier for orbit speed
+  /** @type {number} */
   orbitSpeedFactor: 1,
   // Current angle (radians)
+  /** @type {number} */
   angle: 0,
   // Current distance
+  /** @type {number} */
   distance: 0,
   // Width or height of viewport, whichever is smaller
+  /** @type {number} */
   minDimension: 0,
   // Will be set to size of screen
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } }
-};
+});
 
 // Update state of world
 const onTick = () => {
@@ -107,7 +111,7 @@ const setup = () => {
     const el = /** @type {HTMLInputElement}*/(evt.target);
     
     // Range slider is 0-500, normalise to 0..1
-    state.orbitSpeedFactor = parseInt(el.value) / 500;
+    updateState({ orbitSpeedFactor: parseInt(el.value) / 500 });
   });
 };
 setup();
@@ -116,9 +120,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

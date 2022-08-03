@@ -5,6 +5,7 @@
 import { movingAverage } from '../../ixfx/data.js';
 import { AudioAnalysers } from '../../ixfx/io.js';
 import { clamp, flip } from '../../ixfx/data.js';
+import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
   // Calculate an average over 100 samples
@@ -12,10 +13,12 @@ const settings = Object.freeze({
 });
 
 // Initial state
-let state = {
+let state = Object.freeze({
+  /** @type number */
   avgLevel: 0,
+  /** @type number */
   rawLevel: 0
-};
+});
 
 /**
  * Convert a number on 0...1 scale to a human-friendly percentage
@@ -88,6 +91,8 @@ const onData = (level) => {
  * Setup sketch
  */
 const setup = () => {
+  // Show unexpected errors on the page to help debugger;
+  defaultErrorHandler();
   document.getElementById(`btnStart`)?.addEventListener(`click`, () => {
     // Initialise analyser. 
     // Analyser runs in a loop, calling `onData` very fast. 
@@ -104,9 +109,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

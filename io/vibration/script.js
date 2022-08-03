@@ -24,12 +24,12 @@ const settings = Object.freeze({
   restMs: 10
 });
 
-let state = {
+let state = Object.freeze({
   env: null,
   // Array to sample envelope into
   /** @type {readonly number[]} */
   envData: []
-};
+});
 
 /**
  * Handle a pointer down
@@ -94,14 +94,13 @@ const setup = async () => {
   });
 };
 setup();
-
 /**
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

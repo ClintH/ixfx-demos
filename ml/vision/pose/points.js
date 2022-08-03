@@ -20,7 +20,7 @@ const settings = Object.freeze({
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
 });
 
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
@@ -30,7 +30,7 @@ let state = {
   poses: [],
   /** @type {Pose|undefined} */
   smoothedPose: undefined
-};
+});
 
 /**
  * Received poses
@@ -50,17 +50,6 @@ const onPoses = (poses) => {
     poses,
     smoothedPose: smoothPose(smoothingAmt, state.smoothedPose, poses[0])
   });
-};
-
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
 };
 
 
@@ -226,6 +215,16 @@ const setup = async () => {
 };
 setup();
 
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}
 /**
  * @typedef { import("../common-source").Keypoint } Keypoint
  * @typedef { import("../common-source").Box } Box

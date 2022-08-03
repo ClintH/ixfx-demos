@@ -25,7 +25,7 @@ const settings = Object.freeze({
 });
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
@@ -35,8 +35,9 @@ let state = {
   lineStart: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } },
   lineEnd: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } },
   // Current rotation in radians
+  /** @type {number} */
   rotation: 0
-};
+});
 
 // Update state of world
 const update = () => {
@@ -145,9 +146,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

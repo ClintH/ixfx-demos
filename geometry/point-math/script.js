@@ -1,7 +1,8 @@
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   angleDeg: 0,
   bounds: {
     width: 0,
@@ -15,9 +16,10 @@ let state = {
     x: Math.random(),
     y: Math.random()
   },
+  /** @type {number} */
   distance: 0,
   pointer: { x: 0, y: 0 }
-};
+});
 
 // Update state of world
 const onTick = () => {
@@ -113,9 +115,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

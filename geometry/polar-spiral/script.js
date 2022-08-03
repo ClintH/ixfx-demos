@@ -14,11 +14,13 @@ const settings = Object.freeze({
   steps: 1000
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   slow: 0,
+  /** @type {number} */
   fast: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } }
-};
+});
 
 // Update state of world
 const onTick = () => {
@@ -101,9 +103,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

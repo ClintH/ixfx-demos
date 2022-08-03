@@ -14,11 +14,13 @@ const settings = Object.freeze({
   radiusViewProportion: 0.45 /* 45% keeps it within screen */,
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   pingPong: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
+  /** @type {number} */
   radius: 0
-};
+});
 
 // Update state of world
 const update = () => {
@@ -144,10 +146,10 @@ function getGradient (ctx, inner, bounds) {
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
 

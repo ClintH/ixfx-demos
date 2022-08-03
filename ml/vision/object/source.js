@@ -57,7 +57,7 @@ const settings = Object.freeze({
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
 });
 
-let state = {
+let state = Object.freeze({
   /** @type {CommonSource.ObjectDetector|undefined} */
   detector:undefined,
   frameSize: { width: 0, height: 0 },
@@ -68,7 +68,7 @@ let state = {
   sourceReadMs: 10,
   greatestNumberOfPredictions: 0,
   classHues: new Map()
-};
+});
 
 /**
  * Gets a hue for a given class.
@@ -141,16 +141,6 @@ const handlePredictions = (predictions, frameRect) => {
   CommonSource.onRecordData(predictions, frameRect);
 };
 
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 /**
  * Received data via playback
@@ -263,4 +253,15 @@ function getNumberParam(name, defaultValue) {
   const v = searchParams.get(name);
   if (v === null) return defaultValue;
   return parseInt(v);
+}
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
 }

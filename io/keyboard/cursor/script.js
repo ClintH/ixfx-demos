@@ -10,12 +10,16 @@ const settings = Object.freeze({
   pixelSteps: 1
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {boolean} */
   up: false,
+  /** @type {boolean} */
   down: false,
+  /** @type {boolean} */
   left: false,
+  /** @type {boolean} */
   right: false
-};
+});
 
 /**
  * Key is bring pressed
@@ -117,9 +121,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

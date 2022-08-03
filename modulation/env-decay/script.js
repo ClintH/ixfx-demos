@@ -14,12 +14,16 @@ const settings = Object.freeze({
 });
 
 // Initialise state
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   scaled: 0, 
+  /** @type {string} */
   stage: ``, 
+  /** @type {number} */
   raw: 0,
+  /** @type {boolean} */
   triggered: false
-};
+});
 
 // Update state - this is called repeatedly via settings.run
 function onTick() {
@@ -118,9 +122,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

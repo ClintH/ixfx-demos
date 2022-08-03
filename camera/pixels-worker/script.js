@@ -28,8 +28,10 @@ const settings = Object.freeze({
 /**
  * Define state
  */
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   fps: 0,
+  /** @type {number} */
   differences: 0,
   diffVu: ``
 };
@@ -78,17 +80,6 @@ const startVideo = async () => {
 };
 
 /**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
-/**
  * Returns a human-friendly percentage string
  * @param {number} v 
  * @returns 
@@ -125,3 +116,14 @@ const setup = () => {
   });
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+ function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

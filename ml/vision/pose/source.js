@@ -67,7 +67,7 @@ const settings = Object.freeze({
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
 });
 
-let state = {
+let state = Object.freeze({
   /**
    * Instantiated detector
    */
@@ -87,7 +87,7 @@ let state = {
    * How quickly to read from source (ms)
    */
   sourceReadMs: 10,
-};
+});
 
 /**
  * Called by CommonSource when there is a new image to process
@@ -140,18 +140,6 @@ const handlePoses = (poses, frameRect) => {
   // Pass data down to be used by recorder, if active
   CommonSource.onRecordData(poses, frameRect);
 };
-
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 
 /**
  * Received data via playback
@@ -328,3 +316,13 @@ const setup = async () => {
 };
 setup();
 
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

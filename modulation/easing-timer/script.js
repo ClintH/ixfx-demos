@@ -8,10 +8,12 @@ const settings = Object.freeze({
   easing: Easings.time(`sineIn`, 1000)
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   amt: 0,
+  /** @type {boolean} */
   isDone: false,
-};
+});
 
 // Update state with value from easing
 const onTick = () => {
@@ -80,9 +82,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

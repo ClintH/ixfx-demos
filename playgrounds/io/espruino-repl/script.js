@@ -16,14 +16,16 @@ const settings = Object.freeze({
     reverse: true
   }),
   
-  txtInput: /** @type {HTMLInputElement|null} */(document.getElementById(`txtInput`))
+  txtInput: /** @type {HTMLInputElement} */(document.getElementById(`txtInput`))
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {Espruino.EspruinoDevice|undefined} */
   espruino: undefined,
   history: stackMutable(),
+  /** @type {number} */
   historyIndex: 0
-};
+});
 
 const inputSel = () => {
   const { txtInput } = settings;
@@ -42,15 +44,15 @@ const setDisconnected = (disconnected) => {
   if (disconnected) {
     document.body.classList.add(`disconnected`);
     txtInput.setAttribute(`disabled`, `true`);
-    document.getElementById(`btnSend`).setAttribute(`disabled`, `true`);
-    document.getElementById(`btnConnect`).removeAttribute(`disabled`);
-    document.getElementById(`btnDisconnect`).setAttribute(`disabled`, `true`);
+    document.getElementById(`btnSend`)?.setAttribute(`disabled`, `true`);
+    document.getElementById(`btnConnect`)?.removeAttribute(`disabled`);
+    document.getElementById(`btnDisconnect`)?.setAttribute(`disabled`, `true`);
   } else {
     document.body.classList.remove(`disconnected`);
     txtInput.removeAttribute(`disabled`);
-    document.getElementById(`btnSend`).removeAttribute(`disabled`);
-    document.getElementById(`btnConnect`).setAttribute(`disabled`, `true`);
-    document.getElementById(`btnDisconnect`).removeAttribute(`disabled`);
+    document.getElementById(`btnSend`)?.removeAttribute(`disabled`);
+    document.getElementById(`btnConnect`)?.setAttribute(`disabled`, `true`);
+    document.getElementById(`btnDisconnect`)?.removeAttribute(`disabled`);
     inputSel();
   }
 };
@@ -65,23 +67,22 @@ const send = async (what) => {
 
   // Only add to history if it's different
   if (history.peek !== what) history.push(what);
-  state = {
-    ...state,
+  updateState({
     history,
     historyIndex: history.data.length - 1
-  };
-  log.log(`> ${what}`).classList.add(`sent`);
+  });
+  log.log(`> ${what}`)?.classList.add(`sent`);
 
   try {
     const result = await espruino.eval(what, { timeoutMs: 1000, assumeExclusive: true });
-    log.log(`< ${result}`).classList.add(`recv`);
+    log.log(`< ${result}`)?.classList.add(`recv`);
   } catch (ex) {
     log.error(ex);
   }
   inputSel();
 };
 
-document.getElementById(`btnDemo`).addEventListener(`click`, async () => {
+document.getElementById(`btnDemo`)?.addEventListener(`click`, async () => {
   const { log } = settings;
   const { espruino } = state;
   const demos = `
@@ -116,27 +117,26 @@ document.getElementById(`btnDemo`).addEventListener(`click`, async () => {
   }, connected ? 1000 : 400);
 });
 
-document.getElementById(`btnSend`).addEventListener(`click`, () => send());
+document.getElementById(`btnSend`)?.addEventListener(`click`, () => send());
 
-document.getElementById(`btnDisconnect`).addEventListener(`click`, () => {
+document.getElementById(`btnDisconnect`)?.addEventListener(`click`, () => {
   const { espruino } = state;
   if (espruino === undefined) return;
   espruino.disconnect();
 });
 
-document.getElementById(`btnConnect`).addEventListener(`click`, async () => {
+document.getElementById(`btnConnect`)?.addEventListener(`click`, async () => {
   const { log } = settings;
 
   try {
     // Connect to a generic Espruino
     const espruino = await Espruino.connect();
-    state = {
-      ...state,
+    updateState({
       espruino
-    };
+    });
 
     espruino.addEventListener(`change`, e => {
-      log.log(`State: ${e.newState}`).classList.add(`meta`);
+      log.log(`State: ${e.newState}`)?.classList.add(`meta`);
       if (e.newState === `connected`) {
         setDisconnected(false);
       } else {
@@ -162,7 +162,7 @@ const setup = () => {
       } else if (evt.key === `ArrowDown`) {
         historyIndex = Math.min(history.data.length - 1, historyIndex + 1);
       }
-      state = { ...state, historyIndex };
+      updateState({ historyIndex });
       console.log(historyIndex + `. ` + history.data[historyIndex]);
       inputSet(history.data[historyIndex]);
       evt.preventDefault();
@@ -173,3 +173,14 @@ const setup = () => {
   });
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

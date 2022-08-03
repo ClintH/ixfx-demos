@@ -1,5 +1,5 @@
-/// <reference types="web-bluetooth" />
-/// <reference types="w3c-web-serial" />
+/// <reference types="@types/web-bluetooth" />
+/// <reference types="@types/w3c-web-serial" />
 declare module "Guards" {
     export type NumberGuardRange = 
     /**
@@ -6331,6 +6331,7 @@ declare module "io/EspruinoSerialDevice" {
         evalTimeoutMs: number;
         evalReplyBluetooth: boolean;
         constructor(opts?: EspruinoSerialDeviceOpts);
+        disconnect(): void;
         /**
          * Writes a script to Espruino.
          *
@@ -6447,6 +6448,8 @@ declare module "io/Espruino" {
     export const connectBle: () => Promise<EspruinoBleDevice>;
     export interface EspruinoDevice extends ISimpleEventEmitter<Events> {
         write(m: string): void;
+        writeScript(code: string): void;
+        disconnect(): void;
         get evalTimeoutMs(): number;
     }
     export const deviceEval: (code: string, opts: EvalOpts | undefined, device: EspruinoDevice, evalReplyPrefix: string, debug: boolean, warn: (m: string) => void) => Promise<string>;
@@ -9590,16 +9593,23 @@ declare module "modulation/Forces" {
      */
     export const apply: (t: ForceAffected, ...accelForces: readonly ForceKind[]) => ForceAffected;
     /**
-     * Apples vector `v` to acceleration, scaling according to mass, based on the `mass` option.
+     * Apples `vector` to acceleration, scaling according to mass, based on the `mass` option.
+     * It returns a function which can later be applied to a thing.
+     *
      * ```js
+     * // Acceleration vector of (0.1, 0), ie moving straight on horizontal axis
      * const f = accelerationForce({ x:0.1, y:0 }, `dampen`);
+     *
+     * // Thing to move
      * let t = { position: ..., acceleration: ... }
-     * t = f(t); // Apply force
+     *
+     * // Apply force
+     * t = f(t);
      * ```
-     * @param v
-     * @returns
+     * @param vector
+     * @returns Force function
      */
-    export const accelerationForce: (v: Points.Point, mass: MassApplication) => ForceFn;
+    export const accelerationForce: (vector: Points.Point, mass: MassApplication) => ForceFn;
     /**
      * A force based on the square of the thing's velocity.
      * It's like {@link velocityForce}, but here the velocity has a bigger impact.
@@ -9634,6 +9644,11 @@ declare module "modulation/Forces" {
      * @returns Function that computes force
      */
     export const velocityForce: (force: number, mass: MassApplication) => ForceFn;
+    /**
+     * Sets angle, angularVelocity and angularAcceleration based on
+     *  angularAcceleration, angularVelocity, angle
+     * @returns
+     */
     export const angularForce: () => (t: ForceAffected) => Readonly<{
         angle: number;
         angularVelocity: number;
@@ -9672,8 +9687,87 @@ declare module "modulation/Forces" {
         angularAcceleration?: number | undefined;
         angularVelocity?: number | undefined;
     }>;
-    export const springForce: (pinnedAt: Points.Point, restingLength?: number) => (t: ForceAffected) => ForceAffected;
-    export const pendulumForce: (pinnedAt?: Points.Point, length?: number, gravity?: number, damping?: number) => (t: ForceAffected) => ForceAffected;
+    /**
+     * Spring force
+     *
+     *  * ```js
+     * // End of spring that moves
+     * let thing = {
+     *   position: { x: 1, y: 0.5 },
+     *   mass: 0.1
+     * };
+     *
+     * // Anchored other end of spring
+     * const pinnedAt = {x: 0.5, y: 0.5};
+     *
+     * // Create force: length of 0.4
+     * const springForce = Forces.springForce(pinnedAt, 0.4);
+     *
+     * continuously(() => {
+     *  // Apply force
+     *  thing = Forces.apply(thing, springForce);
+     * }).start();
+     * ```
+     * [Read more](https://www.joshwcomeau.com/animation/a-friendly-introduction-to-spring-physics/)
+     *
+     * @param pinnedAt Anchored end of the spring
+     * @param restingLength Length of spring-at-rest (default: 0.5)
+     * @param k Spring stiffness (default: 0.0002)
+     * @param damping Damping factor to apply, so spring slows over time. (default: 0.995)
+     * @returns
+     */
+    export const springForce: (pinnedAt: Points.Point, restingLength?: number, k?: number, damping?: number) => (t: ForceAffected) => ForceAffected;
+    /**
+     * Pendulum force options
+     */
+    export type PendulumOpts = {
+        /**
+         * Length of 'string' thing is hanging from. If
+         * undefined, the current length between thing and
+         * pinnedAt is used.
+         */
+        readonly length?: number;
+        /**
+         * Max speed of swing. Slower speed can reach equilibrium faster, since it
+         * might not swing past resting point.
+         * Default 0.001.
+         */
+        readonly speed?: number;
+        /**
+         * Damping, how much to reduce velocity. Default 0.995 (ie 0.5% loss)
+         */
+        readonly damping?: number;
+    };
+    /**
+     * The pendulum force swings something back and forth.
+     *
+     * ```js
+     * // Swinger
+     * let thing = {
+     *   position: { x: 1, y: 0.5 },
+     *   mass: 0.1
+     * };
+     *
+     * // Position thing swings from (middle of screen)
+     * const pinnedAt = {x: 0.5, y: 0.5};
+     *
+     * // Create force: length of 0.4
+     * const pendulumForce = Forces.pendulumForce(pinnedAt, { length: 0.4 });
+     *
+     * continuously(() => {
+     *  // Apply force
+     *  // Returns a new thing with recalculated angularVelocity, angle and position.
+     *  thing = Forces.apply(thing, pendulumForce);
+     * }).start();
+     * ```
+     *
+     * [Read more](https://natureofcode.com/book/chapter-3-oscillation/)
+     *
+     * @param pinnedAt Location to swing from (x:0.5, y:0.5 default)
+     * @param opts Options
+     * @returns
+     */
+    export const pendulumForce: (pinnedAt?: Points.Point, opts?: PendulumOpts) => (t: ForceAffected) => ForceAffected;
     /**
      * Compute velocity based on acceleration and current velocity
      * @param acceleration Acceleration
@@ -9682,16 +9776,67 @@ declare module "modulation/Forces" {
      */
     export const computeVelocity: (acceleration: Points.Point, velocity: Points.Point) => Points.Point;
     /**
-     * Compute position based on current position and velocity
-     * @param position Position
-     * @param velocity Velocity
-     * @returns New position
+     * Compute a new position based on existing position and velocity vector
+     * @param position Position Current position
+     * @param velocity Velocity vector
+     * @returns Point
      */
     export const computePositionFromVelocity: (position: Points.Point, velocity: Points.Point) => Points.Point;
-    export const computePositionFromAngle: (distance: number, angle: number, origin: Points.Point) => Points.Point;
+    /**
+     * Compute a position based on distance and angle from origin
+     * @param distance Distance from origin
+     * @param angleRadians Angle, in radians from origin
+     * @param origin Origin point
+     * @returns Point
+     */
+    export const computePositionFromAngle: (distance: number, angleRadians: number, origin: Points.Point) => Points.Point;
 }
 declare module "modulation/Oscillator" {
     import * as Timers from "flow/Timer";
+    export type SpringOpts = {
+        /**
+         * Default: 1
+         */
+        readonly mass?: number;
+        /**
+         * Default: 10
+         */
+        readonly damping?: number;
+        /**
+         * Default: 100
+         */
+        readonly stiffness?: number;
+        /**
+         * Default: false
+         */
+        readonly soft?: boolean;
+        readonly velocity?: number;
+    };
+    /**
+     * Spring-style oscillation
+     *
+     * ```js
+     * const spring = Oscillators.spring();
+     *
+     * continuously(() => {
+     *  const v = spring.next().value;
+     *  // Yields values 0...1
+     *  //  undefined is yielded when spring is estimated to have stopped
+     * });
+     * ```
+     *
+     * Parameters to the spring can be provided.
+     * ```js
+     * const spring = Oscillators.spring({
+     *  mass: 5,
+     *  damping: 10
+     *  stiffness: 100
+     * });
+     * ```
+     * @param opts
+     * @param timerOrFreq
+     */
+    export function spring(opts: SpringOpts | undefined, timerOrFreq: Timers.Timer | undefined): Generator<number, void, unknown>;
     /**
      * Sine oscillator.
      *
@@ -11509,14 +11654,13 @@ declare module "visual/Colour" {
      * // Generate hue and assign as part of a HSL string
      * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
      * ```
-     *
-     *
      * @param rand
      * @returns
      */
     export const randomHue: (rand?: RandomSource) => number;
     /**
      * Parses colour to `{ r, g, b }`. `opacity` field is added if it exists on source.
+     * [Named colours](https://html-color-codes.info/color-names/)
      * @param colour
      * @returns
      */
@@ -11539,6 +11683,8 @@ declare module "visual/Colour" {
      * opacity(`hsla(200,100%,50%,50%`, 0.5);
      * // eg: `hsla(200,100%,50%,25%)`
      * ```
+     *
+     * [Named colours](https://html-color-codes.info/color-names/)
      * @param colour A valid CSS colour
      * @param amt Amount to multiply opacity by
      * @returns String representation of colour
@@ -11557,7 +11703,7 @@ declare module "visual/Colour" {
      */
     export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
     /**
-     * Interpolates between two colours, returning a string
+     * Interpolates between two colours, returning a string in the form `rgb(r,g,b)`
      *
      * @example
      * ```js
@@ -11567,11 +11713,13 @@ declare module "visual/Colour" {
      * // Get midway point, with specified colour space
      * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
      * ```
+     *
+     * [Named colours](https://html-color-codes.info/color-names/)
      * @param amount Amount (0 = from, 0.5 halfway, 1= to)
      * @param from Starting colour
      * @param to Final colour
      * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
-     * @returns String representation of colour, eg. `rgb(x,x,x)`
+     * @returns String representation of colour, eg. `rgb(r,g,b)`
      */
     export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
     /**

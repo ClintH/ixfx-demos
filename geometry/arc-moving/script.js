@@ -12,10 +12,10 @@ const settings = Object.freeze({
   movedEl: document.getElementById(`moved`)
 });
 
-let state = {
+let state = Object.freeze({
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   coord: { x: 0, y:0 }
-};
+});
 
 // Update state of world
 const update = () => {
@@ -97,9 +97,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

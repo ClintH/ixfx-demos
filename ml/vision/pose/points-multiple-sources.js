@@ -23,7 +23,7 @@ const settings = Object.freeze({
  * @property {Pose[]} poses
  */
 
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
@@ -31,7 +31,7 @@ let state = {
   },
   /** @type {Map<string,SourceData>} */
   data: new Map(),
-};
+});
 
 /**
  * Received poses
@@ -54,18 +54,6 @@ const onPoses = (poses, from) => {
     hue
   });
 };
-
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 
 /**
  * Draw a pose
@@ -213,6 +201,17 @@ const setup = async () => {
   }, 10000);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}
 
 /**
  * @typedef { import("../common-source").Keypoint } Keypoint

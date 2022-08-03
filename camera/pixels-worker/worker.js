@@ -17,9 +17,9 @@ const settings = Object.freeze({
 /**
  * Define state
  */
-let state = {
+let state = Object.freeze({
   lastFrame: new Uint8ClampedArray()
-};
+});
 
 /**
  * Process image data
@@ -75,21 +75,10 @@ const processFrame = (frame) => {
   });
 };
 
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 // Returns pixel indexes for rgba values at x,y
 const rgbaIndexes = (width, x, y) => {
   const p = y * (width * 4) + x * 4;
-  return [p, p + 1, p + 2, p + 3];
+  return [ p, p + 1, p + 2, p + 3 ];
 };
 
 // Get the pixel values for a set of indexes
@@ -118,3 +107,14 @@ const setup = () => {
   });
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

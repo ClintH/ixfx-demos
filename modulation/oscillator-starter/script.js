@@ -5,9 +5,10 @@ const settings = Object.freeze({
   osc: Oscillators.sine(frequencyTimer(0.1))
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   oscValue: 0
-};
+});
 
 const onTick = () => {
   const { osc } = settings;
@@ -43,9 +44,9 @@ window.requestAnimationFrame(loop);
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

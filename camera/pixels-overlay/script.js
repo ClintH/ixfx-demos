@@ -32,11 +32,13 @@ const settings = Object.freeze({
 /**
  * Define state
  */
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   fps: 0,
   lastFrame: new Uint8ClampedArray(),
+  /** @type {number} */
   differences: 0
-};
+});
 
 /**
  * Uses calculated state to update labels
@@ -114,16 +116,7 @@ const update = (frame, ctx) => {
   });
 };
 
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
+
 
 /**
  * Get array indexes for pixel at x,y. This is four indexes,
@@ -206,3 +199,14 @@ const setup = () => {
 };
 
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

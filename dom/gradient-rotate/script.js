@@ -16,12 +16,13 @@ const settings = Object.freeze({
   offsetRange: Generators.numericRange(1, 0, 359, true)
 });
 
-let state = {
+let state = Object.freeze({
   // Current hue offset
+  /** @type {number} */
   offset: 0,
   // Set to hues in setup
   hues: [ 0, 1, 2 ], // Dummy values to start
-};
+});
 
 // Assigns gradients to body, based on settings and state
 const useState = () => {
@@ -49,16 +50,6 @@ const update = () => {
   });
 };
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 // Setup
 const setup = () => {
@@ -73,3 +64,14 @@ const setup = () => {
   }).start();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

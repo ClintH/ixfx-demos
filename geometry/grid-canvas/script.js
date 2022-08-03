@@ -19,11 +19,12 @@ const settings = Object.freeze({
   modulators: new Map()
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   cellSize: 10,
   modValues: new Map(),
   pointer: { x: -1, y: -1 }
-};
+});
 
 const keyForCell = (cell) => cell.x + `-` + cell.y;
 
@@ -198,9 +199,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

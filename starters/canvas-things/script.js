@@ -30,16 +30,17 @@ const settings = Object.freeze({
 });
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
     center: { x: 0, y: 0 }
   },
+  /** @type number */
   ticks: 0,
   /** @type Thing[] */
   things: []
-};
+});
 
 /**
  * Adds a thing.
@@ -193,10 +194,9 @@ const setup = () => {
   // Keep our primary canvas full size
   if (canvasEl) {
     Dom.fullSizeCanvas(canvasEl, args => {
-      state = {
-        ...state,
+      updateState({
         bounds: args.bounds
-      };
+      });
     });
   }
 
@@ -221,8 +221,8 @@ setup();
  * @param {Partial<state>} s 
  */
 function updateState (s) {
-  state = {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

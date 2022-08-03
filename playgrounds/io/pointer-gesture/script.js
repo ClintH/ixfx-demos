@@ -10,8 +10,8 @@ const settings = Object.freeze({
   thingSize: 100
 });
 
-let state = {
-  /** @type PointsTracker */
+let state = Object.freeze({
+  /** @type {PointsTracker} */
   pointers: pointsTracker({ trackIntermediatePoints: false }),
   twoFinger: {
     rotation: numberTracker(),
@@ -22,8 +22,7 @@ let state = {
   },
   centroid: pointTracker(),
   centroidAngle: 0
-};
-
+});
 
 const gestureTwoFinger = (a, b) => {
   if (a === undefined) throw new Error(`point a undefined`);
@@ -195,3 +194,14 @@ const setup = () => {
   document.addEventListener(`contextmenu`, ev => ev.preventDefault());
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

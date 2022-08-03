@@ -19,7 +19,7 @@ const settings = Object.freeze({
   radiusMax: 10
 });
 
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
@@ -28,7 +28,7 @@ let state = {
   // Generate 100 random points
   // with x,y and radius on 0..1 scale
   points: repeat(100, randomPoint)
-};
+});
 
 const useState = () => {
   const { points } = state;
@@ -146,9 +146,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

@@ -61,20 +61,20 @@ const settings = Object.freeze({
   durationLimit: 500,
   selEffectsEl: document.getElementById(`selEffects`),
   seqArrayEl: document.getElementById(`seqArray`),
-  txtEnvEl: document.getElementById(`txtEnv`),
+  txtEnvEl: /** @type {HTMLInputElement|null} */(document.getElementById(`txtEnv`)),
   envArraysEl: document.getElementById(`envArrays`),
   numEnvResolutionEl: document.getElementById(`numEnvResolution`),
-  btnEnvSendEl: document.getElementById(`btnEnvSend`)
+  btnEnvSendEl: /** @type {HTMLButtonElement|null} */(document.getElementById(`btnEnvSend`))
 });
 
 // Keep track of Espruino instance
-let state = {
+let state = Object.freeze({
+  /** @type {Espruino.EspruinoDevice|null} */
   espruino: null
-};
+});
 
 const setupTrigger = () => {
   const { effects, selEffectsEl } = settings;
-
   const selEffects = Forms.select(selEffectsEl, (newValue) => {
     console.log(newValue);
   });
@@ -164,7 +164,7 @@ const setupEnvelope = () => {
     const sampleRate = parseInt(numEnvResolutionEl.value);
 
     try {
-      const o = eval(`(${txtEnv.value.trim()})`);
+      const o = eval(`(${txtEnvEl.value.trim()})`);
       console.log(o);
       o.shouldLoop = false;
 
@@ -277,3 +277,14 @@ const setup = () => {
   setupEnvelope();
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

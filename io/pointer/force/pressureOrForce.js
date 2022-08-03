@@ -27,7 +27,7 @@ export function pressureOrForce(el, onChange, opts = {}) {
   const webkitForceMin = opts.webkitForceMin ?? 1;
 
   /** @type {PressureForceState} */
-  let state ={
+  let elState = {
     webkitForce: 0,
     normalised: 0,
     pointerPressure: 0
@@ -40,11 +40,11 @@ export function pressureOrForce(el, onChange, opts = {}) {
    * @param {PressureForceState} s 
    */
   const updateElState = (s) => {
-    state = {
-      ...state,
+    elState = {
+      ...elState,
       ...s
     };
-    onChange(state);
+    onChange(elState);
   };
 
   const updateWebkitForce = (evt) => {
@@ -73,7 +73,7 @@ export function pressureOrForce(el, onChange, opts = {}) {
       if (seenWebkitForce && evt.pointerType === `mouse`) {
       // Don't trample on normalised value if it seems we have Webkit force events instead
         updateElState({ 
-          normalised: state.normalised,
+          normalised: elState.normalised,
           pointerPressure: evt.pressure
         });
       } else {

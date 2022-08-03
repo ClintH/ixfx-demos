@@ -20,10 +20,10 @@ const settings = Object.freeze({
   NRF.on('disconnect',()=>reset());`
 });
 
-let state = {
+let state = Object.freeze({
   acc: { x: 0, y: 0, z: 0 },
   gyro: { x: 0, y: 0, z: 0 }
-};
+});
 
 const useState = () => {
   const { acc, gyro } = state;
@@ -92,19 +92,20 @@ const setup = () => {
 };
 setup();
 
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-function updateState(s) {
-  state = {
-    ...state,
-    ...s
-  };
-}
 
 function setCssDisplay(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
   el.style.display = value;
+}
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
 }

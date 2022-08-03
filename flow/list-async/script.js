@@ -19,10 +19,10 @@ const settings = Object.freeze({
   })
 });
 
-let state = {
+let state = Object.freeze({
   // Eg: limit stack to 10 items
   toProcess: Stacks.stack({ capacity: 10 })
-};
+});
 
 const processor = continuously(() => {
   // Keeps looping until we've done everything in backlog
@@ -46,10 +46,9 @@ const processor = continuously(() => {
 // Adds item to stack
 const process = (item) => {
   const { toProcess } = state;
-  state = {
-    ...state,
+  updateState({
     toProcess: toProcess.push(item)
-  };
+  });
 
   // Start if it's not already running
   processor.start();
@@ -70,9 +69,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-const updateState = (s) => {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
-};
+  });
+}

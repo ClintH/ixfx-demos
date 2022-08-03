@@ -7,9 +7,9 @@ const settings = Object.freeze({
   serial: new Serial.Device({ name: `Arduino`, debug: true })
 });
 
-let state = {
+let state = Object.freeze({
   data: { brightness: 0 }
-};
+});
 
 const connect = async () => {
   const { serial } = settings;
@@ -72,9 +72,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

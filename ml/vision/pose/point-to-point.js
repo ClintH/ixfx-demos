@@ -7,7 +7,7 @@ const settings = Object.freeze({
   remote: new Remote(),
 });
 
-let state = {
+let state = Object.freeze({
   /** @type {Pose[]} */
   poses: [],
   /** @type {number|undefined} */
@@ -18,18 +18,7 @@ let state = {
   headRotation: undefined,
   /** @type {number|undefined} */
   handToHip: undefined,
-};
-
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
+});
 
 /**
  * Received poses
@@ -219,6 +208,16 @@ const setup = async () => {
 };
 setup();
 
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}
 /**
  * @typedef { import("../common-source").Keypoint } Keypoint
  * @typedef { import("../common-source").Box } Box

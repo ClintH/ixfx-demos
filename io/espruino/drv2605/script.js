@@ -1,10 +1,10 @@
 import { Espruino } from '../../../ixfx/io.js';
 
 // Keep track of Espruino instance
-let state = {
+let state = Object.freeze({
   /** @type {Espruino.EspruinoSerialDevice|null} */
   espruino: null
-};
+});
 
 const setup = () => {
   // Hide or show UI depending on connection state
@@ -68,13 +68,12 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
-
 function setCssDisplay(id, value) {
   const el = document.getElementById(id);
   if (!el) return;

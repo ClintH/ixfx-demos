@@ -9,10 +9,11 @@ const settings = Object.freeze({
   script: `setInterval(()=>Bluetooth.println(E.getTemperature()), 5000);NRF.on('disconnect',()=>reset());`
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   temp: 0,
   pointer: { x: 0, y: 0 }
-};
+});
 
 const useState = () => {
   const { temp, pointer } = state;
@@ -92,11 +93,11 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
 
 function setCssDisplay(id, value) {

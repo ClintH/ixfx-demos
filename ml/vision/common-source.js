@@ -74,20 +74,27 @@ const settings = Object.freeze({
   videoOpacity: 0.5
 });
 
-let state = {
+let state = Object.freeze({
   frameSize: { width: 0, height: 0 },
+  /** @type {number} */
   sourceReadMs: 10,
+  /** @type {boolean} */
   freeze: false,
+  /** @type {boolean} */
   enableTextResults: true,
+  /** @type {boolean} */
   displaySource: true,
+  /** @type {boolean} */
   displayData: true,
+  /** @type {number} */
   lastListCount: 0,
+  /** @type {boolean} */
   uiVisible: true,
   /** @type {``|`recording`|`playing`} */
   recorder: ``,
   /** @type {Recording|undefined} */
   currentRecording: undefined
-};
+});
 
 /**
  * Runs in a loop via `continuously`
@@ -115,16 +122,6 @@ async function read() {
   settings.loop.intervalMs = Math.floor(elapsed * 1.1);
 }
 
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
 
 /**
  * Display HTML/text results
@@ -549,7 +546,7 @@ export const toggleUi = (enabled) => {
   uiElements.forEach(uiEl => {
     /** @type {HTMLElement} */(uiEl).style.display = enabled ? `block` : `none`;
   });
-  state.uiVisible = enabled;
+  updateState({ uiVisible:enabled });
   return enabled;
 };
 
@@ -630,7 +627,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   status(`Loading...`);
 
   btnFreeze?.addEventListener(`click`, evt => {
-    state.freeze = !state.freeze;
+    updateState({ freeze: !state.freeze });
     const el = evt?.target;
     if (el) /** @type {HTMLElement}*/(el).innerText = state.freeze ? `severe_cold` : `ac_unit`;
   });
@@ -640,7 +637,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   });
 
   chkSourceShow?.addEventListener(`change`, () => {
-    state.displaySource = !state.displaySource;
+    updateState({ displaySource: !state.displaySource });
 
     // If both are off, hide canvas entirely
     const showCanvas = state.displaySource || state.displayData;
@@ -648,7 +645,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   });
 
   chkDataShow?.addEventListener(`change`, () => {
-    state.displayData = /** @type {HTMLInputElement} */(chkDataShow).checked;
+    updateState({ displayData: /** @type {HTMLInputElement} */(chkDataShow).checked });
     if (dataEl) dataEl.style.display = state.displayData ? `block` : `none`;
   });
 
@@ -744,6 +741,17 @@ const setCamera = async (start) => {
 export const enableTextDisplayResults = (v) => {
   updateState({ enableTextResults: v });
 };
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}
 
 // https://github.com/tensorflow/tfjs-models/blob/676a0aa26f89c9864d73f4c7389ac7ec61e1b8a8/pose-detection/src/types.ts
 /**

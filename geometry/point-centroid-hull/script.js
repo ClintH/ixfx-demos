@@ -11,14 +11,14 @@ const settings = Object.freeze({
 });
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
   /** @type Points.Point[] */
   points: [],
   /** @type readonly Points.Point[] */
   convexHull: [],
   /** @type Points.Point */
   centroid: { x: 0, y: 0 }
-};
+});
 
 const update = () => {
   updateState({
@@ -101,9 +101,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

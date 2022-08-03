@@ -12,11 +12,16 @@ const settings = Object.freeze({
 });
 
 // Initial state with empty values
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   progression: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
-  arc: {}
-};
+  arc: {
+    radius: 0,
+    x: 0,
+    y: 0
+  }
+});
 
 /**
  * Fills the drawing context with a graadient fill
@@ -153,9 +158,9 @@ const bounds = (el) => {
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

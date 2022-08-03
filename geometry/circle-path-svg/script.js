@@ -14,13 +14,14 @@ const settings = Object.freeze({
   genLoop: Generators.numericPercent(0.001, true)
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   loop: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   pointer: { x: 0, y: 0 },
   /** @type {SVGPathElement|undefined} */
   circleEl: undefined
-};
+});
 
 // Update state of world
 const update = () => {
@@ -65,10 +66,9 @@ const setup = () => {
 
   // Resize SVG element to match viewport
   Dom.parentSize(svg, args => {
-    state = {
-      ...state,
+    updateState({
       bounds: windowBounds()
-    };
+    });
   });
 
   // Create an empty SVG path element for circle
@@ -78,7 +78,7 @@ const setup = () => {
     strokeWidth: 1
   });
   circleEl.id = `circlePath`;
-  state.circleEl = circleEl;
+  updateState({ circleEl });
 
   // Create text to go on path
   Svg.Elements.textPath(`#circlePath`, text, svg, {
@@ -107,9 +107,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

@@ -14,22 +14,22 @@ const settings = Object.freeze({
 });
 
 // State keeps track of viewport dimensions and elapsed 'ticks'
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
     center: { x: 0, y: 0 }
   },
+  /** @type number */
   ticks: 0
-};
+});
 
 // Update state of world
 const update = () => {
   const { ticks } = state;
-  state = {
-    ...state,
+  updateState({
     ticks: ticks + 1
-  };
+  });
 };
 
 // Example functions
@@ -202,9 +202,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

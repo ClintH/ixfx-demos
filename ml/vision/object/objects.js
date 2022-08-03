@@ -10,7 +10,7 @@ const settings = Object.freeze({
 
 });
 
-let state = {
+let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
@@ -20,7 +20,7 @@ let state = {
   /** @type {import("../common-source.js").ObjectPrediction[]} */
   predictions: [],
   classHues: new Map()
-};
+});
 
 /**
  * Received predictions
@@ -73,17 +73,6 @@ const drawPrediction = (p, ctx) => {
     rect.y+4);
 };
 
-/**
- * Updates state
- * @param {Partial<state>} s 
- */
-const updateState = (s) => {
-  state = {
-    ...state,
-    ...s
-  };
-};
-
 const useState = () => {
   const { labelFont } = settings;
   const { predictions } = state;
@@ -129,3 +118,14 @@ const setup = async () => {
   window.requestAnimationFrame(loop);
 };
 setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

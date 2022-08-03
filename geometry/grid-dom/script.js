@@ -12,9 +12,9 @@ const settings = Object.freeze({
 });
 
 // Initialise state
-let state = {
+let state = Object.freeze({
   lastClicked: { x: 0, y: 0 }
-};
+});
 
 /**
  * Returns a cell based on an HTML element that has data-x and data-y attributes set.
@@ -73,9 +73,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

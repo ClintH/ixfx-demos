@@ -5,16 +5,16 @@
  * It also demonstrates using `pointTracker` to track pointer movement
  * direction and use that to interactively change velocity.
  */
-import {Points} from '../../ixfx/geometry.js';
-import {continuously} from '../../ixfx/flow.js';
-import {pointTracker} from '../../ixfx/temporal.js';
+import { Points } from '../../ixfx/geometry.js';
+import { continuously } from '../../ixfx/flow.js';
+import { pointTracker } from '../../ixfx/data.js';
 
 // Define settings
 const settings = {
   thingEl: document.getElementById(`thing`)
 };
 
-let state = {
+let state = Object.freeze({
   // Assign random position (normalised 0..1 scale)
   position: Points.random(),
   // Random velocity on normalised 0..1 scale, and then reduced to lower speed
@@ -26,12 +26,12 @@ let state = {
     width: window.innerWidth,
     height: window.innerHeight
   }
-};
+});
 
 // Update state of world
 const update = () => {
   // Both position and velocity are normalised
-  const {position, velocity} = state;
+  const { position, velocity } = state;
 
   // Apply velocity to calculate a new position
   const posAfterVelocity = Points.sum(position, velocity);
@@ -42,18 +42,17 @@ const update = () => {
   const posAfterWrap = Points.wrap(posAfterVelocity);
 
   // Set to state
-  state = {
-    ...state,
+  updateState({
     position: posAfterWrap
-  };
+  });
 };
 
 /**
  * Position thing based on state
  */
 const draw = () => {
-  const {thingEl} = settings;
-  const {position, window} = state;
+  const { thingEl } = settings;
+  const { position, window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(position, window.width, window.height);
@@ -81,15 +80,17 @@ const setup = () => {
 
   // Update our tracking of window size if there's a resize
   window.addEventListener(`resize`, () => {
-    state.window = {
-      width: window.innerWidth,
-      height: window.innerHeight
-    }
+    updateState({ 
+      window: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      }
+    });
   });
 
   // On pointerup, assign a new velocity based on accumulated movement
   window.addEventListener(`pointerup`, (ev) => {
-    const {pointerMovement} = state;
+    const { pointerMovement } = state;
 
     // Get the last data from the pointTracker
     const nfo = pointerMovement.lastInfo;
@@ -98,7 +99,7 @@ const setup = () => {
     if (nfo !== undefined) {
       // Normalise the average movement, and divide by 200 to reduce the speed
       const avg = Points.divide(Points.normalise(nfo.average), 200);
-      state.velocity = avg;
+      updateState({ velocity: avg });
     }
 
     // Reset pointTracker
@@ -106,13 +107,24 @@ const setup = () => {
   });
 
   window.addEventListener(`pointermove`, (ev) => {
-    const {pointerMovement} = state;
+    const { pointerMovement } = state;
 
     // Exit if no there's no press
     if (ev.buttons === 0) return;
 
     // Track the movement amount
-    pointerMovement.seen({x: ev.movementX, y: ev.movementY});
+    pointerMovement.seen({ x: ev.movementX, y: ev.movementY });
+  });
+};
+setup();
+
+/**
+ * Update state
+ * @param {Partial<state>} s 
+ */
+function updateState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
   });
 }
-setup();

@@ -8,11 +8,11 @@ const settings = Object.freeze({
 });
 
 // Initial state
-let state = {
+let state = Object.freeze({
   x: 0,
   y: 0,
   sw: false
-};
+});
 
 const connect = async () => {
   const { serial } = settings;
@@ -80,9 +80,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }

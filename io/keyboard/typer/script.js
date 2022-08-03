@@ -14,9 +14,10 @@ const settings = Object.freeze({
   speedTracker: intervalTracker(`typing`, { resetAfterSamples:3 })
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   speed: 0
-};
+});
 
 const logKeyEvent = (evt, prefix = `key`) => console.log(`${prefix} code: ${evt.code} key: ${evt.key} alt: ${evt.altKey} ctrl: ${evt.ctrlKey} meta: ${evt.metaKey} shift: ${evt.shiftKey}`);
 
@@ -185,11 +186,11 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
 
 function setHtml(id, value) {

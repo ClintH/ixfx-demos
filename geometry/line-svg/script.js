@@ -13,11 +13,12 @@ const settings = Object.freeze({
   genPingPong: Generators.pingPongPercent(0.01)
 });
 
-let state = {
+let state = Object.freeze({
+  /** @type {number} */
   pingPong: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   pointers: {}
-};
+});
 
 // Update state of world
 const update = () => {
@@ -70,10 +71,9 @@ const updateSvg = () => {
 const setup = () => {
   // Resize SVG element to match viewport
   Dom.parentSize(`svg`, args => {
-    state = {
-      ...state,
+    updateState({
       bounds: windowBounds()
-    };
+    });
   });
 
   window.addEventListener(`touchmove`, ev => {
@@ -83,14 +83,14 @@ const setup = () => {
   window.addEventListener(`pointerdown`, ev => {
     const { pointers } = state;
     pointers[ev.pointerId] = { x: ev.offsetX, y: ev.offsetY };
-    state = { ...state, pointers };
+    updateState({ pointers });
     ev.preventDefault();
   });
 
   window.addEventListener(`pointerup`, ev => {
     const { pointers } = state;
     delete pointers[ev.pointerId];
-    state = { ...state, pointers };
+    updateState({ pointers });
     ev.preventDefault();
   });
 
@@ -100,7 +100,7 @@ const setup = () => {
     const { pointers } = state;
 
     pointers[ev.pointerId] = { x: ev.offsetX, y: ev.offsetY };
-    state = { ...state, pointers };
+    updateState({ pointers });
   });
 
   const loop = () => {
@@ -126,11 +126,10 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
-
 

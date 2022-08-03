@@ -16,14 +16,15 @@ const settings = Object.freeze({
 });
 
 // State
-let state = {
+let state = Object.freeze({
   // Track pointer locations
   pointers: pointsTracker(),
   // Track how the distance between two pointers changes
   twoFingerDistance: numberTracker(),
   // Current text scaling value
+  /** @type {number} */
   scale: 1
-};
+});
 
 /**
  * Called when the pointer moves
@@ -107,10 +108,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState(s) {
-  state = {
+function updateState (s) {
+  state = Object.freeze({
     ...state,
     ...s
-  };
+  });
 }
-
