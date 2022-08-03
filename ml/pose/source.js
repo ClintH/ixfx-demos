@@ -19,7 +19,7 @@
 
 // @ts-ignore
 import { Remote } from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
-import * as CommonSource from '../common-source.js';
+import * as CommonSource from '../common-vision-source.js';
 
 const searchParams = new URLSearchParams(window.location.search);
 

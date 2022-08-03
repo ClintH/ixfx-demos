@@ -1,6 +1,6 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import * as Dom from '../../../ixfx/dom.js';
+import * as Dom from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
   remote: new Remote(),
@@ -17,14 +17,14 @@ let state = Object.freeze({
     center: { x: 0, y: 0 }
   },
   ticks: 0,
-  /** @type {import("../common-source.js").ObjectPrediction[]} */
+  /** @type {import("../common-vision-source.js").ObjectPrediction[]} */
   predictions: [],
   classHues: new Map()
 });
 
 /**
  * Received predictions
- * @param {import("../common-source.js").ObjectPrediction[]} predictions 
+ * @param {import("../common-vision-source.js").ObjectPrediction[]} predictions 
  */
 const onPredictions = (predictions) => {
   console.log(predictions);
@@ -35,7 +35,7 @@ const onPredictions = (predictions) => {
 
 /**
  * Draw a prediction
- * @param {import("../common-source.js").ObjectPrediction} p 
+ * @param {import("../common-vision-source.js").ObjectPrediction} p 
  * @param {CanvasRenderingContext2D} ctx 
  */
 const drawPrediction = (p, ctx) => {

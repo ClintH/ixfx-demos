@@ -1,6 +1,6 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import { Points, radianToDegree } from '../../../ixfx/geometry.js';
+import { Points, radianToDegree } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
   keypointScoreThreshold: 0.4,
@@ -219,7 +219,7 @@ function updateState (s) {
   });
 }
 /**
- * @typedef { import("../common-source").Keypoint } Keypoint
- * @typedef { import("../common-source").Box } Box
- * @typedef { import("../common-source").Pose } Pose
+ * @typedef { import("../common-vision-source").Keypoint } Keypoint
+ * @typedef { import("../common-vision-source").Box } Box
+ * @typedef { import("../common-vision-source").Pose } Pose
  */
