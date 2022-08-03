@@ -9,4 +9,3 @@ A helper function is provided which emits pressure/force data. In the demo it's 
 
 Read more:
 * [Apple's force touch API](https://developer.apple.com/library/archive/documentation/AppleApplications/Conceptual/SafariJSProgTopics/RespondingtoForceTouchEventsfromJavaScript.html)
-* [filter](https://developer.mozilla.org/en-US/docs/Web/CSS/filter)

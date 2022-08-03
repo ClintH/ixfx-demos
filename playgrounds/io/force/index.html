@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+
+  <title>force playground</title>
+  <script src="./script.js" type="module"></script>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 100;
+      --bg: hsl(var(--hue), 50%, 90%);
+      --fg: hsl(var(--hue), 20%, 20%);
+    }
+
+    body {
+      color: var(--fg);
+      background-color: var(--bg);
+      touch-action: none;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    section {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    header {
+      margin: 1em;
+    }
+
+    #thing {
+      border: 3px solid var(--fg);
+      padding: 3em;
+      background-color: hsl(var(--hue), 0%, 50%);
+    }
+  </style>
+  <header>
+    <h1>force playground</h1>
+    <p>With an Apple trackpad or pressure-sensitive stylus, try applying varying force in the square below.</p>
+    <div>
+      Webkit force: <span id="webkitForce">?</span>
+    </div>
+    <div>
+      Pointer pressure: <span id="pointerPressure">?</span>
+    </div>
+    <div>
+      Normalised: <span id="normalised">?</span>
+    </div>
+  </header>
+
+  <section id="container">
+    <div id="thing"></div>
+  </section>
+</body>
+
+</html>

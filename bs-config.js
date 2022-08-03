@@ -14,7 +14,7 @@
  */
 module.exports = {
   "ui": false,
-  "files": [ `*.html`, `*.js` , `*.css` ],
+  "files": [ `**/*.html`, `**/*.js` , `**/*.css` ],
   "watchEvents": [
     `change`
   ],

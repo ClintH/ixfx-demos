@@ -12,30 +12,18 @@
 <body>
   <style>
     :root {
-      --hue: 100;
+      --hue: 210;
       --bg: hsl(var(--hue), 50%, 90%);
       --fg: hsl(var(--hue), 20%, 20%);
+      --padding: 1.3em;
     }
 
     body {
       color: var(--fg);
       background-color: var(--bg);
       touch-action: none;
-      overflow: hidden;
       user-select: none;
       -webkit-user-select: none;
-      overscroll-behavior: none;
-      height: 100vh;
-      width: 100vw;
-      display: flex;
-      flex-direction: column;
-    }
-
-    section {
-      flex-grow: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     header {
@@ -47,22 +35,79 @@
       padding: 3em;
       background-color: hsl(var(--hue), 0%, 50%);
     }
+
+    #content>div {
+      display: flex;
+      padding-bottom: var(--padding);
+      align-items: center;
+    }
+
+    img {
+      margin: var(--padding);
+    }
   </style>
   <header>
-    <h1>pointer force</h1>
-    <p>With an Apple trackpad or pressure-sensitive stylus, try applying varying force in the square below.</p>
-    <div>
-      Webkit force: <span id="webkitForce">?</span>
-    </div>
-    <div>
-      Pointer pressure: <span id="pointerPressure">?</span>
-    </div>
-    <div>
-      Normalised: <span id="normalised">?</span>
-    </div>
+    <h1>force</h1>
+    <em>Use an Apple trackpad with Safari, or a stylus capable of sensing pressure.</em>
   </header>
-  <section id="container">
-    <div id="thing"></div>
+  <section id="content">
+    <div>
+      <img src="https://www.placecage.com/200/300" alt="Photo of Nicholas Cage">
+      <p>
+        Cum euismod scelerisque semper. Mattis nullam elit ultrices ultrices arcu viverra fermentum placerat! Lacinia
+        dolor auctor dui montes posuere cubilia ridiculus eros. Cubilia tellus litora litora primis vel. Etiam
+        suspendisse
+        at inceptos aptent at sollicitudin conubia! Dictumst accumsan dictum ipsum sociosqu mattis dictum nulla natoque
+        tortor aliquet? Gravida curabitur condimentum praesent ad urna phasellus faucibus elit diam phasellus cubilia
+        pharetra? Etiam potenti est non, tellus eget cras parturient lobortis suscipit pharetra dapibus.
+      </p>
+    </div>
+    <div style="flex-direction: row-reverse">
+      <img src="https://www.placecage.com/300/200" alt="Photo of Nicholas Cage">
+      <p>
+        Inceptos non cum magnis dictumst sapien etiam nunc aliquam elit mi! Cum purus hac varius volutpat felis
+        vulputate
+        mauris porttitor sapien ut sapien. A semper cras consequat consequat malesuada facilisis. At maecenas habitasse
+        eu
+        nam. Viverra et libero parturient dolor mollis orci sem pharetra inceptos nibh condimentum ac. Proin erat risus
+        sagittis suspendisse nibh blandit venenatis litora. Urna feugiat malesuada auctor nunc venenatis. Consequat
+        consequat aenean lorem neque arcu potenti nam ut donec. Platea fringilla eget sapien placerat nibh ligula.
+        Hendrerit elit, maecenas suscipit posuere egestas quisque eros urna blandit. Dictum felis varius.
+      </p>
+    </div>
+    <div>
+      <img src="https://www.placecage.com/g/155/300" alt="Photo of Nicholas Cage">
+      <p>
+        Tincidunt nisi consectetur senectus eget. Ultricies suscipit sociis sapien laoreet vitae quam sociis. Volutpat
+        etiam, ullamcorper gravida inceptos imperdiet torquent potenti torquent iaculis ligula. Dolor mus natoque est
+        vehicula proin consectetur malesuada mi ornare tempus turpis. Magnis fames faucibus ad justo? Dapibus tincidunt
+        dolor consectetur feugiat primis eros nullam rutrum morbi consequat montes lorem. Cum lorem velit nibh senectus
+        eget volutpat! Dolor neque aliquet habitasse erat a litora. Curabitur aliquam integer ante pretium curabitur
+        faucibus rutrum. Dui quam mus est donec nibh nascetur eu pharetra lacus sit mollis. Dictum venenatis, urna
+        himenaeos condimentum vestibulum consequat sem! Lorem?
+      </p>
+      <p>
+        Accumsan rhoncus diam aptent, eleifend posuere! Eget interdum mus pellentesque curabitur nibh risus varius dolor
+        et. Porttitor quam orci nam curae; scelerisque! Tortor fringilla feugiat inceptos mus mus! Sollicitudin
+        himenaeos
+        proin ultricies nullam lectus porta amet mauris adipiscing potenti lacus. Sodales dolor ullamcorper ornare ipsum
+        sed parturient sodales tellus vitae est ligula nibh. Mattis magna elit proin placerat quis lectus montes sit
+        lacinia. Mus a id hendrerit. A eu fusce facilisi suscipit sociosqu nunc tincidunt aliquet arcu! Dictumst magnis
+        tellus etiam fames ullamcorper vehicula.
+      </p>
+    </div>
+    <div style="flex-direction: column-reverse">
+      <img src="https://www.placecage.com/g/300/300" alt="Photo of Nicholas Cage">
+      <p>
+        Bibendum platea dictum lorem magna nostra sagittis cum scelerisque. In faucibus vehicula mi ridiculus facilisi
+        hac
+        nascetur euismod. Dolor feugiat faucibus facilisis cras leo. Libero lobortis augue libero blandit fermentum
+        felis
+        dui iaculis duis condimentum varius? Sollicitudin diam pharetra dolor ad. Iaculis parturient in ac faucibus
+        porttitor magna per nulla urna dapibus. Sem primis platea placerat. Luctus integer est tellus, justo augue
+        elementum fringilla. Ipsum volutpat velit in.
+      </p>
+    </div>
   </section>
 </body>
 
