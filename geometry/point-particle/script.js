@@ -138,7 +138,7 @@ const clear = (ctx) => {
 };
 
 /**
- * Setup and run main loop 
+ * Set up
  */
 const setup = () => {
   // Keep our primary canvas full size

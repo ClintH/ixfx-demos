@@ -87,17 +87,9 @@ const settings = Object.freeze({
   remote: new Remote()
 });
 
-let state = {
+let state = Object.freeze({
   magicNumber: 0
-};
-
-const updateState = (newState) => {
-  state = Object.freeze({
-    ...state,
-    ...newState
-  });
-  useState();
-}
+});
 
 const useState = () => {
   const { magicNumber } = state;
@@ -114,14 +106,25 @@ const setup = () => {
     updateState({
       magicNumber: Math.random()
     });
+    useState();
   }, updateSpeedMs);
+}
 
+function updateState(s) {
+  state = {
+    ...state,
+    ...s
+  };
 }
 ```
 
-
+Note that `updateState` is declared as a function rather than the arrow assignment syntax (`const updateState = () = { ...}`) seen elsewhere. Functions declared using the arrow syntax are only available to code that appears after the definition. If we were to use the arrow syntax, the `updateState` function would have to appear high up in our file, cluttering the more interesting stuff. Thus it's declared via the `function` keyword, so we can throw it at the end of the file.
 
 ## Type annotations
+
+You'll note the use of [type annotations](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) throughout the sketches. This is a lightweight way to give hints to your code editor so it in turn can give helpful warnings and better inline documentation. These comments can be deleted, and they have no role during the running of code.
+
+See [TYPING.md](./TYPING.md) to read more.
 
 ## Paths
 
