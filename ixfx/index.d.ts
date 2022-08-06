@@ -4496,7 +4496,29 @@ declare module "geometry/Rect" {
      *
      * Multiplication applies to the first parameter's x/y fields, if present.
      */
-    export const multiply: (a: RectPositioned | Rect, b: Rect | number, c?: number) => RectPositioned | Rect;
+    export function multiply(a: RectPositioned, b: Rect | number, c?: number): RectPositioned;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export function multiply(a: Rect, b: Rect | number, c?: number): Rect;
     /**
      * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
      *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
@@ -9614,7 +9636,7 @@ declare module "modulation/Forces" {
     /**
      * A vector to apply to acceleration or a force function
      */
-    export type ForceKind = Points.Point | ForceFn;
+    export type ForceKind = Points.Point | ForceFn | null;
     /**
      * Throws an error if `t` is not of the `ForceAffected` shape.
      * @param t
@@ -9791,6 +9813,11 @@ declare module "modulation/Forces" {
      * @returns Function that computes force
      */
     export const magnitudeForce: (force: number, mass: MassApplication) => ForceFn;
+    /**
+     * Null force does nothing
+     * @returns A force that does nothing
+     */
+    export const nullForce: (t: ForceAffected) => ForceAffected;
     /**
      * Force calculated from velocity of object. Reads velocity and influences acceleration.
      *

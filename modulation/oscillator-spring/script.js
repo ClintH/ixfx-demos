@@ -68,7 +68,7 @@ const positionEl = (el, pos) => {
 };
 
 const setup = () => {
-  // Run loop. This will call `updateState` until it returns false
+  // Run loop. This will call `onTick` until it returns false
   const run = Flow.continuously(onTick);
 
   // Wire up events
