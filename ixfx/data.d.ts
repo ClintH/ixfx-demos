@@ -1,4 +1,4 @@
-export { F as FrequencyEventMap, b as FrequencyMutable, I as IntervalTracker, M as MovingAverage, a as Normalise, N as NumberFunction, P as PointSeenInfo, e as PointTracker, T as TrackedPointMap, j as clamp, k as clampIndex, o as flip, f as frequencyMutable, q as interpolate, r as interpolateAngle, d as intervalTracker, c as movingAverage, m as movingAverageLight, p as piPi, h as pointTracker, g as pointsTracker, s as scale, n as scalePercent, l as scalePercentages, t as wrap, w as wrapInteger, u as wrapRange } from './index-4af6adb1.js';
+export { F as FrequencyEventMap, b as FrequencyMutable, I as IntervalTracker, M as MovingAverage, a as Normalise, N as NumberFunction, P as PointSeenInfo, e as PointTracker, T as TrackedPointMap, j as clamp, k as clampIndex, o as flip, f as frequencyMutable, q as interpolate, r as interpolateAngle, d as intervalTracker, c as movingAverage, m as movingAverageLight, p as piPi, h as pointTracker, g as pointsTracker, s as scale, n as scalePercent, l as scalePercentages, t as wrap, w as wrapInteger, u as wrapRange } from './index-684dc36a.js';
 export { N as NumberTracker, O as ObjectTracker, P as PrimitiveTracker, a as Timestamped, b as TrackedValueMap, T as TrackedValueOpts, c as TrackerBase, n as numberTracker } from './NumberTracker-9efc8e3f.js';
 import './NumericArrays-24bd40cb.js';
 import './index-001fb877.js';
@@ -10,7 +10,7 @@ import './IterableAsync-243562d5.js';
 import './KeyValue-67ed417a.js';
 import './Eq';
 import './Ordering';
-import './Point-e86b0fa2.js';
+import './Point-f474df83.js';
 import './Arrays-14a37599.js';
 import 'd3-color';
 import './Map-7b399a2e.js';

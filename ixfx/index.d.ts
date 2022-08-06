@@ -2229,6 +2229,10 @@ declare module "geometry/Line" {
     export type PolyLine = ReadonlyArray<Line>;
     /**
      * Returns true if `p` is a valid line, containing `a` and `b` Points.
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.isLine(l);
+     * ```
      * @param p Value to check
      * @returns True if a valid line.
      */
@@ -2241,8 +2245,18 @@ declare module "geometry/Line" {
      */
     export const isPolyLine: (p: any) => p is PolyLine;
     /**
-     * Returns true if the lines have the same value
+     * Returns true if the lines have the same value. Note that only
+     * the line start and end points are compared. So the lines might
+     * be different in other properties, and `equals` will still return
+     * true.
      *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const a = { a: {x:0,  y: 10 }, b: { x: 20, y: 20 }};
+     * const b = { a: {x:0,  y: 10 }, b: { x: 20, y: 20 }};
+     * a === b; // false, because they are different objects
+     * Lines.equals(a, b); // true, because they have the same value
+     * ```
      * @param {Line} a
      * @param {Line} b
      * @returns {boolean}
@@ -2252,6 +2266,7 @@ declare module "geometry/Line" {
      * Applies `fn` to both start and end points.
      *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * // Line 10,10 -> 20,20
      * const line = Lines.fromNumbers(10,10, 20,20);
      *
@@ -2282,8 +2297,9 @@ declare module "geometry/Line" {
     /**
      * Returns the angle in radians of a line, or two points
      * ```js
-     * angleRadian(line);
-     * angleRadian(ptA, ptB);
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.angleRadian(line);
+     * Lines.angleRadian(ptA, ptB);
      * ```
      * @param lineOrPoint
      * @param b
@@ -2294,9 +2310,11 @@ declare module "geometry/Line" {
      * Multiplies start and end of line by point.x, point.y.
      *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1, 1, 10, 10);
-     * const ll = multiply(l, {x:2, y:3});
+     * const l = Lines.fromNumbers(1, 1, 10, 10);
+     * const ll = Lines.multiply(l, {x:2, y:3});
      * // Yields: 2,20 -> 3,30
      * ```
      * @param line
@@ -2307,9 +2325,11 @@ declare module "geometry/Line" {
     /**
      * Divides both start and end points by given x,y
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = divide(l, {x:2, y:4});
+     * const l = Lines.fromNumbers(1,1,10,10);
+     * const ll = Lines.divide(l, {x:2, y:4});
      * // Yields: 0.5,0.25 -> 5,2.5
      * ```
      * @param line
@@ -2320,9 +2340,10 @@ declare module "geometry/Line" {
     /**
      * Adds both start and end points by given x,y
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = sum(l, {x:2, y:4});
+     * const l = Lines.fromNumbers(1,1,10,10);
+     * const ll = Lines.sum(l, {x:2, y:4});
      * // Yields: 3,5 -> 12,14
      * ```
      * @param line
@@ -2333,9 +2354,11 @@ declare module "geometry/Line" {
     /**
      * Subtracts both start and end points by given x,y
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = subtract(l, {x:2, y:4});
+     * const l = Lines.fromNumbers(1,1,10,10);
+     * const ll = Lines.subtract(l, {x:2, y:4});
      * // Yields: -1,-3 -> 8,6
      * ```
      * @param line
@@ -2346,10 +2369,13 @@ declare module "geometry/Line" {
     /**
      * Normalises start and end points by given width and height. Useful
      * for converting an absolutely-defined line to a relative one.
+     *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Line 1,1 -> 10,10
-     * const l = fromNumbers(1,1,10,10);
-     * const ll = normaliseByRect(l, 10, 10);
+     * const l = Lines.fromNumbers(1,1,10,10);
+     * const ll = Lines.normaliseByRect(l, 10, 10);
      * // Yields: 0.1,0.1 -> 1,1
      * ```
      * @param line
@@ -2360,7 +2386,9 @@ declare module "geometry/Line" {
     export const normaliseByRect: (line: Line, width: number, height: number) => Line;
     /**
      * Returns true if `point` is within `maxRange` of `line`.
+     *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * const line = Lines.fromNumbers(0,20,20,20);
      * Lines.withinRange(line, {x:0,y:21}, 1); // True
      * ```
@@ -2373,7 +2401,8 @@ declare module "geometry/Line" {
     /**
      * Returns the length between two points
      * ```js
-     * length(ptA, ptB);
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.length(ptA, ptB);
      * ```
      * @param a First point
      * @param b Second point
@@ -2385,12 +2414,24 @@ declare module "geometry/Line" {
      * it is the sum total that is returned.
      *
      * ```js
-     * length(a: {x:0, y:0}, b: {x: 100, y:100});
-     * length(lines);
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.length(a: {x:0, y:0}, b: {x: 100, y:100});
+     * Lines.length(lines);
      * ```
      * @param line Line
      */
     export function length(line: Line | PolyLine): number;
+    /**
+     * Returns the mid-point of a line (same as `interpolate` with an amount of 0.5)
+     *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.midpoint(line); // Returns {x, y}
+     * ```
+     * @param aOrLine
+     * @param pointB
+     * @returns
+     */
     export const midpoint: (aOrLine: Points.Point | Line, pointB?: Points.Point) => Points.Point;
     /**
      * Returns [a,b] points from either a line parameter, or two points.
@@ -2406,7 +2447,8 @@ declare module "geometry/Line" {
      * Returns the nearest point on `line` closest to `point`.
      *
      * ```js
-     * const pt = nearest(line, {x:10,y:10});
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const pt = Linesnearest(line, {x:10,y:10});
      * ```
      *
      * If an array of lines is provided, it will be the closest point amongst all the lines
@@ -2420,8 +2462,9 @@ declare module "geometry/Line" {
      *
      * @example
      * ```js
-     * slope(line);
-     * slope(ptA, ptB)
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.slope(line);
+     * Lines.slope(ptA, ptB)
      * ```
      * @param lineOrPoint Line or point. If point is provided, second point must be given too
      * @param b Second point if needed
@@ -2432,8 +2475,9 @@ declare module "geometry/Line" {
      * Returns a point perpendicular to `line` at a specified `distance`. Use negative
      * distances for the other side of line.
      * ```
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * // Project a point 100 units away from line, at its midpoint.
-     * const pt = perpendicularPoint(line, 100, 0.5);
+     * const pt = Lines.perpendicularPoint(line, 100, 0.5);
      * ```
      * @param line Line
      * @param distance Distance from line. Use negatives to flip side
@@ -2445,6 +2489,11 @@ declare module "geometry/Line" {
     };
     /**
      * Returns a parallel line to `line` at `distance`.
+     *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const l = Lines.parallel(line, 10);
+     * ```
      * @param line
      * @param distance
      */
@@ -2454,29 +2503,31 @@ declare module "geometry/Line" {
      *
      * @example Shorten by 50%, anchored at the midpoint
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * const l = {
      *  a: {x:50, y:50}, b: {x: 100, y: 90}
      * }
-     * const l2 = scaleFromMidpoint(l, 0.5);
+     * const l2 = Lines.scaleFromMidpoint(l, 0.5);
      * ```
      * @param line
      * @param factor
      */
     export const scaleFromMidpoint: (line: Line, factor: number) => Line;
     /**
-     * Extends a line to intersection the x-axis at a specified location
+     * Calculates `y` where `line` intersects `x`.
      * @param line Line to extend
-     * @param xIntersection Intersection of x-axis.
+     * @param x Intersection of x-axis.
      */
-    export const extendX: (line: Line, xIntersection: number) => Points.Point;
+    export const pointAtX: (line: Line, x: number) => Points.Point;
     /**
      * Returns a line extended from its `a` point by a specified distance
      *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * const line = {a: {x: 0, y:0}, b: {x:10, y:10} }
-     * const extended = extendFromStart(line, 2);
+     * const extended = Lines.extendFromA(line, 2);
      * ```
-     * @param ine
+     * @param line
      * @param distance
      * @return Newly extended line
      */
@@ -2486,8 +2537,9 @@ declare module "geometry/Line" {
      *
      * @example Basic usage
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * const l = { a: {x: 0, y: 0}, b: {x: 100, y: 100} };
-     * for (const p of pointsOf(l)) {
+     * for (const p of Lines.pointsOf(l)) {
      *  // Do something with point `p`...
      * }
      * ```
@@ -2504,7 +2556,8 @@ declare module "geometry/Line" {
      * nearest point on `line`.
      *
      * ```js
-     * const d = distance(line, {x:10,y:10});
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const d = Lines.distance(line, {x:10,y:10});
      * ```
      *
      * If an array of lines is provided, the shortest distance is returned.
@@ -2516,34 +2569,48 @@ declare module "geometry/Line" {
     /**
      * Calculates a point in-between `a` and `b`.
      *
+     * If an interpolation amount below 0 or above 1 is given, _and_
+     * `allowOverflow_ is true, a point will be returned that is extended
+     * past `line`. This is useful for easing functions which might
+     * briefly go past the limits.
+     *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Get {x,y} at 50% along line
-     * interpolate(0.5, line);
+     * Lines.interpolate(0.5, line);
      *
      * // Get {x,y} at 80% between point A and B
-     * interpolate(0.8, ptA, ptB);
+     * Lines.interpolate(0.8, ptA, ptB);
      * ```
      * @param amount Relative position, 0 being at a, 0.5 being halfway, 1 being at b
      * @param a Start
      * @param b End
      * @returns Point between a and b
      */
-    export function interpolate(amount: number, a: Points.Point, pointB: Points.Point): Points.Point;
+    export function interpolate(amount: number, a: Points.Point, pointB: Points.Point, allowOverflow?: boolean): Points.Point;
     /**
      * Calculates a point in-between `line`'s start and end points.
      *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Get {x, y } at 50% along line
-     * interpolate(0.5, line);
+     * Lines.interpolate(0.5, line);
      * ```
      *
      * Any additional properties from `b`  are returned on the result as well.
      * @param amount 0..1
      * @param line Line
+     * @param allowOverflow If true, interpolation amount is permitted to exceed 0..1, extending the line
      */
-    export function interpolate(amount: number, line: Line): Points.Point;
+    export function interpolate(amount: number, line: Line, allowOverflow?: boolean): Points.Point;
     /**
      * Returns a string representation of two points
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * console.log(Lines.toString(a, b)));
+     * ```
      * @param a
      * @param b
      * @returns
@@ -2551,14 +2618,20 @@ declare module "geometry/Line" {
     export function toString(a: Points.Point, b: Points.Point): string;
     /**
      * Returns a string representation of a line
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.toString(line);
+     * ```
      * @param line
      */
     export function toString(line: Line): string;
     /**
-     * Returns a line from a basis of coordinates
+     * Returns a line from a basis of coordinates (x1, y1, x2, y2)
+     *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * // Line from 0,1 -> 10,15
-     * fromNumbers(0,1,10,15);
+     * Lines.fromNumbers(0, 1, 10, 15);
      * ```
      * @param x1
      * @param y1
@@ -2572,14 +2645,23 @@ declare module "geometry/Line" {
      *
      * See {@link fromFlatArray} to create a line _from_ this representation.
      *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * Lines.toFlatArray(line);
+     * Lines.toFlatArray(pointA, pointB);
+     * ```
      * @export
      * @param {Point} a
      * @param {Point} b
      * @returns {number[]}
      */
-    export const toFlatArray: (a: Points.Point, b: Points.Point) => readonly number[];
+    export const toFlatArray: (a: Points.Point | Line, b: Points.Point) => readonly number[];
     /**
      * Returns an SVG description of line
+     * ```
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js';
+     * Lines.toSvgString(ptA, ptB);
+     * ```
      * @param a
      * @param b
      * @returns
@@ -2590,15 +2672,23 @@ declare module "geometry/Line" {
      *
      * See {@link toFlatArray} to create an array from a line.
      *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const line = Lines.fromFlatArray(...[0, 0, 100, 100]);
+     * // line is {a: { x:0, y:0 }, b: { x: 100, y: 100 } }
+     * ```
      * @param arr Array in the form [x1,y1,x2,y2]
      * @returns Line
      */
     export const fromFlatArray: (arr: readonly number[]) => Line;
     /**
      * Returns a line from two points
+     *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * // Line from 0,1 to 10,15
-     * fromPoints({x:0,y:1}, {x:10,y:15});
+     * const line = Lines.fromPoints( { x:0, y:1 }, { x:10, y:15 });
+     * // line is: { a: { x: 0, y: 1}, b: { x: 10, y: 15 } };
      * ```
      * @param a Start point
      * @param b End point
@@ -2609,12 +2699,23 @@ declare module "geometry/Line" {
      * Returns an array of lines that connects provided points. Note that line is not closed.
      *
      * Eg, if points a,b,c are provided, two lines are provided: a->b and b->c.
+     *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const lines = Lines.joinPointsToLines(ptA, ptB, ptC);
+     * // lines is an array of, well, lines
+     * ```
      * @param points
      * @returns
      */
     export const joinPointsToLines: (...points: readonly Points.Point[]) => PolyLine;
     /**
      * Returns a {@link LinePath} from two points
+     *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const path = Lines.fromPointsToPath(ptA, ptB);
+     * ```
      * @param a
      * @param b
      * @returns
@@ -2622,6 +2723,11 @@ declare module "geometry/Line" {
     export const fromPointsToPath: (a: Points.Point, b: Points.Point) => LinePath;
     /**
      * Returns a rectangle that encompasses dimension of line
+     *
+     * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js';
+     * const rect = Lines.bbox(line);
+     * ```
      */
     export const bbox: (line: Line) => Rects.RectPositioned;
     /**
@@ -2633,8 +2739,11 @@ declare module "geometry/Line" {
      * wrapping the result of `sum`.
      *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
      * // Create a path
-     * const l = toPath(fromNumbers(0,0,10,10));
+     * const l = Lines.toPath(fromNumbers(0,0,10,10));
+     *
+     * // Now we can use it...
      * l.length();
      *
      * // Mutate functions return a new path
@@ -2654,6 +2763,13 @@ declare module "geometry/Line" {
         multiply(point: Points.Point): LinePath;
         subtract(point: Points.Point): LinePath;
         apply(fn: (point: Points.Point) => Points.Point): LinePath;
+        midpoint(): Point;
+        distance(point: Point): number;
+        parallel(distance: number): Line;
+        perpendicularPoint(distance: number, amount?: number): Point;
+        slope(): number;
+        withinRange(point: Point, maxRange: number): boolean;
+        equals(otherLine: Line): boolean;
     };
     /**
      * Returns a line that is rotated by `angleRad`. By default it rotates
@@ -2661,17 +2777,19 @@ declare module "geometry/Line" {
      * If `origin` is a number, it's presumed to be a 0..1 percentage of the line.
      *
      * ```js
+     * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     *
      * // Rotates line by 0.1 radians around point 10,10
-     * rotate(line, 0.1, {x:10,y:10});
+     * const r = Lines.rotate(line, 0.1, {x:10,y:10});
      *
      * // Rotate line by 5 degrees around its center
-     * rotate(line, degreeToRadian(5));
+     * const r = Lines.rotate(line, degreeToRadian(5));
      *
      * // Rotate line by 5 degres around its end point
-     * rotate(line, degreeToRadian(5), line.b);
+     * const r = Lines.rotate(line, degreeToRadian(5), line.b);
      *
      * // Rotate by 90 degrees at the 80% position
-     * rotated = rotate(line, Math.PI / 2, 0.8);
+     * const r = Lines.rotated = rotate(line, Math.PI / 2, 0.8);
      * ```
      * @param line Line to rotate
      * @param amountRadian Angle in radians to rotate by
@@ -2679,275 +2797,6 @@ declare module "geometry/Line" {
      * @returns
      */
     export const rotate: (line: Line, amountRadian?: number, origin?: Points.Point | number) => Line;
-}
-declare module "geometry/Rect" {
-    import { Points, Lines } from "geometry/index";
-    export type Rect = {
-        readonly width: number;
-        readonly height: number;
-    };
-    export type RectPositioned = Points.Point & Rect;
-    export const empty: Readonly<{
-        width: 0;
-        height: 0;
-    }>;
-    export const emptyPositioned: Readonly<{
-        x: 0;
-        y: 0;
-        width: 0;
-        height: 0;
-    }>;
-    export const placeholder: Readonly<{
-        width: number;
-        height: number;
-    }>;
-    export const placeholderPositioned: Readonly<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }>;
-    export const isEmpty: (rect: Rect) => boolean;
-    export const isPlaceholder: (rect: Rect) => boolean;
-    /**
-     * Returns true if parameter has a positioned (x,y)
-     * @param p Point, Rect or RectPositiond
-     * @returns
-     */
-    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
-    export const isRect: (p: number | unknown) => p is Rect;
-    /**
-     * Returns true if `p` is a positioned rectangle
-     * @param p
-     * @returns
-     */
-    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
-    export const fromElement: (el: HTMLElement) => Rect;
-    export const isEqualSize: (a: Rect, b: Rect) => boolean;
-    /**
-     * Returns a rectangle from width, height
-     * ```js
-     * const r = Rects.fromNumbers(100, 200);
-     * // {width: 100, height: 200}
-     * ```
-     *
-     * Use {@link toArray} for the opposite conversion.
-     *
-     * @param width
-     * @param height
-     */
-    export function fromNumbers(width: number, height: number): Rect;
-    /**
-     * Returns a rectangle from x,y,width,height
-     * ```js
-     * const r = Rects.fromNumbers(10, 20, 100, 200);
-     * // {x: 10, y: 20, width: 100, height: 200}
-     * ```
-     *
-     * Use the spread operator (...) if the source is an array:
-     * ```js
-     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
-     * ```
-     *
-     * Use {@link toArray} for the opposite conversion.
-     *
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     */
-    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
-    /**
-     * Rectangle as array
-     */
-    export type RectArray = readonly [width: number, height: number];
-    /**
-     * Positioned rectangle as array
-     */
-    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
-    /**
-     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
-     *
-     * ```js
-     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
-     * // [10, 20, 100, 200]
-     * const r2 = Rects.toArray({ width: 100, height: 200 });
-     * // [100, 200]
-     * ```
-     * @param rect
-     * @see fromNumbers
-     */
-    export function toArray(rect: Rect): RectArray;
-    /**
-     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
-     *
-     * ```js
-     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
-     * // [10, 20, 100, 200]
-     * const r2 = Rects.toArray({ width: 100, height: 200 });
-     * // [100, 200]
-     * ```
-     * @param rect
-     * @see fromNumbers
-     */
-    export function toArray(rect: RectPositioned): RectPositionedArray;
-    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
-    /**
-     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
-     *
-     * x,y coords from `a` will be unchanged
-     * @param a
-     * @param b
-     */
-    export function subtract(a: Rect, b: Rect): Rect;
-    /**
-     * Subtracts a width/height from `a`, returning result.
-     *
-     * x,y coords from a will be unchanged
-     * @param a
-     * @param width
-     * @param height
-     */
-    export function subtract(a: Rect, width: number, height?: number): Rect;
-    /**
-     * Returns true if `point` is within, or on boundary of `rect`.
-     * @param rect
-     * @param point
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
-    /**
-     * Returns true if x,y coordinate is within, or on boundary of `rect`.
-     * @param rect
-     * @param x
-     * @param y
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
-    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    /**
-     * Returns the distance from the perimeter of `rect` to `pt`.
-     * If the point is within the rectangle, 0 is returned.
-     *
-     * If `rect` does not have an x,y it's assumed to be 0,0
-     * @param rect Rectangle
-     * @param pt Point
-     * @returns Distance
-     */
-    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
-    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
-    /**
-     * Returns a rectangle based on provided four corners.
-     *
-     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
-     *
-     * Does some sanity checking such as:
-     *  - x will be smallest of topLeft/bottomLeft
-     *  - y will be smallest of topRight/topLeft
-     *  - width will be largest between top/bottom left and right
-     *  - height will be largest between left and right top/bottom
-     */
-    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
-    export const guard: (rect: Rect, name?: string) => void;
-    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
-    /**
-     * Returns a point on the edge of rectangle
-     * ```js
-     * const r1 = {x: 10, y: 10, width: 100, height: 50};
-     * getEdgeX(r1, `right`);  // Yields: 110
-     * getEdgeX(r1, `bottom`); // Yields: 60
-     *
-     * const r2 = {width: 100, height: 50};
-     * getEdgeX(r2, `right`);  // Yields: 100
-     * getEdgeX(r2, `bottom`); // Yields: 50
-     * ```
-     * @param rect
-     * @param edge Which edge: right, left, bottom, top
-     * @returns
-     */
-    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
-    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
-    /**
-     * Returns `rect` divided by the width,height of `normaliseBy`. This can be useful for
-     * normalising based on camera frame.
-     * ```js
-     * const frameSize = {width: 640, height: 320};
-     * const object = { x: 320, y: 160, width: 64, height: 32};
-     *
-     * const n = normaliseByRect(object, frameSize);
-     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
-     * ```
-     *
-     * Height and width can be supplied instead of a rectangle too:
-     * ```js
-     * const n = normaliseByRect(object, 640, 320);
-     * ```
-     * @param rect
-     * @param normaliseBy
-     * @returns
-     */
-    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
-    /**
-     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
-     *
-     * ```js
-     * // Normalised rectangle of width 50%, height 50%
-     * const r = {width: 0.5, height: 0.5};
-     *
-     * // Map to window:
-     * const rr = multiply(r, window.innerWidth, window.innerHeight);
-     * ```
-     *
-     * ```js
-     * // Returns {width: someRect.width * someOtherRect.width ...}
-     * multiply(someRect, someOtherRect);
-     *
-     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
-     * multiply(someRect, 100, 200);
-     * ```
-     *
-     * Multiplication applies to the first parameter's x/y fields, if present.
-     */
-    export const multiply: (a: RectPositioned | Rect, b: Rect | number, c?: number) => RectPositioned | Rect;
-    /**
-     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
-     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
-     *
-     * ```js
-     * const p = center({x:10, y:20, width:100, height:50});
-     * const p2 = center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
-     * ```
-     * @param rect Rectangle
-     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
-     * @returns
-     */
-    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
-    /**
-     * Returns the length of each side of the rectangle (top, right, bottom, left)
-     * @param rect
-     * @returns
-     */
-    export const lengths: (rect: RectPositioned) => readonly number[];
-    /**
-     * Returns four lines based on each corner.
-     * Lines are given in order: top, right, bottom, left
-     *
-     * @param {(RectPositioned|Rect)} rect
-     * @param {Points.Point} [origin]
-     * @returns {Lines.Line[]}
-     */
-    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
-    /**
-     * Returns the perimeter of `rect` (ie. sum of all edges)
-     * @param rect
-     * @returns
-     */
-    export const perimeter: (rect: Rect) => number;
-    /**
-     * Returns the area of `rect`
-     * @param rect
-     * @returns
-     */
-    export const area: (rect: Rect) => number;
 }
 declare module "geometry/Point" {
     import { Circles, Lines, Points, Rects } from "geometry/index";
@@ -2973,19 +2822,44 @@ declare module "geometry/Point" {
     export const getPointParam: (a?: Point | number, b?: number) => Point;
     export const dotProduct: (...pts: readonly Point[]) => number;
     /**
-     * An empty point of `{x:0, y:0}`
+     * An empty point of `{ x:0, y:0 }`.
+     *
+     * Use `isEmpty` to check if a point is empty.
      */
     export const Empty: Readonly<{
         x: 0;
         y: 0;
     }>;
+    /**
+     * Placeholder point, where x and y is `NaN`.
+     * Use `isPlaceholder` to check if a point is a placeholder.
+     */
     export const Placeholder: Readonly<{
         x: number;
         y: number;
     }>;
+    /**
+     * Returns true if both x and y is 0.
+     * Use `Points.Empty` to return an empty point.
+     * @param p
+     * @returns
+     */
     export const isEmpty: (p: Point) => boolean;
+    /**
+     * Returns true if point is a placeholder, where both x and y
+     * are `NaN`.
+     *
+     * Use Points.Placeholder to return a placeholder point.
+     * @param p
+     * @returns
+     */
     export const isPlaceholder: (p: Point) => boolean;
-    export const center: (shape?: Rects.Rect) => Point;
+    /**
+     * Returns true if p.x and p.y === null
+     * @param p
+     * @returns
+     */
+    export const isNull: (p: Point) => boolean;
     /**
      * Returns the 'minimum' point from an array of points, using a comparison function.
      *
@@ -3187,9 +3061,10 @@ declare module "geometry/Point" {
      * @param amount Relative amount, 0-1
      * @param a
      * @param b
+     * @param allowOverflow If true, length of line can be exceeded for `amount` of below 0 and above `1`.
      * @returns {@link Point}
      */
-    export const interpolate: (amount: number, a: Point, b: Point) => Point;
+    export const interpolate: (amount: number, a: Point, b: Point, allowOverflow?: boolean) => Point;
     /**
      * Returns a point from two coordinates or an array of [x,y]
      * @example
@@ -3890,6 +3765,17 @@ declare module "geometry/Circle" {
      */
     export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
     /**
+     * Returns the center of a circle
+     * If the circle has an x,y, that is the center.
+     * If not, `radius` is used as the x and y.
+     * @param circle
+     * @returns Center of circle
+     */
+    export const center: (circle: CirclePositioned | Circle) => Readonly<{
+        x: number;
+        y: number;
+    }>;
+    /**
      * Computes relative position along circle
      * @param circle
      * @param t Position, 0-1
@@ -4383,6 +4269,275 @@ declare module "geometry/Grid" {
         y: number;
     }, void, unknown>;
 }
+declare module "geometry/Rect" {
+    import { Points, Lines } from "geometry/index";
+    export type Rect = {
+        readonly width: number;
+        readonly height: number;
+    };
+    export type RectPositioned = Points.Point & Rect;
+    export const empty: Readonly<{
+        width: 0;
+        height: 0;
+    }>;
+    export const emptyPositioned: Readonly<{
+        x: 0;
+        y: 0;
+        width: 0;
+        height: 0;
+    }>;
+    export const placeholder: Readonly<{
+        width: number;
+        height: number;
+    }>;
+    export const placeholderPositioned: Readonly<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    export const isEmpty: (rect: Rect) => boolean;
+    export const isPlaceholder: (rect: Rect) => boolean;
+    /**
+     * Returns true if parameter has a positioned (x,y)
+     * @param p Point, Rect or RectPositiond
+     * @returns
+     */
+    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
+    export const isRect: (p: number | unknown) => p is Rect;
+    /**
+     * Returns true if `p` is a positioned rectangle
+     * @param p
+     * @returns
+     */
+    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
+    export const fromElement: (el: HTMLElement) => Rect;
+    export const isEqualSize: (a: Rect, b: Rect) => boolean;
+    /**
+     * Returns a rectangle from width, height
+     * ```js
+     * const r = Rects.fromNumbers(100, 200);
+     * // {width: 100, height: 200}
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(width: number, height: number): Rect;
+    /**
+     * Returns a rectangle from x,y,width,height
+     * ```js
+     * const r = Rects.fromNumbers(10, 20, 100, 200);
+     * // {x: 10, y: 20, width: 100, height: 200}
+     * ```
+     *
+     * Use the spread operator (...) if the source is an array:
+     * ```js
+     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
+    /**
+     * Rectangle as array
+     */
+    export type RectArray = readonly [width: number, height: number];
+    /**
+     * Positioned rectangle as array
+     */
+    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: Rect): RectArray;
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: RectPositioned): RectPositionedArray;
+    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
+    /**
+     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
+     *
+     * x,y coords from `a` will be unchanged
+     * @param a
+     * @param b
+     */
+    export function subtract(a: Rect, b: Rect): Rect;
+    /**
+     * Subtracts a width/height from `a`, returning result.
+     *
+     * x,y coords from a will be unchanged
+     * @param a
+     * @param width
+     * @param height
+     */
+    export function subtract(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Returns true if `point` is within, or on boundary of `rect`.
+     * @param rect
+     * @param point
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
+    /**
+     * Returns true if x,y coordinate is within, or on boundary of `rect`.
+     * @param rect
+     * @param x
+     * @param y
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
+    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the distance from the perimeter of `rect` to `pt`.
+     * If the point is within the rectangle, 0 is returned.
+     *
+     * If `rect` does not have an x,y it's assumed to be 0,0
+     * @param rect Rectangle
+     * @param pt Point
+     * @returns Distance
+     */
+    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
+    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
+    /**
+     * Returns a rectangle based on provided four corners.
+     *
+     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
+     *
+     * Does some sanity checking such as:
+     *  - x will be smallest of topLeft/bottomLeft
+     *  - y will be smallest of topRight/topLeft
+     *  - width will be largest between top/bottom left and right
+     *  - height will be largest between left and right top/bottom
+     */
+    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
+    export const guard: (rect: Rect, name?: string) => void;
+    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
+    /**
+     * Returns a point on the edge of rectangle
+     * ```js
+     * const r1 = {x: 10, y: 10, width: 100, height: 50};
+     * getEdgeX(r1, `right`);  // Yields: 110
+     * getEdgeX(r1, `bottom`); // Yields: 60
+     *
+     * const r2 = {width: 100, height: 50};
+     * getEdgeX(r2, `right`);  // Yields: 100
+     * getEdgeX(r2, `bottom`); // Yields: 50
+     * ```
+     * @param rect
+     * @param edge Which edge: right, left, bottom, top
+     * @returns
+     */
+    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Returns `rect` divided by the width,height of `normaliseBy`. This can be useful for
+     * normalising based on camera frame.
+     * ```js
+     * const frameSize = {width: 640, height: 320};
+     * const object = { x: 320, y: 160, width: 64, height: 32};
+     *
+     * const n = normaliseByRect(object, frameSize);
+     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
+     * ```
+     *
+     * Height and width can be supplied instead of a rectangle too:
+     * ```js
+     * const n = normaliseByRect(object, 640, 320);
+     * ```
+     * @param rect
+     * @param normaliseBy
+     * @returns
+     */
+    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export const multiply: (a: RectPositioned | Rect, b: Rect | number, c?: number) => RectPositioned | Rect;
+    /**
+     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
+     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
+     *
+     * ```js
+     * const p = center({x:10, y:20, width:100, height:50});
+     * const p2 = center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
+     * ```
+     * @param rect Rectangle
+     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
+     * @returns
+     */
+    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
+    /**
+     * Returns the length of each side of the rectangle (top, right, bottom, left)
+     * @param rect
+     * @returns
+     */
+    export const lengths: (rect: RectPositioned) => readonly number[];
+    /**
+     * Returns four lines based on each corner.
+     * Lines are given in order: top, right, bottom, left
+     *
+     * @param {(RectPositioned|Rect)} rect
+     * @param {Points.Point} [origin]
+     * @returns {Lines.Line[]}
+     */
+    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
+    /**
+     * Returns the perimeter of `rect` (ie. sum of all edges)
+     * @param rect
+     * @returns
+     */
+    export const perimeter: (rect: Rect) => number;
+    /**
+     * Returns the area of `rect`
+     * @param rect
+     * @returns
+     */
+    export const area: (rect: Rect) => number;
+}
 declare module "geometry/Ellipse" {
     import { Path } from "geometry/Path";
     import { Points } from "geometry/index";
@@ -4487,7 +4642,14 @@ declare module "geometry/Polar" {
     export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
 }
 declare module "geometry/Shape" {
-    import { Points } from "geometry/index";
+    import { Triangles, Points, Rects, Circles } from "geometry/index";
+    /**
+     * Returns the center of a shape
+     * Shape can be: rectangle, triangle, circle
+     * @param shape
+     * @returns
+     */
+    export const center: (shape?: Rects.Rect | Triangles.Triangle | Circles.Circle) => Points.Point;
     /**
      * Generates a starburst shape, returning an array of points. By default, initial point is top and horizontally-centred.
      *
@@ -9909,6 +10071,7 @@ declare module "modulation/Oscillator" {
 declare module "modulation/index" {
     import { RandomSource } from "Random";
     import * as Easings from "modulation/Easing";
+    export * from "modulation/PingPong";
     /**
      * Easings module
      *

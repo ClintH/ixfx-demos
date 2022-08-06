@@ -6,10 +6,13 @@ import {
   adsrSample,
   defaultAdsrOpts,
   jitter
-} from "./chunk-RXU2MRXR.js";
+} from "./chunk-6SS63VIW.js";
 import "./chunk-XZ7XCJFV.js";
 import "./chunk-IP2OCIJK.js";
-import "./chunk-H7FTVZCW.js";
+import {
+  pingPong,
+  pingPongPercent
+} from "./chunk-5TYK5HMW.js";
 import "./chunk-SZNIXLCL.js";
 import "./chunk-STD37BTC.js";
 import "./chunk-JU6PAEDE.js";
@@ -27,6 +30,8 @@ export {
   adsr,
   adsrSample,
   defaultAdsrOpts,
-  jitter
+  jitter,
+  pingPong,
+  pingPongPercent
 };
 //# sourceMappingURL=modulation.js.map

@@ -1,6 +1,6 @@
-export { A as Arcs, B as Beziers, E as Ellipses, T as Triangles } from './Triangle-390714d5.js';
-export { C as Circles, L as Lines, f as Paths, e as Points, d as Rects } from './Point-e86b0fa2.js';
-export { C as Compound, G as Grids, P as Polar, S as Shapes, d as degreeToRadian, r as radianToDegree, a as radiansFromAxisX } from './index-128e9fc7.js';
+export { A as Arcs, B as Beziers, E as Ellipses, a as Triangles } from './Triangle-881085cb.js';
+export { e as Circles, L as Lines, h as Paths, g as Points, f as Rects } from './Point-f474df83.js';
+export { C as Compound, G as Grids, P as Polar, S as Shapes, d as degreeToRadian, r as radianToDegree, a as radiansFromAxisX } from './index-e2f0a07d.js';
 import './Arrays-14a37599.js';
 import './Util-2fe444f8.js';
 import './IterableAsync-243562d5.js';
