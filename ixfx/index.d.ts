@@ -4711,7 +4711,7 @@ declare module "geometry/Shape" {
         readonly angleRadian?: number;
     };
     /**
-     * Returns the points forming an arrow
+     * Returns the points forming an arrow.
      *
      * @example Create an arrow anchored by its tip at 100,100
      * ```js
@@ -4728,11 +4728,11 @@ declare module "geometry/Shape" {
      * ```
      *
      * @param origin Origin of arrow
-     * @param from Does origin describe the tip or tail?
+     * @param from Does origin describe the tip, tail or middle?
      * @param opts Options for arrow
      * @returns
      */
-    export const arrow: (origin: Points.Point, from: `tip` | `tail`, opts?: ArrowOpts) => readonly Points.Point[];
+    export const arrow: (origin: Points.Point, from: `tip` | `tail` | `middle`, opts?: ArrowOpts) => readonly Points.Point[];
 }
 declare module "geometry/TriangleEquilateral" {
     import { Circle } from "geometry/Circle";
@@ -9979,6 +9979,17 @@ declare module "modulation/Forces" {
      * @returns Point
      */
     export const computePositionFromAngle: (distance: number, angleRadians: number, origin: Points.Point) => Points.Point;
+    /**
+     * A force that orients things according to direction of travel.
+     *
+     * Under the hood, it applies:
+     * * angularForce,
+     * * angleFromAccelerationForce, and
+     * * angleFromVelocityForce
+     * @param interpolationAmt
+     * @returns
+     */
+    export const orientationForce: (interpolationAmt?: number) => ForceFn;
 }
 declare module "modulation/Oscillator" {
     import * as Timers from "flow/Timer";

@@ -1,5 +1,5 @@
 export { i as Data } from './index-128e35f1.js';
-export { i as Geometry } from './index-3ed4fdf0.js';
+export { i as Geometry } from './index-bfbf3236.js';
 export { T as Text } from './Text-6b1d33b3.js';
 export { i as Io } from './index-1016e904.js';
 export { i as Flow } from './index-001fb877.js';
@@ -7,7 +7,7 @@ export { G as Generators } from './Generators-295da263.js';
 export { i as Visual } from './index-7bca2b3d.js';
 export { i as Dom } from './index-c9c0d727.js';
 export { E as Events } from './Events-170d1411.js';
-export { i as Modulation } from './index-f9f3ab82.js';
+export { i as Modulation } from './index-2c54d554.js';
 export { i as Collections } from './index-9c90b516.js';
 export { R as Random } from './Arrays-14a37599.js';
 export { K as KeyValues } from './KeyValue-67ed417a.js';
