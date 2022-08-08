@@ -1,5 +1,5 @@
 # point-math
 
-Demonstrates moving an element toward a point, over time.
- 
-It also shows working with relative coordinates.
+Demonstrates computing some basic values based on two points.
+
+See also the `point-relation` sketch which uses `Point.relation` to take care of some of the hard work.

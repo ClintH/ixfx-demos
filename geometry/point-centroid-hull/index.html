@@ -42,13 +42,21 @@
       height: 100vh;
       z-index: 0;
     }
+
+    @media (max-height: 300px) {
+      #info {
+        display: none;
+      }
+    }
   </style>
   <section>
     <svg id="svg">
 
     </svg>
-    <h1>point-centroid-hull</h1>
-    <p>Click to add points. Centroid is shown as a hollow circle, lines show the enclosing convex hull.</p>
+    <div id="info">
+      <h1>point-centroid-hull</h1>
+      <p>Click to add points. Centroid is shown as a hollow circle, lines show the enclosing convex hull.</p>
+    </div>
     <div id="centroid" class="point"></div>
     <script type="module" src="script.js"></script>
   </section>
