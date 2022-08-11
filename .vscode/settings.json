@@ -10,6 +10,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
+  "files.eol": "\n",
   "spellright.language": [
     "en"
   ],

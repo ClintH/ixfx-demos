@@ -2958,6 +2958,21 @@ declare module "geometry/Point" {
      */
     export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
     /**
+     * Returns a point with Math.abs applied to x and y.
+     * ```ks
+     * Points.abs({ x:1,  y:1  }); // { x: 1, y: 1 }
+     * Points.abs({ x:-1, y:1  }); // { x: 1, y: 1 }
+     * Points.abs({ x:-1, y:-1 }); // { x: 1, y: 1 }
+     * ```
+     * @param pt
+     * @returns
+     */
+    export const abs: (pt: Point) => {
+        x: number;
+        y: number;
+        z?: number | undefined;
+    };
+    /**
      * Returns the angle in radians between `a` and `b`.
      *
      * Eg if `a` is the origin, and `b` is another point,
@@ -3344,8 +3359,12 @@ declare module "geometry/Point" {
      */
     export const convexHull: (...pts: readonly Point[]) => readonly Point[];
     /**
-     * Returns -1 if either x/y of a is less than b's x/y
+     * Returns -2 if both x & y of a is less than b
+     * Returns -1 if either x/y of a is less than b
+     *
+     * Returns 2 if both x & y of a is greater than b
      * Returns 1 if either x/y of a is greater than b's x/y
+     *
      * Returns 0 if x/y of a and b are equal
      * @param a
      * @param b
@@ -9759,6 +9778,28 @@ declare module "modulation/Forces" {
         readonly min?: number;
         readonly max?: number;
     }) => Points.Point;
+    export type TargetOpts = {
+        /**
+         * Acceleration scaling. Defaults to 0.001
+         */
+        readonly diminishBy?: number;
+        /**
+         * If distance is less than this range, don't move.
+         * If undefined (default), will try to get an exact position
+         */
+        readonly range?: Points.Point;
+    };
+    /**
+     * A force that moves a thing toward `targetPos`.
+     *
+     * ```js
+     * const t = Forces.apply(t, Forces.targetForce(targetPos));
+     * ```
+     * @param targetPos
+     * @param diminishBy Scales acceleration. Defaults to 0.001.
+     * @returns
+     */
+    export const targetForce: (targetPos: Points.Point, opts?: TargetOpts) => (t: ForceAffected) => ForceAffected;
     /**
      * Apply a series of force functions or forces to `t`. Null/undefined entries are skipped silently.
      * It also updates the velocity and position of the returned version of `t`.
@@ -9808,7 +9849,7 @@ declare module "modulation/Forces" {
      * @param vector
      * @returns Force function
      */
-    export const accelerationForce: (vector: Points.Point, mass: MassApplication) => ForceFn;
+    export const accelerationForce: (vector: Points.Point, mass?: MassApplication) => ForceFn;
     /**
      * A force based on the square of the thing's velocity.
      * It's like {@link velocityForce}, but here the velocity has a bigger impact.
@@ -9827,7 +9868,7 @@ declare module "modulation/Forces" {
      * @param mass How to factor in mass
      * @returns Function that computes force
      */
-    export const magnitudeForce: (force: number, mass: MassApplication) => ForceFn;
+    export const magnitudeForce: (force: number, mass?: MassApplication) => ForceFn;
     /**
      * Null force does nothing
      * @returns A force that does nothing
@@ -9976,9 +10017,36 @@ declare module "modulation/Forces" {
      * Compute velocity based on acceleration and current velocity
      * @param acceleration Acceleration
      * @param velocity Velocity
+     * @param velocityMax If specified, velocity will be capped at this value
      * @returns
      */
-    export const computeVelocity: (acceleration: Points.Point, velocity: Points.Point) => Points.Point;
+    export const computeVelocity: (acceleration: Points.Point, velocity: Points.Point, velocityMax?: number) => Points.Point;
+    /**
+     * Returns the acceleration to get from `currentPos` to `targetPos`.
+     *
+     * @example Barebones usage:
+     * ```js
+     * const accel = Forces.computeAccelerationToTarget(targetPos, currentPos);
+     * const vel = Forces.computeVelocity(accel, currentVelocity);
+     *
+     * // New position:
+     * const pos = Points.sum(currentPos, vel);
+     * ```
+     *
+     * @example Implementation:
+     * ```js
+     * const direction = Points.subtract(targetPos, currentPos);
+     * const accel = Points.multiply(direction, diminishBy);
+     * ```
+     * @param currentPos Current position
+     * @param targetPos Target position
+     * @param opts Options
+     * @returns
+     */
+    export const computeAccelerationToTarget: (targetPos: Points.Point, currentPos: Points.Point, opts?: TargetOpts) => Points.Point | Readonly<{
+        x: 0;
+        y: 0;
+    }>;
     /**
      * Compute a new position based on existing position and velocity vector
      * @param position Position Current position
