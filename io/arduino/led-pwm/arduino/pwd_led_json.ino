@@ -3,8 +3,11 @@
   by communication to a JS application over Web Serial and JSON.
   
   You want to have the PWM LED connected to D6 on your board, 
-  see the circut diagram in: arduino_as_api_1-LED_bb.pdf
+  see the circut diagram in: Wiring Guide.pdf
 
+  If you don't have an LED handy, set LED_PIN to 13 to use the
+  on-board LED.
+  
   This code assumes you have version 6.19.1 of ArduinoJson.
   It should work with most 6.x versions, but that is guaranteed. 
 
@@ -14,7 +17,7 @@
 #include <ArduinoJson.h>
 
 // Initializing LED Pin
-const byte LED_PIN = 13;
+const byte LED_PIN = 6;
 
 // Relative brightness of LED (0..1).
 // Initialise at 0, value is updated by

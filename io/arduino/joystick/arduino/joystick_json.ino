@@ -3,7 +3,7 @@
   to a JS application over Web Serial and JSON.
   
   You want to have the joystick to you board see the circut diagram in:
-  arduino_as_api_2-joystick_bb.pdf
+  Wiring Guide.pdf
 
   This code assumes you have version 16.19.1 of ArduinoJson.
   It should work with most 6.x versions, but that is guaranteed. 
@@ -61,6 +61,10 @@ void updateJoystick() {
 }
 
 void writeJSONToSerial() {
+    // Make sure you use the online tool to re-calculate
+    // number of bytes if additional fields are added
+    // https://arduinojson.org/v6/assistant/#/step1
+    
     StaticJsonDocument<56> json;
 
     json["x"] = joystickX;
