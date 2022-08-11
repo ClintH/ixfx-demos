@@ -4,30 +4,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pendulum</title>
+  <title>acceleration particles</title>
 </head>
 
 <body>
   <style>
     :root {
-      --hue: 200;
+      --hue: 319;
+      --bg: hsl(var(--hue), 10%, 10%);
+      --fg: hsl(var(--hue), 90%, 70%);
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     }
 
     body {
-      background-color: hsl(var(--hue), 10%, 80%);
+      color: var(--fg);
       font-family: var(--font);
+      background-color: var(--bg);
+      overflow: hidden;
       user-select: none;
-      -webkit-user-select: none;
     }
 
     h1 {
-      color: hsl(var(--hue), 100%, 30%);
+      color: var(--fg);
+    }
+
+    .thing {
+      position: absolute;
+      left: 0em;
+      top: 0em;
+      text-align: center;
     }
   </style>
   <section>
-    <h1>pendulum</h1>
-    <canvas id="canvas"></canvas>
+    <h1>acceleration particles</h1>
+    <p>Demonstrates applying acceleration. Click and drag pointer to change velocity.</p>
+    <div title="Current velocity" id="velocity"></div>
+
     <script type="module" src="script.js"></script>
   </section>
 </body>

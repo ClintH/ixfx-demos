@@ -42,9 +42,6 @@ const onTick = () => {
   let attracteesAltered = attractees.map(a => Forces.apply(a,
     Forces.computeAttractionForce(attractor, a, gravity),
     orientationForce
-    // angleFromAccelerationForce,
-    // angularForce,
-    // angleFromVelocityForce
   ));
 
   // Force between attractees

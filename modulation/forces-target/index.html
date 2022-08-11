@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>target</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 219;
+      --bg: hsl(var(--hue), 10%, 10%);
+      --fg: hsl(var(--hue), 90%, 70%);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    }
+
+    body {
+      color: var(--fg);
+      font-family: var(--font);
+      background-color: var(--bg);
+      overflow: hidden;
+      user-select: none;
+    }
+
+    h1 {
+      color: var(--fg);
+    }
+
+    #thing,
+    #target {
+      background-color: var(--fg);
+      color: var(--bg);
+      position: absolute;
+      padding: 1em;
+      border-radius: 100%;
+      width: 3em;
+      height: 2em;
+      left: 0em;
+      top: 0em;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #target {
+      border: 2px solid var(--fg);
+      background-color: unset;
+    }
+  </style>
+  <section>
+    <h1>target</h1>
+    <p>Click to set a target point.</p>
+    <div id="thing">Hello</div>
+    <div id="target"></div>
+
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
