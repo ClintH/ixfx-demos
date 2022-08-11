@@ -6489,6 +6489,10 @@ declare module "io/Serial" {
     export type SerialOpts = JsonDeviceOpts & {
         readonly filters?: ReadonlyArray<SerialPortFilter>;
         readonly baudRate?: number;
+        /**
+         * End-of-line string sequence. \r\n by default.
+         */
+        readonly eol?: string;
     };
     /**
      * Serial device. Assumes data is sent with new line characters (\r\n) between messages.

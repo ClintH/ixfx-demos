@@ -1,7 +1,7 @@
 export { i as Data } from './index-3eaa0525.js';
 export { i as Geometry } from './index-9c4eee6e.js';
 export { T as Text } from './Text-663bb51c.js';
-export { i as Io } from './index-f240602c.js';
+export { i as Io } from './index-c0926ad7.js';
 export { i as Flow } from './index-e37bbe84.js';
 export { G as Generators } from './Generators-0869b3bf.js';
 export { i as Visual } from './index-4826774a.js';

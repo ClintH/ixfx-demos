@@ -18,6 +18,9 @@
             "error",
             "unix"
         ],
+        "eqeqeq": [
+            "error"
+        ],
         "quotes": [
             "error",
             "backtick"
@@ -28,7 +31,11 @@
         ],
         "object-curly-spacing": [
             "error",
-            "always"
+            "always",
+            {
+                "arraysInObjects": true,
+                "objectsInObjects": true
+            }
         ],
         "semi": [
             "error",
