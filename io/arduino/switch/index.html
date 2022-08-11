@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>switch</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 210;
+    --bg: hsl(var(--hue) 100% 80%);
+    --fg: hsl(var(--hue) 100% 9%);
+  }
+
+  html,
+  body {
+    height: 100%;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  body {
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  section {
+    margin: 2em;
+  }
+</style>
+
+<body>
+  <section>
+    <div id="preamble">
+      <h1>switch</h1>
+      <button id="btnConnect">Connect</button>
+      <p>This sketch requires a microcontroller connected via USB loaded
+        with the provided sketch and wired up
+        correctly. Please see the README.</p>
+    </div>
+    <div id="connected" style="display:none">
+      switch: <div id="lblSwitch"></div><br />
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
