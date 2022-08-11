@@ -1,16 +1,8 @@
-/**
- * This sketch demonstrates applying a vector velocity to a point,
- * wrapping the coordinate based on screen dimensions.
- * 
- * It also demonstrates using `pointTracker` to track pointer movement
- * direction and use that to interactively change velocity.
- */
 import { Points } from '../../ixfx/geometry.js';
 import { Forces } from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
 import { pointTracker } from '../../ixfx/data.js';
 
-// Define settings
 const settings = Object.freeze({
   thingEl: document.getElementById(`thing`)
 });
