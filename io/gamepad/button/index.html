@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gamepad / button</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 80;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 20%);
+      --fg: hsl(var(--hue), 90%, 75%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+    }
+
+    h1 {
+      color: hsl(var(--hue), 100%, 70%);
+    }
+
+    #vis {
+      width: 5em;
+      height: 5em;
+      border: 3px solid var(--fg);
+    }
+
+    #vis.pressed {
+      background-color: var(--fg);
+    }
+  </style>
+  <section>
+    <h1>gamepad / button</h1>
+    <p>Mash some buttons on your gamepad.</p>
+    <div id="vis"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
