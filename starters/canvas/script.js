@@ -5,8 +5,6 @@ const settings = Object.freeze({
   dotColour: `black`,
   textColour: `white`,
   radius: 100,
-  /** @type {HTMLCanvasElement|null} */
-  canvasEl: document.querySelector(`#canvas`)
 });
 
 // Initial state with empty values
@@ -21,11 +19,10 @@ let state = Object.freeze({
 });
 
 const useState = () => {
-  const { canvasEl } = settings;
-  if (canvasEl === null) return; // Canvas element is missing :`(
-
-  const ctx = canvasEl.getContext(`2d`);
-  if (ctx === null) return;
+  /** @type HTMLCanvasElement|null */
+  const canvasEl = document.querySelector(`#canvas`);
+  const ctx = canvasEl?.getContext(`2d`);
+  if (!ctx || !canvasEl) return;
 
   // Clear canvas
   clear(ctx);
@@ -82,8 +79,7 @@ const clear = (ctx) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  const { canvasEl } = settings;
-  Dom.fullSizeCanvas(canvasEl, args => {
+  Dom.fullSizeCanvas(`#canvas`, args => {
     // Update state with new size of canvas
     updateState({ bounds: args.bounds });
   });
