@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>point-tracker playground</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 200;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    }
+
+    body {
+      background-color: hsl(var(--hue), 10%, 80%);
+      font-family: var(--font);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #info {
+      pointer-events: none;
+    }
+
+    h1 {
+      color: hsl(var(--hue), 100%, 30%);
+    }
+
+    h2 {
+      font-size: 0.9em;
+      text-transform: uppercase;
+      font-weight: normal;
+      margin: 0;
+      margin-top: 1em;
+    }
+  </style>
+  <section>
+    <h1>point-tracker playground</h1>
+    <p><em>Click to add a point to the tracker.</em></p>
+    <canvas id="canvas"></canvas>
+    <div id="info">
+      Length: <span id="totalLength"></span><br />
+      Elapsed: <span id="elapsed"></span>
+      <h2>From initial</h2>
+      <div id="infoInitial"></div>
+      <h2>From last</h2>
+      <div id="infoLast"></div>
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
