@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>frequency</title>
+</head>
+<style>
+  :root {
+    --hue: 110;
+    --bg: hsl(var(--hue), 50%, 13%);
+    --fg: hsl(var(--hue), 50%, 80%)
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+
+  a,
+  a:link,
+  a:visited {
+    color: var(--fg);
+  }
+</style>
+
+<body>
+  <section>
+    <h1>frequency</h1>
+    <p>Demonstrates the <a href="https://clinth.github.io/ixfx-docs/data/frequency/">frequency tracker</a>.
+
+    <div>
+      <label for="letters">Type here</label>
+      <input id="letters" name="letters" value="Hello there!">
+    </div>
+    <div id="output">
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
