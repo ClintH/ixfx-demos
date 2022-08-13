@@ -2959,7 +2959,7 @@ declare module "geometry/Point" {
     export const guardNonZeroPoint: (pt: Point, name?: string) => boolean;
     /**
      * Returns a point with Math.abs applied to x and y.
-     * ```ks
+     * ```js
      * Points.abs({ x:1,  y:1  }); // { x: 1, y: 1 }
      * Points.abs({ x:-1, y:1  }); // { x: 1, y: 1 }
      * Points.abs({ x:-1, y:-1 }); // { x: 1, y: 1 }
@@ -3032,7 +3032,7 @@ declare module "geometry/Point" {
      * @param p
      * @returns
      */
-    export const toString: (p: Point, precision?: number) => string;
+    export const toString: (p: Point, digits?: number) => string;
     /**
      * Returns _true_ if the points have identical values
      *
@@ -7713,6 +7713,16 @@ declare module "dom/Util" {
      */
     export const dataTableList: (parentOrQuery: HTMLElement | string, data: ReadonlyMap<string, object>) => (data: ReadonlyMap<string, object>) => void;
     /**
+     * Format data. Return _undefined_ to signal that
+     * data was not handled.
+     */
+    export type DataFormatter = (data: object, path: string) => string | undefined;
+    export type DataTableOpts = {
+        readonly formatter?: DataFormatter;
+        readonly precision?: number;
+        readonly roundNumbers?: boolean;
+    };
+    /**
      * Creates a HTML table where each row is a key-value pair from `data`.
      * First column is the key, second column data.
      *
@@ -7724,7 +7734,7 @@ declare module "dom/Util" {
      * });
      * ```
      */
-    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object) => (data: object) => void;
+    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object, opts?: DataTableOpts) => (data: object) => void;
     /**
      * Remove all child nodes from `parent`
      * @param parent
@@ -9192,27 +9202,36 @@ declare module "data/PointTracker" {
     import * as Points from "geometry/Point";
     import * as Line from "geometry/Line";
     import { Timestamped, ObjectTracker, TrackedValueMap, TrackedValueOpts as TrackOpts } from "data/TrackedValue";
-    export type PointSeenInfo = {
-        readonly distance: number;
-        readonly centroid: Points.Point;
-        readonly angle: number;
-        readonly speed: number;
-        readonly values: readonly Points.Point[];
+    /**
+     * Information about seen points
+     */
+    export type PointTrack = Points.PointRelationResult & {
         /**
-         * Average of all points seen
+         * Distance
          */
-        readonly average: Points.Point;
+        /**
+         * Centroid
+         */
+        /**
+         * Units/millisecond
+         */
+        readonly speed: number;
+    };
+    export type PointTrackerResults = {
+        readonly fromLast: PointTrack;
+        readonly fromInitial: PointTrack;
+        readonly values: readonly Points.Point[];
     };
     export class PointTracker extends ObjectTracker<Points.Point> {
         readonly id: string;
         /**
          * Function that yields the relation from initial point
          */
-        relation: Points.PointRelation | undefined;
+        initialRelation: Points.PointRelation | undefined;
         /**
-         * Info on last seen point
+         * Last result
          */
-        lastInfo: PointSeenInfo | undefined;
+        lastResult: PointTrackerResults | undefined;
         constructor(id: string, opts?: TrackOpts);
         /**
          * Returns the last x coord
@@ -9227,13 +9246,11 @@ declare module "data/PointTracker" {
          */
         onReset(): void;
         /**
-         * Tracks a point, returning information on the relation between it
-         * and the start point.
-         *
-         * If multiple points are given, it's relation to the last point that is returned.
+         * Tracks a point, returning data on its relation to the
+         * initial point and the last received point.
          * @param p Point
          */
-        seen(...p: Points.Point[] | Timestamped<Points.Point>[]): PointSeenInfo;
+        seen(...p: Points.Point[] | Timestamped<Points.Point>[]): PointTrackerResults;
         /**
          * Returns a polyline representation of stored points.
          * Returns an empty array if points were not saved, or there's only one.
@@ -9242,9 +9259,18 @@ declare module "data/PointTracker" {
         /**
          * Returns distance from latest point to initial point.
          * If there are less than two points, zero is returned.
+         *
+         * This is the direct distance, not the accumulated length.
          * @returns Distance
          */
         distanceFromStart(): number;
+        /**
+         * Difference between last point and the initial point, calculated
+         * as a simple subtraction of x & y.
+         *
+         * `Points.Placeholder` is returned if there's only one point so far.
+         */
+        difference(): Points.Point;
         /**
          * Returns angle (in radians) from latest point to the initial point
          * If there are less than two points, undefined is return.
