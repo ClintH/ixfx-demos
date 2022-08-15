@@ -1,7 +1,3 @@
-/**
- * This sketch demonstrates using key events to make a
- * very simple typewriter.
- */
 import { flip, clamp, scale } from "../../../ixfx/data.js";
 import { intervalTracker } from "../../../ixfx/data.js";
 

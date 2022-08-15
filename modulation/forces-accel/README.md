@@ -8,3 +8,7 @@ and use that to interactively change velocity.
 
 See `forces-accel-particles` for a version of this sketch that works with any
 number of things.
+
+See also:
+* [`pointTracker`](https://clinth.github.io/ixfx/functions/Data.pointTracker.html)
+* [ixfx trackers](https://clinth.github.io/ixfx-docs/data/trackers/)

@@ -7,6 +7,10 @@ Particles here are rendered as HTML elements rather than using the canvas.
 
 For a simpler version, see `forces-accel`.
 
+See also:
+* [`pointTracker`](https://clinth.github.io/ixfx/functions/Data.pointTracker.html)
+* [ixfx trackers](https://clinth.github.io/ixfx-docs/data/trackers/)
+
 ## Tracking pointer movement
 
 A ixfx point tracker is used to average pointer movement over time.
