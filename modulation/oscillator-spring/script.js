@@ -16,7 +16,7 @@ let state = Object.freeze({
 
 // Update state with value from easing
 const onTick = () => {
-  const { spring, currentPos, to, from } = state;
+  const { spring, to, from } = state;
 
   const v = spring.next().value;
   if (v === undefined) {

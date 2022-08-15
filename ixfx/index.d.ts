@@ -2784,6 +2784,18 @@ declare module "geometry/Line" {
      */
     export const toFlatArray: (a: Points.Point | Line, b: Points.Point) => readonly number[];
     /**
+     * Yields all the points of all the lines.
+     *
+     * ```js
+     * const lines = [ ..some array of lines.. ];
+     * for (const pt of Lines.asPoints(lines)) {
+     *  // Yields a and then b of each point sequentially
+     * }
+     * ```
+     * @param lines
+     */
+    export function asPoints(lines: Iterable<Line>): Generator<Point, void, unknown>;
+    /**
      * Returns an SVG description of line
      * ```
      * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js';
@@ -7398,8 +7410,9 @@ declare module "modulation/Forces" {
      * It returns a function which can later be applied to a thing.
      *
      * ```js
+     * import { Forces } from "https://unpkg.com/ixfx/dist/modulation.js"
      * // Acceleration vector of (0.1, 0), ie moving straight on horizontal axis
-     * const f = accelerationForce({ x:0.1, y:0 }, `dampen`);
+     * const f = Forces.accelerationForce({ x:0.1, y:0 }, `dampen`);
      *
      * // Thing to move
      * let t = { position: ..., acceleration: ... }
@@ -7654,12 +7667,20 @@ declare module "modulation/Oscillator" {
          * Default: false
          */
         readonly soft?: boolean;
+        /**
+         * Default: 0.1
+         */
         readonly velocity?: number;
+        /**
+         * How many iterations to wait for spring settling (default: 10)
+         */
+        readonly countdown?: number;
     };
     /**
      * Spring-style oscillation
      *
      * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
      * const spring = Oscillators.spring();
      *
      * continuously(() => {
@@ -7685,9 +7706,11 @@ declare module "modulation/Oscillator" {
      * Sine oscillator.
      *
      * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     *
      * // Setup
-     * const osc = sine(Timers.frequencyTimer(10));
-     * const osc = sine(0.1);
+     * const osc = Oscillators.sine(Timers.frequencyTimer(10));
+     * const osc = Oscillators.sine(0.1);
      *
      * // Call whenever a value is needed
      * const v = osc.next().value;
@@ -7727,9 +7750,13 @@ declare module "modulation/Oscillator" {
      * Saw oscillator
      *
      * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     *
      * // Setup
-     * const osc = saw(Timers.frequencyTimer(0.1));
-     * const osc = saw(0.1);
+     * const osc = Oscillators.saw(Timers.frequencyTimer(0.1));
+     *
+     * // Or
+     * const osc = Oscillators.saw(0.1);
      *
      * // Call whenever a value is needed
      * const v = osc.next().value;
@@ -7740,9 +7767,11 @@ declare module "modulation/Oscillator" {
      * Square oscillator
      *
      * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     *
      * // Setup
-     * const osc = square(Timers.frequencyTimer(0.1));
-     * const osc = square(0.1);
+     * const osc = Oscillators.square(Timers.frequencyTimer(0.1));
+     * const osc = Oscillators.square(0.1);
      *
      * // Call whenever a value is needed
      * osc.next().value;
@@ -7777,7 +7806,7 @@ declare module "modulation/PingPong" {
      * ```
      * @param interval Amount to increment by. Defaults to 10%
      * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param rounding Rounding to apply. Defaults to 1000. This avoids floating-point rounding errors.
+     * @param rounding Rounding to apply. This avoids floating-point rounding errors.
      */
     export const pingPongPercent: (interval?: number, lower?: number, upper?: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
     /**
@@ -7863,6 +7892,7 @@ declare module "modulation/index" {
      * * {@link Oscillators.sineBipolar}: Sine wave with range of -1 to 1
      * * {@link Oscillators.square}: Square wave
      * * {@link Oscillators.triangle}: Triangle wave
+     * * {@link Oscillators.spring}: Spring oscillator
      *
      * @example On-demand sampling
      * ```js
@@ -11097,7 +11127,7 @@ declare module "data/PointTracker" {
      * t.x / t.y
      * t.length; // Total length of accumulated points
      * t.elapsed; // Total duration since start
-     * t.lastInfo; // The PointSeenInfo for last seen point
+     * t.lastResult; // The PointSeenInfo for last seen point
      * ```
      *
      * Housekeeping
@@ -11182,7 +11212,7 @@ declare module "index" {
      * * {@link Generators}: Generate data
      * * {@link Geometry}: Working with various kinds of shapes and spatial calcuations
      * * {@link Io}: Connect to Espruino, Arduino, sound and video inputs
-     * * {@link Modulation}: Envelopes, Oscillators, jittering
+     * * {@link Modulation}: Envelopes, oscillators, jittering, forces
      * * {@link Numbers}: A few number-processing functions
      * * {@link Random}: Compute various forms of random numbers
      * * {@link Text}: A few string processing functions

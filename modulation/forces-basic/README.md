@@ -2,6 +2,8 @@
 
 Based on a demo by Daniel Shiffman in _The Nature of Code_.
 
+[Try demo online](https://clinth.github.io/ixfx-demos/modulation/forces-basic/)
+
 Overview:
 * `onTick()` runs in a loop at animation speed. It:
  1. applies forces to each particle,
@@ -11,6 +13,9 @@ Overview:
 * `useState()` draws what ever is in the state. This also runs in a loop at animation speed.
 * `spawn()` adds a new particle at the pointer position
 * `setup()` connects events and initialises. 
+
+See also:
+* [ixfx forces](https://clinth.github.io/ixfx-docs/modulation/forces/)
 
 ## Settings
 

@@ -43,8 +43,8 @@ const onTick = () => {
  * Position thing based on state
  */
 const useState = () => {
-  const {thingEl} = settings;
-  const {position, window} = state;
+  const { thingEl } = settings;
+  const { position, window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(position, window.width, window.height);
@@ -72,30 +72,30 @@ const setup = () => {
 
   // Update our tracking of window size if there's a resize
   window.addEventListener(`resize`, () => {
-    updateState({window: {
+    updateState({ window: {
       width: window.innerWidth,
       height: window.innerHeight
-    }});
+    } });
   });
 
   // On pointerup, assign a new velocity based on accumulated movement
   window.addEventListener(`pointerup`, (ev) => {
-    const {pointerMovement} = state;
+    const { pointerMovement } = state;
 
     // Get the last data from the pointTracker
-    const nfo = pointerMovement.lastInfo;
+    const nfo = pointerMovement.lastResult;
 
     // If we have some info
     if (nfo !== undefined) {
       // Normalise the average movement, and divide by 200 to reduce the speed
-      const avg = Points.divide(Points.normalise(nfo.average), 200);
+      const avg = Points.divide(Points.normalise(nfo.fromInitial.average), 200);
 
       // For debug purposes, show velocity x,y on screen
       const labelEl = document.getElementById(`velocity`);
       if (labelEl) labelEl.innerText = Points.toString(avg);
 
       const { position, velocity } = Forces.apply(state,
-         Forces.accelerationForce(avg, `dampen`));
+        Forces.accelerationForce(avg, `dampen`));
       updateState({ velocity, position });
     }
 
@@ -104,22 +104,22 @@ const setup = () => {
   });
 
   window.addEventListener(`pointermove`, (ev) => {
-    const {pointerMovement} = state;
+    const { pointerMovement } = state;
 
     // Exit if no there's no press
     if (ev.buttons === 0) return;
 
     // Track the movement
-    pointerMovement.seen({x: ev.movementX, y: ev.movementY});
+    pointerMovement.seen({ x: ev.movementX, y: ev.movementY });
   });
-}
+};
 setup();
 
 /**
  * Update state
  * @param {Partial<state>} s 
  */
- function updateState (s) {
+function updateState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -34,7 +34,7 @@ let state = Object.freeze({
   /** @type {number} */
   differences: 0,
   diffVu: ``
-};
+});
 
 const useState = () => {
   const { fps, differences, diffVu } = state;
@@ -121,7 +121,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
- function updateState (s) {
+function updateState (s) {
   state = Object.freeze({
     ...state,
     ...s

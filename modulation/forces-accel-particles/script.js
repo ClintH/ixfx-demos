@@ -38,7 +38,7 @@ let state = Object.freeze({
 // Update state of world
 const onTick = () => {
   // Update all the things
-  updateState({things: state.things.map(updateThing)});
+  updateState({ things: state.things.map(updateThing) });
 };
 
 /**
@@ -61,7 +61,7 @@ const updateThing = (t) => {
     ...changedThing,
     position: posAfterWrap
   };
-}
+};
 
 /**
  * Position thing based on state
@@ -78,7 +78,7 @@ const useState = () => {
 };
 
 const moveElement = (el, relativePosition) => {
-  const {window} = state;
+  const { window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(relativePosition, window.width, window.height);
@@ -117,7 +117,7 @@ const createThing = () => {
  * @returns HTMLElement
  */
 const getOrCreateElementForThing = (t) => {
-  const {thingSizeMax} = settings;
+  const { thingSizeMax } = settings;
 
   const id = `thing-${t.id}`;
   let el = document.getElementById(id);
@@ -127,13 +127,13 @@ const getOrCreateElementForThing = (t) => {
     el.setAttribute(`checked`, `true`);
     el.classList.add(`thing`);
     el.id = id;
-    el.style.width = Math.round(t.mass * thingSizeMax) + 'px';
-    el.style.height = Math.round(t.mass * thingSizeMax) + 'px';
+    el.style.width = Math.round(t.mass * thingSizeMax) + `px`;
+    el.style.height = Math.round(t.mass * thingSizeMax) + `px`;
     
     document.body.append(el);
   }
-  return el
-}
+  return el;
+};
 
 const setup = () => {
   continuously(() => {
@@ -153,15 +153,15 @@ const setup = () => {
 
   // On pointerup, assign a new velocity based on accumulated movement
   window.addEventListener(`pointerup`, (ev) => {
-    const {pointerMovement} = state;
+    const { pointerMovement } = state;
 
     // Get the last data from the pointTracker
-    const nfo = pointerMovement.lastInfo;
+    const nfo = pointerMovement.lastResult;
 
     // If we have some info
     if (nfo !== undefined) {
       // Normalise the average movement, and divide to reduce the speed
-      const avg = Points.divide(Points.normalise(nfo.average), 500);
+      const avg = Points.divide(Points.normalise(nfo.fromInitial.average), 500);
 
       // For debug purposes, show velocity x,y on screen
       const labelEl = document.getElementById(`velocity`);
@@ -178,25 +178,25 @@ const setup = () => {
   });
 
   window.addEventListener(`pointermove`, (ev) => {
-    const {pointerMovement} = state;
+    const { pointerMovement } = state;
 
     // Exit if no there's no press
     if (ev.buttons === 0) return;
 
     // Track the movement amount
-    pointerMovement.seen({x: ev.movementX, y: ev.movementY});
+    pointerMovement.seen({ x: ev.movementX, y: ev.movementY });
   });
 
   // Create things
   for (let i = 0; i < settings.thingsCount; i++) createThing();
-}
+};
 setup();
 
 /**
  * Update state
  * @param {Partial<state>} s 
  */
- function updateState (s) {
+function updateState (s) {
   state = Object.freeze({
     ...state,
     ...s

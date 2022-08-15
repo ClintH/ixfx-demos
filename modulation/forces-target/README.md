@@ -1,9 +1,14 @@
 # forces-target
 
+[Try demo online](https://clinth.github.io/ixfx-demos/modulation/forces-target/)
+
 This sketch uses ixfx's `Forces` module to move an element to a target point (in
 this case, where someone has clicked).
 
-## Targetting
+See also:
+* [ixfx forces](https://clinth.github.io/ixfx-docs/modulation/forces/)
+
+## Targeting
 
 In `state`, _targetPos_ _position_ and _velocity_ are stored. The latter two are
 updated in `onTick`. _targetPos_ is set based on pointer events.

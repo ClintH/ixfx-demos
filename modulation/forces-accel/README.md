@@ -1,5 +1,7 @@
 # forces-accel
 
+[Try demo online](https://clinth.github.io/ixfx-demos/modulation/forces-accel/)
+
 This sketch demonstrates applying a vector velocity to a point, wrapping the
 coordinate based on screen dimensions.
 
@@ -12,3 +14,4 @@ number of things.
 See also:
 * [`pointTracker`](https://clinth.github.io/ixfx/functions/Data.pointTracker.html)
 * [ixfx trackers](https://clinth.github.io/ixfx-docs/data/trackers/)
+* [ixfx forces](https://clinth.github.io/ixfx-docs/modulation/forces/)

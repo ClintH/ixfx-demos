@@ -6,7 +6,7 @@
  *  - Drawing based on these computed composite shapes
  */
 import * as Dom from '../../ixfx/dom.js';
-import { Rects, Points } from '../../ixfx/geometry.js';
+import { Rects, Lines } from '../../ixfx/geometry.js';
 
 // Define settings
 const settings = Object.freeze({
@@ -72,21 +72,19 @@ const drawRectManual = (ctx, r, strokeStyle) => {
 
   // Compute the lines for a rectangle
   const lines = Rects.edges(r);
+  // Get points
+  const points = Lines.asPoints(lines);
+  let started = false;
 
-  // Start at first point
   ctx.beginPath();
-  const firstPoint = lines[0].a;
-  ctx.moveTo(firstPoint.x, firstPoint.y);
-
-  // For each line
-  ctx.lineWidth = 1;
-  lines.forEach(line => {
-    const lineEnd = line.b;
-    ctx.lineTo(lineEnd.x, lineEnd.y);
-  });
-
-  // ...and back to start to close the rectangle
-  ctx.lineTo(firstPoint.x, firstPoint.y);
+  for (const pt of points) {
+    if (started) {
+      ctx.lineTo(pt.x, pt.y);
+    } else {
+      ctx.moveTo(pt.x, pt.y);
+      started = true;
+    }
+  }
   ctx.stroke();
 };
 
@@ -95,7 +93,7 @@ const drawRectManual = (ctx, r, strokeStyle) => {
  * @param {CanvasRenderingContext2D} ctx 
  */
 const draw = (ctx) => {
-  const { pointer, bounds } = state;
+  const { pointer } = state;
   const { centerColour, cornerColour } = settings;
 
   // Create a rectangle from its center

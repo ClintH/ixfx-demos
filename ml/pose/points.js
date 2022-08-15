@@ -39,7 +39,7 @@ let state = Object.freeze({
 const onPoses = (poses) => {
   const { smoothingAmt } = settings;
 
-  console.log(poses);
+  // console.log(poses);
     
   if (poses.length === 0) return;
   

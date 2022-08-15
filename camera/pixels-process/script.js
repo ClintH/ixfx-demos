@@ -173,7 +173,9 @@ const startVideo = async () => {
   const { canvasEl, visualise } = settings;
 
   // Init camera
-  const { videoEl, dispose } = await Camera.start();
+  const { videoEl, dispose } = await Camera.start({
+    ideal: { width: 800, height: 600 }
+  });
 
   // Get drawing context if possible
   const ctx = canvasEl?.getContext(`2d`);
