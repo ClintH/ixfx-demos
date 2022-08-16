@@ -40,10 +40,10 @@
  * drawLine(ctx, ...pts)
  * * Draws a line connecting points {x,y}
  */
-import { FrameProcessor } from '../../ixfx/io.js';
-import { Camera } from '../../ixfx/io.js';
-import { defaultErrorHandler } from '../../ixfx/dom.js';
-import { continuously, interval } from '../../ixfx/flow.js';
+import { FrameProcessor } from '../ixfx/io.js';
+import { Camera } from '../ixfx/io.js';
+import { defaultErrorHandler } from '../ixfx/dom.js';
+import { continuously, interval } from '../ixfx/flow.js';
 
 // Settings determined by caller
 const caller = {
