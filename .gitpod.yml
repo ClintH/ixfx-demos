@@ -5,3 +5,9 @@
 tasks:
   - init: npm install
     command: npm run start
+ports:
+  - name: ixfx demos
+    description: Server for demos
+    port: 3000
+    onOpen: open-browser
+    visibility: public

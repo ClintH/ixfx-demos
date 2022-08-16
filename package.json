@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "Demos of ixfx",
   "main": "index.html",
+  "type": "module",
   "scripts": {
-    "start": "browser-sync start --config 'bs-config.js'",
-    "bs": "browser-sync start --config 'bs-config.js' --no-open",
+    "start": "browser-sync start --config 'bs-config.cjs'",
+    "bs": "browser-sync start --config 'bs-config.cjs' --no-open",
     "edge": "/Applications/Microsoft\\ Edge\\ Canary.app/Contents/MacOS/Microsoft\\ Edge\\ Canary --auto-open-devtools-for-tabs http://localhost:3000",
     "bs-edge": "npm run bs & npm run edge",
-    "clean": "rimraf ixfx"
+    "clean": "rimraf ixfx",
+    "make-light": "node make-light.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,9 @@
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
-    "eslint": "^8.20.0"
+    "cpy": "^9.0.1",
+    "cpy-cli": "^4.1.0",
+    "eslint": "^8.20.0",
+    "replace-in-file": "^6.3.5"
   }
 }

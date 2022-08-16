@@ -14,7 +14,7 @@ Read more about ixfx:
 
 ## Editing and running online
 
-* [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos) - requires GitHub login
+* [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos-light) - requires GitHub login
 * [Glitch](https://glitch.com/edit/#!/ixfx-demos) - Editing experience not the best
 
 ## Editing and running locally
