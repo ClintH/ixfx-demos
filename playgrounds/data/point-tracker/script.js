@@ -20,29 +20,28 @@ let state = Object.freeze({
 });
 
 /**
- * 
+ * New click point
  * @param {Points.Point} pt 
  */
 const handlePoint = (pt) => {
   const { dtInitial, dtLast, tracker } = settings;
-
-  const r = tracker.seen(pt);
-  const infoEl = document.getElementById(`info`);
-  
   const { lastPoint } = state;
 
+  const r = tracker.seen(pt);
+
   const ctx = getCtx();
-  if (!ctx) {
-    console.log(`No canvas found`);
-    return;
-  }
-  if (lastPoint.x === -1 && lastPoint.y === -1) {
-    // First point
-  } else {
+  if (!ctx) return;
+
+  const firstPoint  = (lastPoint.x === -1 && lastPoint.y === -1);
+
+  if (firstPoint) {
+    drawDot(ctx, pt, `red`);
+  } else if (!firstPoint) {
     // Draw line
     drawLine(ctx, lastPoint, pt);
+    drawDot(ctx, pt);
   }
-  drawDot(ctx, pt);
+
   updateState({ lastPoint: pt });
   console.log(r);
 
@@ -82,8 +81,8 @@ const drawLine = (ctx, a, b) => {
  * @param {CanvasRenderingContext2D} ctx 
  * @param {Points.Point} a 
  */
-const drawDot = (ctx, a) => {
-  ctx.fillStyle = `black`;
+const drawDot = (ctx, a, fillStyle = `black`) => {
+  ctx.fillStyle = fillStyle;
   ctx.save();
   ctx.translate(a.x, a.y);
   ctx.beginPath();

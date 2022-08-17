@@ -18,12 +18,13 @@ import {
   pointTracker,
   pointsTracker,
   scale,
+  scaleClamped,
   scalePercent,
   scalePercentages,
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-2U3WGFP3.js";
+} from "./chunk-3BKIYBWP.js";
 import "./chunk-XP4B4NIH.js";
 import "./chunk-NE76PV7D.js";
 import "./chunk-OE2F6QKM.js";
@@ -62,6 +63,7 @@ export {
   pointTracker,
   pointsTracker,
   scale,
+  scaleClamped,
   scalePercent,
   scalePercentages,
   wrap,

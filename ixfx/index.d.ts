@@ -853,7 +853,7 @@ declare module "data/Scale" {
      * ```
      *
      * If `v` is outside of the input range, it will likewise be outside of the output range.
-     * Use {@link clamp} to ensure output range is maintained.
+     * Use {@link scaleClamped} to clip value to range.
      *
      * If inMin and inMax are equal, outMax will be returned.
      *
@@ -873,6 +873,18 @@ declare module "data/Scale" {
      * @returns Scaled value
      */
     export const scale: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
+    /**
+     * As {@link scale}, but result is clamped to be
+     * within `outMin` and `outMax`.
+     * @param v
+     * @param inMin
+     * @param inMax
+     * @param outMin
+     * @param outMax
+     * @param easing
+     * @returns
+     */
+    export const scaleClamped: (v: number, inMin: number, inMax: number, outMin?: number | undefined, outMax?: number | undefined, easing?: ((v: number) => number) | undefined) => number;
     /**
      * Scales an input percentage to a new percentage range.
      *
@@ -3681,6 +3693,10 @@ declare module "geometry/Point" {
         * This is calculated by summing x,y and dividing by total points
         */
         readonly average: Point;
+        /**
+         * Speed. Distance/millisecond from one sample to the next.
+         */
+        readonly speed: number;
     };
     /**
      * Tracks the relation between two points
@@ -3692,13 +3708,14 @@ declare module "geometry/Point" {
      * const t = Points.relation({x:50,y:50});
      *
      * // Compare to a 0,0
-     * const {angle, distance, average, centroid} = t({x:0,y:0});
+     * const { angle, distance, average, centroid, speed } = t({x:0,y:0});
      * ```
      *
      * X,y coordinates can also be used as parameters:
      * ```js
      * const t = Points.relation(50, 50);
-     * const {angle, distance, centroid} = t(0, 0);
+     * const result = t(0, 0);
+     * // result.speed, result.angle ...
      * ```
      * @param start
      * @returns
@@ -6720,7 +6737,7 @@ declare module "data/TrackerBase" {
         * @ignore
         */
         protected resetAfterSamples: number;
-        constructor(id: string, opts?: TrackedValueOpts);
+        constructor(id?: string, opts?: TrackedValueOpts);
         /**
          * Reset tracker
          */
@@ -6877,7 +6894,7 @@ declare module "data/PrimitiveTracker" {
     export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
         values: V[];
         timestamps: number[];
-        constructor(id: string, opts: TrackedValueOpts);
+        constructor(id?: string, opts?: TrackedValueOpts);
         get last(): V | undefined;
         get initial(): V | undefined;
         /**
@@ -10996,9 +11013,7 @@ declare module "data/PointTracker" {
     /**
      * Information about seen points
      */
-    export type PointTrack = Points.PointRelationResult & {
-        readonly speed: number;
-    };
+    export type PointTrack = Points.PointRelationResult & {};
     export type PointTrackerResults = {
         readonly fromLast: PointTrack;
         readonly fromInitial: PointTrack;
@@ -11765,6 +11780,8 @@ declare module "data/IntervalTracker" {
      * records the interval between each call to `mark`.
      *
      * ```js
+     * import { intervalTracker } from 'https://unpkg.com/ixfx/dist/data.js';
+     *
      * const t = intervalTracker();
      *
      * // Call `mark` to record an interval
@@ -11776,18 +11793,19 @@ declare module "data/IntervalTracker" {
      * t.avg;
      *
      * // Longest and shortest times are available too...
-     * t.min; t.max
+     * t.min / t.max
      * ```
      *
      * Interval tracker can automatically reset after a given number of samples:
+     *
      * ```
      * // Reset after 100 samples
-     * const t = intervalTracker(`tracker`, 100);
+     * const t = intervalTracker(`tracker`, { resetAfterSamples: 100} );
      * ```
      * @param id Optional id of instance
      * @returns New interval tracker
      */
-    export const intervalTracker: (id: string, opts: TrackOpts) => IntervalTracker;
+    export const intervalTracker: (id?: string | undefined, opts?: TrackOpts | undefined) => IntervalTracker;
 }
 declare module "data/Flip" {
     import { NumberFunction } from "data/index";

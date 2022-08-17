@@ -1,3 +1,4 @@
+# pointer events
 
 If you're using pointer events in interesting ways, you often want to disable the browser's default handling.
 
@@ -20,18 +21,20 @@ You might also want to [change the cursor](https://developer.mozilla.org/en-US/d
 
 Other useful values for `cursor` are: _none, grab, grabbing, pointer_ (typically a hand icon with) and _move_.
 
-Browsers often have a kinetic 'overscroll' that give an elastic sort of behaviour when scrolling an element. This can be disabled with [overscroll-behaviour-y](https://developer.mozilla.org/en-US/docs/Web/CSS/overscroll-behavior-y). When applied to the BODY element this disables the pull-to-refresh interaction on Chrome.
+Browsers often have a kinetic 'overscroll' that give an elastic sort of behaviour when scrolling an element. This can be disabled with [`overscroll-behaviour`](https://developer.mozilla.org/en-US/docs/Web/CSS/overscroll-behavior). When applied to the BODY element this disables the pull-to-refresh interaction on Chrome. Safari needs a similar property, [`-webkit-overflow-scrolling`](https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-overflow-scrolling)
 
 ```css
 body {
-  overscroll-behavior-y: contain;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: auto;
 }
 ``` 
 
+Gestures such as panning and zooming can be disabled with [`touch-action`](https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action).
+
 ```csss
 body {
-  touch-action:none;
+  touch-action: none;
 }
 ```
 
@@ -57,10 +60,31 @@ ie:
 </html>
 ```
 
+Add `touch-action: none` to your CSS as well.
+
 It may also be necessary to intercept `mousewheel` events for desktop browsers:
 
 ```js
 document.addEventListener(`wheel`, evt => {
   evt.preventDefault();
 }, { passive:false });
+```
+
+# Snippet
+
+Here is a snippet which neuters most of the default behaviour for all elements:
+
+```css
+*,
+*:before,
+*:after {
+  touch-action: none;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: auto;
+}
 ```

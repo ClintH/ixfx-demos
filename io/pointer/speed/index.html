@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+
+  <title>speed</title>
+  <script src="./script.js" type="module"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Recursive:slnt,wght,CASL,CRSV,MONO@-15..0,300..1000,0..1,0..1,0..1&display=swap"
+    rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wdth,wght@50..200,200..900&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 90;
+      --bg: hsl(var(--hue), 50%, 10%);
+      --fg: hsl(var(--hue), 70%, 90%);
+      --fg-dim: hsl(var(--hue), 20%, 60%);
+      --padding: 1.3em;
+    }
+
+    *,
+    *:before,
+    *:after {
+      touch-action: none;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      color: var(--fg-dim);
+      background-color: var(--bg);
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #speed {
+      font-family: 'Inconsolata', monospace;
+      align-self: center;
+      flex-grow: 1;
+      font-size: 5em;
+      color: var(--fg);
+    }
+  </style>
+  <section>
+    <h1>speed</h1>
+    <em>Touch/click and drag</em>
+    <p>Speed: <span id="lblSpeed">?</span></p>
+    <p>Avg. speed: <span id="lblSpeedAvg">?</span></p>
+  </section>
+  <div id="speed">SPEED</div>
+</body>
+
+</html>

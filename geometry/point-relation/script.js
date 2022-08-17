@@ -13,8 +13,9 @@ let state = Object.freeze({
 });
 
 /**
- * @param el {HTMLElement|null}
- * @param pos {{x:number, y:number}}
+ * Positions an element by a relative coordinate
+ * @param el {HTMLElement|null} Element to position
+ * @param pos {{x:number, y:number}} Relative coordinate
  */
 const relativePosition = (el, pos) => {
   const { bounds } = state;
@@ -30,7 +31,7 @@ const useState = () => {
   const { results } = state;
   if (!results) return;
 
-  const { angle, distance, centroid, average } = results;
+  const { angle, distance, centroid, average, speed } = results;
 
   const angleDeg = radianToDegree(angle);
 
@@ -39,26 +40,32 @@ const useState = () => {
   const angleDegEl = document.getElementById(`lblAngleDeg`);
   const averageEl = document.getElementById(`lblAverage`);
   const centroidEl = document.getElementById(`lblCentroid`);
-
+  const speedEl = document.getElementById(`lblSpeed`);
   if (!thingEl) return;
-  if (!distanceEl || !angleDegEl || !averageEl || !centroidEl) return;
+  if (!distanceEl || !angleDegEl || !averageEl || !centroidEl || !speedEl) return;
   
   // Update labels
   distanceEl.innerText = distance.toPrecision(2);
   angleDegEl.innerText = Math.round(angleDeg).toString();
   averageEl.innerText = Points.toString(average, 2);
   centroidEl.innerText = Points.toString(centroid, 2);
+  speedEl.innerText = speed.toPrecision(2);
 };
+
+/**
+ * Returns the relative position from an absolute one
+ * @param {Points.Point} pos 
+ * @returns {Points.Point}
+ */
+const relativePos = (pos) => ({
+  x: pos.x / state.bounds.width,
+  y: pos.y / state.bounds.height
+});
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  const relativePos = (pos) => ({
-    x: pos.x / state.bounds.width,
-    y: pos.y / state.bounds.height
-  });
-
   // Keep track of screen size whenever it resizes
   const onResize = () => {
     updateState({
@@ -69,12 +76,16 @@ const setup = () => {
     });
   };
   document.addEventListener(`resize`, onResize);
-  onResize();
+  onResize(); // trigger on initial load
 
   // Start tracking from location of pointer down
   document.addEventListener(`pointerdown`, e => {
+    e.preventDefault();
+
+    // Convert to relative coordinate
     const rel = relativePos(e);
    
+    // Init new 'relation', and update state
     updateState({ tracker: Points.relation(rel) });
 
     // Position 'reference' element
@@ -88,17 +99,20 @@ const setup = () => {
   document.addEventListener(`pointermove`, e => {
     const { tracker } = state;
     if (!tracker) return;
+    e.preventDefault();
 
     const rel = relativePos(e);
 
     const results = tracker(rel);
-
+  
     // Position 'reference' element
     const referenceEl = document.getElementById(`thing`);
     relativePosition(referenceEl, rel);
 
     updateState({ results });
     useState();
+
+    return false;
   });
 
   document.addEventListener(`pointerup`, e => {

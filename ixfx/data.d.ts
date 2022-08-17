@@ -1,5 +1,5 @@
-export { F as FrequencyEventMap, b as FrequencyMutable, I as IntervalTracker, M as MovingAverage, a as Normalise, N as NumberFunction, P as PointTrack, g as PointTracker, e as PointTrackerResults, T as TrackedPointMap, k as clamp, l as clampIndex, q as flip, f as frequencyMutable, r as interpolate, t as interpolateAngle, d as intervalTracker, c as movingAverage, m as movingAverageLight, p as piPi, j as pointTracker, h as pointsTracker, s as scale, o as scalePercent, n as scalePercentages, u as wrap, w as wrapInteger, v as wrapRange } from './index-5a83c44b.js';
-export { N as NumberTracker, b as Timestamped, c as TrackedValueMap, T as TrackedValueOpts, n as numberTracker } from './NumberTracker-cdd0f6a7.js';
+export { F as FrequencyEventMap, b as FrequencyMutable, I as IntervalTracker, M as MovingAverage, a as Normalise, N as NumberFunction, P as PointTrack, g as PointTracker, e as PointTrackerResults, T as TrackedPointMap, k as clamp, l as clampIndex, r as flip, f as frequencyMutable, t as interpolate, u as interpolateAngle, d as intervalTracker, c as movingAverage, m as movingAverageLight, p as piPi, j as pointTracker, h as pointsTracker, s as scale, n as scaleClamped, q as scalePercent, o as scalePercentages, v as wrap, w as wrapInteger, x as wrapRange } from './index-2cfe14f4.js';
+export { N as NumberTracker, b as Timestamped, c as TrackedValueMap, T as TrackedValueOpts, n as numberTracker } from './NumberTracker-fec1a20e.js';
 import './NumericArrays-1f113dbc.js';
 import './Easing-9f04548a.js';
 import './index-a456b68b.js';
@@ -10,7 +10,7 @@ import './Util-a03b2534.js';
 import './KeyValue-e1eba3d8.js';
 import './Eq';
 import './Ordering';
-import './Point-c1796f83.js';
+import './Point-f57faba9.js';
 import './Arrays-6aebd09b.js';
 import 'd3-color';
 import './Map-07cfb8aa.js';
