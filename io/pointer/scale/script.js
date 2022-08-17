@@ -37,13 +37,14 @@ const onPointerMove = (ev) => {
 
   pointers.seen(ev.pointerId.toString(), { x: ev.x, y: ev.y });
 
-  const byAge = pointers.valuesByAge();
+  const byAge = [ ...pointers.valuesByAge() ];
 
   // We need at least two pointers for gesture
   if (byAge.length >= 2) {
 
     // Calculate distance between first two touches
-    const distanceAbs = Points.distance(byAge[0], byAge[1]);
+    let distanceAbs = NaN;
+    if (byAge[0] && byAge[1]) distanceAbs = Points.distance(byAge[0], byAge[1]);
 
     // Pop it into a numberTracker, because what we really
     // care about is how much distances changes from its start value
