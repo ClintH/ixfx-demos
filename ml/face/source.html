@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>face-detection source</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 200;
+    --bg: hsl(var(--hue) 64% 5%);
+    --bg-overlay: hsla(var(--hue) 64% 5% / 0.5);
+    --button-bg: hsl(var(--hue) 64% 17%);
+    --button-fg: hsl(var(--hue) 64% 57%);
+    --faint: hsl(var(--hue) 100% 15%);
+    --fg: hsl(var(--hue) 100% 90%);
+  }
+
+  *,
+  html,
+  body {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font);
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  .overlay,
+  .cs-ui {
+    background-color: var(--bg-overlay);
+    padding-left: 1em;
+    padding-top: 1em;
+  }
+
+  h1 {
+    font-size: 1.1em;
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    body {
+      font-size: 10px;
+    }
+
+    h1 {
+      display: none;
+    }
+  }
+
+  #btnToggleUi {
+    border: none;
+    background: none;
+  }
+
+  .header {
+    display: flex;
+  }
+</style>
+
+<body data-server-no-reload>
+  <div class="overlay header">
+    <h1 style="display:inline">face-detection</h1>
+    <div style="flex-grow: 1; text-align:end; padding-right:1em">
+      <button title="Toggle UI" id="btnToggleUi">🔼</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="data"></div>
+  <script type="module" src="source.js"></script>
+  <!-- Require the peer dependencies of face-detection. -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+
+  <!-- You must explicitly require a TF.js backend if you're not using the TF.js union bundle. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pose / single</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 250;
+    --bg: hsl(var(--hue) 64% 87%);
+    --fg: hsl(var(--hue) 100% 10%);
+    --padding: 0.3em;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+    background-color: var(--bg);
+    overscroll-behavior: contain;
+    touch-action: none;
+    margin: 1em;
+    padding: 1em;
+  }
+
+  #sourceSection {
+    max-width: 320px;
+    max-height: 240px;
+    aspect-ratio: 320 / 240;
+    height: 30vw;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  #sourceSection iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  #intro {
+    max-width: 15em;
+  }
+</style>
+
+<body>
+  <section id="intro">
+    <h1>face / single</h1>
+    <p id="intro"> <a href="source.html" target="_blank">Start a source in a new
+        window</a>, or click the yellow tick in the corner panel.</p>
+    <p>This demonstrates using a single face, mapping relative key points to screen coordinates, interpolating for
+      reduce
+      glitchiness and drawing on the canvas. See <a href="multiple.html">multiple</a> for handling multiple sources &
+      faces.
+    </p>
+    </div>
+    <!-- If you're not using the panel, comment-out these lines... -->
+    <button id="btnCloseFrame">Close corner source</button>
+    <section id="sourceSection">
+      <iframe src="source.html"></iframe>
+    </section>
+    <!-- ----  -->
+
+    <script type="module" src="single.js"></script>
+    <canvas id="canvas"></canvas>
+</body>
+
+</html>
