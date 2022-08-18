@@ -32,10 +32,13 @@ It offers:
 
 _source_ depends on a set of base functionality contained in _common-source.js_. This provides some common plumbing across the different kinds of sources. It's even less likely you want to dive into that :)
 
+See the `setup` function for how to choose a custom camera by default.
+
 ## Recording
 
 * Point data is recorded to the browser's local storage. The image data is are not stored.
 * Run `localStorage.clear()` at the DevTools console to clear stored recordings, or clear your browser's cache
+* Recording might skip frames in order to keep a minimum rate. Changes this in `recordThrottle` in `common-vision-source.js`. 
 * Each stored chunk of data is played back at a fixed rate. This can be set in `source.js` when calling `CommonSource.setup`. The default is 50ms which roughly corresponds with a normal rate.
 
 To edit a recording you can do so at the DevTools console. 

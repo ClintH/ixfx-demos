@@ -153,9 +153,9 @@ const onPlayback = (frame, index, rec) => {
   handlePredictions(/** @type {CommonSource.ObjectPrediction[]} */(frame), rec.frameSize);
 
   // Manually trigger drawing
-  const c = CommonSource.getDrawingContext();
-  if (c === undefined) return;
-  postCaptureDraw(c.ctx, c.width, c.height);
+  // const c = CommonSource.getDrawingContext();
+  // if (c === undefined) return;
+  // postCaptureDraw(c.ctx, c.width, c.height);
 };
 
 async function createDetector() {
@@ -237,7 +237,7 @@ const setup = async () => {
   document.getElementById(`btnToggleUi`)?.addEventListener(`click`, evt => {
     const enabled = CommonSource.toggleUi();
     const el = evt.target;
-    if (el == null) return;
+    if (el === null) return;
     /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
   });
 };

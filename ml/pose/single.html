@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pose / point-to-point</title>
+  <title>pose / single</title>
 </head>
 <style>
   :root {
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
-    --hue: 60;
+    --hue: 200;
     --bg: hsl(var(--hue) 64% 87%);
     --fg: hsl(var(--hue) 100% 10%);
     --padding: 0.3em;
@@ -45,16 +45,24 @@
     border: none;
   }
 
-  section {
-    font-size: 3em;
+  #intro {
+    max-width: 15em;
   }
 </style>
 
 <body>
-  <h1>pose / point-to-point</h1>
-  <p id="intro"> <a href="source.html" target="_blank">Start the source in a new
-      window</a>, or click the yellow tick in the corner panel.</p>
-  <p>Demonstration of calculating some basic geometric relations between parts of the body.</p>
+  <section id="intro">
+
+    <h1>pose / single</h1>
+    <p id="intro"> <a href="source.html" target="_blank">Start a source in a new
+        window</a>, or click the yellow tick in the corner panel.</p>
+    <p>This demonstrates using a single pose, mapping relative key points to screen coordinates, interpolating for
+      reduce
+      glitchiness and drawing on the canvas. See <a href="multiple.html">multiple</a> for
+      handling
+      multiple sources.
+    </p>
+  </section>
 
   <!-- If you're not using the panel, comment-out these lines... -->
   <button id="btnCloseFrame">Close corner source</button>
@@ -63,26 +71,7 @@
   </section>
   <!-- ----  -->
 
-  <section>
-    <div>
-      Ankle-foot-hip angle:
-      <div id="dataAngle">?</div>
-    </div>
-    <div>
-      Wrist distance:
-      <div id="dataDistance">?</div>
-    </div>
-    <div>
-      Head rotation:
-      <div id="dataHeadRotation">?</div>
-    </div>
-    <div>
-      Hand-to-hip:
-      <div id="dataHandToHip">?</div>
-    </div>
-  </section>
-
-  <script type="module" src="point-to-point.js"></script>
+  <script type="module" src="single.js"></script>
   <canvas id="canvas"></canvas>
 </body>
 

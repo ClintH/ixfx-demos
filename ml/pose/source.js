@@ -135,7 +135,7 @@ const handlePoses = (poses, frameRect) => {
   }
 
   // Update text display
-  CommonSource.displayListResults(() => state.poses.map((p, poseIndex) => p.score ? `<span style="color: hsl(${getPoseHue(poseIndex)},100%,50%)">${Math.floor(p.score * 100)}%</span>` : `?`));
+  CommonSource.displayListResults(() => state.poses.map((p, poseIndex) => p.score ? `<span style="color: hsl(${getHue(poseIndex)},100%,50%)">${Math.floor(p.score * 100)}%</span>` : `?`));
 
   // Pass data down to be used by recorder, if active
   CommonSource.onRecordData(poses, frameRect);
@@ -152,9 +152,9 @@ const onPlayback = (frame, index, rec) => {
   handlePoses(/** @type {CommonSource.Pose[]}*/(frame), rec.frameSize);
 
   // Manually trigger drawing
-  const c = CommonSource.getDrawingContext();
-  if (c === undefined) return;
-  postCaptureDraw(c.ctx, c.width, c.height);
+  // const c = CommonSource.getDrawingContext();
+  // if (c === undefined) return;
+  // postCaptureDraw(c.ctx, c.width, c.height);
 };
 
 async function createDetector() {
@@ -205,7 +205,7 @@ async function createDetector() {
   }
 }
 
-const getPoseHue = (poseIndex) => Math.round((poseIndex) * 137.508);
+const getHue = (index) => Math.round((index) * 137.508);
 
 /**
  * Called after a frame is captured from the video source.
@@ -222,7 +222,7 @@ function postCaptureDraw(ctx, width, height) {
   // Draw each pose
   poses.forEach((pose, poseIndex) => {
     // Generate distinctive hue for each pose
-    const poseHue = getPoseHue(poseIndex);
+    const poseHue = getHue(poseIndex);
 
     // Keep track of points by name
     const map = new Map();
@@ -310,7 +310,7 @@ const setup = async () => {
   document.getElementById(`btnToggleUi`)?.addEventListener(`click`, evt => {
     const enabled = CommonSource.toggleUi();
     const el = evt.target;
-    if (el == null) return;
+    if (el === null) return;
     /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
   });
 };

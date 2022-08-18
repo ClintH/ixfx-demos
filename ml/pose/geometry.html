@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pose / points-multiple-sources</title>
+  <title>pose / point-to-point</title>
 </head>
 <style>
   :root {
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
-    --hue: 200;
+    --hue: 60;
     --bg: hsl(var(--hue) 64% 87%);
     --fg: hsl(var(--hue) 100% 10%);
     --padding: 0.3em;
@@ -44,24 +44,51 @@
     height: 100%;
     border: none;
   }
+
+  #intro {
+    max-width: 15em;
+  }
+
+  #data {
+    font-size: 3em;
+  }
 </style>
 
 <body>
-  <h1>pose / points-multiple-sources</h1>
-  <p id="intro"> <a href="source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning" target="_blank">Start a source
-      in a new
-      window</a>, or click the yellow tick in the corner panel.</p>
-  <p>An extension of <a href="points.html">points</a>, but tracks multiple poses from multiple sources.
-  </p>
+  <section id="intro">
+    <h1>pose / point-to-point</h1>
+    <p id="intro"> <a href="source.html" target="_blank">Start the source in a new
+        window</a>, or click the yellow tick in the corner panel.</p>
+    <p>Demonstration of calculating some basic geometric relations between parts of the body.</p>
+  </section>
 
   <!-- If you're not using the panel, comment-out these lines... -->
-  <button id="btnCloseFrame">Stop corner source</button>
+  <button id="btnCloseFrame">Close corner source</button>
   <section id="sourceSection">
-    <iframe src="source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning"></iframe>
+    <iframe src="source.html"></iframe>
   </section>
   <!-- ----  -->
 
-  <script type="module" src="points-multiple-sources.js"></script>
+  <section id="data">
+    <div>
+      Ankle-foot-hip angle:
+      <div id="dataAngle">?</div>
+    </div>
+    <div>
+      Wrist distance:
+      <div id="dataDistance">?</div>
+    </div>
+    <div>
+      Head rotation:
+      <div id="dataHeadRotation">?</div>
+    </div>
+    <div>
+      Hand-to-hip:
+      <div id="dataHandToHip">?</div>
+    </div>
+  </section>
+
+  <script type="module" src="geometry.js"></script>
   <canvas id="canvas"></canvas>
 </body>
 

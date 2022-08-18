@@ -33,10 +33,10 @@ let state = Object.freeze({
 });
 
 /**
- * Received poses
+ * Received data
  * @param {Pose[]} poses 
  */
-const onPoses = (poses) => {
+const onData = (poses) => {
   const { smoothingAmt } = settings;
 
   // console.log(poses);
@@ -54,7 +54,7 @@ const onPoses = (poses) => {
 
 
 /**
- * 
+ * Smooths a pose
  * @param {Pose|undefined} a 
  * @param {Pose} b 
  */
@@ -70,9 +70,16 @@ const smoothPose = (amt, a, b) => {
   };
 };
 
+/**
+ * Smooths a key point
+ * @param {number} amt Interpolation amount
+ * @param {Keypoint} a 
+ * @param {Keypoint} b 
+ * @returns 
+ */
 const smoothKeypoint = (amt, a, b) => {
-  // Interpolate the score
-  const score = interpolate(amt, a.score, b.score);
+  // Interpolate the score, if both a and b have it
+  const score = (a.score && b.score) ? interpolate(amt, a.score, b.score) : 0;
 
   // Interpolate the x,y
   const pos = Points.interpolate(amt, a, b);
@@ -90,7 +97,7 @@ const smoothKeypoint = (amt, a, b) => {
  * @param {Pose} p 
  * @param {CanvasRenderingContext2D} ctx 
  */
-const drawPose = (ctx, p) => {
+const draw = (ctx, p) => {
   const { horizontalMirror, keypointScoreThreshold, labelFont } = settings;
   const { bounds } = state;
 
@@ -179,7 +186,8 @@ const useState = () => {
   clear(ctx);
   
   if (smoothedPose === undefined) return;
-  drawPose(ctx, smoothedPose);
+
+  draw(ctx, smoothedPose);
 };
 
 const setup = async () => {
@@ -188,7 +196,7 @@ const setup = async () => {
   // Listen for data from the remote
   remote.onData = (d) => {
     if (d.data && Array.isArray(d.data)) {
-      onPoses(d.data);
+      onData(d.data);
     } else {
       console.warn(`Got data we did not expect`);
       console.log(d);
