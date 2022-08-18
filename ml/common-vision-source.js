@@ -43,7 +43,7 @@
 import { FrameProcessor } from '../ixfx/io.js';
 import { Camera } from '../ixfx/io.js';
 import { defaultErrorHandler } from '../ixfx/dom.js';
-import { continuously, interval } from '../ixfx/flow.js';
+import { continuously, throttle, interval } from '../ixfx/flow.js';
 
 // Settings determined by caller
 const caller = {
@@ -71,7 +71,11 @@ const settings = Object.freeze({
   loop: continuously(read),
   // Rendering
   defaultDotRadius: 5,
-  videoOpacity: 0.5
+  videoOpacity: 0.5,
+  // Don't record every frame - use a minimum rate
+  recordThrottle: throttle((_elapsedMs, data, frameSize) => {
+    recordDataImpl(data, frameSize);
+  }, 20)
 });
 
 let state = Object.freeze({
@@ -93,7 +97,9 @@ let state = Object.freeze({
   /** @type {``|`recording`|`playing`} */
   recorder: ``,
   /** @type {Recording|undefined} */
-  currentRecording: undefined
+  currentRecording: undefined,
+  /** @type {'none'|'camera'|'recording'} */
+  currentSource: `none`
 });
 
 /**
@@ -132,7 +138,6 @@ export const displayTextResults = (htmlFn) => {
   const el = document.getElementById(`cs-data`);
   if (el) el.innerHTML = htmlFn();
 };
-
 
 /**
  * Display a list of string
@@ -195,7 +200,7 @@ export const drawCenteredText = (ctx, msg, offsetX, offsetY) => {
  * @param {boolean} stroke If true, dot outline is drawn
  */
 export const drawDot = (ctx, x, y, radius = -1, fill = true, stroke = false) => {
-  if (radius == -1) radius = settings.defaultDotRadius;
+  if (radius === -1) radius = settings.defaultDotRadius;
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   if (fill) ctx.fill();
@@ -214,7 +219,7 @@ export const drawLine = (ctx, ...pts) => {
   for (let i = 0; i < pts.length; i++) {
     const pt = pts[i];
     if (pt === undefined) continue;
-    if (drawn == 0) {
+    if (drawn === 0) {
       ctx.moveTo(pt.x, pt.y);
     } else {
       ctx.lineTo(pt.x, pt.y);
@@ -224,17 +229,19 @@ export const drawLine = (ctx, ...pts) => {
   if (drawn > 1) ctx.stroke();
 };
 
-export const setReady = (ready) => {
-
-  const btnCameraStart = document.getElementById(`cs-btnCameraStart`);
-
-  document.querySelectorAll(`.needs-ready`).forEach(el => {
-    if (ready) {
-      el.classList.add(`ready`);
+export const setCssFlag = (flagValue, cssFilter, cssTrueClass) => {
+  document.querySelectorAll(cssFilter).forEach(el => {
+    if (flagValue) {
+      el.classList.add(cssTrueClass);
     } else {
-      el.classList.remove(`ready`);
+      el.classList.remove(cssTrueClass);
     }
   });
+};
+
+export const setReady = (ready) => {
+  const btnCameraStart = document.getElementById(`cs-btnCameraStart`);
+  setCssFlag(ready, `.needs-ready`, `ready`);
   if (btnCameraStart)  /** @type {HTMLButtonElement}*/(btnCameraStart).disabled = false;
 };
 
@@ -292,7 +299,12 @@ export const startRecorderPlayback = async () => {
   }
 
   const onPlayback = caller.onPlayback;
-  if (onPlayback === undefined) return;
+  if (onPlayback === undefined) {
+    console.log(`No onPlayback handler. Aborting`);
+    return;
+  }
+
+  updateState({ currentSource:`recording` });
 
   // Stop camera
   await setCamera(false);
@@ -301,17 +313,29 @@ export const startRecorderPlayback = async () => {
   if (btn !== null) btn.innerText = `stop`;
   /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnRecord`)).disabled = true;
 
+  // Set canvas
+  const canvasEl = /** @type HTMLCanvasElement|null */(document.getElementById(`dataCanvas`));
+  if (canvasEl) {
+    canvasEl.width = rec.frameSize.width;
+    canvasEl.height = rec.frameSize.height;
+  }
+
+  const ctx = getDrawingContext();
+  const frameSize = rec.frameSize;
   let index = 0;
   updateState({ recorder:`playing` });
+  
   continuously(() => {
     const d = rec.data[index];
     recorderStatus(`${index + 1}/${rec.data.length}`);
     onPlayback(d, index, rec);
+    if (ctx) postCaptureDraw(ctx.ctx, ctx.width, ctx.height);
     index++;
     if (index + 1 === rec.data.length || state.recorder !== `playing`) {
       console.log(`Playback done of ${rec.data.length} steps.`);
       recorderStatus(``);
       stopRecorderPlayback();
+      updateState({ currentSource:`none` });
       return false; // Stop loop
     }
   }, caller.playbackRateMs).start();
@@ -332,8 +356,13 @@ const stopRecorderPlayback = () => {
  * @returns {{width:number,height:number,ctx:CanvasRenderingContext2D}|undefined}
  */
 export const getDrawingContext = () => {
-  const canvasEl = caller.frameProcessor?.getCapturer()?.canvasEl;
-  if (canvasEl === undefined) return;
+  const canvasEl = /** @type HTMLCanvasElement|null */(document.getElementById(`dataCanvas`));
+
+  //caller.frameProcessor?.getCapturer()?.canvasEl;
+  if (!canvasEl) {
+    console.log(`Warning, drawing canvas not found`);
+    return;
+  }
   const ctx = canvasEl.getContext(`2d`);
   if (ctx === null) return;
   return {
@@ -351,9 +380,9 @@ const stopRecording = async () => {
   recorderStatus(``);
 
   const rec = state.currentRecording;
-  if (rec === undefined) return;
+  if (rec === undefined || rec.data.length === 0) return;
 
-  const name = prompt(`Recording name`, rec.name);
+  const name = prompt(`Recording name (${rec.data.length} steps)`, rec.name);
   if (name === null) return; // cancelled
   rec.name = name;
 
@@ -377,8 +406,6 @@ const startRecording = async () => {
   },
   recorder: `recording` });
   /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnPlayback`)).disabled = true;
-
-
 };
 
 const recorderStatus = (msg) => {
@@ -389,6 +416,10 @@ const recorderStatus = (msg) => {
 
 export const onRecordData = (data, frameSize) => {
   if (state.recorder !== `recording`) return;
+  settings.recordThrottle(data, frameSize);
+};
+
+const recordDataImpl = (data, frameSize) => {
   const rec = state.currentRecording;
   if (rec === undefined) return;
   rec.data.push(data);
@@ -410,21 +441,24 @@ const addUi = () => {
       </select>
       <button style="color:yellow" title="Play/stop camera" class="material-icons" id="cs-btnCameraStartStop">check_circle</button> 
     </div>
-    <div>
+    <div class="needs-stream">
       <h2>Display</h2>
       <label><input title="Show data" id="cs-chkDataShow" checked type="checkbox"> Data </label>
       <label><input title="Show source" id="cs-chkSourceShow" checked type="checkbox"> Source </label>
       <button title="Freeze display" class="material-icons" id="cs-btnFreeze">ac_unit</button>
     </div>
     <div>
-    <h2>Record</h2>
-    <select id="cs-selRecording">
-    </select>    
-    <button title="Play back selected recording" class="material-icons" id="cs-btnPlayback">play_arrow</button>
-    <button title="Make a new recording" class="material-icons" id="cs-btnRecord">fiber_manual_record</button>
-    <div id="lblRecorderStatus"></div>
+      <h2>Record</h2>
+      <select id="cs-selRecording">
+      </select>    
+      <button title="Play back selected recording" class="material-icons" id="cs-btnPlayback">play_arrow</button>
+      <button title="Make a new recording" class="material-icons" id="cs-btnRecord">fiber_manual_record</button>
+      <div id="lblRecorderStatus"></div>
+    </div>
   </div>
-  </div>
+</div>
+<div id="canvasContainer">
+  <canvas id="dataCanvas">
 </div>
 <div id="cs-data"></div>
 `;
@@ -452,13 +486,13 @@ const addUi = () => {
   .cs-ui>div {
     margin-bottom: 1em;
   }
-  .needs-ready {
-    display: none;
-  }
-  .needs-ready.ready {
-    display: block;
+  .needs-ready:not(.ready) {
+    display: none !important;
   }
 
+  .needs-stream:not(.streaming) {
+    display: none !important;
+  }
   #cs-data {
     position: fixed;
     bottom: 0;
@@ -499,8 +533,19 @@ const addUi = () => {
     top: 0;
     left: 0;
     z-index: -1;
-    aspect-ratio: 640 / 480;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+  #canvasContainer {
+    position: absolute;
+    width: 100%;
     height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    display:flex;
+  }
+  #canvasContainer>canvas {
   }
   </style>
   `;
@@ -516,8 +561,7 @@ const addUi = () => {
  */
 function postCaptureDraw(ctx, width, height) {
   const { videoOpacity } = settings;
-
-  if (state.displaySource) {
+  if (state.displaySource && state.currentSource === `camera`) {
     // Clear canvas with some translucent white to fade out video
     ctx.fillStyle = `rgba(255,255,255,${videoOpacity})`;
   } else {
@@ -570,6 +614,9 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
 
   const dataEl = document.getElementById(`cs-data`);
 
+  const captureCanvasEl = document.getElementById(`dataCanvas`);
+  if (!captureCanvasEl) throw new Error(`Capture canvas null`);
+
   if (!(`mediaDevices` in navigator)) {
     console.warn(`navigator.mediaDevices is missing -- are you running over https:// or http://127.0.01 ?`);
   }
@@ -621,7 +668,9 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   // Intercept drawing
   caller.postCaptureDraw = frameProcessorOpts.postCaptureDraw;
   frameProcessorOpts.postCaptureDraw = postCaptureDraw;
-
+  // @ts-ignore
+  frameProcessorOpts.captureCanvasEl = /* @type HTMLCanvasElement */(captureCanvasEl);
+  
   setReady(false);
   defaultErrorHandler();
   status(`Loading...`);
@@ -633,7 +682,10 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   });
 
   btnCameraStartStop?.addEventListener(`click`, async () => {
-    setCamera(settings.loop.isDone);
+    const start = settings.loop.isDone;
+    if (state.currentSource !== `camera` && start) updateState({ currentSource: `camera` });
+    else if (!start && state.currentSource === `camera`) updateState({ currentSource:`none` });
+    setCamera(start);
   });
 
   chkSourceShow?.addEventListener(`change`, () => {
@@ -698,6 +750,32 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   updateRecordingsUi(getRecordings());
 };
 
+const onStreamStarted = () => {
+  
+  // Update UI
+  if (state.currentSource === `camera`) {
+    const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
+    if (btnCameraStartStop) btnCameraStartStop.innerText = `stop_circle`;
+  }
+
+  setCssFlag(true, `.needs-stream`, `streaming`);
+};
+
+const onStreamStopped = () => {
+  const dataEl = document.getElementById(`cs-data`);
+  const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
+  const selCamera = document.getElementById(`cs-selCamera`);
+  // Update UI
+  if (dataEl) dataEl.innerHTML = ``;
+  if (btnCameraStartStop) btnCameraStartStop.innerText = `check_circle`;
+  /** @type {HTMLSelectElement}*/(selCamera).disabled = false;
+  setCssFlag(false, `.needs-stream`, `streaming`);
+};
+
+/**
+ * Start/stop camera
+ * @param {*} start 
+ */
 const setCamera = async (start) => {
   const dataEl = document.getElementById(`cs-data`);
   const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
@@ -715,9 +793,7 @@ const setCamera = async (start) => {
     
       // Start loop to pull frames from camera
       settings.loop.start();
-    
-      // Update UI
-      if (btnCameraStartStop) btnCameraStartStop.innerText = `stop_circle`;
+
     } finally {
       /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = false;
     }
@@ -725,12 +801,7 @@ const setCamera = async (start) => {
     // Stop loop and dispose of frame processor
     settings.loop.cancel();
     caller.frameProcessor?.dispose();
-    caller.frameProcessor = undefined;
-
-    // Update UI
-    if (dataEl) dataEl.innerHTML = ``;
-    if (btnCameraStartStop) btnCameraStartStop.innerText = `check_circle`;
-    /** @type {HTMLSelectElement}*/(selCamera).disabled = false;
+    caller.frameProcessor = undefined;    
   }
 };
 
@@ -747,10 +818,17 @@ export const enableTextDisplayResults = (v) => {
  * @param {Partial<state>} s 
  */
 function updateState (s) {
+  const source = state.currentSource;
   state = Object.freeze({
     ...state,
     ...s
   });
+
+  const someSource = (state.currentSource !== `none`);
+  
+
+  if (source === `none` && someSource) onStreamStarted();
+  else if (source !== `none` && !someSource) onStreamStopped();
 }
 
 // https://github.com/tensorflow/tfjs-models/blob/676a0aa26f89c9864d73f4c7389ac7ec61e1b8a8/pose-detection/src/types.ts
@@ -784,6 +862,21 @@ function updateState (s) {
  */
 
 /**
+ * @typedef FaceKeypoint
+ * @property {'rightEye'|'leftEye'|'noseTip'|'mouthCenter'|'rightEarTragion'|'leftEarTragion'} name
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * @typedef Face
+ * @type {object}
+ * @property {FaceKeypoint[]} keypoints
+ * @property {number} [score]
+ * @property {Box} [box]
+ */
+
+/**
  * @typedef BlazePoseModelConfig
  * @type {object}
  * @property {boolean} [enableSmoothing]
@@ -808,6 +901,7 @@ function updateState (s) {
 /**
  * @typedef FrameProcessorOpts
  * @type {object}
+ * @property {HTMLCanvasElement} [captureCanvasEl] Element to capture frames to
  * @property {CameraConstraints} cameraConstraints
  * @property {boolean} [showCanvas] If true, the CANVAS element images are grabbed to is shown. (default: false)
  * @property {boolean} [showPreview] If true, the source element is shown (for a camera this is a VIDEO element).
@@ -839,7 +933,7 @@ function updateState (s) {
 
 /**
  * @callback OnPlayback
- * @param {Pose[]|ObjectPrediction[]} frame
+ * @param {Face[]|Pose[]|ObjectPrediction[]} frame
  * @param {number} index
  * @param {Recording} rec
  * @returns void
@@ -850,9 +944,6 @@ function updateState (s) {
  * @type {object}
  * @property {PoseDetectorEstimatePoses} estimatePoses
  */
-
-
-
 
 /**
  * @typedef PoseDetectorEstimatePoses
@@ -872,6 +963,37 @@ function updateState (s) {
  * @param {string} model
  * @param {any} args
  * @returns {PoseDetector}
+ */
+
+/**
+ * @typedef FaceDetectorEstimateFaces
+ * @type {function}
+ * @param {ImageData} frame
+ * @param {any} options
+ * @param {number} timestamp
+ */
+
+
+/**
+ * @typedef {object} FaceDetectionLib
+ * @property {createFaceDetector} createDetector
+ */
+
+/**
+ * @typedef FaceDetector
+ * @type {object}
+ * @property {FaceDetectorEstimateFaces} estimateFaces
+ */
+
+/**
+ * @typedef FaceDetectorOpts
+ * @property {string} runtime
+ */
+/**
+ * @callback createFaceDetector
+ * @param {string} model
+ * @param {any} args
+ * @returns {FaceDetector}
  */
 
 /**
