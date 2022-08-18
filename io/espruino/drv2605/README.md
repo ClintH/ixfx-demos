@@ -1,14 +1,15 @@
-# drv2605
+# espruino / drv2605
 
 Controls a DRV2605 haptic driver. This demo only works in Chrome.
 
-[Read more about this module](http://www.espruino.com/DRV2605)
-
-See also the [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index.html)
+* [More about the DRV2605 module](http://www.espruino.com/DRV2605)
+* [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index.html)
+* [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
 
 ## Getting started
 
-First upload the provided `espruino.js` to your board, which the example assumes is an Espruino Pico. Make sure the haptic board is connected up according to [instructions](http://www.espruino.com/DRV2605).
+1. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided `espruino.js` to your board (assumed to be a Espruino Pico)
+2. Make sure the haptic board is connected up according to the [instructions](http://www.espruino.com/DRV2605).
 
 Wiring for an Espruino Pico:
 
@@ -19,7 +20,7 @@ Wiring for an Espruino Pico:
 
 Try running some of the functions below in the Espruino IDE's REPL. These are the same functions we'll call from the browser.
 
-```
+```js
 // Trigger effect #1 (it goes up to 127)
 trigger(1);
 
@@ -29,7 +30,7 @@ trigger('pulsing sharp 1 100%');
 
 'Real time processing' is where motor power is set in real time. In this case, there's a helper function `rtpMode` that lets you queue motor powers and durations. Two arrays are used for this, each array index being a 'step' in a sequence. In the example below, the motor is set to 30 power for 100ms, for example. 
 
-```
+```js
 // Motor power (0-200) & durations (millis)
 let powers =  [30, 100, 30, 127, 90, 100];
 let durations = [100, 200, 100, 300, 200, 100];
@@ -41,9 +42,11 @@ For the endurance of the motor, duration of each step is capped to 1000ms. Call 
 ## From the browser
 
 It's necessary to connect to the Espruino via user interaction, in this case clicking a button. 
-Using ixfx's serial wrapping, we invoke functions declared by `espruino.js`. Eg:
+Using [ixfx's Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html), we invoke functions declared by `espruino.js`.
 
-```
+For example, invoke `trigger` on the Espruino, giving it the argument `2`.
+
+```js
 espruino.write(`trigger(2)\n`);
 ```
 
@@ -51,9 +54,13 @@ espruino.write(`trigger(2)\n`);
 
 After uploading `espruino.js`, you can list all available effects by pasting this into the Espruino IDE's REPL:
 
+```js
+for (let i=0;i<hap.EFFECTS.length;i++) {
+  console.log( (i+1) + '. '+ hap.EFFECTS[i]);
+}
 ```
-for (let i=0;i<hap.EFFECTS.length;i++) console.log( (i+1) + '. '+ hap.EFFECTS[i]);
-```
+
+Or here they are...
 
 1. strong click 100%
 2. strong click 60%

@@ -1,23 +1,21 @@
-/**
- * Sends back a stream of acceleration & gyro data
- * 
- * See also:
- * https://www.espruino.com/Puck.js#accelerometer-gyro
- * https://www.espruino.com/Reference#l_Puck_accelOn
- */
+
 import { delay } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
 
-const settings = Object.freeze({
-  lblAccEl: document.getElementById(`lblAcc`),
-  lblGyroEl: document.getElementById(`lblGyro`),
-  script: `setInterval(()=>Bluetooth.println(JSON.stringify(Puck.accel())), 5000);NRF.on('disconnect',()=>reset());`,
-  scriptStream: `
+const scripts = Object.freeze({
+  // Polls data at interval of 1 second
+  poll: `setInterval(()=>Bluetooth.println(JSON.stringify(Puck.accel())), 1000);NRF.on('disconnect',()=>reset());`,
+  // Sends back data as fast as it can
+  stream: `
   Puck.accelOn(12.5);
   Puck.on('accel', (a) => {
     Bluetooth.println(JSON.stringify(a));
   });
   NRF.on('disconnect',()=>reset());`
+});
+
+const settings = Object.freeze({
+  script: scripts.stream
 });
 
 let state = Object.freeze({
@@ -27,10 +25,9 @@ let state = Object.freeze({
 
 const useState = () => {
   const { acc, gyro } = state;
-  const { lblAccEl, lblGyroEl } = settings;
-
-  setHtml(`lblAccEl`,  `acc:   x: ${acc.x} y: ${acc.y} z: ${acc.z}`);
-  setHtml(`lblGyroEl`, `gyro: x: ${gyro.x} y: ${gyro.y} z: ${gyro.z}`);
+  
+  setHtml(`lblAcc`,  `acc:   x: ${acc.x} y: ${acc.y} z: ${acc.z}`);
+  setHtml(`lblGyro`, `gyro: x: ${gyro.x} y: ${gyro.y} z: ${gyro.z}`);
 };
 
 const setHtml = (id, value) => {
@@ -51,7 +48,7 @@ const setup = () => {
     try {
       // Connect to Puck
       const p = await Espruino.puck();
-
+      console.log(`Connected`);
       const onData = (evt) => {
         // Don't even try to parse if it doesn't
         // look like JSON
@@ -61,6 +58,7 @@ const setup = () => {
 
         try {
           const d = JSON.parse(data);
+          console.log(d);
           updateState({
             acc: d.acc,
             gyro: d.gyro

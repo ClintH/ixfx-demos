@@ -1,12 +1,12 @@
-/**
- * Sends a small script to the Espruino so that it sends a temperature
- * reading every five seconds.
- */
 import { delay } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
 
+const scripts = Object.freeze({
+  poll: `setInterval(()=>Bluetooth.println(E.getTemperature()), 1000);NRF.on('disconnect',()=>reset());`
+});
+
 const settings = Object.freeze({
-  script: `setInterval(()=>Bluetooth.println(E.getTemperature()), 5000);NRF.on('disconnect',()=>reset());`
+  script: scripts.poll
 });
 
 let state = Object.freeze({
