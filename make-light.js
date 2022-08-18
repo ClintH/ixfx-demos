@@ -8,8 +8,12 @@
  */
 import cpy from 'cpy';
 import replace from 'replace-in-file';
+import { deleteSync } from 'del';
 
 const dest = `../ixfx-demos-light/`;
+
+// Delete previous
+deleteSync([ `../ixfx-demos-light/*`, `!.git` ], { force: true });
 
 // Copy files
 await cpy([

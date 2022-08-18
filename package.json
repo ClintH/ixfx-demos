@@ -25,12 +25,13 @@
   "homepage": "https://github.com/ClintH/ixfx-demos#readme",
   "dependencies": {
     "browser-sync": "^2.27.10",
-    "rimraf": "^3.0.2"
+    "del": "^7.0.0"
   },
   "devDependencies": {
     "cpy": "^9.0.1",
     "cpy-cli": "^4.1.0",
     "eslint": "^8.20.0",
-    "replace-in-file": "^6.3.5"
+    "replace-in-file": "^6.3.5",
+    "sync-glitch-cli": "^2.0.1"
   }
 }
