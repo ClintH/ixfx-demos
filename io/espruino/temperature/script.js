@@ -6,7 +6,9 @@ const scripts = Object.freeze({
 });
 
 const settings = Object.freeze({
-  script: scripts.poll
+  script: scripts.poll,
+  // Filter device list
+  device: `` // Put in the name of your device here, eg `Puck.js a123`
 });
 
 let state = Object.freeze({
@@ -54,8 +56,11 @@ const setup = () => {
 
   document.getElementById(`btnConnect`)?.addEventListener(`click`, async () => {
     try {
+      // Filter by name, if defined in settings
+      const opts = settings.device.length > 0 ? { name: settings.device } : {};
+
       // Connect to Puck
-      const p = await Espruino.puck();
+      const p = await Espruino.puck(opts);
 
       // Listen for events
       p.addEventListener(`change`, evt => {

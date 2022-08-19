@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>espruino / led</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 143;
+    --bg: hsl(var(--hue) 100% 5%);
+    --fg: hsl(var(--hue) 100% 90%);
+  }
+
+  html,
+  body {
+    height: 100%;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 12px;
+    font-family: var(--font);
+  }
+
+  body {
+    overscroll-behavior: contain;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  #data {
+    font-family: var(--mono-font);
+  }
+
+  #pressed {
+    border: 1px solid var(--fg);
+    padding: 1em;
+    display: inline-block;
+    margin: 1em;
+    border-radius: 0.3em;
+  }
+
+  #pressed.on {
+    background-color: var(--fg);
+    color: var(--bg);
+    transition: 1s all ease-in;
+  }
+
+  #controls {
+    display: inline-block;
+    padding: 1em;
+  }
+
+  #manual {
+    background-color: white;
+    font-size: 2em;
+    padding: 0.5em;
+  }
+
+  label {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+</style>
+
+<body>
+  <section>
+    <h1>espruino / led</h1>
+    <div id="preamble">
+      <button id="btnConnect">Connect</button>
+    </div>
+    <div id="controls" style="display:inline-block">
+      <h2>Manual</h2>
+      <div id="manual">
+        <label for="led1" style="color:red">LED1</label>
+        <input id="led1" type="checkbox">
+        <label for="led2" style="color:green">LED2</label>
+        <input id="led2" type="checkbox">
+        <label for="led3" style="color:blue">LED3</label>
+        <input id="led3" type="checkbox">
+      </div>
+
+      <h2>Blink</h2>
+      <button id="btnBlinkStart">Start</button>
+      <button id="btnBlinkStop">Stop</button>
+
+      <h2>Pulse-width modulation</h2>
+      <input id="rangePwm" type="range" min="0" max="100">
+    </div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

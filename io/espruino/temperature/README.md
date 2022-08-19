@@ -30,6 +30,7 @@ NRF.on('disconnect', () => reset());
 
 * [Normalise](https://clinth.github.io/ixfx-docs/data/normalising/) data to relative values
 * Can you use the temperature sensor with motion sensors to detect whether the Puck is being held or not?
+* Send back gyro information along with temperature to steer the visual effect instead of the pointer
 
 
 

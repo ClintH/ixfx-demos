@@ -1,6 +1,6 @@
 # espruino / accel-gyro
 
-Sends back a stream of acceleration & gyro data, displayed on the page.
+Sends back a stream of acceleration & gyro data from [Puck.js](https://www.espruino.com/Puck.js).
 
 Read more:
 * [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)

@@ -38,6 +38,10 @@ module.exports = {
   "rewriteRules": [],
   "open": `local`,
   "browser": `default`,
+  // "https": {
+  //   key: `localhost.key`,
+  //   cert: `localhost.crt`
+  // },
   "cors": true,
   "xip": false,
   "hostnameSuffix": false,

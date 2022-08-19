@@ -130,7 +130,7 @@ document.getElementById(`btnConnect`)?.addEventListener(`click`, async () => {
 
   try {
     // Connect to a generic Espruino
-    const espruino = await Espruino.connect();
+    const espruino = await Espruino.connectBle();
     updateState({
       espruino
     });

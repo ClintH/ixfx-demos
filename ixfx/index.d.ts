@@ -8172,6 +8172,11 @@ declare module "io/EspruinoBleDevice" {
      * const e = await puck();
      * ```
      *
+     * To connect to a particular device:
+     * ```js
+     * const e = await puck({name:`Puck.js a123`});
+     * ```
+     *
      * Listen for events:
      * ```js
      * // Received something
@@ -8492,15 +8497,48 @@ declare module "io/Espruino" {
          */
         readonly assumeExclusive?: boolean;
     };
+    export type EspruinoBleOpts = {
+        /**
+         * If the name is specified, this value is used
+         * for filtering Bluetooth devices
+         */
+        readonly name?: string;
+        /**
+         * If true, additional logging messages are
+         * displayed on the console
+         */
+        readonly debug?: boolean;
+        /**
+         * If specified, these filtering options are used instead
+         */
+        readonly filters?: readonly BluetoothLEScanFilter[];
+    };
     /**
      * Instantiates a Puck.js. See {@link EspruinoBleDevice} for more info.
      * [Online demos](https://clinth.github.io/ixfx-demos/io/)
+     *
+     * If `opts.name` is specified, this will the the Bluetooth device sought.
+     *
+     * ```js
+     * const e = await puck({ name:`Puck.js a123` });
+     * ```
+     *
+     * If no name is specified, a list of all devices starting with `Puck.js` are shown.
+     *
+     * To get more control over filtering, pass in `opts.filter`. `opts.name` is not used as a filter in this scenario.
+     *
+     * ```js
+     * const filters = [
+     *  { namePrefix: `Puck.js` },
+     *  { namePrefix: `Pixl.js` },
+     *  {services: [NordicDefaults.service] }
+     * ]
+     * const e = await puck({ filters });
+     * ```
+     *
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
-    export const puck: (opts?: {
-        readonly name?: string;
-        readonly debug?: boolean;
-    }) => Promise<EspruinoBleDevice>;
+    export const puck: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
     /**
      * Create a serial-connected Espruino device. See {@link EspruinoSerialDevice} for more info.
      * @param opts
@@ -8514,9 +8552,26 @@ declare module "io/Espruino" {
     /**
      * Connects to a generic Espruino BLE device. See  {@link EspruinoBleDevice} for more info.
      * Use {@link puck} if you're connecting to a Puck.js
+     *
+     * If `opts.name` is specified, only this BLE device will be shown.
+     * ```js
+     * const e = await connectBle({ name: `Puck.js a123` });
+     * ```
+     *
+     * `opts.filters` overrides and sets arbitary filters.
+     *
+     * ```js
+     * const filters = [
+     *  { namePrefix: `Puck.js` },
+     *  { namePrefix: `Pixl.js` },
+     *  {services: [NordicDefaults.service] }
+     * ]
+     * const e = await connectBle({ filters });
+     * ```
+     *
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
-    export const connectBle: () => Promise<EspruinoBleDevice>;
+    export const connectBle: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
     export interface EspruinoDevice extends ISimpleEventEmitter<Events> {
         write(m: string): void;
         writeScript(code: string): void;

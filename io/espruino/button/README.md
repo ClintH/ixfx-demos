@@ -1,6 +1,6 @@
 # espruino / button
 
-Sends data while the button is being pressed.
+Sends button press (or release) events from the [Puck.js](https://www.espruino.com/Puck.js).
 
 Read more:
 * [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)

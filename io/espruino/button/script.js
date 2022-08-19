@@ -8,7 +8,9 @@ const scripts = Object.freeze({
 });
 
 const settings = Object.freeze({
-  script: scripts.trigger
+  script: scripts.trigger,
+  // Filter device list
+  device: `` // Put in the name of your device here, eg `Puck.js a123`
 });
 
 let state = Object.freeze({
@@ -51,8 +53,12 @@ const setup = () => {
 
   const connect = async () => {
     try {
+      // Filter by name, if defined in settings
+      const opts = settings.device.length > 0 ? { name: settings.device } : {};
+
       // Connect to Puck
-      const p = await Espruino.puck();
+      const p = await Espruino.puck(opts);
+
       console.log(`Connected`);
       const onData = (evt) => {
         let data = evt.data.trim(); // Remove line breaks etc
