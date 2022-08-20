@@ -16,7 +16,7 @@ declare module "Guards" {
     `aboveZero` | `belowZero` | `percentage` | `bipolar`;
     /**
      * Throws an error if `t` is not a number or within specified range.
-     * Alternatives: {@link integer} for additional integer check, {@link percentage}.
+     * Alternatives: {@link integer} for additional integer check, {@link percent} for percentage-range.
      *
      * * positive: must be at least zero
      * * negative: must be zero or lower
@@ -6629,6 +6629,10 @@ declare module "flow/Delay" {
 }
 declare module "flow/index" {
     import * as StateMachine from "flow/StateMachine";
+    /**
+     * State Machine
+     * See [here for usage](Flow.StateMachine.StateMachine.html).
+     */
     export { StateMachine };
     export * from "flow/Timer";
     export * from "flow/Interval";
@@ -10590,6 +10594,7 @@ declare module "visual/Plot2" {
         dataHitPoint: DataHitPoint | undefined;
         tooltip?: string;
         precision: number;
+        readonly axisRange: DataRange;
         lastPxPerPt: number;
         protected _visualRange: DataRange;
         protected _visualRangeStretch: boolean;
@@ -10598,6 +10603,10 @@ declare module "visual/Plot2" {
         get visualRange(): DataRange;
         scaleValue(value: number): number;
         add(value: number): void;
+        /**
+         * Clears the underlying source
+         * and sets a flag that the plot area needs redrawing
+         */
         clear(): void;
     }
     export class PlotArea extends Sg.CanvasBox {
@@ -10688,6 +10697,14 @@ declare module "visual/Plot2" {
         private _frozen;
         defaultSeriesOpts?: SeriesOpts;
         constructor(canvasEl: HTMLCanvasElement, opts?: Opts);
+        /**
+         * Calls 'clear()' on each of the series
+         */
+        clearSeries(): void;
+        /**
+         * Removes all series, plot, legend
+         * and axis data.
+         */
         clear(): void;
         get frozen(): boolean;
         set frozen(v: boolean);
