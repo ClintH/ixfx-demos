@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stereo-pan</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 200;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 80%);
+      --fg: hsl(var(--hue), 100%, 30%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+    }
+
+    #panArea {
+      width: 80vw;
+      height: 10vh;
+      background-color: hsl(var(--hue), 100%, 10%);
+      border-radius: 0.4em;
+    }
+  </style>
+  <section>
+    <h1>stereo panner</h1>
+    <p>Plays a sample in a loop, demonstrating different ways of controlling pan. Use headphones if your device does not
+      have proper stereo output.</p>
+    <p>
+      <button id="btnStop">Stop playback</button>
+    </p>
+    <hr />
+    <p>
+      <button id="btnRandom">Random pan value</button>
+    </p>
+    <hr />
+
+    <p>Click in area below to start playback; move pointer inside to pan</p>
+    <div id="panArea">
+    </div>
+    <hr />
+    <p>Uses an ixfx oscillator to make an auto-pan</p>
+    <button id="btnAutoStart">Start pan</button>
+    <button id="btnAutoStop">Stop pan</button>
+
+    <script type="module" src="script.js"></script>
+
+    <audio src="../rainstorm.mp3" id="rainstorm"></audio>
+  </section>
+</body>
+
+</html>
