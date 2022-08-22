@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>function plot - help</title>
+  <title>value plot - help</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&display=swap" rel="stylesheet">
@@ -21,8 +21,10 @@
 
     :root {
       --hue: 200;
+      --fg-accent: hsl(var(--hue), 30%, 80%);
+      --fg-dim: hsl(var(--hue), 20%, 60%);
       --bg: hsl(var(--hue), 20%, 10%);
-      --fg: hsl(var(--hue), 20%, 70%);
+      --fg: hsl(var(--hue), 50%, 70%);
       --bg-dark: hsla(var(--hue), 20%, 5%);
       --padding: 0.5em;
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -43,11 +45,17 @@
     a:link,
     a:visited {
       color: var(--fg);
-      text-decoration: none;
     }
 
-    a:hover {
-      text-decoration: underline;
+    .code,
+    .code:link,
+    .code:visited {
+      text-decoration: none;
+      color: var(--fg-dim);
+    }
+
+    .code:hover {
+      color: var(--fg-accent);
     }
 
     section {
@@ -58,11 +66,17 @@
     .subtitle {
       font-size: 130%;
     }
+
+    h1 {
+      font-size: 3em;
+      font-weight: 200;
+      text-transform: lowercase;
+    }
   </style>
   <section>
-    <h1>value plot</h1>
+    <h1>Value Plot</h1>
     <div class="subtitle">Type in some code in the text area and watch the plotter do its work.</div>
-    <p>Use `postMessage()` in your code to send a number to the plotter. Each new value appears on the right of the
+    <p>Use postMessage() in your code to send a number to the plotter. Each new value appears on the right of the
       screen and is eventually pushed out to the left.</p>
     <p>The plot will automatically scale according to
       the values given. If there's an error in the code, the scale and plot will reset.</p>
@@ -70,9 +84,10 @@
       <a href="index.html">Back to plotter</a>
     </p>
     <h1>Examples</h1>
-    <p>Sine wave. Adjust
+    <h2>Sine wave</h2>
+    <p>Adjust
       'freq' and the interval speed to taste.</p>
-    <a
+    <a class="code"
       href="index.html#bGV0IHRpY2tzID0gMDsKY29uc3QgZnJlcSA9IDAuMTsKc2V0SW50ZXJ2YWwoKCkgPT4gewogIGNvbnN0IHkgPSBNYXRoLnNpbih0aWNrcysrKmZyZXEpOwogIHBvc3RNZXNzYWdlKHkpOwp9LCAxMDApOwo=">
       <pre>
 let ticks = 0;
@@ -83,8 +98,21 @@ setInterval(() =&gt; {
 }, 100);
 </a> </pre>
 
-      <p>Line climbing upwards</p>
-      <a href="index.html#Y29uc3QgbWF4ID0gMTAwOwpmb3IgKGxldCBpPTA7aTxtYXg7aSsrKSB7CiBwb3N0TWVzc2FnZShpKTsKfQogICAg">
+
+      <h2>Oscillators: Saw</h2>
+      <a class="code"
+        href="index.html#aW1wb3J0IHsgT3NjaWxsYXRvcnMgfSBmcm9tICJodHRwczovL3VucGtnLmNvbS9peGZ4L2Rpc3QvbW9kdWxhdGlvbi5qcyIKY29uc3Qgb3NjID0gT3NjaWxsYXRvcnMuc2F3KDAuMSk7CnNldEludGVydmFsKCgpID0+IHsKICBwb3N0TWVzc2FnZShvc2MubmV4dCgpLnZhbHVlKTsKfSwgNTApOwogICAg">
+        <pre>
+import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+const osc = Oscillators.saw(0.1);
+setInterval(() =&gt; {
+  postMessage(osc.next().value);
+}, 50);
+</pre>
+      </a>
+      <h2>Ramp</h2>
+      <a class="code"
+        href="index.html#Y29uc3QgbWF4ID0gMTAwOwpmb3IgKGxldCBpPTA7aTxtYXg7aSsrKSB7CiBwb3N0TWVzc2FnZShpKTsKfQogICAg">
         <pre>
 const max = 100;
 for (let i=0;i&lt;max;i++) {
@@ -92,14 +120,14 @@ for (let i=0;i&lt;max;i++) {
 }
 </pre>
       </a>
-      <p>Random numbers</p>
-      <a href="index.html#c2V0SW50ZXJ2YWwoKCk9PiBwb3N0TWVzc2FnZShNYXRoLnJhbmRvbSgpKSwgMTAwKTs=">
+      <h2>Random numbers</h2>
+      <a class="code" href="index.html#c2V0SW50ZXJ2YWwoKCk9PiBwb3N0TWVzc2FnZShNYXRoLnJhbmRvbSgpKSwgMTAwKTs=">
         <pre>
 setInterval(() =&gt; postMessage(Math.random()), 100);
 </pre>
       </a>
-      <p><a href="https://clinth.github.io/ixfx-docs/gen/random/">Weighted random numbers</a></p>
-      <a
+      <h2><a href="https://clinth.github.io/ixfx-docs/gen/random/">Random: Weighted</a></h2>
+      <a class="code"
         href="index.html#aW1wb3J0IHt3ZWlnaHRlZH0gZnJvbSAnaHR0cHM6Ly91bnBrZy5jb20vaXhmeC9kaXN0L3JhbmRvbS5qcyc7CnNldEludGVydmFsKCgpPT4gewogIHBvc3RNZXNzYWdlKHdlaWdodGVkKGBxdWFkSW5gKSkKfSwxMDApOw==">
         <pre>
 import {weighted} from 'https://unpkg.com/ixfx/dist/random.js';
@@ -108,8 +136,8 @@ setInterval(()=&gt; {
 },100);
   </pre>
       </a>
-      <p>Gaussian</p>
-      <a
+      <h2>Random: Gaussian</h2>
+      <a class="code"
         href="index.html#aW1wb3J0IHtnYXVzc2lhbn0gZnJvbSAnaHR0cHM6Ly91bnBrZy5jb20vaXhmeC9kaXN0L3JhbmRvbS5qcyc7CnNldEludGVydmFsKCgpPT4gewogIHBvc3RNZXNzYWdlKGdhdXNzaWFuKCkpCn0sMTAwKTs=">
         <pre>
 import {gaussian} from 'https://unpkg.com/ixfx/dist/random.js';
@@ -118,8 +146,8 @@ setInterval(()=&gt; {
 },100);
   </pre>
       </a>
-      <p><a href="https://clinth.github.io/ixfx-docs/modulation/jitter/">Jitter</a></p>
-      <a
+      <h2><a href="https://clinth.github.io/ixfx-docs/modulation/jitter/">Jitter</a></h2>
+      <a class="code"
         href="index.html#aW1wb3J0IHsgaml0dGVyIH0gZnJvbSAnaHR0cHM6Ly91bnBrZy5jb20vaXhmeC9kaXN0L21vZHVsYXRpb24uanMnOwpjb25zdCB2YWx1ZSA9IDAuNTsKY29uc3Qgaml0dGVyQW10ID0gMC4xOwpzZXRJbnRlcnZhbCgoKT0+IHsKICBwb3N0TWVzc2FnZShqaXR0ZXIodmFsdWUsIGppdHRlckFtdCkpCn0sMTAwKTsKICAgIA==">
         <pre>
 import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
@@ -130,8 +158,8 @@ setInterval(()=&gt; {
 },100);
   </pre>
       </a>
-      <p><a href="https://clinth.github.io/ixfx-docs/modulation/jitter/">Jitter</a> with gaussian distribution</p>
-      <a
+      <h2><a href="https://clinth.github.io/ixfx-docs/modulation/jitter/">Jitter: Gaussian</h2>
+      <a class="code"
         href="index.html#aW1wb3J0IHsgaml0dGVyIH0gZnJvbSAnaHR0cHM6Ly91bnBrZy5jb20vaXhmeC9kaXN0L21vZHVsYXRpb24uanMnOwppbXBvcnQge2dhdXNzaWFufSBmcm9tICdodHRwczovL3VucGtnLmNvbS9peGZ4L2Rpc3QvcmFuZG9tLmpzJzsKCmNvbnN0IHZhbHVlID0gMC41Owpjb25zdCBqaXR0ZXJBbXQgPSAwLjAxOwpzZXRJbnRlcnZhbCgoKT0+IHsKICBwb3N0TWVzc2FnZShqaXR0ZXIodmFsdWUsIGppdHRlckFtdCwgeyB0eXBlOmBhYnNgIH0sIGdhdXNzaWFuKSk7Cn0sMTAwKTsK">
         <pre>
 import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
@@ -144,8 +172,8 @@ setInterval(()=&gt; {
 },100);
   </pre>
       </a>
-      <p><a href="https://clinth.github.io/ixfx-docs/modulation/envelope/">Envelope</a></p>
-      <a
+      <h2><a href="https://clinth.github.io/ixfx-docs/modulation/envelope/">Envelope</h2>
+      <a class="code"
         href="index.html#aW1wb3J0IHsgYWRzciwgZGVmYXVsdEFkc3JPcHRzIH0gZnJvbSAiaHR0cHM6Ly91bnBrZy5jb20vaXhmeC9kaXN0L21vZHVsYXRpb24uanMiCmltcG9ydCB7IGNvbnRpbnVvdXNseSB9IGZyb20gImh0dHBzOi8vdW5wa2cuY29tL2l4ZngvZGlzdC9mbG93LmpzIgpjb25zdCBvcHRzID0gewogIC4uLmRlZmF1bHRBZHNyT3B0cygpLAogIGF0dGFja0R1cmF0aW9uOiAxMDAwLAogIGRlY2F5RHVyYXRpb246IDIwMCwKICBzdXN0YWluRHVyYXRpb246IDEwMAp9Owpjb25zdCBlbnYgPSBhZHNyKG9wdHMpOwplbnYudHJpZ2dlcigpOwpjb250aW51b3VzbHkoKCkgPT4gewogIHBvc3RNZXNzYWdlKGVudi52YWx1ZSk7CiAgaWYgKGVudi5pc0RvbmUpIHJldHVybiBmYWxzZTsKfSkuc3RhcnQoKTs=">
         <pre>
 import { adsr, defaultAdsrOpts } from "https://unpkg.com/ixfx/dist/modulation.js"
@@ -164,8 +192,8 @@ continuously(() => {
 }).start();
   </pre>
       </a>
-      <p><a href="https://clinth.github.io/ixfx-docs/modulation/easing/">Easing</a>, tick-based</p>
-      <a
+      <h2><a href="https://clinth.github.io/ixfx-docs/modulation/easing/">Easing: tick-based</h2>
+      <a class="code"
         href="index.html#aW1wb3J0IHtFYXNpbmdzfSBmcm9tICJodHRwczovL3VucGtnLmNvbS9peGZ4L2Rpc3QvbW9kdWxhdGlvbi5qcyI7CmNvbnN0IHN0ZXBzID0gMTAwOwpjb25zdCBlID0gRWFzaW5ncy50aWNrKGBlbGFzdGljSW5gLCBzdGVwcyk7CnBvc3RNZXNzYWdlKG51bGwpOyAvLyBjbGVhciBwbG90CmZvciAobGV0IGk9MDtpPHN0ZXBzO2krKykgewogIHBvc3RNZXNzYWdlKGUuY29tcHV0ZSgpKTsKfQ==">
         <pre>
 import {Easings} from "https://unpkg.com/ixfx/dist/modulation.js";
