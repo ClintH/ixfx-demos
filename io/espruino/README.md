@@ -13,6 +13,8 @@ Platforms
   
 # Loading scripts
 
-Ixfx offers the possibility to run simple scripts on an Espruino. However to make use of modules, it's necessary to use [EspruinoTools](https://github.com/espruino/EspruinoTools) for loading scripts at the command line or the IDE which can be accessed [on the web](https://espruino.github.io/EspruinoWebIDE/) or as a [Chrome App](https://chrome.google.com/webstore/detail/espruino-web-ide/bleoifhkdalbjfbobjackfdifdneehpo).
+Ixfx offers the possibility to run simple scripts on an Espruino. However to make use of modules, it's necessary to use of
+* Espruino IDE [as a Chrome app](https://chrome.google.com/webstore/detail/espruino-web-ide/bleoifhkdalbjfbobjackfdifdneehpo) or [on the web](https://espruino.github.io/EspruinoWebIDE/)
+* l337 h4x0rz can use [EspruinoTools](https://github.com/espruino/EspruinoTools) at the command line
 
-If you want the script to load if the Espruino is power-cycled, ensure the 'Flash' option is chosen when uploading. If battery-powered, keep in mind you may need to take out the battery when you're not using the MCU to avoid unnecessary battery draining.
+If you want the script to load if the Espruino is power-cycled, ensure the 'Flash' option is chosen when uploading. Otherwise, choose 'RAM'. If battery-powered, its not a nad idea to take it out when you're not usingto avoid unnecessary battery draining.
