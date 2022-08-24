@@ -18,34 +18,46 @@ The object is said to _mutate_, since its internal properties are changing, but 
 let myObj = { value: 5 };
 let a = myObj;
 let b = myObj;
-a.value = 10;
+b.value = 10;
 ```
 
-In the above case, `b.value` would also be 10, not 5 because `myObj`, `a` and `b` are both the same object. The identity is never changed.  A naive reading of the code may give you to think there are three objects (`myObj`, `a` and `b`) but there's really only one, with all three variables pointing at the same thing: `a === b === myObj`.
+In the above case, `b.value` will be 10, and this is pretty obvious with a glance to the code. However it's not obvious - especially so when code starts getting complex - that `a.value` and `myObj.value` are _also_ 5, even though we don't seem to update them.
 
-Mutability has typically been considered useful because you don't have to copy data around the place - as long as you have a reference to an object, you have the latest data.
+This is because `myObj`, `a` and `b` are all the same object - a common identity. A naive reading of the code may give you to think there are three objects (`myObj`, `a` and `b`) but there's really only one, with all three variables pointing at the same thing: `a === b === myObj`.
 
-However, this introduces its own set of problems. For example, how does one part of code know when `myObj.value` changes? If two separate parts of code are updating the `value` property, how do they avoid conflicts? If you need to debug, how can you test with the same values consistently?
+Mutability has typically been considered useful because you don't have to copy data around the place - as long as you have a reference to an object, you have the latest data. But it does have its drawbacks, more than the readability issue discussed above.
 
-With _immutabilility_, when we change an object we also change its identity, by creating a new object and using that instead.
+With _immutabilility_, when we change an object we also change its identity, by creating a new object with the [spread syntax](#spread-syntax) and using that instead.
 
 ```js
 const myObj = { value: 5 };
-const a = { ...myObj, value: 10 };
-const b = { ...myObj };
+const a = { ...myObj };
+const b = { ...myObj, value: 10 };
 ```
 
-In the above snippet, we have three separate objects. `myObj`, which gets an initial value of `value: 5`. `a` copies the properties, but changes `value` to 10. `b` is a copy of `myObj` with no changed values. Now, `b.value` remains 5, not 10. Additionally, if we compare using `===`, each object is different.
+Now we have three separate objects with final values of:
+
+```js
+myObj.value;  // 5
+a.value;      // 5
+b.value;      // 10
+```
+
 
 ### Freeze for safety
 
-Even though an object is declared as `const`, there's nothing to stop us changing its properties. We could still write `myObj.value = 10`. The only thing `const` prevents is re-assignmnent (eg. `myObj = { value: 10 }`).
+Even though an object is declared as `const`, there's nothing to stop us changing its properties. We could still write `myObj.value = 10`. The only thing `const` prevents is re-assignmnent:
 
-To help maintain immutability, whenever an object is created, run it through [`Object.freeze`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze). This will throw an error if you try to change an object, and an editor like VS Code will give you very helpful edit-time warnings too.
+```js
+const myObj = { value: 10 };
+myObj = { value: 5 };       // Error
+```
+
+To maintain immutability, whenever an object is created, run it through [`Object.freeze`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze). This will throw an error if you try to change an object, and an editor like VS Code will give you very helpful edit-time warnings too.
 
 With freezing, our code looks like:
 
-```
+```js
 const myObj = Object.freeze({ value: 5 });
 const a = Object.freeze({ ...myObj, value: 10 };
 const b = Object.freeze({ ...myObj });
@@ -54,6 +66,8 @@ const b = Object.freeze({ ...myObj });
 It can be rather ugly to have to use freeze all the time. It's best used for objects that are shared amongst parts of your code, where there is the risk of changing by mistake. In the demos, the key shared objects _state_ and _settings_ are frozen.
 
 If you're making an object within a function and it doesn't get returned, it's probably wouldn't be worth the visual clutter of freezing it.
+
+Note that there are challenges with freezing complex objects and arrays. While it's not a perfect solution, it does cover most cases.
 
 ### Spread syntax
 
