@@ -14,8 +14,6 @@ About ixfx:
 * [ixfx Guide](https://clinth.github.io/ixfx-docs/)
 * [ixfx API documentation](https://clinth.github.io/ixfx/) and [source code](https://github.com/clinth/ixfx)
 
-
-
 ## Getting started
 
 ### Editing and running online

@@ -1,10 +1,17 @@
 # Type annotations
 
+Contents:
+* [Annotating a function](#annotating-a-function)
+* [Defining a type](#defining-a-type)
+* [Typed declarations](#typed-declarations)
+* [Type assertions](#type-assertions)
+* [Disable typing](#disabling)
+
 You'll note the use of [type annotations](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) throughout the sketches. This is a lightweight way to give hints to your code editor so it in turn can give helpful warnings and better inline documentation. These comments can be deleted, and they have no role during the running of code.
 
 Type annotations allow you to gain some of the advantages of [TypeScript](https://www.typescriptlang.org) (the contemporary best practice), without introducing additional build steps and complexity. The price paid is some clutter in the source code.
 
-# Annotating a function
+## Annotating a function
 
 The most common use of annotations in this code base is to hint what types are expected for function parameters.
 
@@ -76,7 +83,7 @@ const setHtml = (el, msg) => {
 
 Now our calling code has no warnings, because even though we may pass in a null, we've hinted that `setHtml` can handle that just fine.
 
-# Defining a type
+## Defining a type
 
 An example of a type is:
 
@@ -160,4 +167,11 @@ It's also possible to do inline assertions, which is handy in cases where variab
 /** @type {HTMLInputElement} */(el).value = `10`;
 ```
 
+## Disabling
 
+To disable all this magic, add these lines to the top of your source:
+
+```js
+/* eslint-disable */
+// @ts-nocheck
+```

@@ -7,3 +7,4 @@ node_modules/
 .eslintcache
 .node_repl_history
 audio/.DS_Store
+.DS_Store
