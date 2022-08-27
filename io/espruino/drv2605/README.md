@@ -2,47 +2,59 @@
 
 Controls a DRV2605 haptic driver. This demo only works in Chrome.
 
-* [More about the DRV2605 module](http://www.espruino.com/DRV2605)
-* [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index.html)
-* [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
+- [More about the DRV2605 module](http://www.espruino.com/DRV2605)
+- [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index.html)
+  ([online version](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-drv2605/))
+- [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
 
 ## Getting started
 
-1. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided `espruino.js` to your board (assumed to be a Espruino Pico)
-2. Make sure the haptic board is connected up according to the [instructions](http://www.espruino.com/DRV2605).
+1. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided
+   `espruino.js` to your board (assumed to be a Espruino Pico)
+2. Make sure the haptic board is connected up according to the
+   [instructions](http://www.espruino.com/DRV2605).
 
 Wiring for an Espruino Pico:
 
-* DRV2605 GND -> Pico GND
-* DRV2605 VIN -> Pico 3.3V
-* DRV2605 SCL -> Pico B6
-* DRV2605 SDA -> Pico B7
+- DRV2605 GND -> Pico GND
+- DRV2605 VIN -> Pico 3.3V
+- DRV2605 SCL -> Pico B6
+- DRV2605 SDA -> Pico B7
 
-Try running some of the functions below in the Espruino IDE's REPL. These are the same functions we'll call from the browser.
+Try running some of the functions below in the Espruino IDE's REPL. These are
+the same functions we'll call from the browser.
 
 ```js
 // Trigger effect #1 (it goes up to 127)
 trigger(1);
 
 // Trigger an effect by name
-trigger('pulsing sharp 1 100%');
+trigger("pulsing sharp 1 100%");
 ```
 
-'Real time processing' is where motor power is set in real time. In this case, there's a helper function `rtpMode` that lets you queue motor powers and durations. Two arrays are used for this, each array index being a 'step' in a sequence. In the example below, the motor is set to 30 power for 100ms, for example. 
+'Real time processing' is where motor power is set in real time. In this case,
+there's a helper function `rtpMode` that lets you queue motor powers and
+durations. Two arrays are used for this, each array index being a 'step' in a
+sequence. In the example below, the motor is set to 30 power for 100ms, for
+example.
 
 ```js
 // Motor power (0-200) & durations (millis)
-let powers =  [30, 100, 30, 127, 90, 100];
+let powers = [30, 100, 30, 127, 90, 100];
 let durations = [100, 200, 100, 300, 200, 100];
 rtpMode(powers, durations);
 ```
 
-For the endurance of the motor, duration of each step is capped to 1000ms. Call `rtpCancel()` to cancel a long-running sequence. Whilst the RTP sequence is running, it's not possible to trigger other effects.
+For the endurance of the motor, duration of each step is capped to 1000ms. Call
+`rtpCancel()` to cancel a long-running sequence. Whilst the RTP sequence is
+running, it's not possible to trigger other effects.
 
 ## From the browser
 
-It's necessary to connect to the Espruino via user interaction, in this case clicking a button. 
-Using [ixfx's Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html), we invoke functions declared by `espruino.js`.
+It's necessary to connect to the Espruino via user interaction, in this case
+clicking a button. Using
+[ixfx's Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html),
+we invoke functions declared by `espruino.js`.
 
 For example, invoke `trigger` on the Espruino, giving it the argument `2`.
 
@@ -52,11 +64,12 @@ espruino.write(`trigger(2)\n`);
 
 ## Effects
 
-After uploading `espruino.js`, you can list all available effects by pasting this into the Espruino IDE's REPL:
+After uploading `espruino.js`, you can list all available effects by pasting
+this into the Espruino IDE's REPL:
 
 ```js
-for (let i=0;i<hap.EFFECTS.length;i++) {
-  console.log( (i+1) + '. '+ hap.EFFECTS[i]);
+for (let i = 0; i < hap.EFFECTS.length; i++) {
+  console.log((i + 1) + ". " + hap.EFFECTS[i]);
 }
 ```
 
