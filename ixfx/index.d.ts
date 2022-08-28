@@ -6631,7 +6631,7 @@ declare module "flow/index" {
     import * as StateMachine from "flow/StateMachine";
     /**
      * State Machine
-     * See [here for usage](Flow.StateMachine.StateMachine.html).
+     * See [here for usage](../classes/Flow.StateMachine.StateMachine.html).
      */
     export { StateMachine };
     export * from "flow/Timer";
@@ -8173,12 +8173,15 @@ declare module "io/EspruinoBleDevice" {
      * It must be called in a UI event handler for browser security reasons.
      *
      * ```js
-     * const e = await puck();
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+     * const e = await Espruino.puck();
      * ```
      *
      * To connect to a particular device:
+     *
      * ```js
-     * const e = await puck({name:`Puck.js a123`});
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+     * const e = await Espruino.puck({name:`Puck.js a123`});
      * ```
      *
      * Listen for events:
@@ -8524,7 +8527,8 @@ declare module "io/Espruino" {
      * If `opts.name` is specified, this will the the Bluetooth device sought.
      *
      * ```js
-     * const e = await puck({ name:`Puck.js a123` });
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+     * const e = await Espruino.puck({ name:`Puck.js a123` });
      * ```
      *
      * If no name is specified, a list of all devices starting with `Puck.js` are shown.
@@ -8532,19 +8536,60 @@ declare module "io/Espruino" {
      * To get more control over filtering, pass in `opts.filter`. `opts.name` is not used as a filter in this scenario.
      *
      * ```js
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
      * const filters = [
      *  { namePrefix: `Puck.js` },
      *  { namePrefix: `Pixl.js` },
      *  {services: [NordicDefaults.service] }
      * ]
-     * const e = await puck({ filters });
+     * const e = await Espruino.puck({ filters });
      * ```
      *
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
     export const puck: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
     /**
-     * Create a serial-connected Espruino device. See {@link EspruinoSerialDevice} for more info.
+     * Create a serial-connected Espruino device.
+     *
+     * ```js
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+     * const e = await Espruio.serial();
+     * e.connect();
+     * ```
+     *
+     * Options:
+     * ```js
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+     * const e = await Espruino.serial({ debug: true, evalTimeoutMs: 1000, name: `My Pico` });
+     * e.connect();
+     * ```
+     *
+     * Listen for events:
+     * ```js
+     * e.addEventListener(`change`, evt => {
+     *  console.log(`State change ${evt.priorState} -> ${evt.newState}`);
+     *  if (evt.newState === `connected`) {
+     *    // Do something when connected...
+     *  }
+     * });
+     * ```
+     *
+     * Reading incoming data:
+     * ```
+     * // Parse incoming data as JSON
+     * s.addEventListener(`data`, evt => {
+     *  try {
+     *    const o = JSON.parse(evt.data);
+     *    // If we get this far, JSON is legit
+     *  } catch (ex) {
+     *  }
+     * });
+     * ```
+     *
+     * Writing to the microcontroller
+     * ```
+     * s.write(JSON.stringify({msg:"hello"}));
+     * ```
      * @param opts
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
@@ -8565,12 +8610,13 @@ declare module "io/Espruino" {
      * `opts.filters` overrides and sets arbitary filters.
      *
      * ```js
+     * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
      * const filters = [
      *  { namePrefix: `Puck.js` },
      *  { namePrefix: `Pixl.js` },
      *  {services: [NordicDefaults.service] }
      * ]
-     * const e = await connectBle({ filters });
+     * const e = await Espruino.connectBle({ filters });
      * ```
      *
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
@@ -9122,7 +9168,7 @@ declare module "io/index" {
      * See [demos](https://clinth.github.io/ixfx-demos/io/)
      *
      * Overview:
-     * * {@link puck}: Connect ./EspruinoBleDevice.js
+     * * {@link puck}: Connects a [Espruino BLE Device](../classes/Io.Espruino.EspruinoBleDevice.html).
      * * {@link Espruino.connectBle}: Connect to a generic Espruino via BLE
      */
     export * as Espruino from "io/Espruino";
@@ -11787,6 +11833,20 @@ declare module "data/MovingAverage" {
      */
     export const movingAverageLight: (scaling?: number) => MovingAverage;
     /**
+     * Uses the same algorithm as {@link movingAverageLight}, but adds values automatically if
+     * nothing has been manually added.
+     *
+     * This is useful if you are averaging something based on events. For example calculating the
+     * average speed of the pointer. If there is no speed, there is no pointer move event. Using
+     * this function, `value` is added at a rate of `updateRateMs`. This timer is reset
+     * every time a value is added, a bit like the `debounce` function.
+     * @param updateRateMs
+     * @param value
+     * @param scaling
+     * @returns
+     */
+    export const movingAverageTimed: (updateRateMs?: number, value?: number, scaling?: number) => MovingAverage;
+    /**
      * Creates a moving average for a set number of `samples`.
      *
      * Moving average are useful for computing the average over a recent set of numbers.
@@ -11845,6 +11905,8 @@ declare module "data/MovingAverage" {
          * @param v Value to add
          */
         add(v: number): number;
+        dispose(): void;
+        get isDisposed(): boolean;
     };
 }
 declare module "data/IntervalTracker" {

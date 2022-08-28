@@ -67,12 +67,15 @@ declare class StringWriteBuffer {
  * It must be called in a UI event handler for browser security reasons.
  *
  * ```js
- * const e = await puck();
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+ * const e = await Espruino.puck();
  * ```
  *
  * To connect to a particular device:
+ *
  * ```js
- * const e = await puck({name:`Puck.js a123`});
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+ * const e = await Espruino.puck({name:`Puck.js a123`});
  * ```
  *
  * Listen for events:
@@ -416,7 +419,8 @@ declare type EspruinoBleOpts = {
  * If `opts.name` is specified, this will the the Bluetooth device sought.
  *
  * ```js
- * const e = await puck({ name:`Puck.js a123` });
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+ * const e = await Espruino.puck({ name:`Puck.js a123` });
  * ```
  *
  * If no name is specified, a list of all devices starting with `Puck.js` are shown.
@@ -424,19 +428,60 @@ declare type EspruinoBleOpts = {
  * To get more control over filtering, pass in `opts.filter`. `opts.name` is not used as a filter in this scenario.
  *
  * ```js
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
  * const filters = [
  *  { namePrefix: `Puck.js` },
  *  { namePrefix: `Pixl.js` },
  *  {services: [NordicDefaults.service] }
  * ]
- * const e = await puck({ filters });
+ * const e = await Espruino.puck({ filters });
  * ```
  *
  * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
  */
 declare const puck: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
 /**
- * Create a serial-connected Espruino device. See {@link EspruinoSerialDevice} for more info.
+ * Create a serial-connected Espruino device.
+ *
+ * ```js
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+ * const e = await Espruio.serial();
+ * e.connect();
+ * ```
+ *
+ * Options:
+ * ```js
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
+ * const e = await Espruino.serial({ debug: true, evalTimeoutMs: 1000, name: `My Pico` });
+ * e.connect();
+ * ```
+ *
+ * Listen for events:
+ * ```js
+ * e.addEventListener(`change`, evt => {
+ *  console.log(`State change ${evt.priorState} -> ${evt.newState}`);
+ *  if (evt.newState === `connected`) {
+ *    // Do something when connected...
+ *  }
+ * });
+ * ```
+ *
+ * Reading incoming data:
+ * ```
+ * // Parse incoming data as JSON
+ * s.addEventListener(`data`, evt => {
+ *  try {
+ *    const o = JSON.parse(evt.data);
+ *    // If we get this far, JSON is legit
+ *  } catch (ex) {
+ *  }
+ * });
+ * ```
+ *
+ * Writing to the microcontroller
+ * ```
+ * s.write(JSON.stringify({msg:"hello"}));
+ * ```
  * @param opts
  * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
  */
@@ -457,12 +502,13 @@ declare const serial: (opts?: {
  * `opts.filters` overrides and sets arbitary filters.
  *
  * ```js
+ * import { Espruino } from 'https://unpkg.com/ixfx/dist/io.js'
  * const filters = [
  *  { namePrefix: `Puck.js` },
  *  { namePrefix: `Pixl.js` },
  *  {services: [NordicDefaults.service] }
  * ]
- * const e = await connectBle({ filters });
+ * const e = await Espruino.connectBle({ filters });
  * ```
  *
  * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.

@@ -62,7 +62,7 @@ import {
   repeat,
   ticksElapsedTimer,
   waitFor
-} from "./chunk-MS545H4B.js";
+} from "./chunk-CXG65DS7.js";
 import {
   StateMachine
 } from "./chunk-CO3FCBYB.js";
@@ -351,6 +351,7 @@ __export(data_exports, {
   intervalTracker: () => intervalTracker,
   movingAverage: () => movingAverage,
   movingAverageLight: () => movingAverageLight,
+  movingAverageTimed: () => movingAverageTimed,
   numberTracker: () => numberTracker,
   piPi: () => piPi6,
   pointTracker: () => pointTracker,
@@ -11928,13 +11929,24 @@ var movingAverageLight = (scaling = 3) => {
   integer(scaling, `aboveZero`, `scaling`);
   let average3 = 0;
   let count = 0;
+  let disposed = false;
   const ma = {
+    dispose() {
+      disposed = true;
+    },
+    get isDisposed() {
+      return disposed;
+    },
     add(v) {
+      if (disposed)
+        throw new Error(`MovingAverage disposed, cannot add`);
       count++;
       average3 = average3 + (v - average3) / Math.min(count, scaling);
       return average3;
     },
     clear() {
+      if (disposed)
+        throw new Error(`MovingAverage disposed, cannot clear`);
       average3 = 0;
       count = 0;
     },
@@ -11944,7 +11956,41 @@ var movingAverageLight = (scaling = 3) => {
   };
   return ma;
 };
+var movingAverageTimed = (updateRateMs = 200, value = 0, scaling = 3) => {
+  integer(scaling, `aboveZero`, `scaling`);
+  integer(updateRateMs, `aboveZero`, `decayRateMs`);
+  const mal = movingAverageLight(scaling);
+  let timer = 0;
+  const reschedule = () => {
+    if (timer !== 0)
+      clearTimeout(timer);
+    timer = setTimeout(decay, updateRateMs);
+  };
+  const decay = () => {
+    mal.add(value);
+    if (!mal.isDisposed)
+      setTimeout(decay, updateRateMs);
+  };
+  const ma = {
+    add(v) {
+      reschedule();
+      return mal.add(v);
+    },
+    dispose() {
+      mal.dispose();
+    },
+    clear: function() {
+      mal.clear();
+    },
+    compute: function() {
+      return mal.compute();
+    },
+    isDisposed: false
+  };
+  return ma;
+};
 var movingAverage = (samples = 100, weightingFn) => {
+  let disposed = false;
   let q = queueMutable({
     capacity: samples,
     discardPolicy: `older`
@@ -11966,7 +12012,10 @@ var movingAverage = (samples = 100, weightingFn) => {
     q.enqueue(v);
     return compute();
   };
-  return { add: add3, compute, clear: clear3 };
+  const dispose = () => {
+    disposed = true;
+  };
+  return { add: add3, compute, clear: clear3, dispose, isDisposed: disposed };
 };
 
 // src/data/IntervalTracker.ts
@@ -12617,6 +12666,7 @@ export {
   FrequencyMutable,
   frequencyMutable,
   movingAverageLight,
+  movingAverageTimed,
   movingAverage,
   IntervalTracker,
   intervalTracker,
@@ -12660,4 +12710,4 @@ export {
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-OOLXEC25.js.map
+//# sourceMappingURL=chunk-F5UCT6DX.js.map

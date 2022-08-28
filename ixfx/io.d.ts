@@ -1,4 +1,4 @@
-export { A as AudioAnalysers, a as AudioVisualisers, N as Bluetooth, c as Camera, C as Codec, E as Espruino, F as FrameProcessor, d as FrameProcessorOpts, e as Serial, S as StringReceiveBuffer, b as StringWriteBuffer } from './index-94d56d6f.js';
+export { A as AudioAnalysers, a as AudioVisualisers, N as Bluetooth, c as Camera, C as Codec, E as Espruino, F as FrameProcessor, d as FrameProcessorOpts, e as Serial, S as StringReceiveBuffer, b as StringWriteBuffer } from './index-281c49f5.js';
 import './Events-170d1411.js';
 import './StateMachine-d120065d.js';
 import './Interfaces-2d05741a.js';

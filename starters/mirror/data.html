@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mirror</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --margin: 0.3em;
+      --hue: 200;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 0%, 80%);
+      --fg: hsl(var(--hue), 100%, 30%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: var(--margin);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #spot {
+      width: 30vmin;
+      height: 30vmin;
+      border: 2px solid var(--fg);
+      margin: var(--margin);
+    }
+
+    label {
+      margin: var(--margin);
+    }
+
+    input {
+      margin: var(--margin);
+    }
+  </style>
+  <input value="0" id="slider" type="range" min="0" max="1000">
+  <label for="slider"></label>
+  <div id="spot"></div>
+  <button id="btnFullScreen">Full-screen</button>
+  <script type="module" src="data.js"></script>
+
+</body>
+
+</html>

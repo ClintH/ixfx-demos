@@ -208,6 +208,20 @@ declare const frequencyMutable: <V>(keyString?: ToString<V> | undefined) => Freq
  */
 declare const movingAverageLight: (scaling?: number) => MovingAverage;
 /**
+ * Uses the same algorithm as {@link movingAverageLight}, but adds values automatically if
+ * nothing has been manually added.
+ *
+ * This is useful if you are averaging something based on events. For example calculating the
+ * average speed of the pointer. If there is no speed, there is no pointer move event. Using
+ * this function, `value` is added at a rate of `updateRateMs`. This timer is reset
+ * every time a value is added, a bit like the `debounce` function.
+ * @param updateRateMs
+ * @param value
+ * @param scaling
+ * @returns
+ */
+declare const movingAverageTimed: (updateRateMs?: number, value?: number, scaling?: number) => MovingAverage;
+/**
  * Creates a moving average for a set number of `samples`.
  *
  * Moving average are useful for computing the average over a recent set of numbers.
@@ -266,6 +280,8 @@ declare type MovingAverage = {
      * @param v Value to add
      */
     add(v: number): number;
+    dispose(): void;
+    get isDisposed(): boolean;
 };
 
 /**
@@ -836,6 +852,7 @@ type index_FrequencyMutable<V> = FrequencyMutable<V>;
 declare const index_FrequencyMutable: typeof FrequencyMutable;
 declare const index_frequencyMutable: typeof frequencyMutable;
 declare const index_movingAverageLight: typeof movingAverageLight;
+declare const index_movingAverageTimed: typeof movingAverageTimed;
 declare const index_movingAverage: typeof movingAverage;
 type index_MovingAverage = MovingAverage;
 declare const index_NumberTracker: typeof NumberTracker;
@@ -876,6 +893,7 @@ declare namespace index {
     index_FrequencyMutable as FrequencyMutable,
     index_frequencyMutable as frequencyMutable,
     index_movingAverageLight as movingAverageLight,
+    index_movingAverageTimed as movingAverageTimed,
     index_movingAverage as movingAverage,
     index_MovingAverage as MovingAverage,
     index_NumberTracker as NumberTracker,
@@ -907,4 +925,4 @@ declare namespace index {
   };
 }
 
-export { FrequencyEventMap as F, IntervalTracker as I, MovingAverage as M, NumberFunction as N, PointTrack as P, TrackedPointMap as T, Normalise as a, FrequencyMutable as b, movingAverage as c, intervalTracker as d, PointTrackerResults as e, frequencyMutable as f, PointTracker as g, pointsTracker as h, index as i, pointTracker as j, clamp as k, clampIndex as l, movingAverageLight as m, scaleClamped as n, scalePercentages as o, piPi as p, scalePercent as q, flip as r, scale as s, interpolate as t, interpolateAngle as u, wrap as v, wrapInteger as w, wrapRange as x };
+export { FrequencyEventMap as F, IntervalTracker as I, MovingAverage as M, NumberFunction as N, PointTrack as P, TrackedPointMap as T, Normalise as a, FrequencyMutable as b, movingAverageTimed as c, movingAverage as d, intervalTracker as e, frequencyMutable as f, PointTrackerResults as g, PointTracker as h, index as i, pointsTracker as j, pointTracker as k, clamp as l, movingAverageLight as m, clampIndex as n, scaleClamped as o, piPi as p, scalePercentages as q, scalePercent as r, scale as s, flip as t, interpolate as u, interpolateAngle as v, wrapInteger as w, wrap as x, wrapRange as y };
