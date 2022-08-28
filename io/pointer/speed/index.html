@@ -28,22 +28,17 @@
       --padding: 1.3em;
     }
 
-    *,
-    *:before,
-    *:after {
-      touch-action: none;
-      pointer-events: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
 
     body {
       color: var(--fg-dim);
       background-color: var(--bg);
-      overscroll-behavior: contain;
+      overscroll-behavior: none;
+      overflow: hidden;
       -webkit-overflow-scrolling: auto;
       display: flex;
       flex-direction: column;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     #speed {

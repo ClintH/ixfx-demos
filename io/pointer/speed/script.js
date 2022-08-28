@@ -54,8 +54,8 @@ const useState = () => {
   if (!el) return;
 
   // Generate CSS text for each variable font axis
-  const wdth = `'wdth' ` + Math.round(scalePercent(speedAvg.y, fontWidth[0], fontWidth[1]));
-  const wght = `'wght' ` + Math.round(scalePercent(speedAvg.x, fontWeight[0], fontWeight[1]));
+  const wdth = `'wdth' ` + Math.round(scalePercent(speedAvg.x, fontWidth[0], fontWidth[1]));
+  const wght = `'wght' ` + Math.round(scalePercent(speedAvg.y, fontWeight[0], fontWeight[1]));
 
   // Apply to element
   // Note that axies must be in alphabetical order (!)
