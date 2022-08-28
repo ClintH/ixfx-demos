@@ -82,6 +82,12 @@ const setup = () => {
     });
   });
 
+  window.addEventListener(`pointerdown`, ev => {
+    updateState({
+      pointer: { x: ev.offsetX, y: ev.offsetY }
+    });
+  });
+
   window.addEventListener(`pointermove`, ev => {
     updateState({
       pointer: { x: ev.offsetX, y: ev.offsetY }

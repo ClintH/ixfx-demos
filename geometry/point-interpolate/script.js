@@ -69,7 +69,11 @@ const setup = () => {
   document.addEventListener(`resize`, onResize);
   onResize();
 
-  document.addEventListener(`pointermove`, e => {
+  /**
+   * Handle pointerdown and pointermove
+   * @param {PointerEvent} e 
+   */
+  const onPointer = (e) => {
     const { bounds } = state;
     const x = e.clientX;
     const y = e.clientY;
@@ -77,7 +81,10 @@ const setup = () => {
       // Make pointer position relative (on 0..1 scale)
       pointer: Points.divide(x, y, bounds.width, bounds.height)
     });
-  });
+  };
+
+  document.addEventListener(`pointermove`, onPointer);
+  document.addEventListener(`pointerdown`, onPointer);
 
   const loop = () => {
     update();

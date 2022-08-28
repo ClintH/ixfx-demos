@@ -170,6 +170,14 @@ const setup = () => {
     });
   });
 
+  // Pointer down
+  window.addEventListener(`pointerdown`, evt => {
+    evt.preventDefault();
+    updateState({
+      pointer: { x: evt.clientX, y: evt.clientY }
+    });
+  });
+  
   // Pointer moving
   window.addEventListener(`pointermove`, evt => {
     evt.preventDefault();
