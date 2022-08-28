@@ -52,11 +52,35 @@
     input {
       margin: var(--margin);
     }
+
+    body.jumbo input {
+      font-size: 4em;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #overlay {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    body.jumbo #overlay {
+      position: absolute;
+      bottom: 0;
+      margin: 1em;
+    }
   </style>
   <input value="0" id="slider" type="range" min="0" max="1000">
-  <label for="slider"></label>
-  <div id="spot"></div>
-  <button id="btnFullScreen">Full-screen</button>
+  <div id="overlay">
+    <label for="slider"></label>
+    <div id="spot"></div>
+    <button id="btnFullScreen">Full-screen</button>
+  </div>
   <script type="module" src="data-speed-dynamics.js"></script>
 
 </body>

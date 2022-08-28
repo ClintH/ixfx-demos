@@ -1,7 +1,8 @@
 import { clamp, interpolate } from '../../ixfx/data.js';
 
 const settings = Object.freeze({
-  fullMode: window.location.hash === `#full`,
+  fullMode: window.location.hash.includes(`full`),
+  jumboSlider: window.location.hash.includes(`jumbo`),
   // On a full scale of 0..1000, what speed
   // is considered maximum
   speedMax: 20,
@@ -59,7 +60,7 @@ const tick = () => {
 };
 
 const setup = () => {
-  const { fullMode, speedMax } = settings;
+  const { fullMode, speedMax, jumboSlider } = settings;
 
   document.getElementById(`slider`)?.addEventListener(`input`, evt => {
     const el = /** @type HTMLInputElement|null */(evt.target);
@@ -102,6 +103,8 @@ const setup = () => {
     if (spotEl) spotEl.style.display = `none`;
   }
   
+  if (jumboSlider) document.body.classList.add(`jumbo`);
+
   // Continuous loop
   const loop = () => {
     // Re-calculate value based on interpolation
