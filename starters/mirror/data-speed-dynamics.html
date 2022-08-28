@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <title>mirror - data-speed-dynamics</title>
 </head>
 
@@ -36,6 +36,8 @@
       margin: var(--margin);
       height: 100vh;
       overflow: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: auto;
     }
 
     #spot {
