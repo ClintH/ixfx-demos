@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <title>pendulum</title>
 </head>
 
@@ -19,8 +19,9 @@
       font-family: var(--font);
       user-select: none;
       -webkit-user-select: none;
-      overscroll-behavior: contain;
-
+      overscroll-behavior: none;
+      overflow: hidden;
+      touch-action: none;
     }
 
     h1 {
@@ -28,7 +29,7 @@
     }
   </style>
   <section>
-    <h1>pendulum</h1>
+    <h1>forces-pendulum</h1>
     <canvas id="canvas"></canvas>
     <script type="module" src="script.js"></script>
   </section>

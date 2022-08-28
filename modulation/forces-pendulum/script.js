@@ -90,7 +90,12 @@ const setup = () => {
   };
   loop();
 
-  document.addEventListener(`pointermove`, evt => {
+  /**
+   * 
+   * @param {PointerEvent} evt 
+   * @returns 
+   */
+  const onPointer = (evt) => {
     if (evt.buttons === 0) return;
     const t = {
       position: {
@@ -101,9 +106,12 @@ const setup = () => {
       mass: settings.mass
     };
     updateState({ thing: t });
-  });
+  };
+  document.addEventListener(`pointermove`, onPointer);
+  
 
-  document.addEventListener(`pointerdown`, (ev) => {
+  document.addEventListener(`pointerdown`, (evt) => {
+    onPointer(evt);
     updateState({ pause:true });
   });
 
