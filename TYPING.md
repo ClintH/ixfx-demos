@@ -11,7 +11,7 @@ You'll note the use of [type annotations](https://www.typescriptlang.org/docs/ha
 
 Type annotations allow you to gain some of the advantages of [TypeScript](https://www.typescriptlang.org) (the contemporary best practice), without introducing additional build steps and complexity. The price paid is some clutter in the source code.
 
-## Annotating a function
+# Annotating a function
 
 The most common use of annotations in this code base is to hint what types are expected for function parameters.
 
@@ -83,7 +83,7 @@ const setHtml = (el, msg) => {
 
 Now our calling code has no warnings, because even though we may pass in a null, we've hinted that `setHtml` can handle that just fine.
 
-## Defining a type
+# Defining a type
 
 An example of a type is:
 
@@ -111,7 +111,7 @@ const ff = {
 }
 ``` 
 
-## Typed declarations
+# Typed declarations
 
 To take advantage of the type, we need annotate our variable declaration with the intended type:
 
@@ -133,7 +133,7 @@ const f = {
 };
 ```
 
-## Type assertions
+# Type assertions
 
 For cases where we can't hint the type with other means, we can _assert_ the type.
 
@@ -167,11 +167,55 @@ It's also possible to do inline assertions, which is handy in cases where variab
 /** @type {HTMLInputElement} */(el).value = `10`;
 ```
 
-## Disabling
+In most places, the curly braces `{ }` can be omitted for simpler syntax. The following two lines are the same.
+
+```js
+/** @type {number} */
+/** @type number */
+```
+
+# Disabling
 
 To disable all this magic, add these lines to the top of your source:
 
 ```js
 /* eslint-disable */
 // @ts-nocheck
+```
+
+# Importing types
+
+Visual Studio Code is smart enough to find and use type definitions from imported libraries, such as ixfx, even when it's not explicit.
+
+In the example below, `envelope` is correctly typed to the interface [`Adsr`](https://clinth.github.io/ixfx/interfaces/Modulation.Adsr.html):
+
+```js
+import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
+const envelope = adsr(defaultAdsrOpts());
+```
+
+Note that we're not explicitly importing [`Adsr`], just a function that happens to return that type.
+
+It may be necessary to [manually import types](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#other) when you are referring to them in a type annotation. For example, if we want to define a type that references an `Adsr` instance.
+
+In the below example, we referring to the the types `Points.Point`, `Adsr`, and the in-built `string` type.
+
+```js
+import { Points } from '../../ixfx/geometry.js';
+import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
+
+/** 
+ * @typedef Thing
+ * @property {Points.Point} position
+ * @property { import('../../ixfx/modulation.js').Adsr} envelope
+ * @property {string} id
+ */
+```
+
+`Points.Point` we can reference succinctly - `{Points.Point}` because `Points` is imported as a module. This allows VSC to resolve it to a type. However with `Adsr`, we do not import the type, just a function. In Javascript, it's not possible to import types, because they aren't part of the language.
+
+Instead we use the _import_ syntax, using the same path as we would for the function. This is wrapped in parentheses, and followed by a period and then the name of the type:
+
+```js
+{ import('../../ixfx/modulation.js').Adsr }
 ```

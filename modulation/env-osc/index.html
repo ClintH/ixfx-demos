@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>thing</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 200;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 80%);
+      --fg: hsl(var(--hue), 100%, 30%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+    }
+
+    #thing {
+      position: absolute;
+      border: 2px solid black;
+      width: 1em;
+      height: 1em;
+      left: 0;
+      top: 0;
+      background-color: var(--fg);
+      pointer-events: none;
+    }
+  </style>
+  <section>
+    <h1>thing</h1>
+    <div id="thing"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
