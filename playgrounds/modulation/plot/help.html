@@ -172,6 +172,22 @@ setInterval(()=&gt; {
 },100);
   </pre>
       </a>
+      <h2>Easing-modulated sine</h2>
+      <a href="https://clinth.github.io/ixfx-demos/playgrounds/modulation/plot/index.html#aW1wb3J0IHsgRWFzaW5ncyB9IGZyb20gImh0dHBzOi8vdW5wa2cuY29tL2l4ZngvZGlzdC9tb2R1bGF0aW9uLmpzIjsKY29uc3QgZWFzZSA9IEVhc2luZ3MuZnVuY3Rpb25zLmN1YmljT3V0OwoKbGV0IHRpY2tzID0gMDsKY29uc3QgZnJlcSA9IDAuMTsKc2V0SW50ZXJ2YWwoKCkgPT4gewogIGxldCB5ID0gTWF0aC5zaW4odGlja3MrKypmcmVxKTsKICB5ID0gZWFzZSh5KTsKICBwb3N0TWVzc2FnZSh5KTsKfSwgMTAwKTsKICAgIA=="
+        class="code">
+        <pre>
+import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+const ease = Easings.functions.cubicOut;
+
+let ticks = 0;
+const freq = 0.1;
+setInterval(() => {
+  let y = Math.sin(ticks++*freq);
+  y = ease(y);
+  postMessage(y);
+}, 100);
+        </pre>
+      </a>
       <h2><a href="https://clinth.github.io/ixfx-docs/modulation/envelope/">Envelope</h2>
       <a class="code"
         href="index.html#aW1wb3J0IHsgYWRzciwgZGVmYXVsdEFkc3JPcHRzIH0gZnJvbSAiaHR0cHM6Ly91bnBrZy5jb20vaXhmeC9kaXN0L21vZHVsYXRpb24uanMiCmltcG9ydCB7IGNvbnRpbnVvdXNseSB9IGZyb20gImh0dHBzOi8vdW5wa2cuY29tL2l4ZngvZGlzdC9mbG93LmpzIgpjb25zdCBvcHRzID0gewogIC4uLmRlZmF1bHRBZHNyT3B0cygpLAogIGF0dGFja0R1cmF0aW9uOiAxMDAwLAogIGRlY2F5RHVyYXRpb246IDIwMCwKICBzdXN0YWluRHVyYXRpb246IDEwMAp9Owpjb25zdCBlbnYgPSBhZHNyKG9wdHMpOwplbnYudHJpZ2dlcigpOwpjb250aW51b3VzbHkoKCkgPT4gewogIHBvc3RNZXNzYWdlKGVudi52YWx1ZSk7CiAgaWYgKGVudi5pc0RvbmUpIHJldHVybiBmYWxzZTsKfSkuc3RhcnQoKTs=">
