@@ -1,6 +1,6 @@
 import './Arrays-c77e83d7.js';
 export { b as Easings } from './Easing-57384b54.js';
-export { c as Adsr, A as AdsrOpts, a as AdsrTimingOpts, C as CompleteEvent, E as EnvelopeOpts, b as Events, F as Forces, J as JitterOpts, O as Oscillators, S as StateChangeEvent, e as adsr, f as adsrSample, d as defaultAdsrOpts, j as jitter } from './index-926a1a29.js';
+export { c as Adsr, A as AdsrOpts, a as AdsrTimingOpts, C as CompleteEvent, E as EnvelopeOpts, b as Events, F as Forces, J as JitterOpts, O as Oscillators, S as StateChangeEvent, e as adsr, f as adsrSample, d as defaultAdsrOpts, j as jitter } from './index-c074bffa.js';
 export { p as pingPong, a as pingPongPercent } from './PingPong-cdbb0518.js';
 import './Util-473ad458.js';
 import './NumericArrays-54faaa95.js';

@@ -758,7 +758,7 @@ declare type Events = {
  * ADSR (Attack Decay Sustain Release) envelope. An envelope is a value that changes over time,
  * usually in response to an intial trigger.
  *
- * Created with the {@link adsr} function.
+ * Created with the {@link adsr} function. [See the ixfx Guide on Envelopes](https://clinth.github.io/ixfx-docs/modulation/envelope/).
  *
  * @example Setup
  * ```js
@@ -771,6 +771,28 @@ declare type Events = {
  * }
  * const env = adsr(opts);
  * ```
+ *
+ * [Options for envelope](https://clinth.github.io/ixfx/types/Modulation.EnvelopeOpts.html) are as follows:
+ *
+ * ```js
+ * initialLevel?: number
+ * attackBend: number
+ * attackDuration: number
+ * decayBend: number
+ * decayDuration:number
+ * sustainLevel: number
+ * releaseBend: number
+ * releaseDuration: number
+ * releaseLevel?: number
+ * peakLevel: number
+ * retrigger?: boolean
+ * shouldLoop: boolean
+ * ```
+ *
+ * If `retrigger` is false, re-triggers will continue at current level
+ * rather than resetting to `initialLevel`.
+ *
+ * If `shouldLoop` is true, envelope loops until `release()` is called.
  *
  * @example Using
  * ```js
