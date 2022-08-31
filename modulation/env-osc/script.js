@@ -1,5 +1,7 @@
 import { Points } from '../../ixfx/geometry.js';
 import { Oscillators } from '../../ixfx/modulation.js';
+import { scale } from '../../ixfx/data.js';
+
 import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
 
 // Define our Thing
@@ -13,8 +15,18 @@ import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   sizeEm: 10,
-  envelope: defaultAdsrOpts()
+  envelope: {
+    ...defaultAdsrOpts(),
+    // Override some envelope options...
+    // See: https://clinth.github.io/ixfx-docs/modulation/envelope/
+    sustainLevel: 1,
+    releaseDuration: 1000,
+    retrigger: true
+  }
 });
+
+console.log(`Envelope looks like:`);
+console.log(settings.envelope);
 
 let state = Object.freeze({
   // Create a thing, to control HTML element with id 'thing'
@@ -98,7 +110,7 @@ const setup = () => {
   window.addEventListener(`pointerdown`, evt => {
     const { thing } = state;
     console.log(`Envelope trigger`);
-    thing.envelope.trigger(true);
+    thing.envelope.trigger(false);
   });
 
   // Release envelope on pointerup
