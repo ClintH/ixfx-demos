@@ -3,62 +3,38 @@ import { Points } from '../../ixfx/geometry.js';
 // Define our Thing
 /** 
  * @typedef Thing
- * @property {'none'|'dragging'} dragState
  * @property {Points.Point} position
- * @property {number} mass
+ * @property {number} surprise
+ * @property {string} elementId
  */
 
+// Settings for sketch
 const settings = Object.freeze({
-  meltRate: 0.9999,
-  movementMax: 50,
-  sizeEm: 10
+
 });
 
+// State
 let state = Object.freeze({
-  /** @type number */
-  freezeRay: 1,
   /** @type Thing */
-  thing: generateThing(),
-  /** @type number */
-  currentMovement: 0
+  thing: generateThing()
 });
 
 /**
- * Use the data of the Thing somehow...
+ * Apply the data from `thing` somehow...
  * @param {Thing} thing 
  */
 const useThing = (thing) => {
-  const { sizeEm } = settings;
-
-  const el = document.getElementById(`thing`);
+  const { position, elementId, surprise } = thing;
+  
+  // Resolve element
+  const el = document.getElementById(elementId);
   if (!el) return;
 
-  const { position, mass } = thing;
-
-  // Change opacity based on mass
-  el.style.opacity = mass.toString();
-
-  // Change size based on mass
-  el.style.height = el.style.width = `${sizeEm*mass}em`;
+  // Change opacity based on 'surprise'
+  el.style.opacity = surprise.toString();
 
   // Position
   positionFromMiddle(el, position);
-};
-
-/**
- * Position an element from its middle
- * @param {HTMLElement} el 
- * @param {Points.Point} relativePos 
- */
-const positionFromMiddle = (el, relativePos) => {
-  // Convert relative to absolute units
-  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
-  
-  const thingRect = el.getBoundingClientRect();
-  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
-
-  // Apply via CSS
-  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 };
 
 /**
@@ -66,25 +42,21 @@ const positionFromMiddle = (el, relativePos) => {
  * @param {Thing} thing
  */
 const loopThing = (thing) => {
-  const { meltRate } = settings;
-  const { freezeRay } = state; // Get thing from state
-
-  let { mass } = thing;
-
-  // Apply relevant state from the world. 0.01 is used to scale it down
-  mass = mass + (mass*freezeRay*0.01);
-
-  // Apply the 'logic' of the thing
-  // - Our thing melts over time
-  mass *= meltRate;
-
-  // Make sure mass doesn't drop below zero
-  if (mass < 0) mass = 0;
-
-  // Apply changes to a new Thing
-  return updateThing(thing, { mass });
+  // In this function, we probably want the steps:
+  
+  // 1. Alter properties based on external state/settings
+  // 2. Alter properties based on the state of 'thing'
+  // 3. Apply 'intrinsic' logic of thing. Eg, that a variable will
+  //    always decrease a little each loop
+  // 4. Apply sanity checks to properties, making sure they are within proper ranges
+  // 5. Call `updateThing` with changed properties, returning result.
+  return updateThing(thing, {  });
 };
 
+/**
+ * Uses state. Uses overall sketch state,
+ * and then defers to `useThing` for thing state.
+ */
 const useState = () => {
   const { thing } = state;
 
@@ -95,18 +67,12 @@ const useState = () => {
 const setup = () => {
   const loop = () => {
     const { thing } = state;
-    
-    // Update freeze ray based on movement
-    const newFreeze = state.currentMovement / settings.movementMax;
-
     // Update thing
     const newThing = loopThing(thing);
 
     // Update state
     updateState({ 
-      thing: newThing,
-      freezeRay: newFreeze,
-      currentMovement: 0
+      thing: newThing
     });
 
     useState();
@@ -114,16 +80,6 @@ const setup = () => {
   };
   loop();
 
-  window.addEventListener(`pointermove`, evt => {
-    
-    // Get magnitude of movement
-    const magnitude = Points.distance({ x: evt.movementX, y: evt.movementY });
-
-    // Add to state
-    updateState({ 
-      currentMovement: state.currentMovement + magnitude 
-    });
-  });
 };
 setup();
 
@@ -134,9 +90,9 @@ setup();
  */
 function generateThing () {
   return {
-    dragState:  `none`,
     position: { x: 0.5, y:0.5 },
-    mass: 1
+    elementId: `thing`,
+    surprise: 0
   };
 }
 
@@ -161,4 +117,20 @@ function updateThing(thing, data) {
     ...thing,
     ...data
   });
+}
+
+/**
+ * Position an element from its middle
+ * @param {HTMLElement} el 
+ * @param {Points.Point} relativePos 
+ */
+function positionFromMiddle(el, relativePos) {
+  // Convert relative to absolute units
+  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
+  
+  const thingRect = el.getBoundingClientRect();
+  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
+
+  // Apply via CSS
+  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 }
