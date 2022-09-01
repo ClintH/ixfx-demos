@@ -1,6 +1,6 @@
 # espruino / led-pwm-env
 
-Demonstrates toggling LEDs, blinking LEDs and using pulse width modulation to fade LEDs on the [Puck.js](https://www.espruino.com/Puck.js).
+Demonstrates using pulse width modulation to fade an LED on the [Puck.js](https://www.espruino.com/Puck.js) using an [envelope](https://clinth.github.io/ixfx-docs/modulation/envelope/).
 
 [Run this demo online](https://clinth.github.io/ixfx-demos/io/espruino/led-pwm-env/)
 
@@ -29,15 +29,7 @@ Because LEDs are so intense, using the silicon cover of the Puck.js, a piece of 
 
 ## Things to try
 
-### On the Espruino
-
-* Integrate with the button, allowing each LED to be turned on in turn, and then turning them all off.
-* Control LED brightness (via PWM) according to the gyroscope value
-* Make a blink function that takes a 'speed' parameter.
-
-### With the browser too
-
-* Modulate PWM over time. Ixfx's [envelopes](https://clinth.github.io/ixfx-docs/modulation/envelope/) and [oscillators](https://clinth.github.io/ixfx-docs/modulation/oscillator/) would be useful
+* Modulate PWM over time. Rather than the [envelope](https://clinth.github.io/ixfx-docs/modulation/envelope/), try an [oscillators](https://clinth.github.io/ixfx-docs/modulation/oscillator/) or [easing function](https://clinth.github.io/ixfx-docs/modulation/easing/)
 * Experiment mixing colours between the three LEDs. ixfx's [colour module](https://clinth.github.io/ixfx-docs/types/colour/#parsing) can help you parse and interpolate colours to get red, green and blue values.
 
 ## Read more
