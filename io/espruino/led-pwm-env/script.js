@@ -6,6 +6,7 @@ const settings = Object.freeze({
   // Filter device list...
   device: ``, // Put in the name of your device here, eg `Puck.js a123`
   pwmLed:`LED2`,
+  updateRateMs: 30,
   env: adsr(defaultAdsrOpts())
 });
 
@@ -13,7 +14,9 @@ let state = Object.freeze({
   /** @type Espruino.EspruinoBleDevice|undefined */
   puck:undefined,
   /** @type number */
-  pwm: 0
+  pwm: 0,
+  /** @type boolean */
+  running: false
 });
 
 /**
@@ -48,15 +51,21 @@ const setLedPwm = (pinName, rate) => {
 };
 
 const loop = () => {
-  const { env } = settings;
+  const { env, updateRateMs } = settings;
   const v = env.value;
 
   if (!Number.isNaN(v)) {
-    updateState({ pwm: v });
+    updateState({ pwm: v, running: true });
     console.log(v);  
     setLedPwm(settings.pwmLed, state.pwm);
+  
+    // Queue to loop again
+    setTimeout(loop, updateRateMs);
+  } else {
+    // Turn off
+    setLedPwm(settings.pwmLed, 0);
+    updateState({ running: false });
   }
-  window.requestAnimationFrame(loop);
 };
 
 const setup = () => {
@@ -93,9 +102,10 @@ const setup = () => {
   document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
   
   document.addEventListener(`keypress`, evt => {
+    console.log(`Trigger`);
     settings.env.trigger();
+    if (!state.running) loop();
   });
-  loop();
 };
 setup();
 
