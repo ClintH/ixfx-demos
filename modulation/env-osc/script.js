@@ -74,7 +74,10 @@ const onTickThing = (thing) => {
   };
 
   // Apply changes to a new Thing
-  return updateThing(thing, { position });
+  return  Object.freeze({
+    ...thing,
+    position
+  });
 };
 
 
@@ -99,13 +102,12 @@ const onTick = () => {
   useState();
 };
 
-const setup = () => {
-  const loop = () => {
-    onTick(); 
-    window.requestAnimationFrame(loop);
-  };
-  loop();
+const loop = () => {
+  onTick(); 
+  window.requestAnimationFrame(loop);
+};
 
+const setup = () => {
   // Trigger and hold envelopes when pointer is down
   window.addEventListener(`pointerdown`, evt => {
     const { thing } = state;
@@ -119,9 +121,10 @@ const setup = () => {
     console.log(`Envelope release`);
     thing.envelope.release();
   });
-
+  loop();
 };
 setup();
+
 
 
 /**
@@ -151,17 +154,6 @@ function updateState (s) {
   });
 }
 
-/**
- * Updates `thing` with supplied `data`
- * @param {Thing} thing
- * @param {Partial<Thing>} data 
- */
-function updateThing(thing, data) {
-  return Object.freeze({
-    ...thing,
-    ...data
-  });
-}
 
 /**
  * Position an element from its middle

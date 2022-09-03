@@ -1,6 +1,7 @@
 import { Points } from '../../ixfx/geometry.js';
 
 // Define our Thing
+// In this demo, things have a position, suprise and elementId
 /** 
  * @typedef Thing
  * @property {Points.Point} position
@@ -15,15 +16,17 @@ const settings = Object.freeze({
 
 // State
 let state = Object.freeze({
+  // Create a thing when starting
   /** @type Thing */
   thing: generateThing()
 });
 
 /**
- * Apply the data from `thing` somehow...
+ * Make use of data from `thing` somehow...
  * @param {Thing} thing 
  */
 const useThing = (thing) => {
+  // Grab some properties from `thing`
   const { position, elementId, surprise } = thing;
   
   // Resolve element
@@ -49,13 +52,16 @@ const loopThing = (thing) => {
   // 3. Apply 'intrinsic' logic of thing. Eg, that a variable will
   //    always decrease a little each loop
   // 4. Apply sanity checks to properties, making sure they are within proper ranges
-  // 5. Call `updateThing` with changed properties, returning result.
-  return updateThing(thing, {  });
+  // 5. Return a new Thing
+  return Object.freeze({
+    ...thing,
+    /** data to update here */
+  });
 };
 
 /**
- * Uses state. Uses overall sketch state,
- * and then defers to `useThing` for thing state.
+ * Makes use of the data contained in `state`
+ * (including `thing`)
  */
 const useState = () => {
   const { thing } = state;
@@ -64,25 +70,29 @@ const useState = () => {
   useThing(thing);
 };
 
+const loop = () => {
+  const { thing } = state;
+
+  // Compute new thing
+  const newThing = loopThing(thing);
+
+  // Save new thing into state
+  updateState({ 
+    thing: newThing
+  });
+
+  // Use new state
+  useState();
+
+  // Loop
+  window.requestAnimationFrame(loop);
+};
+
 const setup = () => {
-  const loop = () => {
-    const { thing } = state;
-    // Update thing
-    const newThing = loopThing(thing);
-
-    // Update state
-    updateState({ 
-      thing: newThing
-    });
-
-    useState();
-    window.requestAnimationFrame(loop);
-  };
-  loop();
-
+  
 };
 setup();
-
+loop();
 
 /**
  * Generates a Thing
@@ -104,18 +114,6 @@ function updateState (s) {
   state = Object.freeze({
     ...state,
     ...s
-  });
-}
-
-/**
- * Updates `thing` with supplied `data`
- * @param {Thing} thing
- * @param {Partial<Thing>} data 
- */
-function updateThing(thing, data) {
-  return Object.freeze({
-    ...thing,
-    ...data
   });
 }
 
