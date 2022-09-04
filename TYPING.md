@@ -183,6 +183,8 @@ To disable all this magic, add these lines to the top of your source:
 // @ts-nocheck
 ```
 
+You could also edit your project settings and ensure that `"js/ts.implicitProjectConfig.checkJs": false`.
+
 # Importing types
 
 Visual Studio Code is smart enough to find and use type definitions from imported libraries, such as ixfx, even when it's not explicit.
