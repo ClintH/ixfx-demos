@@ -1,7 +1,7 @@
-import { a as RandomSource } from './Arrays-c77e83d7.js';
-import { b as Easing } from './Easing-57384b54.js';
-import { a as Point, e as Rect } from './Point-5213026a.js';
-import { T as Timer } from './index-001fb877.js';
+import { a as RandomSource } from './Arrays-344418f7.js';
+import { b as Easing } from './Easing-22417695.js';
+import { a as Point, e as Rect } from './Point-cb15d272.js';
+import { T as Timer } from './index-0f9db2f2.js';
 import { a as pingPongPercent, p as pingPong } from './PingPong-cdbb0518.js';
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
 
@@ -560,10 +560,10 @@ declare type SpringOpts = {
  *  stiffness: 100
  * });
  * ```
- * @param opts
- * @param timerOrFreq
+ * @param opts Options for spring
+ * @param timerOrFreq Timer to use, or frequency
  */
-declare function spring(opts: SpringOpts | undefined, timerOrFreq: Timer | undefined): Generator<number, void, unknown>;
+declare function spring(opts: SpringOpts | undefined, timerOrFreq: Timer | number | undefined): Generator<number, void, unknown>;
 /**
  * Sine oscillator.
  *
@@ -624,7 +624,7 @@ declare function triangle(timerOrFreq: Timer | number): Generator<number, void, 
  * const v = osc.next().value;
  * ```
  */
-declare function saw(timerOrFreq: Timer): Generator<number, void, unknown>;
+declare function saw(timerOrFreq: Timer | number): Generator<number, void, unknown>;
 /**
  * Square oscillator
  *
@@ -639,7 +639,7 @@ declare function saw(timerOrFreq: Timer): Generator<number, void, unknown>;
  * osc.next().value;
  * ```
  */
-declare function square(timerOrFreq: Timer): Generator<0 | 1, void, unknown>;
+declare function square(timerOrFreq: Timer | number): Generator<0 | 1, void, unknown>;
 
 type Oscillator_SpringOpts = SpringOpts;
 declare const Oscillator_spring: typeof spring;

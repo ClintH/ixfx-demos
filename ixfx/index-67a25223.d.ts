@@ -1,6 +1,6 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { a as Point } from './Point-5213026a.js';
+import { a as Point } from './Point-cb15d272.js';
 import { F as Forms } from './Forms-3d8c95ae.js';
 
 declare type LogOpts = {
@@ -127,6 +127,22 @@ declare const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V,
  * @returns Observable
  */
 declare const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, onResized?: ((args: CanvasResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
+/**
+ * Given an array of class class names, this will cycle between them each time
+ * it is called.
+ *
+ * Eg, assume `list` is: [ `a`, `b`, `c` ]
+ *
+ * If `el` already has the class `a`, the first time it is called, class `a`
+ * is removed, and `b` added. The next time `b` is swapped for `c`. Once again,
+ * `c` will swap with `a` and so on.
+ *
+ * If `el` is undefined or null, function silently returns.
+ * @param el Element
+ * @param list List of class names
+ * @returns
+ */
+declare const cycleCssClass: (el: HTMLElement, list: readonly string[]) => void;
 /**
  * Sets width/height atributes on the given element according to the size of its parent.
  * @param domQueryOrEl Elememnt to resize
@@ -324,6 +340,7 @@ type index_ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = ElementRes
 type index_CanvasResizeArgs = CanvasResizeArgs;
 declare const index_fullSizeElement: typeof fullSizeElement;
 declare const index_fullSizeCanvas: typeof fullSizeCanvas;
+declare const index_cycleCssClass: typeof cycleCssClass;
 declare const index_parentSize: typeof parentSize;
 declare const index_getTranslation: typeof getTranslation;
 declare const index_parentSizeCanvas: typeof parentSizeCanvas;
@@ -359,6 +376,7 @@ declare namespace index {
     index_CanvasResizeArgs as CanvasResizeArgs,
     index_fullSizeElement as fullSizeElement,
     index_fullSizeCanvas as fullSizeCanvas,
+    index_cycleCssClass as cycleCssClass,
     index_parentSize as parentSize,
     index_getTranslation as getTranslation,
     index_parentSizeCanvas as parentSizeCanvas,
@@ -382,4 +400,4 @@ declare namespace index {
   };
 }
 
-export { CanvasResizeArgs as C, DomRxOpts as D, ElementResizeArgs as E, LogOpts as L, Opts as O, PluckOpts as P, Rx as R, TransformOpts as T, Log as a, fullSizeCanvas as b, parentSizeCanvas as c, resolveEl as d, createAfter as e, fullSizeElement as f, getTranslation as g, createIn as h, index as i, dataTableList as j, DataFormatter as k, log as l, DataTableOpts as m, dataTable as n, clear as o, parentSize as p, resizeObservable as q, rx as r, copyToClipboard as s, themeChangeObservable as t, CreateUpdateElement as u, reconcileChildren as v, windowResize as w, pointerVisualise as x, defaultErrorHandler as y };
+export { CanvasResizeArgs as C, DomRxOpts as D, ElementResizeArgs as E, LogOpts as L, Opts as O, PluckOpts as P, Rx as R, TransformOpts as T, Log as a, fullSizeCanvas as b, cycleCssClass as c, parentSizeCanvas as d, resolveEl as e, fullSizeElement as f, getTranslation as g, createAfter as h, index as i, createIn as j, dataTableList as k, log as l, DataFormatter as m, DataTableOpts as n, dataTable as o, parentSize as p, clear as q, rx as r, resizeObservable as s, themeChangeObservable as t, copyToClipboard as u, CreateUpdateElement as v, windowResize as w, reconcileChildren as x, pointerVisualise as y, defaultErrorHandler as z };

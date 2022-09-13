@@ -2949,6 +2949,2762 @@ declare module "geometry/Line" {
      */
     export const rotate: (line: Line, amountRadian?: number, origin?: Points.Point | number) => Line;
 }
+declare module "flow/Sleep" {
+    /**
+     * Returns after `timeoutMs`.
+     *
+     * @example In an async function
+     * ```js
+     * console.log(`Hello`);
+     * await sleep(1000);
+     * console.log(`There`); // Prints one second after
+     * ```
+     *
+     * @example As a promise
+     * ```js
+     * console.log(`Hello`);
+     * sleep(1000)
+     *  .then(() => console.log(`There`)); // Prints one second after
+     * ```
+     *
+     * If a timeout of 0 is given, `requestAnimationFrame` is used instead of `setTimeout`.
+     *
+     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
+     *
+     * @param timeoutMs
+     * @return
+     */
+    export const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V | undefined>;
+}
+declare module "flow/StateMachine" {
+    import { SimpleEventEmitter } from "Events";
+    export interface Options {
+        readonly debug?: boolean;
+    }
+    export interface StateChangeEvent {
+        readonly newState: string;
+        readonly priorState: string;
+    }
+    export interface StopEvent {
+        readonly state: string;
+    }
+    export type StateMachineEventMap = {
+        readonly change: StateChangeEvent;
+        readonly stop: StopEvent;
+    };
+    export type StateEvent = (args: unknown, sender: StateMachine) => void;
+    export type StateHandler = string | StateEvent | null;
+    export interface State {
+        readonly [event: string]: StateHandler;
+    }
+    export interface MachineDescription {
+        readonly [key: string]: string | readonly string[] | null;
+    }
+    /**
+     * Returns a machine description based on a list of strings. The final string is the final
+     * state.
+     *
+     * ```js
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.create(states[0], descriptionFromList(states));
+     * ```
+     * @param states List of states
+     * @return MachineDescription
+     */
+    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
+    /**
+     * Returns a state machine based on a list of strings. The first string is used as the initial state,
+     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
+     *
+     * ```js
+     * const states = [`one`, `two`, `three`];
+     * const sm = StateMachine.fromList(states);
+     * ```
+     */
+    export const fromList: (...states: readonly string[]) => StateMachine;
+    /**
+     * Creates a new state machine
+     * @param initial Initial state
+     * @param m Machine description
+     * @param opts Options
+     * @returns State machine instance
+     */
+    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
+    /**
+     * State machine
+     *
+     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
+     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
+     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
+     *
+     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
+     * ```
+     * const description = {
+     *  sleep: 'wakeup',
+     *  wakeup: ['coffee', 'breakfast'],
+     *  coffee: `bike`,
+     *  breakfast: `bike`,
+     *  bike: null
+     * }
+     * ```
+     * Create the machine with the starting state (`sleep`)
+     * ```
+     * const machine = StateMachine.create(`sleep`, description);
+     * ```
+     *
+     * Change the state by name:
+     * ```
+     * machine.state = `wakeup`
+     * ```
+     *
+     * Or request an automatic transition (will use first state if there are several options)
+     * ```
+     * machine.next();
+     * ```
+     *
+     * Check status
+     * ```
+     * if (machine.state === `coffee`) ...;
+     * if (machine.isDone()) ...
+     * ```
+     *
+     * Listen for state changes
+     * ```
+     * machine.addEventListener(`change`, (evt) => {
+     *  const {priorState, newState} = evt;
+     *  console.log(`State change from ${priorState} -> ${newState}`);
+     * });
+     * ```
+     * @export
+     * @class StateMachine
+     * @extends {SimpleEventEmitter<StateMachineEventMap>}
+     */
+    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
+        #private;
+        /**
+         * Create a state machine with initial state, description and options
+         * @param string initial Initial state
+         * @param MachineDescription m Machine description
+         * @param Options Options for machine (defaults to `{debug:false}`)
+         * @memberof StateMachine
+         */
+        constructor(initial: string, m: MachineDescription, opts?: Options);
+        get states(): readonly string[];
+        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
+        /**
+         * Moves to the next state if possible. If multiple states are possible, it will use the first.
+         * If machine is finalised, no error is thrown and null is returned.
+         *
+         * @returns {(string|null)} Returns new state, or null if machine is finalised
+         * @memberof StateMachine
+         */
+        next(): string | null;
+        /**
+         * Returns true if state machine is in its final state
+         *
+         * @returns
+         * @memberof StateMachine
+         */
+        get isDone(): boolean;
+        /**
+         * Resets machine to initial state
+         *
+         * @memberof StateMachine
+         */
+        reset(): void;
+        /**
+         * Checks whether a state change is valid.
+         *
+         * @static
+         * @param priorState From state
+         * @param newState To state
+         * @param description Machine description
+         * @returns If valid: [true,''], if invalid: [false, 'Error msg here']
+         * @memberof StateMachine
+         */
+        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
+        isValid(newState: string): readonly [boolean, string];
+        /**
+         * Gets or sets state. Throws an error if an invalid transition is attempted.
+         * Use `StateMachine.isValid` to check validity without changing.
+         *
+         * @memberof StateMachine
+         */
+        set state(newState: string);
+        get state(): string;
+    }
+}
+declare module "flow/Timer" {
+    import { HasCompletion } from "flow/index";
+    /**
+     * Creates a timer
+     */
+    export type TimerSource = () => Timer;
+    /**
+     * A timer instance
+     */
+    export type Timer = {
+        reset(): void;
+        get elapsed(): number;
+    };
+    export type ModTimer = Timer & {
+        mod(amt: number): void;
+    };
+    export const frequencyTimerSource: (frequency: number) => TimerSource;
+    /**
+     * Wraps a timer, returning a relative elapsed value.
+     *
+     * ```js
+     * let t = relativeTimer(1000, msElapsedTimer());
+     * ```
+     *
+     * @private
+     * @param total
+     * @param timer
+     * @param clampValue If true, returned value never exceeds 1.0
+     * @returns
+     */
+    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
+    /**
+     * A timer based on frequency: cycles per unit of time. These timers return a number from
+     * 0..1 indicating position with a cycle.
+     *
+     * In practice, timers are used to 'drive' something like an Oscillator.
+     *
+     * @example Init a spring oscillator, with a half a cycle per second
+     * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     * import { frequencyTimer } from "https://unpkg.com/ixfx/dist/flow.js"
+     * Oscillators.spring({}, frequencyTimer(0.5));
+     * ```
+     *
+     * By default it uses elapsed clock time as a basis for frequency. ie., cycles per second.
+     *
+     * It returns a `ModTimer`, which allows for a modulation amount to be continually applied
+     * to the calculation of the 'position' within a cycle.
+     *
+     * @example Prints around 0/0.5 each second, as timer is half a cycle per second
+     * ```js
+     * import { frequencyTimer } from "https://unpkg.com/ixfx/dist/flow.js"
+     * const t = frequencyTimer(0.5);
+     * setInterval(() => {
+     *  console.log(t.elapsed);
+     * }, 1000);
+     * ```
+     * @param frequency
+     * @param timer
+     * @returns
+     */
+    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
+    /**
+     * A timer that uses clock time
+     * @private
+     * @returns {Timer}
+     */
+    export const msElapsedTimer: () => Timer;
+    /**
+     * A timer that progresses with each call
+     * @private
+     * @returns {Timer}
+     */
+    export const ticksElapsedTimer: () => Timer;
+}
+declare module "flow/Interval" {
+    export type IntervalAsync<V> = (() => V | Promise<V>) | Generator<V>;
+    /**
+     * Generates values from `produce` with `intervalMs` time delay.
+     * `produce` can be a simple function that returns a value, an async function, or a generator.
+     *
+     * @example Produce a random number every 500ms:
+     * ```
+     * const randomGenerator = interval(() => Math.random(), 1000);
+     * for await (const r of randomGenerator) {
+     *  // Random value every 1 second
+     *  // Warning: does not end by itself, a `break` statement is needed
+     * }
+     * ```
+     *
+     * @example Return values from a generator every 500ms:
+     * ```js
+     * // Make a generator that counts to 10
+     * const counter = count(10);
+     * for await (const v of interval(counter, 1000)) {
+     *  // Do something with `v`
+     * }
+     * ```
+     *
+     * If you just want to loop at a certain speed, consider using {@link continuously} instead.
+     * @template V Returns value of `produce` function
+     * @param intervalMs Interval between execution
+     * @param produce Function to call
+     * @template V Data type
+     * @returns
+     */
+    export const interval: <V>(produce: IntervalAsync<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
+}
+declare module "flow/Timeout" {
+    import { HasCompletion } from "flow/index";
+    export type TimeoutSyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => void;
+    export type TimeoutAsyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => Promise<void>;
+    /**
+     * A resettable timeout, returned by {@link timeout}
+     */
+    export type Timeout = HasCompletion & {
+        start(altTimeoutMs?: number, args?: readonly unknown[]): void;
+        cancel(): void;
+        get isDone(): boolean;
+    };
+    /**
+     * Returns a {@link Timeout} that can be triggered, cancelled and reset
+     *
+     * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
+     * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
+     *
+     * @example Essential functionality
+     * ```js
+     * const fn = () => {
+     *  console.log(`Executed`);
+     * };
+     * const t = timeout(fn, 60*1000);
+     * t.start();   // After 1 minute `fn` will run, printing to the console
+     * ```
+     *
+     * @example Control execution functionality
+     * ```
+     * t.cancel();  // Cancel it from running
+     * t.start();   // Schedule again after 1 minute
+     * t.start(30*1000); // Cancel that, and now scheduled after 30s
+     * t.isDone;    // True if a scheduled event is pending
+     * ```
+     *
+     * Callback function receives any additional parameters passed in from start.
+     * This can be useful for passing through event data:
+     *
+     * @example
+     * ```js
+     * const t = timeout( (elapsedMs, ...args) => {
+     *  // args contains event data
+     * }, 1000);
+     * el.addEventListener(`click`, t.start);
+     * ```
+     *
+     * Asynchronous callbacks can be used as well:
+     * ```js
+     * timeout(async () => {...}, 100);
+     * ```
+     *
+     * If you don't expect to need to control the timeout, consider using {@link delay},
+     * which can run a given function after a specified delay.
+     * @param callback
+     * @param timeoutMs
+     * @returns {@link Timeout}
+     */
+    export const timeout: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => Timeout;
+}
+declare module "flow/UpdateOutdated" {
+    export type UpdateFailPolicy = `fast` | `slow` | `backoff`;
+    /**
+     * Calls the async `fn` to generate a value if there is no prior value or
+     * `intervalMs` has elapsed since value was last generated.
+     * @example
+     * ```js
+     * const f = updateOutdated(async () => {
+     *  const r = await fetch(`blah`);
+     *  return await r.json();
+     * }, 60*1000);
+     *
+     * // Result will be JSON from fetch. If fetch happened already in the
+     * // last 60s, return cached result. Otherwise it will fetch data
+     * const result = await f();
+     * ```
+     *
+     * Callback `fn` is passed how many milliseconds have elapsed since last update. It's
+     * minimum value will be `intervalMs`.
+     *
+     * ```js
+     * const f = updateOutdated(async elapsedMs => {
+     *  // Do something with elapsedMs?
+     * }, 60*1000;
+     * ```
+     *
+     * There are different policies for what to happen if `fn` fails. `slow` is the default.
+     * * `fast`: Invocation will happen immediately on next attempt
+     * * `slow`: Next invocation will wait `intervalMs` as if it was successful
+     * * `backoff`: Attempts will get slower and slower until next success. Interval is multipled by 1.2 each time.
+     *
+     * @param fn Async function to call. Must return a value.
+     * @param intervalMs Maximum age of cached result
+     * @param updateFail `slow` by default
+     * @returns Value
+     */
+    export const updateOutdated: <V>(fn: (elapsedMs?: number) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
+}
+declare module "flow/Continuously" {
+    import { HasCompletion } from "flow/index";
+    /**
+     * Runs a function continuously, returned by {@link Continuously}
+     */
+    export type Continuously = HasCompletion & {
+        /**
+         * Starts loop. If already running, it is reset
+         */
+        start(): void;
+        /**
+         * How many milliseconds since start() was last called
+         */
+        get elapsedMs(): number;
+        /**
+         * How many iterations of the loop since start() was last called
+         */
+        get ticks(): number;
+        /**
+         * Whether loop has finished
+         */
+        get isDone(): boolean;
+        /**
+         * Stops loop
+         */
+        cancel(): void;
+        set intervalMs(ms: number);
+        get intervalMs(): number;
+    };
+    export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
+    export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
+    /**
+     * Returns a {@link Continuously} that continuously executes `callback`.
+     * If callback returns _false_, loop exits.
+     *
+     * Call `start` to begin/reset loop. `cancel` stops loop.
+     *
+     * @example Animation loop
+     * ```js
+     * const draw = () => {
+     *  // Draw on canvas
+     * }
+     *
+     * // Run draw() synchronised with monitor refresh rate via `window.requestAnimationFrame`
+     * continuously(draw).start();
+     * ```
+     *
+     * @example With delay
+     * ```js
+     * const fn = () => {
+     *  console.log(`1 minute`);
+     * }
+     * const c = continuously(fn, 60*1000);
+     * c.start(); // Runs `fn` every minute
+     * ```
+     *
+     * @example Control a 'continuously'
+     * ```js
+     * c.cancel();   // Stop the loop, cancelling any up-coming calls to `fn`
+     * c.elapsedMs;  // How many milliseconds have elapsed since start
+     * c.ticks;      // How many iterations of loop since start
+     * ```
+     *
+     * Asynchronous callback functions are supported too:
+     * ```js
+     * continuously(async () => { ..});
+     * ```
+     *
+     * The `callback` function can receive a few arguments:
+     * ```js
+     * continuously( (ticks, elapsedMs) => {
+     *  // ticks: how many times loop has run
+     *  // elapsedMs:  how long since last loop
+     * }).start();
+     * ```
+     *
+     * And if `callback` explicitly returns _false_, the loop will exit:
+     * ```js
+     * continuously((ticks) => {
+     *  // Stop after 100 iterations
+     *  if (ticks > 100) return false;
+     * }).start();
+     * ```
+     * @param callback Function to run. If it returns false, loop exits.
+     * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
+     * @param intervalMs
+     * @returns
+     */
+    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number, resetCallback?: ((ticks?: number, elapsedMs?: number) => boolean | void) | undefined) => Continuously;
+}
+declare module "flow/Debounce" {
+    import { TimeoutSyncCallback, TimeoutAsyncCallback } from "flow/Timeout";
+    /**
+     * Returns a debounce function which acts to filter calls to a given function `fn`.
+     *
+     * Eg, Let's create a debounced wrapped for a function:
+     * ```js
+     * const fn = () => console.log('Hello');
+     * const debouncedFn = debounce(fn, 1000);
+     * ```
+     *
+     * Now we can call `debouncedFn()` as often as we like, but it will only execute
+     * `fn()` after 1 second has elapsed since the last invocation. It essentially filters
+     * many calls to fewer calls. Each time `debounceFn()` is called, the timeout is
+     * reset, so potentially `fn` could never be called if the rate of `debounceFn` being called
+     * is faster than the provided timeout.
+     *
+     * Remember that to benefit from `debounce`, you must call the debounced wrapper, not the original function.
+     *
+     * ```js
+     * // Create
+     * const d = debounce(fn, 1000);
+     *
+     * // Don't do this if we want to benefit from the debounce
+     * fn();
+     *
+     * // Use the debounced wrapper
+     * d(); // Only calls fn after 1000s
+     * ```
+     *
+     * A practical use for this is handling high-frequency streams of data, where we don't really
+     * care about processing every event, only last event after a period. Debouncing is commonly
+     * used on microcontrollers to prevent button presses being counted twice.
+     *
+     * @example Handle most recent pointermove event after 1000ms
+     * ```js
+     * // Set up debounced handler
+     * const moveDebounced = debounce((elapsedMs, evt) => {
+     *    // Handle event
+     * }, 500);
+     *
+     * // Wire up event
+     * el.addEventListener(`pointermove`, moveDebounced);
+     * ```
+     *
+     * Arguments can be passed to the debounced function:
+     *
+     * ```js
+     * const fn = (x) => console.log(x);
+     * const d = debounce(fn, 1000);
+     * d(10);
+     * ```
+     *
+     * If the provided function is asynchronous, it's possible to await the debounced
+     * version as well. If the invocation was filtered, it returns instantly.
+     *
+     * ```js
+     * const d = debounce(fn, 1000);
+     * await d();
+     * ```
+     * @param callback Function to filter access to
+     * @param timeoutMs Minimum time between invocations
+     * @returns Debounce function
+     */
+    export const debounce: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => DebouncedFunction;
+    /**
+     * Debounced function
+     */
+    export type DebouncedFunction = (...args: readonly unknown[]) => void;
+}
+declare module "flow/Throttle" {
+    /***
+     * Throttles a function. Callback only allowed to run after minimum of `intervalMinMs`.
+     *
+     * @example Only handle move event every 500ms
+     * ```js
+     * const moveThrottled = throttle( (elapsedMs, args) => {
+     *  // Handle ar
+     * }, 500);
+     * el.addEventListener(`pointermove`, moveThrottled)
+     * ```
+     *
+     * Note that `throttle` does not schedule invocations, but rather acts as a filter that
+     * sometimes allows follow-through to `callback`, sometimes not. There is an expectation then
+     * that the return function from `throttle` is repeatedly called, such as the case for handling
+     * a stream of data/events.
+     *
+     * @example Manual trigger
+     * ```js
+     * // Set up once
+     * const t = throttle( (elapsedMs, args) => { ... }, 5000);
+     *
+     * // Later, trigger throttle. Sometimes the callback will run,
+     * // with data passed in to args[0]
+     * t(data);
+     * ```
+     */
+    export const throttle: (callback: (elapsedMs: number, ...args: readonly unknown[]) => void | Promise<unknown>, intervalMinMs: number) => (...args: unknown[]) => Promise<void>;
+}
+declare module "flow/WaitFor" {
+    /**
+     * Helper function for calling code that should fail after a timeout.
+     * In short, it allows you to signal when the function succeeded, to cancel it, or
+     * to be notified if it was canceled or completes.
+     *
+     *
+     * @example Verbose example
+     * ```js
+     * // This function is called by `waitFor` if it was cancelled
+     * const onAborted = (reason:string) => {
+     *  // 'reason' is a string describing why it has aborted.
+     *  // ie: due to timeout or because done() was called with an error
+     * };
+     *
+     * // This function is called by `waitFor` if it completed
+     * const onComplete = (success:boolean) => {
+     *  // Called if we were aborted or finished succesfully.
+     *  // onComplete will be called after onAborted, if it was an error case
+     * }
+     *
+     * // If done() is not called after 1000, onAborted will be called
+     * // if done() is called or there was a timeout, onComplete is called
+     * const done = waitFor(1000, onAborted, onComplete);
+     *
+     * // Signal completed successfully (thus calling onComplete(true))
+     * done();
+     *
+     * // Signal there was an error (thus calling onAborted and onComplete(false))
+     * done(`Some error`);
+     * ```
+     *
+     * The completion handler is useful for removing event handlers.
+     *
+     * @example Compact example
+     * ```js
+     * const done = waitFor(1000,
+     *  (reason) => {
+     *    console.log(`Aborted: ${reason}`);
+     *  },
+     *  (success) => {
+     *    console.log(`Completed. Success: ${success ?? `Yes!` : `No`}`)
+     *  });
+     *
+     * try {
+     *  runSomethingThatMightScrewUp();
+     *  done(); // Signal it succeeded
+     * } catch (e) {
+     *  done(e); // Signal there was an error
+     * }
+     * ```
+     * @param timeoutMs
+     * @param onAborted
+     * @param onComplete
+     * @returns
+     */
+    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string) => void;
+}
+declare module "flow/Delay" {
+    /**
+     * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
+     *
+     * @example Pause and wait for function
+     * ```js
+     * const result = await delay(async () => Math.random(), 1000);
+     * console.log(result); // Prints out result after one second
+     * ```
+     *
+     * If `await` is omitted, the function will run after the provided timeout, and code will continue to run.
+     *
+     * @example Schedule a function without waiting
+     * ```js
+     * delay(async () => {
+     *  console.log(Math.random())
+     * }, 1000);
+     * // Prints out a random number after 1 second.
+     * ```
+     *
+     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
+     *
+     *
+     * If you want to be able to cancel or re-run a delayed function, consider using
+     * {@link timeout} instead.
+     *
+     * @template V
+     * @param callback What to run after `timeoutMs`
+     * @param timeoutMs How long to delay
+     * @return Returns result of `callback`.
+     */
+    export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
+    /**
+     * Async generator that loops at a given `timeoutMs`.
+     *
+     * @example Loop runs every second
+     * ```
+     * // Loop forever
+     * (async () => {
+     *  const loop = delayLoop(1000);
+     *  while (true) {
+     *    await loop.next();
+     *
+     *    // Do something...
+     *    // Warning: loops forever
+     *  }
+     * })();
+     * ```
+     *
+     * @example For Await loop every second
+     * ```
+     * const loop = delayLoop(1000);
+     * for await (const o of loop) {
+     *  // Do something...
+     *  // Warning: loops forever
+     * }
+     * ```
+     * @param timeoutMs Delay. If 0 is given, `requestAnimationFrame` is used over `setTimeout`.
+     */
+    export function delayLoop(timeoutMs: number): AsyncGenerator<undefined, void, unknown>;
+}
+declare module "flow/index" {
+    import * as StateMachine from "flow/StateMachine";
+    /**
+     * State Machine
+     * See [here for usage](../classes/Flow.StateMachine.StateMachine.html).
+     */
+    export { StateMachine };
+    export * from "flow/Timer";
+    export * from "flow/Interval";
+    export * from "flow/Timeout";
+    export * from "flow/UpdateOutdated";
+    export * from "flow/Continuously";
+    export * from "flow/Debounce";
+    export * from "flow/Throttle";
+    export * from "flow/Sleep";
+    export * from "flow/WaitFor";
+    export * from "flow/Delay";
+    export type HasCompletion = {
+        get isDone(): boolean;
+    };
+    /**
+     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
+     * If `fn` returns _false_, iterator cancels.
+     *
+     * Over the default JS `forEach` function, this one allows you to exit the
+     * iteration early.
+     *
+     * @example
+     * ```js
+     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
+     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
+     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
+     * ```
+     *
+     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
+     * @param iterator Iterable or array
+     * @typeParam V Type of iterable
+     * @param fn Function to call for each item. If function returns _false_, iteration cancels
+     */
+    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
+    /**
+     * Iterates over an async iterable or array, calling `fn` for each value, with optional
+     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
+     *
+     * Use {@link forEach} for a synchronous version.
+     *
+     * ```
+     * // Prints items from array every second
+     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
+     * ```
+     *
+     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
+     * ```
+     * await forEachAsync(count(5), i=> {
+     *  try {
+     *    await doSomething();
+     *    return false; // Succeeded, exit early
+     *  } catch (ex) {
+     *    console.log(ex);
+     *    return true; // Keep trying
+     *  }
+     * }, 5000);
+     * ```
+     * @param iterator Iterable thing to loop over
+     * @param fn Function to invoke on each item. If it returns _false_ loop ends.
+     * @typeParam V Type of iterable
+     */
+    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number) => Promise<void>;
+    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
+    /**
+     * Runs `fn` a certain number of times, accumulating result into an array.
+     * If `fn` returns undefined, the result is ignored.
+     *
+     * ```js
+     * // Results will be an array with five random numbers
+     * const results = repeat(5, () => Math.random());
+     * ```
+     *
+     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
+     * that gives _false_ when repeating should stop.
+     *
+     * ```js
+     * // Keep running `fn` until we've accumulated 10 values
+     * // Useful if `fn` sometimes returns _undefined_
+     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
+     * ```
+     *
+     * If you don't need to accumulate return values, consider {@link Generators.count | Generators.count} with {@link Flow.forEach | Flow.forEach}.
+     *
+     * @param countOrPredicate Number of repeats or function returning false when to stop
+     * @param fn Function to run, must return a value to accumulate into array or _undefined_
+     * @returns Array of accumulated results
+     */
+    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
+}
+declare module "data/TrackerBase" {
+    import { TrackedValueOpts } from "data/TrackedValue";
+    /**
+     * Base tracker class
+     */
+    export abstract class TrackerBase<V> {
+        readonly id: string;
+        /**
+         * @ignore
+         */
+        seenCount: number;
+        /**
+        * @ignore
+        */
+        protected storeIntermediate: boolean;
+        /**
+        * @ignore
+        */
+        protected resetAfterSamples: number;
+        constructor(id?: string, opts?: TrackedValueOpts);
+        /**
+         * Reset tracker
+         */
+        reset(): void;
+        seen(...p: V[]): any;
+        /**
+         * @ignore
+         * @param p
+         */
+        abstract seenImpl(p: V[]): V[];
+        abstract get last(): V | undefined;
+        /**
+         * Returns the initial value, or undefined
+         */
+        abstract get initial(): V | undefined;
+        /**
+         * Returns the elapsed milliseconds since the initial value
+         */
+        abstract get elapsed(): number;
+        /**
+         * @ignore
+         */
+        onSeen(_p: V[]): void;
+        /**
+         * @ignore
+         */
+        abstract onReset(): void;
+    }
+}
+declare module "data/TrackedValue" {
+    import { GetOrGenerate } from "collections/Map";
+    import { TrackerBase } from "data/TrackerBase";
+    export type Timestamped<V> = V & {
+        readonly at: number;
+    };
+    /**
+     * Options
+     */
+    export type TrackedValueOpts = {
+        /**
+         * If true, intermediate points are stored. False by default
+         */
+        readonly storeIntermediate?: boolean;
+        /**
+         * If above zero, tracker will reset after this many samples
+         */
+        readonly resetAfterSamples?: number;
+    };
+    /**
+     * Keeps track of keyed values of type `V` (eg Point) It stores occurences in type `T`, which
+     * must extend from `TrackerBase<V>`, eg `PointTracker`.
+     *
+     * The `creator` function passed in to the constructor is responsible for instantiating
+     * the appropriate `TrackerBase` sub-class.
+     *
+     * @example Sub-class
+     * ```js
+     * export class TrackedPointMap extends TrackedValueMap<Points.Point> {
+     *  constructor(opts:TrackOpts = {}) {
+     *   super((key, start) => {
+     *    if (start === undefined) throw new Error(`Requires start point`);
+     *    const p = new PointTracker(key, opts);
+     *    p.seen(start);
+     *    return p;
+     *   });
+     *  }
+     * }
+     * ```
+     *
+     */
+    export class TrackedValueMap<V, T extends TrackerBase<V>> {
+        store: Map<string, T>;
+        gog: GetOrGenerate<string, T, V>;
+        constructor(creator: (key: string, start: V | undefined) => T);
+        /**
+         * Number of named values being tracked
+         */
+        get size(): number;
+        /**
+         * Returns _true_ if `id` is stored
+         * @param id
+         * @returns
+         */
+        has(id: string): boolean;
+        /**
+         * For a given id, note that we have seen one or more values.
+         * @param id Id
+         * @param values Values(s)
+         * @returns Information about start to last value
+         */
+        seen(id: string, ...values: V[]): Promise<any>;
+        /**
+         * Creates or returns a TrackedValue instance for `id`.
+         * @param id
+         * @param values
+         * @returns
+         */
+        protected getTrackedValue(id: string, ...values: V[]): Promise<T>;
+        /**
+         * Remove a tracked value by id.
+         * Use {@link reset} to clear them all.
+         * @param id
+         */
+        delete(id: string): void;
+        /**
+         * Remove all tracked values.
+         * Use {@link delete} to remove a single value by id.
+         */
+        reset(): void;
+        /**
+         * Enumerate ids
+         */
+        ids(): Generator<string, void, undefined>;
+        /**
+         * Enumerate tracked values
+         */
+        tracked(): Generator<T, void, undefined>;
+        /**
+         * Iterates TrackedValues ordered with oldest first
+         * @returns
+         */
+        trackedByAge(): Generator<T, void, unknown>;
+        /**
+         * Iterates underlying values, ordered by age (oldest first)
+         * First the named values are sorted by their `elapsed` value, and then
+         * we return the last value for that group.
+         */
+        valuesByAge(): Generator<V | undefined, void, unknown>;
+        /**
+         * Enumerate last received values
+         *
+         * @example Calculate centroid of latest-received values
+         * ```js
+         * const pointers = pointTracker();
+         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
+         * ```
+         */
+        last(): Generator<V | undefined, void, unknown>;
+        /**
+         * Enumerate starting values
+         */
+        initialValues(): Generator<V | undefined, void, unknown>;
+        /**
+         * Returns a tracked value by id, or undefined if not found
+         * @param id
+         * @returns
+         */
+        get(id: string): TrackerBase<V> | undefined;
+    }
+}
+declare module "data/PrimitiveTracker" {
+    import { TrackedValueOpts } from "data/TrackedValue";
+    import { TrackerBase } from "data/TrackerBase";
+    export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
+        values: V[];
+        timestamps: number[];
+        constructor(id?: string, opts?: TrackedValueOpts);
+        get last(): V | undefined;
+        get initial(): V | undefined;
+        /**
+       * Returns number of recorded values (this can include the initial value)
+       */
+        get size(): number;
+        /**
+         * Returns the elapsed time, in milliseconds since the instance was created
+         */
+        get elapsed(): number;
+        onReset(): void;
+        /**
+         * Tracks a value
+         */
+        seenImpl(p: V[]): V[];
+    }
+}
+declare module "data/NumberTracker" {
+    import { PrimitiveTracker } from "data/PrimitiveTracker";
+    import { TrackedValueOpts as TrackOpts, Timestamped } from "data/TrackedValue";
+    export class NumberTracker extends PrimitiveTracker<number> {
+        total: number;
+        min: number;
+        max: number;
+        get avg(): number;
+        /**
+         * Difference between last value and initial.
+         * Eg. if last value was 10 and initial value was 5, 5 is returned (10 - 5)
+         * If either of those is missing, undefined is returned
+         */
+        difference(): number | undefined;
+        /**
+         * Relative difference between last value and initial.
+         * Eg if last value was 10 and initial value was 5, 2 is returned (200%)
+         */
+        relativeDifference(): number | undefined;
+        onReset(): void;
+        onSeen(values: Timestamped<number>[]): void;
+        getMinMaxAvg(): {
+            min: number;
+            max: number;
+            avg: number;
+        };
+    }
+    /**
+     * Keeps track of the total, min, max and avg in a stream of values. By default values
+     * are not stored.
+     *
+     * Usage:
+     *
+     * ```js
+     * import { numberTracker } from 'https://unpkg.com/ixfx/dist/data.js';
+     *
+     * const t = numberTracker();
+     * t.seen(10);
+     *
+     * t.avg / t.min/ t.max
+     * t.initial; // initial value
+     * t.size;    // number of seen values
+     * t.elapsed; // milliseconds since intialisation
+     * t.last;    // last value
+     * ```
+     *
+     * To get `{ avg, min, max, total }`
+     * ```
+     * t.getMinMax()
+     * ```
+     *
+     * Use `t.reset()` to clear everything.
+     *
+     * Trackers can automatically reset after a given number of samples
+     * ```
+     * // reset after 100 samples
+     * const t = numberTracker(`something`, { resetAfterSamples: 100 });
+     * ```
+     *
+     * To store values, use the `storeIntermediate` option:
+     *
+     * ```js
+     * const t = numberTracker(`something`, { storeIntermediate: true });
+     * ```
+     *
+     * Difference between last value and initial value:
+     * ```js
+     * t.relativeDifference();
+     * ```
+     *
+     * Get raw data (if it is being stored):
+     * ```js
+     * t.values; // array of numbers
+     * t.timestampes; // array of millisecond times, indexes correspond to t.values
+     * ```
+     * @class NumberTracker
+     */
+    export const numberTracker: (id?: string, opts?: TrackOpts) => NumberTracker;
+}
+declare module "geometry/Bezier" {
+    import { Paths, Points } from "geometry/index";
+    export type QuadraticBezier = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+        readonly quadratic: Points.Point;
+    };
+    export type QuadraticBezierPath = Paths.Path & QuadraticBezier;
+    export type CubicBezier = {
+        readonly a: Points.Point;
+        readonly b: Points.Point;
+        readonly cubic1: Points.Point;
+        readonly cubic2: Points.Point;
+    };
+    export type CubicBezierPath = Paths.Path & CubicBezier;
+    export const isQuadraticBezier: (path: Paths.Path | QuadraticBezier | CubicBezier) => path is QuadraticBezier;
+    export const isCubicBezier: (path: Paths.Path | CubicBezier | QuadraticBezier) => path is CubicBezier;
+    /**
+     * Returns a new quadratic bezier with specified bend amount
+     *
+     * @param {QuadraticBezier} b Curve
+     * @param {number} [bend=0] Bend amount, from -1 to 1
+     * @returns {QuadraticBezier}
+     */
+    export const quadraticBend: (a: Points.Point, b: Points.Point, bend?: number) => QuadraticBezier;
+    /**
+     * Creates a simple quadratic bezier with a specified amount of 'bend'.
+     * Bend of -1 will pull curve down, 1 will pull curve up. 0 is no curve
+     * @param {Points.Point} start Start of curve
+     * @param {Points.Point} end End of curve
+     * @param {number} [bend=0] Bend amount, -1 to 1
+     * @returns {QuadraticBezier}
+     */
+    export const quadraticSimple: (start: Points.Point, end: Points.Point, bend?: number) => QuadraticBezier;
+    /**
+     * Returns a relative point on a simple quadratic
+     * @param start Start
+     * @param end  End
+     * @param bend Bend (-1 to 1)
+     * @param amt Amount
+     * @returns Point
+     */
+    export const computeQuadraticSimple: (start: Points.Point, end: Points.Point, bend: number, amt: number) => Points.Point;
+    export const quadraticToSvgString: (start: Points.Point, end: Points.Point, handle: Points.Point) => readonly string[];
+    export const toPath: (cubicOrQuadratic: CubicBezier | QuadraticBezier) => CubicBezierPath | QuadraticBezierPath;
+    export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
+    export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
+}
+declare module "modulation/Envelope" {
+    import { SimpleEventEmitter } from "Events";
+    /**
+     * @returns Returns a full set of default ADSR options
+     */
+    export const defaultAdsrOpts: () => EnvelopeOpts;
+    export type EnvelopeOpts = AdsrOpts & AdsrTimingOpts;
+    /**
+     * Options for the ADSR envelope.
+     *
+     * Use {@link defaultAdsrOpts} to get an initial default:
+     * @example
+     * ```js
+     * let env = adsr({
+     *  ...defaultAdsrOpts(),
+     *  attackDuration: 2000,
+     *  releaseDuration: 5000,
+     *  sustainLevel: 1,
+     *  retrigger: false
+     * });
+     * ```
+     */
+    export type AdsrOpts = {
+        /**
+         * Attack bezier 'bend'. Bend from -1 to 1. 0 for a straight line
+         */
+        readonly attackBend: number;
+        /**
+         * Decay bezier 'bend'. Bend from -1 to 1. 0 for a straight line
+         */
+        readonly decayBend: number;
+        /**
+         * Release bezier 'bend'. Bend from -1 to 1. 0 for a straight line
+         */
+        readonly releaseBend: number;
+        /**
+         * Peak level (maximum of attack stage)
+         */
+        readonly peakLevel: number;
+        /**
+         * Starting level (usually 0)
+         */
+        readonly initialLevel?: number;
+        /**
+         * Sustain level. Only valid if trigger and hold happens
+         */
+        readonly sustainLevel: number;
+        /**
+         * Release level, when envelope is done (usually 0)
+         */
+        readonly releaseLevel?: number;
+        /**
+         * When _false_, envelope starts from it's current level when being triggered.
+         * _True_ by default.
+         */
+        readonly retrigger?: boolean;
+    };
+    export type AdsrTimingOpts = {
+        /**
+         * If true, envelope indefinately returns to attack stage after release
+         *
+         * @type {boolean}
+         */
+        readonly shouldLoop: boolean;
+        /**
+         * Duration for attack stage
+         * Unit depends on timer source
+         * @type {number}
+         */
+        readonly attackDuration: number;
+        /**
+         * Duration for decay stage
+         * Unit depends on timer source
+         * @type {number}
+         */
+        readonly decayDuration: number;
+        /**
+         * Duration for release stage
+         * Unit depends on timer source
+         * @type {number}
+         */
+        readonly releaseDuration: number;
+    };
+    /**
+     * State change event
+     */
+    export interface StateChangeEvent {
+        readonly newState: string;
+        readonly priorState: string;
+    }
+    export interface CompleteEvent {
+    }
+    export type Events = {
+        readonly change: StateChangeEvent;
+        readonly complete: CompleteEvent;
+    };
+    /**
+     * ADSR (Attack Decay Sustain Release) envelope. An envelope is a value that changes over time,
+     * usually in response to an intial trigger.
+     *
+     * Created with the {@link adsr} function. [See the ixfx Guide on Envelopes](https://clinth.github.io/ixfx-docs/modulation/envelope/).
+     *
+     * @example Setup
+     * ```js
+     * import {adsr, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * const opts = {
+     *  ...defaultAdsrOpts(),
+     *  attackDuration: 1000,
+     *  decayDuration: 200,
+     *  sustainDuration: 100
+     * }
+     * const env = adsr(opts);
+     * ```
+     *
+     * [Options for envelope](https://clinth.github.io/ixfx/types/Modulation.EnvelopeOpts.html) are as follows:
+     *
+     * ```js
+     * initialLevel?: number
+     * attackBend: number
+     * attackDuration: number
+     * decayBend: number
+     * decayDuration:number
+     * sustainLevel: number
+     * releaseBend: number
+     * releaseDuration: number
+     * releaseLevel?: number
+     * peakLevel: number
+     * retrigger?: boolean
+     * shouldLoop: boolean
+     * ```
+     *
+     * If `retrigger` is false, re-triggers will continue at current level
+     * rather than resetting to `initialLevel`.
+     *
+     * If `shouldLoop` is true, envelope loops until `release()` is called.
+     *
+     * @example Using
+     * ```js
+     * env.trigger(); // Start envelope
+     * ...
+     * // Get current value of envelope
+     * const [state, scaled, raw] = env.compute();
+     * ```
+     *
+     * * `state` is a string, one of the following: 'attack', 'decay', 'sustain', 'release', 'complete'
+     * * `scaled` is a value scaled according to the stage's _levels_
+     * * `raw` is the progress from 0 to 1 within a stage. ie. 0.5 means we're halfway through a stage.
+     *
+     * Instead of `compute()`, most usage of the envelope is just fetching the `value` property, which returns the same scaled value of `compute()`:
+     *
+     * ```js
+     * const value = env.value; // Get scaled number
+     * ```
+     *
+     * @example Hold & release
+     * ```js
+     * env.trigger(true);   // Pass in true to hold
+     * ...envelope will stop at sustain stage...
+     * env.release();      // Release into decay
+     * ```
+     *
+     * Check if it's done:
+     *
+     * ```js
+     * env.isDone; // True if envelope is completed
+     * ```
+     *
+     * Envelope has events to track activity: 'change' and 'complete':
+     *
+     * ```
+     * env.addEventListener(`change`, ev => {
+     *  console.log(`Old: ${evt.oldState} new: ${ev.newState}`);
+     * })
+     * ```
+     */
+    export interface Adsr extends SimpleEventEmitter<Events> {
+        /**
+         * Compute value of envelope at this point in time.
+         *
+         * Returns an array of [stage, scaled, raw]. Most likely you want to use {@link value} to just get the scaled value.
+         * @param allowStateChange If true (default) envelope will be allowed to change state if necessary before returning value
+         */
+        compute(allowStateChange?: boolean): readonly [stage: string | undefined, scaled: number, raw: number];
+        /**
+         * Returns the scaled value
+         * Same as .compute()[1]
+         */
+        get value(): number;
+        /**
+         * Releases a held envelope. Has no effect if envelope was not held or is complete.
+         */
+        release(): void;
+        /**
+         * Triggers envelope.
+         *
+         * If event is already trigged,
+         * it will be _retriggered_. If`opts.retriggered` is false (default)
+         * envelope starts again at `opts.initialValue`. Otherwise it starts at
+         * the current value.
+         *
+         * @param hold If _true_ envelope will hold at sustain stage
+         */
+        trigger(hold?: boolean): void;
+        /**
+         * _True_ if envelope is completed
+         */
+        get isDone(): boolean;
+    }
+    /**
+     * Creates an {@link Adsr} envelope.
+     * @param opts
+     * @returns New {@link Adsr} Envelope
+     */
+    export const adsr: (opts: EnvelopeOpts) => Adsr;
+    /**
+     * Creates and runs an envelope, sampling its values at `sampleRateMs`.
+     *
+     * ```
+     * import {adsrSample, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js';
+     * import {IterableAsync} from  'https://unpkg.com/ixfx/dist/util.js';
+     *
+     * const opts = {
+     *  ...defaultAdsrOpts(),
+     *  attackDuration: 1000,
+     *  releaseDuration: 1000,
+     *  sustainLevel: 1,
+     *  attackBend: 1,
+     *  decayBend: -1
+     * };
+     *
+     * // Sample an envelope every 5ms into an array
+     * const data = await IterableAsync.toArray(adsrSample(opts, 20));
+     *
+     * // Work with values as sampled
+     * for await (const v of adsrSample(opts, 5)) {
+     *  // Work with envelope value `v`...
+     * }
+     * ```
+     * @param opts Envelope options
+     * @param sampleRateMs Sample rate
+     * @returns
+     */
+    export function adsrSample(opts: EnvelopeOpts, sampleRateMs: number): AsyncGenerator<number, void, unknown>;
+}
+declare module "geometry/Rect" {
+    import { Points, Lines } from "geometry/index";
+    export type Rect = {
+        readonly width: number;
+        readonly height: number;
+    };
+    export type RectPositioned = Points.Point & Rect;
+    export const empty: Readonly<{
+        width: 0;
+        height: 0;
+    }>;
+    export const emptyPositioned: Readonly<{
+        x: 0;
+        y: 0;
+        width: 0;
+        height: 0;
+    }>;
+    export const placeholder: Readonly<{
+        width: number;
+        height: number;
+    }>;
+    export const placeholderPositioned: Readonly<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    export const isEmpty: (rect: Rect) => boolean;
+    export const isPlaceholder: (rect: Rect) => boolean;
+    /**
+     * Returns _true_ if `p` has a position (x,y)
+     * @param p Point, Rect or RectPositiond
+     * @returns
+     */
+    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
+    /**
+     * Returns _true_ if `p` has width and height.
+     * @param p
+     * @returns
+     */
+    export const isRect: (p: number | unknown) => p is Rect;
+    /**
+     * Returns _true_ if `p` is a positioned rectangle
+     * Having width, height, x and y properties.
+     * @param p
+     * @returns
+     */
+    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
+    /**
+     * Initialise a rectangle based on the width and height of a HTML element.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * Rects.fromElement(document.querySelector(`body`));
+     * ```
+     * @param el
+     * @returns
+     */
+    export const fromElement: (el: HTMLElement) => Rect;
+    /**
+     * Returns _true_ if the width & height of the two rectangles is the same.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
+     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
+     *
+     * // True, even though x,y are different
+     * Rects.isEqualSize(rectA, rectB);
+     *
+     * // False, because coordinates are different
+     * Rects.isEqual(rectA, rectB)
+     * ```
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqualSize: (a: Rect, b: Rect) => boolean;
+    /**
+     * Returns a rectangle from width, height
+     * ```js
+     * const r = Rects.fromNumbers(100, 200);
+     * // {width: 100, height: 200}
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(width: number, height: number): Rect;
+    /**
+     * Returns a rectangle from x,y,width,height
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const r = Rects.fromNumbers(10, 20, 100, 200);
+     * // {x: 10, y: 20, width: 100, height: 200}
+     * ```
+     *
+     * Use the spread operator (...) if the source is an array:
+     * ```js
+     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
+    /**
+     * Rectangle as array: `[width, height]`
+     */
+    export type RectArray = readonly [width: number, height: number];
+    /**
+     * Positioned rectangle as array: `[x, y, width, height]`
+     */
+    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: Rect): RectArray;
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: RectPositioned): RectPositionedArray;
+    /**
+     * Returns _true_ if two rectangles have identical values.
+     * Both rectangles must be positioned or not.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
+     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
+     *
+     * // False, because coordinates are different
+     * Rects.isEqual(rectA, rectB)
+     *
+     * // True, even though x,y are different
+     * Rects.isEqualSize(rectA, rectB);
+     * ```
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
+    /**
+     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 100, height: 100 };
+     * const rectB = { width: 200, height: 200 };
+     *
+     * // Yields: { width: -100, height: -100 }
+     * Rects.subtract(rectA, rectB);
+     * ```
+     * @param a
+     * @param b
+     */
+    export function subtract(a: Rect, b: Rect): Rect;
+    /**
+     * Subtracts a width/height from `a`, returning result.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100 };
+     *
+     * // Yields: { width: -100, height: -100 }
+     * Rects.subtract(rect, 200, 200);
+     * ```
+     * @param a
+     * @param width
+     * @param height
+     */
+    export function subtract(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Sums width/height of `b` with `a` (ie: a + b), returning result.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 100, height: 100 };
+     * const rectB = { width: 200, height: 200 };
+     *
+     * // Yields: { width: 300, height: 300 }
+     * Rects.sum(rectA, rectB);
+     * ```
+     * @param a
+     * @param b
+     */
+    export function sum(a: Rect, b: Rect): Rect;
+    /**
+      * Sums width/height of `b` with `a` (ie: a + b), returning result.
+      * ```js
+      * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+      * const rect = { width: 100, height: 100 };
+      *
+      * // Yields: { width: 300, height: 300 }
+      * Rects.subtract(rect, 200, 200);
+      * ```
+      * @param a
+      * @param width
+      * @param height
+      */
+    export function sum(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Returns _true_ if `point` is within, or on boundary of `rect`.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * Rects.intersectsPoint(rect, { x: 100, y: 100});
+     * ```
+     * @param rect
+     * @param point
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
+    /**
+     * Returns true if x,y coordinate is within, or on boundary of `rect`.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * Rects.intersectsPoint(rect, 100, 100);
+     * ```
+     * @param rect
+     * @param x
+     * @param y
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
+    /**
+     * Initialises a rectangle based on its center, a width and height
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Rectangle with center at 50,50, width 100 height 200
+     * Rects.fromCenter({x: 50, y:50}, 100, 200);
+     * ```
+     * @param origin
+     * @param width
+     * @param height
+     * @returns
+     */
+    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the distance from the perimeter of `rect` to `pt`.
+     * If the point is within the rectangle, 0 is returned.
+     *
+     * If `rect` does not have an x,y it's assumed to be 0,0
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 0, y: 0 };
+     * Rects.distanceFromExterior(rect, { x: 20, y: 20 });
+     * ```
+     * @param rect Rectangle
+     * @param pt Point
+     * @returns Distance
+     */
+    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
+    /**
+     * Return the distance of `pt` to the center of `rect`.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 0, y: 0 };
+     * Rects.distanceFromCenter(rect, { x: 20, y: 20 });
+     * ```
+     * @param rect
+     * @param pt
+     * @returns
+     */
+    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
+    /**
+     * Returns a rectangle based on provided four corners.
+     *
+     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
+     *
+     * Does some sanity checking such as:
+     *  - x will be smallest of topLeft/bottomLeft
+     *  - y will be smallest of topRight/topLeft
+     *  - width will be largest between top/bottom left and right
+     *  - height will be largest between left and right top/bottom
+     *
+     */
+    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
+    /**
+     * Throws an error if rectangle is missing fields or they
+     * are not valid.
+     * @param rect
+     * @param name
+     */
+    export const guard: (rect: Rect, name?: string) => void;
+    /**
+     * Creates a rectangle from its top-left coordinate, a width and height.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Rectangle at 50,50 with width of 100, height of 200.
+     * const rect = Rects.fromTopLeft({ x: 50, y:50 }, 100, 200);
+     * ```
+     * @param origin
+     * @param width
+     * @param height
+     * @returns
+     */
+    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the four corners of a rectangle as an array of Points.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 0, y: 0};
+     * const pts = Rects.corners(rect);
+     * ```
+     *
+     * If the rectangle is not positioned, is origin can be provided.
+     * @param rect
+     * @param origin
+     * @returns
+     */
+    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
+    /**
+     * Returns a point on the edge of rectangle
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = {x: 10, y: 10, width: 100, height: 50};
+     * Rects.getEdgeX(r1, `right`);  // Yields: 110
+     * Rects.getEdgeX(r1, `bottom`); // Yields: 10
+     *
+     * const r2 = {width: 100, height: 50};
+     * Rects.getEdgeX(r2, `right`);  // Yields: 100
+     * Rects.getEdgeX(r2, `bottom`); // Yields: 0
+     * ```
+     * @param rect
+     * @param edge Which edge: right, left, bottom, top
+     * @returns
+     */
+    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Returns a point on the edge of rectangle
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = {x: 10, y: 10, width: 100, height: 50};
+     * Rects.getEdgeY(r1, `right`);  // Yields: 10
+     * Rects.getEdgeY(r1, `bottom`); // Yields: 60
+     *
+     * const r2 = {width: 100, height: 50};
+     * Rects.getEdgeY(r2, `right`);  // Yields: 0
+     * Rects.getEdgeY(r2, `bottom`); // Yields: 50
+     * ```
+     * @param rect
+     * @param edge Which edge: right, left, bottom, top
+     * @returns
+     */
+    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Returns `rect` divided by the width,height of `normaliseBy`.
+     * This can be useful for normalising based on camera frame.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const frameSize = {width: 640, height: 320};
+     * const object = { x: 320, y: 160, width: 64, height: 32};
+     *
+     * const n = Rects.normaliseByRect(object, frameSize);
+     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
+     * ```
+     *
+     * Height and width can be supplied instead of a rectangle too:
+     * ```js
+     * const n = Rects.normaliseByRect(object, 640, 320);
+     * ```
+     * @param rect
+     * @param normaliseBy
+     * @returns
+     */
+    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * Rects.multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * Rects.multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export function multiply(a: RectPositioned, b: Rect | number, c?: number): RectPositioned;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * Rects.multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * Rects.multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export function multiply(a: Rect, b: Rect | number, c?: number): Rect;
+    /**
+     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
+     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const p = Rects.center({x:10, y:20, width:100, height:50});
+     * const p2 = Rects.center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
+     * ```
+     * @param rect Rectangle
+     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
+     * @returns
+     */
+    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
+    /**
+     * Returns the length of each side of the rectangle (top, right, bottom, left)
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * // Yields: array of length four
+     * const lengths = Rects.lengths(rect);
+     * ```
+     * @param rect
+     * @returns
+     */
+    export const lengths: (rect: RectPositioned) => readonly number[];
+    /**
+     * Returns four lines based on each corner.
+     * Lines are given in order: top, right, bottom, left
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * // Yields: array of length four
+     * const lines = Rects.lines(rect);
+     * ```
+     *
+     * @param {(RectPositioned|Rect)} rect
+     * @param {Points.Point} [origin]
+     * @returns {Lines.Line[]}
+     */
+    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
+    /**
+     * Returns the perimeter of `rect` (ie. sum of all edges)
+     *  * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * Rects.perimeter(rect);
+     * ```
+     * @param rect
+     * @returns
+     */
+    export const perimeter: (rect: Rect) => number;
+    /**
+     * Returns the area of `rect`
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * Rects.area(rect);
+     * ```
+     * @param rect
+     * @returns
+     */
+    export const area: (rect: Rect) => number;
+}
+declare module "modulation/Forces" {
+    /**
+     * Acknowledgements: much of the work here is an adapation from Daniel Shiffman's excellent _The Nature of Code_ website.
+     */
+    import { Points } from "geometry/index";
+    import { Point } from "geometry/Point";
+    import { Rect } from "geometry/Rect";
+    /**
+     * Logic for applying mass
+     */
+    export type MassApplication = `dampen` | `multiply` | `ignored`;
+    /**
+     * Basic properties of a thing that can be
+     * affected by forces
+     */
+    export type ForceAffected = {
+        /**
+         * Position. Probably best to use relative coordinates
+         */
+        readonly position?: Point;
+        /**
+         * Velocity vector.
+         * Probably don't want to assign this yourself, but rather have it computed based on acceleration and applied forces
+         */
+        readonly velocity?: Point;
+        /**
+         * Acceleration vector. Most applied forces will alter the acceleration, culminating in a new velocity being set and the
+         * acceleraton value zeroed
+         */
+        readonly acceleration?: Point;
+        /**
+         * Mass. The unit is undefined, again best to think of this being on a 0..1 scale. Mass is particularly important
+         * for the attraction/repulsion force, but other forces can incorporate mass too.
+         */
+        readonly mass?: number;
+        readonly angularAcceleration?: number;
+        readonly angularVelocity?: number;
+        readonly angle?: number;
+    };
+    /**
+     * A function that updates values of a thing.
+     *
+     * These can be created using the xxxForce functions, eg {@link attractionForce}, {@link accelerationForce}, {@link magnitudeForce}, {@link velocityForce}
+     */
+    export type ForceFn = (t: ForceAffected) => ForceAffected;
+    /**
+     * A vector to apply to acceleration or a force function
+     */
+    export type ForceKind = Points.Point | ForceFn | null;
+    /**
+     * Throws an error if `t` is not of the `ForceAffected` shape.
+     * @param t
+     * @param name
+     */
+    export const guard: (t: ForceAffected, name?: string) => void;
+    /**
+     * `constrainBounce` yields a function that affects `t`'s position and velocity such that it
+     * bounces within bounds.
+     *
+     * ```js
+     * // Setup bounce with area constraints
+     * // Reduce velocity by 10% with each impact
+     * const b = constrainBounce({ width:200, height:500 }, 0.9);
+     *
+     * // Thing
+     * const t = {
+     *  position: { x: 50,  y: 50 },
+     *  velocity: { x: 0.3, y: 0.01 }
+     * };
+     *
+     * // `b` returns an altereted version of `t`, with the
+     * // bounce logic applied.
+     * const bounced = b(t);
+     * ```
+     *
+     * `dampen` parameter allows velocity to be dampened with each bounce. A value
+     * of 0.9 for example reduces velocity by 10%. A value of 1.1 will increase velocity by
+     * 10% with each bounce.
+     * @param bounds Constraints of area
+     * @params dampen How much to dampen velocity by. Defaults to 1 meaning there is no damping.
+     * @returns A function that can perform bounce logic
+     */
+    export const constrainBounce: (bounds?: Rect, dampen?: number) => (t: ForceAffected) => ForceAffected;
+    /**
+     * For a given set of attractors, returns a function that a sets acceleration of attractee.
+     * Keep note though that this bakes-in the values of the attractor, it won't reflect changes to their state. For dynamic
+     * attractors, it might be easier to use `computeAttractionForce`.
+     *
+     * @example Force
+     * ```js
+     * const f = Forces.attractionForce(sun, gravity);
+     * earth = Forces.apply(earth, f);
+     * ```
+     *
+     * @example Everything mutually attracted
+     * ```js
+     * // Create a force with all things as attractors.
+     * const f = Forces.attractionForce(things, gravity);
+     * // Apply force to all things.
+     * // The function returned by attractionForce will automatically ignore self-attraction
+     * things = things.map(a => Forces.apply(a, f));
+     * ```
+     * @param attractors
+     * @param gravity
+     * @param distanceRange
+     * @returns
+     */
+    export const attractionForce: (attractors: readonly ForceAffected[], gravity: number, distanceRange?: {
+        readonly min?: number;
+        readonly max?: number;
+    }) => (attractee: ForceAffected) => ForceAffected;
+    /**
+     * Computes the attraction force between two things.
+     * Value for `gravity` will depend on what range is used for `mass`. It's probably a good idea
+     * to keep mass to mean something relative - ie 1 is 'full' mass, and adjust the `gravity`
+     * value until it behaves as you like. Keeping mass in 0..1 range makes it easier to apply to
+     * visual properties later.
+     *
+     * @example Attractee and attractor, gravity 0.005
+     * ```js
+     * const attractor = { position: { x:0.5, y:0.5 }, mass: 1 };
+     * const attractee = { position: Points.random(), mass: 0.01 };
+     * attractee = Forces.apply(attractee, Forces.computeAttractionForce(attractor, attractee, 0.005));
+     * ```
+     *
+     * @example Many attractees for one attractor, gravity 0.005
+     * ```js
+     * attractor =  { position: { x:0.5, y:0.5 }, mass: 1 };
+     * attractees = attractees.map(a => Forces.apply(a, Forces.computeAttractionForce(attractor, a, 0.005)));
+     * ```
+     *
+     * @example Everything mutually attracted
+     * ```js
+     * // Create a force with all things as attractors.
+     * const f = Forces.attractionForce(things, gravity);
+     * // Apply force to all things.
+     * // The function returned by attractionForce will automatically ignore self-attraction
+     * things = things.map(a => Forces.apply(a, f));
+     * ```
+     *
+     * `attractor` thing attracting (eg, earth)
+     * `attractee` thing being attracted (eg. satellite)
+     *
+     *
+     * `gravity` will have to be tweaked to taste.
+     * `distanceRange` clamps the computed distance. This affects how tightly the particles will orbit and can also determine speed. By default it is 0.001-0.7
+     * @param attractor Attractor (eg earth)
+     * @param attractee Attractee (eg satellite)
+     * @param gravity Gravity constant
+     * @param distanceRange Min/max that distance is clamped to.
+     * @returns
+     */
+    export const computeAttractionForce: (attractor: ForceAffected, attractee: ForceAffected, gravity: number, distanceRange?: {
+        readonly min?: number;
+        readonly max?: number;
+    }) => Points.Point;
+    export type TargetOpts = {
+        /**
+         * Acceleration scaling. Defaults to 0.001
+         */
+        readonly diminishBy?: number;
+        /**
+         * If distance is less than this range, don't move.
+         * If undefined (default), will try to get an exact position
+         */
+        readonly range?: Points.Point;
+    };
+    /**
+     * A force that moves a thing toward `targetPos`.
+     *
+     * ```js
+     * const t = Forces.apply(t, Forces.targetForce(targetPos));
+     * ```
+     * @param targetPos
+     * @param diminishBy Scales acceleration. Defaults to 0.001.
+     * @returns
+     */
+    export const targetForce: (targetPos: Points.Point, opts?: TargetOpts) => (t: ForceAffected) => ForceAffected;
+    /**
+     * Apply a series of force functions or forces to `t`. Null/undefined entries are skipped silently.
+     * It also updates the velocity and position of the returned version of `t`.
+     *
+     * ```js
+     * // Wind adds acceleration. Force is dampened by mass
+     * const wind = Forces.accelerationForce({ x: 0.00001, y: 0 }, `dampen`);
+     *
+     * // Gravity adds acceleration. Force is magnified by mass
+     * const gravity = Forces.accelerationForce({ x: 0, y: 0.0001 }, `multiply`);
+     *
+     * // Friction is calculated based on velocity. Force is magnified by mass
+     * const friction = Forces.velocityForce(0.00001, `multiply`);
+     *
+     *  // Flip movement velocity if we hit a wall. And dampen it by 10%
+     * const bouncer = Forces.constrainBounce({ width: 1, height: 1 }, 0.9);
+     *
+     * let t = {
+     *  position: Points.random(),
+     *  mass: 0.1
+     * };
+     *
+     * // Apply list of forces, returning a new version of the thing
+     * t = Forces.apply(t,
+     *   gravity,
+     *   wind,
+     *   friction,
+     *   bouncer
+     * );
+     * ```
+     */
+    export const apply: (t: ForceAffected, ...accelForces: readonly ForceKind[]) => ForceAffected;
+    /**
+     * Apples `vector` to acceleration, scaling according to mass, based on the `mass` option.
+     * It returns a function which can later be applied to a thing.
+     *
+     * ```js
+     * import { Forces } from "https://unpkg.com/ixfx/dist/modulation.js"
+     * // Acceleration vector of (0.1, 0), ie moving straight on horizontal axis
+     * const f = Forces.accelerationForce({ x:0.1, y:0 }, `dampen`);
+     *
+     * // Thing to move
+     * let t = { position: ..., acceleration: ... }
+     *
+     * // Apply force
+     * t = f(t);
+     * ```
+     * @param vector
+     * @returns Force function
+     */
+    export const accelerationForce: (vector: Points.Point, mass?: MassApplication) => ForceFn;
+    /**
+     * A force based on the square of the thing's velocity.
+     * It's like {@link velocityForce}, but here the velocity has a bigger impact.
+     *
+     * ```js
+     * const thing = {
+     *  position: { x: 0.5, y:0.5 },
+     *  velocity: { x: 0.001, y:0 }
+     * };
+     * const drag = magnitudeForce(0.1);
+     *
+     * // Apply drag force to thing, returning result
+     * const t = Forces.apply(thing, drag);
+     * ```
+     * @param force Force value
+     * @param mass How to factor in mass
+     * @returns Function that computes force
+     */
+    export const magnitudeForce: (force: number, mass?: MassApplication) => ForceFn;
+    /**
+     * Null force does nothing
+     * @returns A force that does nothing
+     */
+    export const nullForce: (t: ForceAffected) => ForceAffected;
+    /**
+     * Force calculated from velocity of object. Reads velocity and influences acceleration.
+     *
+     * ```js
+     * let t = { position: Points.random(), mass: 0.1 };
+     * const friction = velocityForce(0.1, `dampen`);
+     *
+     * // Apply force, updating position and velocity
+     * t = Forces.apply(t, friction);
+     * ```
+     * @param force Force
+     * @param mass How to factor in mass
+     * @returns Function that computes force
+     */
+    export const velocityForce: (force: number, mass: MassApplication) => ForceFn;
+    /**
+     * Sets angle, angularVelocity and angularAcceleration based on
+     *  angularAcceleration, angularVelocity, angle
+     * @returns
+     */
+    export const angularForce: () => (t: ForceAffected) => Readonly<{
+        angle: number;
+        angularVelocity: number;
+        angularAcceleration: 0;
+        position?: Points.Point | undefined;
+        velocity?: Points.Point | undefined;
+        acceleration?: Points.Point | undefined;
+        mass?: number | undefined;
+    }>;
+    /**
+     * Yields a force function that applies the thing's acceleration.x to its angular acceleration.
+     * @param scaling Use this to scale the accel.x value. Defaults to 20 (ie accel.x*20). Adjust if rotation is too much or too little
+     * @returns
+     */
+    export const angleFromAccelerationForce: (scaling?: number) => (t: ForceAffected) => Readonly<{
+        angularAcceleration: number;
+        position?: Points.Point | undefined;
+        velocity?: Points.Point | undefined;
+        acceleration?: Points.Point | undefined;
+        mass?: number | undefined;
+        angularVelocity?: number | undefined;
+        angle?: number | undefined;
+    }>;
+    /**
+     * Yields a force function that applies the thing's velocity to its angular acceleration.
+     * This will mean it points in the direction of travel.
+     * @param interpolateAmt If provided, the angle will be interpolated toward by this amount. Defaults to 1, no interpolation
+     * @returns
+     */
+    export const angleFromVelocityForce: (interpolateAmt?: number) => (t: ForceAffected) => Readonly<{
+        angle: number;
+        position?: Points.Point | undefined;
+        velocity?: Points.Point | undefined;
+        acceleration?: Points.Point | undefined;
+        mass?: number | undefined;
+        angularAcceleration?: number | undefined;
+        angularVelocity?: number | undefined;
+    }>;
+    /**
+     * Spring force
+     *
+     *  * ```js
+     * // End of spring that moves
+     * let thing = {
+     *   position: { x: 1, y: 0.5 },
+     *   mass: 0.1
+     * };
+     *
+     * // Anchored other end of spring
+     * const pinnedAt = {x: 0.5, y: 0.5};
+     *
+     * // Create force: length of 0.4
+     * const springForce = Forces.springForce(pinnedAt, 0.4);
+     *
+     * continuously(() => {
+     *  // Apply force
+     *  thing = Forces.apply(thing, springForce);
+     * }).start();
+     * ```
+     * [Read more](https://www.joshwcomeau.com/animation/a-friendly-introduction-to-spring-physics/)
+     *
+     * @param pinnedAt Anchored end of the spring
+     * @param restingLength Length of spring-at-rest (default: 0.5)
+     * @param k Spring stiffness (default: 0.0002)
+     * @param damping Damping factor to apply, so spring slows over time. (default: 0.995)
+     * @returns
+     */
+    export const springForce: (pinnedAt: Points.Point, restingLength?: number, k?: number, damping?: number) => (t: ForceAffected) => ForceAffected;
+    /**
+     * Pendulum force options
+     */
+    export type PendulumOpts = {
+        /**
+         * Length of 'string' thing is hanging from. If
+         * undefined, the current length between thing and
+         * pinnedAt is used.
+         */
+        readonly length?: number;
+        /**
+         * Max speed of swing. Slower speed can reach equilibrium faster, since it
+         * might not swing past resting point.
+         * Default 0.001.
+         */
+        readonly speed?: number;
+        /**
+         * Damping, how much to reduce velocity. Default 0.995 (ie 0.5% loss)
+         */
+        readonly damping?: number;
+    };
+    /**
+     * The pendulum force swings something back and forth.
+     *
+     * ```js
+     * // Swinger
+     * let thing = {
+     *   position: { x: 1, y: 0.5 },
+     *   mass: 0.1
+     * };
+     *
+     * // Position thing swings from (middle of screen)
+     * const pinnedAt = {x: 0.5, y: 0.5};
+     *
+     * // Create force: length of 0.4
+     * const pendulumForce = Forces.pendulumForce(pinnedAt, { length: 0.4 });
+     *
+     * continuously(() => {
+     *  // Apply force
+     *  // Returns a new thing with recalculated angularVelocity, angle and position.
+     *  thing = Forces.apply(thing, pendulumForce);
+     * }).start();
+     * ```
+     *
+     * [Read more](https://natureofcode.com/book/chapter-3-oscillation/)
+     *
+     * @param pinnedAt Location to swing from (x:0.5, y:0.5 default)
+     * @param opts Options
+     * @returns
+     */
+    export const pendulumForce: (pinnedAt?: Points.Point, opts?: PendulumOpts) => (t: ForceAffected) => ForceAffected;
+    /**
+     * Compute velocity based on acceleration and current velocity
+     * @param acceleration Acceleration
+     * @param velocity Velocity
+     * @param velocityMax If specified, velocity will be capped at this value
+     * @returns
+     */
+    export const computeVelocity: (acceleration: Points.Point, velocity: Points.Point, velocityMax?: number) => Points.Point;
+    /**
+     * Returns the acceleration to get from `currentPos` to `targetPos`.
+     *
+     * @example Barebones usage:
+     * ```js
+     * const accel = Forces.computeAccelerationToTarget(targetPos, currentPos);
+     * const vel = Forces.computeVelocity(accel, currentVelocity);
+     *
+     * // New position:
+     * const pos = Points.sum(currentPos, vel);
+     * ```
+     *
+     * @example Implementation:
+     * ```js
+     * const direction = Points.subtract(targetPos, currentPos);
+     * const accel = Points.multiply(direction, diminishBy);
+     * ```
+     * @param currentPos Current position
+     * @param targetPos Target position
+     * @param opts Options
+     * @returns
+     */
+    export const computeAccelerationToTarget: (targetPos: Points.Point, currentPos: Points.Point, opts?: TargetOpts) => Points.Point | Readonly<{
+        x: 0;
+        y: 0;
+    }>;
+    /**
+     * Compute a new position based on existing position and velocity vector
+     * @param position Position Current position
+     * @param velocity Velocity vector
+     * @returns Point
+     */
+    export const computePositionFromVelocity: (position: Points.Point, velocity: Points.Point) => Points.Point;
+    /**
+     * Compute a position based on distance and angle from origin
+     * @param distance Distance from origin
+     * @param angleRadians Angle, in radians from origin
+     * @param origin Origin point
+     * @returns Point
+     */
+    export const computePositionFromAngle: (distance: number, angleRadians: number, origin: Points.Point) => Points.Point;
+    /**
+     * A force that orients things according to direction of travel.
+     *
+     * Under the hood, it applies:
+     * * angularForce,
+     * * angleFromAccelerationForce, and
+     * * angleFromVelocityForce
+     * @param interpolationAmt
+     * @returns
+     */
+    export const orientationForce: (interpolationAmt?: number) => ForceFn;
+}
+declare module "modulation/Oscillator" {
+    import * as Timers from "flow/Timer";
+    export type SpringOpts = {
+        /**
+         * Default: 1
+         */
+        readonly mass?: number;
+        /**
+         * Default: 10
+         */
+        readonly damping?: number;
+        /**
+         * Default: 100
+         */
+        readonly stiffness?: number;
+        /**
+         * Default: false
+         */
+        readonly soft?: boolean;
+        /**
+         * Default: 0.1
+         */
+        readonly velocity?: number;
+        /**
+         * How many iterations to wait for spring settling (default: 10)
+         */
+        readonly countdown?: number;
+    };
+    /**
+     * Spring-style oscillation
+     *
+     * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     * const spring = Oscillators.spring();
+     *
+     * continuously(() => {
+     *  const v = spring.next().value;
+     *  // Yields values 0...1
+     *  //  undefined is yielded when spring is estimated to have stopped
+     * });
+     * ```
+     *
+     * Parameters to the spring can be provided.
+     * ```js
+     * const spring = Oscillators.spring({
+     *  mass: 5,
+     *  damping: 10
+     *  stiffness: 100
+     * });
+     * ```
+     * @param opts Options for spring
+     * @param timerOrFreq Timer to use, or frequency
+     */
+    export function spring(opts: SpringOpts | undefined, timerOrFreq: Timers.Timer | number | undefined): Generator<number, void, unknown>;
+    /**
+     * Sine oscillator.
+     *
+     * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     *
+     * // Setup
+     * const osc = Oscillators.sine(Timers.frequencyTimer(10));
+     * const osc = Oscillators.sine(0.1);
+     *
+     * // Call whenever a value is needed
+     * const v = osc.next().value;
+     * ```
+     *
+     * @example Saw/tri pinch
+     * ```js
+     * const v = Math.pow(osc.value, 2);
+     * ```
+     *
+     * @example Saw/tri bulge
+     * ```js
+     * const v = Math.pow(osc.value, 0.5);
+     * ```
+     *
+     */
+    export function sine(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Bipolar sine (-1 to 1)
+     * @param timerOrFreq
+     */
+    export function sineBipolar(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Triangle oscillator
+     *
+     * ```js
+     * // Setup
+     * const osc = triangle(Timers.frequencyTimer(0.1));
+     * const osc = triangle(0.1);
+     *
+     * // Call whenver a value is needed
+     * const v = osc.next().value;
+     * ```
+     */
+    export function triangle(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Saw oscillator
+     *
+     * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     *
+     * // Setup
+     * const osc = Oscillators.saw(Timers.frequencyTimer(0.1));
+     *
+     * // Or
+     * const osc = Oscillators.saw(0.1);
+     *
+     * // Call whenever a value is needed
+     * const v = osc.next().value;
+     * ```
+     */
+    export function saw(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
+    /**
+     * Square oscillator
+     *
+     * ```js
+     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
+     *
+     * // Setup
+     * const osc = Oscillators.square(Timers.frequencyTimer(0.1));
+     * const osc = Oscillators.square(0.1);
+     *
+     * // Call whenever a value is needed
+     * osc.next().value;
+     * ```
+     */
+    export function square(timerOrFreq: Timers.Timer | number): Generator<0 | 1, void, unknown>;
+}
+declare module "modulation/PingPong" {
+    /**
+     * Continually loops up and down between 0 and 1 by a specified interval.
+     * Looping returns start value, and is inclusive of 0 and 1.
+     *
+     * @example Usage
+     * ```js
+     * import {percentPingPong} from 'https://unpkg.com/ixfx/dist/modulation.js';
+     * for (const v of percentPingPong(0.1)) {
+     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
+     * }
+     * ```
+     *
+     * @example Alternative:
+     * ```js
+     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
+     * const v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     *
+     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
+     *
+     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
+     * ```
+     * const pp = pingPongPercent(0.1, 0.4, 0.6);
+     * ```
+     * @param interval Amount to increment by. Defaults to 10%
+     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
+     * @param rounding Rounding to apply. This avoids floating-point rounding errors.
+     */
+    export const pingPongPercent: (interval?: number, lower?: number, upper?: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
+    /**
+     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
+     *
+     * In a loop:
+     * ```
+     * for (const c of pingPong(10, 0, 100)) {
+     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
+     * }
+     * ```
+     *
+     * Manual:
+     * ```
+     * const pp = pingPong(10, 0, 100);
+     * let v = pp.next().value; // Call .next().value whenever a new value is needed
+     * ```
+     * @param interval Amount to increment by. Use negative numbers to start counting down
+     * @param lower Lower bound (inclusive)
+     * @param upper Upper bound (inclusive, must be greater than start)
+     * @param start Starting point within bounds (defaults to `lower`)
+     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
+     */
+    export const pingPong: (interval: number, lower: number, upper: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
+}
+declare module "modulation/index" {
+    import { RandomSource } from "Random";
+    import * as Easings from "modulation/Easing";
+    import * as Forces from "modulation/Forces";
+    import * as Oscillators from "modulation/Oscillator";
+    export * from "modulation/PingPong";
+    /**
+     * Easings module
+     *
+     * [See the guide](https://clinth.github.io/ixfx-docs/modulation/easing/)
+     *
+     * Overview:
+     * * {@link Easings.time}: Ease by time
+     * * {@link Easings.tick}: Ease by tick
+     * * {@link Easings.get}: Get an easing function by name
+     * * {@link Easings.crossfade}: Mix two synchronised easing functions (a slight shortcut over `mix`)
+     * * {@link Easings.mix}: Mix two easing functions
+     * * {@link Easings.gaussian}: Gaussian distribution (rough bell curve)
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import { Easings } from '../../ixfx/dist/modulation.js';
+     * Easings.time(...);
+     *
+     * // Import from web
+     * import { Easings } from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * Easings.time(...);
+     * ```
+     */
+    export { Easings };
+    /**
+     * Envelope
+     */
+    export * from "modulation/Envelope";
+    /**
+     * Forces module can help to compute basic physical forces like gravity, friction, springs etc.
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import { Forces } from '../../ixfx/dist/modulation.js';
+     * Forces.attractionForce(...);
+     *
+     * // Import from web
+     * import { Forces } from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * Forces.attractionForce(...);
+     * ```
+     *
+     */
+    export { Forces };
+    /**
+     * Oscillators module has waveshapes for producing values with a specified frequency.
+     *
+     * Overview
+     * * {@link Oscillators.saw}: 'Sawtooth' wave
+     * * {@link Oscillators.sine}: Sine wave
+     * * {@link Oscillators.sineBipolar}: Sine wave with range of -1 to 1
+     * * {@link Oscillators.square}: Square wave
+     * * {@link Oscillators.triangle}: Triangle wave
+     * * {@link Oscillators.spring}: Spring oscillator
+     *
+     * @example On-demand sampling
+     * ```js
+     * // Saw wave with frequency of 0.10hZ
+     * const osc = Oscillators.saw(0.1);
+     *
+     * // Whever we need to sample from the oscillator...
+     * const v = osc.next().value;
+     * ```
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import { Oscillators } from '../../ixfx/dist/modulation.js';
+     * Oscillators.saw(...);
+     *
+     * // Import from web
+     * import { Oscillators } from 'https://unpkg.com/ixfx/dist/modulation.js'
+     * Oscillators.saw(...);
+     * ```
+     *
+     */
+    export { Oscillators };
+    export type JitterOpts = {
+        readonly type?: `rel` | `abs`;
+        readonly clamped?: boolean;
+        readonly random?: RandomSource;
+    };
+    /**
+     * Jitters `value` by the absolute `jitter` amount.
+     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1.
+     * Pass `clamped:false` as an option
+     * to allow for arbitary ranges.
+     *
+     * ```js
+     * import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
+     *
+     * // Jitter 0.5 by 10% (absolute)
+     * // yields range of 0.4-0.6
+     * jitter(0.5, 0.1);
+     *
+     * // Jitter 0.5 by 10% (relative, 10% of 0.5)
+     * // yields range of 0.45-0.55
+     * jitter(0.5, 0.1, { type:`rel` });
+     * ```
+     *
+     * You can also opt not to clamp values:
+     * ```js
+     * // Yields range of -1.5 - 1.5
+     * jitter(0.5, 1, { clamped:false });
+     * ```
+     *
+     * A custom source for random numbers can be provided. Eg, use a weighted
+     * random number generator:
+     *
+     * ```js
+     * import { weighted } from 'https://unpkg.com/ixfx/dist/random.js';
+     * jitter(0.5, 0.1, { random: weighted };
+     * ```
+     *
+     * Options
+     * * clamped: If false, `value`s out of percentage range can be used and return value may
+     *    beyond percentage range. True by default
+     * * type: if `rel`, `jitter` is considered to be a percentage relative to `value`
+     *         if `abs`, `jitter` is considered to be an absolute value (default)
+     * @param value Value to jitter
+     * @param jitter Absolute amount to jitter by
+     * @param opts Jitter options
+     * @returns Jittered value
+     */
+    export const jitter: (value: number, jitter: number, opts?: JitterOpts) => number;
+}
+declare module "Numbers" {
+    import { TrackedValueOpts } from "data/TrackedValue";
+    import { Easings } from "modulation/index";
+    /**
+     * Calculates the average of all numbers in an array.
+     * Array items which aren't a valid number are ignored and do not factor into averaging.
+    
+     * @example
+     * ```
+     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
+     *
+     * // Average of a list
+     * const avg = Numbers.average(1, 1.4, 0.9, 0.1);
+     *
+     * // Average of a variable
+     * let data = [100,200];
+     * Numbers.average(...data);
+     * ```
+     *
+     * See also: [Arrays.average](Collections.Arrays.average.html) which takes an array.
+     * @param data Data to average.
+     * @returns Average of array
+     */
+    export const average: (...numbers: readonly number[]) => number;
+    /**
+     * See [Arrays.averageWeighted](Collections.Arrays.averageWeighted.html)
+     * @param weightings
+     * @param numbers
+     * @returns
+     */
+    export const averageWeighted: (weightings: (readonly number[]) | Easings.EasingFn, ...numbers: readonly number[]) => number;
+    /**
+     * Returns the minimum number out of `data`.
+     * Undefined and non-numbers are silently ignored.
+     *
+     * ```js
+     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
+     * Numbers.min(10, 20, 0); // Yields 0
+     * ```
+     * @param data
+     * @returns Minimum number
+     */
+    export const min: (...data: readonly number[]) => number;
+    /**
+     * Returns the maximum number out of `data`.
+     * Undefined and non-numbers are silently ignored.
+     *
+     * ```js
+     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
+     * Numbers.max(10, 20, 0); // Yields 20
+     * ```
+     * @param data
+     * @returns Maximum number
+     */
+    export const max: (...data: readonly number[]) => number;
+    /**
+     * Returns the total of `data`.
+     * Undefined and non-numbers are silently ignored.
+     *
+     * ```js
+     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
+     * Numbers.total(10, 20, 0); // Yields 30
+     * ```
+     * @param data
+     * @returns Total
+     */
+    export const total: (...data: readonly number[]) => number;
+    /**
+     * Returns true if `possibleNumber` is a number and not NaN
+     * @param possibleNumber
+     * @returns
+     */
+    export const isValid: (possibleNumber: number | unknown) => boolean;
+    /**
+     * Alias for [Data.numberTracker](Data.numberTracker.html)
+     */
+    export const tracker: (id?: string, opts?: TrackedValueOpts) => import("data/NumberTracker").NumberTracker;
+    /**
+     * Filters an iterator of values, only yielding
+     * those that are valid numbers
+     *
+     * ```js
+     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
+     *
+     * const data = [true, 10, '5', { x: 5 }];
+     * for (const n of Numbers.filter(data)) {
+     *  // 5
+     * }
+     * ```
+     * @param it
+     */
+    export function filter(it: Iterable<unknown>): Generator<unknown, void, unknown>;
+    /**
+     * Rounds `v` by `every`.
+     *
+     * ```js
+     * quantiseEvery(11, 10);  // 10
+     * quantiseEvery(25, 10);  // 30
+     * quantiseEvery(0, 10);   // 0
+     * quantiseEvery(4, 10);   // 0
+     * quantiseEvery(100, 10); // 100
+     * ```
+     * @param v
+     * @param every
+     * @param middleRoundsUp
+     * @returns
+     */
+    export const quantiseEvery: (v: number, every: number, middleRoundsUp?: boolean) => number;
+}
 declare module "geometry/Point" {
     import { Circles, Lines, Points, Rects } from "geometry/index";
     import { RandomSource } from "Random";
@@ -3500,6 +6256,10 @@ declare module "geometry/Point" {
      * @param y2
      */
     export function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
+    export const quantiseEvery: (pt: Point, snap: Point, middleRoundsUp?: boolean) => Readonly<{
+        x: number;
+        y: number;
+    }>;
     /**
      * Simple convex hull impementation. Returns a set of points which
      * enclose `pts`.
@@ -3878,54 +6638,6 @@ declare module "geometry/Arc" {
      * @returns {boolean}
      */
     export const isEqual: (a: Arc | ArcPositioned, b: Arc | ArcPositioned) => boolean;
-}
-declare module "geometry/Bezier" {
-    import { Paths, Points } from "geometry/index";
-    export type QuadraticBezier = {
-        readonly a: Points.Point;
-        readonly b: Points.Point;
-        readonly quadratic: Points.Point;
-    };
-    export type QuadraticBezierPath = Paths.Path & QuadraticBezier;
-    export type CubicBezier = {
-        readonly a: Points.Point;
-        readonly b: Points.Point;
-        readonly cubic1: Points.Point;
-        readonly cubic2: Points.Point;
-    };
-    export type CubicBezierPath = Paths.Path & CubicBezier;
-    export const isQuadraticBezier: (path: Paths.Path | QuadraticBezier | CubicBezier) => path is QuadraticBezier;
-    export const isCubicBezier: (path: Paths.Path | CubicBezier | QuadraticBezier) => path is CubicBezier;
-    /**
-     * Returns a new quadratic bezier with specified bend amount
-     *
-     * @param {QuadraticBezier} b Curve
-     * @param {number} [bend=0] Bend amount, from -1 to 1
-     * @returns {QuadraticBezier}
-     */
-    export const quadraticBend: (a: Points.Point, b: Points.Point, bend?: number) => QuadraticBezier;
-    /**
-     * Creates a simple quadratic bezier with a specified amount of 'bend'.
-     * Bend of -1 will pull curve down, 1 will pull curve up. 0 is no curve
-     * @param {Points.Point} start Start of curve
-     * @param {Points.Point} end End of curve
-     * @param {number} [bend=0] Bend amount, -1 to 1
-     * @returns {QuadraticBezier}
-     */
-    export const quadraticSimple: (start: Points.Point, end: Points.Point, bend?: number) => QuadraticBezier;
-    /**
-     * Returns a relative point on a simple quadratic
-     * @param start Start
-     * @param end  End
-     * @param bend Bend (-1 to 1)
-     * @param amt Amount
-     * @returns Point
-     */
-    export const computeQuadraticSimple: (start: Points.Point, end: Points.Point, bend: number, amt: number) => Points.Point;
-    export const quadraticToSvgString: (start: Points.Point, end: Points.Point, handle: Points.Point) => readonly string[];
-    export const toPath: (cubicOrQuadratic: CubicBezier | QuadraticBezier) => CubicBezierPath | QuadraticBezierPath;
-    export const cubic: (start: Points.Point, end: Points.Point, cubic1: Points.Point, cubic2: Points.Point) => CubicBezier;
-    export const quadratic: (start: Points.Point, end: Points.Point, handle: Points.Point) => QuadraticBezier;
 }
 declare module "geometry/Circle" {
     import { Path } from "geometry/Path";
@@ -4537,525 +7249,6 @@ declare module "geometry/Grid" {
         x: number;
         y: number;
     }, void, unknown>;
-}
-declare module "geometry/Rect" {
-    import { Points, Lines } from "geometry/index";
-    export type Rect = {
-        readonly width: number;
-        readonly height: number;
-    };
-    export type RectPositioned = Points.Point & Rect;
-    export const empty: Readonly<{
-        width: 0;
-        height: 0;
-    }>;
-    export const emptyPositioned: Readonly<{
-        x: 0;
-        y: 0;
-        width: 0;
-        height: 0;
-    }>;
-    export const placeholder: Readonly<{
-        width: number;
-        height: number;
-    }>;
-    export const placeholderPositioned: Readonly<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }>;
-    export const isEmpty: (rect: Rect) => boolean;
-    export const isPlaceholder: (rect: Rect) => boolean;
-    /**
-     * Returns _true_ if `p` has a position (x,y)
-     * @param p Point, Rect or RectPositiond
-     * @returns
-     */
-    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
-    /**
-     * Returns _true_ if `p` has width and height.
-     * @param p
-     * @returns
-     */
-    export const isRect: (p: number | unknown) => p is Rect;
-    /**
-     * Returns _true_ if `p` is a positioned rectangle
-     * Having width, height, x and y properties.
-     * @param p
-     * @returns
-     */
-    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
-    /**
-     * Initialise a rectangle based on the width and height of a HTML element.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * Rects.fromElement(document.querySelector(`body`));
-     * ```
-     * @param el
-     * @returns
-     */
-    export const fromElement: (el: HTMLElement) => Rect;
-    /**
-     * Returns _true_ if the width & height of the two rectangles is the same.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
-     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
-     *
-     * // True, even though x,y are different
-     * Rects.isEqualSize(rectA, rectB);
-     *
-     * // False, because coordinates are different
-     * Rects.isEqual(rectA, rectB)
-     * ```
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isEqualSize: (a: Rect, b: Rect) => boolean;
-    /**
-     * Returns a rectangle from width, height
-     * ```js
-     * const r = Rects.fromNumbers(100, 200);
-     * // {width: 100, height: 200}
-     * ```
-     *
-     * Use {@link toArray} for the opposite conversion.
-     *
-     * @param width
-     * @param height
-     */
-    export function fromNumbers(width: number, height: number): Rect;
-    /**
-     * Returns a rectangle from x,y,width,height
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const r = Rects.fromNumbers(10, 20, 100, 200);
-     * // {x: 10, y: 20, width: 100, height: 200}
-     * ```
-     *
-     * Use the spread operator (...) if the source is an array:
-     * ```js
-     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
-     * ```
-     *
-     * Use {@link toArray} for the opposite conversion.
-     *
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     */
-    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
-    /**
-     * Rectangle as array: `[width, height]`
-     */
-    export type RectArray = readonly [width: number, height: number];
-    /**
-     * Positioned rectangle as array: `[x, y, width, height]`
-     */
-    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
-    /**
-     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
-     * // [10, 20, 100, 200]
-     * const r2 = Rects.toArray({ width: 100, height: 200 });
-     * // [100, 200]
-     * ```
-     * @param rect
-     * @see fromNumbers
-     */
-    export function toArray(rect: Rect): RectArray;
-    /**
-     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
-     * // [10, 20, 100, 200]
-     * const r2 = Rects.toArray({ width: 100, height: 200 });
-     * // [100, 200]
-     * ```
-     * @param rect
-     * @see fromNumbers
-     */
-    export function toArray(rect: RectPositioned): RectPositionedArray;
-    /**
-     * Returns _true_ if two rectangles have identical values.
-     * Both rectangles must be positioned or not.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
-     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
-     *
-     * // False, because coordinates are different
-     * Rects.isEqual(rectA, rectB)
-     *
-     * // True, even though x,y are different
-     * Rects.isEqualSize(rectA, rectB);
-     * ```
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
-    /**
-     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 100, height: 100 };
-     * const rectB = { width: 200, height: 200 };
-     *
-     * // Yields: { width: -100, height: -100 }
-     * Rects.subtract(rectA, rectB);
-     * ```
-     * @param a
-     * @param b
-     */
-    export function subtract(a: Rect, b: Rect): Rect;
-    /**
-     * Subtracts a width/height from `a`, returning result.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100 };
-     *
-     * // Yields: { width: -100, height: -100 }
-     * Rects.subtract(rect, 200, 200);
-     * ```
-     * @param a
-     * @param width
-     * @param height
-     */
-    export function subtract(a: Rect, width: number, height?: number): Rect;
-    /**
-     * Sums width/height of `b` with `a` (ie: a + b), returning result.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 100, height: 100 };
-     * const rectB = { width: 200, height: 200 };
-     *
-     * // Yields: { width: 300, height: 300 }
-     * Rects.sum(rectA, rectB);
-     * ```
-     * @param a
-     * @param b
-     */
-    export function sum(a: Rect, b: Rect): Rect;
-    /**
-      * Sums width/height of `b` with `a` (ie: a + b), returning result.
-      * ```js
-      * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-      * const rect = { width: 100, height: 100 };
-      *
-      * // Yields: { width: 300, height: 300 }
-      * Rects.subtract(rect, 200, 200);
-      * ```
-      * @param a
-      * @param width
-      * @param height
-      */
-    export function sum(a: Rect, width: number, height?: number): Rect;
-    /**
-     * Returns _true_ if `point` is within, or on boundary of `rect`.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * Rects.intersectsPoint(rect, { x: 100, y: 100});
-     * ```
-     * @param rect
-     * @param point
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
-    /**
-     * Returns true if x,y coordinate is within, or on boundary of `rect`.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * Rects.intersectsPoint(rect, 100, 100);
-     * ```
-     * @param rect
-     * @param x
-     * @param y
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
-    /**
-     * Initialises a rectangle based on its center, a width and height
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Rectangle with center at 50,50, width 100 height 200
-     * Rects.fromCenter({x: 50, y:50}, 100, 200);
-     * ```
-     * @param origin
-     * @param width
-     * @param height
-     * @returns
-     */
-    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    /**
-     * Returns the distance from the perimeter of `rect` to `pt`.
-     * If the point is within the rectangle, 0 is returned.
-     *
-     * If `rect` does not have an x,y it's assumed to be 0,0
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 0, y: 0 };
-     * Rects.distanceFromExterior(rect, { x: 20, y: 20 });
-     * ```
-     * @param rect Rectangle
-     * @param pt Point
-     * @returns Distance
-     */
-    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
-    /**
-     * Return the distance of `pt` to the center of `rect`.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 0, y: 0 };
-     * Rects.distanceFromCenter(rect, { x: 20, y: 20 });
-     * ```
-     * @param rect
-     * @param pt
-     * @returns
-     */
-    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
-    /**
-     * Returns a rectangle based on provided four corners.
-     *
-     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
-     *
-     * Does some sanity checking such as:
-     *  - x will be smallest of topLeft/bottomLeft
-     *  - y will be smallest of topRight/topLeft
-     *  - width will be largest between top/bottom left and right
-     *  - height will be largest between left and right top/bottom
-     *
-     */
-    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
-    /**
-     * Throws an error if rectangle is missing fields or they
-     * are not valid.
-     * @param rect
-     * @param name
-     */
-    export const guard: (rect: Rect, name?: string) => void;
-    /**
-     * Creates a rectangle from its top-left coordinate, a width and height.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Rectangle at 50,50 with width of 100, height of 200.
-     * const rect = Rects.fromTopLeft({ x: 50, y:50 }, 100, 200);
-     * ```
-     * @param origin
-     * @param width
-     * @param height
-     * @returns
-     */
-    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    /**
-     * Returns the four corners of a rectangle as an array of Points.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 0, y: 0};
-     * const pts = Rects.corners(rect);
-     * ```
-     *
-     * If the rectangle is not positioned, is origin can be provided.
-     * @param rect
-     * @param origin
-     * @returns
-     */
-    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
-    /**
-     * Returns a point on the edge of rectangle
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = {x: 10, y: 10, width: 100, height: 50};
-     * Rects.getEdgeX(r1, `right`);  // Yields: 110
-     * Rects.getEdgeX(r1, `bottom`); // Yields: 10
-     *
-     * const r2 = {width: 100, height: 50};
-     * Rects.getEdgeX(r2, `right`);  // Yields: 100
-     * Rects.getEdgeX(r2, `bottom`); // Yields: 0
-     * ```
-     * @param rect
-     * @param edge Which edge: right, left, bottom, top
-     * @returns
-     */
-    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
-    /**
-     * Returns a point on the edge of rectangle
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = {x: 10, y: 10, width: 100, height: 50};
-     * Rects.getEdgeY(r1, `right`);  // Yields: 10
-     * Rects.getEdgeY(r1, `bottom`); // Yields: 60
-     *
-     * const r2 = {width: 100, height: 50};
-     * Rects.getEdgeY(r2, `right`);  // Yields: 0
-     * Rects.getEdgeY(r2, `bottom`); // Yields: 50
-     * ```
-     * @param rect
-     * @param edge Which edge: right, left, bottom, top
-     * @returns
-     */
-    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
-    /**
-     * Returns `rect` divided by the width,height of `normaliseBy`.
-     * This can be useful for normalising based on camera frame.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const frameSize = {width: 640, height: 320};
-     * const object = { x: 320, y: 160, width: 64, height: 32};
-     *
-     * const n = Rects.normaliseByRect(object, frameSize);
-     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
-     * ```
-     *
-     * Height and width can be supplied instead of a rectangle too:
-     * ```js
-     * const n = Rects.normaliseByRect(object, 640, 320);
-     * ```
-     * @param rect
-     * @param normaliseBy
-     * @returns
-     */
-    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
-    /**
-     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Normalised rectangle of width 50%, height 50%
-     * const r = {width: 0.5, height: 0.5};
-     *
-     * // Map to window:
-     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
-     * ```
-     *
-     * ```js
-     * // Returns {width: someRect.width * someOtherRect.width ...}
-     * Rects.multiply(someRect, someOtherRect);
-     *
-     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
-     * Rects.multiply(someRect, 100, 200);
-     * ```
-     *
-     * Multiplication applies to the first parameter's x/y fields, if present.
-     */
-    export function multiply(a: RectPositioned, b: Rect | number, c?: number): RectPositioned;
-    /**
-     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Normalised rectangle of width 50%, height 50%
-     * const r = {width: 0.5, height: 0.5};
-     *
-     * // Map to window:
-     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
-     * ```
-     *
-     * ```js
-     * // Returns {width: someRect.width * someOtherRect.width ...}
-     * Rects.multiply(someRect, someOtherRect);
-     *
-     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
-     * Rects.multiply(someRect, 100, 200);
-     * ```
-     *
-     * Multiplication applies to the first parameter's x/y fields, if present.
-     */
-    export function multiply(a: Rect, b: Rect | number, c?: number): Rect;
-    /**
-     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
-     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const p = Rects.center({x:10, y:20, width:100, height:50});
-     * const p2 = Rects.center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
-     * ```
-     * @param rect Rectangle
-     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
-     * @returns
-     */
-    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
-    /**
-     * Returns the length of each side of the rectangle (top, right, bottom, left)
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * // Yields: array of length four
-     * const lengths = Rects.lengths(rect);
-     * ```
-     * @param rect
-     * @returns
-     */
-    export const lengths: (rect: RectPositioned) => readonly number[];
-    /**
-     * Returns four lines based on each corner.
-     * Lines are given in order: top, right, bottom, left
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * // Yields: array of length four
-     * const lines = Rects.lines(rect);
-     * ```
-     *
-     * @param {(RectPositioned|Rect)} rect
-     * @param {Points.Point} [origin]
-     * @returns {Lines.Line[]}
-     */
-    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
-    /**
-     * Returns the perimeter of `rect` (ie. sum of all edges)
-     *  * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * Rects.perimeter(rect);
-     * ```
-     * @param rect
-     * @returns
-     */
-    export const perimeter: (rect: Rect) => number;
-    /**
-     * Returns the area of `rect`
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * Rects.area(rect);
-     * ```
-     * @param rect
-     * @returns
-     */
-    export const area: (rect: Rect) => number;
 }
 declare module "geometry/Ellipse" {
     import { Path } from "geometry/Path";
@@ -5958,2149 +8151,6 @@ declare module "geometry/index" {
      * @returns
      */
     export const radiansFromAxisX: (point: Points.Point) => number;
-}
-declare module "flow/Sleep" {
-    /**
-     * Returns after `timeoutMs`.
-     *
-     * @example In an async function
-     * ```js
-     * console.log(`Hello`);
-     * await sleep(1000);
-     * console.log(`There`); // Prints one second after
-     * ```
-     *
-     * @example As a promise
-     * ```js
-     * console.log(`Hello`);
-     * sleep(1000)
-     *  .then(() => console.log(`There`)); // Prints one second after
-     * ```
-     *
-     * If a timeout of 0 is given, `requestAnimationFrame` is used instead of `setTimeout`.
-     *
-     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
-     *
-     * @param timeoutMs
-     * @return
-     */
-    export const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V | undefined>;
-}
-declare module "flow/StateMachine" {
-    import { SimpleEventEmitter } from "Events";
-    export interface Options {
-        readonly debug?: boolean;
-    }
-    export interface StateChangeEvent {
-        readonly newState: string;
-        readonly priorState: string;
-    }
-    export interface StopEvent {
-        readonly state: string;
-    }
-    export type StateMachineEventMap = {
-        readonly change: StateChangeEvent;
-        readonly stop: StopEvent;
-    };
-    export type StateEvent = (args: unknown, sender: StateMachine) => void;
-    export type StateHandler = string | StateEvent | null;
-    export interface State {
-        readonly [event: string]: StateHandler;
-    }
-    export interface MachineDescription {
-        readonly [key: string]: string | readonly string[] | null;
-    }
-    /**
-     * Returns a machine description based on a list of strings. The final string is the final
-     * state.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = StateMachine.create(states[0], descriptionFromList(states));
-     * ```
-     * @param states List of states
-     * @return MachineDescription
-     */
-    export const descriptionFromList: (...states: readonly string[]) => MachineDescription;
-    /**
-     * Returns a state machine based on a list of strings. The first string is used as the initial state,
-     * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
-     *
-     * ```js
-     * const states = [`one`, `two`, `three`];
-     * const sm = StateMachine.fromList(states);
-     * ```
-     */
-    export const fromList: (...states: readonly string[]) => StateMachine;
-    /**
-     * Creates a new state machine
-     * @param initial Initial state
-     * @param m Machine description
-     * @param opts Options
-     * @returns State machine instance
-     */
-    export const create: (initial: string, m: MachineDescription, opts?: Options) => StateMachine;
-    /**
-     * State machine
-     *
-     * Machine description is a simple object of possible state names to allowed state(s). Eg. the following
-     * has four possible states (`wakeup, sleep, coffee, breakfast, bike`). `Sleep` can only transition to the `wakeup`
-     * state, while `wakeup` can transition to either `coffee` or `breakfast`.
-     *
-     * Use `null` to signify the final state. Multiple states can terminate the machine if desired.
-     * ```
-     * const description = {
-     *  sleep: 'wakeup',
-     *  wakeup: ['coffee', 'breakfast'],
-     *  coffee: `bike`,
-     *  breakfast: `bike`,
-     *  bike: null
-     * }
-     * ```
-     * Create the machine with the starting state (`sleep`)
-     * ```
-     * const machine = StateMachine.create(`sleep`, description);
-     * ```
-     *
-     * Change the state by name:
-     * ```
-     * machine.state = `wakeup`
-     * ```
-     *
-     * Or request an automatic transition (will use first state if there are several options)
-     * ```
-     * machine.next();
-     * ```
-     *
-     * Check status
-     * ```
-     * if (machine.state === `coffee`) ...;
-     * if (machine.isDone()) ...
-     * ```
-     *
-     * Listen for state changes
-     * ```
-     * machine.addEventListener(`change`, (evt) => {
-     *  const {priorState, newState} = evt;
-     *  console.log(`State change from ${priorState} -> ${newState}`);
-     * });
-     * ```
-     * @export
-     * @class StateMachine
-     * @extends {SimpleEventEmitter<StateMachineEventMap>}
-     */
-    export class StateMachine extends SimpleEventEmitter<StateMachineEventMap> {
-        #private;
-        /**
-         * Create a state machine with initial state, description and options
-         * @param string initial Initial state
-         * @param MachineDescription m Machine description
-         * @param Options Options for machine (defaults to `{debug:false}`)
-         * @memberof StateMachine
-         */
-        constructor(initial: string, m: MachineDescription, opts?: Options);
-        get states(): readonly string[];
-        static validate(initial: string, m: MachineDescription): readonly [boolean, string];
-        /**
-         * Moves to the next state if possible. If multiple states are possible, it will use the first.
-         * If machine is finalised, no error is thrown and null is returned.
-         *
-         * @returns {(string|null)} Returns new state, or null if machine is finalised
-         * @memberof StateMachine
-         */
-        next(): string | null;
-        /**
-         * Returns true if state machine is in its final state
-         *
-         * @returns
-         * @memberof StateMachine
-         */
-        get isDone(): boolean;
-        /**
-         * Resets machine to initial state
-         *
-         * @memberof StateMachine
-         */
-        reset(): void;
-        /**
-         * Checks whether a state change is valid.
-         *
-         * @static
-         * @param priorState From state
-         * @param newState To state
-         * @param description Machine description
-         * @returns If valid: [true,''], if invalid: [false, 'Error msg here']
-         * @memberof StateMachine
-         */
-        static isValid(priorState: string, newState: string, description: MachineDescription): readonly [boolean, string];
-        isValid(newState: string): readonly [boolean, string];
-        /**
-         * Gets or sets state. Throws an error if an invalid transition is attempted.
-         * Use `StateMachine.isValid` to check validity without changing.
-         *
-         * @memberof StateMachine
-         */
-        set state(newState: string);
-        get state(): string;
-    }
-}
-declare module "flow/Timer" {
-    import { HasCompletion } from "flow/index";
-    /**
-     * Creates a timer
-     */
-    export type TimerSource = () => Timer;
-    /**
-     * A timer instance
-     */
-    export type Timer = {
-        reset(): void;
-        get elapsed(): number;
-    };
-    export type ModTimer = Timer & {
-        mod(amt: number): void;
-    };
-    export const frequencyTimerSource: (frequency: number) => TimerSource;
-    /**
-     * Wraps a timer, returning a relative elapsed value.
-     *
-     * ```js
-     * let t = relativeTimer(1000, msElapsedTimer());
-     * ```
-     *
-     * @private
-     * @param total
-     * @param timer
-     * @param clampValue If true, returned value never exceeds 1.0
-     * @returns
-     */
-    export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
-    export const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
-    /**
-     * A timer that uses clock time
-     * @private
-     * @returns {Timer}
-     */
-    export const msElapsedTimer: () => Timer;
-    /**
-     * A timer that progresses with each call
-     * @private
-     * @returns {Timer}
-     */
-    export const ticksElapsedTimer: () => Timer;
-}
-declare module "flow/Interval" {
-    export type IntervalAsync<V> = (() => V | Promise<V>) | Generator<V>;
-    /**
-     * Generates values from `produce` with `intervalMs` time delay.
-     * `produce` can be a simple function that returns a value, an async function, or a generator.
-     *
-     * @example Produce a random number every 500ms:
-     * ```
-     * const randomGenerator = interval(() => Math.random(), 1000);
-     * for await (const r of randomGenerator) {
-     *  // Random value every 1 second
-     *  // Warning: does not end by itself, a `break` statement is needed
-     * }
-     * ```
-     *
-     * @example Return values from a generator every 500ms:
-     * ```js
-     * // Make a generator that counts to 10
-     * const counter = count(10);
-     * for await (const v of interval(counter, 1000)) {
-     *  // Do something with `v`
-     * }
-     * ```
-     *
-     * If you just want to loop at a certain speed, consider using {@link continuously} instead.
-     * @template V Returns value of `produce` function
-     * @param intervalMs Interval between execution
-     * @param produce Function to call
-     * @template V Data type
-     * @returns
-     */
-    export const interval: <V>(produce: IntervalAsync<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
-}
-declare module "flow/Timeout" {
-    import { HasCompletion } from "flow/index";
-    export type TimeoutSyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => void;
-    export type TimeoutAsyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => Promise<void>;
-    /**
-     * A resettable timeout, returned by {@link timeout}
-     */
-    export type Timeout = HasCompletion & {
-        start(altTimeoutMs?: number, args?: readonly unknown[]): void;
-        cancel(): void;
-        get isDone(): boolean;
-    };
-    /**
-     * Returns a {@link Timeout} that can be triggered, cancelled and reset
-     *
-     * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
-     * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
-     *
-     * @example Essential functionality
-     * ```js
-     * const fn = () => {
-     *  console.log(`Executed`);
-     * };
-     * const t = timeout(fn, 60*1000);
-     * t.start();   // After 1 minute `fn` will run, printing to the console
-     * ```
-     *
-     * @example Control execution functionality
-     * ```
-     * t.cancel();  // Cancel it from running
-     * t.start();   // Schedule again after 1 minute
-     * t.start(30*1000); // Cancel that, and now scheduled after 30s
-     * t.isDone;    // True if a scheduled event is pending
-     * ```
-     *
-     * Callback function receives any additional parameters passed in from start.
-     * This can be useful for passing through event data:
-     *
-     * @example
-     * ```js
-     * const t = timeout( (elapsedMs, ...args) => {
-     *  // args contains event data
-     * }, 1000);
-     * el.addEventListener(`click`, t.start);
-     * ```
-     *
-     * Asynchronous callbacks can be used as well:
-     * ```js
-     * timeout(async () => {...}, 100);
-     * ```
-     *
-     * If you don't expect to need to control the timeout, consider using {@link delay},
-     * which can run a given function after a specified delay.
-     * @param callback
-     * @param timeoutMs
-     * @returns {@link Timeout}
-     */
-    export const timeout: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => Timeout;
-}
-declare module "flow/UpdateOutdated" {
-    export type UpdateFailPolicy = `fast` | `slow` | `backoff`;
-    /**
-     * Calls the async `fn` to generate a value if there is no prior value or
-     * `intervalMs` has elapsed since value was last generated.
-     * @example
-     * ```js
-     * const f = updateOutdated(async () => {
-     *  const r = await fetch(`blah`);
-     *  return await r.json();
-     * }, 60*1000);
-     *
-     * // Result will be JSON from fetch. If fetch happened already in the
-     * // last 60s, return cached result. Otherwise it will fetch data
-     * const result = await f();
-     * ```
-     *
-     * Callback `fn` is passed how many milliseconds have elapsed since last update. It's
-     * minimum value will be `intervalMs`.
-     *
-     * ```js
-     * const f = updateOutdated(async elapsedMs => {
-     *  // Do something with elapsedMs?
-     * }, 60*1000;
-     * ```
-     *
-     * There are different policies for what to happen if `fn` fails. `slow` is the default.
-     * * `fast`: Invocation will happen immediately on next attempt
-     * * `slow`: Next invocation will wait `intervalMs` as if it was successful
-     * * `backoff`: Attempts will get slower and slower until next success. Interval is multipled by 1.2 each time.
-     *
-     * @param fn Async function to call. Must return a value.
-     * @param intervalMs Maximum age of cached result
-     * @param updateFail `slow` by default
-     * @returns Value
-     */
-    export const updateOutdated: <V>(fn: (elapsedMs?: number) => Promise<V>, intervalMs: number, updateFail?: UpdateFailPolicy) => () => Promise<V>;
-}
-declare module "flow/Continuously" {
-    import { HasCompletion } from "flow/index";
-    /**
-     * Runs a function continuously, returned by {@link Continuously}
-     */
-    export type Continuously = HasCompletion & {
-        /**
-         * Starts loop. If already running, it is reset
-         */
-        start(): void;
-        /**
-         * How many milliseconds since start() was last called
-         */
-        get elapsedMs(): number;
-        /**
-         * How many iterations of the loop since start() was last called
-         */
-        get ticks(): number;
-        /**
-         * Whether loop has finished
-         */
-        get isDone(): boolean;
-        /**
-         * Stops loop
-         */
-        cancel(): void;
-        set intervalMs(ms: number);
-        get intervalMs(): number;
-    };
-    export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
-    export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
-    /**
-     * Returns a {@link Continuously} that continuously executes `callback`.
-     * If callback returns _false_, loop exits.
-     *
-     * Call `start` to begin/reset loop. `cancel` stops loop.
-     *
-     * @example Animation loop
-     * ```js
-     * const draw = () => {
-     *  // Draw on canvas
-     * }
-     *
-     * // Run draw() synchronised with monitor refresh rate via `window.requestAnimationFrame`
-     * continuously(draw).start();
-     * ```
-     *
-     * @example With delay
-     * ```js
-     * const fn = () => {
-     *  console.log(`1 minute`);
-     * }
-     * const c = continuously(fn, 60*1000);
-     * c.start(); // Runs `fn` every minute
-     * ```
-     *
-     * @example Control a 'continuously'
-     * ```js
-     * c.cancel();   // Stop the loop, cancelling any up-coming calls to `fn`
-     * c.elapsedMs;  // How many milliseconds have elapsed since start
-     * c.ticks;      // How many iterations of loop since start
-     * ```
-     *
-     * Asynchronous callback functions are supported too:
-     * ```js
-     * continuously(async () => { ..});
-     * ```
-     *
-     * The `callback` function can receive a few arguments:
-     * ```js
-     * continuously( (ticks, elapsedMs) => {
-     *  // ticks: how many times loop has run
-     *  // elapsedMs:  how long since last loop
-     * }).start();
-     * ```
-     *
-     * And if `callback` explicitly returns _false_, the loop will exit:
-     * ```js
-     * continuously((ticks) => {
-     *  // Stop after 100 iterations
-     *  if (ticks > 100) return false;
-     * }).start();
-     * ```
-     * @param callback Function to run. If it returns false, loop exits.
-     * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
-     * @param intervalMs
-     * @returns
-     */
-    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number, resetCallback?: ((ticks?: number, elapsedMs?: number) => boolean | void) | undefined) => Continuously;
-}
-declare module "flow/Debounce" {
-    import { TimeoutSyncCallback, TimeoutAsyncCallback } from "flow/Timeout";
-    /**
-     * Returns a debounce function which acts to filter calls to a given function `fn`.
-     *
-     * Eg, Let's create a debounced wrapped for a function:
-     * ```js
-     * const fn = () => console.log('Hello');
-     * const debouncedFn = debounce(fn, 1000);
-     * ```
-     *
-     * Now we can call `debouncedFn()` as often as we like, but it will only execute
-     * `fn()` after 1 second has elapsed since the last invocation. It essentially filters
-     * many calls to fewer calls. Each time `debounceFn()` is called, the timeout is
-     * reset, so potentially `fn` could never be called if the rate of `debounceFn` being called
-     * is faster than the provided timeout.
-     *
-     * Remember that to benefit from `debounce`, you must call the debounced wrapper, not the original function.
-     *
-     * ```js
-     * // Create
-     * const d = debounce(fn, 1000);
-     *
-     * // Don't do this if we want to benefit from the debounce
-     * fn();
-     *
-     * // Use the debounced wrapper
-     * d(); // Only calls fn after 1000s
-     * ```
-     *
-     * A practical use for this is handling high-frequency streams of data, where we don't really
-     * care about processing every event, only last event after a period. Debouncing is commonly
-     * used on microcontrollers to prevent button presses being counted twice.
-     *
-     * @example Handle most recent pointermove event after 1000ms
-     * ```js
-     * // Set up debounced handler
-     * const moveDebounced = debounce((elapsedMs, evt) => {
-     *    // Handle event
-     * }, 500);
-     *
-     * // Wire up event
-     * el.addEventListener(`pointermove`, moveDebounced);
-     * ```
-     *
-     * Arguments can be passed to the debounced function:
-     *
-     * ```js
-     * const fn = (x) => console.log(x);
-     * const d = debounce(fn, 1000);
-     * d(10);
-     * ```
-     *
-     * If the provided function is asynchronous, it's possible to await the debounced
-     * version as well. If the invocation was filtered, it returns instantly.
-     *
-     * ```js
-     * const d = debounce(fn, 1000);
-     * await d();
-     * ```
-     * @param callback Function to filter access to
-     * @param timeoutMs Minimum time between invocations
-     * @returns Debounce function
-     */
-    export const debounce: (callback: TimeoutSyncCallback | TimeoutAsyncCallback, timeoutMs: number) => DebouncedFunction;
-    /**
-     * Debounced function
-     */
-    export type DebouncedFunction = (...args: readonly unknown[]) => void;
-}
-declare module "flow/Throttle" {
-    /***
-     * Throttles a function. Callback only allowed to run after minimum of `intervalMinMs`.
-     *
-     * @example Only handle move event every 500ms
-     * ```js
-     * const moveThrottled = throttle( (elapsedMs, args) => {
-     *  // Handle ar
-     * }, 500);
-     * el.addEventListener(`pointermove`, moveThrottled)
-     * ```
-     *
-     * Note that `throttle` does not schedule invocations, but rather acts as a filter that
-     * sometimes allows follow-through to `callback`, sometimes not. There is an expectation then
-     * that the return function from `throttle` is repeatedly called, such as the case for handling
-     * a stream of data/events.
-     *
-     * @example Manual trigger
-     * ```js
-     * // Set up once
-     * const t = throttle( (elapsedMs, args) => { ... }, 5000);
-     *
-     * // Later, trigger throttle. Sometimes the callback will run,
-     * // with data passed in to args[0]
-     * t(data);
-     * ```
-     */
-    export const throttle: (callback: (elapsedMs: number, ...args: readonly unknown[]) => void | Promise<unknown>, intervalMinMs: number) => (...args: unknown[]) => Promise<void>;
-}
-declare module "flow/WaitFor" {
-    /**
-     * Helper function for calling code that should fail after a timeout.
-     * In short, it allows you to signal when the function succeeded, to cancel it, or
-     * to be notified if it was canceled or completes.
-     *
-     *
-     * @example Verbose example
-     * ```js
-     * // This function is called by `waitFor` if it was cancelled
-     * const onAborted = (reason:string) => {
-     *  // 'reason' is a string describing why it has aborted.
-     *  // ie: due to timeout or because done() was called with an error
-     * };
-     *
-     * // This function is called by `waitFor` if it completed
-     * const onComplete = (success:boolean) => {
-     *  // Called if we were aborted or finished succesfully.
-     *  // onComplete will be called after onAborted, if it was an error case
-     * }
-     *
-     * // If done() is not called after 1000, onAborted will be called
-     * // if done() is called or there was a timeout, onComplete is called
-     * const done = waitFor(1000, onAborted, onComplete);
-     *
-     * // Signal completed successfully (thus calling onComplete(true))
-     * done();
-     *
-     * // Signal there was an error (thus calling onAborted and onComplete(false))
-     * done(`Some error`);
-     * ```
-     *
-     * The completion handler is useful for removing event handlers.
-     *
-     * @example Compact example
-     * ```js
-     * const done = waitFor(1000,
-     *  (reason) => {
-     *    console.log(`Aborted: ${reason}`);
-     *  },
-     *  (success) => {
-     *    console.log(`Completed. Success: ${success ?? `Yes!` : `No`}`)
-     *  });
-     *
-     * try {
-     *  runSomethingThatMightScrewUp();
-     *  done(); // Signal it succeeded
-     * } catch (e) {
-     *  done(e); // Signal there was an error
-     * }
-     * ```
-     * @param timeoutMs
-     * @param onAborted
-     * @param onComplete
-     * @returns
-     */
-    export const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string) => void;
-}
-declare module "flow/Delay" {
-    /**
-     * Pauses execution for `timeoutMs` after which the asynchronous `callback` is executed and awaited.
-     *
-     * @example Pause and wait for function
-     * ```js
-     * const result = await delay(async () => Math.random(), 1000);
-     * console.log(result); // Prints out result after one second
-     * ```
-     *
-     * If `await` is omitted, the function will run after the provided timeout, and code will continue to run.
-     *
-     * @example Schedule a function without waiting
-     * ```js
-     * delay(async () => {
-     *  console.log(Math.random())
-     * }, 1000);
-     * // Prints out a random number after 1 second.
-     * ```
-     *
-     * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
-     *
-     *
-     * If you want to be able to cancel or re-run a delayed function, consider using
-     * {@link timeout} instead.
-     *
-     * @template V
-     * @param callback What to run after `timeoutMs`
-     * @param timeoutMs How long to delay
-     * @return Returns result of `callback`.
-     */
-    export const delay: <V>(callback: () => Promise<V>, timeoutMs: number) => Promise<V>;
-    /**
-     * Async generator that loops at a given `timeoutMs`.
-     *
-     * @example Loop runs every second
-     * ```
-     * // Loop forever
-     * (async () => {
-     *  const loop = delayLoop(1000);
-     *  while (true) {
-     *    await loop.next();
-     *
-     *    // Do something...
-     *    // Warning: loops forever
-     *  }
-     * })();
-     * ```
-     *
-     * @example For Await loop every second
-     * ```
-     * const loop = delayLoop(1000);
-     * for await (const o of loop) {
-     *  // Do something...
-     *  // Warning: loops forever
-     * }
-     * ```
-     * @param timeoutMs Delay. If 0 is given, `requestAnimationFrame` is used over `setTimeout`.
-     */
-    export function delayLoop(timeoutMs: number): AsyncGenerator<undefined, void, unknown>;
-}
-declare module "flow/index" {
-    import * as StateMachine from "flow/StateMachine";
-    /**
-     * State Machine
-     * See [here for usage](../classes/Flow.StateMachine.StateMachine.html).
-     */
-    export { StateMachine };
-    export * from "flow/Timer";
-    export * from "flow/Interval";
-    export * from "flow/Timeout";
-    export * from "flow/UpdateOutdated";
-    export * from "flow/Continuously";
-    export * from "flow/Debounce";
-    export * from "flow/Throttle";
-    export * from "flow/Sleep";
-    export * from "flow/WaitFor";
-    export * from "flow/Delay";
-    export type HasCompletion = {
-        get isDone(): boolean;
-    };
-    /**
-     * Iterates over `iterator` (iterable/array), calling `fn` for each value.
-     * If `fn` returns _false_, iterator cancels.
-     *
-     * Over the default JS `forEach` function, this one allows you to exit the
-     * iteration early.
-     *
-     * @example
-     * ```js
-     * forEach(count(5), () => console.log(`Hi`));  // Prints `Hi` 5x
-     * forEach(count(5), i => console.log(i));      // Prints 0 1 2 3 4
-     * forEach([0,1,2,3,4], i => console.log(i));   // Prints 0 1 2 3 4
-     * ```
-     *
-     * Use {@link forEachAsync} if you want to use an async `iterator` and async `fn`.
-     * @param iterator Iterable or array
-     * @typeParam V Type of iterable
-     * @param fn Function to call for each item. If function returns _false_, iteration cancels
-     */
-    export const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
-    /**
-     * Iterates over an async iterable or array, calling `fn` for each value, with optional
-     * interval between each loop. If the async `fn` returns _false_, iterator cancels.
-     *
-     * Use {@link forEach} for a synchronous version.
-     *
-     * ```
-     * // Prints items from array every second
-     * await forEachAsync([0,1,2,3], i => console.log(i), 1000);
-     * ```
-     *
-     * @example Retry `doSomething` up to five times, with 5 seconds between each attempt
-     * ```
-     * await forEachAsync(count(5), i=> {
-     *  try {
-     *    await doSomething();
-     *    return false; // Succeeded, exit early
-     *  } catch (ex) {
-     *    console.log(ex);
-     *    return true; // Keep trying
-     *  }
-     * }, 5000);
-     * ```
-     * @param iterator Iterable thing to loop over
-     * @param fn Function to invoke on each item. If it returns _false_ loop ends.
-     * @typeParam V Type of iterable
-     */
-    export const forEachAsync: <V>(iterator: AsyncIterableIterator<V> | readonly V[], fn: (v?: V | undefined) => Promise<boolean> | Promise<void>, intervalMs?: number) => Promise<void>;
-    export type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
-    /**
-     * Runs `fn` a certain number of times, accumulating result into an array.
-     * If `fn` returns undefined, the result is ignored.
-     *
-     * ```js
-     * // Results will be an array with five random numbers
-     * const results = repeat(5, () => Math.random());
-     * ```
-     *
-     * Repeats can be specified as an integer (eg. 5 for five repeats), or a function
-     * that gives _false_ when repeating should stop.
-     *
-     * ```js
-     * // Keep running `fn` until we've accumulated 10 values
-     * // Useful if `fn` sometimes returns _undefined_
-     * const results = repeat((repeats, valuesProduced) => valuesProduced < 10, fn);
-     * ```
-     *
-     * If you don't need to accumulate return values, consider {@link Generators.count | Generators.count} with {@link Flow.forEach | Flow.forEach}.
-     *
-     * @param countOrPredicate Number of repeats or function returning false when to stop
-     * @param fn Function to run, must return a value to accumulate into array or _undefined_
-     * @returns Array of accumulated results
-     */
-    export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
-}
-declare module "data/TrackerBase" {
-    import { TrackedValueOpts } from "data/TrackedValue";
-    /**
-     * Base tracker class
-     */
-    export abstract class TrackerBase<V> {
-        readonly id: string;
-        /**
-         * @ignore
-         */
-        seenCount: number;
-        /**
-        * @ignore
-        */
-        protected storeIntermediate: boolean;
-        /**
-        * @ignore
-        */
-        protected resetAfterSamples: number;
-        constructor(id?: string, opts?: TrackedValueOpts);
-        /**
-         * Reset tracker
-         */
-        reset(): void;
-        seen(...p: V[]): any;
-        /**
-         * @ignore
-         * @param p
-         */
-        abstract seenImpl(p: V[]): V[];
-        abstract get last(): V | undefined;
-        /**
-         * Returns the initial value, or undefined
-         */
-        abstract get initial(): V | undefined;
-        /**
-         * Returns the elapsed milliseconds since the initial value
-         */
-        abstract get elapsed(): number;
-        /**
-         * @ignore
-         */
-        onSeen(_p: V[]): void;
-        /**
-         * @ignore
-         */
-        abstract onReset(): void;
-    }
-}
-declare module "data/TrackedValue" {
-    import { GetOrGenerate } from "collections/Map";
-    import { TrackerBase } from "data/TrackerBase";
-    export type Timestamped<V> = V & {
-        readonly at: number;
-    };
-    /**
-     * Options
-     */
-    export type TrackedValueOpts = {
-        /**
-         * If true, intermediate points are stored. False by default
-         */
-        readonly storeIntermediate?: boolean;
-        /**
-         * If above zero, tracker will reset after this many samples
-         */
-        readonly resetAfterSamples?: number;
-    };
-    /**
-     * Keeps track of keyed values of type `V` (eg Point) It stores occurences in type `T`, which
-     * must extend from `TrackerBase<V>`, eg `PointTracker`.
-     *
-     * The `creator` function passed in to the constructor is responsible for instantiating
-     * the appropriate `TrackerBase` sub-class.
-     *
-     * @example Sub-class
-     * ```js
-     * export class TrackedPointMap extends TrackedValueMap<Points.Point> {
-     *  constructor(opts:TrackOpts = {}) {
-     *   super((key, start) => {
-     *    if (start === undefined) throw new Error(`Requires start point`);
-     *    const p = new PointTracker(key, opts);
-     *    p.seen(start);
-     *    return p;
-     *   });
-     *  }
-     * }
-     * ```
-     *
-     */
-    export class TrackedValueMap<V, T extends TrackerBase<V>> {
-        store: Map<string, T>;
-        gog: GetOrGenerate<string, T, V>;
-        constructor(creator: (key: string, start: V | undefined) => T);
-        /**
-         * Number of named values being tracked
-         */
-        get size(): number;
-        /**
-         * Returns _true_ if `id` is stored
-         * @param id
-         * @returns
-         */
-        has(id: string): boolean;
-        /**
-         * For a given id, note that we have seen one or more values.
-         * @param id Id
-         * @param values Values(s)
-         * @returns Information about start to last value
-         */
-        seen(id: string, ...values: V[]): Promise<any>;
-        /**
-         * Creates or returns a TrackedValue instance for `id`.
-         * @param id
-         * @param values
-         * @returns
-         */
-        protected getTrackedValue(id: string, ...values: V[]): Promise<T>;
-        /**
-         * Remove a tracked value by id.
-         * Use {@link reset} to clear them all.
-         * @param id
-         */
-        delete(id: string): void;
-        /**
-         * Remove all tracked values.
-         * Use {@link delete} to remove a single value by id.
-         */
-        reset(): void;
-        /**
-         * Enumerate ids
-         */
-        ids(): Generator<string, void, undefined>;
-        /**
-         * Enumerate tracked values
-         */
-        tracked(): Generator<T, void, undefined>;
-        /**
-         * Iterates TrackedValues ordered with oldest first
-         * @returns
-         */
-        trackedByAge(): Generator<T, void, unknown>;
-        /**
-         * Iterates underlying values, ordered by age (oldest first)
-         * First the named values are sorted by their `elapsed` value, and then
-         * we return the last value for that group.
-         */
-        valuesByAge(): Generator<V | undefined, void, unknown>;
-        /**
-         * Enumerate last received values
-         *
-         * @example Calculate centroid of latest-received values
-         * ```js
-         * const pointers = pointTracker();
-         * const c = Points.centroid(...Array.from(pointers.lastPoints()));
-         * ```
-         */
-        last(): Generator<V | undefined, void, unknown>;
-        /**
-         * Enumerate starting values
-         */
-        initialValues(): Generator<V | undefined, void, unknown>;
-        /**
-         * Returns a tracked value by id, or undefined if not found
-         * @param id
-         * @returns
-         */
-        get(id: string): TrackerBase<V> | undefined;
-    }
-}
-declare module "data/PrimitiveTracker" {
-    import { TrackedValueOpts } from "data/TrackedValue";
-    import { TrackerBase } from "data/TrackerBase";
-    export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
-        values: V[];
-        timestamps: number[];
-        constructor(id?: string, opts?: TrackedValueOpts);
-        get last(): V | undefined;
-        get initial(): V | undefined;
-        /**
-       * Returns number of recorded values (this can include the initial value)
-       */
-        get size(): number;
-        /**
-         * Returns the elapsed time, in milliseconds since the instance was created
-         */
-        get elapsed(): number;
-        onReset(): void;
-        /**
-         * Tracks a value
-         */
-        seenImpl(p: V[]): V[];
-    }
-}
-declare module "data/NumberTracker" {
-    import { PrimitiveTracker } from "data/PrimitiveTracker";
-    import { TrackedValueOpts as TrackOpts, Timestamped } from "data/TrackedValue";
-    export class NumberTracker extends PrimitiveTracker<number> {
-        total: number;
-        min: number;
-        max: number;
-        get avg(): number;
-        /**
-         * Difference between last value and initial.
-         * Eg. if last value was 10 and initial value was 5, 5 is returned (10 - 5)
-         * If either of those is missing, undefined is returned
-         */
-        difference(): number | undefined;
-        /**
-         * Relative difference between last value and initial.
-         * Eg if last value was 10 and initial value was 5, 2 is returned (200%)
-         */
-        relativeDifference(): number | undefined;
-        onReset(): void;
-        onSeen(values: Timestamped<number>[]): void;
-        getMinMaxAvg(): {
-            min: number;
-            max: number;
-            avg: number;
-        };
-    }
-    /**
-     * Keeps track of the total, min, max and avg in a stream of values. By default values
-     * are not stored.
-     *
-     * Usage:
-     *
-     * ```js
-     * import { numberTracker } from 'https://unpkg.com/ixfx/dist/data.js';
-     *
-     * const t = numberTracker();
-     * t.seen(10);
-     *
-     * t.avg / t.min/ t.max
-     * t.initial; // initial value
-     * t.size;    // number of seen values
-     * t.elapsed; // milliseconds since intialisation
-     * t.last;    // last value
-     * ```
-     *
-     * To get `{ avg, min, max, total }`
-     * ```
-     * t.getMinMax()
-     * ```
-     *
-     * Use `t.reset()` to clear everything.
-     *
-     * Trackers can automatically reset after a given number of samples
-     * ```
-     * // reset after 100 samples
-     * const t = numberTracker(`something`, { resetAfterSamples: 100 });
-     * ```
-     *
-     * To store values, use the `storeIntermediate` option:
-     *
-     * ```js
-     * const t = numberTracker(`something`, { storeIntermediate: true });
-     * ```
-     *
-     * Difference between last value and initial value:
-     * ```js
-     * t.relativeDifference();
-     * ```
-     *
-     * Get raw data (if it is being stored):
-     * ```js
-     * t.values; // array of numbers
-     * t.timestampes; // array of millisecond times, indexes correspond to t.values
-     * ```
-     * @class NumberTracker
-     */
-    export const numberTracker: (id?: string, opts?: TrackOpts) => NumberTracker;
-}
-declare module "modulation/Envelope" {
-    import { SimpleEventEmitter } from "Events";
-    /**
-     * @returns Returns a full set of default ADSR options
-     */
-    export const defaultAdsrOpts: () => EnvelopeOpts;
-    export type EnvelopeOpts = AdsrOpts & AdsrTimingOpts;
-    /**
-     * Options for the ADSR envelope.
-     *
-     * Use {@link defaultAdsrOpts} to get an initial default:
-     * @example
-     * ```js
-     * let env = adsr({
-     *  ...defaultAdsrOpts(),
-     *  attackDuration: 2000,
-     *  releaseDuration: 5000,
-     *  sustainLevel: 1,
-     *  retrigger: false
-     * });
-     * ```
-     */
-    export type AdsrOpts = {
-        /**
-         * Attack bezier 'bend'. Bend from -1 to 1. 0 for a straight line
-         */
-        readonly attackBend: number;
-        /**
-         * Decay bezier 'bend'. Bend from -1 to 1. 0 for a straight line
-         */
-        readonly decayBend: number;
-        /**
-         * Release bezier 'bend'. Bend from -1 to 1. 0 for a straight line
-         */
-        readonly releaseBend: number;
-        /**
-         * Peak level (maximum of attack stage)
-         */
-        readonly peakLevel: number;
-        /**
-         * Starting level (usually 0)
-         */
-        readonly initialLevel?: number;
-        /**
-         * Sustain level. Only valid if trigger and hold happens
-         */
-        readonly sustainLevel: number;
-        /**
-         * Release level, when envelope is done (usually 0)
-         */
-        readonly releaseLevel?: number;
-        /**
-         * When _false_, envelope starts from it's current level when being triggered.
-         * _True_ by default.
-         */
-        readonly retrigger?: boolean;
-    };
-    export type AdsrTimingOpts = {
-        /**
-         * If true, envelope indefinately returns to attack stage after release
-         *
-         * @type {boolean}
-         */
-        readonly shouldLoop: boolean;
-        /**
-         * Duration for attack stage
-         * Unit depends on timer source
-         * @type {number}
-         */
-        readonly attackDuration: number;
-        /**
-         * Duration for decay stage
-         * Unit depends on timer source
-         * @type {number}
-         */
-        readonly decayDuration: number;
-        /**
-         * Duration for release stage
-         * Unit depends on timer source
-         * @type {number}
-         */
-        readonly releaseDuration: number;
-    };
-    /**
-     * State change event
-     */
-    export interface StateChangeEvent {
-        readonly newState: string;
-        readonly priorState: string;
-    }
-    export interface CompleteEvent {
-    }
-    export type Events = {
-        readonly change: StateChangeEvent;
-        readonly complete: CompleteEvent;
-    };
-    /**
-     * ADSR (Attack Decay Sustain Release) envelope. An envelope is a value that changes over time,
-     * usually in response to an intial trigger.
-     *
-     * Created with the {@link adsr} function. [See the ixfx Guide on Envelopes](https://clinth.github.io/ixfx-docs/modulation/envelope/).
-     *
-     * @example Setup
-     * ```js
-     * import {adsr, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js'
-     * const opts = {
-     *  ...defaultAdsrOpts(),
-     *  attackDuration: 1000,
-     *  decayDuration: 200,
-     *  sustainDuration: 100
-     * }
-     * const env = adsr(opts);
-     * ```
-     *
-     * [Options for envelope](https://clinth.github.io/ixfx/types/Modulation.EnvelopeOpts.html) are as follows:
-     *
-     * ```js
-     * initialLevel?: number
-     * attackBend: number
-     * attackDuration: number
-     * decayBend: number
-     * decayDuration:number
-     * sustainLevel: number
-     * releaseBend: number
-     * releaseDuration: number
-     * releaseLevel?: number
-     * peakLevel: number
-     * retrigger?: boolean
-     * shouldLoop: boolean
-     * ```
-     *
-     * If `retrigger` is false, re-triggers will continue at current level
-     * rather than resetting to `initialLevel`.
-     *
-     * If `shouldLoop` is true, envelope loops until `release()` is called.
-     *
-     * @example Using
-     * ```js
-     * env.trigger(); // Start envelope
-     * ...
-     * // Get current value of envelope
-     * const [state, scaled, raw] = env.compute();
-     * ```
-     *
-     * * `state` is a string, one of the following: 'attack', 'decay', 'sustain', 'release', 'complete'
-     * * `scaled` is a value scaled according to the stage's _levels_
-     * * `raw` is the progress from 0 to 1 within a stage. ie. 0.5 means we're halfway through a stage.
-     *
-     * Instead of `compute()`, most usage of the envelope is just fetching the `value` property, which returns the same scaled value of `compute()`:
-     *
-     * ```js
-     * const value = env.value; // Get scaled number
-     * ```
-     *
-     * @example Hold & release
-     * ```js
-     * env.trigger(true);   // Pass in true to hold
-     * ...envelope will stop at sustain stage...
-     * env.release();      // Release into decay
-     * ```
-     *
-     * Check if it's done:
-     *
-     * ```js
-     * env.isDone; // True if envelope is completed
-     * ```
-     *
-     * Envelope has events to track activity: 'change' and 'complete':
-     *
-     * ```
-     * env.addEventListener(`change`, ev => {
-     *  console.log(`Old: ${evt.oldState} new: ${ev.newState}`);
-     * })
-     * ```
-     */
-    export interface Adsr extends SimpleEventEmitter<Events> {
-        /**
-         * Compute value of envelope at this point in time.
-         *
-         * Returns an array of [stage, scaled, raw]. Most likely you want to use {@link value} to just get the scaled value.
-         * @param allowStateChange If true (default) envelope will be allowed to change state if necessary before returning value
-         */
-        compute(allowStateChange?: boolean): readonly [stage: string | undefined, scaled: number, raw: number];
-        /**
-         * Returns the scaled value
-         * Same as .compute()[1]
-         */
-        get value(): number;
-        /**
-         * Releases a held envelope. Has no effect if envelope was not held or is complete.
-         */
-        release(): void;
-        /**
-         * Triggers envelope.
-         *
-         * If event is already trigged,
-         * it will be _retriggered_. If`opts.retriggered` is false (default)
-         * envelope starts again at `opts.initialValue`. Otherwise it starts at
-         * the current value.
-         *
-         * @param hold If _true_ envelope will hold at sustain stage
-         */
-        trigger(hold?: boolean): void;
-        /**
-         * _True_ if envelope is completed
-         */
-        get isDone(): boolean;
-    }
-    /**
-     * Creates an {@link Adsr} envelope.
-     * @param opts
-     * @returns New {@link Adsr} Envelope
-     */
-    export const adsr: (opts: EnvelopeOpts) => Adsr;
-    /**
-     * Creates and runs an envelope, sampling its values at `sampleRateMs`.
-     *
-     * ```
-     * import {adsrSample, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js';
-     * import {IterableAsync} from  'https://unpkg.com/ixfx/dist/util.js';
-     *
-     * const opts = {
-     *  ...defaultAdsrOpts(),
-     *  attackDuration: 1000,
-     *  releaseDuration: 1000,
-     *  sustainLevel: 1,
-     *  attackBend: 1,
-     *  decayBend: -1
-     * };
-     *
-     * // Sample an envelope every 5ms into an array
-     * const data = await IterableAsync.toArray(adsrSample(opts, 20));
-     *
-     * // Work with values as sampled
-     * for await (const v of adsrSample(opts, 5)) {
-     *  // Work with envelope value `v`...
-     * }
-     * ```
-     * @param opts Envelope options
-     * @param sampleRateMs Sample rate
-     * @returns
-     */
-    export function adsrSample(opts: EnvelopeOpts, sampleRateMs: number): AsyncGenerator<number, void, unknown>;
-}
-declare module "modulation/Forces" {
-    /**
-     * Acknowledgements: much of the work here is an adapation from Daniel Shiffman's excellent _The Nature of Code_ website.
-     */
-    import { Points } from "geometry/index";
-    import { Point } from "geometry/Point";
-    import { Rect } from "geometry/Rect";
-    /**
-     * Logic for applying mass
-     */
-    export type MassApplication = `dampen` | `multiply` | `ignored`;
-    /**
-     * Basic properties of a thing that can be
-     * affected by forces
-     */
-    export type ForceAffected = {
-        /**
-         * Position. Probably best to use relative coordinates
-         */
-        readonly position?: Point;
-        /**
-         * Velocity vector.
-         * Probably don't want to assign this yourself, but rather have it computed based on acceleration and applied forces
-         */
-        readonly velocity?: Point;
-        /**
-         * Acceleration vector. Most applied forces will alter the acceleration, culminating in a new velocity being set and the
-         * acceleraton value zeroed
-         */
-        readonly acceleration?: Point;
-        /**
-         * Mass. The unit is undefined, again best to think of this being on a 0..1 scale. Mass is particularly important
-         * for the attraction/repulsion force, but other forces can incorporate mass too.
-         */
-        readonly mass?: number;
-        readonly angularAcceleration?: number;
-        readonly angularVelocity?: number;
-        readonly angle?: number;
-    };
-    /**
-     * A function that updates values of a thing.
-     *
-     * These can be created using the xxxForce functions, eg {@link attractionForce}, {@link accelerationForce}, {@link magnitudeForce}, {@link velocityForce}
-     */
-    export type ForceFn = (t: ForceAffected) => ForceAffected;
-    /**
-     * A vector to apply to acceleration or a force function
-     */
-    export type ForceKind = Points.Point | ForceFn | null;
-    /**
-     * Throws an error if `t` is not of the `ForceAffected` shape.
-     * @param t
-     * @param name
-     */
-    export const guard: (t: ForceAffected, name?: string) => void;
-    /**
-     * `constrainBounce` yields a function that affects `t`'s position and velocity such that it
-     * bounces within bounds.
-     *
-     * ```js
-     * // Setup bounce with area constraints
-     * // Reduce velocity by 10% with each impact
-     * const b = constrainBounce({ width:200, height:500 }, 0.9);
-     *
-     * // Thing
-     * const t = {
-     *  position: { x: 50,  y: 50 },
-     *  velocity: { x: 0.3, y: 0.01 }
-     * };
-     *
-     * // `b` returns an altereted version of `t`, with the
-     * // bounce logic applied.
-     * const bounced = b(t);
-     * ```
-     *
-     * `dampen` parameter allows velocity to be dampened with each bounce. A value
-     * of 0.9 for example reduces velocity by 10%. A value of 1.1 will increase velocity by
-     * 10% with each bounce.
-     * @param bounds Constraints of area
-     * @params dampen How much to dampen velocity by. Defaults to 1 meaning there is no damping.
-     * @returns A function that can perform bounce logic
-     */
-    export const constrainBounce: (bounds?: Rect, dampen?: number) => (t: ForceAffected) => ForceAffected;
-    /**
-     * For a given set of attractors, returns a function that a sets acceleration of attractee.
-     * Keep note though that this bakes-in the values of the attractor, it won't reflect changes to their state. For dynamic
-     * attractors, it might be easier to use `computeAttractionForce`.
-     *
-     * @example Force
-     * ```js
-     * const f = Forces.attractionForce(sun, gravity);
-     * earth = Forces.apply(earth, f);
-     * ```
-     *
-     * @example Everything mutually attracted
-     * ```js
-     * // Create a force with all things as attractors.
-     * const f = Forces.attractionForce(things, gravity);
-     * // Apply force to all things.
-     * // The function returned by attractionForce will automatically ignore self-attraction
-     * things = things.map(a => Forces.apply(a, f));
-     * ```
-     * @param attractors
-     * @param gravity
-     * @param distanceRange
-     * @returns
-     */
-    export const attractionForce: (attractors: readonly ForceAffected[], gravity: number, distanceRange?: {
-        readonly min?: number;
-        readonly max?: number;
-    }) => (attractee: ForceAffected) => ForceAffected;
-    /**
-     * Computes the attraction force between two things.
-     * Value for `gravity` will depend on what range is used for `mass`. It's probably a good idea
-     * to keep mass to mean something relative - ie 1 is 'full' mass, and adjust the `gravity`
-     * value until it behaves as you like. Keeping mass in 0..1 range makes it easier to apply to
-     * visual properties later.
-     *
-     * @example Attractee and attractor, gravity 0.005
-     * ```js
-     * const attractor = { position: { x:0.5, y:0.5 }, mass: 1 };
-     * const attractee = { position: Points.random(), mass: 0.01 };
-     * attractee = Forces.apply(attractee, Forces.computeAttractionForce(attractor, attractee, 0.005));
-     * ```
-     *
-     * @example Many attractees for one attractor, gravity 0.005
-     * ```js
-     * attractor =  { position: { x:0.5, y:0.5 }, mass: 1 };
-     * attractees = attractees.map(a => Forces.apply(a, Forces.computeAttractionForce(attractor, a, 0.005)));
-     * ```
-     *
-     * @example Everything mutually attracted
-     * ```js
-     * // Create a force with all things as attractors.
-     * const f = Forces.attractionForce(things, gravity);
-     * // Apply force to all things.
-     * // The function returned by attractionForce will automatically ignore self-attraction
-     * things = things.map(a => Forces.apply(a, f));
-     * ```
-     *
-     * `attractor` thing attracting (eg, earth)
-     * `attractee` thing being attracted (eg. satellite)
-     *
-     *
-     * `gravity` will have to be tweaked to taste.
-     * `distanceRange` clamps the computed distance. This affects how tightly the particles will orbit and can also determine speed. By default it is 0.001-0.7
-     * @param attractor Attractor (eg earth)
-     * @param attractee Attractee (eg satellite)
-     * @param gravity Gravity constant
-     * @param distanceRange Min/max that distance is clamped to.
-     * @returns
-     */
-    export const computeAttractionForce: (attractor: ForceAffected, attractee: ForceAffected, gravity: number, distanceRange?: {
-        readonly min?: number;
-        readonly max?: number;
-    }) => Points.Point;
-    export type TargetOpts = {
-        /**
-         * Acceleration scaling. Defaults to 0.001
-         */
-        readonly diminishBy?: number;
-        /**
-         * If distance is less than this range, don't move.
-         * If undefined (default), will try to get an exact position
-         */
-        readonly range?: Points.Point;
-    };
-    /**
-     * A force that moves a thing toward `targetPos`.
-     *
-     * ```js
-     * const t = Forces.apply(t, Forces.targetForce(targetPos));
-     * ```
-     * @param targetPos
-     * @param diminishBy Scales acceleration. Defaults to 0.001.
-     * @returns
-     */
-    export const targetForce: (targetPos: Points.Point, opts?: TargetOpts) => (t: ForceAffected) => ForceAffected;
-    /**
-     * Apply a series of force functions or forces to `t`. Null/undefined entries are skipped silently.
-     * It also updates the velocity and position of the returned version of `t`.
-     *
-     * ```js
-     * // Wind adds acceleration. Force is dampened by mass
-     * const wind = Forces.accelerationForce({ x: 0.00001, y: 0 }, `dampen`);
-     *
-     * // Gravity adds acceleration. Force is magnified by mass
-     * const gravity = Forces.accelerationForce({ x: 0, y: 0.0001 }, `multiply`);
-     *
-     * // Friction is calculated based on velocity. Force is magnified by mass
-     * const friction = Forces.velocityForce(0.00001, `multiply`);
-     *
-     *  // Flip movement velocity if we hit a wall. And dampen it by 10%
-     * const bouncer = Forces.constrainBounce({ width: 1, height: 1 }, 0.9);
-     *
-     * let t = {
-     *  position: Points.random(),
-     *  mass: 0.1
-     * };
-     *
-     * // Apply list of forces, returning a new version of the thing
-     * t = Forces.apply(t,
-     *   gravity,
-     *   wind,
-     *   friction,
-     *   bouncer
-     * );
-     * ```
-     */
-    export const apply: (t: ForceAffected, ...accelForces: readonly ForceKind[]) => ForceAffected;
-    /**
-     * Apples `vector` to acceleration, scaling according to mass, based on the `mass` option.
-     * It returns a function which can later be applied to a thing.
-     *
-     * ```js
-     * import { Forces } from "https://unpkg.com/ixfx/dist/modulation.js"
-     * // Acceleration vector of (0.1, 0), ie moving straight on horizontal axis
-     * const f = Forces.accelerationForce({ x:0.1, y:0 }, `dampen`);
-     *
-     * // Thing to move
-     * let t = { position: ..., acceleration: ... }
-     *
-     * // Apply force
-     * t = f(t);
-     * ```
-     * @param vector
-     * @returns Force function
-     */
-    export const accelerationForce: (vector: Points.Point, mass?: MassApplication) => ForceFn;
-    /**
-     * A force based on the square of the thing's velocity.
-     * It's like {@link velocityForce}, but here the velocity has a bigger impact.
-     *
-     * ```js
-     * const thing = {
-     *  position: { x: 0.5, y:0.5 },
-     *  velocity: { x: 0.001, y:0 }
-     * };
-     * const drag = magnitudeForce(0.1);
-     *
-     * // Apply drag force to thing, returning result
-     * const t = Forces.apply(thing, drag);
-     * ```
-     * @param force Force value
-     * @param mass How to factor in mass
-     * @returns Function that computes force
-     */
-    export const magnitudeForce: (force: number, mass?: MassApplication) => ForceFn;
-    /**
-     * Null force does nothing
-     * @returns A force that does nothing
-     */
-    export const nullForce: (t: ForceAffected) => ForceAffected;
-    /**
-     * Force calculated from velocity of object. Reads velocity and influences acceleration.
-     *
-     * ```js
-     * let t = { position: Points.random(), mass: 0.1 };
-     * const friction = velocityForce(0.1, `dampen`);
-     *
-     * // Apply force, updating position and velocity
-     * t = Forces.apply(t, friction);
-     * ```
-     * @param force Force
-     * @param mass How to factor in mass
-     * @returns Function that computes force
-     */
-    export const velocityForce: (force: number, mass: MassApplication) => ForceFn;
-    /**
-     * Sets angle, angularVelocity and angularAcceleration based on
-     *  angularAcceleration, angularVelocity, angle
-     * @returns
-     */
-    export const angularForce: () => (t: ForceAffected) => Readonly<{
-        angle: number;
-        angularVelocity: number;
-        angularAcceleration: 0;
-        position?: Points.Point | undefined;
-        velocity?: Points.Point | undefined;
-        acceleration?: Points.Point | undefined;
-        mass?: number | undefined;
-    }>;
-    /**
-     * Yields a force function that applies the thing's acceleration.x to its angular acceleration.
-     * @param scaling Use this to scale the accel.x value. Defaults to 20 (ie accel.x*20). Adjust if rotation is too much or too little
-     * @returns
-     */
-    export const angleFromAccelerationForce: (scaling?: number) => (t: ForceAffected) => Readonly<{
-        angularAcceleration: number;
-        position?: Points.Point | undefined;
-        velocity?: Points.Point | undefined;
-        acceleration?: Points.Point | undefined;
-        mass?: number | undefined;
-        angularVelocity?: number | undefined;
-        angle?: number | undefined;
-    }>;
-    /**
-     * Yields a force function that applies the thing's velocity to its angular acceleration.
-     * This will mean it points in the direction of travel.
-     * @param interpolateAmt If provided, the angle will be interpolated toward by this amount. Defaults to 1, no interpolation
-     * @returns
-     */
-    export const angleFromVelocityForce: (interpolateAmt?: number) => (t: ForceAffected) => Readonly<{
-        angle: number;
-        position?: Points.Point | undefined;
-        velocity?: Points.Point | undefined;
-        acceleration?: Points.Point | undefined;
-        mass?: number | undefined;
-        angularAcceleration?: number | undefined;
-        angularVelocity?: number | undefined;
-    }>;
-    /**
-     * Spring force
-     *
-     *  * ```js
-     * // End of spring that moves
-     * let thing = {
-     *   position: { x: 1, y: 0.5 },
-     *   mass: 0.1
-     * };
-     *
-     * // Anchored other end of spring
-     * const pinnedAt = {x: 0.5, y: 0.5};
-     *
-     * // Create force: length of 0.4
-     * const springForce = Forces.springForce(pinnedAt, 0.4);
-     *
-     * continuously(() => {
-     *  // Apply force
-     *  thing = Forces.apply(thing, springForce);
-     * }).start();
-     * ```
-     * [Read more](https://www.joshwcomeau.com/animation/a-friendly-introduction-to-spring-physics/)
-     *
-     * @param pinnedAt Anchored end of the spring
-     * @param restingLength Length of spring-at-rest (default: 0.5)
-     * @param k Spring stiffness (default: 0.0002)
-     * @param damping Damping factor to apply, so spring slows over time. (default: 0.995)
-     * @returns
-     */
-    export const springForce: (pinnedAt: Points.Point, restingLength?: number, k?: number, damping?: number) => (t: ForceAffected) => ForceAffected;
-    /**
-     * Pendulum force options
-     */
-    export type PendulumOpts = {
-        /**
-         * Length of 'string' thing is hanging from. If
-         * undefined, the current length between thing and
-         * pinnedAt is used.
-         */
-        readonly length?: number;
-        /**
-         * Max speed of swing. Slower speed can reach equilibrium faster, since it
-         * might not swing past resting point.
-         * Default 0.001.
-         */
-        readonly speed?: number;
-        /**
-         * Damping, how much to reduce velocity. Default 0.995 (ie 0.5% loss)
-         */
-        readonly damping?: number;
-    };
-    /**
-     * The pendulum force swings something back and forth.
-     *
-     * ```js
-     * // Swinger
-     * let thing = {
-     *   position: { x: 1, y: 0.5 },
-     *   mass: 0.1
-     * };
-     *
-     * // Position thing swings from (middle of screen)
-     * const pinnedAt = {x: 0.5, y: 0.5};
-     *
-     * // Create force: length of 0.4
-     * const pendulumForce = Forces.pendulumForce(pinnedAt, { length: 0.4 });
-     *
-     * continuously(() => {
-     *  // Apply force
-     *  // Returns a new thing with recalculated angularVelocity, angle and position.
-     *  thing = Forces.apply(thing, pendulumForce);
-     * }).start();
-     * ```
-     *
-     * [Read more](https://natureofcode.com/book/chapter-3-oscillation/)
-     *
-     * @param pinnedAt Location to swing from (x:0.5, y:0.5 default)
-     * @param opts Options
-     * @returns
-     */
-    export const pendulumForce: (pinnedAt?: Points.Point, opts?: PendulumOpts) => (t: ForceAffected) => ForceAffected;
-    /**
-     * Compute velocity based on acceleration and current velocity
-     * @param acceleration Acceleration
-     * @param velocity Velocity
-     * @param velocityMax If specified, velocity will be capped at this value
-     * @returns
-     */
-    export const computeVelocity: (acceleration: Points.Point, velocity: Points.Point, velocityMax?: number) => Points.Point;
-    /**
-     * Returns the acceleration to get from `currentPos` to `targetPos`.
-     *
-     * @example Barebones usage:
-     * ```js
-     * const accel = Forces.computeAccelerationToTarget(targetPos, currentPos);
-     * const vel = Forces.computeVelocity(accel, currentVelocity);
-     *
-     * // New position:
-     * const pos = Points.sum(currentPos, vel);
-     * ```
-     *
-     * @example Implementation:
-     * ```js
-     * const direction = Points.subtract(targetPos, currentPos);
-     * const accel = Points.multiply(direction, diminishBy);
-     * ```
-     * @param currentPos Current position
-     * @param targetPos Target position
-     * @param opts Options
-     * @returns
-     */
-    export const computeAccelerationToTarget: (targetPos: Points.Point, currentPos: Points.Point, opts?: TargetOpts) => Points.Point | Readonly<{
-        x: 0;
-        y: 0;
-    }>;
-    /**
-     * Compute a new position based on existing position and velocity vector
-     * @param position Position Current position
-     * @param velocity Velocity vector
-     * @returns Point
-     */
-    export const computePositionFromVelocity: (position: Points.Point, velocity: Points.Point) => Points.Point;
-    /**
-     * Compute a position based on distance and angle from origin
-     * @param distance Distance from origin
-     * @param angleRadians Angle, in radians from origin
-     * @param origin Origin point
-     * @returns Point
-     */
-    export const computePositionFromAngle: (distance: number, angleRadians: number, origin: Points.Point) => Points.Point;
-    /**
-     * A force that orients things according to direction of travel.
-     *
-     * Under the hood, it applies:
-     * * angularForce,
-     * * angleFromAccelerationForce, and
-     * * angleFromVelocityForce
-     * @param interpolationAmt
-     * @returns
-     */
-    export const orientationForce: (interpolationAmt?: number) => ForceFn;
-}
-declare module "modulation/Oscillator" {
-    import * as Timers from "flow/Timer";
-    export type SpringOpts = {
-        /**
-         * Default: 1
-         */
-        readonly mass?: number;
-        /**
-         * Default: 10
-         */
-        readonly damping?: number;
-        /**
-         * Default: 100
-         */
-        readonly stiffness?: number;
-        /**
-         * Default: false
-         */
-        readonly soft?: boolean;
-        /**
-         * Default: 0.1
-         */
-        readonly velocity?: number;
-        /**
-         * How many iterations to wait for spring settling (default: 10)
-         */
-        readonly countdown?: number;
-    };
-    /**
-     * Spring-style oscillation
-     *
-     * ```js
-     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
-     * const spring = Oscillators.spring();
-     *
-     * continuously(() => {
-     *  const v = spring.next().value;
-     *  // Yields values 0...1
-     *  //  undefined is yielded when spring is estimated to have stopped
-     * });
-     * ```
-     *
-     * Parameters to the spring can be provided.
-     * ```js
-     * const spring = Oscillators.spring({
-     *  mass: 5,
-     *  damping: 10
-     *  stiffness: 100
-     * });
-     * ```
-     * @param opts
-     * @param timerOrFreq
-     */
-    export function spring(opts: SpringOpts | undefined, timerOrFreq: Timers.Timer | undefined): Generator<number, void, unknown>;
-    /**
-     * Sine oscillator.
-     *
-     * ```js
-     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
-     *
-     * // Setup
-     * const osc = Oscillators.sine(Timers.frequencyTimer(10));
-     * const osc = Oscillators.sine(0.1);
-     *
-     * // Call whenever a value is needed
-     * const v = osc.next().value;
-     * ```
-     *
-     * @example Saw/tri pinch
-     * ```js
-     * const v = Math.pow(osc.value, 2);
-     * ```
-     *
-     * @example Saw/tri bulge
-     * ```js
-     * const v = Math.pow(osc.value, 0.5);
-     * ```
-     *
-     */
-    export function sine(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
-    /**
-     * Bipolar sine (-1 to 1)
-     * @param timerOrFreq
-     */
-    export function sineBipolar(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
-    /**
-     * Triangle oscillator
-     *
-     * ```js
-     * // Setup
-     * const osc = triangle(Timers.frequencyTimer(0.1));
-     * const osc = triangle(0.1);
-     *
-     * // Call whenver a value is needed
-     * const v = osc.next().value;
-     * ```
-     */
-    export function triangle(timerOrFreq: Timers.Timer | number): Generator<number, void, unknown>;
-    /**
-     * Saw oscillator
-     *
-     * ```js
-     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
-     *
-     * // Setup
-     * const osc = Oscillators.saw(Timers.frequencyTimer(0.1));
-     *
-     * // Or
-     * const osc = Oscillators.saw(0.1);
-     *
-     * // Call whenever a value is needed
-     * const v = osc.next().value;
-     * ```
-     */
-    export function saw(timerOrFreq: Timers.Timer): Generator<number, void, unknown>;
-    /**
-     * Square oscillator
-     *
-     * ```js
-     * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
-     *
-     * // Setup
-     * const osc = Oscillators.square(Timers.frequencyTimer(0.1));
-     * const osc = Oscillators.square(0.1);
-     *
-     * // Call whenever a value is needed
-     * osc.next().value;
-     * ```
-     */
-    export function square(timerOrFreq: Timers.Timer): Generator<0 | 1, void, unknown>;
-}
-declare module "modulation/PingPong" {
-    /**
-     * Continually loops up and down between 0 and 1 by a specified interval.
-     * Looping returns start value, and is inclusive of 0 and 1.
-     *
-     * @example Usage
-     * ```js
-     * import {percentPingPong} from 'https://unpkg.com/ixfx/dist/modulation.js';
-     * for (const v of percentPingPong(0.1)) {
-     *  // v will go up and down. Make sure you have a break somewhere because it is infinite
-     * }
-     * ```
-     *
-     * @example Alternative:
-     * ```js
-     * const pp = pingPongPercent(0.1, 0.5); // Setup generator one time
-     * const v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     *
-     * Because limits are capped to -1 to 1, using large intervals can produce uneven distribution. Eg an interval of 0.8 yields 0, 0.8, 1
-     *
-     * `upper` and `lower` define the percentage range. Eg to ping pong between 40-60%:
-     * ```
-     * const pp = pingPongPercent(0.1, 0.4, 0.6);
-     * ```
-     * @param interval Amount to increment by. Defaults to 10%
-     * @param start Starting point within range. Defaults to 0 using a positive interval or 1 for negative intervals
-     * @param rounding Rounding to apply. This avoids floating-point rounding errors.
-     */
-    export const pingPongPercent: (interval?: number, lower?: number, upper?: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
-    /**
-     * Ping-pongs continually back and forth `start` and `end` with a given `interval`. Use `pingPongPercent` for 0-1 ping-ponging
-     *
-     * In a loop:
-     * ```
-     * for (const c of pingPong(10, 0, 100)) {
-     *  // 0, 10, 20 .. 100, 90, 80, 70 ...
-     * }
-     * ```
-     *
-     * Manual:
-     * ```
-     * const pp = pingPong(10, 0, 100);
-     * let v = pp.next().value; // Call .next().value whenever a new value is needed
-     * ```
-     * @param interval Amount to increment by. Use negative numbers to start counting down
-     * @param lower Lower bound (inclusive)
-     * @param upper Upper bound (inclusive, must be greater than start)
-     * @param start Starting point within bounds (defaults to `lower`)
-     * @param rounding Rounding is off by default. Use say 1000 if interval is a fractional amount to avoid rounding errors.
-     */
-    export const pingPong: (interval: number, lower: number, upper: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
-}
-declare module "modulation/index" {
-    import { RandomSource } from "Random";
-    import * as Easings from "modulation/Easing";
-    import * as Forces from "modulation/Forces";
-    import * as Oscillators from "modulation/Oscillator";
-    export * from "modulation/PingPong";
-    /**
-     * Easings module
-     *
-     * [See the guide](https://clinth.github.io/ixfx-docs/modulation/easing/)
-     *
-     * Overview:
-     * * {@link Easings.time}: Ease by time
-     * * {@link Easings.tick}: Ease by tick
-     * * {@link Easings.get}: Get an easing function by name
-     * * {@link Easings.crossfade}: Mix two synchronised easing functions (a slight shortcut over `mix`)
-     * * {@link Easings.mix}: Mix two easing functions
-     * * {@link Easings.gaussian}: Gaussian distribution (rough bell curve)
-     *
-     * @example Importing
-     * ```js
-     * // If library is stored two directories up under `ixfx/`
-     * import { Easings } from '../../ixfx/dist/modulation.js';
-     * Easings.time(...);
-     *
-     * // Import from web
-     * import { Easings } from 'https://unpkg.com/ixfx/dist/modulation.js'
-     * Easings.time(...);
-     * ```
-     */
-    export { Easings };
-    /**
-     * Envelope
-     */
-    export * from "modulation/Envelope";
-    /**
-     * Forces module can help to compute basic physical forces like gravity, friction, springs etc.
-     *
-     * @example Importing
-     * ```js
-     * // If library is stored two directories up under `ixfx/`
-     * import { Forces } from '../../ixfx/dist/modulation.js';
-     * Forces.attractionForce(...);
-     *
-     * // Import from web
-     * import { Forces } from 'https://unpkg.com/ixfx/dist/modulation.js'
-     * Forces.attractionForce(...);
-     * ```
-     *
-     */
-    export { Forces };
-    /**
-     * Oscillators module has waveshapes for producing values with a specified frequency.
-     *
-     * Overview
-     * * {@link Oscillators.saw}: 'Sawtooth' wave
-     * * {@link Oscillators.sine}: Sine wave
-     * * {@link Oscillators.sineBipolar}: Sine wave with range of -1 to 1
-     * * {@link Oscillators.square}: Square wave
-     * * {@link Oscillators.triangle}: Triangle wave
-     * * {@link Oscillators.spring}: Spring oscillator
-     *
-     * @example On-demand sampling
-     * ```js
-     * // Saw wave with frequency of 0.10hZ
-     * const osc = Oscillators.saw(0.1);
-     *
-     * // Whever we need to sample from the oscillator...
-     * const v = osc.next().value;
-     * ```
-     *
-     * @example Importing
-     * ```js
-     * // If library is stored two directories up under `ixfx/`
-     * import { Oscillators } from '../../ixfx/dist/modulation.js';
-     * Oscillators.saw(...);
-     *
-     * // Import from web
-     * import { Oscillators } from 'https://unpkg.com/ixfx/dist/modulation.js'
-     * Oscillators.saw(...);
-     * ```
-     *
-     */
-    export { Oscillators };
-    export type JitterOpts = {
-        readonly type?: `rel` | `abs`;
-        readonly clamped?: boolean;
-        readonly random?: RandomSource;
-    };
-    /**
-     * Jitters `value` by the absolute `jitter` amount.
-     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1.
-     * Pass `clamped:false` as an option
-     * to allow for arbitary ranges.
-     *
-     * ```js
-     * import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
-     *
-     * // Jitter 0.5 by 10% (absolute)
-     * // yields range of 0.4-0.6
-     * jitter(0.5, 0.1);
-     *
-     * // Jitter 0.5 by 10% (relative, 10% of 0.5)
-     * // yields range of 0.45-0.55
-     * jitter(0.5, 0.1, { type:`rel` });
-     * ```
-     *
-     * You can also opt not to clamp values:
-     * ```js
-     * // Yields range of -1.5 - 1.5
-     * jitter(0.5, 1, { clamped:false });
-     * ```
-     *
-     * A custom source for random numbers can be provided. Eg, use a weighted
-     * random number generator:
-     *
-     * ```js
-     * import { weighted } from 'https://unpkg.com/ixfx/dist/random.js';
-     * jitter(0.5, 0.1, { random: weighted };
-     * ```
-     *
-     * Options
-     * * clamped: If false, `value`s out of percentage range can be used and return value may
-     *    beyond percentage range. True by default
-     * * type: if `rel`, `jitter` is considered to be a percentage relative to `value`
-     *         if `abs`, `jitter` is considered to be an absolute value (default)
-     * @param value Value to jitter
-     * @param jitter Absolute amount to jitter by
-     * @param opts Jitter options
-     * @returns Jittered value
-     */
-    export const jitter: (value: number, jitter: number, opts?: JitterOpts) => number;
-}
-declare module "Numbers" {
-    import { TrackedValueOpts } from "data/TrackedValue";
-    import { Easings } from "modulation/index";
-    /**
-     * Calculates the average of all numbers in an array.
-     * Array items which aren't a valid number are ignored and do not factor into averaging.
-    
-     * @example
-     * ```
-     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
-     *
-     * // Average of a list
-     * const avg = Numbers.average(1, 1.4, 0.9, 0.1);
-     *
-     * // Average of a variable
-     * let data = [100,200];
-     * Numbers.average(...data);
-     * ```
-     *
-     * See also: [Arrays.average](Collections.Arrays.average.html) which takes an array.
-     * @param data Data to average.
-     * @returns Average of array
-     */
-    export const average: (...numbers: readonly number[]) => number;
-    /**
-     * See [Arrays.averageWeighted](Collections.Arrays.averageWeighted.html)
-     * @param weightings
-     * @param numbers
-     * @returns
-     */
-    export const averageWeighted: (weightings: (readonly number[]) | Easings.EasingFn, ...numbers: readonly number[]) => number;
-    /**
-     * Returns the minimum number out of `data`.
-     * Undefined and non-numbers are silently ignored.
-     *
-     * ```js
-     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
-     * Numbers.min(10, 20, 0); // Yields 0
-     * ```
-     * @param data
-     * @returns Minimum number
-     */
-    export const min: (...data: readonly number[]) => number;
-    /**
-     * Returns the maximum number out of `data`.
-     * Undefined and non-numbers are silently ignored.
-     *
-     * ```js
-     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
-     * Numbers.max(10, 20, 0); // Yields 20
-     * ```
-     * @param data
-     * @returns Maximum number
-     */
-    export const max: (...data: readonly number[]) => number;
-    /**
-     * Returns the total of `data`.
-     * Undefined and non-numbers are silently ignored.
-     *
-     * ```js
-     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
-     * Numbers.total(10, 20, 0); // Yields 30
-     * ```
-     * @param data
-     * @returns Total
-     */
-    export const total: (...data: readonly number[]) => number;
-    /**
-     * Returns true if `possibleNumber` is a number and not NaN
-     * @param possibleNumber
-     * @returns
-     */
-    export const isValid: (possibleNumber: number | unknown) => boolean;
-    /**
-     * Alias for [Data.numberTracker](Data.numberTracker.html)
-     */
-    export const tracker: (id?: string, opts?: TrackedValueOpts) => import("data/NumberTracker").NumberTracker;
-    /**
-     * Filters an iterator of values, only yielding
-     * those that are valid numbers
-     *
-     * ```js
-     * import * as Numbers from 'https://unpkg.com/ixfx/dist/numbers.js';
-     *
-     * const data = [true, 10, '5', { x: 5 }];
-     * for (const n of Numbers.filter(data)) {
-     *  // 5
-     * }
-     * ```
-     * @param it
-     */
-    export function filter(it: Iterable<unknown>): Generator<unknown, void, unknown>;
 }
 declare module "io/Codec" {
     /**
@@ -9553,6 +9603,22 @@ declare module "dom/Util" {
      * @returns Observable
      */
     export const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, onResized?: ((args: CanvasResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
+    /**
+     * Given an array of class class names, this will cycle between them each time
+     * it is called.
+     *
+     * Eg, assume `list` is: [ `a`, `b`, `c` ]
+     *
+     * If `el` already has the class `a`, the first time it is called, class `a`
+     * is removed, and `b` added. The next time `b` is swapped for `c`. Once again,
+     * `c` will swap with `a` and so on.
+     *
+     * If `el` is undefined or null, function silently returns.
+     * @param el Element
+     * @param list List of class names
+     * @returns
+     */
+    export const cycleCssClass: (el: HTMLElement, list: readonly string[]) => void;
     /**
      * Sets width/height atributes on the given element according to the size of its parent.
      * @param domQueryOrEl Elememnt to resize

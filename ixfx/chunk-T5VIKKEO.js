@@ -3125,6 +3125,24 @@ var fullSizeCanvas = (domQueryOrEl, onResized, skipCss = false) => {
   update();
   return r;
 };
+var cycleCssClass = (el, list) => {
+  if (el === null || !el)
+    return;
+  if (!Array.isArray(list))
+    throw new Error(`List should be an array of strings`);
+  for (let i = 0; i < list.length; i++) {
+    if (el.classList.contains(list[i])) {
+      el.classList.remove(list[i]);
+      if (i + 1 < list.length) {
+        el.classList.add(list[i + 1]);
+      } else {
+        el.classList.add(list[0]);
+      }
+      return;
+    }
+  }
+  el.classList.add(list[0]);
+};
 var parentSize = (domQueryOrEl, onResized, timeoutMs = 100) => {
   const el = resolveEl(domQueryOrEl);
   const parent = el.parentElement;
@@ -3524,6 +3542,7 @@ export {
   fromEvent,
   fullSizeElement,
   fullSizeCanvas,
+  cycleCssClass,
   parentSize,
   getTranslation,
   parentSizeCanvas,
@@ -3559,4 +3578,4 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-//# sourceMappingURL=chunk-IVFOF4XV.js.map
+//# sourceMappingURL=chunk-T5VIKKEO.js.map

@@ -1,5 +1,5 @@
 import { T as TrackedValueOpts, N as NumberTracker } from './NumberTracker-db98c637.js';
-import { a as EasingFn } from './Easing-57384b54.js';
+import { a as EasingFn } from './Easing-22417695.js';
 
 /**
  * Calculates the average of all numbers in an array.
@@ -90,6 +90,22 @@ declare const tracker: (id?: string, opts?: TrackedValueOpts) => NumberTracker;
  * @param it
  */
 declare function filter(it: Iterable<unknown>): Generator<unknown, void, unknown>;
+/**
+ * Rounds `v` by `every`.
+ *
+ * ```js
+ * quantiseEvery(11, 10);  // 10
+ * quantiseEvery(25, 10);  // 30
+ * quantiseEvery(0, 10);   // 0
+ * quantiseEvery(4, 10);   // 0
+ * quantiseEvery(100, 10); // 100
+ * ```
+ * @param v
+ * @param every
+ * @param middleRoundsUp
+ * @returns
+ */
+declare const quantiseEvery: (v: number, every: number, middleRoundsUp?: boolean) => number;
 
 declare const Numbers_average: typeof average;
 declare const Numbers_averageWeighted: typeof averageWeighted;
@@ -99,6 +115,7 @@ declare const Numbers_total: typeof total;
 declare const Numbers_isValid: typeof isValid;
 declare const Numbers_tracker: typeof tracker;
 declare const Numbers_filter: typeof filter;
+declare const Numbers_quantiseEvery: typeof quantiseEvery;
 declare namespace Numbers {
   export {
     Numbers_average as average,
@@ -109,7 +126,8 @@ declare namespace Numbers {
     Numbers_isValid as isValid,
     Numbers_tracker as tracker,
     Numbers_filter as filter,
+    Numbers_quantiseEvery as quantiseEvery,
   };
 }
 
-export { Numbers as N, average as a, averageWeighted as b, max as c, tracker as d, filter as f, isValid as i, min as m, total as t };
+export { Numbers as N, average as a, averageWeighted as b, max as c, tracker as d, filter as f, isValid as i, min as m, quantiseEvery as q, total as t };

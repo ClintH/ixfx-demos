@@ -23,6 +23,7 @@ import {
   copyToClipboard,
   createAfter,
   createIn,
+  cycleCssClass,
   dataTable,
   dataTableList,
   fromEvent,
@@ -37,7 +38,7 @@ import {
   resolveEl,
   themeChangeObservable,
   windowResize
-} from "./chunk-IVFOF4XV.js";
+} from "./chunk-T5VIKKEO.js";
 import {
   pingPong,
   pingPongPercent
@@ -62,7 +63,7 @@ import {
   repeat,
   ticksElapsedTimer,
   waitFor
-} from "./chunk-CXG65DS7.js";
+} from "./chunk-SOUOIPOL.js";
 import {
   StateMachine
 } from "./chunk-CO3FCBYB.js";
@@ -595,6 +596,7 @@ __export(Point_exports, {
   pipeline: () => pipeline,
   pipelineApply: () => pipelineApply,
   project: () => project,
+  quantiseEvery: () => quantiseEvery2,
   random: () => random,
   reduce: () => reduce,
   relation: () => relation,
@@ -1625,6 +1627,171 @@ var rotate = (line3, amountRadian, origin) => {
   });
 };
 
+// src/Numbers.ts
+var Numbers_exports = {};
+__export(Numbers_exports, {
+  average: () => average2,
+  averageWeighted: () => averageWeighted2,
+  filter: () => filter2,
+  isValid: () => isValid,
+  max: () => max2,
+  min: () => min2,
+  quantiseEvery: () => quantiseEvery,
+  total: () => total2,
+  tracker: () => tracker
+});
+
+// src/data/TrackerBase.ts
+var TrackerBase = class {
+  constructor(id = `TrackerBase`, opts = {}) {
+    this.id = id;
+    __publicField(this, "seenCount");
+    __publicField(this, "storeIntermediate");
+    __publicField(this, "resetAfterSamples");
+    this.storeIntermediate = opts.storeIntermediate ?? false;
+    this.resetAfterSamples = opts.resetAfterSamples ?? -1;
+    this.seenCount = 0;
+  }
+  reset() {
+    this.seenCount = 0;
+    this.onReset();
+  }
+  seen(...p) {
+    if (this.resetAfterSamples > 0 && this.seenCount > this.resetAfterSamples) {
+      this.reset();
+    }
+    this.seenCount += p.length;
+    const t4 = this.seenImpl(p);
+    this.onSeen(t4);
+  }
+  onSeen(_p) {
+  }
+};
+
+// src/data/PrimitiveTracker.ts
+var PrimitiveTracker = class extends TrackerBase {
+  constructor(id, opts) {
+    super(id, opts);
+    __publicField(this, "values");
+    __publicField(this, "timestamps");
+    this.values = [];
+    this.timestamps = [];
+  }
+  get last() {
+    return this.values.at(-1);
+  }
+  get initial() {
+    return this.values.at(0);
+  }
+  get size() {
+    return this.values.length;
+  }
+  get elapsed() {
+    if (this.values.length < 0)
+      throw new Error(`No values seen yet`);
+    return Date.now() - this.timestamps[0];
+  }
+  onReset() {
+    this.values = [];
+    this.timestamps = [];
+  }
+  seenImpl(p) {
+    const last = p.at(-1);
+    const now = Date.now();
+    if (this.storeIntermediate) {
+      this.values.push(...p);
+      this.timestamps.push(...repeat(p.length, () => now));
+    } else if (this.values.length === 0) {
+      this.values.push(last);
+      this.timestamps.push(now);
+    } else if (this.values.length === 2) {
+      this.values[1] = last;
+      this.timestamps[1] = now;
+    } else if (this.values.length === 1) {
+      this.values.push(last);
+      this.timestamps.push(now);
+    }
+    return p;
+  }
+};
+
+// src/data/NumberTracker.ts
+var NumberTracker = class extends PrimitiveTracker {
+  constructor() {
+    super(...arguments);
+    __publicField(this, "total", 0);
+    __publicField(this, "min", Number.MAX_SAFE_INTEGER);
+    __publicField(this, "max", Number.MIN_SAFE_INTEGER);
+  }
+  get avg() {
+    return this.total / this.seenCount;
+  }
+  difference() {
+    if (this.last === void 0)
+      return;
+    if (this.initial === void 0)
+      return;
+    return this.last - this.initial;
+  }
+  relativeDifference() {
+    if (this.last === void 0)
+      return;
+    if (this.initial === void 0)
+      return;
+    return this.last / this.initial;
+  }
+  onReset() {
+    this.min = Number.MAX_SAFE_INTEGER;
+    this.max = Number.MIN_SAFE_INTEGER;
+    this.total = 0;
+    super.onReset();
+  }
+  onSeen(values) {
+    if (values.some((v) => Number.isNaN(v)))
+      throw Error(`Cannot add NaN`);
+    this.total = values.reduce((acc, v) => acc + v, this.total);
+    this.min = Math.min(...values, this.min);
+    this.max = Math.max(...values, this.max);
+  }
+  getMinMaxAvg() {
+    return {
+      min: this.min,
+      max: this.max,
+      avg: this.avg
+    };
+  }
+};
+var numberTracker = (id, opts) => new NumberTracker(id ?? ``, opts ?? {});
+
+// src/Numbers.ts
+var average2 = (...numbers) => average(numbers);
+var averageWeighted2 = (weightings, ...numbers) => averageWeighted(numbers, weightings);
+var min2 = (...data) => min(data);
+var max2 = (...data) => max(data);
+var total2 = (...data) => total(data);
+var isValid = (possibleNumber) => {
+  if (typeof possibleNumber !== `number`)
+    return false;
+  if (Number.isNaN(possibleNumber))
+    return false;
+  return true;
+};
+var tracker = (id, opts) => numberTracker(id, opts);
+function* filter2(it) {
+  for (const v of it) {
+    if (isValid(v))
+      yield v;
+  }
+}
+var quantiseEvery = (v, every, middleRoundsUp = true) => {
+  let div = v / every;
+  const divMod = div % 1;
+  div = Math.floor(div);
+  if (divMod === 0.5 && middleRoundsUp || divMod > 0.5)
+    div++;
+  return every * div;
+};
+
 // src/geometry/Point.ts
 var getPointParam = (a, b) => {
   if (a === void 0)
@@ -2025,6 +2192,10 @@ function divide2(a, b, c, d) {
     });
   }
 }
+var quantiseEvery2 = (pt, snap, middleRoundsUp = true) => Object.freeze({
+  x: quantiseEvery(pt.x, snap.x, middleRoundsUp),
+  y: quantiseEvery(pt.y, snap.y, middleRoundsUp)
+});
 var convexHull = (...pts) => {
   const sorted = [...pts].sort(compareByX);
   if (sorted.length === 1)
@@ -3115,7 +3286,7 @@ var PolyBezier = class {
 };
 
 // node_modules/bezier-js/src/bezier.js
-var { abs: abs3, min: min2, max: max2, cos: cos2, sin: sin2, acos: acos2, sqrt: sqrt2 } = Math;
+var { abs: abs3, min: min3, max: max3, cos: cos2, sin: sin2, acos: acos2, sqrt: sqrt2 } = Math;
 var pi2 = Math.PI;
 var Bezier = class {
   constructor(coords) {
@@ -3729,7 +3900,7 @@ var Bezier = class {
     return this.curveintersects(this.reduce(), curve, curveIntersectionThreshold);
   }
   lineIntersects(line3) {
-    const mx = min2(line3.p1.x, line3.p2.x), my = min2(line3.p1.y, line3.p2.y), MX = max2(line3.p1.x, line3.p2.x), MY = max2(line3.p1.y, line3.p2.y);
+    const mx = min3(line3.p1.x, line3.p2.x), my = min3(line3.p1.y, line3.p2.y), MX = max3(line3.p1.x, line3.p2.x), MY = max3(line3.p1.y, line3.p2.y);
     return utils.roots(this.points, line3).filter((t4) => {
       var p = this.get(t4);
       return utils.between(p.x, mx, MX) && utils.between(p.y, my, MY);
@@ -5800,162 +5971,6 @@ try {
     window.ixfx = { ...window.ixfx, Geometry: { Circles: Circle_exports, Arcs: Arc_exports, Lines: Line_exports, Rects: Rect_exports, Points: Point_exports, Paths: Path_exports, Grids: Grid_exports, Beziers: Bezier_exports, Compound: CompoundPath_exports, Ellipses: Ellipse_exports, Polar: Polar_exports, Shapes: Shape_exports, radiansFromAxisX, radianToDegree, degreeToRadian } };
   }
 } catch {
-}
-
-// src/Numbers.ts
-var Numbers_exports = {};
-__export(Numbers_exports, {
-  average: () => average2,
-  averageWeighted: () => averageWeighted2,
-  filter: () => filter2,
-  isValid: () => isValid,
-  max: () => max3,
-  min: () => min3,
-  total: () => total2,
-  tracker: () => tracker
-});
-
-// src/data/TrackerBase.ts
-var TrackerBase = class {
-  constructor(id = `TrackerBase`, opts = {}) {
-    this.id = id;
-    __publicField(this, "seenCount");
-    __publicField(this, "storeIntermediate");
-    __publicField(this, "resetAfterSamples");
-    this.storeIntermediate = opts.storeIntermediate ?? false;
-    this.resetAfterSamples = opts.resetAfterSamples ?? -1;
-    this.seenCount = 0;
-  }
-  reset() {
-    this.seenCount = 0;
-    this.onReset();
-  }
-  seen(...p) {
-    if (this.resetAfterSamples > 0 && this.seenCount > this.resetAfterSamples) {
-      this.reset();
-    }
-    this.seenCount += p.length;
-    const t4 = this.seenImpl(p);
-    this.onSeen(t4);
-  }
-  onSeen(_p) {
-  }
-};
-
-// src/data/PrimitiveTracker.ts
-var PrimitiveTracker = class extends TrackerBase {
-  constructor(id, opts) {
-    super(id, opts);
-    __publicField(this, "values");
-    __publicField(this, "timestamps");
-    this.values = [];
-    this.timestamps = [];
-  }
-  get last() {
-    return this.values.at(-1);
-  }
-  get initial() {
-    return this.values.at(0);
-  }
-  get size() {
-    return this.values.length;
-  }
-  get elapsed() {
-    if (this.values.length < 0)
-      throw new Error(`No values seen yet`);
-    return Date.now() - this.timestamps[0];
-  }
-  onReset() {
-    this.values = [];
-    this.timestamps = [];
-  }
-  seenImpl(p) {
-    const last = p.at(-1);
-    const now = Date.now();
-    if (this.storeIntermediate) {
-      this.values.push(...p);
-      this.timestamps.push(...repeat(p.length, () => now));
-    } else if (this.values.length === 0) {
-      this.values.push(last);
-      this.timestamps.push(now);
-    } else if (this.values.length === 2) {
-      this.values[1] = last;
-      this.timestamps[1] = now;
-    } else if (this.values.length === 1) {
-      this.values.push(last);
-      this.timestamps.push(now);
-    }
-    return p;
-  }
-};
-
-// src/data/NumberTracker.ts
-var NumberTracker = class extends PrimitiveTracker {
-  constructor() {
-    super(...arguments);
-    __publicField(this, "total", 0);
-    __publicField(this, "min", Number.MAX_SAFE_INTEGER);
-    __publicField(this, "max", Number.MIN_SAFE_INTEGER);
-  }
-  get avg() {
-    return this.total / this.seenCount;
-  }
-  difference() {
-    if (this.last === void 0)
-      return;
-    if (this.initial === void 0)
-      return;
-    return this.last - this.initial;
-  }
-  relativeDifference() {
-    if (this.last === void 0)
-      return;
-    if (this.initial === void 0)
-      return;
-    return this.last / this.initial;
-  }
-  onReset() {
-    this.min = Number.MAX_SAFE_INTEGER;
-    this.max = Number.MIN_SAFE_INTEGER;
-    this.total = 0;
-    super.onReset();
-  }
-  onSeen(values) {
-    if (values.some((v) => Number.isNaN(v)))
-      throw Error(`Cannot add NaN`);
-    this.total = values.reduce((acc, v) => acc + v, this.total);
-    this.min = Math.min(...values, this.min);
-    this.max = Math.max(...values, this.max);
-  }
-  getMinMaxAvg() {
-    return {
-      min: this.min,
-      max: this.max,
-      avg: this.avg
-    };
-  }
-};
-var numberTracker = (id, opts) => new NumberTracker(id ?? ``, opts ?? {});
-
-// src/Numbers.ts
-var average2 = (...numbers) => average(numbers);
-var averageWeighted2 = (weightings, ...numbers) => averageWeighted(numbers, weightings);
-var min3 = (...data) => min(data);
-var max3 = (...data) => max(data);
-var total2 = (...data) => total(data);
-var isValid = (possibleNumber) => {
-  if (typeof possibleNumber !== `number`)
-    return false;
-  if (Number.isNaN(possibleNumber))
-    return false;
-  return true;
-};
-var tracker = (id, opts) => numberTracker(id, opts);
-function* filter2(it) {
-  for (const v of it) {
-    if (isValid(v))
-      yield v;
-  }
 }
 
 // src/io/index.ts
@@ -10625,6 +10640,7 @@ __export(dom_exports, {
   copyToClipboard: () => copyToClipboard,
   createAfter: () => createAfter,
   createIn: () => createIn,
+  cycleCssClass: () => cycleCssClass,
   dataTable: () => dataTable,
   dataTableList: () => dataTableList,
   defaultErrorHandler: () => defaultErrorHandler,
@@ -11754,6 +11770,8 @@ var springRaw = (opts = {}, from2 = 0, to = 1) => {
 function* spring(opts = {}, timerOrFreq) {
   if (timerOrFreq === void 0)
     timerOrFreq = msElapsedTimer();
+  else if (typeof timerOrFreq === `number`)
+    timerOrFreq = frequencyTimer(timerOrFreq);
   const fn = springRaw(opts, 0, 1);
   let doneCountdown = opts.countdown ?? 10;
   while (doneCountdown > 0) {
@@ -12586,6 +12604,19 @@ export {
   mapMutable,
   collections_exports,
   Line_exports,
+  TrackerBase,
+  NumberTracker,
+  numberTracker,
+  average2,
+  averageWeighted2,
+  min2,
+  max2,
+  total2,
+  isValid,
+  tracker,
+  filter2 as filter,
+  quantiseEvery,
+  Numbers_exports,
   Point_exports,
   Arc_exports,
   Bezier_exports,
@@ -12602,18 +12633,6 @@ export {
   radianToDegree,
   radiansFromAxisX,
   geometry_exports,
-  TrackerBase,
-  NumberTracker,
-  numberTracker,
-  average2,
-  averageWeighted2,
-  min3 as min2,
-  max3 as max2,
-  total2,
-  isValid,
-  tracker,
-  filter2 as filter,
-  Numbers_exports,
   Codec,
   StringReceiveBuffer,
   StringWriteBuffer,
@@ -12710,4 +12729,4 @@ export {
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-QQHRFXNI.js.map
+//# sourceMappingURL=chunk-7SZUX4RM.js.map

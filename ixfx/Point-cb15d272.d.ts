@@ -1,4 +1,4 @@
-import { a as RandomSource } from './Arrays-c77e83d7.js';
+import { a as RandomSource } from './Arrays-344418f7.js';
 
 declare type Path = {
     length(): number;
@@ -2107,6 +2107,10 @@ declare function divide(a: Point, x: number, y?: number): Point;
  * @param y2
  */
 declare function divide(x1: number, y1: number, x2?: number, y2?: number): Point;
+declare const quantiseEvery: (pt: Point, snap: Point, middleRoundsUp?: boolean) => Readonly<{
+    x: number;
+    y: number;
+}>;
 /**
  * Simple convex hull impementation. Returns a set of points which
  * enclose `pts`.
@@ -2368,6 +2372,7 @@ declare const Point$1_reduce: typeof reduce;
 declare const Point$1_sum: typeof sum;
 declare const Point$1_multiply: typeof multiply;
 declare const Point$1_divide: typeof divide;
+declare const Point$1_quantiseEvery: typeof quantiseEvery;
 declare const Point$1_convexHull: typeof convexHull;
 declare const Point$1_compare: typeof compare;
 declare const Point$1_compareByX: typeof compareByX;
@@ -2426,6 +2431,7 @@ declare namespace Point$1 {
     Point$1_sum as sum,
     Point$1_multiply as multiply,
     Point$1_divide as divide,
+    Point$1_quantiseEvery as quantiseEvery,
     Point$1_convexHull as convexHull,
     Point$1_compare as compare,
     Point$1_compareByX as compareByX,
