@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>env-set</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 290;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 10%);
+      --fg: hsl(var(--hue), 70%, 90%);
+      --radius: 0.3em;
+    }
+
+    body {
+      background-color: var(--bg);
+      padding: 2em;
+      color: var(--fg);
+      font-family: var(--font);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #slider {
+      border: 2px solid var(--fg);
+      width: 2em;
+      border-radius: 0.4em;
+      padding: var(--radius);
+    }
+
+    #slider>.fill {
+      background-color: var(--fg);
+      height: 10px;
+      width: 100%;
+      position: relative;
+      border-radius: var(--radius);
+    }
+
+    section {
+      display: flex;
+      justify-content: center;
+      height: 50vh;
+    }
+  </style>
+
+  <section>
+
+    <div id="slider">
+      <div class="fill"></div>
+    </div>
+  </section>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
