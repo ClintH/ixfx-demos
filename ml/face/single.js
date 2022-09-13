@@ -210,6 +210,13 @@ const setup = async () => {
     const el = evt.target;
     if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
   });
+
+  // If the floating source window is there, respond to clicking on the header
+  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
+    
+    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+    Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
+  });
 };
 setup();
 

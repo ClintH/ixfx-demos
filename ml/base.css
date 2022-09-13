@@ -1,0 +1,31 @@
+#sourceSection {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+#sourceSection>nav {
+  background-color: black;
+  color: white;
+  padding: 0.2em;
+  cursor: default;
+}
+
+#sourceSection>iframe {
+  aspect-ratio: 640 / 380;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+#sourceSection.s>iframe {
+  width: 30vw;
+}
+
+#sourceSection.m>iframe {
+  width: 60vw;
+}
+
+#sourceSection.l>iframe {
+  width: 100vw;
+}

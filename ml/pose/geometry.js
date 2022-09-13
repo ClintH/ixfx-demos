@@ -1,6 +1,7 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
+import * as Dom from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
   keypointScoreThreshold: 0.4,
@@ -178,6 +179,12 @@ const angleBetweenPoints = (a, b, c) => {
   //return Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(c.y - a.y, c.x - a.x);
 };
 
+// Continually update & redraw
+const loop = () => {
+  update();
+  draw();
+  window.requestAnimationFrame(loop);
+};
 
 const setup = async () => {
   const { remote } = settings;
@@ -192,19 +199,19 @@ const setup = async () => {
     }
   };
 
-  // Continually update & redraw
-  const loop = () => {
-    update();
-    draw();
-    window.requestAnimationFrame(loop);
-  };
-  window.requestAnimationFrame(loop);
-
   document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
     document.getElementById(`sourceSection`)?.remove();
     const el = evt.target;
     if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
   });
+
+  // If the floating source window is there, respond to clicking on the header
+  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
+    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+    Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
+  });
+
+  loop();
 };
 setup();
 

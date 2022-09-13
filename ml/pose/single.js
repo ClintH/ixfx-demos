@@ -190,6 +190,11 @@ const useState = () => {
   draw(ctx, smoothedPose);
 };
 
+const loop = () => {
+  useState();
+  window.requestAnimationFrame(loop);
+};
+
 const setup = async () => {
   const { remote } = settings;
 
@@ -208,18 +213,19 @@ const setup = async () => {
     updateState({ bounds: args.bounds });
   });
 
-  // Loop
-  const loop = () => {
-    useState();
-    window.requestAnimationFrame(loop);
-  };
-  window.requestAnimationFrame(loop);
+  // If the floating source window is there, respond to clicking on the header
+  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
+    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+    Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
+  });
 
   document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
     document.getElementById(`sourceSection`)?.remove();
     const el = evt.target;
     if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
   });
+  window.requestAnimationFrame(loop);
+
 };
 setup();
 

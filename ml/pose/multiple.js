@@ -152,30 +152,45 @@ const useState = () => {
   }
 };
 
+const loop = () => {
+  useState();
+  window.requestAnimationFrame(loop);
+};
+
+const checkExpired = () => {
+  const { data } = state;
+  const toDelete = [];
+  const expireAfter = Date.now() - settings.sourceExpireMs;
+
+  for (const [ key,source ] of data) {
+    if (source.lastUpdate < expireAfter) toDelete.push(key);
+  }
+
+  toDelete.forEach(key => {
+    console.log(`Source expired: ${key}`);
+    data.delete(key);
+  });
+};
+
+const onData = (d) => {
+  if (d.data && Array.isArray(d.data)) {
+    onPoses(d.data, d._from);
+  } else {
+    console.warn(`Got data we did not expect`);
+    console.log(d);
+  }
+};
+
 const setup = async () => {
   const { remote } = settings;
 
   // Listen for data from the remote
-  remote.onData = (d) => {
-    if (d.data && Array.isArray(d.data)) {
-      onPoses(d.data, d._from);
-    } else {
-      console.warn(`Got data we did not expect`);
-      console.log(d);
-    }
-  };
+  remote.onData = onData;
 
   // Keep CANVAS filling the screen
   Dom.fullSizeCanvas(`#canvas`, args => {
     updateState({ bounds: args.bounds });
   });
-
-  // Loop
-  const loop = () => {
-    useState();
-    window.requestAnimationFrame(loop);
-  };
-  window.requestAnimationFrame(loop);
 
   // Close the corner frame
   document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
@@ -184,21 +199,17 @@ const setup = async () => {
     if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
   });
 
+  // If the floating source window is there, respond to clicking on the header
+  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
+    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+    Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
+  });
+
   // Every 10 seconds, check for expired sources
-  setInterval(() => {
-    const { data } = state;
-    const toDelete = [];
-    const expireAfter = Date.now() - settings.sourceExpireMs;
+  setInterval(checkExpired, 10000);
 
-    for (const [ key,source ] of data) {
-      if (source.lastUpdate < expireAfter) toDelete.push(key);
-    }
+  window.requestAnimationFrame(loop);
 
-    toDelete.forEach(key => {
-      console.log(`Source expired: ${key}`);
-      data.delete(key);
-    });
-  }, 10000);
 };
 setup();
 
