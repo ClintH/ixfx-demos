@@ -264,7 +264,7 @@ const setup = () => {
 
       onConnected(true);
 
-      state.espruino = p;
+      updateState({ espruino: p });
 
     } catch (ex) {
       console.error(ex);

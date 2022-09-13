@@ -6,7 +6,8 @@ Controls a DRV2605 haptic driver. This demo only works in Chrome.
 
 ## Getting started
 
-First upload the provided `espruino.js` to your board, which the example assumes is an Espruino Pico. Make sure the haptic board is connected up according to [instructions](http://www.espruino.com/DRV2605).
+1. Make sure the haptic board is connected up according to [instructions](http://www.espruino.com/DRV2605).
+2. Upload the provided `espruino.js` to your board, which the example assumes is an Espruino Pico. Write it to the flash. You should see a 'Hello' message printed out after writing.
 
 Try running some functions in the Espruino IDE's REPL. These are the same functions we'll call from the browser.
 
