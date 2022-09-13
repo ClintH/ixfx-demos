@@ -16,13 +16,7 @@ About ixfx:
 
 ## Getting started
 
-### Editing and running online
-
-* [Stackblitz](http://stackblitz.com/github/clinth/ixfx-demos-light)
-* [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos-light)
-* [Glitch](https://glitch.com/edit/#!/ixfx-demos) (code editing experience not the best)
-
-### Editing and running locally
+### Editing and running locally (recommended)
 
 There are two versions of the demo repository.
 
@@ -31,6 +25,14 @@ There are two versions of the demo repository.
 
 Read more:
 * [Running locally with ixfx-demos](./RUNNING-LOCAL.md)
+* [Accessing sketches remotely](./ACCESSING-REMOTELY.md)
+* [Debugging](./DEBUGGING.md)
+
+### Editing and running online
+
+* [Stackblitz](http://stackblitz.com/github/clinth/ixfx-demos-light)
+* [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos-light)
+* [Glitch](https://glitch.com/edit/#!/ixfx-demos) (code editing experience not the best)
 
 
 
