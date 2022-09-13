@@ -49,10 +49,12 @@ const settings = Object.freeze({
       facingMode: `user`
     },
   },
+  view: searchParams.get(`view`),
   remote: new Remote(),
   playbackRateMs: 50,
   // Visual settings
   lineWidth: 5,
+  displayThreshold: 0.5, // Don't show predictions below this
   pointRadius: 10,
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
 });
@@ -177,12 +179,12 @@ async function createDetector() {
  */
 function postCaptureDraw(ctx, width, height) {
   const { predictions } = state;
-
   ctx.font = `12pt ${settings.labelFont}`;
   ctx.lineWidth = 3;
 
   // Draw each prediction bounding box
   predictions.forEach(p => {
+    if (p.score < settings.displayThreshold) return;
     // Use colour we've associated with the prediction class
     const hue = getClassHue(p.class);
     ctx.fillStyle = ctx.strokeStyle = `hsla(${hue}, 100%, 40%, 0.8)`;
@@ -193,10 +195,9 @@ function postCaptureDraw(ctx, width, height) {
     let h = p.bbox[3];
     ctx.strokeRect(x, y, w, h);
     ctx.textBaseline = `top`;
-    ctx.fillText(`${p.class} (${Math.round(p.score*100)}%)`, x + 2, y + 2);
+    ctx.fillText(`${p.class} (${Math.round(p.score*100)}%)`, x + 4, y + 4);
   });
 }
-
 
 /**
  * Find a camera by its label
@@ -208,19 +209,20 @@ const selectCamera = async (find) => {
   const devices = await navigator.mediaDevices.enumerateDevices();
   for (const d of devices) {
     if (d.kind !== `videoinput`) continue;
+    console.log(d.label);
     if (d.label.toLocaleLowerCase().indexOf(find) >= 0) {
+      delete settings.frameProcessorOpts.cameraConstraints.facingMode;
       settings.frameProcessorOpts.cameraConstraints.deviceId = d.deviceId;
       return true;
     }
   }
-  console.log(`Could not find camera matching: ${find}`);
+  console.log(`Could not find camera matching: '${find}'`);
   return false;
 };
 
 const setup = async () => {
   // Eg: choose a specific camera
-  //await selectCamera(`logitech`);
-
+  // await selectCamera(`camera2 0, facing back`);
   await CommonSource.setup(onFrame, onPlayback, settings.frameProcessorOpts, settings.playbackRateMs);
   CommonSource.status(`Loading detector...`);
 
@@ -240,6 +242,11 @@ const setup = async () => {
     if (el === null) return;
     /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
   });
+
+  // If running in 'min' view mode, hide header
+  if (settings.view === `min`) {
+    document.querySelector(`.header`)?.classList.add(`hidden`);
+  }
 };
 setup();
 

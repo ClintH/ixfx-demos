@@ -35,6 +35,7 @@ const settings = Object.freeze({
     },
   },
   remote: new Remote(),
+  view: searchParams.get(`view`),
   playbackRateMs: 50,
   // Visual settings
   lineWidth: 5,
@@ -210,6 +211,11 @@ const setup = async () => {
     if (el === null) return;
     /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
   });
+
+  // If running in 'min' view mode, hide header
+  if (settings.view === `min`) {
+    document.querySelector(`.header`)?.classList.add(`hidden`);
+  }
 };
 setup();
 

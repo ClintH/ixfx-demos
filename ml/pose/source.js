@@ -62,6 +62,7 @@ const settings = Object.freeze({
   remote: new Remote(),
   playbackRateMs: 50,
   // Visual settings
+  view: searchParams.get(`view`),
   lineWidth: 5,
   pointRadius: 10,
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
@@ -313,6 +314,11 @@ const setup = async () => {
     if (el === null) return;
     /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
   });
+
+  // If running in 'min' view mode, hide header
+  if (settings.view === `min`) {
+    document.querySelector(`.header`)?.classList.add(`hidden`);
+  }
 };
 setup();
 
