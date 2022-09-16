@@ -15,7 +15,7 @@
  * rtpCancel()
  *  Stops a running RTP sequence
  * 
- * sequence(steps)
+ * setSequence(steps)
  *  This uses the DRV2605's in-built 8-step sequencer. Steps is an
  *  array of numeric indexes or string effects. Use start() to begin.
  * 
@@ -88,7 +88,7 @@ function rtpMode(powers, durations) {
 }
 
 // Sequence some steps
-function sequence(steps) {
+function setSequence(steps) {
   if (state !== STATE_READY) throw new Error(`Not in STATE_READY`);
 
   hap.setSequence(steps);

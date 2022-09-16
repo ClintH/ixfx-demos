@@ -7,12 +7,20 @@ Controls a DRV2605 haptic driver. This demo only works in Chrome.
   ([online version](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-drv2605/))
 - [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
 
-## Getting started
+This demo (and the playground) expect the provided `espruino.js` to be flashed on to the Pico beforehand using the Espruino IDE. In doing this, an [additional code module](http://www.espruino.com/DRV2605) is automatically pulled in. This module is a 'driver' that does the low-level communication over I2C to the DRV2605. The DRV2605 in turn is a 'driver' for the motor.
 
-1. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided
-   `espruino.js` to your board (assumed to be a Espruino Pico)
-2. Make sure the haptic board is connected up according to the
-   [instructions](http://www.espruino.com/DRV2605).
+Remember that the haptic motors are not designed to run for long periods of time. They are meant for periodic bursts.
+
+# Getting started
+
+## One-time setup
+
+1. Ensure your Espruino Pico is not connected to power or your computer.
+2. Connect the DRV2605 haptic board according to the instructions below.
+3. Connect your motor to the board.
+4. Plug your Pico into your computer.
+5. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided
+   `espruino.js` to your Espruino Pico. Make sure you choose 'Flash' not 'RAM'.
 
 Wiring for an Espruino Pico:
 
@@ -20,6 +28,11 @@ Wiring for an Espruino Pico:
 - DRV2605 VIN -> Pico 3.3V
 - DRV2605 SCL -> Pico B6
 - DRV2605 SDA -> Pico B7
+- DRV3605 IN (unconnected)
+
+![](./Pico-DRV2605L.png)
+
+## Manual control
 
 Try running some of the functions below in the Espruino IDE's REPL. These are
 the same functions we'll call from the browser.
@@ -49,18 +62,28 @@ For the endurance of the motor, duration of each step is capped to 1000ms. Call
 `rtpCancel()` to cancel a long-running sequence. Whilst the RTP sequence is
 running, it's not possible to trigger other effects.
 
-## From the browser
+To use the DRV205's seven-step effect sequencer:
+
+```js
+// Sequence effects 12, 4, 10
+setSequence([12, 4, 10]);
+start(); // Initiate
+```
+
+# From the browser
 
 It's necessary to connect to the Espruino via user interaction, in this case
 clicking a button. Using
 [ixfx's Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html),
 we invoke functions declared by `espruino.js`.
 
-For example, invoke `trigger` on the Espruino, giving it the argument `2`.
+For example, invoke `trigger` on the Espruino, giving it the argument `2` to play effect #2.
 
 ```js
 espruino.write(`trigger(2)\n`);
 ```
+
+The provided `espruino.js` file defines the functions that we call from the browser. It also does a little bit of housekeeping to make life easier. For timing-sensitive operations you may want add functions which are then invoked from the browser.
 
 ## Effects
 
@@ -73,7 +96,7 @@ for (let i = 0; i < hap.EFFECTS.length; i++) {
 }
 ```
 
-Or here they are...
+Here they are...
 
 1. strong click 100%
 2. strong click 60%

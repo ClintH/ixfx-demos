@@ -59,12 +59,12 @@ const effects = [
 const settings = Object.freeze({
   effects,
   durationLimit: 500,
-  selEffectsEl: document.getElementById(`selEffects`),
-  seqArrayEl: document.getElementById(`seqArray`),
-  txtEnvEl: /** @type {HTMLInputElement|null} */(document.getElementById(`txtEnv`)),
-  envArraysEl: document.getElementById(`envArrays`),
-  numEnvResolutionEl: document.getElementById(`numEnvResolution`),
-  btnEnvSendEl: /** @type {HTMLButtonElement|null} */(document.getElementById(`btnEnvSend`))
+  selEffectsEl: /** @type HTMLSelectElement */(document.getElementById(`selEffects`)),
+  seqArrayEl: /** @type HTMLSelectElement */(document.getElementById(`seqArray`)),
+  txtEnvEl: /** @type HTMLInputElement */(document.getElementById(`txtEnv`)),
+  envArraysEl: /** @type HTMLElement */(document.getElementById(`envArrays`)),
+  numEnvResolutionEl: /** @type HTMLInputElement */(document.getElementById(`numEnvResolution`)),
+  btnEnvSendEl: /** @type HTMLButtonElement */(document.getElementById(`btnEnvSend`))
 });
 
 // Keep track of Espruino instance
@@ -135,7 +135,7 @@ const setupSequencer = () => {
 
     if (dirty) {
       // Call sequence(steps) on the Espruino
-      espruino.write(`sequence(${JSON.stringify(getSeq())}\n)`);
+      espruino.write(`setSequence(${JSON.stringify(getSeq())}\n)`);
       dirty = false;
     }
 
