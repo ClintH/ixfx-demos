@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>midi playground</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 214;
+    --bg: hsl(var(--hue) 64% 87%);
+    --fg: hsl(var(--hue) 100% 9%);
+    --padding: 0.3em;
+  }
+
+
+  html,
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  #last {
+    font-family: var(--mono-font);
+  }
+
+  #log {
+    height: 10em;
+    font-family: var(--mono-font);
+  }
+</style>
+
+<body>
+  <h1>MIDI events</h1>
+  <p>This playground shows MIDI.</p>
+  <label for="device">Device
+    <select id="device">
+      <option value="all">Omni</option>
+    </select>
+  </label>
+
+  <label for="evKeydown">keydown</label>
+  <input type="checkbox" checked id="evKeydown">
+
+  <label for="evKeyup">keyup</label>
+  <input type="checkbox" checked id="evKeyup">
+
+  <label for="evKeypress">keypress</label>
+  <input type="checkbox" checked id="evKeypress">
+
+  <section>
+    <div>
+      <h2>Last event</h2>
+      <div id="last"></div>
+    </div>
+    <div>
+      <h2>Log</h2>
+      <button id="btnLogClear">Clear</button>
+      <div id="log"></div>
+    </div>
+  </section>
+
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>

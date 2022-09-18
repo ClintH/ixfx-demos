@@ -21,6 +21,17 @@ Remember that the haptic motors are not designed to run for long periods of time
 4. Plug your Pico into your computer.
 5. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided
    `espruino.js` to your Espruino Pico. Make sure you choose 'Flash', not 'RAM'. You should see the message "Hello from the DRV2605 script!" printed out in the IDE.
+6. Try this simple sketch in the Espruino IDE to verify it works
+
+```js
+I2C1.setup({scl: B6, sda: B7 });
+var hap = require('DRV2605').connect(I2C1);
+// Trigger effect #5
+hap.trigger(6);
+
+// Trigger by name
+hap.trigger('sharp click 30%');
+```
 
 Wiring for an Espruino Pico:
 
