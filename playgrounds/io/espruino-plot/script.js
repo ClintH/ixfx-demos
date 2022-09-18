@@ -248,7 +248,6 @@ function updateState (s) {
   });
 
   if (s.p) {
-    console.log(`connected`);
     if (prevEspruino) {
       prevEspruino.removeEventListener(`change`, onEspruinoChange);
       prevEspruino.removeEventListener(`data`, onData);
