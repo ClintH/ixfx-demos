@@ -20,7 +20,7 @@ Remember that the haptic motors are not designed to run for long periods of time
 3. Connect your motor to the board.
 4. Plug your Pico into your computer.
 5. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided
-   `espruino.js` to your Espruino Pico. Make sure you choose 'Flash' not 'RAM'.
+   `espruino.js` to your Espruino Pico. Make sure you choose 'Flash', not 'RAM'. You should see the message "Hello from the DRV2605 script!" printed out in the IDE.
 
 Wiring for an Espruino Pico:
 
@@ -28,7 +28,7 @@ Wiring for an Espruino Pico:
 - DRV2605 VIN -> Pico 3.3V
 - DRV2605 SCL -> Pico B6
 - DRV2605 SDA -> Pico B7
-- DRV3605 IN (unconnected)
+- DRV2605 IN (unconnected)
 
 ![](./Pico-DRV2605L.png)
 
@@ -85,7 +85,7 @@ espruino.write(`trigger(2)\n`);
 
 The provided `espruino.js` file defines the functions that we call from the browser. It also does a little bit of housekeeping to make life easier. For timing-sensitive operations you may want add functions which are then invoked from the browser.
 
-## Effects
+# Effects
 
 After uploading `espruino.js`, you can list all available effects by pasting
 this into the Espruino IDE's REPL:
