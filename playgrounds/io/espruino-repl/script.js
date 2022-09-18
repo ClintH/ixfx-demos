@@ -20,7 +20,9 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  /** @type {Espruino.EspruinoDevice|undefined} */
+  /** @type {'puck'|'pico'} */
+  board: `puck`,
+  /** @type Espruino.EspruinoDevice|undefined */
   espruino: undefined,
   history: stackMutable(),
   /** @type {number} */
@@ -74,9 +76,10 @@ const send = async (what) => {
   log.log(`> ${what}`)?.classList.add(`sent`);
 
   try {
-    const result = await espruino.eval(what, { timeoutMs: 1000, assumeExclusive: true });
+    const result = await espruino.eval(what, { timeoutMs: 2000, assumeExclusive: true, debug: false });
     log.log(`< ${result}`)?.classList.add(`recv`);
   } catch (ex) {
+    console.log(ex);
     log.error(ex);
   }
   inputSel();
@@ -85,7 +88,7 @@ const send = async (what) => {
 document.getElementById(`btnDemo`)?.addEventListener(`click`, async () => {
   const { log } = settings;
   const { espruino } = state;
-  const demos = `
+  const demosPuck = `
   // https://www.espruino.com/Puck.js
   // LED on/off
   LED1.set()
@@ -101,19 +104,34 @@ document.getElementById(`btnDemo`)?.addEventListener(`click`, async () => {
   // Read temperature
   E.getTemperature()`;
 
+  const demosPico = `
+  // http://www.espruino.com/Pico
+  // LED on/off
+  LED1.set()
+  LED1.reset()
+  // Read analog pin 5
+  analogRead(A5)
+  // Read button state
+  digitalRead(BTN)
+  `;
+
+  const demos = state.board === `pico` ? demosPico : demosPuck;
+
   const connected = !(espruino === undefined || !espruino.isConnected);
   if (!connected) {
     log.log(`// Connect to an Espruino to run this for real`);
   }
 
   await forEachAsync(demos.trim().split(`\n`), async (demo) => {
+    if (!demo) return;
     demo = demo.trim();
     if (demo.startsWith(`//`) || (espruino === undefined || !espruino.isConnected)) {
-      log.log(demo).classList.add(`meta`);
+      const el = log.log(demo);
+      el?.classList.add(`meta`);
     } else {
       await send(demo);
     }
-    return true;
+    return;
   }, connected ? 1000 : 400);
 });
 
@@ -128,26 +146,26 @@ document.getElementById(`btnDisconnect`)?.addEventListener(`click`, () => {
 document.getElementById(`btnConnect`)?.addEventListener(`click`, async () => {
   const { log } = settings;
 
-  try {
-    // Connect to a generic Espruino
-    const espruino = await Espruino.connectBle();
-    updateState({
-      espruino
-    });
+  const boardSel = /** @type HTMLInputElement */(document.getElementById(`board`)).value;
+  if (boardSel === `pico` || boardSel === `puck`) {
+    updateState({ board: boardSel });
+    localStorage.setItem(`board`, boardSel);
+  }
 
-    espruino.addEventListener(`change`, e => {
-      log.log(`State: ${e.newState}`)?.classList.add(`meta`);
-      if (e.newState === `connected`) {
-        setDisconnected(false);
-      } else {
-        setDisconnected(true);
-      }
-    });
-    setDisconnected(false);
+  try {
+    if (state.board === `puck`) {
+      const espruino = await Espruino.connectBle();
+      updateState({ espruino  });
+    } else if (state.board === `pico`) {
+      const espruino = await Espruino.serial();
+      updateState({ espruino });
+    }
+
   } catch (ex) {
     log.error(ex);
   }
 });
+
 
 const setup = () => {
   const { txtInput } = settings;
@@ -163,7 +181,7 @@ const setup = () => {
         historyIndex = Math.min(history.data.length - 1, historyIndex + 1);
       }
       updateState({ historyIndex });
-      console.log(historyIndex + `. ` + history.data[historyIndex]);
+      //console.log(historyIndex + `. ` + history.data[historyIndex]);
       inputSet(history.data[historyIndex]);
       evt.preventDefault();
     } else if (evt.key === `Enter`) {
@@ -171,16 +189,42 @@ const setup = () => {
       evt.preventDefault();
     }
   });
+
+  const defaultBoard = localStorage.getItem(`board`);
+  if (defaultBoard === `pico` || defaultBoard === `puck`) {
+    /** @type HTMLSelectElement */(document.getElementById(`board`)).value = defaultBoard;
+  }
 };
 setup();
 
+function onEspruinoChange(e) {
+  const { log } = settings;
+
+  log.log(`State: ${e.newState}`)?.classList.add(`meta`);
+  if (e.newState === `connected`) {
+    setDisconnected(false);
+  } else {
+    setDisconnected(true);
+  }
+}
 /**
  * Update state
  * @param {Partial<state>} s 
  */
 function updateState (s) {
+  const prevEspruino = state.espruino;
+
   state = Object.freeze({
     ...state,
     ...s
   });
+
+  if (s.espruino) {
+    if (prevEspruino) {
+      prevEspruino.removeEventListener(`change`, onEspruinoChange);
+    }
+
+    s.espruino.addEventListener(`change`, onEspruinoChange);
+    setDisconnected(false);
+  }
 }
