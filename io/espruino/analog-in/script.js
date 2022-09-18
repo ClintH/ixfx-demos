@@ -16,7 +16,7 @@ const scripts = Object.freeze({
     const data = [analogRead(A0), analogRead(A3), analogRead(A5)];
     USB.println(JSON.stringify(data));
   }
-  setInterval(sampleData, 2000)`
+  setInterval(sampleData, 2000);`
 });
 
 const settings = Object.freeze({
