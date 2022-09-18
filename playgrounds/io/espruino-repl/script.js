@@ -193,6 +193,8 @@ const setup = () => {
   const defaultBoard = localStorage.getItem(`board`);
   if (defaultBoard === `pico` || defaultBoard === `puck`) {
     /** @type HTMLSelectElement */(document.getElementById(`board`)).value = defaultBoard;
+    updateState({ board: defaultBoard });
+
   }
 };
 setup();

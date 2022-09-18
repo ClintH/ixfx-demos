@@ -6,17 +6,21 @@ import snarkdown from './snarkdown.es.js';
 import * as Dom from '../../../ixfx/dom.js';
 import { Plot2, Colour } from '../../../ixfx/visual.js';
 
+//eslint-disable-next-line no-undef
 Split([ `#editor`, `#data` ], {
   sizes: [ 50, 50 ],
   direction: `horizontal`
 });
 
+//eslint-disable-next-line no-undef
 Split([ `#plot`, `#stream` ], {
   sizes: [ 50, 50 ],
   direction: `vertical`
 });
 
 let state = Object.freeze({
+  /** @type {'puck'|'pico'} */
+  board: `puck`,
   /** @type {boolean} */
   jsonWarning: false,
   /** @type {boolean} */
@@ -28,6 +32,16 @@ let state = Object.freeze({
 });
 
 const settings = Object.freeze({
+  puckIntro: `
+Puck.accelOn(12.5);
+Puck.on('accel', (a) => {
+  Bluetooth.println(JSON.stringify(a));
+});`,
+  picoIntro: `
+setInterval(() => {
+  const data = { x: analogRead(A5) };
+  USB.println(JSON.stringify(data));
+}, 500);`,
   log: Dom.log(`#log`, {
     capacity: 50,
     timestamp: true
@@ -42,12 +56,44 @@ const settings = Object.freeze({
 });
 
 const onConnected = (connected) => {
+  const { plot } = settings;
+
   if (connected) {
+    plot.clear();
+    plot.frozen = false;
     document.getElementById(`btnConnect`)?.setAttribute(`disabled`, `true`);
     document.getElementById(`btnSend`)?.removeAttribute(`disabled`);
   } else {
     document.getElementById(`btnSend`)?.setAttribute(`disabled`, `true`);
     document.getElementById(`btnConnect`)?.removeAttribute(`disabled`);
+  }
+};
+
+const onData = (evt) => {
+  const { log, plot } = settings;
+
+  const data = evt.data.trim(); // Remove line breaks etc
+
+  if (!data.startsWith(`{`) || !data.endsWith(`}`)) {
+    if (!state.jsonWarning) {
+      console.warn(`Plotter expects JSON response`);
+      updateState({ jsonWarning: true });
+    } else {
+      updateState({ jsonWarning: true });
+    }
+    log.log(data);
+    return;
+  }
+
+  try {
+    const d = JSON.parse(data);
+    if (!state.frozen) {
+      log.log(data);
+      plot.plot(d);
+      plot.update();
+    }
+  } catch (ex) {
+    console.warn(ex);
   }
 };
 
@@ -62,50 +108,26 @@ const logWelcome = () => {
 const connect = async () => {
   const { log, plot } = settings;
   let p;
+
+  const boardSel = /** @type HTMLInputElement */(document.getElementById(`board`)).value;
+  if (boardSel === `pico` || boardSel === `puck`) {
+    updateState({ board: boardSel });
+    localStorage.setItem(`board`, boardSel);
+  }
+
   try {
-    // Connect to Puck
-    p = await Espruino.puck();
-    updateState({ p });
-    const onData = (evt) => {
-      const data = evt.data.trim(); // Remove line breaks etc
+    if (state.board === `puck`) {
+      const p = await Espruino.connectBle();
+      updateState({ p  });
+    } else if (state.board === `pico`) {
+      const p = await Espruino.serial();
+      updateState({ p });
+    }
 
-      if (!data.startsWith(`{`) || !data.endsWith(`}`)) {
-        if (!state.jsonWarning) {
-          console.warn(`Plotter expects JSON response`);
-          updateState({ jsonWarning: true });
-        } else {
-          updateState({ jsonWarning: true });
-        }
-        log.log(data);
-        return;
-      }
-
-      try {
-        const d = JSON.parse(data);
-        if (!state.frozen) {
-          log.log(data);
-          plot.plot(d);
-          plot.update();
-        }
-      } catch (ex) {
-        console.warn(ex);
-      }
-    };
-    // Listen for events
-    p.addEventListener(`change`, evt => {
-      log.log(`${evt.priorState} -> ${evt.newState}`);
-      onConnected(evt.newState === `connected`);
-    });
-
-    p.addEventListener(`data`, onData);
     if (!state.clearedWelcome) {
       log.clear();
       updateState({ clearedWelcome: true });
     }
-    plot.clear();
-    plot.frozen = false;
-    if (p.isConnected) onConnected(true);
-
   } catch (ex) {
     console.error(ex);
   }
@@ -119,13 +141,13 @@ const send = () => {
 
   // @ts-ignore
   const code = txtCode.value.trim();
-  const codeWithSuffix = code + `NRF.on('disconnect',()=>reset());`;
+  const codeWithSuffix = code + state.board === `puck` ? `NRF.on('disconnect',()=>reset());` : ``;
   console.log(code);
 
   try {
     plot.clear();
     p.writeScript(codeWithSuffix);
-    localStorage.setItem(`last`, code);
+    localStorage.setItem(`last-${state.board}`, code);
   } catch (ex) {
     log.error(ex);
   }
@@ -134,13 +156,18 @@ const send = () => {
 const setup = () => {
   const { log, plot, txtCode, dlgHelp } = settings;
 
+  const boardSelEl = /** @type HTMLSelectElement */(document.getElementById(`board`));
+  const defaultBoard = localStorage.getItem(`board`);
+  if (defaultBoard === `pico` || defaultBoard === `puck`) {
+    boardSelEl.value = defaultBoard;
+    updateState({ board: defaultBoard });
+  }
+
   // Setup plotter
   plot.axisX.visible = false;
   plot.axisY.visible = false;
 
-  // Show last code
-  const lastCode = localStorage.getItem(`last`);
-  if (lastCode !== null) txtCode.value = lastCode;
+
 
   // Setup UI
   Dom.Forms.textAreaKeyboard(txtCode);
@@ -186,18 +213,62 @@ const setup = () => {
   onConnected(false);
 
   logWelcome();
+  
+  boardSelEl.addEventListener(`change`, evt => {
+    updateInitialCode();
+  });
 };
 setup();
+updateInitialCode();
+
+function updateInitialCode() {
+  const {  txtCode } = settings;
+
+  const boardSelEl = /** @type HTMLSelectElement */(document.getElementById(`board`));
+
+  const initialCode = boardSelEl.value === `pico` ? settings.picoIntro : settings.puckIntro;
+  
+  // Show last code
+  const lastCode = localStorage.getItem(`last-${state.board}`);
+  if (lastCode === null) {
+    txtCode.value = initialCode.trim();
+  } else {
+    txtCode.value = lastCode;
+  }
+}
 
 /**
  * Update state
  * @param {Partial<state>} s 
  */
 function updateState (s) {
+  const prevEspruino = state.p;
+
   state = Object.freeze({
     ...state,
     ...s
   });
+
+  if (s.p) {
+    if (prevEspruino) {
+      prevEspruino.removeEventListener(`change`, onEspruinoChange);
+      prevEspruino.removeEventListener(`data`, onData);
+
+    }
+
+    // Listen for events
+    s.p.addEventListener(`change`, onEspruinoChange);
+    s.p.addEventListener(`data`, onData);
+
+    if (s.p.isConnected) onConnected(true);
+
+  }
+}
+
+function onEspruinoChange(evt) {
+  const { log } = settings;
+  log.log(`${evt.priorState} -> ${evt.newState}`);
+  onConnected(evt.newState === `connected`);
 }
 
 // Test

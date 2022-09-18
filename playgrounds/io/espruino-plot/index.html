@@ -21,7 +21,13 @@
 
     </dialog>
     <header>
-      <div class="title">espruino plot</div>
+      <div class="title">espruino plot
+
+        <select id="board">
+          <option value="puck">Puck.js (BLE)</option>
+          <option value="pico">Pico (Serial)</option>
+        </select>
+      </div>
       <div class="toolbar">
         <button id="btnHelp">Help</button>
         <button id="btnConnect">Connect</button>
