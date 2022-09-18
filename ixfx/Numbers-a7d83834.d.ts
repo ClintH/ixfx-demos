@@ -1,5 +1,5 @@
 import { T as TrackedValueOpts, N as NumberTracker } from './NumberTracker-db98c637.js';
-import { a as EasingFn } from './Easing-22417695.js';
+import { a as EasingFn } from './Easing-4724dd5c.js';
 
 /**
  * Calculates the average of all numbers in an array.

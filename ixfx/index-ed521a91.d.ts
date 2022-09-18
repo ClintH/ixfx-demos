@@ -3,7 +3,7 @@ import { a as StateChangeEvent, b as StateMachine } from './StateMachine-d120065
 import { Q as QueueMutable } from './Interfaces-2d05741a.js';
 import { C as Continuously } from './index-0f9db2f2.js';
 import { N as NumberTracker } from './NumberTracker-db98c637.js';
-import { a as Point, e as Rect } from './Point-cb15d272.js';
+import { a as Point, e as Rect } from './Point-b1d54f91.js';
 import { M as ManualCapturer } from './Video-d6432a0e.js';
 
 /**
@@ -35,6 +35,7 @@ declare class StringReceiveBuffer {
     buffer: string;
     stream: WritableStream<string> | undefined;
     constructor(onData: (data: string) => void, separator?: string);
+    close(): Promise<void>;
     clear(): void;
     writable(): WritableStream<string>;
     private createWritable;
@@ -51,6 +52,7 @@ declare class StringWriteBuffer {
     intervalMs: number;
     stream: WritableStream<string> | undefined;
     constructor(onData: (data: string) => Promise<void>, chunkSize?: number);
+    close(): Promise<void>;
     clear(): void;
     writable(): WritableStream<string>;
     private createWritable;
@@ -147,10 +149,12 @@ declare class EspruinoBleDevice extends NordicBleDevice {
      * Options:
      *  timeoutMs: Timeout for execution. 5 seconds by default
      *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+     *  debug: If true, execution is traced via `warn` callback
      * @param code Code to run on the Espruino.
      * @param opts Options
+     * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
      */
-    eval(code: string, opts?: EvalOpts): Promise<string>;
+    eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
 }
 
 /**
@@ -214,7 +218,7 @@ declare abstract class JsonDevice extends SimpleEventEmitter<JsonDeviceEvents> {
      * @param txt
      */
     protected abstract writeInternal(txt: string): void;
-    close(): void;
+    close(): Promise<void>;
     /**
      * Must change state
      */
@@ -276,6 +280,7 @@ declare class Device extends JsonDevice {
     private config;
     port: SerialPort | undefined;
     tx: WritableStreamDefaultWriter<string> | undefined;
+    abort: AbortController;
     baudRate: number;
     constructor(config?: SerialOpts);
     /**
@@ -311,7 +316,7 @@ declare class EspruinoSerialDevice extends Device {
     evalTimeoutMs: number;
     evalReplyBluetooth: boolean;
     constructor(opts?: EspruinoSerialDeviceOpts);
-    disconnect(): void;
+    disconnect(): Promise<void>;
     /**
      * Writes a script to Espruino.
      *
@@ -351,11 +356,13 @@ declare class EspruinoSerialDevice extends Device {
      *
      * Options:
      *  timeoutMs: Timeout for execution. 5 seconds by default
-     *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+     *  assumeExclusive: If true, eval assumes all replies from controller are in response to eval. True by default
+     *  debug: If true, execution is traced via `warn` callback
      * @param code Code to run on the Espruino.
      * @param opts Options
+     * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
      */
-    eval(code: string, opts?: EvalOpts): Promise<string>;
+    eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
 }
 
 declare type DataEvent = {
@@ -395,6 +402,10 @@ declare type EvalOpts = {
      * is a response to the eval
      */
     readonly assumeExclusive?: boolean;
+    /**
+     * If true, executed code is traced
+     */
+    readonly debug?: boolean;
 };
 declare type EspruinoBleOpts = {
     /**
@@ -514,12 +525,98 @@ declare const serial: (opts?: {
  * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
  */
 declare const connectBle: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
+/**
+ * EspruinoDevice
+ *
+ * This base interface is implemented by {@link EspruinoBleDevice} and {@link EspruinoSerialDevice}.
+ */
 interface EspruinoDevice extends ISimpleEventEmitter<Events> {
+    /**
+   * Sends some code to be executed on the Espruino. The result
+   * is packaged into JSON and sent back to your code. An exception is
+   * thrown if code can't be executed for some reason.
+   *
+   * ```js
+   * const sum = await e.eval(`2+2`);
+   * ```
+   *
+   * It will wait for a period of time for a well-formed response from the
+   * Espruino. This might not happen if there is a connection problem
+   * or a syntax error in the code being evaled. In cases like the latter,
+   * it will take up to `timeoutMs` (default 5 seconds) before we give up
+   * waiting for a correct response and throw an error.
+   *
+   * Tweaking of the timeout may be required if `eval()` is giving up too quickly
+   * or too slowly. A default timeout can be given when creating the class.
+   *
+   * Options:
+   *  timeoutMs: Timeout for execution. 5 seconds by default
+   *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+   *  debug: If true, execution is traced via `warn` callback
+   * @param code Code to run on the Espruino.
+   * @param opts Options
+   * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
+   */
+    eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
+    /**
+     * Write some code for immediate execution. This is a lower-level
+     * alternative to {@link writeScript}. Be sure to include a new line character '\n' at the end.
+     * @param m Code
+     */
     write(m: string): void;
+    /**
+     * Writes a script to Espruino.
+     *
+     * It will first send a CTRL+C to cancel any previous input, `reset()` to clear the board,
+     * and then the provided `code` followed by a new line.
+     *
+     * Use {@link eval} instead to execute remote code and get the result back.
+     *
+     * ```js
+     * // Eg from https://www.espruino.com/Web+Bluetooth
+     * espruino.writeScript(`
+     *  setInterval(() => Bluetooth.println(E.getTemperature()), 1000);
+     *  NRF.on('disconnect',()=>reset());
+     * `);
+     * ```
+     *
+     * @param code Code to send. A new line is added automatically.
+     */
     writeScript(code: string): void;
+    /**
+     * Disconnect
+     */
     disconnect(): void;
+    /**
+     * Gets the current evaluation (millis)
+     */
     get evalTimeoutMs(): number;
+    get isConnected(): boolean;
 }
+/**
+ * Evaluates some code on an Espruino device.
+ *
+ * Options:
+ * * timeoutMs: how many millis to wait before assuming code failed. If not specified, `device.evalTimeoutMs` is used as a default.
+ * * assumeExlusive: assume device is not producing any other output than for our evaluation
+ *
+ * A random string is created to pair eval requests and responses. `code` will be run on the device, with the result
+ * wrapped in JSON, and in turn wrapped in a object that is sent back.
+ *
+ * The actual code that gets sent to the device is then:
+ * `\x10${evalReplyPrefix}(JSON.stringify({reply:"${id}", result:JSON.stringify(${code})}))\n`
+ *
+ * For example, it might end up being:
+ * `\x10Bluetooth.println(JSON.stringify({reply: "a35gP", result: "{ 'x': '10' }" }))\n`
+ *
+ * @param code Code to evaluation
+ * @param opts Options for evaluation
+ * @param device Device to execute on
+ * @param evalReplyPrefix How to send code back (eg `Bluetooth.println`, `console.log`)
+ * @param debug If true, the full evaled code is printed locally to the console
+ * @param warn Callback to display warnings
+ * @returns
+ */
 declare const deviceEval: (code: string, opts: EvalOpts | undefined, device: EspruinoDevice, evalReplyPrefix: string, debug: boolean, warn: (m: string) => void) => Promise<string>;
 
 type Espruino_EspruinoBleDevice = EspruinoBleDevice;

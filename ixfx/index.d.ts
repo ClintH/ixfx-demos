@@ -4280,7 +4280,8 @@ declare module "modulation/Envelope" {
     /**
      * Creates and runs an envelope, sampling its values at `sampleRateMs`.
      *
-     * ```
+     * @example Init
+     * ```js
      * import {adsrSample, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js';
      * import {IterableAsync} from  'https://unpkg.com/ixfx/dist/util.js';
      *
@@ -4292,10 +4293,16 @@ declare module "modulation/Envelope" {
      *  attackBend: 1,
      *  decayBend: -1
      * };
+     * ```
      *
+     * @example Add data to array
+     * ```js
      * // Sample an envelope every 5ms into an array
      * const data = await IterableAsync.toArray(adsrSample(opts, 20));
+     * ```
      *
+     * @example Looping
+     * ```js
      * // Work with values as sampled
      * for await (const v of adsrSample(opts, 5)) {
      *  // Work with envelope value `v`...
@@ -8183,6 +8190,7 @@ declare module "io/StringReceiveBuffer" {
         buffer: string;
         stream: WritableStream<string> | undefined;
         constructor(onData: (data: string) => void, separator?: string);
+        close(): Promise<void>;
         clear(): void;
         writable(): WritableStream<string>;
         private createWritable;
@@ -8202,6 +8210,7 @@ declare module "io/StringWriteBuffer" {
         intervalMs: number;
         stream: WritableStream<string> | undefined;
         constructor(onData: (data: string) => Promise<void>, chunkSize?: number);
+        close(): Promise<void>;
         clear(): void;
         writable(): WritableStream<string>;
         private createWritable;
@@ -8325,10 +8334,12 @@ declare module "io/EspruinoBleDevice" {
          * Options:
          *  timeoutMs: Timeout for execution. 5 seconds by default
          *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+         *  debug: If true, execution is traced via `warn` callback
          * @param code Code to run on the Espruino.
          * @param opts Options
+         * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
          */
-        eval(code: string, opts?: EvalOpts): Promise<string>;
+        eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
     }
 }
 declare module "io/JsonDevice" {
@@ -8398,7 +8409,7 @@ declare module "io/JsonDevice" {
          * @param txt
          */
         protected abstract writeInternal(txt: string): void;
-        close(): void;
+        close(): Promise<void>;
         /**
          * Must change state
          */
@@ -8463,6 +8474,7 @@ declare module "io/Serial" {
         private config;
         port: SerialPort | undefined;
         tx: WritableStreamDefaultWriter<string> | undefined;
+        abort: AbortController;
         baudRate: number;
         constructor(config?: SerialOpts);
         /**
@@ -8485,7 +8497,7 @@ declare module "io/EspruinoSerialDevice" {
         evalTimeoutMs: number;
         evalReplyBluetooth: boolean;
         constructor(opts?: EspruinoSerialDeviceOpts);
-        disconnect(): void;
+        disconnect(): Promise<void>;
         /**
          * Writes a script to Espruino.
          *
@@ -8525,11 +8537,13 @@ declare module "io/EspruinoSerialDevice" {
          *
          * Options:
          *  timeoutMs: Timeout for execution. 5 seconds by default
-         *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+         *  assumeExclusive: If true, eval assumes all replies from controller are in response to eval. True by default
+         *  debug: If true, execution is traced via `warn` callback
          * @param code Code to run on the Espruino.
          * @param opts Options
+         * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
          */
-        eval(code: string, opts?: EvalOpts): Promise<string>;
+        eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
     }
 }
 declare module "io/Espruino" {
@@ -8575,6 +8589,10 @@ declare module "io/Espruino" {
          * is a response to the eval
          */
         readonly assumeExclusive?: boolean;
+        /**
+         * If true, executed code is traced
+         */
+        readonly debug?: boolean;
     };
     export type EspruinoBleOpts = {
         /**
@@ -8694,12 +8712,98 @@ declare module "io/Espruino" {
      * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
      */
     export const connectBle: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
+    /**
+     * EspruinoDevice
+     *
+     * This base interface is implemented by {@link EspruinoBleDevice} and {@link EspruinoSerialDevice}.
+     */
     export interface EspruinoDevice extends ISimpleEventEmitter<Events> {
+        /**
+       * Sends some code to be executed on the Espruino. The result
+       * is packaged into JSON and sent back to your code. An exception is
+       * thrown if code can't be executed for some reason.
+       *
+       * ```js
+       * const sum = await e.eval(`2+2`);
+       * ```
+       *
+       * It will wait for a period of time for a well-formed response from the
+       * Espruino. This might not happen if there is a connection problem
+       * or a syntax error in the code being evaled. In cases like the latter,
+       * it will take up to `timeoutMs` (default 5 seconds) before we give up
+       * waiting for a correct response and throw an error.
+       *
+       * Tweaking of the timeout may be required if `eval()` is giving up too quickly
+       * or too slowly. A default timeout can be given when creating the class.
+       *
+       * Options:
+       *  timeoutMs: Timeout for execution. 5 seconds by default
+       *  assumeExclusive If true, eval assumes all replies from controller are in response to eval. True by default
+       *  debug: If true, execution is traced via `warn` callback
+       * @param code Code to run on the Espruino.
+       * @param opts Options
+       * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
+       */
+        eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
+        /**
+         * Write some code for immediate execution. This is a lower-level
+         * alternative to {@link writeScript}. Be sure to include a new line character '\n' at the end.
+         * @param m Code
+         */
         write(m: string): void;
+        /**
+         * Writes a script to Espruino.
+         *
+         * It will first send a CTRL+C to cancel any previous input, `reset()` to clear the board,
+         * and then the provided `code` followed by a new line.
+         *
+         * Use {@link eval} instead to execute remote code and get the result back.
+         *
+         * ```js
+         * // Eg from https://www.espruino.com/Web+Bluetooth
+         * espruino.writeScript(`
+         *  setInterval(() => Bluetooth.println(E.getTemperature()), 1000);
+         *  NRF.on('disconnect',()=>reset());
+         * `);
+         * ```
+         *
+         * @param code Code to send. A new line is added automatically.
+         */
         writeScript(code: string): void;
+        /**
+         * Disconnect
+         */
         disconnect(): void;
+        /**
+         * Gets the current evaluation (millis)
+         */
         get evalTimeoutMs(): number;
+        get isConnected(): boolean;
     }
+    /**
+     * Evaluates some code on an Espruino device.
+     *
+     * Options:
+     * * timeoutMs: how many millis to wait before assuming code failed. If not specified, `device.evalTimeoutMs` is used as a default.
+     * * assumeExlusive: assume device is not producing any other output than for our evaluation
+     *
+     * A random string is created to pair eval requests and responses. `code` will be run on the device, with the result
+     * wrapped in JSON, and in turn wrapped in a object that is sent back.
+     *
+     * The actual code that gets sent to the device is then:
+     * `\x10${evalReplyPrefix}(JSON.stringify({reply:"${id}", result:JSON.stringify(${code})}))\n`
+     *
+     * For example, it might end up being:
+     * `\x10Bluetooth.println(JSON.stringify({reply: "a35gP", result: "{ 'x': '10' }" }))\n`
+     *
+     * @param code Code to evaluation
+     * @param opts Options for evaluation
+     * @param device Device to execute on
+     * @param evalReplyPrefix How to send code back (eg `Bluetooth.println`, `console.log`)
+     * @param debug If true, the full evaled code is printed locally to the console
+     * @param warn Callback to display warnings
+     * @returns
+     */
     export const deviceEval: (code: string, opts: EvalOpts | undefined, device: EspruinoDevice, evalReplyPrefix: string, debug: boolean, warn: (m: string) => void) => Promise<string>;
 }
 declare module "io/BleDevice" {
@@ -12229,10 +12333,12 @@ declare module "modulation/Easing" {
     import { HasCompletion } from "flow/index";
     export type EasingFn = (x: number) => number;
     /**
-     * Creates an easing based on clock time
+     * Creates an easing based on clock time. Time
+     * starts being counted when easing function is created.
      * @example Time based easing
      * ```
-     * const t = time(`quintIn`, 5*1000); // Will take 5 seconds to complete
+     * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+     * const t = Easings.time(`quintIn`, 5*1000); // Will take 5 seconds to complete
      * ...
      * t.compute(); // Get current value of easing
      * t.reset();   // Reset to 0
@@ -12248,7 +12354,8 @@ declare module "modulation/Easing" {
      *
      * @example Tick-based easing
      * ```
-     * const t = tick(`sineIn`, 1000);   // Will take 1000 ticks to complete
+     * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+     * const t = Easings.tick(`sineIn`, 1000);   // Will take 1000 ticks to complete
      * t.compute(); // Each call to `compute` progresses the tick count
      * t.reset();   // Reset to 0
      * t.isDone;    // _True_ if finished
@@ -12291,6 +12398,7 @@ declare module "modulation/Easing" {
      *  a:0, b: 1.33, c: 1, d: -1.25
      *
      * ```js
+     * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
      * // Time-based easing using bezier
      * const e = Easings.time(fromCubicBezier(1.33, -1.25), 1000);
      * e.compute();
@@ -12305,11 +12413,12 @@ declare module "modulation/Easing" {
      * Returns a mix of two easing functions.
      *
      * ```js
+     * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
      * // Get a 50/50 mix of two easing functions at t=0.25
-     * mix(0.5, 0.25, sineIn, sineOut);
+     * Easings.mix(0.5, 0.25, Easings.functions.sineIn, Easings.functions.sineOut);
      *
      * // 10% of sineIn, 90% of sineOut
-     * mix(0.90, 0.25, sineIn, sineOut);
+     * Easings.mix(0.90, 0.25, Easings.functions.sineIn, Easings.functions.sineOut);
      * ```
      * @param amt 'Progress' value passed to the easing functions
      * @param balance Mix between a and b
@@ -12327,6 +12436,11 @@ declare module "modulation/Easing" {
      * * 1.0 will yield 100% of easingB at its `easing(1)` value.
      *
      * So easingB will only ever kick in at higher `amt` values and `easingA` will only be present in lower valus.
+     *
+     * ```js
+     * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+     * Easings.crossFade(0.5, Easings.functions.sineIn, Easings.functions.sineOut);
+     * ```
      * @param amt
      * @param easingA
      * @param easingB
@@ -12347,17 +12461,29 @@ declare module "modulation/Easing" {
      * // Returns 'eased' transformation of 0.5
      * fn(0.5);
      * ```
+     *
+     * This function is useful if trying to resolve an easing by string. If you
+     * know in advance what easing to use, you could also access it via
+     * `Easings.functions.NAME`, eg `Easings.functions.sineIn`.
      * @param easingName eg `sineIn`
      * @returns Easing function
      */
     export const get: (easingName: EasingName) => EasingFn | undefined;
     /**
+     *
      * @private
      * @returns Returns list of available easing names
      */
     export const getEasings: () => readonly string[];
     /**
      * Returns a roughly gaussian easing function
+     * ```js
+     * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+     * const fn = Easings.gaussian();
+     * ```
+     *
+     * Try different positive and negative values for `stdDev` to pinch
+     * or flatten the bell shape.
      * @param stdDev
      * @returns
      */

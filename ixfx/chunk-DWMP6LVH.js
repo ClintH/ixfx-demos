@@ -6018,6 +6018,13 @@ var StringReceiveBuffer = class {
     __publicField(this, "buffer", ``);
     __publicField(this, "stream");
   }
+  async close() {
+    const s = this.stream;
+    if (!s)
+      return;
+    await s.abort();
+    await s.close();
+  }
   clear() {
     this.buffer = ``;
   }
@@ -6073,6 +6080,11 @@ var StringWriteBuffer = class {
     this.intervalMs = 10;
     this.queue = queueMutable();
     this.writer = continuously(() => this.onWrite(), this.intervalMs);
+  }
+  async close() {
+    const w = this.stream?.getWriter();
+    w?.releaseLock();
+    await w?.close();
   }
   clear() {
     this.queue = queueMutable();
@@ -6709,10 +6721,10 @@ var EspruinoBleDevice = class extends NordicBleDevice {
     this.write(`${code}
 `);
   }
-  async eval(code, opts = {}) {
-    return deviceEval(code, opts, this, `Bluetooth.println`, false, (msg) => {
-      this.warn(msg);
-    });
+  async eval(code, opts = {}, warn) {
+    const debug2 = opts.debug ?? false;
+    const warnCb = warn ?? ((m) => this.warn(m));
+    return deviceEval(code, opts, this, `Bluetooth.println`, debug2, warnCb);
   }
 };
 
@@ -6771,7 +6783,7 @@ var JsonDevice = class extends SimpleEventEmitter {
       throw new Error(`Cannot write while state is ${this.states.state}`);
     this.txBuffer.add(txt);
   }
-  close() {
+  async close() {
     if (this.states.state !== `connected`)
       return;
     this.onClosed();
@@ -6823,7 +6835,9 @@ var Device = class extends JsonDevice {
     this.config = config;
     __publicField(this, "port");
     __publicField(this, "tx");
+    __publicField(this, "abort");
     __publicField(this, "baudRate");
+    this.abort = new AbortController();
     const eol = config.eol ?? `\r
 `;
     this.baudRate = config.baudRate ?? 9600;
@@ -6841,11 +6855,8 @@ var Device = class extends JsonDevice {
     }
   }
   onClosed() {
-    try {
-      this.port?.close();
-    } catch (ex) {
-      this.warn(ex);
-    }
+    this.tx?.releaseLock();
+    this.abort.abort(`closing port`);
     this.states.state = `closed`;
   }
   onPreConnect() {
@@ -6866,14 +6877,28 @@ var Device = class extends JsonDevice {
     const txW = this.port.writable;
     const txText = new TextEncoderStream();
     if (txW !== null) {
-      txText.readable.pipeTo(txW);
+      txText.readable.pipeTo(txW, { signal: this.abort.signal }).catch((err) => {
+        console.log(`Serial.onConnectAttempt txText pipe:`);
+        console.log(err);
+      });
       this.tx = txText.writable.getWriter();
     }
     const rxR = this.port.readable;
     const rxText = new TextDecoderStream();
     if (rxR !== null) {
-      rxR.pipeTo(rxText.writable);
-      rxText.readable.pipeTo(this.rxBuffer.writable());
+      rxR.pipeTo(rxText.writable, { signal: this.abort.signal }).catch((err) => {
+        console.log(`Serial.onConnectAttempt rxR pipe:`);
+        console.log(err);
+      });
+      rxText.readable.pipeTo(this.rxBuffer.writable(), { signal: this.abort.signal }).catch((err) => {
+        console.log(`Serial.onConnectAttempt rxText pipe:`);
+        console.log(err);
+        try {
+          this.port?.close();
+        } catch (ex) {
+          console.log(ex);
+        }
+      });
     }
   }
 };
@@ -6888,8 +6913,8 @@ var EspruinoSerialDevice = class extends Device {
       opts = {};
     this.evalTimeoutMs = opts.evalTimeoutMs ?? 5 * 1e3;
   }
-  disconnect() {
-    super.close();
+  async disconnect() {
+    return super.close();
   }
   async writeScript(code) {
     this.write(`reset();
@@ -6897,10 +6922,10 @@ var EspruinoSerialDevice = class extends Device {
     this.write(`${code}
 `);
   }
-  async eval(code, opts = {}) {
-    return deviceEval(code, opts, this, `console.log`, true, (msg) => {
-      this.warn(msg);
-    });
+  async eval(code, opts = {}, warn) {
+    const debug2 = opts.debug ?? false;
+    const warnCb = warn ?? ((m) => this.warn(m));
+    return deviceEval(code, opts, this, `console.log`, debug2, warnCb);
   }
 };
 
@@ -6952,7 +6977,10 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug2, warn) 
     const id = string(5);
     const onData = (d) => {
       try {
-        const dd = JSON.parse(d.data);
+        let cleaned = d.data;
+        if (cleaned.startsWith(`>{`) && cleaned.endsWith(`}`))
+          cleaned = cleaned.substring(1);
+        const dd = JSON.parse(cleaned);
         if (`reply` in dd) {
           if (dd.reply === id) {
             done();
@@ -6962,6 +6990,8 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug2, warn) 
           } else {
             warn(`Expected reply ${id}, got ${dd.reply}`);
           }
+        } else {
+          warn(`Expected packet, missing 'reply' field. Got: ${d.data}`);
         }
       } catch (ex) {
         if (assumeExclusive) {
@@ -12729,4 +12759,4 @@ export {
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-7SZUX4RM.js.map
+//# sourceMappingURL=chunk-DWMP6LVH.js.map

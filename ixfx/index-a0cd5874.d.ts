@@ -1,6 +1,6 @@
-import { a as RandomSource } from './Arrays-344418f7.js';
-import { b as Easing } from './Easing-22417695.js';
-import { a as Point, e as Rect } from './Point-cb15d272.js';
+import { a as RandomSource } from './Arrays-c3d4ff53.js';
+import { b as Easing } from './Easing-4724dd5c.js';
+import { a as Point, e as Rect } from './Point-b1d54f91.js';
 import { T as Timer } from './index-0f9db2f2.js';
 import { a as pingPongPercent, p as pingPong } from './PingPong-cdbb0518.js';
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
@@ -875,7 +875,8 @@ declare const adsr: (opts: EnvelopeOpts) => Adsr;
 /**
  * Creates and runs an envelope, sampling its values at `sampleRateMs`.
  *
- * ```
+ * @example Init
+ * ```js
  * import {adsrSample, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js';
  * import {IterableAsync} from  'https://unpkg.com/ixfx/dist/util.js';
  *
@@ -887,10 +888,16 @@ declare const adsr: (opts: EnvelopeOpts) => Adsr;
  *  attackBend: 1,
  *  decayBend: -1
  * };
+ * ```
  *
+ * @example Add data to array
+ * ```js
  * // Sample an envelope every 5ms into an array
  * const data = await IterableAsync.toArray(adsrSample(opts, 20));
+ * ```
  *
+ * @example Looping
+ * ```js
  * // Work with values as sampled
  * for await (const v of adsrSample(opts, 5)) {
  *  // Work with envelope value `v`...

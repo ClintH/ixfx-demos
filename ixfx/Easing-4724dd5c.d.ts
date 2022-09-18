@@ -2,10 +2,12 @@ import { H as HasCompletion } from './index-0f9db2f2.js';
 
 declare type EasingFn = (x: number) => number;
 /**
- * Creates an easing based on clock time
+ * Creates an easing based on clock time. Time
+ * starts being counted when easing function is created.
  * @example Time based easing
  * ```
- * const t = time(`quintIn`, 5*1000); // Will take 5 seconds to complete
+ * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+ * const t = Easings.time(`quintIn`, 5*1000); // Will take 5 seconds to complete
  * ...
  * t.compute(); // Get current value of easing
  * t.reset();   // Reset to 0
@@ -21,7 +23,8 @@ declare const time: (nameOrFn: EasingName | EasingFn, durationMs: number) => Eas
  *
  * @example Tick-based easing
  * ```
- * const t = tick(`sineIn`, 1000);   // Will take 1000 ticks to complete
+ * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+ * const t = Easings.tick(`sineIn`, 1000);   // Will take 1000 ticks to complete
  * t.compute(); // Each call to `compute` progresses the tick count
  * t.reset();   // Reset to 0
  * t.isDone;    // _True_ if finished
@@ -64,6 +67,7 @@ declare type Easing = HasCompletion & {
  *  a:0, b: 1.33, c: 1, d: -1.25
  *
  * ```js
+ * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
  * // Time-based easing using bezier
  * const e = Easings.time(fromCubicBezier(1.33, -1.25), 1000);
  * e.compute();
@@ -78,11 +82,12 @@ declare const fromCubicBezier: (b: number, d: number) => EasingFn;
  * Returns a mix of two easing functions.
  *
  * ```js
+ * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
  * // Get a 50/50 mix of two easing functions at t=0.25
- * mix(0.5, 0.25, sineIn, sineOut);
+ * Easings.mix(0.5, 0.25, Easings.functions.sineIn, Easings.functions.sineOut);
  *
  * // 10% of sineIn, 90% of sineOut
- * mix(0.90, 0.25, sineIn, sineOut);
+ * Easings.mix(0.90, 0.25, Easings.functions.sineIn, Easings.functions.sineOut);
  * ```
  * @param amt 'Progress' value passed to the easing functions
  * @param balance Mix between a and b
@@ -100,6 +105,11 @@ declare const mix: (amt: number, balance: number, easingA: EasingFn, easingB: Ea
  * * 1.0 will yield 100% of easingB at its `easing(1)` value.
  *
  * So easingB will only ever kick in at higher `amt` values and `easingA` will only be present in lower valus.
+ *
+ * ```js
+ * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+ * Easings.crossFade(0.5, Easings.functions.sineIn, Easings.functions.sineOut);
+ * ```
  * @param amt
  * @param easingA
  * @param easingB
@@ -120,17 +130,29 @@ declare type EasingName = keyof typeof functions;
  * // Returns 'eased' transformation of 0.5
  * fn(0.5);
  * ```
+ *
+ * This function is useful if trying to resolve an easing by string. If you
+ * know in advance what easing to use, you could also access it via
+ * `Easings.functions.NAME`, eg `Easings.functions.sineIn`.
  * @param easingName eg `sineIn`
  * @returns Easing function
  */
 declare const get: (easingName: EasingName) => EasingFn | undefined;
 /**
+ *
  * @private
  * @returns Returns list of available easing names
  */
 declare const getEasings: () => readonly string[];
 /**
  * Returns a roughly gaussian easing function
+ * ```js
+ * import { Easings } from "https://unpkg.com/ixfx/dist/modulation.js";
+ * const fn = Easings.gaussian();
+ * ```
+ *
+ * Try different positive and negative values for `stdDev` to pinch
+ * or flatten the bell shape.
  * @param stdDev
  * @returns
  */

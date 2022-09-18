@@ -1,4 +1,4 @@
-import { M as MinMaxAvgTotal } from './NumericArrays-7f5fa481.js';
+import { M as MinMaxAvgTotal } from './NumericArrays-4725411b.js';
 import { Eq } from './Eq';
 import { Ordering } from './Ordering';
 
