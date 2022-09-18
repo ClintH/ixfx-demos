@@ -76,7 +76,7 @@ const onData = (evt) => {
 
   if (!data.startsWith(`{`) || !data.endsWith(`}`)) {
     if (!state.jsonWarning) {
-      console.warn(`Plotter expects JSON response`);
+      console.warn(`Plotter expects JSON response. Got: ${data}`);
       updateState({ jsonWarning: true });
     } else {
       updateState({ jsonWarning: true });
@@ -141,7 +141,7 @@ const send = () => {
 
   // @ts-ignore
   const code = txtCode.value.trim();
-  const codeWithSuffix = code + state.board === `puck` ? `NRF.on('disconnect',()=>reset());` : ``;
+  const codeWithSuffix = code + (state.board === `puck` ? `NRF.on('disconnect',()=>reset());` : ``);
   console.log(code);
 
   try {
@@ -166,8 +166,6 @@ const setup = () => {
   // Setup plotter
   plot.axisX.visible = false;
   plot.axisY.visible = false;
-
-
 
   // Setup UI
   Dom.Forms.textAreaKeyboard(txtCode);
@@ -250,6 +248,7 @@ function updateState (s) {
   });
 
   if (s.p) {
+    console.log(`connected`);
     if (prevEspruino) {
       prevEspruino.removeEventListener(`change`, onEspruinoChange);
       prevEspruino.removeEventListener(`data`, onData);
