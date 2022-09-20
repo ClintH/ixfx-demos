@@ -7,7 +7,7 @@ Controls a DRV2605 haptic driver. This demo only works in Chrome.
   ([online version](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-drv2605/))
 - [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
 
-This demo (and the playground) expect the provided `espruino.js` to be flashed on to the Pico beforehand using the Espruino IDE. In doing this, an [additional code module](http://www.espruino.com/DRV2605) is automatically pulled in. This module is a 'driver' that does the low-level communication over I2C to the DRV2605. The DRV2605 in turn is a 'driver' for the motor.
+This demo (and the [playground](../../../playgrounds/io/espruino-drv2605/index.html)) expect the provided [`espruino.js`](https://raw.githubusercontent.com/ClintH/ixfx-demos/main/io/espruino/drv2605/espruino.js) to be flashed on to the Pico beforehand using the Espruino IDE. In doing this, an [additional code module](http://www.espruino.com/DRV2605) is automatically pulled in. This module is a 'driver' that does the low-level communication over I2C to the DRV2605. The DRV2605 in turn is a 'driver' for the motor.
 
 Remember that the haptic motors are not designed to run for long periods of time. They are meant for periodic bursts.
 
@@ -16,12 +16,26 @@ Remember that the haptic motors are not designed to run for long periods of time
 ## One-time setup
 
 1. Ensure your Espruino Pico is not connected to power or your computer.
+
 2. Connect the DRV2605 haptic board according to the instructions below.
-3. Connect your motor to the board.
-4. Plug your Pico into your computer.
-5. Using the [Espruino IDE](https://www.espruino.com/ide), upload the provided
-   `espruino.js` to your Espruino Pico. Make sure you choose 'Flash', not 'RAM'. You should see the message "Hello from the DRV2605 script!" printed out in the IDE.
-6. Try this simple sketch in the Espruino IDE to verify it works
+
+Wiring for an Espruino Pico:
+
+- DRV2605 GND -> Pico GND
+- DRV2605 VIN -> Pico 3.3V
+- DRV2605 SCL -> Pico B6
+- DRV2605 SDA -> Pico B7
+- DRV2605 IN (unconnected)
+
+In the picture, the Pico is upside down. Its pins are facing upwards and all the components facing downwards. Thus, the text shown on the Pico in the illustration ('Pico 1.4b' etc) should be the same as how you have oriented the board.
+
+![](./Pico-DRV2605L.png)
+
+
+3. Connect a motor to the board.
+4. Plug your Pico into your computer. Be mindful that with some USB adapters, you might accidently plug the Pico in upside-down. You should see a light flash red on the Pico when you plug it in.
+5. If you get a warning about an old firmware version, you should update it first ([read the instructions under Web IDE](https://www.espruino.com/Firmware+Update#stm32)).
+6. Try this simple sketch in the [Espruino IDE](https://www.espruino.com/ide) to verify it works. You should get a vibration when the sketch is loaded.
 
 ```js
 I2C1.setup({scl: B6, sda: B7 });
@@ -33,19 +47,12 @@ hap.trigger(6);
 hap.trigger('sharp click 30%');
 ```
 
-Wiring for an Espruino Pico:
+6. Now that you know it works, we want to flash the provided [`espruino.js`](https://raw.githubusercontent.com/ClintH/ixfx-demos/main/io/espruino/drv2605/espruino.js) sketch. Copy and paste this into the IDE. Make sure you select 'Flash', not 'RAM'. This sketch will make it easier to steer the controller from the browser. If it worked, you should see the message "Hello from the DRV2605 script!".
 
-- DRV2605 GND -> Pico GND
-- DRV2605 VIN -> Pico 3.3V
-- DRV2605 SCL -> Pico B6
-- DRV2605 SDA -> Pico B7
-- DRV2605 IN (unconnected)
-
-![](./Pico-DRV2605L.png)
 
 ## Manual control
 
-Try running some of the functions below in the Espruino IDE's REPL. These are
+Try running some of the functions below in the Espruino IDE's REPL (the left side where you can enter text for immediate execution). These are
 the same functions we'll call from the browser.
 
 ```js
@@ -59,8 +66,7 @@ trigger("pulsing sharp 1 100%");
 'Real time processing' is where motor power is set in real time. In this case,
 there's a helper function `rtpMode` that lets you queue motor powers and
 durations. Two arrays are used for this, each array index being a 'step' in a
-sequence. In the example below, the motor is set to 30 power for 100ms, for
-example.
+sequence. In the example below, in the first step the motor is set to 30 power for 100ms.
 
 ```js
 // Motor power (0-200) & durations (millis)
