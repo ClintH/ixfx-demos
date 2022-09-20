@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>receiver demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #log {
+      font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+    }
+
+    h2 {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      font-size: small;
+    }
+
+    #log {
+      font-size: small;
+      flex: 1;
+      height: 100%;
+      min-height: 5rem;
+      overflow-y: scroll;
+    }
+
+    #log .error {
+      color: red;
+    }
+  </style>
+  <h1>receiver demo</h1>
+  <pre id="data">
+
+  </pre>
+  <div id="remote-status"></div>
+  <script type="module" src="receiver.js"></script>
+
+</body>
+
+</html>

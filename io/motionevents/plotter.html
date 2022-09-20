@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plotter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #log {
+      font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+    }
+
+    h2 {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      font-size: small;
+    }
+
+    .plot {
+      width: 90vw;
+      height: 20vh;
+    }
+  </style>
+  <h1>plotter</h1>
+  <h2>
+    accel
+  </h2>
+  <div class="plot">
+    <canvas id="accelPlot"></canvas>
+  </div>
+
+  <h2>
+    accelGrav
+  </h2>
+  <div class="plot">
+    <canvas id="accelGravPlot"></canvas>
+  </div>
+
+  <h2>
+    rotRate
+  </h2>
+  <div class="plot">
+    <canvas id="rotRatePlot"></canvas>
+  </div>
+  <div id="remote-status"></div>
+  <script type="module" src="plotter.js"></script>
+
+</body>
+
+</html>
