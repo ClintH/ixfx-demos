@@ -16,9 +16,9 @@ Contents
 When Five Server starts, it opens a Terminal at the bottom of Visual Studio Code, spitting out something like:
 
 ```
-  Five Server running at:
-  > Local:    http://localhost:5555
-  > Network:  http://192.168.0.140:5555
+Five Server running at:
+> Local:    http://localhost:5555
+> Network:  http://192.168.0.140:5555
 ```
 
 There are three key components of these URLs. The _scheme_, or _protocol_ (`http`), the _hostname_ or _IP_ (`localhost`, `192.168.0.140`) and the _port_ `5555`.
