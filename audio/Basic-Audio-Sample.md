@@ -1,4 +1,4 @@
-# BasicAudio
+# BasicAudio sample-based
 
 Some of the audio sketches share a common pattern, documented here. 
 
@@ -35,6 +35,7 @@ type BasicAudio = {
  el HTMLMediaElement
 }
 ```
+
 
 ## Using
 

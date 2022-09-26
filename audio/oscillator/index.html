@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oscillator</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 240;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 50%, 90%);
+      --fg: hsl(var(--hue), 30%, 30%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #freqArea {
+      width: 80vw;
+      height: 20vh;
+      background-color: hsl(var(--hue), 100%, 10%);
+      border-radius: 0.4em;
+    }
+  </style>
+  <section>
+    <h1>oscillator</h1>
+
+    <p>Click and drag in the area below to play oscillator.</p>
+    <div id="freqArea"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

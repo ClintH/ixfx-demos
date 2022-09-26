@@ -7,7 +7,7 @@ Demonstates controlling audio panning with a few techniques:
 
 Keep in mind that audio can only be started from within a user interaction event handler (eg from clicking somewhere). This is a browser restriction.
 
-Please see [Basic Audio](../Basic-Audio.md) for more.
+Please see [Basic Audio sample-based](../Basic-Audio-Sample.md) for more.
 
 Read more
 * [StereoPannerNode.pan](https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode/pan)

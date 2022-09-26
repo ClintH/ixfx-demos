@@ -7,7 +7,7 @@ Demonstates controlling audio filtering with a few techniques:
 
 Keep in mind that audio can only be started from within a user interaction event handler (eg from clicking somewhere). This is a browser restriction.
 
-Please see [Basic Audio](../Basic-Audio.md) for more on the plumbing underneath.
+Please see [Basic Audio sample-based](../Basic-Audio-Sample.md) for more on the plumbing underneath.
 
 [BiquadFilterNodes](https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode) have different filter types. In this example, a bandpass filter is used.
 
