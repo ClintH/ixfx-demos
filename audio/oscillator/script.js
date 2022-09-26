@@ -57,7 +57,6 @@ const setup = () => {
 
   freqAreaEl.addEventListener(`pointerup`, muteOscillator);
   freqAreaEl.addEventListener(`pointerleave`, muteOscillator);
-
   freqAreaEl.addEventListener(`pointermove`, evt => {
     // No button press
     if (!evt.buttons) return;
