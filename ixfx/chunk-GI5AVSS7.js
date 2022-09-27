@@ -11,7 +11,7 @@ import {
   isPowerOfTwo,
   roundUpToMultiple,
   toStringDefault
-} from "./chunk-GHG74GTN.js";
+} from "./chunk-BFWHGJN7.js";
 import {
   indexOfCharCode,
   omitChars,
@@ -42,7 +42,7 @@ import {
 import {
   pingPong,
   pingPongPercent
-} from "./chunk-A6ZVK4VU.js";
+} from "./chunk-VFH66GYE.js";
 import {
   Map_exports,
   addUniqueByHash,
@@ -63,20 +63,20 @@ import {
   repeat,
   ticksElapsedTimer,
   waitFor
-} from "./chunk-SOUOIPOL.js";
+} from "./chunk-UT6IZVV4.js";
 import {
   StateMachine
-} from "./chunk-CO3FCBYB.js";
+} from "./chunk-2OTOEK6Q.js";
 import {
   delayLoop,
   sleep
-} from "./chunk-LI7GHNSH.js";
+} from "./chunk-2E3HYTN7.js";
 import {
   array,
   integer,
   number,
   percent
-} from "./chunk-SXBK7G2B.js";
+} from "./chunk-M24U4LLG.js";
 import {
   SimpleEventEmitter,
   simpleMapArrayMutable
@@ -501,7 +501,10 @@ var scalePercent = (v, outMin, outMax) => {
 var stream = (minDefault, maxDefault) => {
   let min4 = minDefault ?? Number.MAX_SAFE_INTEGER;
   let max4 = maxDefault ?? Number.MIN_SAFE_INTEGER;
+  number(minDefault);
+  number(maxDefault);
   return (v) => {
+    number(v);
     min4 = Math.min(min4, v);
     max4 = Math.max(max4, v);
     return scale(v, min4, max4);
@@ -6925,7 +6928,7 @@ var EspruinoSerialDevice = class extends Device {
   async eval(code, opts = {}, warn) {
     const debug2 = opts.debug ?? false;
     const warnCb = warn ?? ((m) => this.warn(m));
-    return deviceEval(code, opts, this, `console.log`, debug2, warnCb);
+    return deviceEval(code, opts, this, `USB.println`, debug2, warnCb);
   }
 };
 
@@ -12759,4 +12762,4 @@ export {
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-DWMP6LVH.js.map
+//# sourceMappingURL=chunk-GI5AVSS7.js.map

@@ -1,4 +1,4 @@
-export { D as Drawing, P as Palette, a as Plot, b as Plot2, S as SceneGraph } from './index-1af8ee61.js';
+export { D as Drawing, P as Palette, a as Plot, b as Plot2, S as SceneGraph } from './index-edaf0d1d.js';
 export { S as Svg } from './Svg-7332209d.js';
 export { C as Colour } from './Arrays-c3d4ff53.js';
 export { V as Video } from './Video-d6432a0e.js';

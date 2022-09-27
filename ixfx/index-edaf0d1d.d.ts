@@ -818,9 +818,10 @@ declare class AxisY extends CanvasBox {
  * const s = p.createSeries(`test2`, `stream`);
  * s.add(Math.random());
  * ```
- *
- *
  * `createSeries` returns the {@link Series} instance with properties for fine-tuning
+ *
+ * For simple usage, use `plot(someData)` which automatically creates
+ * series for the properties of an object.
  */
 declare class Plot extends CanvasBox {
     plotArea: PlotArea;
@@ -846,6 +847,13 @@ declare class Plot extends CanvasBox {
     set frozen(v: boolean);
     seriesArray(): Series[];
     get seriesLength(): number;
+    /**
+     * Plots a simple object, eg `{ x: 10, y: 20, z: 300 }`
+     * Series are automatically created for each property of `o`
+     *
+     * Be sure to call `update()` to visually refresh.
+     * @param o
+     */
     plot(o: any): void;
     createSeriesFromObject(o: any, prefix?: string): Series[];
     createSeries(name?: string, type?: `stream` | `array`, seriesOpts?: SeriesOpts): Series;

@@ -30,7 +30,7 @@ declare module "Guards" {
      * @param range Range to enforce
      * @returns
      */
-    export const number: (value: number, range?: NumberGuardRange, paramName?: string) => boolean;
+    export const number: (value?: number, range?: NumberGuardRange, paramName?: string) => boolean;
     /**
      * Throws an error if `value` is not in the range of 0-1.
      * Equiv to `number(value, `percentage`);`
@@ -963,6 +963,8 @@ declare module "data/Normalise" {
      * ```
      *
      * Note that if a value exceeds the default range, normalisation adjusts.
+     * Errors are thrown if min/max defaults are NaN or if one attempts to
+     * normalise NaN.
      * @returns
      */
     export const stream: (minDefault?: number, maxDefault?: number) => (v: number) => number;
@@ -8559,6 +8561,7 @@ declare module "io/Espruino" {
         readonly data: DataEvent;
         readonly change: StateChangeEvent;
     };
+    export type EspruinoStates = `ready` | `connecting` | `connected` | `closed` | `closing` | `connecting`;
     /**
      * Options for device
      */
@@ -9287,8 +9290,17 @@ declare module "io/FrameProcessor" {
     export type Sources = `` | `camera`;
     import * as Camera from "io/Camera";
     import * as Video from "visual/Video";
+    /**
+     * Frame procesor options
+     */
     export type FrameProcessorOpts = {
+        /**
+         * If true, capture canvas will be shown
+         */
         readonly showCanvas?: boolean;
+        /**
+         * If true, raw source will be shown
+         */
         readonly showPreview?: boolean;
         /**
          * If specified, this function will be called after ImageData is captured
@@ -9296,12 +9308,19 @@ declare module "io/FrameProcessor" {
          * captured image.
          */
         readonly postCaptureDraw?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+        /**
+         * Default constraints to use for the camera source
+         */
         readonly cameraConstraints?: Camera.Constraints;
         /**
          * If specified, this canvas will be used for capturing frames to
          */
         readonly captureCanvasEl?: HTMLCanvasElement;
     };
+    /**
+     * Frame Processor
+     * Simplifies grabbing frames from a source
+     */
     export class FrameProcessor {
         private _source;
         private _state;
@@ -9314,16 +9333,57 @@ declare module "io/FrameProcessor" {
         private _postCaptureDraw;
         private _timer;
         private _captureCanvasEl?;
+        /**
+         * Create a new frame processor
+         * @param opts
+         */
         constructor(opts?: FrameProcessorOpts);
+        /**
+         * Hides or shows the raw source in the DOM
+         * @param enabled Preview enabled
+         */
         showPreview(enabled: boolean): void;
+        /**
+         * Shows or hides the Canvas we're capturing to
+         * @param enabled
+         */
         showCanvas(enabled: boolean): void;
+        /**
+         * Returns the current capturer instance
+         * @returns
+         */
         getCapturer(): Video.ManualCapturer | undefined;
+        /**
+         * Grab frames from a video camera source and initialises
+         * frame processor.
+         *
+         * If `constraints` are not specified, it will use the ones
+         * provided when creating the class, or defaults.
+         *
+         * @param constraints Override of constraints when requesting camera access
+         */
         useCamera(constraints?: Camera.Constraints): Promise<void>;
+        /**
+         * Initialises camera
+         */
         private initCamera;
+        /**
+         * Closes down connections and removes created elements.
+         * Once disposed, the frame processor cannot be used
+         * @returns
+         */
         dispose(): void;
         private init;
         private teardown;
+        /**
+         * Get the last frame
+         * @returns
+         */
         getFrame(): ImageData | undefined;
+        /**
+         * Get the timestamp of the processor (elapsed time since starting)
+         * @returns
+         */
         getTimestamp(): number;
         private getFrameCamera;
     }
@@ -10920,9 +10980,10 @@ declare module "visual/Plot2" {
      * const s = p.createSeries(`test2`, `stream`);
      * s.add(Math.random());
      * ```
-     *
-     *
      * `createSeries` returns the {@link Series} instance with properties for fine-tuning
+     *
+     * For simple usage, use `plot(someData)` which automatically creates
+     * series for the properties of an object.
      */
     export class Plot extends Sg.CanvasBox {
         plotArea: PlotArea;
@@ -10948,6 +11009,13 @@ declare module "visual/Plot2" {
         set frozen(v: boolean);
         seriesArray(): Series[];
         get seriesLength(): number;
+        /**
+         * Plots a simple object, eg `{ x: 10, y: 20, z: 300 }`
+         * Series are automatically created for each property of `o`
+         *
+         * Be sure to call `update()` to visually refresh.
+         * @param o
+         */
         plot(o: any): void;
         createSeriesFromObject(o: any, prefix?: string): Series[];
         createSeries(name?: string, type?: `stream` | `array`, seriesOpts?: SeriesOpts): Series;
@@ -13573,6 +13641,34 @@ declare module "__tests__/collections/queue.test" { }
 declare module "__tests__/collections/sets.test" { }
 declare module "__tests__/collections/stack.test" { }
 declare module "__tests__/data/data.test" { }
+declare module "flow/BehaviourTree" {
+    export type TaskState = `Failed` | `Running` | `Success`;
+    export type Task = {
+        readonly state: TaskState;
+    };
+    /**
+     * Node can have conditions as to whether they should even be considered
+     * Conditions can have dependencies on values, ideally this is responsive
+     * Conditions might abort sibling nodes, as in example: https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/ArtificialIntelligence/BehaviorTrees/BehaviorTreesOverview/
+     */
+    export type NodeBase = {
+        readonly name?: string;
+    };
+    export type SeqNode = NodeBase & {
+        readonly seq: readonly Node[];
+    };
+    export type SelNode = NodeBase & {
+        readonly sel: readonly Node[];
+    };
+    export type Node = SeqNode | SelNode | string;
+    type Traversal = readonly [
+        node: Node,
+        path: string
+    ];
+    export function iterateBreadth(t: Node, pathPrefix?: string): Generator<Traversal>;
+    export function iterateDepth(t: Node, pathPrefix?: string): Generator<Traversal>;
+}
+declare module "__tests__/flow/behaviourtree.test" { }
 declare module "__tests__/flow/repeat.test" { }
 declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/geometry.test" { }

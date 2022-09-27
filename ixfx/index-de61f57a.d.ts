@@ -372,6 +372,7 @@ declare type Events = {
     readonly data: DataEvent;
     readonly change: StateChangeEvent;
 };
+declare type EspruinoStates = `ready` | `connecting` | `connected` | `closed` | `closing` | `connecting`;
 /**
  * Options for device
  */
@@ -626,6 +627,7 @@ declare const Espruino_EspruinoSerialDevice: typeof EspruinoSerialDevice;
 type Espruino_EspruinoSerialDeviceOpts = EspruinoSerialDeviceOpts;
 type Espruino_DataEvent = DataEvent;
 type Espruino_Events = Events;
+type Espruino_EspruinoStates = EspruinoStates;
 type Espruino_Options = Options;
 type Espruino_EvalOpts = EvalOpts;
 type Espruino_EspruinoBleOpts = EspruinoBleOpts;
@@ -641,6 +643,7 @@ declare namespace Espruino {
     Espruino_EspruinoSerialDeviceOpts as EspruinoSerialDeviceOpts,
     Espruino_DataEvent as DataEvent,
     Espruino_Events as Events,
+    Espruino_EspruinoStates as EspruinoStates,
     Espruino_Options as Options,
     Espruino_EvalOpts as EvalOpts,
     Espruino_EspruinoBleOpts as EspruinoBleOpts,
@@ -1023,8 +1026,17 @@ declare namespace Camera {
   };
 }
 
+/**
+ * Frame procesor options
+ */
 declare type FrameProcessorOpts = {
+    /**
+     * If true, capture canvas will be shown
+     */
     readonly showCanvas?: boolean;
+    /**
+     * If true, raw source will be shown
+     */
     readonly showPreview?: boolean;
     /**
      * If specified, this function will be called after ImageData is captured
@@ -1032,12 +1044,19 @@ declare type FrameProcessorOpts = {
      * captured image.
      */
     readonly postCaptureDraw?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+    /**
+     * Default constraints to use for the camera source
+     */
     readonly cameraConstraints?: Constraints;
     /**
      * If specified, this canvas will be used for capturing frames to
      */
     readonly captureCanvasEl?: HTMLCanvasElement;
 };
+/**
+ * Frame Processor
+ * Simplifies grabbing frames from a source
+ */
 declare class FrameProcessor {
     private _source;
     private _state;
@@ -1050,16 +1069,57 @@ declare class FrameProcessor {
     private _postCaptureDraw;
     private _timer;
     private _captureCanvasEl?;
+    /**
+     * Create a new frame processor
+     * @param opts
+     */
     constructor(opts?: FrameProcessorOpts);
+    /**
+     * Hides or shows the raw source in the DOM
+     * @param enabled Preview enabled
+     */
     showPreview(enabled: boolean): void;
+    /**
+     * Shows or hides the Canvas we're capturing to
+     * @param enabled
+     */
     showCanvas(enabled: boolean): void;
+    /**
+     * Returns the current capturer instance
+     * @returns
+     */
     getCapturer(): ManualCapturer | undefined;
+    /**
+     * Grab frames from a video camera source and initialises
+     * frame processor.
+     *
+     * If `constraints` are not specified, it will use the ones
+     * provided when creating the class, or defaults.
+     *
+     * @param constraints Override of constraints when requesting camera access
+     */
     useCamera(constraints?: Constraints): Promise<void>;
+    /**
+     * Initialises camera
+     */
     private initCamera;
+    /**
+     * Closes down connections and removes created elements.
+     * Once disposed, the frame processor cannot be used
+     * @returns
+     */
     dispose(): void;
     private init;
     private teardown;
+    /**
+     * Get the last frame
+     * @returns
+     */
     getFrame(): ImageData | undefined;
+    /**
+     * Get the timestamp of the processor (elapsed time since starting)
+     * @returns
+     */
     getTimestamp(): number;
     private getFrameCamera;
 }

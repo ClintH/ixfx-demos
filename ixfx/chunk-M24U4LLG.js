@@ -1,5 +1,7 @@
 // src/Guards.ts
 var number = (value, range = ``, paramName = `?`) => {
+  if (typeof value === `undefined`)
+    throw new Error(`Parameter ${paramName} is undefined`);
   if (Number.isNaN(value))
     throw new Error(`Parameter '${paramName}' is NaN`);
   if (typeof value !== `number`)
@@ -59,4 +61,4 @@ export {
   isStringArray,
   array
 };
-//# sourceMappingURL=chunk-SXBK7G2B.js.map
+//# sourceMappingURL=chunk-M24U4LLG.js.map

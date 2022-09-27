@@ -37,6 +37,8 @@ import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine
  * ```
  *
  * Note that if a value exceeds the default range, normalisation adjusts.
+ * Errors are thrown if min/max defaults are NaN or if one attempts to
+ * normalise NaN.
  * @returns
  */
 declare const stream: (minDefault?: number, maxDefault?: number) => (v: number) => number;
