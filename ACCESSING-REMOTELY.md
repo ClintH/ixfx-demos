@@ -4,6 +4,8 @@ You may want to develop your sketches on a laptop, and have your Five Server run
 
 In this guide, we'll use [ngrok](https://ngrok.com) to help us 1. access sketches over the internet and 2. load sketches over HTTPS.
 
+As an alternative, you can host and edit your code online. [Read more](./WEBSOCKETS.md).
+
 Contents
 * [URLs and addressing](#urls-and-addressing)
 * [HTTPS](#https)

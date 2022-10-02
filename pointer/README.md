@@ -37,6 +37,8 @@ body {
 }
 ```
 
+If `pointermove` events run a couple of times and stop during a continuous move, adding `touch-action: none` will likely fix it.
+
 ## Zooming
 
 To remove default pinch zooming, add this to the HTML's HEAD:
