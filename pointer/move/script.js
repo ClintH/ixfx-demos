@@ -13,7 +13,7 @@ const settings = Object.freeze({
   meltRate: 0.9999,
   movementMax: 50,
   sizeEm: 10,
-  massMax: 4
+  massRange: [ 0.1, 4 ]
 });
 
 let state = Object.freeze({
@@ -68,7 +68,7 @@ const positionFromMiddle = (el, relativePos) => {
  * @param {Thing} thing
  */
 const loopThing = (thing) => {
-  const { meltRate, massMax } = settings;
+  const { meltRate, massRange } = settings;
   const { freezeRay } = state; // Get thing from state
 
   let { mass } = thing;
@@ -81,7 +81,7 @@ const loopThing = (thing) => {
   mass *= meltRate;
 
   // Make sure mass doesn't go outside our desired range
-  mass = clamp(mass, 0, massMax);
+  mass = clamp(mass, massRange[0], massRange[1]);
 
   // Apply changes to a new Thing
   return updateThing(thing, { mass });
@@ -120,7 +120,6 @@ const setup = () => {
     
     // Get magnitude of movement
     const magnitude = Points.distance({ x: evt.movementX, y: evt.movementY });
-
     // Add to state
     updateState({ 
       currentMovement: state.currentMovement + magnitude 
