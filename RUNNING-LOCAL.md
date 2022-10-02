@@ -6,7 +6,8 @@ You can get up and running from a ZIP file, or cloning the repository. It's reco
 
 Using Git (recommended):
 
-* Using `git` or the [Github app](https://desktop.github.com), clone [this repository](https://github.com/ClintH/ixfx-demos.git) to a folder. This gives you a local copy of the source, and can be easily updated if the repository changes.
+1. Install the [Github deskop app](https://desktop.github.com) if you don't already have it
+2. Clone [this repository](https://github.com/ClintH/ixfx-demos.git) to a folder. This gives you a local copy of the source, and can be easily updated if the repository changes.
 
 As a ZIP:
 
@@ -17,59 +18,11 @@ As a ZIP:
 
 Each sketch is contained in its own folder. Once you're ready to modify, duplicate the sketch folder so you always have the original to go back to if you need. Along your way, make new copies of the sketch folder to keep snapshots of your work.
 
-### Five-Server (VS Code extension)
-
 _Note:_ 'Five-Server (Live-Server)' is a fork of 'Live-Server', don't install 'Live-Server'.
 
 1. Open up the provided VS Code workspace (`ixfx-demos.code-workspace`)
 2. If you have the [Five-Server](https://marketplace.visualstudio.com/items?itemName=yandeu.five-server) extension installed, start it (via the `Go Live` button in the VS Code toolbar, for example)
 3. Test that the demos work from your local copy
-
-
-### browser-sync (Node.js)
-
-If you have Node.js installed, open the VS Code terminal and install:
-
-```
-npm install
-```
-
-And then to boot up a server, run 
-
-```
-npm start
-```
-
-This will open a browser at `https://127.0.0.3000`. 
-
-Uncomment the `https` part from `bs-config.cjs` to enable https. For this to work properly, you can either trust the provided certificate or generate your own.
-
-#### macOS
-
-To create your own certificate:
-
-```
-# Use 'localhost' for the 'Common name'
-openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt
-```
-
-To trust your own certificate, or the provided one:
-
-```
-sudo security add-trusted-cert -p ssl -d -r trustRoot -k ~/Library/Keychains/login.keychain localhost.crt
-```
-
-Then double-click on the certificate, expand Trust and make sure 'Always trust' is selected.
-
-#### Windows
-
-To create and use a certificate:
-
-```
-New-SelfSignedCertificate -DnsName "localhost" -KeyLocation . -CertStoreLocation "cert:\LocalMachine\My"
-```
-
-[Instructions from StackOverflow](https://stackoverflow.com/questions/8169999/how-can-i-create-a-self-signed-cert-for-localhost)
 
 ## Paths
 

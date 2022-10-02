@@ -1,5 +1,5 @@
-import { Points } from '../../../ixfx/geometry.js';
-import { movingAverage, scalePercent, scaleClamped } from '../../../ixfx/data.js';
+import { Points } from '../../ixfx/geometry.js';
+import { movingAverage, scalePercent, scaleClamped } from '../../ixfx/data.js';
 
 const settings = Object.freeze({
   // Maximum speed for either x/y

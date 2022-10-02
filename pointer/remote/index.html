@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pointer-remote</title>
+</head>
+<style>
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+    --hue: 214;
+    --bg: hsl(var(--hue) 64% 87%);
+    --fg: hsl(var(--hue) 100% 9%);
+    --padding: 0.3em;
+  }
+
+
+  html,
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    font-family: var(--font);
+  }
+
+  #last {
+    font-family: var(--mono-font);
+  }
+
+  #log {
+    height: 10em;
+    font-family: var(--mono-font);
+  }
+</style>
+
+<body>
+  <h1>pointer-remote</h1>
+  <p>This sketch demonstrates sending pointer events from one device/sketch to another. It's useful if you want to use a
+    mobile device as a multi-touch input for something running elsewhere.</p>
+  <p>To use, open the 'sender' sketch on the device to send pointer event, and 'receiver' on the device to receive data.
+    Multiple senders and receivers can be used.</p>
+  <p>It's also possible to test by opening the sketches in different tabs.</p>
+  <ul>
+
+    <li><a href="sender.html">sender</a></li>
+    <li><a href="receiver.html">receiver</a></li>
+  </ul>
+  <p>Please see WEBSOCKETS.MD in the demos root folder for more details on connecting between devices.</p>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>

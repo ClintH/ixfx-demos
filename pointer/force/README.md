@@ -1,6 +1,6 @@
 # force
 
-Demonstrates getting the pressure or force from a trackpad or stylus. [Online demo](https://clinth.github.io/ixfx-demos/io/pointer/force/)
+Demonstrates getting the pressure or force from a trackpad or stylus. [Online demo](https://clinth.github.io/ixfx-demos/pointer/force/)
 
 * Trackpad force is only supported by the Safari browser with a force trackpad.
 * Stylus pressure should work cross-platform, but a pressure-sensitive stylus is needed.

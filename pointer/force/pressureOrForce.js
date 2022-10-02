@@ -1,4 +1,4 @@
-import { clamp, scale } from '../../../ixfx/data.js';
+import { clamp, scale } from '../../ixfx/data.js';
 /**
  * @typedef PressureForceState
  * @property {number} [webkitForce]

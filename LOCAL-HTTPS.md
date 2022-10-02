@@ -19,3 +19,32 @@ The steps in brief are:
 
 
 
+
+Uncomment the `https` part from `bs-config.cjs` to enable https. For this to work properly, you can either trust the provided certificate or generate your own.
+
+#### macOS
+
+To create your own certificate:
+
+```
+# Use 'localhost' for the 'Common name'
+openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt
+```
+
+To trust your own certificate, or the provided one:
+
+```
+sudo security add-trusted-cert -p ssl -d -r trustRoot -k ~/Library/Keychains/login.keychain localhost.crt
+```
+
+Then double-click on the certificate, expand Trust and make sure 'Always trust' is selected.
+
+#### Windows
+
+To create and use a certificate:
+
+```
+New-SelfSignedCertificate -DnsName "localhost" -KeyLocation . -CertStoreLocation "cert:\LocalMachine\My"
+```
+
+[Instructions from StackOverflow](https://stackoverflow.com/questions/8169999/how-can-i-create-a-self-signed-cert-for-localhost)

@@ -2,7 +2,7 @@
 
 Demonstrates draggable things. Each thing has an associated HTML element, by default a DIV.
 
-[Try it online](https://clinth.github.io/ixfx-demos/io/pointer/drag/)
+[Try it online](https://clinth.github.io/ixfx-demos/pointer/drag/)
 
 ```js
 /** 

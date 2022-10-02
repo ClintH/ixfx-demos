@@ -1,6 +1,6 @@
 # scale
 
-[See demo online](https://clinth.github.io/ixfx-demos/io/pointer/scale/)
+[See demo online](https://clinth.github.io/ixfx-demos/pointer/scale/)
 
 Demonstrates:
 * [`numberTracker`](https://clinth.github.io/ixfx/functions/Data.numberTracker.html)

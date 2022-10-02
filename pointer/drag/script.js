@@ -1,5 +1,5 @@
-import { Points } from '../../../ixfx/geometry.js';
-import { clamp } from '../../../ixfx/data.js';
+import { Points } from '../../ixfx/geometry.js';
+import { clamp } from '../../ixfx/data.js';
 
 // Define our Thing
 /** 
