@@ -10,10 +10,10 @@
  * * postCaptureDraw(): Draws visuals on top of capture canvas
  * 
  * Also supports two URL query parameters to set default settings
- * eg: source.html?modelType=MoveNet&moveNetModelType=MultiPose.Lightning
+ * eg: source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning
  * 
  * Query Parameters:
- * * modelType: PoseNet, BlazePose
+ * * model: PoseNet, BlazePose
  * * moveNetModelType: MultiPose.Lightning, SinglePose.Lightning, SinglePose.Thunder
  */
 
@@ -23,19 +23,21 @@ import * as CommonSource from '../common-vision-source.js';
 
 const searchParams = new URLSearchParams(window.location.search);
 
-// Settings when using MoveNet
-/** @type {CommonSource.MoveNetModelConfig} */
+/** 
+ * Settings when using MoveNet
+ * @type {CommonSource.MoveNetModelConfig} */
 const moveNet = {
   // Attempt to link points to separate bodies
-  enableTracking: false,
+  enableTracking: true,
   // Smooth out jitter - doesn't seem to have a meaningful effect so disabled
   enableSmoothing: false,
   // SinglePose.Lightning (default, fastest), SinglePose.Thunder or MultiPose.Lightning
   modelType: searchParams.get(`moveNetModelType`) ?? `SinglePose.Lightning`
 };
 
-// Settings when using BlazePose
-/** @type {CommonSource.BlazePoseModelConfig} */
+/** 
+ * Settings when using BlazePose
+ * @type {CommonSource.BlazePoseModelConfig} */
 const blazePose = {
   // See the README.md section on runtimes 
   runtime: `tfjs`,
@@ -43,6 +45,14 @@ const blazePose = {
   modelType: `full` // lite, full, heavy
 };
 
+/**
+ * Settings when using PoseNet
+ * @type {CommonSource.PoseNetEstimateConfig}
+ */
+const poseNet = {
+  maxPoses: 5,
+  scoreThreshold: 0.5
+};
 const settings = Object.freeze({
   /**
    * Which model to use
@@ -103,7 +113,7 @@ const onFrame = async (frame, frameRect, timestamp_) => {
 
   // Get poses from TensorFlow.js
   /** @type {CommonSource.Pose[]} */
-  const poses = await detector?.estimatePoses(frame, {}, timestamp);
+  let poses = settings.model === `PoseNet` ? await detector?.estimatePoses(frame, poseNet) : await detector?.estimatePoses(frame, {}, timestamp);
 
   // Process them
   handlePoses(poses, frameRect);
@@ -118,6 +128,8 @@ const handlePoses = (poses, frameRect) => {
   const w = frameRect.width;
   const h = frameRect.height;
 
+  console.log(poses);
+  
   // Normalise x,y of key points on 0..1 scale, based on size of source frame
   const normalised = poses.map(pose => ({
     ...pose,

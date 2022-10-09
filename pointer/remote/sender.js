@@ -8,6 +8,8 @@ const settings = Object.freeze({
 
 // Called when there is a pointermove event
 const onPointerMove = (evt) => {
+  evt.preventDefault();
+
   const { remote } = settings;
   // Data to broadcast
   const d = {
@@ -29,5 +31,6 @@ const setup = () => {
   document.addEventListener(`wheel`, evt => {
     evt.preventDefault();
   }, { passive:false });
+
 };
 setup();

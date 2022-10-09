@@ -899,6 +899,15 @@ function updateState (s) {
  */
 
 /**
+ * @typedef PoseNetEstimateConfig
+ * @type {object}
+ * @property {boolean} [flipHorizontal]
+ * @property {number} [scoreThreshold]
+ * @property {number} [nmsRadius]
+ * @property {number} [maxPoses]
+ */
+
+/**
  * @typedef FrameProcessorOpts
  * @type {object}
  * @property {HTMLCanvasElement} [captureCanvasEl] Element to capture frames to

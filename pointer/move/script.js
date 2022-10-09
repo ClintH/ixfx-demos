@@ -48,22 +48,6 @@ const useThing = (thing) => {
 };
 
 /**
- * Position an element from its middle
- * @param {HTMLElement} el 
- * @param {Points.Point} relativePos 
- */
-const positionFromMiddle = (el, relativePos) => {
-  // Convert relative to absolute units
-  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
-  
-  const thingRect = el.getBoundingClientRect();
-  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
-
-  // Apply via CSS
-  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
-};
-
-/**
  * Continually loops, updating the thing
  * @param {Thing} thing
  */
@@ -94,37 +78,38 @@ const useState = () => {
   useThing(thing);
 };
 
-const setup = () => {
-  const loop = () => {
-    const { thing } = state;
-    
-    // Update freeze ray based on movement
-    const newFreeze = state.currentMovement / settings.movementMax;
+const loop = () => {
+  const { thing } = state;
+  
+  // Update freeze ray based on movement
+  const newFreeze = state.currentMovement / settings.movementMax;
 
-    // Update thing
-    const newThing = loopThing(thing);
+  // Update thing
+  const newThing = loopThing(thing);
 
-    // Update state
-    updateState({ 
-      thing: newThing,
-      freezeRay: newFreeze,
-      currentMovement: 0
-    });
-
-    useState();
-    window.requestAnimationFrame(loop);
-  };
-  loop();
-
-  window.addEventListener(`pointermove`, evt => {
-    
-    // Get magnitude of movement
-    const magnitude = Points.distance({ x: evt.movementX, y: evt.movementY });
-    // Add to state
-    updateState({ 
-      currentMovement: state.currentMovement + magnitude 
-    });
+  // Update state
+  updateState({ 
+    thing: newThing,
+    freezeRay: newFreeze,
+    currentMovement: 0
   });
+
+  useState();
+  window.requestAnimationFrame(loop);
+};
+
+const onPointerMove = (evt) => {    
+  // Get magnitude of movement
+  const magnitude = Points.distance({ x: evt.movementX, y: evt.movementY });
+  // Add to state
+  updateState({ 
+    currentMovement: state.currentMovement + magnitude 
+  });
+};
+
+const setup = () => {
+  window.addEventListener(`pointermove`, onPointerMove);
+  loop();
 };
 setup();
 
@@ -162,4 +147,20 @@ function updateThing(thing, data) {
     ...thing,
     ...data
   });
+}
+
+/**
+ * Position an element from its middle
+ * @param {HTMLElement} el 
+ * @param {Points.Point} relativePos 
+ */
+function positionFromMiddle(el, relativePos) {
+  // Convert relative to absolute units
+  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
+  
+  const thingRect = el.getBoundingClientRect();
+  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
+
+  // Apply via CSS
+  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 }

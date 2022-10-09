@@ -73,6 +73,24 @@ recordings.push(rec);
 localStorage.setItem(`recordings`, JSON.stringify(recordings));
 ```
 
+# Remote data
+
+To configure for sending data via WebRTC/websockets, first read [WEBSOCKETs](../WEBSOCKETS.md) and make sure the simple pointer remote works.
+
+In the `source.js` file and the sketch you are using, look for where `new Remote()` is called when creating `settings`. Add `allowNetwork: true`. For example:
+
+```js
+const settings = Object.freeze({
+  ...
+  remote: new Remote({
+    allowNetwork: true
+  }),
+  ...
+});
+```
+
+Now the sketches will additionally connect to each other via websockets and WebRTC.
+
 # Troubleshooting
 
 ## https

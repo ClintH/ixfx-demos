@@ -7,12 +7,12 @@ Overview of sketches:
 
 | sketch                  | demonstrates                                                |
 |-------------------------|-------------------------------------------------------------|
-| points                  | smoothing a pose                                            |
-| points-multiple-sources | handling multiple sources and multiple poses                |
-| point-to-point          | calculations based on relationship between points           |
+| single                  | smoothing a single pose                                     |
+| multiple                | handling multiple sources and multiple poses                |
+| geometry                | calculations based on relationship between points           |
 | source                  | a common data source (loaded in a new window) for the others |
 
-## Getting started
+# Getting started
 
 Quick start:
 1. Running a local web server, open `points.html` in your browser. It may take a moment to load the TensorFlow model.
@@ -32,15 +32,15 @@ Now, use a separate browser window with _source.html_ loaded. This way, as you t
 
 **Note:** Your browser may stop or slow down processing in the separate window if it is minimised or behind other windows. Resize it so its small and have it occupy some space on your screen.
 
-## Models
+# Models
 
 The TensorFlow.js pose detection library has three models: _MoveNet_, _BlazePose_ and _PoseNet_. For most cases, MoveNet is the model to choose, but read on for the differences.
 
-The model can be set through the `settings.model` variable (in `source.js`):
+The model can be set through the `settings.model` property (in `source.js`). It can also be set [via URL parameters](#url-parameters).
 
 ```js
 const settings = {
-  model: `MoveNet`,
+  model: `MoveNet`, // `BlazePose` or `PoseNet`
 }
 ```
 
@@ -49,15 +49,15 @@ Pose detection models can:
 * Key points are named, so it's possible to get the position of the nose, right ankle, and so on.
 * Each key point is individually scored on a scale of 0...1, where 1 is the highest confidence.
 * The overall pose is also given a score (not the case for some settings).
-* MoveNet has the possibility to detect poses of up to six bodies at a time, but most models are optimise for a single body.
+* MoveNet has the possibility to detect poses of up to six bodies at a time, but most models are optimised for a single body.
 
-There is some difference with what named key points are returned, see [the TFJS documentation for an overview](https://github.com/tensorflow/tfjs-models/blob/master/pose-detection/README.md#pose-estimation)
+There are some differences with what named key points are returned, see [the TFJS documentation for an overview](https://github.com/tensorflow/tfjs-models/blob/master/pose-detection/README.md#pose-estimation).
 
-### MoveNet
+## MoveNet
 
 MoveNet is considered the fastest and most accurate of the available TFJS models, detecting 17 points of a body.
 
-Has three modes:
+It three modes:
 1. _SinglePose.Lightning:_ optimised for speed, only a single body (default)
 2. _SinglePose.Thunder:_ optimised for accuracy, only a single body
 3. _MultiPose.Lightning:_ slower than 'SinglePose.Lightning' but can detect up to six bodies and also returns a bounding box for each pose.
@@ -66,7 +66,7 @@ The mode can be set the `moveNet.modelType` variable (in `source.js`):
 
 ```js
 const moveNet = {
-  enableTracking: false,
+  enableTracking: true,
   enableSmoothing: true,
   modelType: `MultiPose.Lightning`
 };
@@ -79,7 +79,7 @@ Read more about MoveNet:
 
 ## BlazePose
 
-BlazePose offers a more key points than MoveNet and PoseNet, allowing for more precise tracking and additionally provides points in 3D space.
+BlazePose offers more key points than MoveNet and PoseNet, allowing for more precise tracking and additionally provides points in 3D space.
 
 BlazePose has 'lite', 'full' and 'heavy' modes, set via `settings.blazePose.modelType`.
 * _lite:_ least accurate, but the model is more lightweight (in terms of download and memory)
@@ -122,13 +122,21 @@ Read more about BlazePose:
 * [BlazePose TFJS GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
 * [BlazePose Mediapipe GitHub](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection/src/blazepos_tfjs)
 
-## URL parameters
+## PoseNet
+
+PoseNet is considered a legacy model, with MoveNet being the preferred option. Like MoveNet, PoseNet tracks 17 points on the body and can run in single-pose or multiple-pose modes.
+
+# Remote data
+
+See the main [README](../README.md) for info on using your phone as a remote camera source.
+
+# URL parameters
 
 _source.html_ can be loaded with URL parameters to make minor adjustments without modifying code. Please see _source.js_ for more details.
 
-For example: `source.html?modelType=MoveNet&moveNetModelType=MultiPose.Lightning` will use the MoveNet model, with MultiPose.Lightning, for detecting multiple poses.
+For example: `source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning` will use the MoveNet model, with MultiPose.Lightning, for detecting multiple poses.
 
-## Troubleshooting
+# Troubleshooting
 
 `TypeError: t.Pose is not a constructor`
 

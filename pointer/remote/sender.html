@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>pointer-remote sender</title>
 </head>
 <style>
@@ -16,7 +16,6 @@
     --padding: 0.3em;
   }
 
-
   html,
   body {
     background-color: var(--bg);
@@ -27,7 +26,10 @@
     -webkit-user-select: none;
     cursor: crosshair;
     overscroll-behavior: none;
+    -webkit-overflow-scrolling: none;
     touch-action: none;
+    overflow: hidden;
+    height: 100vh;
   }
 </style>
 

@@ -2,7 +2,7 @@
 
 For sketches that use connectivity, a _web sockets_ server is needed, unfortunately not provided by Five Server.
 
-To host your code remotely, it's recommended to try:
+To host your code remotely, it's recommended to try one of these options:
 
 * Gitpod
 * CodeSandbox
