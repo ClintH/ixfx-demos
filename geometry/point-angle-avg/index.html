@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <title>point-angle</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 99;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 91%, 91%);
+      --fg: hsl(var(--hue), 92%, 15%);
+    }
+
+    html {
+      box-sizing: border-box;
+    }
+
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+      touch-action: none;
+      pointer-events: none;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--fg);
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      margin: 0;
+      touch-action: none;
+    }
+
+    section {
+      margin: 2em;
+    }
+
+    .thing {
+      width: 1em;
+      transform: rotate(0deg);
+      display: inline-block
+    }
+  </style>
+  <section>
+    <h1>point-angle-avg</h1>
+    <p>Computes the average of angle of movement.</p>
+    <h2>
+      <div class="thing" id="thingAvg">→</div>
+      Averaged
+    </h2>
+    Angle degrees: <span id="lblAngleDegAvg">?</span><br />
+    Angle radians: <span id="lblAngleRadAvg">?</span><br />
+    <h2>
+      <div class="thing" id="thingRaw">→</div>Raw
+    </h2>
+    Angle degrees: <span id="lblAngleDegRaw">?</span><br />
+    Angle radians: <span id="lblAngleRadRaw">?</span><br />
+  </section>
+
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
