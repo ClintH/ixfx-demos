@@ -74,6 +74,12 @@ body {
   font-family: monospace;
 }
 
+.demos .techniques {
+  font-size: 0.8em;
+  margin-top: 0.1em;
+  margin-bottom: 0.3em;
+}
+
 .demos .techniques::before {
   content: "Techniques ";
   text-transform: uppercase;
