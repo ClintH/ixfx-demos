@@ -1813,7 +1813,7 @@ declare module "Events" {
 declare module "KeyValue" {
     export type Primitive = string | number;
     export type KeyValue = readonly [key: string, value: Primitive];
-    export const byValueString: (reverse?: boolean) => import("fp-ts/Ord").Ord<KeyValue>;
+    export const byValueString: (reverse?: boolean) => import("fp-ts/lib/Ord.js").Ord<KeyValue>;
     export const sortByKey: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
     export const sortByValueString: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
     export const sortByValueNumber: (reverse?: boolean) => <A extends KeyValue>(as: A[]) => A[];
@@ -3002,6 +3002,21 @@ declare module "flow/StateMachine" {
     export interface MachineDescription {
         readonly [key: string]: string | readonly string[] | null;
     }
+    export type DriverResult = {
+        readonly score?: number;
+        readonly state?: string;
+        readonly next?: boolean;
+        readonly reset?: boolean;
+    };
+    export type DriverExpression<V> = (args?: V) => DriverResult | undefined;
+    export type DriverDescription<V> = {
+        readonly select?: `first` | `highest` | `lowest`;
+        readonly tryAll?: boolean;
+        readonly expressions: DriverExpression<V> | readonly DriverExpression<V>[];
+    };
+    export interface StateDriverDescription<V> {
+        readonly [key: string]: DriverDescription<V> | readonly DriverExpression<V>[] | DriverExpression<V>;
+    }
     /**
      * Returns a machine description based on a list of strings. The final string is the final
      * state.
@@ -3018,12 +3033,27 @@ declare module "flow/StateMachine" {
      * Returns a state machine based on a list of strings. The first string is used as the initial state,
      * the last string is considered the final. To just generate a description, use {@link descriptionFromList}.
      *
+     * Changes are unidirectional, in array order. ie, for the list [`a`, `b`, `c`], the changes can be:
+     * a -> b -> c -> null (final)
+     *
+     * Use {@link fromListBidirectional} to have bidirectional state changes.
+     *
      * ```js
      * const states = [`one`, `two`, `three`];
      * const sm = StateMachine.fromList(states);
      * ```
      */
     export const fromList: (...states: readonly string[]) => StateMachine;
+    /**
+     * Returns a state machine based on a list of strings, where states can change forward and backwards.
+     * ie, for the list [`a`, `b`, `c`], the changes can be:
+     * a <-> b <-> c
+     *
+     * Use {@link fromList} for unidirectional state changes.
+     * @param states
+     * @returns
+     */
+    export const fromListBidirectional: (...states: readonly string[]) => StateMachine;
     /**
      * Creates a new state machine
      * @param initial Initial state
@@ -3130,11 +3160,104 @@ declare module "flow/StateMachine" {
          * Gets or sets state. Throws an error if an invalid transition is attempted.
          * Use `StateMachine.isValid` to check validity without changing.
          *
+         * If `newState` is the same as current state, the request is ignored silently.
+         *
          * @memberof StateMachine
          */
         set state(newState: string);
         get state(): string;
+        /**
+         * Returns timestamp when state was last changed.
+         * See also `elapsed`
+         */
+        get changedAt(): number;
+        /**
+         * Returns milliseconds elapsed since last state change.
+         * See also `changedAt`
+         */
+        get elapsed(): number;
     }
+    /**
+     * Drive a state machine.
+     *
+     * A description can be provided with functions to invoke for each named state.
+     * The driver will invoke the function(s) corresponding to the current state of the machine.
+     *
+     * In the below example, it assumes a state machine with states 'init', 'one' and 'two'.
+     *
+     * ```js
+     * StateMachine.drive(stateMachine, {
+     *   init: () => {
+     *     if (state.distances[0] > 0.1) return;
+     *     return { state: `one` };
+     *  },
+     *   one: () => {
+     *     if (state.distances[1] > 0.1) return;
+     *     return { next: true };
+     *   },
+     *   two: () => {
+     *     if (state.distances[2] > 0.1) return;
+     *     return { reset: true };
+     *   },
+     *   __fallback:() => {
+     *     // Handle case when the other handlers return undefined
+     *   }
+     * }
+     * ```
+     *
+     * Three additional handlers can be defined: '__done', '__default'  and '__fallback'.
+     * * '__done': used when there is no explicit handler for state and machine is done
+     * * '__default': used if the state has no named handler
+     * * '__fallback': used if there is no handler for state, or handler did not return a usable result.
+     *
+     * Each state can have a single function or array of functions to act as handlers.
+     * The handler needs to return {@link DriverResult}. In the above example, you see
+     * how to change to a named state (`{state: 'one'}`), how to trigger `sm.next()` and
+     * how to reset the state machine.
+     *
+     * If the function cannot do anything, it can just return.
+     *
+     * Multiple functions can be provided to handle a particular state, eg:
+     * ```js
+     * StateMachine.drive(stateMachine, {
+     *  init: [
+     *    () => { ... },
+     *    () => { ... }
+     *  ]
+     * })
+     * ```
+     *
+     * When multiple functions are provided, by default the first that returns a result
+     * and the result can be executed is used.
+     *
+     * It's also possible to use the highest and lowest scoring result. To do so, results
+     * must have a `score` property, as shown below. Extra syntax also has to be provided
+     * instead of a bare array of functions.
+     *
+     *  * ```js
+     * StateMachine.drive(stateMachine, {
+     *   init: {
+     *    select: `highest`,
+     *    expressions: [
+     *     () => {
+     *      // some logic...
+     *      return { score: 0.1, state: `hello` }
+     *     },
+     *     () => {
+     *      // some logic...
+     *       return { score: 0.2, state: `goodbye` }
+     *     }
+     *    ]
+     *   }
+     * });
+     * ```
+     *
+     * The score results shouldn't be hardcoded as in the above example.
+     * @param sm
+     * @param driver
+     * @returns
+     */
+    export const drive: <V>(sm: StateMachine, driver: StateDriverDescription<V>) => (args?: V | undefined) => void;
 }
 declare module "flow/Timer" {
     import { HasCompletion } from "flow/index";
@@ -3152,21 +3275,70 @@ declare module "flow/Timer" {
     export type ModTimer = Timer & {
         mod(amt: number): void;
     };
+    /**
+     * Returns a function that returns true if timer is complete
+     *
+     * ```js
+     * const timer = hasElapsedMs(1000);
+     * timer(); // Returns true if timer is done
+     * ```
+     *
+     * See also {@link completionMs}.
+     * @param totalMs
+     * @returns
+     */
+    export function hasElapsedMs(totalMs: number): () => boolean;
+    /**
+     * Returns a function that returns the percentage of timer completion
+     *
+     * ```js
+     * const timer = completionMs(1000);
+     * timer(); // Returns 0..1
+     * ```
+     *
+     * See also {@link hasElapsedMs}.
+     * @param totalMs
+     * @returns
+     */
+    export function completionMs(totalMs: number): () => number;
     export const frequencyTimerSource: (frequency: number) => TimerSource;
     /**
      * Wraps a timer, returning a relative elapsed value.
      *
      * ```js
      * let t = relativeTimer(1000, msElapsedTimer());
+     *
+     * t.isDone;  // true if total has elapsed
+     * t.reset(); // reset timer to 0
+     * t.elapsed; // 0..1 scale of how close to completion
      * ```
      *
+     * Use `relativeTimerMs` if you want to have a millisecond-based total
      * @private
-     * @param total
-     * @param timer
+     * @param total Total
+     * @param timer Timer
      * @param clampValue If true, returned value never exceeds 1.0
-     * @returns
+     * @returns Timer
      */
     export const relativeTimer: (total: number, timer: Timer, clampValue?: boolean) => ModTimer & HasCompletion;
+    /**
+     * Wraps a timer, returning a relative elapsed value.
+     *
+     * ```js
+     * let t = relativeTimerMs(1000);
+     *
+     * t.isDone;  // true if total milliseconds has elapsed
+     * t.reset(); // reset timer to 0
+     * t.elapsed; // 0..1 scale of how close to completion
+     * ```
+     * @param total Total
+     * @param timer Timer
+     * @param clampValue If true, returned value never exceeds 1.0
+     * @returns Timer
+     */
+    export const relativeTimerMs: (total: number, clampValue?: boolean) => Timer & {
+        mod(amt: number): void;
+    } & HasCompletion;
     /**
      * A timer based on frequency: cycles per unit of time. These timers return a number from
      * 0..1 indicating position with a cycle.
@@ -3763,12 +3935,16 @@ declare module "data/TrackerBase" {
         * @ignore
         */
         protected resetAfterSamples: number;
+        /**
+         * @ignore
+         */
+        protected sampleLimit: number;
         constructor(id?: string, opts?: TrackedValueOpts);
         /**
          * Reset tracker
          */
         reset(): void;
-        seen(...p: V[]): any;
+        seen(...p: V[]): void;
         /**
          * @ignore
          * @param p
@@ -3791,6 +3967,8 @@ declare module "data/TrackerBase" {
          * @ignore
          */
         abstract onReset(): void;
+        abstract onTrimmed(): void;
+        abstract trimStore(limit: number): number;
     }
 }
 declare module "data/TrackedValue" {
@@ -3811,6 +3989,14 @@ declare module "data/TrackedValue" {
          * If above zero, tracker will reset after this many samples
          */
         readonly resetAfterSamples?: number;
+        /**
+         * If above zero, there will be a limit to intermediate values kept.
+         *
+         * When the seen values is twice `sampleLimit`, the stored values will be trimmed down
+         * to `sampleLimit`. We only do this when the values are double the size so that
+         * the collections do not need to be trimmed repeatedly whilst we are at the limit.
+         */
+        readonly sampleLimit?: number;
     };
     /**
      * Keeps track of keyed values of type `V` (eg Point) It stores occurences in type `T`, which
@@ -3921,6 +4107,13 @@ declare module "data/PrimitiveTracker" {
         values: V[];
         timestamps: number[];
         constructor(id?: string, opts?: TrackedValueOpts);
+        /**
+         * Reduces size of value store to `limit`. Returns
+         * number of remaining items
+         * @param limit
+         */
+        trimStore(limit: number): number;
+        onTrimmed(): void;
         get last(): V | undefined;
         get initial(): V | undefined;
         /**
@@ -3958,6 +4151,7 @@ declare module "data/NumberTracker" {
          */
         relativeDifference(): number | undefined;
         onReset(): void;
+        onTrimmed(): void;
         onSeen(values: Timestamped<number>[]): void;
         getMinMaxAvg(): {
             min: number;
@@ -5729,13 +5923,13 @@ declare module "geometry/Point" {
         readonly z: number;
     };
     /**
-     *
+     * Returns a Point form of either a point, or pair of x,y
      * @ignore
      * @param a
      * @param b
      * @returns
      */
-    export const getPointParam: (a?: Point | number, b?: number) => Point;
+    export function getPointParam(a?: Point | number, b?: number | boolean): Point;
     export const dotProduct: (...pts: readonly Point[]) => number;
     /**
      * An empty point of `{ x:0, y:0 }`.
@@ -5866,7 +6060,7 @@ declare module "geometry/Point" {
      * @param p
      * @param name
      */
-    export const guard: (p: Point, name?: string) => void;
+    export function guard(p: Point, name?: string): void;
     /**
      * Throws if parameter is not a valid point, or either x or y is 0
      * @param pt
@@ -5928,7 +6122,7 @@ declare module "geometry/Point" {
      * @param p
      * @returns
      */
-    export const isPoint: (p: number | unknown) => p is Points.Point;
+    export function isPoint(p: number | unknown): p is Point;
     export const isPoint3d: (p: Point | unknown) => p is Points.Point3d;
     /**
      * Returns point as an array in the form [x,y]. This can be useful for some libraries
@@ -5948,7 +6142,7 @@ declare module "geometry/Point" {
      * @param p
      * @returns
      */
-    export const toString: (p: Point, digits?: number) => string;
+    export function toString(p: Point, digits?: number): string;
     /**
      * Returns _true_ if the points have identical values
      *
@@ -6069,7 +6263,7 @@ declare module "geometry/Point" {
      * Applies `fn` on `x` and `y` fields, returning all other fields as well
      * ```js
      * const p = {x:1.234, y:4.9};
-     * const p2 = apply(p, Math.round);
+     * const p2 = Points.apply(p, Math.round);
      * // Yields: {x:1, y:5}
      * ```
      *
@@ -6077,7 +6271,7 @@ declare module "geometry/Point" {
      *
      * ```js
      * const p = {x:1.234, y:4.9};
-     * const p2 = apply(p, (v, field) => {
+     * const p2 = Points.apply(p, (v, field) => {
      *  if (field === `x`) return Math.round(v);
      *  return v;
      * });
@@ -6090,7 +6284,7 @@ declare module "geometry/Point" {
     /**
      * Runs a sequential series of functions on `pt`. The output from one feeding into the next.
      * ```js
-     * const p = pipelineApply(somePoint, Points.normalise, Points.invert);
+     * const p = Points.pipelineApply(somePoint, Points.normalise, Points.invert);
      * ```
      *
      * If you want to make a reusable pipeline of functions, consider {@link pipeline} instead.
@@ -6103,7 +6297,7 @@ declare module "geometry/Point" {
      * Returns a pipeline function that takes a point to be transformed through a series of functions
      * ```js
      * // Create pipeline
-     * const p = pipeline(Points.normalise, Points.invert);
+     * const p = Points.pipeline(Points.normalise, Points.invert);
      *
      * // Now run it on `somePoint`.
      * // First we normalised, and then invert
@@ -6120,7 +6314,7 @@ declare module "geometry/Point" {
      *
      * ```
      * // Sum x and y values
-     * const total = reduce(points, (p, acc) => {
+     * const total = Points.reduce(points, (p, acc) => {
      *  return {x: p.x + acc.x, y: p.y + acc.y}
      * });
      * ```
@@ -6424,10 +6618,11 @@ declare module "geometry/Point" {
      * Clamps the magnitude of a point.
      * This is useful when using a Point as a vector, to limit forces.
      * @param pt
-     * @param m
+     * @param max Maximum magnitude (1 by default)
+     * @param min Minimum magnitude (0 by default)
      * @returns
      */
-    export const clampMagnitude: (pt: Point, m: number) => Point;
+    export const clampMagnitude: (pt: Point, max?: number, min?: number) => Point;
     /**
      * Clamps a point to be between `min` and `max` (0 & 1 by default)
      * @param pt Point
@@ -6452,7 +6647,11 @@ declare module "geometry/Point" {
         /**
         * Distance from start
         */
-        readonly distance: number;
+        readonly distanceFromStart: number;
+        /**
+        * Distance from last compared point
+        */
+        readonly distanceFromLast: number;
         /**
         * Center point from start
         */
@@ -6476,8 +6675,8 @@ declare module "geometry/Point" {
      * // Start point: 50,50
      * const t = Points.relation({x:50,y:50});
      *
-     * // Compare to a 0,0
-     * const { angle, distance, average, centroid, speed } = t({x:0,y:0});
+     * // Compare to 0,0
+     * const { angle, distanceFromStart, distanceFromLast, average, centroid, speed } = t({x:0,y:0});
      * ```
      *
      * X,y coordinates can also be used as parameters:
@@ -6486,6 +6685,10 @@ declare module "geometry/Point" {
      * const result = t(0, 0);
      * // result.speed, result.angle ...
      * ```
+     *
+     * Note that all the intermediate values are not stored. It keeps the initial
+     * point, and the previous point. If you want to compute something over a set
+     * of prior points, you may want to use [Data.pointsTracker](./Data.pointsTracker.html)
      * @param start
      * @returns
      */
@@ -6826,7 +7029,7 @@ declare module "geometry/Circle" {
      * @param b
      * @returns Distance
      */
-    export const distanceCenter: (a: CirclePositioned, b: CirclePositioned) => number;
+    export const distanceCenter: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
     /**
      * Returns the distance between the exterior of two circles, or between the exterior of a circle and point.
      * If `b` overlaps or is enclosed by `a`, distance is 0.
@@ -7371,6 +7574,52 @@ declare module "geometry/Polar" {
      * @returns
      */
     export const rotate: (c: Coord, amountRadian: number) => Coord;
+    export const normalise: (c: Coord) => Coord;
+    /**
+     * Throws an error if Coord is invalid
+     * @param p
+     * @param name
+     */
+    export const guard: (p: Coord, name?: string) => void;
+    /**
+     * Calculate dot product of two Coords.
+     *
+     * Eg, power is the dot product of force and velocity
+     *
+     * Dot products are also useful for comparing similarity of
+     *  angle between two unit Coord.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const dotProduct: (a: Coord, b: Coord) => number;
+    /**
+     * Inverts the direction of coordinate. Ie if pointing north, will point south.
+     * @param p
+     * @returns
+     */
+    export const invert: (p: Coord) => Coord;
+    /**
+     * Returns true if Coords have same magnitude but opposite direction
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isOpposite: (a: Coord, b: Coord) => boolean;
+    /**
+     * Returns true if Coords have the same direction, regardless of magnitude
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isParallel: (a: Coord, b: Coord) => boolean;
+    /**
+     * Returns true if coords are opposite direction, regardless of magnitude
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isAntiParallel: (a: Coord, b: Coord) => boolean;
     /**
      * Returns a rotated coordinate
      * @param c Coordinate
@@ -7386,6 +7635,41 @@ declare module "geometry/Polar" {
      * @returns
      */
     export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
+    /**
+     * Multiplies the magnitude of a coord by `amt`.
+     * Direction is unchanged.
+     * @param v
+     * @param amt
+     * @returns
+     */
+    export const multiply: (v: Coord, amt: number) => Coord;
+    /**
+     * Divides the magnitude of a coord by `amt`.
+     * Direction is unchanged.
+     * @param v
+     * @param amt
+     * @returns
+     */
+    export const divide: (v: Coord, amt: number) => Coord;
+    /**
+     * Clamps the magnitude of a vector
+     * @param v
+     * @param max
+     * @param min
+     * @returns
+     */
+    export const clampMagnitude: (v: Coord, max?: number, min?: number) => Coord;
+    /**
+     * Returns a human-friendly string representation `(distance, angleDeg)`.
+     * If `precision` is supplied, this will be the number of significant digits.
+     * @param p
+     * @returns
+     */
+    export const toString: (p: Coord, digits?: number) => string;
+    export const toPoint: (v: Coord, origin?: Readonly<{
+        x: 0;
+        y: 0;
+    }>) => Points.Point;
 }
 declare module "geometry/Shape" {
     import { Triangles, Points, Rects, Circles } from "geometry/index";
@@ -7457,6 +7741,117 @@ declare module "geometry/Shape" {
      * @returns
      */
     export const arrow: (origin: Points.Point, from: `tip` | `tail` | `middle`, opts?: ArrowOpts) => readonly Points.Point[];
+}
+declare module "geometry/Vector" {
+    import { Polar } from "geometry/index";
+    import * as Lines from "geometry/Line";
+    import * as Points from "geometry/Point";
+    export type Vector = Points.Point | Polar.Coord;
+    /**
+     * Create a vector from a point
+     *
+     * If `unipolar` normalisation is used, direction will be fixed to 0..2π
+     * if `bipolar` normalisation is used, direction will be fixed to -π...π
+     * @param pt Point
+     * @param angleNormalisation Technique to normalise angle
+     * @param origin Origin to calculate vector from or 0,0 if left empty
+     * @returns
+     */
+    export const fromPointPolar: (pt: Points.Point, angleNormalisation?: `` | `unipolar` | `bipolar`, origin?: Points.Point) => Polar.Coord;
+    /**
+     * Returns a Cartesian-coordiante vector from a line a -> b
+     * @param line
+     * @returns
+     */
+    export const fromLineCartesian: (line: Lines.Line) => Points.Point;
+    /**
+     * Returns a polar-coordinate vector from a line a -> b
+     * @param line
+     * @returns
+     */
+    export const fromLinePolar: (line: Lines.Line) => Polar.Coord;
+    /**
+     * Returns the normalised vector (aka unit vector). This is where
+     * direction is kept, but magnitude set to 1. This then just
+     * suggests direction.
+     * @param v
+     * @returns
+     */
+    export const normalise: (v: Vector) => Vector;
+    export const quadrantOffsetAngle: (p: Points.Point) => number;
+    /**
+     * Converts a vector to a polar coordinate. If the provided
+     * value is already Polar, it is returned.
+     * @param v
+     * @param origin
+     * @returns Polar vector
+     */
+    export const toPolar: (v: Vector, origin?: Readonly<{
+        x: 0;
+        y: 0;
+    }>) => Polar.Coord;
+    /**
+     * Converts a Vector to a Cartesian coordinate. If the provided
+     * value is already Cartesian, it is returned.
+     * @param v
+     * @returns Cartestian vector
+     */
+    export const toCartesian: (v: Vector) => Points.Point;
+    /**
+     * Return a human-friendly representation of vector
+     * @param v
+     * @param digits
+     * @returns
+     */
+    export const toString: (v: Vector, digits?: number) => string;
+    /**
+     * Calculate dot product of a vector
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const dotProduct: (a: Vector, b: Vector) => number;
+    /**
+     * Clamps the magnitude of a vector
+     * @param v Vector to clamp
+     * @param max Maximum magnitude
+     * @param min Minium magnitude
+     * @returns
+     */
+    export const clampMagnitude: (v: Vector, max?: number, min?: number) => Points.Point | Polar.Coord;
+    /**
+     * Returns `a + b`.
+     *
+     * Vector is returned in the same type as `a`.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const sum: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    /**
+     * Returns `a - b`.
+     *
+     * Vector is returned in the same type as `a`
+     * @param a
+     * @param b
+     */
+    export const subtract: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    /**
+     * Returns `a * b`.
+     *
+     * Vector is returned in the same type `a`.
+     * @param a
+     * @param b
+     */
+    export const multiply: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    /**
+     * Returns `a / b`.
+     *
+     * Vector is returned in the same type `a`.
+     * @param a
+     * @param b
+     */
+    export const divide: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
 }
 declare module "geometry/TriangleEquilateral" {
     import { Circle } from "geometry/Circle";
@@ -8118,7 +8513,8 @@ declare module "geometry/index" {
     import * as Ellipses from "geometry/Ellipse";
     import * as Polar from "geometry/Polar";
     import * as Shapes from "geometry/Shape";
-    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes };
+    import * as Vectors from "geometry/Vector";
+    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes, Vectors };
     /**
      * Triangle processing.
      *
@@ -10234,6 +10630,17 @@ declare module "visual/SvgElements" {
      */
     export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement) => SVGCircleElement;
     /**
+     * Creates or resuses a `SVGGElement` (group)
+     *
+     * To update an existing elemnet, use `groupUpdate`
+     * @param children
+     * @param parent
+     * @param queryOrExisting
+     * @returns
+     */
+    export const group: (children: readonly SVGElement[], parent: SVGElement, queryOrExisting?: string | SVGGElement) => SVGGElement;
+    export const groupUpdate: (elem: SVGGElement, children: readonly SVGElement[]) => SVGGElement;
+    /**
      * Creates or reuses a SVGLineElement.
      *
      * @param line
@@ -10329,6 +10736,10 @@ declare module "visual/Svg" {
          */
         readonly fillStyle?: string;
         /**
+         * Opacity (0..1)
+         */
+        readonly opacity?: number;
+        /**
          * If true, debug helpers are drawn
          */
         readonly debug?: boolean;
@@ -10372,6 +10783,7 @@ declare module "visual/Svg" {
     export type TextDrawingOpts = StrokeOpts & DrawingOpts & {
         readonly anchor?: `start` | `middle` | `end`;
         readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
+        readonly userSelect?: boolean;
     };
     /**
      * Text path drawing options
@@ -11188,7 +11600,7 @@ declare module "dom/DomRx" {
      *
      * Pluck a field:
      * ```js
-     * const pointerX = rx(`#myDiv`, `pointermove`, {pluck: `clientX`}).value;
+     * const pointerX = rx(`#myDiv`, `pointermove`, { pluck: `clientX` }).value;
      *
      * if (pointerX > ...)
      * ```
@@ -11196,7 +11608,7 @@ declare module "dom/DomRx" {
      * @param opts
      * @return
      */
-    export const rx: <V>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts) => Rx<V>;
+    export const rx: <V extends object>(elOrQuery: HTMLElement | string, event: string, opts?: DomRxOpts) => Rx<V>;
 }
 declare module "dom/Forms" {
     /**
@@ -11369,6 +11781,13 @@ declare module "data/ObjectTracker" {
     export class ObjectTracker<V> extends TrackerBase<V> {
         values: Timestamped<V>[];
         constructor(id: string, opts?: TrackedValueOpts);
+        onTrimmed(): void;
+        /**
+         * Reduces size of value store to `limit`. Returns
+         * number of remaining items
+         * @param limit
+         */
+        trimStore(limit: number): number;
         /**
          * Allows sub-classes to be notified when a reset happens
          * @ignore
@@ -11422,6 +11841,7 @@ declare module "data/PointTracker" {
          */
         lastResult: PointTrackerResults | undefined;
         constructor(id: string, opts?: TrackOpts);
+        onTrimmed(): void;
         /**
          * Returns the last x coord
          */
@@ -11480,7 +11900,9 @@ declare module "data/PointTracker" {
         constructor(opts?: TrackOpts);
     }
     /**
-     * Track several named points. Call `seen()` to track a point. Mutable.
+     * Track several named points over time, eg a TensorFlow body pose point.
+     * Call `seen()` to track a point. Mutable. If you want to compare
+     * a single coordinate with a reference coordinate, [Geometry.Points.relation](Geometry.Points.relation.html) may be a better choice.
      *
      * Basic usage
      * ```js
@@ -11502,25 +11924,24 @@ declare module "data/PointTracker" {
      *
      * More functions...
      * ```js
-     * pt.size; // How many named points are being tracked
+     * pt.size;         // How many named points are being tracked
      * pt.delete(id);  // Delete named point
-     * pt.reset();
+     * pt.reset();     // Clear data
      * ```
      *
-     * Accessing data:
+     * Accessing by id:
      *
      * ```js
      * pt.get(id);  // Get named point (or _undefined_)
-     * pt.has(id); // Returns true if id exists
-     * pt.trackedByAge(); // Iterates over tracked points, sorted by age (oldest first)
-     *
+     * pt.has(id);  // Returns true if id exists
      * ```
-     
-    * Iterators:
+     *
+     * Iterating over data
      *
      * ```js
-     * pt.tracked(); // Tracked values
-     * pt.ids(); // Iterator over ids
+     * pt.trackedByAge();   // Iterates over tracked points, sorted by age (oldest first)
+     * pt.tracked();  // Tracked values
+     * pt.ids();      // Iterator over ids
      *
      * // Last received value for each named point
      * pt.last();
@@ -11631,6 +12052,25 @@ declare module "dom/ErrorHandler" {
         hide: () => void;
     };
 }
+declare module "dom/DragDrop" {
+    import { Points } from "geometry/index";
+    export type DragState = {
+        readonly token?: object;
+        readonly initial: Points.Point;
+        readonly delta: Points.Point;
+    };
+    export type DragStart = {
+        readonly allow: boolean;
+        readonly token: object;
+    };
+    export type DragListener = {
+        readonly start?: () => DragStart;
+        readonly progress?: (state: DragState) => boolean;
+        readonly abort?: (reason: string, state: DragState) => void;
+        readonly success?: (state: DragState) => void;
+    };
+    export const draggable: (elem: SVGElement, listener: DragListener) => () => void;
+}
 declare module "dom/index" {
     export * from "dom/Log";
     export * from "dom/DomRx";
@@ -11641,6 +12081,7 @@ declare module "dom/index" {
     export * as Forms from "dom/Forms";
     export * from "dom/PointerVisualise";
     export * from "dom/ErrorHandler";
+    export * as DragDrop from "dom/DragDrop";
 }
 declare module "index" {
     /**
@@ -12770,6 +13211,19 @@ declare module "collections/NumericArrays" {
      */
     export const maxFast: (data: readonly number[] | Float32Array) => number;
     /**
+     * Returns the total of `data` without pre-filtering for speed.
+     *
+     * For most uses, {@link total} should suffice.
+     *
+     * ```js
+     * import { Arrays } from 'https://unpkg.com/ixfx/dist/collections.js';
+     * Arrays.totalFast([ 10, 0, 4 ]); // 14
+     * ```
+     * @param data
+     * @returns Maximum
+     */
+    export const totalFast: (data: readonly number[] | Float32Array) => number;
+    /**
      * Returns the maximum out of `data` without pre-filtering for speed.
      *
      * For most uses, {@link max} should suffice.
@@ -13634,7 +14088,9 @@ declare module "__tests__/text.test" { }
 declare module "__tests__/util.test" { }
 declare module "__tests__/collections/arrays.test" { }
 declare module "__tests__/collections/lists.test" { }
-declare module "__tests__/collections/map.test" { }
+declare module "__tests__/collections/map.test" {
+    import "jest-extended";
+}
 declare module "__tests__/collections/mapMutable.test" { }
 declare module "__tests__/collections/numericArrays.test" { }
 declare module "__tests__/collections/queue.test" { }

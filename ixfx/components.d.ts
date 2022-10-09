@@ -1,15 +1,14 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-0c649bec.js';
-import './NumericArrays-4725411b.js';
-import './Easing-4724dd5c.js';
-import './index-0f9db2f2.js';
-import './StateMachine-d120065d.js';
+import { a as KeyValue } from './KeyValue-4dff953f.js';
+import './NumericArrays-e48be4c5.js';
+import './Easing-03568d01.js';
+import './index-8866fd4c.js';
+import './StateMachine-9e630999.js';
 import './Events-170d1411.js';
 import './Delay-68bd0948.js';
-import './Eq';
-import './Ordering';
+import 'fp-ts/lib/Ord.js';
 
 declare type Bar = {
     readonly percentage: number;

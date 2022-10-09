@@ -1,2 +1,2 @@
 import './Events-170d1411.js';
-export { M as MachineDescription, O as Options, g as State, a as StateChangeEvent, e as StateEvent, f as StateHandler, b as StateMachine, d as StateMachineEventMap, c as StopEvent, j as create, h as descriptionFromList, i as fromList } from './StateMachine-d120065d.js';
+export { i as DriverDescription, h as DriverExpression, D as DriverResult, M as MachineDescription, O as Options, g as State, a as StateChangeEvent, j as StateDriverDescription, e as StateEvent, f as StateHandler, b as StateMachine, d as StateMachineEventMap, c as StopEvent, n as create, k as descriptionFromList, o as drive, l as fromList, m as fromListBidirectional } from './StateMachine-9e630999.js';
