@@ -19,17 +19,8 @@
     </section>
     <div class="demos">
       <div>
+        <h1>basic uses</h1>
         <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/scale"></a>
-            <a href="./scale/">scale</a>: pinch-to-zoom gesture
-            <div class="techniques">Points tracker</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/speed"></a>
-            <a href="./speed/">speed</a>: calculate pointer speed in x & y
-            <div class="techniques">moving average, normalising, variable fonts</div>
-          </li>
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/force/"></a>
             <a href="./force/">force</a>: Trackpad/stylus pressure
@@ -43,28 +34,90 @@
             <a href="./move/">move</a>: Based on the 'thing' model, a shape grows with pointer movement, and
             otherwise shrinks on its own accord.
           </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/infinite/"></a>
-            <a href="./infinite/">infinite</a>: An extension of the 'move' sketch, but uses the Pointer Lock API for
-            infinite pointer movement.
-          </li>
+
           <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/drag/"></a>
             <a href="./drag/">drag</a>: Based on the 'thing' model, elements are draggable, and build up an
             'agitation' the more they are moved.
           </li>
           <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/scale"></a>
+            <a href="./scale/">scale</a>: pinch-to-zoom gesture (requires touch screen)
+            <div class="techniques">Points tracker</div>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h1>computing</h1>
+        <p>Derive things from basic pointer events
+        <ul class="nobullets">
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/from-center"></a>
+            <a href="./from-center/">from-center</a>: Calculate relative coordinates and distance from a fixed point
+            <div class="techniques">Points.distance, Points.angle</div>
+          </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-math"></a>
+            <a href="../geometry/#point">geometry</a>/<a href="../geometry/point-math/">math</a>: Compute distance and
+            angle between two points
+            <div class="techniques">Points.distance, Points.angle</div>
+          </li>
+
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/speed"></a>
+            <a href="./speed/">speed</a>: calculate pointer speed in x & y
+            <div class="techniques">moving average, normalising, variable fonts</div>
+          </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-centroid"></a>
+            <a href="../geometry/#point">geometry</a>/<a href="../geometry/point-centroid-hull/">centroid and hull</a>:
+            Centroid of two or more points, as well as enclosing
+            shape<div class="techniques">Pointer events, Points.centroid, Points.convexHull
+            </div>
+          </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-relation"></a>
+            <a href="../geometry/#point">geometry</a>/<a href="../geometry/point-relation/">relation</a>: Track angle,
+            distance, centroid between two points
+            <div class="techniques">Points.relation, Pointer events, relative coordiantes</div>
+          </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-angle"></a>
+            <a href="../geometry/#point">geometry</a>/<a href="../geometry/point-angle-avg/">angle avg</a>: Calculates
+            average angle in a stream of points
+            <div class="techniques">Number and point tracker</div>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h1>advanced</h1>
+        <ul class="nobullets">
+          <li>
             <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/remote/"></a>
             <a href="./remote/">remote</a>: Demonstrates sending/receiving pointer data between sketches.
           </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/pointer/infinite/"></a>
+            <a href="./infinite/">infinite</a>: An extension of the 'move' sketch, but uses the Pointer Lock API for
+            infinite pointer movement.
+          </li>
+          <li>
+            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-particle"></a>
+            <a href="../geometry/#point">geometry</a>/<a href="../geometry/point-particle/">particle</a>
+            <div class="techniques">Canvas, animating points, repeat, jitter</div>
+          </li>
         </ul>
-        <h2>playgrounds</h2>
+      </div>
+      <div>
         <ul class="nobullets">
-          <li><a href="../playgrounds/pointer/">pointer</a>: Pointer events</li>
-          <li><a href="../playgrounds/pointer/gesture/">gesture</a>: Touch gestures</li>
-          <li><a href="../playgrounds/pointer/pen/">pen</a>: Pen pointer events</li>
-          <li><a href="../playgrounds/pointer/force/">force</a>: Trackpad/stylus pressure</li>
-        </ul>
+          <h1>playgrounds</h1>
+          <ul class="nobullets">
+            <li><a href="../playgrounds/pointer/">pointer</a>: Pointer events</li>
+            <li><a href="../playgrounds/pointer/gesture/">gesture</a>: Touch gestures</li>
+            <li><a href="../playgrounds/pointer/pen/">pen</a>: Pen pointer events</li>
+            <li><a href="../playgrounds/pointer/force/">force</a>: Trackpad/stylus pressure</li>
+          </ul>
       </div>
 
     </div>
