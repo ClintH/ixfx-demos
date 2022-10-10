@@ -6,6 +6,7 @@ To use, open the 'sender' sketch on the device to send pointer event, and 'recei
 
 It's also possible to test by opening the sketches in different tabs.
 
-For cross-device communication to work, you need to either b
+To access across different devices, see [WEBSOCKETS](../../WEBSOCKETS.md) for more info.
+
 Read more
 * [remote](https://github.com/clinth/remote) - a library for simplifying cross-device interaction
