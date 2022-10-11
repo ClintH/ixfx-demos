@@ -18,16 +18,21 @@ const useState = () => {
   const { results } = state;
   if (!results) return;
 
-  const { angle, distance, centroid, average, speed } = results;
+  const { angle, distanceFromLast, distanceFromStart, centroid, average, speed } = results;
 
   const angleDeg = radianToDegree(angle);
   
   // Update labels
-  setText(`lblDistance`, distance.toPrecision(2));
-  setText(`lblAngleDeg`, Math.round(angleDeg).toString());
-  setText(`lblAverage`, Points.toString(average, 2));
-  setText(`lblCentroid`, Points.toString(centroid, 2));
-  setText(`lblSpeed`, speed.toPrecision(2));
+  setText(`info`,
+    `
+  Distance start: ${distanceFromStart.toPrecision(2)}
+  Distance last: ${distanceFromLast.toPrecision(2)}
+  Angle deg: ${Math.round(angleDeg)}
+  Average: ${Points.toString(average, 2)}
+  Centroid: ${Points.toString(centroid, 2)}
+  Speed: ${speed.toPrecision(2)}
+  `
+  );
 };
 
 const onPointerDown = e => {
@@ -113,6 +118,7 @@ function relativePos(pos) {
 function setText(id, text)  {
   const el = document.getElementById(id);
   if (!el) return;
+  if (el.innerText === text) return;
   el.innerText = text;
 }
 
