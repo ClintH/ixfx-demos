@@ -44,6 +44,7 @@ const draw = (ctx) => {
   ctx.translate(bounds.center.x, bounds.center.y);
 
   // Fill a circle
+  ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.fillStyle = dotColour;
   ctx.fill();
