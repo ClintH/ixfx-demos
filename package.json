@@ -4,6 +4,9 @@
   "description": "Demos of ixfx",
   "main": "index.html",
   "type": "module",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "bs": "browser-sync start --config 'bs-config.cjs' --no-open",
