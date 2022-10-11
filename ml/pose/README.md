@@ -15,11 +15,11 @@ Overview of sketches:
 # Getting started
 
 Quick start:
-1. Running a local web server, open `points.html` in your browser. It may take a moment to load the TensorFlow model.
+1. Running a local web server, open `single.html` in your browser. It may take a moment to load the TensorFlow model.
 2. Click the yellow checkmark in the top-right panel to use your camera.
 3. Take a look at the shape of the raw data streaming in the console
 
-The next step is to comment out the following lines in _points.html_. This will remove the corner panel.
+The next step is to comment out the following lines in _single_.html_. This will remove the corner panel.
 
 ```html
 <button id="btnCloseFrame">Close panel</button>
@@ -34,7 +34,7 @@ Now, use a separate browser window with _source.html_ loaded. This way, as you t
 
 # Models
 
-The TensorFlow.js pose detection library has three models: _MoveNet_, _BlazePose_ and _PoseNet_. For most cases, MoveNet is the model to choose, but read on for the differences.
+The TensorFlow.js (that's the name of the product, not a Javascript file) pose detection library has three models: _MoveNet_, _BlazePose_ and _PoseNet_. For most cases, MoveNet is the model to choose, but read on for the differences.
 
 The model can be set through the `settings.model` property (in `source.js`). It can also be set [via URL parameters](#url-parameters).
 
