@@ -8,6 +8,6 @@ tasks:
 ports:
   - name: ixfx demos
     description: Server for demos
-    port: 3000
+    port: 8080
     onOpen: open-browser
     visibility: public

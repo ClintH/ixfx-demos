@@ -30,7 +30,7 @@ Read more:
 
 ### Editing and running online
 
-* [CodesSndbox](https://githubbox.com/clinth/ixfx-demos-light)
+* [CodesSandbox](https://githubbox.com/clinth/ixfx-demos-light)
 * [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos-light)
 * [Glitch](https://glitch.com/edit/#!/ixfx-demos) (code editing experience not the best)
 * [Stackblitz](http://stackblitz.com/fork/github/clinth/ixfx-demos-light)
