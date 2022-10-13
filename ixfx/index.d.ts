@@ -14230,6 +14230,26 @@ declare module "components/index" {
     export { HistogramVis } from "components/HistogramVis";
     export { FrequencyHistogramPlot } from "components/FrequencyHistogramPlot";
 }
+declare module "data/Correlate" {
+    /**
+     * Returns the similarity of `a` and `b` to each other
+     * @param a
+     * @param b
+     */
+    export type Similarity<V> = (a: V, b: V) => number;
+    export type Correlation<V> = {
+        readonly data: V;
+    };
+    export type Scoring<V> = {
+        readonly prior: V;
+        readonly data: V;
+        readonly score: number;
+    };
+    export type CorrelatorOpts = {
+        readonly threshold: number;
+        readonly expireUnmatchedAfterMs?: number;
+    };
+}
 declare module "data/Proportion" {
     import { NumberFunction } from "data/index";
     /**

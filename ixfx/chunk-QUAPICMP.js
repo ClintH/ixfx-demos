@@ -11,7 +11,7 @@ import {
   isPowerOfTwo,
   roundUpToMultiple,
   toStringDefault
-} from "./chunk-5TTU6JUU.js";
+} from "./chunk-L6UVOTUD.js";
 import {
   indexOfCharCode,
   omitChars,
@@ -12701,6 +12701,8 @@ var startTimeoutMs = 1e4;
 var start = async (constraints = {}) => {
   const videoEl = document.createElement(`VIDEO`);
   videoEl.style.display = `none`;
+  videoEl.playsInline = true;
+  videoEl.muted = true;
   videoEl.classList.add(`ixfx-camera`);
   document.body.appendChild(videoEl);
   let stopVideo = () => {
@@ -18616,4 +18618,4 @@ export {
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-GT5YUDV6.js.map
+//# sourceMappingURL=chunk-QUAPICMP.js.map
