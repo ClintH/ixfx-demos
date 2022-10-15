@@ -12904,6 +12904,90 @@ declare module "data/Wrap" {
      */
     export const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
 }
+declare module "data/Correlate" {
+    /**
+     * Returns the similarity of `a` and `b` to each other,
+     * where higher similarity should be a higher number.
+     * @param a
+     * @param b
+     */
+    export type Similarity<V> = (a: V, b: V) => number;
+    /**
+     * Options for alignmnent
+     */
+    export type AlignOpts = {
+        /**
+         * If the similarity score is above this threshold,
+         * consider them the same
+         */
+        readonly matchThreshold?: number;
+        /**
+         * If true, additional console messages are printed during
+         * execution.
+         */
+        readonly debug?: boolean;
+    };
+    /**
+     * Some data with an id property.
+     */
+    export type DataWithId<V> = V & {
+        readonly id: string;
+    };
+    /**
+     * Attempts to align prior data with new data, based on a provided similarity function.
+     *
+     * See also `alignById` for a version which encloses parameters.
+     *
+     * ```js
+     * // Compare data based on x,y distance
+     * const fn = (a, b) => {
+     *  return 1-Points.distance(a, b);
+     * }
+     * const lastData = [
+     *  { id:`1`, x:100, y:200 }
+     *  ...
+     * ]
+     * const newData = [
+     *  { id:`2`, x:101, y:200 }
+     * ]
+     * const aligned = Correlate.align(fn, lastdata, newData, opts);
+     *
+     * // Result:
+     * [
+     *  { id:`1`, x:101, y:200 }
+     * ]
+     * ```
+     * @param fn
+     * @param lastData
+     * @param newData
+     * @param opts
+     * @returns
+     */
+    export const align: <V>(fn: Similarity<V>, lastData: readonly DataWithId<V>[] | undefined, newData: readonly DataWithId<V>[], opts?: AlignOpts) => any[];
+    /**
+     * Returns a function that attempts to align a series of data by its id.
+     * See also {@link align} for a version with no internal storage.
+     *
+     * ```js
+     * // Compare data based on x,y distance
+     * const fn = (a, b) => {
+     *  return 1-Points.distance(a, b);
+     * }
+     * const aligner = Correlate.alignById(fn, opts);
+     *
+     * const lastData = [
+     *  { id:`1`, x:100, y:200 }
+     *  ...
+     * ]
+     * const aligned = aligner(lastData);
+     *
+     * ```
+     * @param fn
+     * @param opts
+     * @returns
+     */
+    export const alignById: <V>(fn: Similarity<V>, opts?: AlignOpts) => (newData: DataWithId<V>[]) => DataWithId<V>[];
+}
 declare module "data/index" {
     export * as Normalise from "data/Normalise";
     export * from "data/FrequencyMutable";
@@ -12918,6 +13002,7 @@ declare module "data/index" {
     export * from "data/Flip";
     export * from "data/Interpolate";
     export * from "data/Wrap";
+    export * as Correlate from "data/Correlate";
     export const piPi: number;
     export type NumberFunction = () => number;
 }
@@ -14378,34 +14463,6 @@ declare module "components/FrequencyHistogramPlot" {
 declare module "components/index" {
     export { HistogramVis } from "components/HistogramVis";
     export { FrequencyHistogramPlot } from "components/FrequencyHistogramPlot";
-}
-declare module "data/Correlate" {
-    /**
-     * Returns the similarity of `a` and `b` to each other
-     * @param a
-     * @param b
-     */
-    export type Similarity<V> = (a: V, b: V) => number;
-    export type ValueWithId<V> = {
-        readonly value: V;
-        readonly id: string;
-    };
-    export type Scoring<V> = {
-        readonly data: ValueWithId<V>;
-        readonly score: number;
-    };
-    export type Results<V> = {
-        readonly value: ValueWithId<V>;
-        readonly scores: readonly Scoring<V>[];
-        readonly since: number;
-    };
-    export const correlate: <V>(fn: Similarity<V>, prior: readonly ValueWithId<V>[], data: readonly ValueWithId<V>[]) => readonly Results<V>[];
-    export type Opts = {
-        readonly threshold: number;
-        readonly expireUnmatchedAfterMs?: number;
-        readonly debug?: false;
-    };
-    export const correlator: <V>(fn: Similarity<V>, identityFn: (v: V) => string, opts: Opts) => (data: V[]) => void;
 }
 declare module "data/Proportion" {
     import { NumberFunction } from "data/index";

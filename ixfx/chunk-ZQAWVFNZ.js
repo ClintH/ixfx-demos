@@ -5613,6 +5613,7 @@ __export(Easing_exports, {
 // src/data/index.ts
 var data_exports = {};
 __export(data_exports, {
+  Correlate: () => Correlate_exports,
   FrequencyMutable: () => FrequencyMutable,
   IntervalTracker: () => IntervalTracker,
   Normalise: () => Normalise_exports,
@@ -18028,6 +18029,60 @@ var wrapRange = (min4, max4, fn, a, b) => {
   return wrapInteger(r, min4, max4);
 };
 
+// src/data/Correlate.ts
+var Correlate_exports = {};
+__export(Correlate_exports, {
+  align: () => align,
+  alignById: () => alignById
+});
+var orderScore = (a, b) => {
+  if (a.score > b.score)
+    return -1;
+  else if (a.score < b.score)
+    return 1;
+  return 0;
+};
+var align = (fn, lastData, newData, opts = {}) => {
+  const matchThreshold = opts.matchThreshold ?? 0;
+  const debug2 = opts.debug ?? false;
+  const results = /* @__PURE__ */ new Map();
+  const newThings = [];
+  const lastMap = /* @__PURE__ */ new Map();
+  lastData?.forEach((d) => lastMap.set(d.id, d));
+  for (let i = 0; i < newData.length; i++) {
+    const newD = newData[i];
+    if (!lastData || lastData.length === 0) {
+      if (debug2)
+        console.debug(`align() new id: ${newD.id}`);
+      newThings.push(newD);
+      continue;
+    }
+    const r = Array.from(lastMap.values()).map((last) => ({ id: last.id, score: last === null ? -1 : fn(last, newD), last }));
+    r.sort(orderScore);
+    const top = r[0];
+    if (top.score < matchThreshold) {
+      if (debug2)
+        console.debug(`align() new item does not reach threshold. Top score: ${top.score} id: ${newD.id}`);
+      newThings.push(newD);
+      continue;
+    }
+    if (debug2 && top.id !== newD.id)
+      console.log(`  -- remapped! ${newD.id} -> ${top.id}`);
+    results.set(top.id, { ...newD, id: top.id });
+    lastMap.delete(top.id);
+  }
+  newThings.forEach((t4) => results.set(t4.id, t4));
+  return Array.from(results.values());
+};
+var alignById = (fn, opts = {}) => {
+  let lastData = [];
+  const compute = (newData) => {
+    lastData = align(fn, lastData, newData, opts);
+    return [...lastData];
+  };
+  return compute;
+};
+
 // src/data/index.ts
 var piPi8 = Math.PI * 2;
 
@@ -18627,6 +18682,7 @@ export {
   wrapInteger,
   wrap,
   wrapRange,
+  Correlate_exports,
   piPi8 as piPi,
   data_exports,
   interpolate7 as interpolate,
@@ -18664,4 +18720,4 @@ export {
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-4XVDCDKB.js.map
+//# sourceMappingURL=chunk-ZQAWVFNZ.js.map

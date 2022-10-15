@@ -1,4 +1,5 @@
 import {
+  Correlate_exports,
   FrequencyMutable,
   IntervalTracker,
   Normalise_exports,
@@ -26,7 +27,7 @@ import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-4XVDCDKB.js";
+} from "./chunk-ZQAWVFNZ.js";
 import "./chunk-6BEDDNNY.js";
 import "./chunk-L6UVOTUD.js";
 import "./chunk-X4RNBMU5.js";
@@ -44,6 +45,7 @@ import "./chunk-OWB7AKEV.js";
 import "./chunk-4LZCZKRL.js";
 import "./chunk-TSM4BTWW.js";
 export {
+  Correlate_exports as Correlate,
   FrequencyMutable,
   IntervalTracker,
   Normalise_exports as Normalise,

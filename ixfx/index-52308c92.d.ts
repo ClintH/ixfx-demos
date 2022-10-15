@@ -898,12 +898,111 @@ declare const wrap: (v: number, min?: number, max?: number) => number;
  */
 declare const wrapRange: (min: number, max: number, fn: (distance: number) => number, a: number, b: number) => number;
 
+/**
+ * Returns the similarity of `a` and `b` to each other,
+ * where higher similarity should be a higher number.
+ * @param a
+ * @param b
+ */
+declare type Similarity<V> = (a: V, b: V) => number;
+/**
+ * Options for alignmnent
+ */
+declare type AlignOpts = {
+    /**
+     * If the similarity score is above this threshold,
+     * consider them the same
+     */
+    readonly matchThreshold?: number;
+    /**
+     * If true, additional console messages are printed during
+     * execution.
+     */
+    readonly debug?: boolean;
+};
+/**
+ * Some data with an id property.
+ */
+declare type DataWithId<V> = V & {
+    readonly id: string;
+};
+/**
+ * Attempts to align prior data with new data, based on a provided similarity function.
+ *
+ * See also `alignById` for a version which encloses parameters.
+ *
+ * ```js
+ * // Compare data based on x,y distance
+ * const fn = (a, b) => {
+ *  return 1-Points.distance(a, b);
+ * }
+ * const lastData = [
+ *  { id:`1`, x:100, y:200 }
+ *  ...
+ * ]
+ * const newData = [
+ *  { id:`2`, x:101, y:200 }
+ * ]
+ * const aligned = Correlate.align(fn, lastdata, newData, opts);
+ *
+ * // Result:
+ * [
+ *  { id:`1`, x:101, y:200 }
+ * ]
+ * ```
+ * @param fn
+ * @param lastData
+ * @param newData
+ * @param opts
+ * @returns
+ */
+declare const align: <V>(fn: Similarity<V>, lastData: readonly DataWithId<V>[] | undefined, newData: readonly DataWithId<V>[], opts?: AlignOpts) => any[];
+/**
+ * Returns a function that attempts to align a series of data by its id.
+ * See also {@link align} for a version with no internal storage.
+ *
+ * ```js
+ * // Compare data based on x,y distance
+ * const fn = (a, b) => {
+ *  return 1-Points.distance(a, b);
+ * }
+ * const aligner = Correlate.alignById(fn, opts);
+ *
+ * const lastData = [
+ *  { id:`1`, x:100, y:200 }
+ *  ...
+ * ]
+ * const aligned = aligner(lastData);
+ *
+ * ```
+ * @param fn
+ * @param opts
+ * @returns
+ */
+declare const alignById: <V>(fn: Similarity<V>, opts?: AlignOpts) => (newData: DataWithId<V>[]) => DataWithId<V>[];
+
+type Correlate_Similarity<V> = Similarity<V>;
+type Correlate_AlignOpts = AlignOpts;
+type Correlate_DataWithId<V> = DataWithId<V>;
+declare const Correlate_align: typeof align;
+declare const Correlate_alignById: typeof alignById;
+declare namespace Correlate {
+  export {
+    Correlate_Similarity as Similarity,
+    Correlate_AlignOpts as AlignOpts,
+    Correlate_DataWithId as DataWithId,
+    Correlate_align as align,
+    Correlate_alignById as alignById,
+  };
+}
+
 declare const piPi: number;
 declare type NumberFunction = () => number;
 
 declare const index_piPi: typeof piPi;
 type index_NumberFunction = NumberFunction;
 declare const index_Normalise: typeof Normalise;
+declare const index_Correlate: typeof Correlate;
 type index_FrequencyEventMap = FrequencyEventMap;
 type index_FrequencyMutable<V> = FrequencyMutable<V>;
 declare const index_FrequencyMutable: typeof FrequencyMutable;
@@ -946,6 +1045,7 @@ declare namespace index {
     index_piPi as piPi,
     index_NumberFunction as NumberFunction,
     index_Normalise as Normalise,
+    index_Correlate as Correlate,
     index_FrequencyEventMap as FrequencyEventMap,
     index_FrequencyMutable as FrequencyMutable,
     index_frequencyMutable as frequencyMutable,
@@ -982,4 +1082,4 @@ declare namespace index {
   };
 }
 
-export { FrequencyEventMap as F, IntervalTracker as I, MovingAverage as M, NumberFunction as N, PointTrack as P, TrackedPointMap as T, Normalise as a, FrequencyMutable as b, movingAverageTimed as c, movingAverage as d, intervalTracker as e, frequencyMutable as f, PointTrackerResults as g, PointTracker as h, index as i, pointsTracker as j, pointTracker as k, clamp as l, movingAverageLight as m, clampIndex as n, scaleClamped as o, piPi as p, scalePercentages as q, scalePercent as r, scale as s, flip as t, interpolate as u, interpolateAngle as v, wrapInteger as w, wrap as x, wrapRange as y };
+export { Correlate as C, FrequencyEventMap as F, IntervalTracker as I, MovingAverage as M, NumberFunction as N, PointTrack as P, TrackedPointMap as T, Normalise as a, FrequencyMutable as b, movingAverageTimed as c, movingAverage as d, intervalTracker as e, frequencyMutable as f, PointTrackerResults as g, PointTracker as h, index as i, pointsTracker as j, pointTracker as k, clamp as l, movingAverageLight as m, clampIndex as n, scaleClamped as o, piPi as p, scalePercentages as q, scalePercent as r, scale as s, flip as t, interpolate as u, interpolateAngle as v, wrapInteger as w, wrap as x, wrapRange as y };
