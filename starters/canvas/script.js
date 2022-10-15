@@ -64,6 +64,7 @@ const clear = (ctx) => {
   //ctx.fillRect(0, 0, width, height);
 };
 
+
 /**
  * Setup and run main loop 
  */
@@ -91,6 +92,7 @@ const setup = () => {
     window.requestAnimationFrame(animationLoop);
   };
   animationLoop();
+
 };
 setup();
 
