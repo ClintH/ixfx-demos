@@ -7,7 +7,7 @@ const settings = Object.freeze({
   // Keys to allow even though they aren't letters/digits
   allowCodes: [ `Backquote`, `Minus`, `Equal`, `Plus`, `Period`, `Semicolon`, `Comma`, `Slash`, `Quote`, `Backslash`, `BracketLeft`, `BracketRight` ],
   // Create a speed tracker that auto-resets after 3 samples
-  speedTracker: intervalTracker(`typing`, { resetAfterSamples:3 })
+  speedTracker: intervalTracker({ id: `typing`, resetAfterSamples:3 })
 });
 
 let state = Object.freeze({

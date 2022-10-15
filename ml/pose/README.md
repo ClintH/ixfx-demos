@@ -15,11 +15,11 @@ Overview of sketches:
 # Getting started
 
 Quick start:
-1. Running a local web server, open `single.html` in your browser. It may take a moment to load the TensorFlow model.
+1. Running a local web server, browse the provided 'single' sketch in your browser. It may take a moment to load the TensorFlow model.
 2. Click the yellow checkmark in the top-right panel to use your camera.
 3. Take a look at the shape of the raw data streaming in the console
 
-The next step is to comment out the following lines in _single_.html_. This will remove the corner panel.
+The next step is to comment out the following lines in _single/index.html_. This will remove the corner panel.
 
 ```html
 <button id="btnCloseFrame">Close panel</button>

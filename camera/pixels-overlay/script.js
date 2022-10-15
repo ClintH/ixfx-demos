@@ -17,7 +17,8 @@ const settings = Object.freeze({
   // If true, the differencing is shown. If false, just the
   // difference calculation is shown
   visualise: true,
-  frameIntervalTracker: intervalTracker(`fps`, { resetAfterSamples: 100 }),
+  frameIntervalTracker: intervalTracker({
+    id: `fps`, resetAfterSamples: 100 }),
   // HTML Elements
   /** @type {HTMLCanvasElement|null} */
   canvasEl: document.querySelector(`#canvas`),

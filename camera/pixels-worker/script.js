@@ -14,8 +14,8 @@ import { defaultErrorHandler } from '../../ixfx/dom.js';
  */
 const settings = Object.freeze({
   worker: new Worker(`worker.js`),
-  diffTracker: numberTracker(`difference`, { resetAfterSamples: 200 }),
-  frameIntervalTracker: intervalTracker(`fps`, { resetAfterSamples: 100 }),
+  diffTracker: numberTracker({ id: `difference`, resetAfterSamples: 200 }),
+  frameIntervalTracker: intervalTracker( { id: `fps`, resetAfterSamples: 100 }),
   // HTML elements for status
   /** @type {HTMLElement|null} */
   lblFps: document.querySelector(`#lblFps`),

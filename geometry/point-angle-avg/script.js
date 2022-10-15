@@ -5,14 +5,16 @@ let state = Object.freeze({
   /**
    * Keep track of pointer movements
    */
-  moveTracker: pointTracker(`move`, {
+  moveTracker: pointTracker( {
+    id:`move`,
     storeIntermediate: true,
     sampleLimit: 5
   }),
   /**
    * Keep track of average angle of movement
    */
-  angleAvg: numberTracker(`angle`, {
+  angleAvg: numberTracker({
+    id:`angle`,
     storeIntermediate: true,
     // Use the last 100 samples for the average
     sampleLimit: 100

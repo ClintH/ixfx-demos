@@ -43,7 +43,8 @@ let state = Object.freeze({
   // },
   /** @type number */
   distance:0,
-  distanceAvg: numberTracker(`distance`, {
+  distanceAvg: numberTracker({
+    id: `distance`,
     storeIntermediate: true,
     sampleLimit: 200
   }),
