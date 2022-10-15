@@ -34,7 +34,7 @@
       background-color: var(--bg);
       overscroll-behavior: none;
       overflow: hidden;
-      -webkit-overflow-scrolling: auto;
+      -webkit-overflow-scrolling: none;
       display: flex;
       flex-direction: column;
       user-select: none;
@@ -53,8 +53,7 @@
   <section>
     <h1>speed</h1>
     <em>Touch/click and drag</em>
-    <p>Speed: <span id="lblSpeed">?</span></p>
-    <p>Avg. speed: <span id="lblSpeedAvg">?</span></p>
+    <div id="debug"></div>
   </section>
   <div id="speed">SPEED</div>
 </body>
