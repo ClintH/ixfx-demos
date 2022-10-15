@@ -1,24 +1,38 @@
 import * as Dom from '../../ixfx/dom.js';
+import { Points } from '../../ixfx/geometry.js';
 
-// Define settings
+// Define settings - properties that don't change
 const settings = Object.freeze({
-  dotColour: `black`,
-  textColour: `white`,
-  radius: 100,
+  tickLoopMs: 10
 });
 
-// Initial state with empty values
+// Initial state - properties that change as code runs
 let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
-    center: { x: 0, y: 0 }
+    center: { x: 0, y: 0 },
   },
-  /** @type {number} */
-  ticks: 0
+  /** @type number */
+  scaleBy: 1
 });
 
-const useState = () => {
+/**
+ * This is called at a slower rate
+ * than the animation loop. It's meant for
+ * mutating state in some manner
+ */
+const tick = () => {
+  // Do some calculations
+  // and call updateState({ ... })
+};
+
+/**
+ * This is run at animation speed. It
+ * should just draw based on whatever is in state
+ * @returns 
+ */
+const drawState = () => {
   /** @type HTMLCanvasElement|null */
   const canvasEl = document.querySelector(`#canvas`);
   const ctx = canvasEl?.getContext(`2d`);
@@ -27,34 +41,8 @@ const useState = () => {
   // Clear canvas
   clear(ctx);
 
-  // Draw new things
-  draw(ctx);
-};
-
-/**
- * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
- */
-const draw = (ctx) => {
-  const { bounds, ticks } = state;
-  const { dotColour, textColour, radius } = settings;
-
-  // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(bounds.center.x, bounds.center.y);
-
-  // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = dotColour;
-  ctx.fill();
-
-  // Draw some text
-  ctx.fillStyle = textColour;
-  ctx.fillText(ticks.toString(), 0, 0);
-
-  // Unwind translation
-  ctx.restore();
+  // TODO: drawing...
+  drawLabelledCircle(ctx, { x: 0.2, y: 0.2, radius: 0.1 }, `pink` );
 };
 
 /**
@@ -80,17 +68,29 @@ const clear = (ctx) => {
  * Setup and run main loop 
  */
 const setup = () => {
+  const { tickLoopMs } = settings;
+
   Dom.fullSizeCanvas(`#canvas`, args => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ 
+      bounds: args.bounds,
+      scaleBy: Math.min(args.bounds.width, args.bounds.height)
+    });
   });
 
-  const loop = () => {
-    updateState({ ticks: state.ticks + 1 });
-    useState();
-    window.requestAnimationFrame(loop);
+  // Call `tick` at a given rate
+  const tickLoop = () => {
+    tick();
+    setTimeout(tickLoop, tickLoopMs);
   };
-  loop();
+  tickLoop();
+
+  // Animation loop
+  const animationLoop = () => {
+    drawState();
+    window.requestAnimationFrame(animationLoop);
+  };
+  animationLoop();
 };
 setup();
 
@@ -103,4 +103,36 @@ function updateState (s) {
     ...state,
     ...s
   });
+}
+
+/**
+ * Draws a circle with optional text
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {{x:number, y:number, radius:number}} circle 
+ */
+function drawLabelledCircle(ctx, circle, fillStyle = `black`, msg = ``, textFillStyle = `white`)  {
+  const { scaleBy } = state;
+
+  // Convert relative radius to absolute
+  const radius = circle.radius * (scaleBy / 2);
+
+  // Convert x,y to absolute point
+  const abs = Points.multiply(circle, state.bounds);
+
+  // Translate so 0,0 is the center of circle
+  ctx.save();
+  ctx.translate(abs.x, abs.y);
+  
+  // Fill a circle
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+
+  if (msg.length) {
+    ctx.fillStyle = textFillStyle;
+    ctx.textAlign = `center`;
+    ctx.fillText(msg, 0, 0);
+  }
+  ctx.restore();
 }
