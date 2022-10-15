@@ -3,23 +3,26 @@
  */
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import * as Dom from '../../ixfx/dom.js';
+import * as Dom from '../../../ixfx/dom.js';
+import { Correlate } from '../../../ixfx/data.js';
+import { Points } from '../../../ixfx/geometry.js';
+import { smoothPose, commonPoseSetup, absPose, debugDrawPose } from '../common-pose.js';
 
 const settings = Object.freeze({
+  correlation: { matchThreshold: 0.95 },
   // If true, x-axis is flipped
   horizontalMirror: true,
   // Ignores points under this threshold
   keypointScoreThreshold: 0.3,
   remote: new Remote(),
   // Removes poses from source after they go silent for this long
-  sourceExpireMs: 10000,
-  labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
+  sourceExpireMs: 10000
 });
 
 /**
  * @typedef SourceData
  * @property {number} lastUpdate
- * @property {number} hue
+ * @property {string} from
  * @property {Pose[]} poses
  */
 
@@ -31,7 +34,23 @@ let state = Object.freeze({
   },
   /** @type {Map<string,SourceData>} */
   data: new Map(),
+  poseHues: new Map()
 });
+
+/**
+ * Returns the similarity between two poses.
+ * High values = high similarity
+ * @param {Pose} a 
+ * @param {Pose} b 
+ */
+const poseSimilarity = (a, b) => {
+  if (!a || !b) return 0;
+  
+  // Keypoint 0 is the nose
+  let pointA = a.keypoints[0];
+  let pointB = b.keypoints[0];
+  return 1 - Points.distance(pointA, pointB);
+};
 
 /**
  * Received poses
@@ -39,19 +58,21 @@ let state = Object.freeze({
  * @param {string} from Sender
  */
 const onPoses = (poses, from) => {
+  const { correlation } = settings;
   const { data } = state;
 
-  // Get existing hue for this source, if we have it
-  let hue = data.get(from)?.hue;
+  // Get previous poses from this source, if any
+  let previousPoses = data.get(from)?.poses;
 
-  // Otherwise, compute a hue based on the number of sources recorded
-  if (hue === undefined) hue = [ ...data.entries() ].length * 30;
+  // Attempt to align new poses with previous data
+  /** @ts-ignore */
+  const alignedPoses = Correlate.align(poseSimilarity, previousPoses, poses, correlation );
 
-  // Keep track of lastest data from source
+  // Keep track of lastest set of aligned poses from source
   data.set(from, {
     lastUpdate: Date.now(),
-    poses,
-    hue
+    poses: /** @type Pose[] */(alignedPoses),
+    from
   });
 };
 
@@ -62,48 +83,44 @@ const onPoses = (poses, from) => {
  * @param {number} hue
  */
 const drawPose = (ctx, p, hue) => {
-  const { horizontalMirror, keypointScoreThreshold, labelFont } = settings;
-  const { bounds } = state;
-
-  const radius = 10;
-  const textOffsetY = radius * 3;
-
+  const { labelFont } = settings;
+ 
   ctx.strokeStyle = ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
   ctx.textBaseline = `top`;
-
   ctx.font = `12pt ${labelFont}`;
-
-  // Positions comes in relative terms,
-  // so we need to map to viewport size. Also want to
-  // flip the horizontal so it feels more normal 
-  const absPoint = (point) => ({
-    x: ((horizontalMirror ? 1 : 0) - point.x) * bounds.width,
-    y: point.y * bounds.height
-  });
 
   // Draw each keypoint
   p.keypoints.forEach(kp => {
-    if (kp.score === undefined || kp.score < keypointScoreThreshold) return;
-    const abs = absPoint(kp);
-
-    // Translate canvas to be centered on predicted object
-    ctx.save();
-    ctx.translate(abs.x, abs.y);
-
-    // Draw a circle
-    ctx.beginPath();
-    ctx.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw label for key point
-    const txtSize = drawCenteredText(kp.name, ctx, 0, textOffsetY);
-
-    // Draw score
-    drawCenteredText(Math.floor(kp.score * 100) + `%`, ctx, 0, textOffsetY + txtSize.fontBoundingBoxAscent + txtSize.fontBoundingBoxDescent);
-
-    // Undo translate transform
-    ctx.restore();
+    drawKeypoint(ctx, kp);
   });
+};
+
+const drawKeypoint = (ctx, kp) => {
+  const { keypointScoreThreshold } = settings;
+  const radius = 10;
+
+  const textOffsetY = radius * 3;
+
+  if (kp.score === undefined || kp.score < keypointScoreThreshold) return;
+  const abs = absPoint(kp);
+
+  // Translate canvas to be centered on predicted object
+  ctx.save();
+  ctx.translate(abs.x, abs.y);
+
+  // Draw a circle
+  ctx.beginPath();
+  ctx.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Draw label for key point
+  const txtSize = drawCenteredText(kp.name, ctx, 0, textOffsetY);
+
+  // Draw score
+  drawCenteredText(Math.floor(kp.score * 100) + `%`, ctx, 0, textOffsetY + txtSize.fontBoundingBoxAscent + txtSize.fontBoundingBoxDescent);
+
+  // Undo translate transform
+  ctx.restore();
 };
 
 // Draw text centered by taking into account its drawn size
@@ -137,7 +154,7 @@ const clear = (ctx) => {
 };
 
 const useState = () => {
-  const { data } = state;
+  const { data, poseHues } = state;
 
   const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
   const ctx = canvasEl?.getContext(`2d`);
@@ -148,9 +165,24 @@ const useState = () => {
   
   // For each source, draw each pose
   for (const sourceData of data.values()) {
-    sourceData.poses.forEach(pose => drawPose(ctx, pose, sourceData.hue));
+    // All poses from this source
+    const poses = sourceData.poses;
+
+    poses.forEach((pose,index) => {
+      // Construct an id for the pose based on source and index in array
+      const poseId = `${sourceData.from}-${pose.id}`;
+
+      let hue = poseHues.get(poseId);
+      if (!hue) {
+        // Id not found
+        hue = Math.floor(Math.random() * 359);
+        poseHues.set(poseId, hue);
+      }
+      drawPose(ctx, pose,  hue);
+    });
   }
 };
+
 
 const loop = () => {
   useState();
@@ -224,8 +256,20 @@ function updateState (s) {
   });
 }
 
+// Positions comes in relative terms,
+// so we need to map to viewport size. Also want to
+// flip the horizontal so it feels more normal 
+function absPoint(point) {
+  const { horizontalMirror } = settings;
+  const { bounds } = state;
+  return {
+    x: ((horizontalMirror ? 1 : 0) - point.x) * bounds.width,
+    y: point.y * bounds.height
+  };
+}
+
 /**
- * @typedef { import("../common-vision-source").Keypoint } Keypoint
- * @typedef { import("../common-vision-source").Box } Box
- * @typedef { import("../common-vision-source").Pose } Pose
+ * @typedef { import("../../common-vision-source").Keypoint } Keypoint
+ * @typedef { import("../../common-vision-source").Box } Box
+ * @typedef { import("../../common-vision-source").Pose } Pose
  */

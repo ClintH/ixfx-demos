@@ -127,8 +127,6 @@ const onFrame = async (frame, frameRect, timestamp_) => {
 const handlePoses = (poses, frameRect) => {
   const w = frameRect.width;
   const h = frameRect.height;
-
-  console.log(poses);
   
   // Normalise x,y of key points on 0..1 scale, based on size of source frame
   const normalised = poses.map(pose => ({
@@ -148,7 +146,10 @@ const handlePoses = (poses, frameRect) => {
   }
 
   // Update text display
-  CommonSource.displayListResults(() => state.poses.map((p, poseIndex) => p.score ? `<span style="color: hsl(${getHue(poseIndex)},100%,50%)">${Math.floor(p.score * 100)}%</span>` : `?`));
+  CommonSource.displayListResults(() => state.poses.map((p, poseIndex) => {
+    const poseId = p.id ?? poseIndex;
+    return p.score ? `<span style="color: hsl(${getHue(poseId)},100%,50%)">${Math.floor(p.score * 100)}%</span>` : `?`;
+  }));
 
   // Pass data down to be used by recorder, if active
   CommonSource.onRecordData(poses, frameRect);
@@ -218,7 +219,7 @@ async function createDetector() {
   }
 }
 
-const getHue = (index) => Math.round((index) * 137.508);
+const getHue = (index) => Math.round((parseInt(index)) * 137.508);
 
 /**
  * Called after a frame is captured from the video source.
@@ -235,7 +236,7 @@ function postCaptureDraw(ctx, width, height) {
   // Draw each pose
   poses.forEach((pose, poseIndex) => {
     // Generate distinctive hue for each pose
-    const poseHue = getHue(poseIndex);
+    const poseHue = getHue(pose.id ?? poseIndex);
 
     // Keep track of points by name
     const map = new Map();

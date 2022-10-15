@@ -859,6 +859,7 @@ function updateState (s) {
  * @property {Keypoint[]} keypoints
  * @property {number} [score]
  * @property {Box} [box]
+ * @property {string} [id]
  */
 
 /**
