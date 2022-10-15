@@ -1,6 +1,7 @@
-import { T as Triangle, A as Arc, B as Bezier, E as Ellipse, a as Triangle$1 } from './Triangle-6ef2a642.js';
-import { d as Path, a as Point, R as RectPositioned, e as Rect, C as Circle, L as Line, f as Circle$1, g as Line$1, h as Rect$1, i as Point$1, j as Path$1 } from './Point-643aa771.js';
+import { T as Triangle, A as Arc, B as Bezier, E as Ellipse, a as Triangle$1 } from './Triangle-f08d59a3.js';
+import { d as Path, a as Point, R as RectPositioned, e as Rect, C as Circle, L as Line, f as Circle$1, g as Line$1, h as Rect$1, i as Point$1, j as Path$1 } from './Point-8fd7867c.js';
 import { S as SetMutable } from './Interfaces-2d05741a.js';
+import { C as Coord, P as Polar } from './Polar-a65c22e0.js';
 
 declare type CompoundPath = Path & {
     readonly segments: readonly Path[];
@@ -72,7 +73,7 @@ declare const bbox: (paths: readonly Path[]) => RectPositioned;
  * @param {Paths.Path[]} paths
  * @returns {string}
  */
-declare const toString$2: (paths: readonly Path[]) => string;
+declare const toString$1: (paths: readonly Path[]) => string;
 /**
  * Throws an error if paths are not connected together, in order
  *
@@ -106,7 +107,7 @@ declare namespace CompoundPath$1 {
     CompoundPath$1_Dimensions as Dimensions,
     CompoundPath$1_computeDimensions as computeDimensions,
     CompoundPath$1_bbox as bbox,
-    toString$2 as toString,
+    toString$1 as toString,
     CompoundPath$1_guardContinuous as guardContinuous,
     CompoundPath$1_toSvgString as toSvgString,
     CompoundPath$1_fromPaths as fromPaths,
@@ -490,226 +491,6 @@ declare namespace Grid$1 {
 }
 
 /**
- * Polar coordinate, made up of a distance and angle in radians.
- * Most computations involving Coords require an `origin` as well.
- */
-declare type Coord = {
-    readonly distance: number;
-    readonly angleRadian: number;
-};
-/**
- * Converts to Cartesian coordiantes
- */
-declare type ToCartesian = {
-    (point: Coord, origin?: Point): Point;
-    (distance: number, angleRadians: number, origin?: Point): Point;
-};
-/**
- * Returns true if `p` seems to be a {@link Coord} (ie has both distance & angleRadian fields)
- * @param p
- * @returns True if `p` seems to be a Coord
- */
-declare const isCoord: (p: number | unknown) => p is Coord;
-/**
- * Converts a Cartesian coordinate to polar
- *
- * ```js
- * import { Polar } from 'https://unpkg.com/ixfx/dist/geometry.js';
- *
- * // Yields: { angleRadian, distance }
- * const polar = Polar.fromCartesian({x: 50, y: 50}, origin);
- * ```
- *
- * Any additional properties of `point` are copied to object.
- * @param point Point
- * @param origin Origin
- * @returns
- */
-declare const fromCartesian: (point: Point, origin: Point) => Coord;
-/**
- * Converts to Cartesian coordinate from polar.
- *
- * ```js
- * import { Polar } from 'https://unpkg.com/ixfx/dist/geometry.js';
- *
- * const origin = { x: 50, y: 50}; // Polar origin
- * // Yields: { x, y }
- * const polar = Polar.toCartesian({ distance: 10, angleRadian: 0 }, origin);
- * ```
- *
- * Distance and angle can be provided as numbers intead:
- *
- * ```
- * // Yields: { x, y }
- * const polar = Polar.toCartesian(10, 0, origin);
- * ```
- *
- * @param a
- * @param b
- * @param c
- * @returns
- */
-declare const toCartesian$1: ToCartesian;
-/**
- * Produces an Archimedean spiral. It's a generator.
- *
- * ```js
- * const s = spiral(0.1, 1);
- * for (const coord of s) {
- *  // Use Polar coord...
- *  if (coord.step === 1000) break; // Stop after 1000 iterations
- * }
- * ```
- *
- * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
- * @param zoom At smoothness 0.1, zoom starting at 1 is OK
- */
-declare function spiral(smoothness: number, zoom: number): IterableIterator<Coord & {
-    readonly step: number;
-}>;
-/**
- * Returns a rotated coordiante
- * @param c Coordinate
- * @param amountRadian Amount to rotate, in radians
- * @returns
- */
-declare const rotate: (c: Coord, amountRadian: number) => Coord;
-declare const normalise$1: (c: Coord) => Coord;
-/**
- * Throws an error if Coord is invalid
- * @param p
- * @param name
- */
-declare const guard: (p: Coord, name?: string) => void;
-/**
- * Calculate dot product of two Coords.
- *
- * Eg, power is the dot product of force and velocity
- *
- * Dot products are also useful for comparing similarity of
- *  angle between two unit Coord.
- * @param a
- * @param b
- * @returns
- */
-declare const dotProduct$1: (a: Coord, b: Coord) => number;
-/**
- * Inverts the direction of coordinate. Ie if pointing north, will point south.
- * @param p
- * @returns
- */
-declare const invert: (p: Coord) => Coord;
-/**
- * Returns true if Coords have same magnitude but opposite direction
- * @param a
- * @param b
- * @returns
- */
-declare const isOpposite: (a: Coord, b: Coord) => boolean;
-/**
- * Returns true if Coords have the same direction, regardless of magnitude
- * @param a
- * @param b
- * @returns
- */
-declare const isParallel: (a: Coord, b: Coord) => boolean;
-/**
- * Returns true if coords are opposite direction, regardless of magnitude
- * @param a
- * @param b
- * @returns
- */
-declare const isAntiParallel: (a: Coord, b: Coord) => boolean;
-/**
- * Returns a rotated coordinate
- * @param c Coordinate
- * @param amountDeg Amount to rotate, in degrees
- * @returns
- */
-declare const rotateDegrees: (c: Coord, amountDeg: number) => Coord;
-/**
- * Produces an Archimedian spiral with manual stepping.
- * @param step Step number. Typically 0, 1, 2 ...
- * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
- * @param zoom At smoothness 0.1, zoom starting at 1 is OK
- * @returns
- */
-declare const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
-/**
- * Multiplies the magnitude of a coord by `amt`.
- * Direction is unchanged.
- * @param v
- * @param amt
- * @returns
- */
-declare const multiply$1: (v: Coord, amt: number) => Coord;
-/**
- * Divides the magnitude of a coord by `amt`.
- * Direction is unchanged.
- * @param v
- * @param amt
- * @returns
- */
-declare const divide$1: (v: Coord, amt: number) => Coord;
-/**
- * Clamps the magnitude of a vector
- * @param v
- * @param max
- * @param min
- * @returns
- */
-declare const clampMagnitude$1: (v: Coord, max?: number, min?: number) => Coord;
-/**
- * Returns a human-friendly string representation `(distance, angleDeg)`.
- * If `precision` is supplied, this will be the number of significant digits.
- * @param p
- * @returns
- */
-declare const toString$1: (p: Coord, digits?: number) => string;
-declare const toPoint: (v: Coord, origin?: Readonly<{
-    x: 0;
-    y: 0;
-}>) => Point;
-
-type Polar_Coord = Coord;
-declare const Polar_isCoord: typeof isCoord;
-declare const Polar_fromCartesian: typeof fromCartesian;
-declare const Polar_spiral: typeof spiral;
-declare const Polar_rotate: typeof rotate;
-declare const Polar_guard: typeof guard;
-declare const Polar_invert: typeof invert;
-declare const Polar_isOpposite: typeof isOpposite;
-declare const Polar_isParallel: typeof isParallel;
-declare const Polar_isAntiParallel: typeof isAntiParallel;
-declare const Polar_rotateDegrees: typeof rotateDegrees;
-declare const Polar_spiralRaw: typeof spiralRaw;
-declare const Polar_toPoint: typeof toPoint;
-declare namespace Polar {
-  export {
-    Polar_Coord as Coord,
-    Polar_isCoord as isCoord,
-    Polar_fromCartesian as fromCartesian,
-    toCartesian$1 as toCartesian,
-    Polar_spiral as spiral,
-    Polar_rotate as rotate,
-    normalise$1 as normalise,
-    Polar_guard as guard,
-    dotProduct$1 as dotProduct,
-    Polar_invert as invert,
-    Polar_isOpposite as isOpposite,
-    Polar_isParallel as isParallel,
-    Polar_isAntiParallel as isAntiParallel,
-    Polar_rotateDegrees as rotateDegrees,
-    Polar_spiralRaw as spiralRaw,
-    multiply$1 as multiply,
-    divide$1 as divide,
-    clampMagnitude$1 as clampMagnitude,
-    toString$1 as toString,
-    Polar_toPoint as toPoint,
-  };
-}
-
-/**
  * Returns the center of a shape
  * Shape can be: rectangle, triangle, circle
  * @param shape
@@ -988,4 +769,4 @@ declare namespace index {
   };
 }
 
-export { CompoundPath$1 as C, Grid$1 as G, Polar as P, Shape as S, Vector$1 as V, radiansFromAxisX as a, degreeToRadian as d, index as i, radianToDegree as r };
+export { CompoundPath$1 as C, Grid$1 as G, Shape as S, Vector$1 as V, radiansFromAxisX as a, degreeToRadian as d, index as i, radianToDegree as r };

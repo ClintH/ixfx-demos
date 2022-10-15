@@ -65,6 +65,7 @@ declare const relativeTimer: (total: number, timer: Timer, clampValue?: boolean)
  * Wraps a timer, returning a relative elapsed value.
  *
  * ```js
+ * // Timer that counts to 1,000 milliseconds
  * let t = relativeTimerMs(1000);
  *
  * t.isDone;  // true if total milliseconds has elapsed
@@ -77,6 +78,34 @@ declare const relativeTimer: (total: number, timer: Timer, clampValue?: boolean)
  * @returns Timer
  */
 declare const relativeTimerMs: (total: number, clampValue?: boolean) => Timer & {
+    mod(amt: number): void;
+} & HasCompletion;
+/**
+ * Wraps a tick-based 'timer', returning a relative value (0..1).
+ * A value of 1 indicates the timer has completed.
+ *
+ * ```js
+ * // Timer that counts 20 ticks
+ * let t = relativeTimerTicks(20);
+ *
+ * t.isDone;  // true if total ticks has elapsed
+ * t.reset(); // reset timer to 0
+ * t.elapsed; // 0..1 scale of how close to completion
+ * ```
+ *
+ * Example:
+ * ```js
+ * const t = relativeTimerTicks(10);
+ * while (!t.isDone) {
+ *  const progress = t.elapsed;
+ *  // Yields: 0.1, 0.2, ... 1
+ * }
+ * ```
+ * @param total
+ * @param clampValue
+ * @returns
+ */
+declare const relativeTimerTicks: (total: number, clampValue?: boolean) => Timer & {
     mod(amt: number): void;
 } & HasCompletion;
 /**
@@ -117,7 +146,9 @@ declare const frequencyTimer: (frequency: number, timer?: Timer) => ModTimer;
  */
 declare const msElapsedTimer: () => Timer;
 /**
- * A timer that progresses with each call
+ * A timer that progresses with each call to `elapsed`.
+ *
+ * The first call to elapsed will return 1.
  * @private
  * @returns {Timer}
  */
@@ -484,6 +515,33 @@ declare const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V 
  */
 declare const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string) => void;
 
+/**
+ * Returns true for every _n_th call, eg 2 for every second call.
+ *
+ * If `nth` is 1, returns true for everything. 0 will be false for everything.
+ *
+ * Usage:
+ * ```js
+ * const tenth = everyNth(10);
+ * window.addEventListener(`pointermove`, evt => {
+ *  if (!tenth(evt)) return; // Filter out
+ *  // Continue processing, it is the 10th thing.
+ *
+ * });
+ * ```
+ *
+ * Alternative:
+ * ```js
+ * window.addEventListener(`pointermove`, everyNth(10, evt => {
+ *  // Do something with tenth item...
+ * });
+ * ```
+ * @param nth Every nth item
+ * @param callback
+ * @returns Function which in turn returns true if nth call has been hit, false otherwise
+ */
+declare const everyNth: (nth: number, callback?: ((...args: readonly unknown[]) => void) | undefined) => (...args: unknown[]) => boolean;
+
 declare type HasCompletion = {
     get isDone(): boolean;
 };
@@ -576,6 +634,7 @@ declare const index_completionMs: typeof completionMs;
 declare const index_frequencyTimerSource: typeof frequencyTimerSource;
 declare const index_relativeTimer: typeof relativeTimer;
 declare const index_relativeTimerMs: typeof relativeTimerMs;
+declare const index_relativeTimerTicks: typeof relativeTimerTicks;
 declare const index_frequencyTimer: typeof frequencyTimer;
 declare const index_msElapsedTimer: typeof msElapsedTimer;
 declare const index_ticksElapsedTimer: typeof ticksElapsedTimer;
@@ -598,6 +657,7 @@ declare const index_sleep: typeof sleep;
 declare const index_waitFor: typeof waitFor;
 declare const index_delay: typeof delay;
 declare const index_delayLoop: typeof delayLoop;
+declare const index_everyNth: typeof everyNth;
 declare namespace index {
   export {
     index_StateMachine as StateMachine,
@@ -614,6 +674,7 @@ declare namespace index {
     index_frequencyTimerSource as frequencyTimerSource,
     index_relativeTimer as relativeTimer,
     index_relativeTimerMs as relativeTimerMs,
+    index_relativeTimerTicks as relativeTimerTicks,
     index_frequencyTimer as frequencyTimer,
     index_msElapsedTimer as msElapsedTimer,
     index_ticksElapsedTimer as ticksElapsedTimer,
@@ -636,7 +697,8 @@ declare namespace index {
     index_waitFor as waitFor,
     index_delay as delay,
     index_delayLoop as delayLoop,
+    index_everyNth as everyNth,
   };
 }
 
-export { Continuously as C, DebouncedFunction as D, HasCompletion as H, ModTimer as M, RepeatPredicate as R, Timer as T, UpdateFailPolicy as U, forEachAsync as a, TimerSource as b, completionMs as c, frequencyTimerSource as d, relativeTimer as e, forEach as f, relativeTimerMs as g, hasElapsedMs as h, index as i, frequencyTimer as j, TimeoutSyncCallback as k, TimeoutAsyncCallback as l, msElapsedTimer as m, Timeout as n, timeout as o, ContinuouslySyncCallback as p, ContinuouslyAsyncCallback as q, repeat as r, continuously as s, ticksElapsedTimer as t, updateOutdated as u, debounce as v, throttle as w, sleep as x, waitFor as y };
+export { everyNth as A, Continuously as C, DebouncedFunction as D, HasCompletion as H, ModTimer as M, RepeatPredicate as R, Timer as T, UpdateFailPolicy as U, forEachAsync as a, TimerSource as b, completionMs as c, frequencyTimerSource as d, relativeTimer as e, forEach as f, relativeTimerMs as g, hasElapsedMs as h, index as i, relativeTimerTicks as j, frequencyTimer as k, TimeoutSyncCallback as l, msElapsedTimer as m, TimeoutAsyncCallback as n, Timeout as o, timeout as p, ContinuouslySyncCallback as q, repeat as r, ContinuouslyAsyncCallback as s, ticksElapsedTimer as t, updateOutdated as u, continuously as v, debounce as w, throttle as x, sleep as y, waitFor as z };

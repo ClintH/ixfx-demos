@@ -1,4 +1,4 @@
-import { M as MinMaxAvgTotal } from './NumericArrays-e48be4c5.js';
+import { M as MinMaxAvgTotal } from './NumericArrays-c4d5e530.js';
 import * as fp_ts_lib_Ord_js from 'fp-ts/lib/Ord.js';
 
 declare type Primitive = string | number;

@@ -4,7 +4,6 @@ import { G as GetOrGenerate } from './Map-2dd95d96.js';
  * Base tracker class
  */
 declare abstract class TrackerBase<V> {
-    readonly id: string;
     /**
      * @ignore
      */
@@ -21,7 +20,8 @@ declare abstract class TrackerBase<V> {
      * @ignore
      */
     protected sampleLimit: number;
-    constructor(id?: string, opts?: TrackedValueOpts);
+    readonly id: string;
+    constructor(opts?: TrackedValueOpts);
     /**
      * Reset tracker
      */
@@ -60,6 +60,7 @@ declare type Timestamped<V> = V & {
  * Options
  */
 declare type TrackedValueOpts = {
+    readonly id?: string;
     /**
      * If true, intermediate points are stored. False by default
      */
@@ -74,6 +75,8 @@ declare type TrackedValueOpts = {
      * When the seen values is twice `sampleLimit`, the stored values will be trimmed down
      * to `sampleLimit`. We only do this when the values are double the size so that
      * the collections do not need to be trimmed repeatedly whilst we are at the limit.
+     *
+     * Automatically implies storeIntermediate
      */
     readonly sampleLimit?: number;
 };
@@ -182,7 +185,7 @@ declare class TrackedValueMap<V, T extends TrackerBase<V>> {
 declare class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
     values: V[];
     timestamps: number[];
-    constructor(id?: string, opts?: TrackedValueOpts);
+    constructor(opts?: TrackedValueOpts);
     /**
      * Reduces size of value store to `limit`. Returns
      * number of remaining items
@@ -261,13 +264,13 @@ declare class NumberTracker extends PrimitiveTracker<number> {
  * Trackers can automatically reset after a given number of samples
  * ```
  * // reset after 100 samples
- * const t = numberTracker(`something`, { resetAfterSamples: 100 });
+ * const t = numberTracker({ resetAfterSamples: 100 });
  * ```
  *
  * To store values, use the `storeIntermediate` option:
  *
  * ```js
- * const t = numberTracker(`something`, { storeIntermediate: true });
+ * const t = numberTracker({ storeIntermediate: true });
  * ```
  *
  * Difference between last value and initial value:
@@ -282,6 +285,6 @@ declare class NumberTracker extends PrimitiveTracker<number> {
  * ```
  * @class NumberTracker
  */
-declare const numberTracker: (id?: string, opts?: TrackedValueOpts) => NumberTracker;
+declare const numberTracker: (opts?: TrackedValueOpts) => NumberTracker;
 
 export { NumberTracker as N, TrackedValueOpts as T, TrackerBase as a, Timestamped as b, TrackedValueMap as c, numberTracker as n };

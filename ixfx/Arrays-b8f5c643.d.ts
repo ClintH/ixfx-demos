@@ -1,6 +1,6 @@
 import { I as IsEqual } from './Util-473ad458.js';
-import { w as weight, v as validNumbers, d as dotProduct, a as average, b as averageWeighted, m as min, c as maxIndex, e as minIndex, f as max, t as total, g as maxFast, h as totalFast, i as minFast, M as MinMaxAvgTotal, j as minMaxAvg } from './NumericArrays-e48be4c5.js';
-import { E as EasingName } from './Easing-03568d01.js';
+import { w as weight, v as validNumbers, d as dotProduct, a as average, b as averageWeighted, m as min, c as maxIndex, e as minIndex, f as max, t as total, g as maxFast, h as totalFast, i as minFast, M as MinMaxAvgTotal, j as minMaxAvg } from './NumericArrays-c4d5e530.js';
+import { E as EasingName } from './Easing-7756c512.js';
 import * as d3Colour from 'd3-color';
 
 declare type Hsl = {
@@ -680,6 +680,13 @@ declare const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => 
  */
 declare const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
 /**
+ * Returns all items in `data` for as long as `predicate` returns true
+ * @param data
+ * @param predicate
+ * @returns
+ */
+declare const until: <V, A>(data: readonly V[], predicate: (v: V, acc: A) => readonly [stop: boolean, acc: A], initial: A) => readonly V[];
+/**
  * Removes an element at `index` index from `data`, returning the resulting array without modifying the original.
  *
  * ```js
@@ -791,6 +798,7 @@ declare const Arrays_randomElement: typeof randomElement;
 declare const Arrays_randomPluck: typeof randomPluck;
 declare const Arrays_shuffle: typeof shuffle;
 declare const Arrays_without: typeof without;
+declare const Arrays_until: typeof until;
 declare const Arrays_remove: typeof remove;
 declare const Arrays_groupBy: typeof groupBy;
 declare const Arrays_sample: typeof sample;
@@ -826,6 +834,7 @@ declare namespace Arrays {
     Arrays_randomPluck as randomPluck,
     Arrays_shuffle as shuffle,
     Arrays_without as without,
+    Arrays_until as until,
     Arrays_remove as remove,
     Arrays_groupBy as groupBy,
     Arrays_sample as sample,
@@ -848,4 +857,4 @@ declare namespace Arrays {
   };
 }
 
-export { Arrays as A, remove as B, Colour$1 as C, groupBy as D, sample as E, chunks as F, Random as R, RandomSource as a, randomElement as b, weightedSkewed as c, defaultRandom as d, weightedInteger as e, gaussianSkewed as f, gaussian as g, float as h, integer as i, shortGuid as j, randomHue as k, guardArray as l, guardIndex as m, areValuesIdentical as n, intersection as o, flatten as p, interleave as q, randomIndex as r, string as s, ensureLength as t, filterBetween as u, randomPluck as v, weighted as w, shuffle as x, without as y, zip as z };
+export { Arrays as A, until as B, Colour$1 as C, remove as D, groupBy as E, sample as F, chunks as G, Random as R, RandomSource as a, randomElement as b, weightedSkewed as c, defaultRandom as d, weightedInteger as e, gaussianSkewed as f, gaussian as g, float as h, integer as i, shortGuid as j, randomHue as k, guardArray as l, guardIndex as m, areValuesIdentical as n, intersection as o, flatten as p, interleave as q, randomIndex as r, string as s, ensureLength as t, filterBetween as u, randomPluck as v, weighted as w, shuffle as x, without as y, zip as z };

@@ -6,7 +6,7 @@ import {
   delayLoop,
   interval,
   sleep
-} from "./chunk-BTTMWUVZ.js";
+} from "./chunk-K22RHWMZ.js";
 import {
   integer,
   number
@@ -24,6 +24,7 @@ __export(flow_exports, {
   debounce: () => debounce,
   delay: () => delay,
   delayLoop: () => delayLoop,
+  everyNth: () => everyNth,
   forEach: () => forEach,
   forEachAsync: () => forEachAsync,
   frequencyTimer: () => frequencyTimer,
@@ -33,6 +34,7 @@ __export(flow_exports, {
   msElapsedTimer: () => msElapsedTimer,
   relativeTimer: () => relativeTimer,
   relativeTimerMs: () => relativeTimerMs,
+  relativeTimerTicks: () => relativeTimerTicks,
   repeat: () => repeat,
   sleep: () => sleep,
   throttle: () => throttle,
@@ -52,6 +54,7 @@ __export(Timer_exports, {
   msElapsedTimer: () => msElapsedTimer,
   relativeTimer: () => relativeTimer,
   relativeTimerMs: () => relativeTimerMs,
+  relativeTimerTicks: () => relativeTimerTicks,
   ticksElapsedTimer: () => ticksElapsedTimer
 });
 
@@ -118,6 +121,7 @@ var relativeTimer = (total, timer, clampValue = true) => {
   };
 };
 var relativeTimerMs = (total, clampValue = true) => relativeTimer(total, msElapsedTimer(), clampValue);
+var relativeTimerTicks = (total, clampValue = true) => relativeTimer(total, ticksElapsedTimer(), clampValue);
 var frequencyTimer = (frequency, timer = msElapsedTimer()) => {
   const cyclesPerSecond = frequency / 1e3;
   let modAmt = 1;
@@ -157,7 +161,7 @@ var ticksElapsedTimer = () => {
       start = 0;
     },
     get elapsed() {
-      return start++;
+      return ++start;
     }
   };
 };
@@ -346,6 +350,21 @@ var waitFor = (timeoutMs, onAborted, onComplete) => {
   return done;
 };
 
+// src/flow/Every.ts
+var everyNth = (nth, callback) => {
+  integer(nth, `positive`, `nth`);
+  let counter = 0;
+  return (...args) => {
+    if (++counter === nth) {
+      counter = 0;
+      if (callback)
+        callback(...args);
+      return true;
+    }
+    return false;
+  };
+};
+
 // src/flow/index.ts
 var forEach = (iterator, fn) => {
   for (const x of iterator) {
@@ -414,6 +433,7 @@ export {
   frequencyTimerSource,
   relativeTimer,
   relativeTimerMs,
+  relativeTimerTicks,
   frequencyTimer,
   msElapsedTimer,
   ticksElapsedTimer,
@@ -423,9 +443,10 @@ export {
   debounce,
   throttle,
   waitFor,
+  everyNth,
   forEach,
   forEachAsync,
   repeat,
   flow_exports
 };
-//# sourceMappingURL=chunk-F6TZE52F.js.map
+//# sourceMappingURL=chunk-5MOTQI4H.js.map

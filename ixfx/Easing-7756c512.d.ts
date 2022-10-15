@@ -1,4 +1,4 @@
-import { H as HasCompletion } from './index-8866fd4c.js';
+import { H as HasCompletion } from './index-fc3b319f.js';
 
 declare type EasingFn = (x: number) => number;
 /**

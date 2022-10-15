@@ -2,6 +2,7 @@ import {
   completionMs,
   continuously,
   debounce,
+  everyNth,
   forEach,
   forEachAsync,
   frequencyTimer,
@@ -10,13 +11,14 @@ import {
   msElapsedTimer,
   relativeTimer,
   relativeTimerMs,
+  relativeTimerTicks,
   repeat,
   throttle,
   ticksElapsedTimer,
   timeout,
   updateOutdated,
   waitFor
-} from "./chunk-F6TZE52F.js";
+} from "./chunk-5MOTQI4H.js";
 import {
   StateMachine_exports
 } from "./chunk-3X7XZTYN.js";
@@ -25,7 +27,7 @@ import {
   delayLoop,
   interval,
   sleep
-} from "./chunk-BTTMWUVZ.js";
+} from "./chunk-K22RHWMZ.js";
 import "./chunk-OWB7AKEV.js";
 import "./chunk-4LZCZKRL.js";
 import "./chunk-TSM4BTWW.js";
@@ -36,6 +38,7 @@ export {
   debounce,
   delay,
   delayLoop,
+  everyNth,
   forEach,
   forEachAsync,
   frequencyTimer,
@@ -45,6 +48,7 @@ export {
   msElapsedTimer,
   relativeTimer,
   relativeTimerMs,
+  relativeTimerTicks,
   repeat,
   sleep,
   throttle,

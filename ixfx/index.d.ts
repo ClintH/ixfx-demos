@@ -2364,6 +2364,34 @@ declare module "geometry/Line" {
         readonly a: Points.Point;
         readonly b: Points.Point;
     };
+    export const Empty: Readonly<{
+        a: Readonly<{
+            x: 0;
+            y: 0;
+        }>;
+        b: Readonly<{
+            x: 0;
+            y: 0;
+        }>;
+    }>;
+    export const Placeholder: Readonly<{
+        a: Readonly<{
+            x: number;
+            y: number;
+        }>;
+        b: Readonly<{
+            x: number;
+            y: number;
+        }>;
+    }>;
+    /**
+     * Returns true if `l` is the same as Line.Empty, that is
+     * the `a` and `b` points are Points.Empty.
+     * @param l
+     * @returns
+     */
+    export const isEmpty: (l: Line) => boolean;
+    export const isPlaceholder: (l: Line) => boolean;
     /**
      * A PolyLine, consisting of more than one line.
      */
@@ -3325,6 +3353,7 @@ declare module "flow/Timer" {
      * Wraps a timer, returning a relative elapsed value.
      *
      * ```js
+     * // Timer that counts to 1,000 milliseconds
      * let t = relativeTimerMs(1000);
      *
      * t.isDone;  // true if total milliseconds has elapsed
@@ -3337,6 +3366,34 @@ declare module "flow/Timer" {
      * @returns Timer
      */
     export const relativeTimerMs: (total: number, clampValue?: boolean) => Timer & {
+        mod(amt: number): void;
+    } & HasCompletion;
+    /**
+     * Wraps a tick-based 'timer', returning a relative value (0..1).
+     * A value of 1 indicates the timer has completed.
+     *
+     * ```js
+     * // Timer that counts 20 ticks
+     * let t = relativeTimerTicks(20);
+     *
+     * t.isDone;  // true if total ticks has elapsed
+     * t.reset(); // reset timer to 0
+     * t.elapsed; // 0..1 scale of how close to completion
+     * ```
+     *
+     * Example:
+     * ```js
+     * const t = relativeTimerTicks(10);
+     * while (!t.isDone) {
+     *  const progress = t.elapsed;
+     *  // Yields: 0.1, 0.2, ... 1
+     * }
+     * ```
+     * @param total
+     * @param clampValue
+     * @returns
+     */
+    export const relativeTimerTicks: (total: number, clampValue?: boolean) => Timer & {
         mod(amt: number): void;
     } & HasCompletion;
     /**
@@ -3377,7 +3434,9 @@ declare module "flow/Timer" {
      */
     export const msElapsedTimer: () => Timer;
     /**
-     * A timer that progresses with each call
+     * A timer that progresses with each call to `elapsed`.
+     *
+     * The first call to elapsed will return 1.
      * @private
      * @returns {Timer}
      */
@@ -3821,6 +3880,34 @@ declare module "flow/Delay" {
      */
     export function delayLoop(timeoutMs: number): AsyncGenerator<undefined, void, unknown>;
 }
+declare module "flow/Every" {
+    /**
+     * Returns true for every _n_th call, eg 2 for every second call.
+     *
+     * If `nth` is 1, returns true for everything. 0 will be false for everything.
+     *
+     * Usage:
+     * ```js
+     * const tenth = everyNth(10);
+     * window.addEventListener(`pointermove`, evt => {
+     *  if (!tenth(evt)) return; // Filter out
+     *  // Continue processing, it is the 10th thing.
+     *
+     * });
+     * ```
+     *
+     * Alternative:
+     * ```js
+     * window.addEventListener(`pointermove`, everyNth(10, evt => {
+     *  // Do something with tenth item...
+     * });
+     * ```
+     * @param nth Every nth item
+     * @param callback
+     * @returns Function which in turn returns true if nth call has been hit, false otherwise
+     */
+    export const everyNth: (nth: number, callback?: ((...args: readonly unknown[]) => void) | undefined) => (...args: unknown[]) => boolean;
+}
 declare module "flow/index" {
     import * as StateMachine from "flow/StateMachine";
     /**
@@ -3838,6 +3925,7 @@ declare module "flow/index" {
     export * from "flow/Sleep";
     export * from "flow/WaitFor";
     export * from "flow/Delay";
+    export * from "flow/Every";
     export type HasCompletion = {
         get isDone(): boolean;
     };
@@ -3922,7 +4010,6 @@ declare module "data/TrackerBase" {
      * Base tracker class
      */
     export abstract class TrackerBase<V> {
-        readonly id: string;
         /**
          * @ignore
          */
@@ -3939,7 +4026,8 @@ declare module "data/TrackerBase" {
          * @ignore
          */
         protected sampleLimit: number;
-        constructor(id?: string, opts?: TrackedValueOpts);
+        readonly id: string;
+        constructor(opts?: TrackedValueOpts);
         /**
          * Reset tracker
          */
@@ -3981,6 +4069,7 @@ declare module "data/TrackedValue" {
      * Options
      */
     export type TrackedValueOpts = {
+        readonly id?: string;
         /**
          * If true, intermediate points are stored. False by default
          */
@@ -3995,6 +4084,8 @@ declare module "data/TrackedValue" {
          * When the seen values is twice `sampleLimit`, the stored values will be trimmed down
          * to `sampleLimit`. We only do this when the values are double the size so that
          * the collections do not need to be trimmed repeatedly whilst we are at the limit.
+         *
+         * Automatically implies storeIntermediate
          */
         readonly sampleLimit?: number;
     };
@@ -4106,7 +4197,7 @@ declare module "data/PrimitiveTracker" {
     export class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
         values: V[];
         timestamps: number[];
-        constructor(id?: string, opts?: TrackedValueOpts);
+        constructor(opts?: TrackedValueOpts);
         /**
          * Reduces size of value store to `limit`. Returns
          * number of remaining items
@@ -4188,13 +4279,13 @@ declare module "data/NumberTracker" {
      * Trackers can automatically reset after a given number of samples
      * ```
      * // reset after 100 samples
-     * const t = numberTracker(`something`, { resetAfterSamples: 100 });
+     * const t = numberTracker({ resetAfterSamples: 100 });
      * ```
      *
      * To store values, use the `storeIntermediate` option:
      *
      * ```js
-     * const t = numberTracker(`something`, { storeIntermediate: true });
+     * const t = numberTracker({ storeIntermediate: true });
      * ```
      *
      * Difference between last value and initial value:
@@ -4209,7 +4300,7 @@ declare module "data/NumberTracker" {
      * ```
      * @class NumberTracker
      */
-    export const numberTracker: (id?: string, opts?: TrackOpts) => NumberTracker;
+    export const numberTracker: (opts?: TrackOpts) => NumberTracker;
 }
 declare module "geometry/Bezier" {
     import { Paths, Points } from "geometry/index";
@@ -5875,7 +5966,7 @@ declare module "Numbers" {
     /**
      * Alias for [Data.numberTracker](Data.numberTracker.html)
      */
-    export const tracker: (id?: string, opts?: TrackedValueOpts) => import("data/NumberTracker").NumberTracker;
+    export const tracker: (opts?: TrackedValueOpts) => import("data/NumberTracker").NumberTracker;
     /**
      * Filters an iterator of values, only yielding
      * those that are valid numbers
@@ -11780,7 +11871,7 @@ declare module "data/ObjectTracker" {
      */
     export class ObjectTracker<V> extends TrackerBase<V> {
         values: Timestamped<V>[];
-        constructor(id: string, opts?: TrackedValueOpts);
+        constructor(opts?: TrackedValueOpts);
         onTrimmed(): void;
         /**
          * Reduces size of value store to `limit`. Returns
@@ -11818,9 +11909,9 @@ declare module "data/ObjectTracker" {
 }
 declare module "data/PointTracker" {
     import * as Points from "geometry/Point";
-    import * as Line from "geometry/Line";
     import { Timestamped, TrackedValueMap, TrackedValueOpts as TrackOpts } from "data/TrackedValue";
     import { ObjectTracker } from "data/ObjectTracker";
+    import { Lines, Polar } from "geometry/index";
     /**
      * Information about seen points
      */
@@ -11830,8 +11921,11 @@ declare module "data/PointTracker" {
         readonly fromInitial: PointTrack;
         readonly values: readonly Points.Point[];
     };
+    /**
+     * Point tracker. Create via `pointTracker()`.
+     *
+     */
     export class PointTracker extends ObjectTracker<Points.Point> {
-        readonly id: string;
         /**
          * Function that yields the relation from initial point
          */
@@ -11840,7 +11934,7 @@ declare module "data/PointTracker" {
          * Last result
          */
         lastResult: PointTrackerResults | undefined;
-        constructor(id: string, opts?: TrackOpts);
+        constructor(opts?: TrackOpts);
         onTrimmed(): void;
         /**
          * Returns the last x coord
@@ -11864,7 +11958,23 @@ declare module "data/PointTracker" {
          * Returns a polyline representation of stored points.
          * Returns an empty array if points were not saved, or there's only one.
          */
-        get line(): Line.PolyLine;
+        get line(): Lines.PolyLine;
+        /**
+         * Returns a vector of the initial/last points of the tracker.
+         * Returns as a polar coordinate
+         */
+        get vectorPolar(): Polar.Coord;
+        /**
+         * Returns a vector of the initial/last points of the tracker.
+         * Returns as a Cartesian coordinate
+         */
+        get vectorCartesian(): Points.Point;
+        /**
+         * Returns a line from initial point to last point.
+         *
+         * If there are less than two points, Lines.Empty is returned
+         */
+        get lineStartEnd(): Lines.Line;
         /**
          * Returns distance from latest point to initial point.
          * If there are less than two points, zero is returned.
@@ -11974,7 +12084,7 @@ declare module "data/PointTracker" {
     * import { pointTracker } from 'https://unpkg.com/ixfx/dist/data.js';
      *
      * // Create a tracker
-     * const t = pointTracker(`pointer-0`);
+     * const t = pointTracker();
      *
      * // ...and later, tell it when a point is seen
      * const nfo = t.seen({x: evt.x, y:evt.y});
@@ -11996,8 +12106,32 @@ declare module "data/PointTracker" {
      * ```js
      * t.reset(); // Reset tracker
      * ```
+     *
+     * By default, the tracker only keeps track of the initial point and
+     * does not store intermediate 'seen' points. To use the tracker as a buffer.
+     *
+     * ```js
+     * // Keep only the last 10 points
+     * const t = pointTracker({
+     *  sampleLimit: 10
+     * });
+     *
+     * // Store all 'seen' points
+     * const t = pointTracker({
+     *  storeIntermediate: true
+     * });
+     *
+     * // In this case, the whole tracker is automatically
+     * // reset after 10 samples
+     * const t = pointTracker({
+     *  resetAfterSamples: 10
+     * })
+     * ```
+     *
+     * When using a limited buffer, the 'initial' point will be the oldest in the
+     * buffer, not actually the very first point seen.
      */
-    export const pointTracker: (id?: string, opts?: TrackOpts) => PointTracker;
+    export const pointTracker: (opts?: TrackOpts) => PointTracker;
 }
 declare module "dom/PointerVisualise" {
     export type Opts = {
@@ -12649,12 +12783,12 @@ declare module "data/IntervalTracker" {
      *
      * ```
      * // Reset after 100 samples
-     * const t = intervalTracker(`tracker`, { resetAfterSamples: 100} );
+     * const t = intervalTracker({ resetAfterSamples: 100} );
      * ```
-     * @param id Optional id of instance
+     * @param opts Options for tracker
      * @returns New interval tracker
      */
-    export const intervalTracker: (id?: string, opts?: TrackOpts) => IntervalTracker;
+    export const intervalTracker: (opts?: TrackOpts) => IntervalTracker;
 }
 declare module "data/Flip" {
     import { NumberFunction } from "data/index";
@@ -13567,6 +13701,13 @@ declare module "collections/Arrays" {
      */
     export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
     /**
+     * Returns all items in `data` for as long as `predicate` returns true
+     * @param data
+     * @param predicate
+     * @returns
+     */
+    export const until: <V, A>(data: readonly V[], predicate: (v: V, acc: A) => readonly [stop: boolean, acc: A], initial: A) => readonly V[];
+    /**
      * Removes an element at `index` index from `data`, returning the resulting array without modifying the original.
      *
      * ```js
@@ -14125,6 +14266,7 @@ declare module "flow/BehaviourTree" {
     export function iterateDepth(t: Node, pathPrefix?: string): Generator<Traversal>;
 }
 declare module "__tests__/flow/behaviourtree.test" { }
+declare module "__tests__/flow/every.test" { }
 declare module "__tests__/flow/repeat.test" { }
 declare module "__tests__/flow/statemachine.test" { }
 declare module "__tests__/geometry/geometry.test" { }
@@ -14135,6 +14277,13 @@ declare module "__tests__/geometry/polar.test" { }
 declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }
+declare module "collections/LinkedList" {
+    export type Node<V> = {
+        readonly prev: Node<V> | undefined;
+        readonly next: Node<V> | undefined;
+        readonly value: V;
+    };
+}
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";
@@ -14237,18 +14386,26 @@ declare module "data/Correlate" {
      * @param b
      */
     export type Similarity<V> = (a: V, b: V) => number;
-    export type Correlation<V> = {
-        readonly data: V;
+    export type ValueWithId<V> = {
+        readonly value: V;
+        readonly id: string;
     };
     export type Scoring<V> = {
-        readonly prior: V;
-        readonly data: V;
+        readonly data: ValueWithId<V>;
         readonly score: number;
     };
-    export type CorrelatorOpts = {
+    export type Results<V> = {
+        readonly value: ValueWithId<V>;
+        readonly scores: readonly Scoring<V>[];
+        readonly since: number;
+    };
+    export const correlate: <V>(fn: Similarity<V>, prior: readonly ValueWithId<V>[], data: readonly ValueWithId<V>[]) => readonly Results<V>[];
+    export type Opts = {
         readonly threshold: number;
         readonly expireUnmatchedAfterMs?: number;
+        readonly debug?: false;
     };
+    export const correlator: <V>(fn: Similarity<V>, identityFn: (v: V) => string, opts: Opts) => (data: V[]) => void;
 }
 declare module "data/Proportion" {
     import { NumberFunction } from "data/index";

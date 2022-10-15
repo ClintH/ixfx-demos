@@ -1,4 +1,4 @@
-import { a as RandomSource } from './Arrays-daad0a20.js';
+import { a as RandomSource } from './Arrays-b8f5c643.js';
 
 declare type Path = {
     length(): number;
@@ -52,6 +52,34 @@ declare type Line = {
     readonly a: Point;
     readonly b: Point;
 };
+declare const Empty$1: Readonly<{
+    a: Readonly<{
+        x: 0;
+        y: 0;
+    }>;
+    b: Readonly<{
+        x: 0;
+        y: 0;
+    }>;
+}>;
+declare const Placeholder$1: Readonly<{
+    a: Readonly<{
+        x: number;
+        y: number;
+    }>;
+    b: Readonly<{
+        x: number;
+        y: number;
+    }>;
+}>;
+/**
+ * Returns true if `l` is the same as Line.Empty, that is
+ * the `a` and `b` points are Points.Empty.
+ * @param l
+ * @returns
+ */
+declare const isEmpty$2: (l: Line) => boolean;
+declare const isPlaceholder$2: (l: Line) => boolean;
 /**
  * A PolyLine, consisting of more than one line.
  */
@@ -665,6 +693,10 @@ type Line$1_LinePath = LinePath;
 declare namespace Line$1 {
   export {
     Line$1_Line as Line,
+    Empty$1 as Empty,
+    Placeholder$1 as Placeholder,
+    isEmpty$2 as isEmpty,
+    isPlaceholder$2 as isPlaceholder,
     Line$1_PolyLine as PolyLine,
     Line$1_isLine as isLine,
     Line$1_isPolyLine as isPolyLine,

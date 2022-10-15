@@ -1,9 +1,10 @@
-import { M as MinMaxAvgTotal } from './NumericArrays-e48be4c5.js';
+import { M as MinMaxAvgTotal } from './NumericArrays-c4d5e530.js';
 import { T as ToString } from './Util-473ad458.js';
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
-import { a as KeyValue } from './KeyValue-4dff953f.js';
-import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as Timestamped, c as TrackedValueMap, n as numberTracker } from './NumberTracker-6d3ac867.js';
-import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine } from './Point-643aa771.js';
+import { a as KeyValue } from './KeyValue-2e8d76e0.js';
+import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as Timestamped, c as TrackedValueMap, n as numberTracker } from './NumberTracker-de108a2b.js';
+import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-8fd7867c.js';
+import { C as Coord } from './Polar-a65c22e0.js';
 
 /**
  * Normalises numbers, adjusting min/max as new values are processed.
@@ -322,19 +323,19 @@ declare class IntervalTracker extends NumberTracker {
  *
  * ```
  * // Reset after 100 samples
- * const t = intervalTracker(`tracker`, { resetAfterSamples: 100} );
+ * const t = intervalTracker({ resetAfterSamples: 100} );
  * ```
- * @param id Optional id of instance
+ * @param opts Options for tracker
  * @returns New interval tracker
  */
-declare const intervalTracker: (id?: string, opts?: TrackedValueOpts) => IntervalTracker;
+declare const intervalTracker: (opts?: TrackedValueOpts) => IntervalTracker;
 
 /**
  * A tracked value of type `V`.
  */
 declare class ObjectTracker<V> extends TrackerBase<V> {
     values: Timestamped<V>[];
-    constructor(id: string, opts?: TrackedValueOpts);
+    constructor(opts?: TrackedValueOpts);
     onTrimmed(): void;
     /**
      * Reduces size of value store to `limit`. Returns
@@ -379,8 +380,11 @@ declare type PointTrackerResults = {
     readonly fromInitial: PointTrack;
     readonly values: readonly Point[];
 };
+/**
+ * Point tracker. Create via `pointTracker()`.
+ *
+ */
 declare class PointTracker extends ObjectTracker<Point> {
-    readonly id: string;
     /**
      * Function that yields the relation from initial point
      */
@@ -389,7 +393,7 @@ declare class PointTracker extends ObjectTracker<Point> {
      * Last result
      */
     lastResult: PointTrackerResults | undefined;
-    constructor(id: string, opts?: TrackedValueOpts);
+    constructor(opts?: TrackedValueOpts);
     onTrimmed(): void;
     /**
      * Returns the last x coord
@@ -414,6 +418,22 @@ declare class PointTracker extends ObjectTracker<Point> {
      * Returns an empty array if points were not saved, or there's only one.
      */
     get line(): PolyLine;
+    /**
+     * Returns a vector of the initial/last points of the tracker.
+     * Returns as a polar coordinate
+     */
+    get vectorPolar(): Coord;
+    /**
+     * Returns a vector of the initial/last points of the tracker.
+     * Returns as a Cartesian coordinate
+     */
+    get vectorCartesian(): Point;
+    /**
+     * Returns a line from initial point to last point.
+     *
+     * If there are less than two points, Lines.Empty is returned
+     */
+    get lineStartEnd(): Line;
     /**
      * Returns distance from latest point to initial point.
      * If there are less than two points, zero is returned.
@@ -523,7 +543,7 @@ declare const pointsTracker: (opts?: TrackedValueOpts) => TrackedPointMap;
 * import { pointTracker } from 'https://unpkg.com/ixfx/dist/data.js';
  *
  * // Create a tracker
- * const t = pointTracker(`pointer-0`);
+ * const t = pointTracker();
  *
  * // ...and later, tell it when a point is seen
  * const nfo = t.seen({x: evt.x, y:evt.y});
@@ -545,8 +565,32 @@ declare const pointsTracker: (opts?: TrackedValueOpts) => TrackedPointMap;
  * ```js
  * t.reset(); // Reset tracker
  * ```
+ *
+ * By default, the tracker only keeps track of the initial point and
+ * does not store intermediate 'seen' points. To use the tracker as a buffer.
+ *
+ * ```js
+ * // Keep only the last 10 points
+ * const t = pointTracker({
+ *  sampleLimit: 10
+ * });
+ *
+ * // Store all 'seen' points
+ * const t = pointTracker({
+ *  storeIntermediate: true
+ * });
+ *
+ * // In this case, the whole tracker is automatically
+ * // reset after 10 samples
+ * const t = pointTracker({
+ *  resetAfterSamples: 10
+ * })
+ * ```
+ *
+ * When using a limited buffer, the 'initial' point will be the oldest in the
+ * buffer, not actually the very first point seen.
  */
-declare const pointTracker: (id?: string, opts?: TrackedValueOpts) => PointTracker;
+declare const pointTracker: (opts?: TrackedValueOpts) => PointTracker;
 
 /**
  * Clamps a value between min and max (both inclusive)

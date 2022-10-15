@@ -42,7 +42,7 @@ import {
 import {
   pingPong,
   pingPongPercent
-} from "./chunk-FMJTK7II.js";
+} from "./chunk-NLJPM2B5.js";
 import {
   Map_exports,
   addUniqueByHash,
@@ -63,14 +63,14 @@ import {
   repeat,
   ticksElapsedTimer,
   waitFor
-} from "./chunk-F6TZE52F.js";
+} from "./chunk-5MOTQI4H.js";
 import {
   StateMachine
 } from "./chunk-3X7XZTYN.js";
 import {
   delayLoop,
   sleep
-} from "./chunk-BTTMWUVZ.js";
+} from "./chunk-K22RHWMZ.js";
 import {
   array,
   integer,
@@ -3159,10 +3159,10 @@ var require_ReadonlyArray = __commonJS({
     var Separated_1 = require_Separated();
     var Witherable_1 = require_Witherable();
     var Zero_1 = require_Zero();
-    var isEmpty6 = function(as) {
+    var isEmpty7 = function(as) {
       return as.length === 0;
     };
-    exports.isEmpty = isEmpty6;
+    exports.isEmpty = isEmpty7;
     exports.isNonEmpty = RNEA.isNonEmpty;
     exports.prepend = RNEA.prepend;
     exports.prependW = RNEA.prependW;
@@ -4428,10 +4428,10 @@ var require_Array = __commonJS({
     var Separated_1 = require_Separated();
     var Witherable_1 = require_Witherable();
     var Zero_1 = require_Zero();
-    var isEmpty6 = function(as) {
+    var isEmpty7 = function(as) {
       return as.length === 0;
     };
-    exports.isEmpty = isEmpty6;
+    exports.isEmpty = isEmpty7;
     exports.isNonEmpty = NEA.isNonEmpty;
     exports.prepend = NEA.prepend;
     exports.prependW = NEA.prependW;
@@ -5488,10 +5488,10 @@ var require_string = __commonJS({
       };
     };
     exports.slice = slice;
-    var isEmpty6 = function(s) {
+    var isEmpty7 = function(s) {
       return s.length === 0;
     };
-    exports.isEmpty = isEmpty6;
+    exports.isEmpty = isEmpty7;
     var size = function(s) {
       return s.length;
     };
@@ -5571,6 +5571,7 @@ __export(Arrays_exports, {
   shuffle: () => shuffle,
   total: () => total,
   totalFast: () => totalFast,
+  until: () => until,
   validNumbers: () => validNumbers,
   weight: () => weight,
   without: () => without,
@@ -5846,8 +5847,8 @@ __export(Arc_exports, {
 // src/geometry/Point.ts
 var Point_exports = {};
 __export(Point_exports, {
-  Empty: () => Empty,
-  Placeholder: () => Placeholder,
+  Empty: () => Empty2,
+  Placeholder: () => Placeholder2,
   abs: () => abs,
   angle: () => angle,
   apply: () => apply2,
@@ -5871,10 +5872,10 @@ __export(Point_exports, {
   guardNonZeroPoint: () => guardNonZeroPoint,
   interpolate: () => interpolate2,
   invert: () => invert,
-  isEmpty: () => isEmpty3,
+  isEmpty: () => isEmpty4,
   isEqual: () => isEqual2,
   isNull: () => isNull,
-  isPlaceholder: () => isPlaceholder,
+  isPlaceholder: () => isPlaceholder2,
   isPoint: () => isPoint,
   isPoint3d: () => isPoint3d,
   leftmost: () => leftmost,
@@ -5903,6 +5904,8 @@ __export(Point_exports, {
 // src/geometry/Line.ts
 var Line_exports = {};
 __export(Line_exports, {
+  Empty: () => Empty,
+  Placeholder: () => Placeholder,
   angleRadian: () => angleRadian,
   apply: () => apply,
   asPoints: () => asPoints,
@@ -5917,8 +5920,10 @@ __export(Line_exports, {
   getPointsParam: () => getPointsParam,
   guard: () => guard2,
   interpolate: () => interpolate,
+  isEmpty: () => isEmpty3,
   isEqual: () => isEqual,
   isLine: () => isLine,
+  isPlaceholder: () => isPlaceholder,
   isPolyLine: () => isPolyLine,
   joinPointsToLines: () => joinPointsToLines,
   length: () => length,
@@ -6546,6 +6551,16 @@ var mapMutable = (...data) => {
 };
 
 // src/geometry/Line.ts
+var Empty = Object.freeze({
+  a: Object.freeze({ x: 0, y: 0 }),
+  b: Object.freeze({ x: 0, y: 0 })
+});
+var Placeholder = Object.freeze({
+  a: Object.freeze({ x: NaN, y: NaN }),
+  b: Object.freeze({ x: NaN, y: NaN })
+});
+var isEmpty3 = (l) => Point_exports.isEmpty(l.a) && Point_exports.isEmpty(l.b);
+var isPlaceholder = (l) => Point_exports.isPlaceholder(l.a) && Point_exports.isPlaceholder(l.b);
 var isLine = (p) => {
   if (p === void 0)
     return false;
@@ -6577,9 +6592,9 @@ var guard2 = (line3, paramName = `line`) => {
   if (line3 === void 0)
     throw new Error(`${paramName} undefined`);
   if (line3.a === void 0)
-    throw new Error(`${paramName}.a undefined. Expected {a:Point, b:Point}`);
+    throw new Error(`${paramName}.a undefined. Expected {a:Point, b:Point}. Got: ${JSON.stringify(line3)}`);
   if (line3.b === void 0)
-    throw new Error(`${paramName}.b undefined. Expected {a:Point, b:Point}`);
+    throw new Error(`${paramName}.b undefined. Expected {a:Point, b:Point} Got: ${JSON.stringify(line3)}`);
 };
 var angleRadian = (lineOrPoint, b) => {
   let a;
@@ -6933,15 +6948,16 @@ __export(Numbers_exports, {
 
 // src/data/TrackerBase.ts
 var TrackerBase = class {
-  constructor(id = `TrackerBase`, opts = {}) {
-    this.id = id;
+  constructor(opts = {}) {
     __publicField(this, "seenCount");
     __publicField(this, "storeIntermediate");
     __publicField(this, "resetAfterSamples");
     __publicField(this, "sampleLimit");
-    this.storeIntermediate = opts.storeIntermediate ?? false;
-    this.resetAfterSamples = opts.resetAfterSamples ?? -1;
+    __publicField(this, "id");
+    this.id = opts.id ?? `tracker`;
     this.sampleLimit = opts.sampleLimit ?? -1;
+    this.resetAfterSamples = opts.resetAfterSamples ?? -1;
+    this.storeIntermediate = opts.storeIntermediate ?? (this.sampleLimit > -1 || this.resetAfterSamples > -1);
     this.seenCount = 0;
   }
   reset() {
@@ -6965,8 +6981,8 @@ var TrackerBase = class {
 
 // src/data/PrimitiveTracker.ts
 var PrimitiveTracker = class extends TrackerBase {
-  constructor(id, opts) {
-    super(id, opts);
+  constructor(opts) {
+    super(opts);
     __publicField(this, "values");
     __publicField(this, "timestamps");
     this.values = [];
@@ -7070,7 +7086,7 @@ var NumberTracker = class extends PrimitiveTracker {
     };
   }
 };
-var numberTracker = (id, opts) => new NumberTracker(id ?? ``, opts ?? {});
+var numberTracker = (opts = {}) => new NumberTracker(opts);
 
 // src/Numbers.ts
 var average2 = (...numbers) => average(numbers);
@@ -7085,7 +7101,7 @@ var isValid = (possibleNumber) => {
     return false;
   return true;
 };
-var tracker = (id, opts) => numberTracker(id, opts);
+var tracker = (opts) => numberTracker(opts);
 function* filter2(it) {
   for (const v of it) {
     if (isValid(v))
@@ -7117,10 +7133,10 @@ var dotProduct2 = (...pts) => {
   const a = pts.map((p) => Point_exports.toArray(p));
   return Arrays_exports.dotProduct(a);
 };
-var Empty = Object.freeze({ x: 0, y: 0 });
-var Placeholder = Object.freeze({ x: NaN, y: NaN });
-var isEmpty3 = (p) => p.x === 0 && p.y === 0;
-var isPlaceholder = (p) => Number.isNaN(p.x) && Number.isNaN(p.y);
+var Empty2 = Object.freeze({ x: 0, y: 0 });
+var Placeholder2 = Object.freeze({ x: NaN, y: NaN });
+var isEmpty4 = (p) => p.x === 0 && p.y === 0;
+var isPlaceholder2 = (p) => Number.isNaN(p.x) && Number.isNaN(p.y);
 var isNull = (p) => p.x === null && p.y === null;
 var findMinimum = (compareFn, ...points) => {
   if (points.length === 0)
@@ -7408,7 +7424,7 @@ var sum2 = function(a, b, c, d) {
   if (isPoint(a)) {
     ptA = a;
     if (b === void 0)
-      b = Empty;
+      b = Empty2;
     if (isPoint(b)) {
       ptB = b;
     } else {
@@ -10271,10 +10287,10 @@ __export(Rect_exports, {
   getEdgeY: () => getEdgeY,
   guard: () => guard5,
   intersectsPoint: () => intersectsPoint,
-  isEmpty: () => isEmpty4,
+  isEmpty: () => isEmpty5,
   isEqual: () => isEqual6,
   isEqualSize: () => isEqualSize,
-  isPlaceholder: () => isPlaceholder2,
+  isPlaceholder: () => isPlaceholder3,
   isPositioned: () => isPositioned3,
   isRect: () => isRect,
   isRectPositioned: () => isRectPositioned,
@@ -10293,8 +10309,8 @@ var empty = Object.freeze({ width: 0, height: 0 });
 var emptyPositioned = Object.freeze({ x: 0, y: 0, width: 0, height: 0 });
 var placeholder = Object.freeze({ width: Number.NaN, height: Number.NaN });
 var placeholderPositioned = Object.freeze({ x: Number.NaN, y: Number.NaN, width: Number.NaN, height: Number.NaN });
-var isEmpty4 = (rect2) => rect2.width === 0 && rect2.height === 0;
-var isPlaceholder2 = (rect2) => Number.isNaN(rect2.width) && Number.isNaN(rect2.height);
+var isEmpty5 = (rect2) => rect2.width === 0 && rect2.height === 0;
+var isPlaceholder3 = (rect2) => Number.isNaN(rect2.width) && Number.isNaN(rect2.height);
 var isPositioned3 = (p) => p.x !== void 0 && p.y !== void 0;
 var isRect = (p) => {
   if (p === void 0)
@@ -10668,7 +10684,7 @@ var fromCartesian = (point3, origin) => {
 var toCartesian = (a, b, c) => {
   if (isCoord(a)) {
     if (b === void 0)
-      b = Empty;
+      b = Empty2;
     if (isPoint(b)) {
       return polarToCartesian(a.distance, a.angleRadian, b);
     }
@@ -10676,7 +10692,7 @@ var toCartesian = (a, b, c) => {
   } else {
     if (typeof a === `number` && typeof b === `number`) {
       if (c === void 0)
-        c = Empty;
+        c = Empty2;
       if (!isPoint(c))
         throw new Error(`Expecting (number, number, Point). Point param wrong type`);
       return polarToCartesian(a, b, c);
@@ -10797,7 +10813,7 @@ var clampMagnitude2 = (v, max4 = 1, min4 = 0) => {
     distance: mag
   });
 };
-var polarToCartesian = (distance3, angleRadians, origin = Empty) => {
+var polarToCartesian = (distance3, angleRadians, origin = Empty2) => {
   guard(origin);
   return Object.freeze({
     x: origin.x + distance3 * Math.cos(angleRadians),
@@ -10944,6 +10960,7 @@ var fromPointPolar = (pt, angleNormalisation = ``, origin = EmptyCartesian2) => 
 };
 var fromLineCartesian = (line3) => subtract2(line3.b, line3.a);
 var fromLinePolar = (line3) => {
+  guard2(line3, `line`);
   const pt = subtract2(line3.b, line3.a);
   return fromPointPolar(pt);
 };
@@ -10974,7 +10991,7 @@ var quadrantOffsetAngle = (p) => {
     return pi3;
   return piPi4;
 };
-var toPolar = (v, origin = Empty) => {
+var toPolar = (v, origin = Empty2) => {
   if (isPolar(v)) {
     return v;
   } else if (isCartesian(v)) {
@@ -11046,10 +11063,10 @@ var divide4 = (a, b) => {
 // src/geometry/Triangle.ts
 var Triangle_exports = {};
 __export(Triangle_exports, {
-  Empty: () => Empty2,
+  Empty: () => Empty3,
   Equilateral: () => TriangleEquilateral_exports,
   Isosceles: () => TriangleIsosceles_exports,
-  Placeholder: () => Placeholder2,
+  Placeholder: () => Placeholder3,
   Right: () => TriangleRight_exports,
   angles: () => angles,
   anglesDegrees: () => anglesDegrees,
@@ -11069,13 +11086,13 @@ __export(Triangle_exports, {
   innerCircle: () => innerCircle,
   intersectsPoint: () => intersectsPoint2,
   isAcute: () => isAcute,
-  isEmpty: () => isEmpty5,
+  isEmpty: () => isEmpty6,
   isEqual: () => isEqual7,
   isEquilateral: () => isEquilateral,
   isIsoceles: () => isIsoceles,
   isOblique: () => isOblique,
   isObtuse: () => isObtuse,
-  isPlaceholder: () => isPlaceholder3,
+  isPlaceholder: () => isPlaceholder4,
   isRightAngle: () => isRightAngle,
   isTriangle: () => isTriangle,
   lengths: () => lengths2,
@@ -11263,7 +11280,6 @@ var angleAtPointA = (t4) => {
 };
 var angleAtPointB = (t4) => {
   const tt = resolveLengths(t4);
-  console.log(tt);
   return Math.acos(
     (tt.opposite * tt.opposite + tt.hypotenuse * tt.hypotenuse - tt.adjacent * tt.adjacent) / (2 * tt.opposite * tt.hypotenuse)
   );
@@ -11383,10 +11399,10 @@ var fromC2 = (t4, origin = { x: 0, y: 0 }) => {
 
 // src/geometry/Triangle.ts
 var piPi5 = Math.PI * 2;
-var Empty2 = Object.freeze({ a: { x: 0, y: 0 }, b: { x: 0, y: 0 }, c: { x: 0, y: 0 } });
-var Placeholder2 = Object.freeze({ a: { x: NaN, y: NaN }, b: { x: NaN, y: NaN }, c: { x: NaN, y: NaN } });
-var isEmpty5 = (t4) => isEmpty3(t4.a) && isEmpty3(t4.b) && isEmpty3(t4.c);
-var isPlaceholder3 = (t4) => isPlaceholder(t4.a) && isPlaceholder(t4.b) && isPlaceholder(t4.c);
+var Empty3 = Object.freeze({ a: { x: 0, y: 0 }, b: { x: 0, y: 0 }, c: { x: 0, y: 0 } });
+var Placeholder3 = Object.freeze({ a: { x: NaN, y: NaN }, b: { x: NaN, y: NaN }, c: { x: NaN, y: NaN } });
+var isEmpty6 = (t4) => isEmpty4(t4.a) && isEmpty4(t4.b) && isEmpty4(t4.c);
+var isPlaceholder4 = (t4) => isPlaceholder2(t4.a) && isPlaceholder2(t4.b) && isPlaceholder2(t4.c);
 var apply3 = (t4, fn) => Object.freeze(
   {
     ...t4,
@@ -12066,7 +12082,7 @@ var AudioVisualiser = class {
       g.fillStyle = `hsl(` + hue2 + `, 100%, 50%)`;
       if (pointer.y > 0 && pointer.y <= canvasHeight && pointer.x >= left && pointer.x <= left + width) {
         if (this.freqTracker.id !== i.toString()) {
-          this.freqTracker = numberTracker(i.toString());
+          this.freqTracker = numberTracker({ id: i.toString() });
         }
         this.freqTracker.seen(freq2[i]);
         const freqMma = this.freqTracker.getMinMaxAvg();
@@ -15396,7 +15412,7 @@ var MeasureState = class {
     const s = this.measurements.get(id);
     if (s === void 0)
       return;
-    if (isPlaceholder2(s.size))
+    if (isPlaceholder3(s.size))
       return;
     return s.size;
   }
@@ -15566,7 +15582,7 @@ var Box = class {
         height: opts.bounds.height
       };
     }
-    if (isPlaceholder2(size))
+    if (isPlaceholder3(size))
       return;
     return size;
   }
@@ -15627,7 +15643,7 @@ var CanvasBox = class extends Box {
   onClick(p) {
   }
   notifyClick(p) {
-    if (isPlaceholder2(this.visual))
+    if (isPlaceholder3(this.visual))
       return;
     if (intersectsPoint(this.visual, p)) {
       const pp = Point_exports.subtract(p, this.visual.x, this.visual.y);
@@ -15640,7 +15656,7 @@ var CanvasBox = class extends Box {
     this.children.forEach((c) => c.notifyPointerLeave());
   }
   notifyPointerMove(p) {
-    if (isPlaceholder2(this.visual))
+    if (isPlaceholder3(this.visual))
       return;
     if (intersectsPoint(this.visual, p)) {
       const pp = Point_exports.subtract(p, this.visual.x, this.visual.y);
@@ -16693,8 +16709,8 @@ var TrackedValueMap = class {
 
 // src/data/ObjectTracker.ts
 var ObjectTracker = class extends TrackerBase {
-  constructor(id, opts = {}) {
-    super(id, opts);
+  constructor(opts = {}) {
+    super(opts);
     __publicField(this, "values");
     this.values = [];
   }
@@ -16744,9 +16760,8 @@ var ObjectTracker = class extends TrackerBase {
 
 // src/data/PointTracker.ts
 var PointTracker = class extends ObjectTracker {
-  constructor(id, opts = {}) {
-    super(id, opts);
-    this.id = id;
+  constructor(opts = {}) {
+    super(opts);
     __publicField(this, "initialRelation");
     __publicField(this, "lastResult");
   }
@@ -16779,7 +16794,7 @@ var PointTracker = class extends ObjectTracker {
     };
     const lastRel = {
       ...lastRelation(newLast),
-      speed: this.values.length < 2 ? 0 : length(currentLast, newLast) / (newLast.at - currentLast.at)
+      speed: this.values.length < 2 ? 0 : Line_exports.length(currentLast, newLast) / (newLast.at - currentLast.at)
     };
     const r = {
       fromInitial: initialRel,
@@ -16792,7 +16807,22 @@ var PointTracker = class extends ObjectTracker {
   get line() {
     if (this.values.length === 1)
       return [];
-    return joinPointsToLines(...this.values);
+    return Line_exports.joinPointsToLines(...this.values);
+  }
+  get vectorPolar() {
+    return Vector_exports.fromLinePolar(this.lineStartEnd);
+  }
+  get vectorCartesian() {
+    return Vector_exports.fromLineCartesian(this.lineStartEnd);
+  }
+  get lineStartEnd() {
+    const initial = this.initial;
+    if (this.values.length < 2 || !initial)
+      return Line_exports.Empty;
+    return {
+      a: initial,
+      b: this.last
+    };
   }
   distanceFromStart() {
     const initial = this.initial;
@@ -16807,7 +16837,7 @@ var PointTracker = class extends ObjectTracker {
     if (this.values.length >= 2 && initial !== void 0) {
       return subtract2(this.last, initial);
     } else {
-      return Placeholder;
+      return Placeholder2;
     }
   }
   angleFromStart() {
@@ -16820,7 +16850,7 @@ var PointTracker = class extends ObjectTracker {
     if (this.values.length === 1)
       return 0;
     const l = this.line;
-    return length(l);
+    return Line_exports.length(l);
   }
 };
 var TrackedPointMap = class extends TrackedValueMap {
@@ -16828,14 +16858,17 @@ var TrackedPointMap = class extends TrackedValueMap {
     super((key, start2) => {
       if (start2 === void 0)
         throw new Error(`Requires start point`);
-      const p = new PointTracker(key, opts);
+      const p = new PointTracker({
+        ...opts,
+        id: key
+      });
       p.seen(start2);
       return p;
     });
   }
 };
 var pointsTracker = (opts = {}) => new TrackedPointMap(opts);
-var pointTracker = (id, opts = {}) => new PointTracker(id ?? ``, opts);
+var pointTracker = (opts = {}) => new PointTracker(opts);
 
 // src/dom/PointerVisualise.ts
 var pointerVisualise = (elOrQuery, opts = {}) => {
@@ -17926,7 +17959,7 @@ var IntervalTracker = class extends NumberTracker {
     this.lastMark = window.performance.now();
   }
 };
-var intervalTracker = (id, opts) => new IntervalTracker(id, opts);
+var intervalTracker = (opts) => new IntervalTracker(opts);
 
 // src/data/Flip.ts
 var flip = (v) => {
@@ -18371,6 +18404,18 @@ var shuffle = (dataToShuffle, rand = defaultRandom) => {
   return array3;
 };
 var without = (data, value, comparer = isEqualDefault) => data.filter((v) => !comparer(v, value));
+var until = (data, predicate, initial) => {
+  const ret = [];
+  let total3 = initial;
+  for (let i = 0; i < data.length; i++) {
+    const [stop, acc] = predicate(data[i], total3);
+    if (stop)
+      break;
+    total3 = acc;
+    ret.push(data[i]);
+  }
+  return ret;
+};
 var remove2 = (data, index) => {
   if (!Array.isArray(data))
     throw new Error(`'data' parameter should be an array`);
@@ -18612,10 +18657,11 @@ export {
   randomPluck,
   shuffle,
   without,
+  until,
   remove2,
   groupBy,
   sample,
   chunks,
   Arrays_exports
 };
-//# sourceMappingURL=chunk-QUAPICMP.js.map
+//# sourceMappingURL=chunk-4XVDCDKB.js.map

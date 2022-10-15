@@ -1,5 +1,5 @@
-import { T as TrackedValueOpts, N as NumberTracker } from './NumberTracker-6d3ac867.js';
-import { a as EasingFn } from './Easing-03568d01.js';
+import { T as TrackedValueOpts, N as NumberTracker } from './NumberTracker-de108a2b.js';
+import { a as EasingFn } from './Easing-7756c512.js';
 
 /**
  * Calculates the average of all numbers in an array.
@@ -74,7 +74,7 @@ declare const isValid: (possibleNumber: number | unknown) => boolean;
 /**
  * Alias for [Data.numberTracker](Data.numberTracker.html)
  */
-declare const tracker: (id?: string, opts?: TrackedValueOpts) => NumberTracker;
+declare const tracker: (opts?: TrackedValueOpts) => NumberTracker;
 /**
  * Filters an iterator of values, only yielding
  * those that are valid numbers
