@@ -136,6 +136,43 @@ _source.html_ can be loaded with URL parameters to make minor adjustments withou
 
 For example: `source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning` will use the MoveNet model, with MultiPose.Lightning, for detecting multiple poses.
 
+# common-pose.js
+
+All the pose sketches import a small library, `common-pose.js`. Read the source and documentation for more details.
+
+In brief...
+
+`sanityCheck(pose:Pose, opts:SanityChecks) => Pose`
+* Reduces score of keypoints which seem wrong (eg ankles being above shoulders). By default all the checks are enabled, so you may need to customise the options to disable certain checks if you don't want to penalise certain kinds of poses.
+* It additionally removes keypoints below a given threshold
+* Returned pose is a copy of the input pose with these changes made.
+
+`smoothPose(amt:number, a:Pose, b:Pose) => Pose`
+* Interpolate from pose A to B by given amount. Returns a new pose.
+
+`absPose = (p, bounds, horizontalMirror = false) => Pose`
+* Returns a pose with all keypoints and bounding box mapped to the given `bounds`
+* eg for converting a relative pose into screen coordinates
+
+`debugDrawPose = (ctx, p, opts = {})`
+* Draws the keypoints, names and scores for a pose in the given drawing context
+
+`commonPoseSetup()`
+* Listens for button presses that control the source IFRAME
+
+`poseProcessor(smoothingAmt:number, sanityOpts:SanityChecks) => (pose:Pose) => Pose`
+* Returns a 'PoseProcessor'
+
+`PoseProcessor.process(pose:Pose)=>Pose`
+* This function does runs `sanityCheck` and `smoothPose`, returning result
+
+`PoseProcessor.processed:Pose`
+* This property is the last processed pose
+
+`PoseProcessor.id:string`
+* Id of pose being processed
+
+
 # Troubleshooting
 
 `TypeError: t.Pose is not a constructor`

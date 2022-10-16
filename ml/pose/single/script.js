@@ -1,52 +1,87 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import * as Dom from '../../../ixfx/dom.js';
-import { smoothPose, commonPoseSetup, absPose, debugDrawPose } from '../common-pose.js';
+import * as CommonPose from '../common-pose.js';
 
 const settings = Object.freeze({
   horizontalMirror: true,
-  // Ignores points under this threshold
-  keypointScoreThreshold: 0.3,
-
   // Interpolation amount applied per frame (0...1)
   // Lower = less jitter & more latency. Higher = more jitter & lower latency
   smoothingAmt: 0.2,
   remote: new Remote(),
-  tickRateMs: 100
+  tickRateMs: 100,
+  /** @type {import("../common-pose.js").SanityChecks} */
+  sanityCheck: {
+    anklesBelowKnees: true,
+    kneesBelowHip: true,
+    shouldersBelowFace: true,
+    hipBelowShoulders: true,
+    scoreThreshold: 0.6
+  }
 });
 
 let state = Object.freeze({
+  /**
+   * Bounds of screen
+   */
   bounds: {
     width: 0,
     height: 0,
     center: { x: 0, y: 0 }
   },
-  /** @type {Pose[]} */
+  /** 
+   * All poses received from source
+   * @type {Pose[]} */
   poses: [],
-  /** @type {Pose|undefined} */
-  smoothedPose: undefined
+  /**
+   * Processor of pose we're tracking
+   */
+  firstPoseProcessor: CommonPose.poseProcessor(settings.smoothingAmt, settings.sanityCheck),
+  /** 
+   * Processed first pose
+   * @type {Pose|undefined} */
+  firstPose:undefined
 });
+
 
 /**
  * Received data from a source
  * @param {Pose[]} poses 
  */
 const onData = (poses) => {
-  const { smoothingAmt } = settings;
+  const { firstPoseProcessor } = state;
 
   // Exit if we didn't get any poses
   if (poses.length === 0) return;
   
-  // Smooth the first pose
-  const smoothedPose = smoothPose(smoothingAmt, state.smoothedPose, poses[0]);
+  // Try to get the pose with same ID as before.
+  let targetPose;
+  if (firstPoseProcessor.id) {
+    targetPose = poses.find(p=>p.id === firstPoseProcessor.id);
+  }
 
-  // Update state with list of all poses,
-  // as well as single smoothed pose
+  // Couldn't find target pose, or we haven't yet processed anything
+  if (!targetPose) {
+    // Return an array of [[pose1,kp],[pose2,kp] ...]
+    // Sorted by 'nose' keypoint's X value
+    const sorted = CommonPose.getSortedKeypointsByX(poses, `nose`);
+
+    // We want the leftmost pose
+    targetPose = sorted[0][0];
+  }
+
+  // Send to processor:
+  // Sanity check keypoint location, removes low confidence points and smoothes pose
+  const processed = firstPoseProcessor.process(targetPose);
+  
+  // Update state with list of all poses
+  // as well as output of pose processor
   updateState({ 
     poses,
-    smoothedPose
+    firstPose: processed
   });
 };
+
 
 const tick = () => {
   // Gets called every 100ms.
@@ -55,7 +90,7 @@ const tick = () => {
 
 // Is called at animation speed
 const drawState = () => {
-  const { smoothedPose } = state;
+  const { firstPose } = state;
 
   const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
   const ctx = canvasEl?.getContext(`2d`);
@@ -65,13 +100,15 @@ const drawState = () => {
   clear(ctx);
   
   // If there is no smoothed pose, exit out
-  if (smoothedPose === undefined) return;
+  if (firstPose === undefined) return;
 
   // Convert coordinates to viewport-relative coordinates
-  const smoothedPoseAbs = absPose(smoothedPose, state.bounds, settings.horizontalMirror);
+  const abs = CommonPose.absPose(firstPose, state.bounds, settings.horizontalMirror);
 
   // Use `debugDrawPose`, defined in common-pose.js
-  debugDrawPose(ctx, smoothedPoseAbs);
+  CommonPose.debugDrawPose(ctx, abs, { 
+    radius: 5
+  });
 };
 
 /**
@@ -120,7 +157,7 @@ const setup = async () => {
   setInterval(tick, settings.tickRateMs);
 
   // Listen for button presses, etc
-  commonPoseSetup();
+  CommonPose.setup();
 };
 setup();
 
