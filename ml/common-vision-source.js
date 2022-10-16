@@ -838,7 +838,7 @@ function updateState (s) {
  * @property {number} x
  * @property {number} y
  * @property {number} [z]
- * @property {number} [score]
+ * @property {number} score
  * @property {string} [name]
  */
 
