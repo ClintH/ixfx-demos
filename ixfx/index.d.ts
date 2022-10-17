@@ -2380,6 +2380,11 @@ declare module "geometry/Path" {
            */
         interpolate(t: number): Points.Point;
         bbox(): Rects.RectPositioned;
+        /**
+         * Returns the nearest point on path to `point`
+         * @param point
+         */
+        nearest(point: Points.Point): Points.Point;
         toString(): string;
         toSvgString(): readonly string[];
         readonly kind: `compound` | `elliptical` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
@@ -2666,7 +2671,7 @@ declare module "geometry/Line" {
      *
      * ```js
      * import { Lines } from 'https://unpkg.com/ixfx/dist/geometry.js'
-     * const pt = Linesnearest(line, {x:10,y:10});
+     * const pt = Lines.nearest(line, {x:10,y:10});
      * ```
      *
      * If an array of lines is provided, it will be the closest point amongst all the lines
@@ -6066,13 +6071,13 @@ declare module "geometry/Point" {
         readonly z: number;
     };
     /**
-     * Returns a Point form of either a point, or pair of x,y
+     * Returns a Point form of either a point, x,y params or x,y,z params
      * @ignore
      * @param a
      * @param b
      * @returns
      */
-    export function getPointParam(a?: Point | number, b?: number | boolean): Point;
+    export function getPointParam(a?: Point | number, b?: number | boolean, c?: number): Point | Point3d;
     export const dotProduct: (...pts: readonly Point[]) => number;
     /**
      * An empty point of `{ x:0, y:0 }`.
@@ -6113,6 +6118,10 @@ declare module "geometry/Point" {
      * @returns
      */
     export const isNull: (p: Point) => boolean;
+    /***
+     * Returns true if p.x or p.y isNaN
+     */
+    export const isNaN: (p: Point) => boolean;
     /**
      * Returns the 'minimum' point from an array of points, using a comparison function.
      *
@@ -6845,6 +6854,7 @@ declare module "geometry/Point" {
      * @returns
      */
     export const relation: (a: Point | number, b?: number) => PointRelation;
+    export const progressBetween: (currentPos: Points.Point | Points.Point3d, from: Points.Point | Points.Point3d, to: Points.Point | Points.Point3d) => number;
 }
 declare module "geometry/Arc" {
     import { Path } from "geometry/Path";
@@ -7125,21 +7135,25 @@ declare module "geometry/Circle" {
     /**
      * Returns true if `b` is completely contained by `a`
      *
-     * @param a
-     * @param b
+     * @param a Circle
+     * @param b Circle or point to compare to
      * @returns
      */
-    export const isContainedBy: (a: CirclePositioned, b: CirclePositioned) => boolean;
+    export const isContainedBy: (a: CirclePositioned, b: CirclePositioned | Points.Point) => boolean;
+    /***
+     * Returns true if radius, x or y are NaN
+     */
+    export const isNaN: (a: Circle | CirclePositioned) => boolean;
     /**
      * Returns true if a or b overlap or are equal
      *
      * Use `intersections` to find the points of intersection
      *
-     * @param a
-     * @param b
+     * @param a Circle
+     * @param b Circle or point to test
      * @returns True if circle overlap
      */
-    export const isIntersecting: (a: CirclePositioned, b: CirclePositioned) => boolean;
+    export const isIntersecting: (a: CirclePositioned, b: CirclePositioned | Points.Point) => boolean;
     /**
      * Returns the points of intersection betweeen `a` and `b`.
      *
@@ -7209,6 +7223,20 @@ declare module "geometry/Circle" {
      * @returns
      */
     export const toSvg: ToSvg;
+    /**
+     * Returns the nearest point on `circle` closest to `point`.
+     *
+     * ```js
+     * import { Circles } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const pt = Circles.nearest(circle, {x:10,y:10});
+     * ```
+     *
+     * If an array of circles is provided, it will be the closest point amongst all the circles
+     * @param circle Circle or array of circles
+     * @param point
+     * @returns Point `{ x, y }`
+     */
+    export const nearest: (circle: CirclePositioned | readonly CirclePositioned[], b: Points.Point) => Points.Point;
     /**
      * Returns a `CircularPath` representation of a circle
      *
@@ -9980,6 +10008,19 @@ declare module "IterableSync" {
      * @returns
      */
     import { IsEqual } from "Util";
+    /**
+     * Yields chunks of the iterable `it` such that the end of a chunk is the
+     * start of the next chunk.
+     *
+     * Eg, with the input [1,2,3,4,5] and a size of 2, we would get back
+     * [1,2], [2,3], [3,4], [4,5].
+     *
+     *
+     * @param it
+     * @param size
+     * @returns
+     */
+    export function chunksOverlapping<V>(it: Iterable<V>, size: number): Generator<V[], void, unknown>;
     /**
      * Breaks an iterable into array chunks
      * ```js
@@ -13801,6 +13842,20 @@ declare module "collections/Arrays" {
      */
     export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
     /**
+     * Sorts an array of objects by the given property name, assuming its a number.
+     *
+     * ```js`
+     * const data = [ { size: 10, colour: `red` }, { size: 20, colour: `blue` }, { size: 5, colour: `pink` }];
+     * const sorted = Arrays.sortByNumericProperty(data, `size`);
+     *
+     * Yields items ascending order:
+     * [ { size: 5, colour: `pink` }, { size: 10, colour: `red` }, { size: 20, colour: `blue` } ]
+     * ```
+     * @param data
+     * @param propertyName
+     */
+    export const sortByNumericProperty: <V, K extends keyof V>(data: readonly V[], propertyName: K) => V[];
+    /**
      * Returns an array with a value omitted. If value is not found, result will be a copy of input.
      * Value checking is completed via the provided `comparer` function.
      * By default checking whether `a === b`. To compare based on value, use the `isEqualValueDefault` comparer.
@@ -14441,6 +14496,7 @@ declare module "__tests__/colour.test" { }
 declare module "__tests__/frequencyMutable.test" { }
 declare module "__tests__/generators.test" { }
 declare module "__tests__/guards.test" { }
+declare module "__tests__/iterableSync.test" { }
 declare module "__tests__/keyValue.test" { }
 declare module "__tests__/numbers.test" { }
 declare module "__tests__/random.test" { }
@@ -14496,13 +14552,6 @@ declare module "__tests__/geometry/polar.test" { }
 declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }
-declare module "collections/LinkedList" {
-    export type Node<V> = {
-        readonly prev: Node<V> | undefined;
-        readonly next: Node<V> | undefined;
-        readonly value: V;
-    };
-}
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";
@@ -14609,4 +14658,14 @@ declare module "data/Proportion" {
      * @returns Scaled value
      */
     export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
+}
+declare module "geometry/Waypoint" {
+    import * as Points from "geometry/Point";
+    import { CirclePositioned } from "geometry/Circle";
+    type Waypoint = CirclePositioned;
+    export type Opts = {
+        readonly maxDistanceFromLine?: number;
+        readonly enforceOrder?: boolean;
+    };
+    export const path: (waypoints: readonly Waypoint[], opts?: Opts) => (p: Points.Point) => void;
 }
