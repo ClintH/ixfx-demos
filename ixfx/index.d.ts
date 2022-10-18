@@ -8033,6 +8033,26 @@ declare module "geometry/Vector" {
      */
     export const divide: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
 }
+declare module "geometry/Waypoint" {
+    import * as Points from "geometry/Point";
+    import { Path } from "geometry/Path";
+    export type Opts = {
+        readonly maxDistanceFromLine?: number;
+        readonly enforceOrder?: boolean;
+    };
+    export const fromPoints: (waypoints: readonly Points.Point[], opts?: Opts) => (pt: Points.Point) => {
+        path: Path;
+        index: number;
+        nearest: Points.Point;
+        distance: number;
+    }[];
+    export const init: (paths: readonly Path[], opts?: Opts) => (pt: Points.Point) => {
+        path: Path;
+        index: number;
+        nearest: Points.Point;
+        distance: number;
+    }[];
+}
 declare module "geometry/TriangleEquilateral" {
     import { Circle } from "geometry/Circle";
     import { Point } from "geometry/Point";
@@ -8694,7 +8714,8 @@ declare module "geometry/index" {
     import * as Polar from "geometry/Polar";
     import * as Shapes from "geometry/Shape";
     import * as Vectors from "geometry/Vector";
-    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes, Vectors };
+    import * as Waypoints from "geometry/Waypoint";
+    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes, Vectors, Waypoints };
     /**
      * Triangle processing.
      *
@@ -14552,6 +14573,13 @@ declare module "__tests__/geometry/polar.test" { }
 declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }
+declare module "collections/LinkedList" {
+    export type Node<V> = {
+        readonly prev: Node<V> | undefined;
+        readonly next: Node<V> | undefined;
+        readonly value: V;
+    };
+}
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";
@@ -14658,14 +14686,4 @@ declare module "data/Proportion" {
      * @returns Scaled value
      */
     export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
-}
-declare module "geometry/Waypoint" {
-    import * as Points from "geometry/Point";
-    import { CirclePositioned } from "geometry/Circle";
-    type Waypoint = CirclePositioned;
-    export type Opts = {
-        readonly maxDistanceFromLine?: number;
-        readonly enforceOrder?: boolean;
-    };
-    export const path: (waypoints: readonly Waypoint[], opts?: Opts) => (p: Points.Point) => void;
 }

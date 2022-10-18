@@ -247,6 +247,39 @@ export const absPoint = (point, bounds, horizontalMirror = false) => ({
 });
 
 /**
+ * Returns the leftmost of all the provided arguments
+ * @param  {...Points.Point} points 
+ */
+export const getLeftmost = (...points) => {
+  let min = Number.MAX_SAFE_INTEGER;
+  let minPoint;
+  for (let i=0;i<points.length;i++) {
+    if (points[i].x < min) {
+      min = points[i].x;
+      minPoint = points[i];
+    }
+  }
+  return minPoint;
+};
+
+/**
+ * Returns the rightmost of all the provided points
+ * @param  {...any} points 
+ * @returns 
+ */
+export const getRightmost = (...points) => {
+  let max = Number.MIN_SAFE_INTEGER;
+  let maxPoint;
+  for (let i=0;i<points.length;i++) {
+    if (points[i].x > max) {
+      max = points[i].x;
+      maxPoint = points[i];
+    }
+  }
+  return maxPoint;
+};
+
+/**
  * Returns a pose with all keypints converted to absolute positions
  * @param {Pose} p 
  * @param {{width:number, height:number}} bounds 
@@ -271,9 +304,9 @@ export const absPose = (p, bounds, horizontalMirror = false) => {
   const keypoints = p.keypoints.map(absPoint);
   
   const abs = {
-    keypoints  
+    keypoints,
+    id: p.id
   };
-  if (p.id) abs.id = p.id;
   if (p.score) abs.score =p.score;
   if (p.box) {
     abs.box = {

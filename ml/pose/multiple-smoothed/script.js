@@ -28,22 +28,21 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
+  /**
+   * Bounds of the viewport. Needed for going back and forth from
+   * relative to absolute coordinates
+   */
+  bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   /**
    * Source id -> Source
    * @type {Map<string,Source>}}
    */
   sources: new Map(),
   /**
-   * Pose id -> Pose
-   * @type {Map<string,PoseFrom>}
+   * Pose id -> Meta. Holds metadata about a pose
+   * @type {Map<string,Meta>}
    */
-  poses: new Map(),
-  poseHues: new Map(),
+  poseMeta: new Map(),
   /**
    * Pose id -> Processors
    * @type {Map<string,CommonPose.PoseProcessor>}
@@ -60,7 +59,6 @@ let state = Object.freeze({
  * It loops at the interval settings.tickRateMs
  */
 const tick = () => {
-
   // Get all the poses, regardless of source
   const poses = Array.from(iteratePoses());
 
@@ -79,10 +77,10 @@ const tick = () => {
 
   for (const pair of pairs) {
     const aLeftHip = pair[0].keypoints.find( kp => kp.name === `left_hip`);
-    const bLeftHip = pair[1].keypoints.find( kp => kp.name === `right_hip`);
+    const bRightHip = pair[1].keypoints.find( kp => kp.name === `right_hip`);
 
-    if (aLeftHip && bLeftHip) {
-      const distance = Points.distance(aLeftHip, bLeftHip);
+    if (aLeftHip && bRightHip) {
+      const distance = Points.distance(aLeftHip, bRightHip);
       egDensity += distance;
     }
   }
@@ -99,12 +97,13 @@ const tick = () => {
 
 /**
  * Received poses from a particular source (`from` holds the id of source)
- * @param {PoseFrom[]} poses Poses
+ * @param {Pose[]} poses Poses
  * @param {string} from Sender id
  */
 const onData = (poses, from) => {
   const { correlation } = settings;
- 
+  const { poseMeta } = state;
+
   // Get or add new Source according to the id in 'from'
   const source = trackSource(from);
   const previousPoses = source.poses;
@@ -124,9 +123,9 @@ const onData = (poses, from) => {
   // Store all the newly-aligned & processed poses
   source.poses = processedPoses;
 
-  // Keep track of all poses by name
+  // Keep track of pose metadata
   for (const p of poses) {
-    state.poses.set(p.id, p);
+    trackPose(p, from);
   }
 };
 
@@ -162,27 +161,17 @@ const drawState = () => {
 /**
  * Draw pose
  * @param {CanvasRenderingContext2D} ctx 
- * @param {PoseFrom} pose
+ * @param {PoseMeta} pose
  */
 const drawPose = (ctx, pose) => {
-  const {  poseHues } = state;
-
-  let hue = poseHues.get(pose.id);
-  if (!hue) {
-    // Id not found, assign a new colour
-    hue = Math.floor(Math.random() * 359);
-    poseHues.set(pose.id, hue);
-  }
-
   // Get pose in absolute coordinates (absPoint is defined in common-pose.js)
   const abs = CommonPose.absPose(pose, state.bounds, settings.horizontalMirror);
 
-  const colour = `hsl(${hue}, 50%, 50%)`; 
+  const colour = `hsl(${pose.hue}, 50%, 50%)`; 
   // Draw pose (debugDrawPose is defined in common-pose.js)
   CommonPose.debugDrawPose(ctx, abs, {
     colour,
   });
-  
   
   let boxMin = CommonPose.absPoint({
     x: pose.box?.xMax ?? 0,
@@ -284,9 +273,10 @@ function updateState (s) {
  * ```
  */
 function* iteratePoses() {
-  for (const [ ,v ] of state.sources) {
+  for (const [ k,v ] of state.sources) {
     for (const p of v.poses) {
-      yield p;
+      const meta = trackPose(p, k);
+      yield { ...meta, ...p };
     }
   }
 }
@@ -344,6 +334,25 @@ function trackSource(sourceId) {
 }
 
 /**
+ * 
+ * @param {Pose} pose 
+ * @param {string} from 
+ */
+function trackPose(pose, from) {
+  const id = from +`-` +pose.id;
+  let meta = state.poseMeta.get(id);
+  if (!meta) {
+    meta = {
+      hue: Math.floor(Math.random() * 360),
+      name: pose.id,
+      sourceId: from
+    };
+    state.poseMeta.set(id, meta);
+  }
+  return meta;
+}
+
+/**
  * @typedef { import("../../common-vision-source").Keypoint } Keypoint
  * @typedef { import("../../common-vision-source").Box } Box
  * @typedef { import("../../common-vision-source").Pose } Pose
@@ -357,23 +366,30 @@ function trackSource(sourceId) {
  */
 
 /**
- * @typedef From
+ * @typedef From_
  * @property {string} from
  * @property {string} id
  * @property {string} name
+ * @property {number} hue
  */
 
 /**
  * @typedef Source
  * @property {string} id
- * @property {PoseFrom[]} poses
+ * @property {Pose[]} poses
  * @property {number} updated
  */
 
 /**
- * @typedef {From & Pose} PoseFrom
+ * @typedef Meta
+ * @property {string} name
+ * @property {number} hue
+ * @property {string} sourceId
  */
 
+/**
+ * @typedef {Pose & Meta} PoseMeta
+ */
 /**
  * @typedef ReceivedData
  * @property {string} _from

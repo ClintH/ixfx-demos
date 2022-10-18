@@ -24,11 +24,7 @@ let state = Object.freeze({
   /**
    * Bounds of screen
    */
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
+  bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   /** 
    * All poses received from source
    * @type {Pose[]} */
@@ -42,7 +38,6 @@ let state = Object.freeze({
    * @type {Pose|undefined} */
   firstPose:undefined
 });
-
 
 /**
  * Received data from a source
