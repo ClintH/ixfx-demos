@@ -91,7 +91,7 @@ export const sanityCheck = (pose, opts = {}) => {
  * Returns a function that processes a pose
  * @param {number} smoothingAmt Smoothing amount 
  * @param {SanityChecks} sanityCheckOpts Options for sanity checking
- * @returns 
+ * @returns {PoseProcessor}
  */
 export const poseProcessor = (smoothingAmt, sanityCheckOpts) => {
   /** @type {Pose|undefined} */
@@ -161,6 +161,17 @@ export const getSortedKeypointsByX = (poses, keypointName) => {
 };
 
 /**
+ * Returns poses sorted by the x value of a named keypoint
+ * @param {Pose[]} poses 
+ * @param {string} keypointName 
+ * @returns Pose[]
+ */
+export const getSortedPosesByX = (poses, keypointName) => {
+  const v = getSortedKeypointsByX(poses, keypointName);
+  const r = v.map(v => v[0]);
+  return r;
+};
+/**
  * Smoothes a pose
  * @param {Pose|undefined} a Earlier pose
  * @param {Pose} b Newer pose
@@ -223,6 +234,19 @@ export const smoothKeypoint = (amt, a, b) => {
 };
 
 /**
+   * Returns an absolutely-positioned keypoint
+   * @param {Points.Point} point
+   * @param {{width:number,height:number}} bounds
+   * @param {boolean} horizontalMirror 
+   * @returns 
+   */
+export const absPoint = (point, bounds, horizontalMirror = false) => ({
+  ...point,
+  x: ((horizontalMirror ? 1 : 0) - point.x) * bounds.width,
+  y: point.y * bounds.height
+});
+
+/**
  * Returns a pose with all keypints converted to absolute positions
  * @param {Pose} p 
  * @param {{width:number, height:number}} bounds 
@@ -239,10 +263,9 @@ export const absPose = (p, bounds, horizontalMirror = false) => {
    * @returns 
    */
   const absPoint = (point) => ({
+    ...point,
     x: ((horizontalMirror ? 1 : 0) - point.x) * w,
-    y: point.y * h,
-    name: point.name,
-    score: point.score
+    y: point.y * h
   });
 
   const keypoints = p.keypoints.map(absPoint);
@@ -455,3 +478,18 @@ export function setText(id, msg) {
  * @property {number} [threshold]
  * @property {number} [radius]
  */
+
+
+/**
+ * @callback PoseProcess
+ * @param {Pose} pose
+ * @param {boolean} [allowOverwrite]
+ */
+
+/**
+ * @typedef {object} PoseProcessor
+ * @property {PoseProcess} process
+ * @property {Pose|undefined} processed
+ * @property {string|null} id
+ */
+
