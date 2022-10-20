@@ -619,6 +619,24 @@ declare type RepeatPredicate = (repeats: number, valuesProduced: number) => bool
  * @returns Array of accumulated results
  */
 declare const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
+/**
+ * Repeatedly calls `fn`, reducing via `reduce`.
+ *
+ * ```js
+ * repeatReduce(10, () => 1, (acc, v) => acc + v);
+ * // Yields: 10
+ *
+ * // Multiplies random values against eachother 10 times
+ * repeatReduce(10, () => Math.random(), (acc, v) => acc * v);
+ * // Yields a single number
+ * ```
+ * @param countOrPredicate
+ * @param fn
+ * @param initial
+ * @param reduce
+ * @returns
+ */
+declare const repeatReduce: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined, initial: V, reduce: (acc: V, value: V) => V) => V;
 
 declare const index_StateMachine: typeof StateMachine;
 type index_HasCompletion = HasCompletion;
@@ -626,6 +644,7 @@ declare const index_forEach: typeof forEach;
 declare const index_forEachAsync: typeof forEachAsync;
 type index_RepeatPredicate = RepeatPredicate;
 declare const index_repeat: typeof repeat;
+declare const index_repeatReduce: typeof repeatReduce;
 type index_TimerSource = TimerSource;
 type index_Timer = Timer;
 type index_ModTimer = ModTimer;
@@ -666,6 +685,7 @@ declare namespace index {
     index_forEachAsync as forEachAsync,
     index_RepeatPredicate as RepeatPredicate,
     index_repeat as repeat,
+    index_repeatReduce as repeatReduce,
     index_TimerSource as TimerSource,
     index_Timer as Timer,
     index_ModTimer as ModTimer,
@@ -701,4 +721,4 @@ declare namespace index {
   };
 }
 
-export { everyNth as A, Continuously as C, DebouncedFunction as D, HasCompletion as H, ModTimer as M, RepeatPredicate as R, Timer as T, UpdateFailPolicy as U, forEachAsync as a, TimerSource as b, completionMs as c, frequencyTimerSource as d, relativeTimer as e, forEach as f, relativeTimerMs as g, hasElapsedMs as h, index as i, relativeTimerTicks as j, frequencyTimer as k, TimeoutSyncCallback as l, msElapsedTimer as m, TimeoutAsyncCallback as n, Timeout as o, timeout as p, ContinuouslySyncCallback as q, repeat as r, ContinuouslyAsyncCallback as s, ticksElapsedTimer as t, updateOutdated as u, continuously as v, debounce as w, throttle as x, sleep as y, waitFor as z };
+export { waitFor as A, everyNth as B, Continuously as C, DebouncedFunction as D, HasCompletion as H, ModTimer as M, RepeatPredicate as R, Timer as T, UpdateFailPolicy as U, forEachAsync as a, repeatReduce as b, TimerSource as c, completionMs as d, frequencyTimerSource as e, forEach as f, relativeTimer as g, hasElapsedMs as h, index as i, relativeTimerMs as j, relativeTimerTicks as k, frequencyTimer as l, msElapsedTimer as m, TimeoutSyncCallback as n, TimeoutAsyncCallback as o, Timeout as p, timeout as q, repeat as r, ContinuouslySyncCallback as s, ticksElapsedTimer as t, updateOutdated as u, ContinuouslyAsyncCallback as v, continuously as w, debounce as x, throttle as y, sleep as z };

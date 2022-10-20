@@ -1,7 +1,8 @@
-import { T as Triangle, A as Arc, B as Bezier, E as Ellipse, a as Triangle$1 } from './Triangle-e9bc8757.js';
-import { d as Path, a as Point, R as RectPositioned, e as Rect, C as Circle, L as Line, f as Circle$1, g as Line$1, h as Rect$1, i as Point$1, j as Path$1 } from './Point-d2c86682.js';
+import { T as Triangle, A as Arc, B as Bezier, E as Ellipse, a as Triangle$1 } from './Triangle-8839e96c.js';
+import { d as Path, a as Point, R as RectPositioned, e as Rect, C as Circle, L as Line, f as Circle$1, g as Line$1, h as Rect$1, i as Point$1, j as Path$1 } from './Point-f6631710.js';
 import { S as SetMutable } from './Interfaces-2d05741a.js';
-import { C as Coord, P as Polar } from './Polar-7057373d.js';
+import { C as Coord, P as Polar } from './Polar-81170c0e.js';
+import { S as Scaler } from './Scaler-b8904fb4.js';
 
 declare type CompoundPath = Path & {
     readonly segments: readonly Path[];
@@ -775,6 +776,7 @@ declare const index_Polar: typeof Polar;
 declare const index_degreeToRadian: typeof degreeToRadian;
 declare const index_radianToDegree: typeof radianToDegree;
 declare const index_radiansFromAxisX: typeof radiansFromAxisX;
+declare const index_Scaler: typeof Scaler;
 declare namespace index {
   export {
     Circle$1 as Circles,
@@ -794,6 +796,7 @@ declare namespace index {
     index_degreeToRadian as degreeToRadian,
     index_radianToDegree as radianToDegree,
     index_radiansFromAxisX as radiansFromAxisX,
+    index_Scaler as Scaler,
     Triangle$1 as Triangles,
   };
 }

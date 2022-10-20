@@ -36,6 +36,7 @@ __export(flow_exports, {
   relativeTimerMs: () => relativeTimerMs,
   relativeTimerTicks: () => relativeTimerTicks,
   repeat: () => repeat,
+  repeatReduce: () => repeatReduce,
   sleep: () => sleep,
   throttle: () => throttle,
   ticksElapsedTimer: () => ticksElapsedTimer,
@@ -418,6 +419,29 @@ var repeat = (countOrPredicate, fn) => {
   }
   return ret;
 };
+var repeatReduce = (countOrPredicate, fn, initial, reduce) => {
+  if (typeof countOrPredicate === `number`) {
+    number(countOrPredicate, `positive`, `countOrPredicate`);
+    while (countOrPredicate-- > 0) {
+      const v = fn();
+      if (v === void 0)
+        continue;
+      initial = reduce(initial, v);
+    }
+  } else {
+    let repeats, valuesProduced;
+    repeats = valuesProduced = 0;
+    while (countOrPredicate(repeats, valuesProduced)) {
+      repeats++;
+      const v = fn();
+      if (v === void 0)
+        continue;
+      initial = reduce(initial, v);
+      valuesProduced++;
+    }
+  }
+  return initial;
+};
 try {
   if (typeof window !== `undefined`) {
     window.ixfx = { ...window.ixfx, Flow: { StateMachine: StateMachine_exports, Timer: Timer_exports, forEach, forEachAsync, repeat } };
@@ -447,6 +471,7 @@ export {
   forEach,
   forEachAsync,
   repeat,
+  repeatReduce,
   flow_exports
 };
-//# sourceMappingURL=chunk-2WGXWSTB.js.map
+//# sourceMappingURL=chunk-BV6HXK76.js.map

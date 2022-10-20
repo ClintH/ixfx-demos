@@ -1,4 +1,4 @@
-import { a as RandomSource } from './Arrays-5acc3734.js';
+import { a as RandomSource } from './Arrays-2d4fde0d.js';
 
 declare type Path = {
     length(): number;
@@ -907,6 +907,8 @@ declare const intersections: (a: CirclePositioned, b: CirclePositioned) => reado
  * @returns
  */
 declare const isEqual$2: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
+declare function multiplyScalar$1(a: CirclePositioned, value: number): CirclePositioned;
+declare function multiplyScalar$1(a: Circle, value: number): Circle;
 /**
  * Returns the distance between two circle centers.
  *
@@ -1021,6 +1023,7 @@ declare namespace Circle$1 {
     Circle$1_isIntersecting as isIntersecting,
     Circle$1_intersections as intersections,
     isEqual$2 as isEqual,
+    multiplyScalar$1 as multiplyScalar,
     Circle$1_distanceCenter as distanceCenter,
     distanceFromExterior$1 as distanceFromExterior,
     Circle$1_toSvg as toSvg,
@@ -2118,6 +2121,18 @@ declare function multiply(a: Point, rect: Rect): Point;
  */
 declare function multiply(a: Point, x: number, y?: number): Point;
 /**
+ * Multiplies all components by `v`.
+ *
+ * ```js
+ * multiplyScalar({ x:2, y:4 }, 2);
+ * // Yields: { x:4, y:8 }
+ * ```
+ * @param pt Point
+ * @param v Value to multiply by
+ * @returns
+ */
+declare const multiplyScalar: (pt: Point | Point3d, v: number) => Point | Point3d;
+/**
  * Divides a / b:
  * ```js
  * return {
@@ -2452,6 +2467,7 @@ declare const Point$1_pipeline: typeof pipeline;
 declare const Point$1_reduce: typeof reduce;
 declare const Point$1_sum: typeof sum;
 declare const Point$1_multiply: typeof multiply;
+declare const Point$1_multiplyScalar: typeof multiplyScalar;
 declare const Point$1_divide: typeof divide;
 declare const Point$1_quantiseEvery: typeof quantiseEvery;
 declare const Point$1_convexHull: typeof convexHull;
@@ -2513,6 +2529,7 @@ declare namespace Point$1 {
     Point$1_reduce as reduce,
     Point$1_sum as sum,
     Point$1_multiply as multiply,
+    Point$1_multiplyScalar as multiplyScalar,
     Point$1_divide as divide,
     Point$1_quantiseEvery as quantiseEvery,
     Point$1_convexHull as convexHull,

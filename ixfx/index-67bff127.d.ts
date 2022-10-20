@@ -1,6 +1,7 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { a as Point } from './Point-d2c86682.js';
+import { a as Point } from './Point-f6631710.js';
+import { a as ScaleFn } from './Scaler-b8904fb4.js';
 import { F as Forms } from './Forms-3d8c95ae.js';
 
 declare type LogOpts = {
@@ -105,6 +106,16 @@ declare type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
     readonly ctx: CanvasRenderingContext2D;
 };
 declare const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Observable<Event>;
+declare type CanvasOpts = {
+    readonly skipCss?: boolean;
+    readonly fullSize?: boolean;
+    readonly scaleBy?: `both` | `width` | `height` | `min` | `max`;
+};
+declare const canvasHelper: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, opts: CanvasOpts) => {
+    abs: ScaleFn;
+    rel: ScaleFn;
+    getContext: () => void;
+};
 /**
  * Resizes given canvas element to match window size.
  * To resize canvas to match its parent, use {@link parentSizeCanvas}.
@@ -370,6 +381,8 @@ declare const index_rx: typeof rx;
 type index_ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = ElementResizeArgs<V>;
 type index_CanvasResizeArgs = CanvasResizeArgs;
 declare const index_fullSizeElement: typeof fullSizeElement;
+type index_CanvasOpts = CanvasOpts;
+declare const index_canvasHelper: typeof canvasHelper;
 declare const index_fullSizeCanvas: typeof fullSizeCanvas;
 declare const index_cycleCssClass: typeof cycleCssClass;
 declare const index_parentSize: typeof parentSize;
@@ -407,6 +420,8 @@ declare namespace index {
     index_ElementResizeArgs as ElementResizeArgs,
     index_CanvasResizeArgs as CanvasResizeArgs,
     index_fullSizeElement as fullSizeElement,
+    index_CanvasOpts as CanvasOpts,
+    index_canvasHelper as canvasHelper,
     index_fullSizeCanvas as fullSizeCanvas,
     index_cycleCssClass as cycleCssClass,
     index_parentSize as parentSize,
@@ -432,4 +447,4 @@ declare namespace index {
   };
 }
 
-export { defaultErrorHandler as A, CanvasResizeArgs as C, DragDrop as D, ElementResizeArgs as E, LogOpts as L, Opts as O, PluckOpts as P, Rx as R, TransformOpts as T, Log as a, DomRxOpts as b, fullSizeCanvas as c, cycleCssClass as d, parentSizeCanvas as e, fullSizeElement as f, getTranslation as g, resolveEl as h, index as i, createAfter as j, createIn as k, log as l, dataTableList as m, DataFormatter as n, DataTableOpts as o, parentSize as p, dataTable as q, rx as r, clear as s, themeChangeObservable as t, resizeObservable as u, copyToClipboard as v, windowResize as w, CreateUpdateElement as x, reconcileChildren as y, pointerVisualise as z };
+export { reconcileChildren as A, pointerVisualise as B, CanvasResizeArgs as C, DragDrop as D, ElementResizeArgs as E, defaultErrorHandler as F, LogOpts as L, Opts as O, PluckOpts as P, Rx as R, TransformOpts as T, Log as a, DomRxOpts as b, CanvasOpts as c, canvasHelper as d, fullSizeCanvas as e, fullSizeElement as f, cycleCssClass as g, getTranslation as h, index as i, parentSizeCanvas as j, resolveEl as k, log as l, createAfter as m, createIn as n, dataTableList as o, parentSize as p, DataFormatter as q, rx as r, DataTableOpts as s, dataTable as t, clear as u, themeChangeObservable as v, windowResize as w, resizeObservable as x, copyToClipboard as y, CreateUpdateElement as z };

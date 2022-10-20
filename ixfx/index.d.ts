@@ -4060,6 +4060,24 @@ declare module "flow/index" {
      * @returns Array of accumulated results
      */
     export const repeat: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined) => readonly V[];
+    /**
+     * Repeatedly calls `fn`, reducing via `reduce`.
+     *
+     * ```js
+     * repeatReduce(10, () => 1, (acc, v) => acc + v);
+     * // Yields: 10
+     *
+     * // Multiplies random values against eachother 10 times
+     * repeatReduce(10, () => Math.random(), (acc, v) => acc * v);
+     * // Yields a single number
+     * ```
+     * @param countOrPredicate
+     * @param fn
+     * @param initial
+     * @param reduce
+     * @returns
+     */
+    export const repeatReduce: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined, initial: V, reduce: (acc: V, value: V) => V) => V;
 }
 declare module "data/TrackerBase" {
     import { TrackedValueOpts } from "data/TrackedValue";
@@ -6561,6 +6579,18 @@ declare module "geometry/Point" {
      */
     export function multiply(a: Point, x: number, y?: number): Point;
     /**
+     * Multiplies all components by `v`.
+     *
+     * ```js
+     * multiplyScalar({ x:2, y:4 }, 2);
+     * // Yields: { x:4, y:8 }
+     * ```
+     * @param pt Point
+     * @param v Value to multiply by
+     * @returns
+     */
+    export const multiplyScalar: (pt: Point | Point3d, v: number) => Point | Point3d;
+    /**
      * Divides a / b:
      * ```js
      * return {
@@ -7181,6 +7211,8 @@ declare module "geometry/Circle" {
      * @returns
      */
     export const isEqual: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
+    export function multiplyScalar(a: CirclePositioned, value: number): CirclePositioned;
+    export function multiplyScalar(a: Circle, value: number): Circle;
     /**
      * Returns the distance between two circle centers.
      *
@@ -8053,6 +8085,73 @@ declare module "geometry/Waypoint" {
         distance: number;
     }[];
 }
+declare module "geometry/Scaler" {
+    import { Point } from "geometry/Point";
+    import { Rect } from "geometry/Rect";
+    /**
+     * A scale function that takes an input value to scale. Input can be in the form of {x,y} or two number parameters.
+     *
+     * ```js
+     * scale(10, 20);
+     * scale({x:10, y:20});
+     * ```
+     *
+     * Output range can be specified as a {width,height} or two number parameters. If omitted, the default range
+     * is used.
+     *
+     * ```js
+     * // Scale 10,20 with range w:800 h:600
+     * scale(10, 20, 800, 600);
+     * scale({x:10, y:20}, 800, 600);
+     * scale({x:10, y:20}, {width: 800, height: 600});
+     * ```
+     */
+    export type ScaleFn = (a: number | Point, b?: number | Rect, c?: number | Rect, d?: number) => Point;
+    /**
+     * A scaler than can convert to a from an output range
+     */
+    export type Scaler = {
+        /**
+         * Relative to absolute coordinates
+         */
+        readonly abs: ScaleFn;
+        /**
+         * Absolute to relative coordintes
+         */
+        readonly rel: ScaleFn;
+    };
+    /**
+     * Returns a set of scaler functions, to convert to and from ranges.
+     *
+     * ```js
+     * const scaler = Scaler.scaler(`both`, window.innerWidth, window.innerHeight);
+     * // Assuming screen of 800x400...
+     * scaler.abs(400,200);          // Yields { x:0.5, y:0.5 }
+     * scaler.abs({ x:400, y:200 }); // Yields { x:0.5, y:0.5 }
+     *
+     * scaler.rel(0.5, 0.5);         // Yields: { x:400, y:200 }
+     * scaler.rel({ x:0.5, y:0.5 }); // Yields: { x:400, y:200 }
+     * ```
+     *
+     * If no default range is provided, it must be given each time the scale function is used.
+     *
+     * ```js
+     * const scaler = Scaler.scaler(`both`);
+     *
+     * scaler.abs(400, 200, 800, 400);
+     * scaler.abs(400, 200, { width: 800, height: 400 });
+     * scaler.abs({ x:400, y: 200}, { width: 800, height: 400 });
+     * scaler.abs({ x:400, y: 200}, 800, 400);
+     * // All are the same, yielding { x:0.5, y:0.5 }
+     *
+     * scaler.abs(400, 200); // Throws an exception because there is no scale
+     * ```
+     * @param scaleBy Dimension to scale by
+     * @param defaultRect Default range
+     * @returns
+     */
+    export const scaler: (scaleBy?: `both` | `min` | `max` | `width` | `height`, defaultRect?: Rect) => Scaler;
+}
 declare module "geometry/TriangleEquilateral" {
     import { Circle } from "geometry/Circle";
     import { Point } from "geometry/Point";
@@ -8716,6 +8815,7 @@ declare module "geometry/index" {
     import * as Vectors from "geometry/Vector";
     import * as Waypoints from "geometry/Waypoint";
     export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes, Vectors, Waypoints };
+    export * as Scaler from "geometry/Scaler";
     /**
      * Triangle processing.
      *
@@ -10343,6 +10443,7 @@ declare module "Generators" {
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
     import * as Points from "geometry/Point";
+    import { Scaler } from "geometry/index";
     export type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
         readonly el: V;
         readonly bounds: {
@@ -10355,6 +10456,16 @@ declare module "dom/Util" {
         readonly ctx: CanvasRenderingContext2D;
     };
     export const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Observable<Event>;
+    export type CanvasOpts = {
+        readonly skipCss?: boolean;
+        readonly fullSize?: boolean;
+        readonly scaleBy?: `both` | `width` | `height` | `min` | `max`;
+    };
+    export const canvasHelper: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, opts: CanvasOpts) => {
+        abs: Scaler.ScaleFn;
+        rel: Scaler.ScaleFn;
+        getContext: () => void;
+    };
     /**
      * Resizes given canvas element to match window size.
      * To resize canvas to match its parent, use {@link parentSizeCanvas}.
@@ -14570,6 +14681,7 @@ declare module "__tests__/geometry/grid.test" { }
 declare module "__tests__/geometry/line.test" { }
 declare module "__tests__/geometry/point.test" { }
 declare module "__tests__/geometry/polar.test" { }
+declare module "__tests__/geometry/scaler.test" { }
 declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }

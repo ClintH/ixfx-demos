@@ -13,12 +13,13 @@ import {
   relativeTimerMs,
   relativeTimerTicks,
   repeat,
+  repeatReduce,
   throttle,
   ticksElapsedTimer,
   timeout,
   updateOutdated,
   waitFor
-} from "./chunk-2WGXWSTB.js";
+} from "./chunk-BV6HXK76.js";
 import {
   StateMachine_exports
 } from "./chunk-2KMUXGZ5.js";
@@ -50,6 +51,7 @@ export {
   relativeTimerMs,
   relativeTimerTicks,
   repeat,
+  repeatReduce,
   sleep,
   throttle,
   ticksElapsedTimer,
