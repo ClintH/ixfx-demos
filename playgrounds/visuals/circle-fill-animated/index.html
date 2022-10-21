@@ -63,6 +63,7 @@
       background: hsl(0, 0%, 0%, 20%);
       padding: var(--padding);
       backdrop-filter: blur(5px);
+      max-width: 20em;
     }
 
     #error {
@@ -70,6 +71,10 @@
       position: absolute;
       background: rgba(245, 110, 110, 0.2);
       color: white;
+    }
+
+    .form {
+      padding-top: var(--padding);
     }
 
     #badge {
@@ -100,25 +105,26 @@
       1 - Math.sqrt(1- r() * r())
       </pre>
     </details>
+    <div class="form">
+      <label for="source">Random source</label>
+      <select id="source">
+        <option>Math.random</option>
+        <option>Gaussian</option>
+        <option>Weighted (cubicIn)</option>
+        <option>Weighted (sineIn)</option>
+        <option>Weighted (elasticIn)</option>
+        <option>Weighted (bounceIn)</option>
+        <option>Weighted (quadInOut)</option>
+      </select>
+      <label for="startExpr">Start</label>
+      <input type="text" id="startExpr" value="r()">
+      <label for="endExpr">End</label>
+      <input type="text" id="endExpr" value="1-r()">
+      <label>Particles</label>
+      <input type="range" id="numberParticles" value="500" min="100" max="10000">
+    </div>
   </section>
-  <section class="form">
-    <label for="source">Random source</label>
-    <select id="source">
-      <option>Math.random</option>
-      <option>Gaussian</option>
-      <option>Weighted (cubicIn)</option>
-      <option>Weighted (sineIn)</option>
-      <option>Weighted (elasticIn)</option>
-      <option>Weighted (bounceIn)</option>
-      <option>Weighted (quadInOut)</option>
-    </select>
-    <label for="startExpr">Start</label>
-    <input type="text" id="startExpr" value="r()">
-    <label for="endExpr">End</label>
-    <input type="text" id="endExpr" value="1-r()">
-    <label>Particles</label>
-    <input type="range" id="numberParticles" value="500" min="100" max="10000">
-  </section>
+
   <canvas id="canvas"></canvas>
   <section id="error" class="hidden">Error message</section>
   <section id="badge"><a href="https://clinth.github.io/ixfx-docs/">ixfx</a></section>

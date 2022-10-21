@@ -56,10 +56,10 @@ const onCodeUpdated = () => {
   
   // If eval failed, exit
   if (startDistances.length < numberOfPoints) return;
-  const endDistances = /** @type number[] */(repeat(numberOfPoints, endExpr));
+  let endDistances = /** @type number[] */(repeat(numberOfPoints, endExpr));
 
-  // If eval failed, exit
-  if (endDistances.length < numberOfPoints) return;
+  // If eval failed, use the same as start
+  if (endDistances.length < numberOfPoints) endDistances = [ ...startDistances ];
 
   // Create random angles
   const angles = repeat(numberOfPoints, () => Math.random() * piPi);
@@ -205,7 +205,7 @@ function inputChangeDebounce(id, callback) {
   if (!el) throw new Error(`${id} not found`);
   const debouncer = debounce((evt) => {
     callback(el.value);
-  }, 100);
+  }, 500);
 
   el?.addEventListener(`input`, evt => {
     debouncer(evt);
