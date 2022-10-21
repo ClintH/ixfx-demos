@@ -1,12 +1,12 @@
 # circle-fill
 
-Based on Guido Schmidt's sketch:
-https://editor.p5js.org/guidoschmidt/sketches/njMWGIsv1?s=09
+[See it online](https://clinth.github.io/ixfx-demos/visuals/circle-fill/)
 
-For an animated version, check [circle-fill-aniamted](../../playgrounds/visuals/circle-fill-animated/).
+Function examples from [Guido Schmidt's sketch](https://editor.p5js.org/guidoschmidt/sketches/njMWGIsv1?s=09).
+
+Try the [playground version](https://clinth.github.io/ixfx-demos/playgrounds/visuals/circle-fill-animated/) to try out different functions interactively.
 
 See also:
-* [circle-fill](../../visuals/circle-fill/)
 * [ixfx Random](https://clinth.github.io/ixfx-docs/gen/random/)
 * [ixfx Point](https://clinth.github.io/ixfx-docs/types/geometry/point/)
 * [ixfx Easing](https://clinth.github.io/ixfx-docs/modulation/easing/)

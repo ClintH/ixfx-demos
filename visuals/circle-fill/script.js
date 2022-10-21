@@ -1,7 +1,3 @@
-/**
- * Based on Guido Schmidt's sketch:
- * https://editor.p5js.org/guidoschmidt/sketches/njMWGIsv1?s=09
- */
 import * as Dom from '../../ixfx/dom.js';
 import { repeat } from '../../ixfx/flow.js';
 import * as Random from '../../ixfx/random.js';
@@ -10,53 +6,52 @@ import { Points, Circles, Polar } from '../../ixfx/geometry.js';
 const settings = Object.freeze({
   numberOfPoints: 500,
   piPi:Math.PI*2,
+  // Try also using other random sources, such as
+  // Random.weightedSkewed(`cubicIn`), or Random.gaussian()
   randomSource: Math.random,
-  radius: 0.1,
-  dotColor: `hsl(70, 100%, 50%)`
+  pointColour: `hsl(70, 100%, 50%)`,
+  pointSize: 0.005,
+  origin: { x: 0.5, y:0.5, radius:0.5 },
+  radius:0.5
 });
 
 let state = Object.freeze({
   bounds: { width: 0, height: 0 },
   /** @type number */
   scaleBy: 1,
-  circles: [
-    { x:0.15, y:0.3,  fn:(r) => r() },
-    { x:0.35, y:0.3,  fn:(r) => Math.sqrt(r()) },
-    { x:0.15, y:0.55, fn:(r) => 1- r() },
-    { x:0.35, y:0.55, fn:(r) => 1- r()*r() },
-    { x:0.55, y:0.55, fn:(r) => 1- r()*r()*r() },
-    { x:0.75, y:0.55, fn:(r) => 1- r()*r()*r()*r() },
-    { x:0.15, y:0.80, fn:(r) => Math.sqrt(1- r()*r()*r()*r()) },
-    { x:0.35, y:0.8,  fn:(r) => 1 - Math.sqrt(1- r()) },
-    { x:0.55, y:0.8,  fn:(r) => 1 - Math.sqrt(1- r() * r()) }
-  ],
 });
 
 /**
- * This is called at a slower rate
- * than the animation loop. It's meant for
- * mutating state in some manner
+ * Given the random number source `r`, returns a distance for a point (0..1)
+ * 
+ * Try these functions:
+ *  r()
+ *  Math.sqrt(r())
+ *  1- r()
+ *  1- r()*r()
+ *  1- r()*r()*r()
+ *  1- r()*r()*r()*r()
+ *  Math.sqrt(1- r()*r()*r()*r())
+ *  1 - Math.sqrt(1- r())
+ *  1 - Math.sqrt(1- r() * r())
+ * @param {*} r 
+ * @returns number
  */
-const tick = () => {
-  // Do some calculations
-  // and call updateState({ ... })
-};
+const randomDistance = (r) => r();
 
 /**
  * 
  * @param {Circles.CirclePositioned} circle
  * @param {number} numberOfPoints 
- * @param {(source:Random.RandomSource)=>number} randomDistance 
- * @param {Random.RandomSource} randomSource 
  * @returns 
  */
-const randomPoints = (circle, numberOfPoints, randomDistance, randomSource) => {
-  const { piPi, radius } =  settings;
+const randomPoints = (circle, numberOfPoints) => {
+  const { piPi, randomSource  } =  settings;
+  const { radius } = circle;
 
-  const r = circle.radius ?? settings.radius;
   // Generate a random point in circle
   // Uses Polar to create a point from a random distsance and angle
-  const generate = () => Polar.toCartesian(randomDistance(randomSource) * r, randomSource()*piPi, circle);
+  const generate = () => Polar.toCartesian(randomDistance(randomSource) * radius, randomSource()*piPi, circle);
 
   // Run generate() for the number of points needed, returning as an array
   return repeat(numberOfPoints, generate);
@@ -69,7 +64,7 @@ const randomPoints = (circle, numberOfPoints, randomDistance, randomSource) => {
  * @returns 
  */
 const drawState = () => {
-  const { numberOfPoints, radius, dotColor } = settings;
+  const { numberOfPoints, pointColour, origin, radius, pointSize } = settings;
   const { scaleBy, bounds } = state;
 
   /** @type HTMLCanvasElement|null */
@@ -80,17 +75,18 @@ const drawState = () => {
   // Make background transparent
   ctx.clearRect(0, 0, bounds.width, bounds.height);
 
-  // Draw each circle
-  const randomSource = Math.random;
-  for (const c of state.circles) {
-    // Get absolutely-positioned circle
-    const absCircle = Circles.multiplyScalar({ x: c.x, y:c.y, radius }, scaleBy);
-    
-    // Compute points
-    const pts = randomPoints(absCircle, numberOfPoints, c.fn, randomSource);
+  // Get absolutely-positioned circle
+  const absCircle = { 
+    x: origin.x * bounds.width, 
+    y: origin.y * bounds.height,
+    radius: radius * scaleBy
+  };
+  
+  // Compute points
+  const pts = randomPoints(absCircle, numberOfPoints);
 
-    pts.forEach(pt => drawDot(ctx, pt, dotColor));
-  }
+  const size = pointSize * scaleBy; 
+  pts.forEach(pt => drawPoint(ctx, pt, pointColour, size));
 };
 
 
@@ -124,7 +120,9 @@ function updateState (s) {
  * @param {CanvasRenderingContext2D} ctx 
  * @param {Points.Point} position 
  */
-function drawDot(ctx, position, fillStyle = `black`, size = 1)  {
+function drawPoint(ctx, position, fillStyle = `black`, size = 1)  {
   ctx.fillStyle = fillStyle;
-  ctx.fillRect(position.x, position.y, size, size);
+  ctx.beginPath();
+  ctx.arc(position.x, position.y, size, 0, settings.piPi);
+  ctx.fill();
 }

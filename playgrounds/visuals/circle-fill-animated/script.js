@@ -193,7 +193,6 @@ function drawPoint(ctx, position, fillStyle = `black`, size = 1)  {
   ctx.beginPath();
   ctx.arc(position.x, position.y, size, 0, settings.piPi);
   ctx.fill();
-  
 }
 
 /**
