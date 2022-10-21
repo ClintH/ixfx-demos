@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circle filling</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 70;
+      --mono-font: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 30%);
+      --fg: hsl(var(--hue), 50%, 70%);
+      --padding: 1em;
+      --padding-m: 0.5em;
+      --padding-s: 0.3em
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      margin: 0;
+      padding: 0;
+    }
+
+    a:link,
+    a:visited {
+      color: var(--fg);
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: 5em 1fr;
+      grid-auto-flow: row;
+      gap: var(--padding-m);
+    }
+
+    .form label {
+      text-align: right;
+      text-transform: uppercase;
+      font-size: 80%;
+    }
+
+    .form input[type="text"] {
+      font-family: var(--mono-font);
+    }
+
+    section {
+      background: hsl(0, 0%, 0%, 20%);
+      padding: var(--padding);
+      backdrop-filter: blur(5px);
+    }
+
+    #error {
+      bottom: 0;
+      position: absolute;
+      background: rgba(245, 110, 110, 0.2);
+      color: white;
+    }
+
+    #badge {
+      bottom: 0;
+      right: 0;
+      position: absolute;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+  <section>
+    <p>
+      Enter in a <em>start</em> and <em>end</em> expression for point distance. <code>r()</code> yields a number from
+      the random source.</p>
+    <details>
+      <summary>Example expressions</summary>
+      <pre>
+      r()
+      Math.sqrt(r())
+      1- r()
+      1- r()*r()
+      1- r()*r()*r()
+      1- r()*r()*r()*r()
+      Math.sqrt(1- r()*r()*r()*r())
+      1 - Math.sqrt(1- r())
+      1 - Math.sqrt(1- r() * r())
+      </pre>
+    </details>
+  </section>
+  <section class="form">
+    <label for="source">Random source</label>
+    <select id="source">
+      <option>Math.random</option>
+      <option>Gaussian</option>
+      <option>Weighted (cubicIn)</option>
+      <option>Weighted (sineIn)</option>
+      <option>Weighted (elasticIn)</option>
+      <option>Weighted (bounceIn)</option>
+      <option>Weighted (quadInOut)</option>
+    </select>
+    <label for="startExpr">Start</label>
+    <input type="text" id="startExpr" value="r()">
+    <label for="endExpr">End</label>
+    <input type="text" id="endExpr" value="1-r()">
+    <label>Particles</label>
+    <input type="range" id="numberParticles" value="500" min="100" max="10000">
+  </section>
+  <canvas id="canvas"></canvas>
+  <section id="error" class="hidden">Error message</section>
+  <section id="badge"><a href="https://clinth.github.io/ixfx-docs/">ixfx</a></section>
+  <script type="module" src="script.js"></script>
+
+</body>
+
+</html>

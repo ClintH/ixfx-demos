@@ -1,12 +1,12 @@
-# circle-fill
+# circle-fill-animated
 
-Based on Guido Schmidt's sketch:
+Animates between different point distances.
+
+Functions based on Guido Schmidt's sketch:
 https://editor.p5js.org/guidoschmidt/sketches/njMWGIsv1?s=09
 
-For an animated version, check [circle-fill-aniamted](../../playgrounds/visuals/circle-fill-animated/).
-
 See also:
-* [circle-fill](../../visuals/circle-fill/)
+* [circle-fill](../../../visuals/circle-fill/)
 * [ixfx Random](https://clinth.github.io/ixfx-docs/gen/random/)
 * [ixfx Point](https://clinth.github.io/ixfx-docs/types/geometry/point/)
 * [ixfx Easing](https://clinth.github.io/ixfx-docs/modulation/easing/)
