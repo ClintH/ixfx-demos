@@ -157,7 +157,7 @@ const handlePoses = (poses, frameRect) => {
 
 /**
  * Received data via playback
- * @param {CommonSource.Pose[]|CommonSource.ObjectPrediction[]} frame
+ * @param {CommonSource.Pose[]} frame
  * @param {number} index
  * @param {CommonSource.Recording} rec 
  */
@@ -305,6 +305,7 @@ const setup = async () => {
   // Eg: choose a specific camera
   //await selectCamera(`logitech`);
 
+  // @ts-ignore
   await CommonSource.setup(onFrame, onPlayback, settings.frameProcessorOpts, settings.playbackRateMs);
   CommonSource.status(`Loading detector...`);
 
