@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Demos of ixfx",
   "main": "index.html",
+  "private": "true",
   "type": "module",
   "engines": {
     "node": ">=14.0.0"

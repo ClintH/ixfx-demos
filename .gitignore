@@ -9,3 +9,4 @@ node_modules/
 audio/.DS_Store
 .DS_Store
 .cache/server.pem
+scratch
