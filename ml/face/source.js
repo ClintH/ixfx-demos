@@ -12,8 +12,8 @@
  */
 // @ts-ignore
 import { Remote } from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
-import { Rects } from '../../ixfx/geometry.js';
 import * as CommonSource from '../common-vision-source.js';
+import { shortGuid } from '../../ixfx/random.js';
 
 const searchParams = new URLSearchParams(window.location.search);
 
@@ -34,7 +34,11 @@ const settings = Object.freeze({
       facingMode: `user`
     },
   },
-  remote: new Remote(),
+  remote: new Remote({
+    // allowRemote: false, // Uncomment to allow network connections
+    // Use id specified in URL, otherwise something random
+    peerId: searchParams.get(`id`) ?? shortGuid()
+  }),
   view: searchParams.get(`view`),
   playbackRateMs: 50,
   // Visual settings
@@ -94,7 +98,7 @@ const handleFaces = (faces, frameRect) => {
     }))
   }));
 
-  updateState({ normalised, faces });
+  saveState({ normalised, faces });
 
   // Send normalised data via Remote
   if (state.normalised.length > 0) {
@@ -156,15 +160,10 @@ function postCaptureDraw(ctx, width, height) {
     // Draw each key point as a labelled dot
     face.keypoints.forEach(kp => {
       map.set(kp.name, kp);
-
-      ctx.save();
-      ctx.translate(kp.x, kp.y);
-
       ctx.fillStyle = ctx.strokeStyle = `hsl(${poseHue},100%,30%)`;
       
       // Draw a dot for each key point
-      CommonSource.drawDot(ctx, 0, 0, settings.pointRadius, true, false);
-      ctx.restore();
+      CommonSource.drawAbsDot(ctx, kp, settings.pointRadius, true, false);
     });
   });
 }
@@ -196,7 +195,7 @@ const setup = async () => {
   CommonSource.status(`Loading detector...`);
 
   try {
-    updateState({ detector:await createDetector() });
+    saveState({ detector:await createDetector() });
     CommonSource.setReady(true);
   } catch (e) {
     CommonSource.status(`Could not load detector: ` + e);
@@ -232,10 +231,10 @@ function getNumberParam(name, defaultValue) {
 }
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
