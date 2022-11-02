@@ -128,7 +128,11 @@ PoseNet is considered a legacy model, with MoveNet being the preferred option. L
 
 # Remote data
 
-See the main [README](../README.md) for info on using your phone as a remote camera source.
+See the main [README](../README.md) for info on using your phone as a remote camera source. By default, each source will have a random id. To assign an id, `source.html` can be accessed with an _id_ [URL parameter](#url-parameters):
+  
+  `source.html?model=MoveNet&moveNetModelType=MultiPose.lightning&id=mobilephone`
+
+In the above example, note the `id=mobilephone` in the URL. 
 
 # URL parameters
 

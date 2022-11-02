@@ -15,11 +15,13 @@
  * Query Parameters:
  * * model: PoseNet, BlazePose
  * * moveNetModelType: MultiPose.Lightning, SinglePose.Lightning, SinglePose.Thunder
+ * * id: Id of sender
  */
 
 // @ts-ignore
 import { Remote } from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
 import * as CommonSource from '../common-vision-source.js';
+import { shortGuid } from '../../ixfx/random.js';
 
 const searchParams = new URLSearchParams(window.location.search);
 
@@ -69,7 +71,12 @@ const settings = Object.freeze({
       facingMode: `user`
     },
   },
-  remote: new Remote(),
+  // Create remote instance
+  remote: new Remote({
+    // allowRemote: false, // Uncomment to allow network connections
+    // Use id specified in URL, otherwise something random
+    peerId: searchParams.get(`id`) ?? shortGuid()
+  }),
   playbackRateMs: 50,
   // Visual settings
   view: searchParams.get(`view`),
@@ -131,6 +138,7 @@ const handlePoses = (poses, frameRect) => {
   // Normalise x,y of key points on 0..1 scale, based on size of source frame
   const normalised = poses.map(pose => ({
     ...pose,
+    id: pose.id ?? `1`,
     keypoints: pose.keypoints.map(kp => ({
       ...kp,
       x: kp.x / w,
@@ -253,7 +261,7 @@ function postCaptureDraw(ctx, width, height) {
       // Opacity of dot based on score
       ctx.fillStyle = ctx.strokeStyle = `hsla(${poseHue},100%,30%,${score})`;
 
-      CommonSource.drawDot(ctx, 0, 0, settings.pointRadius, true, false);
+      CommonSource.drawAbsDot(ctx, { x:0, y:0 }, settings.pointRadius, true, false);
       ctx.fillStyle = `black`;
       CommonSource.drawCenteredText(ctx, kp.name ?? `?`, 0, settings.pointRadius * 2);
       ctx.restore();

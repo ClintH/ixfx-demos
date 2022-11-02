@@ -10,12 +10,9 @@
 
 <style>
   :root {
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
     --hue: 60;
     --bg: hsl(var(--hue) 64% 87%);
     --fg: hsl(var(--hue) 100% 10%);
-    --padding: 0.3em;
   }
 
   body {
@@ -44,15 +41,17 @@
 <body>
   <section id="intro">
     <h1>pose / point-to-point</h1>
-    <p id="intro"> <a href=../source.html" target="_blank">Start the source in a new
-        window</a>, or click the yellow tick in the corner panel.</p>
+    <p>Start the source with the yellow tick in the corner panel.</p>
     <p>Demonstration of calculating some basic geometric relations between parts of the body.</p>
   </section>
 
   <!-- If you're not using the panel, comment-out these lines... -->
-  <button id="btnCloseFrame">Close corner source</button>
-  <section class="m" id="sourceSection">
-    <nav>Source</nav>
+  <section class="s" id="sourceSection">
+    <nav><button title="Close frame" id="btnCloseFrame">x</button>
+      <h1>Source</h1>
+      <a id="lnkNewWindow" href="../source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning" target="_blank">New
+        window</a>
+    </nav>
     <iframe src="../source.html?view=min"></iframe>
   </section>
   <!-- ----  -->

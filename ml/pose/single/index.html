@@ -10,12 +10,9 @@
 
 <style>
   :root {
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
     --hue: 200;
     --bg: hsl(var(--hue) 64% 87%);
     --fg: hsl(var(--hue) 100% 10%);
-    --padding: 0.3em;
   }
 
   body {
@@ -38,23 +35,18 @@
 
 <body>
   <section id="intro">
-
     <h1>pose / single</h1>
-    <p id="intro"> <a href="../source.html" target="_blank">Start a source in a new
-        window</a>, or click the yellow tick in the corner panel.</p>
-    <p>This demonstrates using a single pose, mapping relative key points to screen coordinates, interpolating for
-      reduce
-      glitchiness and drawing on the canvas. See <a href="../multiple/index.html">multiple</a> for
-      handling
-      multiple sources.
-    </p>
+    <p>Start source with the yellow tick in the corner panel.</p>
   </section>
 
   <!-- If you're not using the panel, comment-out these lines... -->
-  <button id="btnCloseFrame">Close corner source</button>
-  <section class="m" id="sourceSection">
-    <nav>Source</nav>
-    <iframe src="../source.html?view=min"></iframe>
+  <section class="s" id="sourceSection">
+    <nav><button title="Close frame" id="btnCloseFrame">x</button>
+      <h1>Source</h1>
+      <a id="lnkNewWindow" href="../source.html?model=MoveNet&moveNetModelType=SinglePose.Lightning" target="_blank">New
+        window</a>
+    </nav>
+    <iframe src="../source.html?view=min&id=internal"></iframe>
   </section>
   <!-- ----  -->
 

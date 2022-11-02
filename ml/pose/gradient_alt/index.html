@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pose / multiple</title>
+  <title>pose / multiple-smoothed</title>
 </head>
 <link rel="stylesheet" href="../../base.css">
 
@@ -12,9 +12,9 @@
   :root {
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     --mono-font: "Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
-    --hue: 170;
-    --bg: hsl(var(--hue) 64% 87%);
-    --fg: hsl(var(--hue) 100% 10%);
+    --hue: 200;
+    --bg: hsl(var(--hue) 0% 30%);
+    --fg: hsl(var(--hue) 100% 90%);
     --padding: 0.3em;
   }
 
@@ -42,20 +42,12 @@
 
 <body>
   <section id="intro">
-    <h1>pose / multiple</h1>
-    <p>Start source with the yellow tick in the corner panel.</p>
+    <h1>gradient stops</h1>
+    <p id="intro"><a href="../source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning" target="_blank">Start a
+        source
+        in a new
+        window</a></p>
   </section>
-
-  <!-- If you're not using the panel, comment-out these lines... -->
-  <section class="s" id="sourceSection">
-    <nav><button title="Close frame" id="btnCloseFrame">x</button>
-      <h1>Source</h1>
-      <a id="lnkNewWindow" href="../source.html?model=MoveNet&moveNetModelType=MultiPose.Lightning" target="_blank">New
-        window</a>
-    </nav>
-    <iframe src="../source.html?view=min&model=MoveNet&moveNetModelType=MultiPose.Lightning&id=corner"></iframe>
-  </section>
-  <!-- ----  -->
 
   <script type="module" src="script.js"></script>
   <div id="debug">debug!</div>

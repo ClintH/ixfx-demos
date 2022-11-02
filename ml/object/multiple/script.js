@@ -1,13 +1,16 @@
+// #region Imports
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import * as Dom from '../../ixfx/dom.js';
+import * as Dom from '../../../ixfx/dom.js';
+// #endregion
 
+// #region Settings & state
 const settings = Object.freeze({
   remote: new Remote(),
   // If true, x values are flipped
   horizontalMirror: false,
-  labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`
-
+  labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`,
+  classHues: new Map()
 });
 
 let state = Object.freeze({
@@ -17,30 +20,30 @@ let state = Object.freeze({
     center: { x: 0, y: 0 }
   },
   ticks: 0,
-  /** @type {import("../common-vision-source.js").ObjectPrediction[]} */
+  /** @type {ObjectPrediction[]} */
   predictions: [],
-  classHues: new Map()
+  
 });
+// #endregion
 
 /**
  * Received predictions
- * @param {import("../common-vision-source.js").ObjectPrediction[]} predictions 
+ * @param {ObjectPrediction[]} predictions 
  */
 const onPredictions = (predictions) => {
-  console.log(predictions);
-  updateState({
+  saveState({
     predictions: predictions
   });
 };
 
 /**
  * Draw a prediction
- * @param {import("../common-vision-source.js").ObjectPrediction} p 
+ * @param {ObjectPrediction} p 
  * @param {CanvasRenderingContext2D} ctx 
  */
 const drawPrediction = (p, ctx) => {
-  const { horizontalMirror } = settings;
-  const { bounds, classHues } = state;
+  const { horizontalMirror, classHues } = settings;
+  const { bounds } = state;
 
   // Position of detected object comes in relative terms,
   // so we need to map to viewport size. Since the viewport ratio
@@ -108,7 +111,7 @@ const setup = async () => {
 
   // Keep CANVAS filling the screen
   Dom.fullSizeCanvas(`#canvas`, args => {
-    updateState({ bounds: args.bounds });
+    saveState({ bounds: args.bounds });
   });
 
   // If the floating source window is there, respond to clicking on the header
@@ -127,14 +130,19 @@ const setup = async () => {
 setup();
 
 
-
+// #region Toolbox
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
+
+/**
+ * @typedef { import("../../common-vision-source").ObjectPrediction } ObjectPrediction
+ */
+// #endregion

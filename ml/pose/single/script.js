@@ -1,82 +1,62 @@
+// #region Imports
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import * as Dom from '../../../ixfx/dom.js';
 import * as CommonPose from '../common-pose.js';
+// #endregion
 
+// #region Settings & state
 const settings = Object.freeze({
   horizontalMirror: true,
-  // Interpolation amount applied per frame (0...1)
-  // Lower = less jitter & more latency. Higher = more jitter & lower latency
-  smoothingAmt: 0.2,
   remote: new Remote(),
   tickRateMs: 100,
-  /** @type {import("../common-pose.js").SanityChecks} */
-  sanityCheck: {
-    anklesBelowKnees: true,
-    kneesBelowHip: true,
-    shouldersBelowFace: true,
-    hipBelowShoulders: true,
-    scoreThreshold: 0.6
-  }
+  /** Processor of pose we're tracking
+   * @type {PoseProcessor}
+   */
+  processor:CommonPose.poseProcessor({
+    // Smoothing amount (0..1) Low numbers is more smoothing.
+    smoothingAmt: 0.3,
+    // If a different pose id is received, automatically reset processor,
+    // rather than trying to interpolate
+    autoReset: true,
+    sanityChecks: {
+      anklesBelowKnees: true,
+      kneesBelowHip: true,
+      shouldersBelowFace: true,
+      hipBelowShoulders: true,
+      scoreThreshold: 0.6
+    }
+  })
 });
 
 let state = Object.freeze({
-  /**
-   * Bounds of screen
-   */
+  /** Bounds of screen */
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
-  /** 
-   * All poses received from source
-   * @type {Pose[]} */
-  poses: [],
-  /**
-   * Processor of pose we're tracking
-   */
-  firstPoseProcessor: CommonPose.poseProcessor(settings.smoothingAmt, settings.sanityCheck),
+
   /** 
    * Processed first pose
-   * @type {Pose|undefined} */
-  firstPose:undefined
+   * @type {PoseByKeypoint|undefined} */
+  processedPose:undefined
 });
+// #endregion
 
 /**
  * Received data from a source
  * @param {Pose[]} poses 
  */
 const onData = (poses) => {
-  const { firstPoseProcessor } = state;
+  let { processor } = settings;
 
-  // Exit if we didn't get any poses
-  if (poses.length === 0) return;
-  
-  // Try to get the pose with same ID as before.
-  let targetPose;
-  if (firstPoseProcessor.id) {
-    targetPose = poses.find(p=>p.id === firstPoseProcessor.id);
-  }
+  // Naively choose the first pose we receive
+  const pose = poses[0];
 
-  // Couldn't find target pose, or we haven't yet processed anything
-  if (!targetPose) {
-    // Return an array of [[pose1,kp],[pose2,kp] ...]
-    // Sorted by 'nose' keypoint's X value
-    const sorted = CommonPose.getSortedKeypointsByX(poses, `nose`);
+  // Process: Sanity check keypoint location, removes low confidence points and smoothes pose
+  const processed = /** @type {PoseByKeypoint} */(processor.process(pose));
 
-    // We want the leftmost pose
-    targetPose = sorted[0][0];
-  }
-
-  // Send to processor:
-  // Sanity check keypoint location, removes low confidence points and smoothes pose
-  const processed = firstPoseProcessor.process(targetPose);
-  
-  // Update state with list of all poses
-  // as well as output of pose processor
-  updateState({ 
-    poses,
-    firstPose: processed
+  saveState({ 
+    processedPose: processed
   });
 };
-
 
 const tick = () => {
   // Gets called every 100ms.
@@ -85,7 +65,7 @@ const tick = () => {
 
 // Is called at animation speed
 const drawState = () => {
-  const { firstPose } = state;
+  const { processedPose, bounds } = state;
 
   const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
   const ctx = canvasEl?.getContext(`2d`);
@@ -95,14 +75,14 @@ const drawState = () => {
   clear(ctx);
   
   // If there is no smoothed pose, exit out
-  if (firstPose === undefined) return;
+  if (processedPose === undefined) return;
 
   // Convert coordinates to viewport-relative coordinates
-  const abs = CommonPose.absPose(firstPose, state.bounds, settings.horizontalMirror);
+  const abs = CommonPose.absPose(processedPose, bounds, settings.horizontalMirror);
 
   // Use `debugDrawPose`, defined in common-pose.js
   CommonPose.debugDrawPose(ctx, abs, { 
-    radius: 5
+    pointRadius: 5
   });
 };
 
@@ -140,7 +120,7 @@ const setup = async () => {
 
   // Keep CANVAS filling the screen
   Dom.fullSizeCanvas(`#canvas`, args => {
-    updateState({ bounds: args.bounds });
+    saveState({ bounds: args.bounds });
   });
 
   const drawLoop = () => {
@@ -156,11 +136,12 @@ const setup = async () => {
 };
 setup();
 
+// #region Toolbox
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -170,4 +151,8 @@ function updateState (s) {
  * @typedef { import("../../common-vision-source").Keypoint } Keypoint
  * @typedef { import("../../common-vision-source").Box } Box
  * @typedef { import("../../common-vision-source").Pose } Pose
+ * @typedef { import ("../common-pose").PoseByKeypoint} PoseByKeypoint 
+ * @typedef { import ("../common-pose").PoseProcessor} PoseProcessor 
+ * 
  */
+// #endregion Toolbox

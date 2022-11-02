@@ -41,9 +41,10 @@
  * * Draws a line connecting points {x,y}
  */
 import { FrameProcessor } from '../ixfx/io.js';
-import { Camera } from '../ixfx/io.js';
+import { Camera, VideoFile } from '../ixfx/io.js';
 import { defaultErrorHandler } from '../ixfx/dom.js';
 import { continuously, throttle, interval } from '../ixfx/flow.js';
+import { Points } from '../ixfx/geometry.js';
 
 // Settings determined by caller
 const caller = {
@@ -68,6 +69,7 @@ const caller = {
 };
 
 const settings = Object.freeze({
+  loopRecorderPlayback: true,
   loop: continuously(read),
   // Rendering
   defaultDotRadius: 5,
@@ -191,18 +193,17 @@ export const drawCenteredText = (ctx, msg, offsetX, offsetY) => {
 };
 
 /**
- * Draws a dot
+ * Draws an absolutely-positioned dot
  * @param {CanvasRenderingContext2D} ctx 
- * @param {number} x 
- * @param {number} y 
+ * @param {Points.Point} pt
  * @param {number} radius Radius for dot
  * @param {boolean} fill If true, dot is filled-in
  * @param {boolean} stroke If true, dot outline is drawn
  */
-export const drawDot = (ctx, x, y, radius = -1, fill = true, stroke = false) => {
+export const drawAbsDot = (ctx, pt, radius = -1, fill = true, stroke = false) => {
   if (radius === -1) radius = settings.defaultDotRadius;
   ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
   ctx.closePath();
@@ -286,6 +287,38 @@ const updateRecordingsUi = (recordings) => {
   /** @type {HTMLSelectElement} */(el).disabled = recordings.length === 0;
 };
 
+/**
+ * Start/stop video
+ * @param {boolean} start 
+ * @param {File} [file]
+ */
+const setVideo = async (start, file) => {
+
+  const btnVideoStartStop = document.getElementById(`cs-btnVideoStartStop`);
+
+  if (start && file) {
+    // Stop camera if running
+    setCamera(false);
+    if (btnVideoStartStop) /** @type {HTMLButtonElement}*/(btnVideoStartStop).disabled = true;
+    try {
+      // Set up frame processor
+      caller.frameProcessor = new FrameProcessor(caller.frameProcessorOpts);
+      await caller.frameProcessor.useVideo(file);
+    
+      // Start loop to pull frames from camera
+      settings.loop.start();
+
+    } finally {
+      if (btnVideoStartStop) /** @type {HTMLButtonElement}*/(btnVideoStartStop).disabled = false;
+    }
+  } else {
+    // Stop loop and dispose of frame processor
+    settings.loop.cancel();
+    caller.frameProcessor?.dispose();
+    caller.frameProcessor = undefined;    
+  }
+};
+
 export const startRecorderPlayback = async () => {
   const el = document.getElementById(`cs-selRecording`);
   if (el === null) return;
@@ -306,8 +339,9 @@ export const startRecorderPlayback = async () => {
 
   updateState({ currentSource:`recording` });
 
-  // Stop camera
+  // Stop camera & video playback
   await setCamera(false);
+  await setVideo(false);
 
   const btn = document.getElementById(`cs-btnPlayback`);
   if (btn !== null) btn.innerText = `stop`;
@@ -332,11 +366,15 @@ export const startRecorderPlayback = async () => {
     if (ctx) postCaptureDraw(ctx.ctx, ctx.width, ctx.height);
     index++;
     if (index + 1 === rec.data.length || state.recorder !== `playing`) {
-      console.log(`Playback done of ${rec.data.length} steps.`);
-      recorderStatus(``);
-      stopRecorderPlayback();
-      updateState({ currentSource:`none` });
-      return false; // Stop loop
+      if (!settings.loopRecorderPlayback) {
+        console.log(`Playback done of ${rec.data.length} steps.`);
+        recorderStatus(``);
+        stopRecorderPlayback();
+        updateState({ currentSource:`none` });
+        return false; // Stop loop
+      } else {
+        index = 0;
+      }
     }
   }, caller.playbackRateMs).start();
 };
@@ -455,6 +493,12 @@ const addUi = () => {
       <button title="Make a new recording" class="material-icons" id="cs-btnRecord">fiber_manual_record</button>
       <div id="lblRecorderStatus"></div>
     </div>
+    <div>
+    <h2>Video</h2>
+    <input type="file" accept="video/*" id="cs-videoFile" /></input>
+    <label for="cs-videoFile" title="Play a file from your computer" class="material-icons">movie</label>
+    <!--<button title="Play/stop video" class="material-icons" id="cs-btnVideoStartStop">check_circle</button> -->
+  </div>
   </div>
 </div>
 <div id="canvasContainer">
@@ -466,6 +510,9 @@ const addUi = () => {
 
   const css = `
   <style>
+  input[type="file"] {
+    display: none;
+  }
   .material-icons { 
     color: rgba(255, 255, 255, 1); 
     background: none;
@@ -607,6 +654,8 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
   const btnRecord = document.getElementById(`cs-btnRecord`);
   const btnPlayback = document.getElementById(`cs-btnPlayback`);
+  const btnVideoPlayback = document.getElementById(`cs-btnVideoPlayback`);
+
   const btnFreeze = document.getElementById(`cs-btnFreeze`);
   const chkSourceShow = document.getElementById(`cs-chkSourceShow`);
   const chkDataShow = document.getElementById(`cs-chkDataShow`);
@@ -747,6 +796,20 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
     startRecorderPlayback();
   });
 
+  const videoFileEl = /** @type {HTMLInputElement} */(document.getElementById(`cs-videoFile`));
+  videoFileEl?.addEventListener(`change`, e => {
+    // @ts-ignore
+    const file = /** @type {File|undefined} */(e.target.files[0]);
+    setVideo(true, file);
+  });
+
+  // btnVideoPlayback?.addEventListener(`click`, async () => {
+  //   if (state.recorder === `playing`) {
+  //     stopRecorderPlayback();
+  //   }
+  //   startVideoPlayback();
+  // });
+
   updateRecordingsUi(getRecordings());
 };
 
@@ -774,7 +837,7 @@ const onStreamStopped = () => {
 
 /**
  * Start/stop camera
- * @param {*} start 
+ * @param {boolean} start 
  */
 const setCamera = async (start) => {
   const dataEl = document.getElementById(`cs-data`);
@@ -782,6 +845,9 @@ const setCamera = async (start) => {
   const selCamera = document.getElementById(`cs-selCamera`);
 
   if (start) {
+    // Stop video if running
+    setVideo(false);
+  
     /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = true;
     try {
       // Start
@@ -793,7 +859,7 @@ const setCamera = async (start) => {
     
       // Start loop to pull frames from camera
       settings.loop.start();
-
+    
     } finally {
       /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = false;
     }
@@ -857,11 +923,16 @@ function updateState (s) {
  * @typedef Pose
  * @type {object}
  * @property {Keypoint[]} keypoints
- * @property {number} [score]
- * @property {Box} [box]
+ * @property {number} score
+ * @property {Box} box
  * @property {string} id
+ * @property {string} source
  */
-
+/**
+ * @typedef ReceivedData
+ * @property {string} _from
+ * @property {any[]} data
+ */
 /**
  * @typedef FaceKeypoint
  * @property {'rightEye'|'leftEye'|'noseTip'|'mouthCenter'|'rightEarTragion'|'leftEarTragion'} name
@@ -873,8 +944,23 @@ function updateState (s) {
  * @typedef Face
  * @type {object}
  * @property {FaceKeypoint[]} keypoints
- * @property {number} [score]
- * @property {Box} [box]
+ * @property {number} score
+ * @property {Box} box
+ * @property {string} source
+ */
+
+/**
+ * @typedef {Object} FaceByKeypoint
+ * @property {FaceKeypoint} nose_tip
+ * @property {FaceKeypoint} right_eye
+ * @property {FaceKeypoint} mouth_center
+ * @property {FaceKeypoint} left_eye
+ * @property {FaceKeypoint} right_ear_tragion
+ * @property {FaceKeypoint} left_ear_tragion
+ * @property {string} source
+ * @property {number} score
+ * @property {number} hue
+ * @property {Box} box
  */
 
 /**

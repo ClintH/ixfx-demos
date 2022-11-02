@@ -1,46 +1,52 @@
-// #region Imports
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import * as Dom from '../../../ixfx/dom.js';
-import { Correlate } from '../../../ixfx/data.js';
+import { ExpiringMap } from '../../../ixfx/collections.js';
+import { Pool } from '../../../ixfx/data.js';
 import { Points } from '../../../ixfx/geometry.js';
 import { Sync as IterableSync } from '../../../ixfx/generators.js';
 import * as CommonPose from '../common-pose.js';
-import { PosesManager } from '../pose-manager.js';
-
-// #endregion
-
-// #region Settings & state
+import { PosesManager } from "../pose-manager.js";
+/**
+ * @typedef GradientStop
+ * @property {number} position
+ * @property {string} poseId
+ * @property {number} hue
+ */
 const settings = Object.freeze({
-  poses: new PosesManager({
-    processor: {
-      // Interpolation amount applied per frame (0...1)
-      //  Lower = less jitter & more latency. 
-      //  Higher = more jitter & lower latency
-      smoothingAmt: 0.1,
-      sanityChecks: {
-        anklesBelowKnees: true,
-        kneesBelowHip: true,
-        shouldersBelowFace: true,
-        hipBelowShoulders: true,
-        scoreThreshold: 0.6
-      }
+  // If true, x-axis is flipped
+  horizontalMirror: false,
+  remote: new Remote(),
+  // Interpolation amount applied per frame (0...1)
+  // Lower = less jitter & more latency. Higher = more jitter & lower latency
+  smoothingAmt: 0.8,
+  tickRateMs: 200,
+  pool: new Pool.Pool({
+    autoExpireAfterMs: 5000,
+    fullPolicy:`evictOldestUser`,
+    capacity: 5,
+    generate:() => {
+      return {
+        number: 0.5,
+        poseId:  ``,
+        hue: Math.random()
+      };
     }
   }),
-  // If true, x-axis is flipped
-  horizontalMirror: true,
-  remote: new Remote(),
-  // How often to do calculations based on pose data
-  tickRateMs: 100
+  poseManager: new PosesManager()
 });
 
 let state = Object.freeze({
-  /** Bounds of the viewport */
+  /**
+   * Bounds of the viewport. Needed for going back and forth from
+   * relative to absolute coordinates
+   */
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
-  /** @type {number} */
-  egDensity: 0
+
+  gradientStops: new ExpiringMap({
+    capacity: 5
+  })
 });
-// #endregion
 
 /**
  * Tick is the place to use pose data in state
@@ -49,42 +55,22 @@ let state = Object.freeze({
  * It loops at the interval settings.tickRateMs
  */
 const tick = () => {
-  const { poses } = settings;
-  
-  const allPoses = Array.from(poses.iteratePoses());
+  const { poseManager } = settings;
 
-  // Do something with the pose data...
-  // In this example, we're averaging the distance between noses of all poses.
-  // First we need to add up all the densities...
-  let egDensity = 0;
+  // Get all the poses, regardless of source
+  const poses = Array.from(poseManager.iteratePoses());
 
   // Eg. sort poses by nose x position
   // Returns [[pose1, noseKp], [pose2, noseKp] ...]
-  const sorted = /** @type {PoseByKeypoint[]} */(CommonPose.getSortedPosesByX(allPoses, `nose`));
+  //const sorted = CommonPose.getSortedPosesByX(poses, `nose`);
 
   // Get pairwise combinations of poses
   // eg pose1 <-> pose2, pose2 <-> pose 3 ...
-  const pairs = Array.from(IterableSync.chunksOverlapping(sorted, 2));
+  //const pairs = Array.from(IterableSync.chunksOverlapping(sorted, 2));
 
-  for (const pair of pairs) {
-    const aLeftHip = pair[0].left_hip;
-    const bRightHip = pair[1].right_hip;
 
-    if (aLeftHip && bRightHip) {
-      const distance = Points.distance(aLeftHip, bRightHip);
-      egDensity += distance;
-    }
-  }
-  
-  // Calculate average
-  egDensity /= pairs.length;
-
-  // Sanity-check
-  if (Number.isNaN(egDensity)) egDensity = 0;
-
-  // Update state
-  saveState({ egDensity });
 };
+
 
 
 /**
@@ -93,16 +79,16 @@ const tick = () => {
  */
 const useState = () => {
   // Show calculated 'density' example
-  CommonPose.setText(`debug`, `
-  Density: ${state.egDensity}
-  `);
+  // CommonPose.setText(`debug`, `
+  // Density: ${state.egDensity}
+  // `);
   
   // Draw poses
   drawState();
 };
 
 const drawState = () => {
-  const { poses } = settings;
+  const { poseManager } = settings;
   const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
   const ctx = canvasEl?.getContext(`2d`);
   if (!ctx) return;
@@ -110,8 +96,9 @@ const drawState = () => {
   // Clear canvas
   clear(ctx);
   
-  // Draw every pose
-  for (const pose of poses.iteratePoses()) {
+  // For pose (regardless of source)
+  for (const pose of poseManager.iteratePoses()) {
+    // Draw the set of poses
     drawPose(ctx, pose);
   }
 };
@@ -119,16 +106,20 @@ const drawState = () => {
 /**
  * Draw pose
  * @param {CanvasRenderingContext2D} ctx 
- * @param {PoseByKeypoint} pose
+ * @param {import("../common-pose.js").PoseByKeypoint} pose
  */
 const drawPose = (ctx, pose) => {
-  // Get pose in absolute coordinates
+  if (pose === undefined) throw new Error(`pose is undefined`);
+  // Get pose in absolute coordinates (absPoint is defined in common-pose.js)
   const abs = CommonPose.absPose(pose, state.bounds, settings.horizontalMirror);
-  const colour = `hsl(${pose.hue}, 50%, 50%)`; 
+  const hueToUse = pose.hue;// typeof hue === `undefined` ? pose.hue : hue;
+  const colour = `hsl(${hueToUse}, 50%, 50%)`; 
 
   // Draw pose (debugDrawPose is defined in common-pose.js)
   CommonPose.debugDrawPose(ctx, abs, {
     colour,
+    labelKeypoints: false,
+    connectKeypoints: true
   });
   
   let boxMin = CommonPose.absPoint({
@@ -137,7 +128,7 @@ const drawPose = (ctx, pose) => {
   }, state.bounds, settings.horizontalMirror);
 
   ctx.fillStyle = colour;
-  ctx.fillText(pose.id, boxMin.x, boxMin.y);
+  ctx.fillText(`Id: ${pose.id}`, boxMin.x, boxMin.y);
 };
 
 /**
@@ -159,48 +150,24 @@ const clear = (ctx) => {
   //ctx.fillRect(0, 0, width, height);
 };
 
-/**
- * Called when a pose we're tracking has disappeared
- * @param {*} evt 
- */
-const onPoseLost = (evt) => {
-  const { poseId, pose } = evt.detail;
-  console.log(`Pose lost: ${poseId}`);
-};
-
-/**
- * Called when a new pose appears
- * @param {*} evt 
- */
-const onPoseGained = (evt) => {
-  const { poseId, pose } = evt.detail;
-  console.log(`Pose gained: ${poseId}`);
-};
-
 const setup = async () => {
-  const { remote, poses } = settings;
+  const { remote, poseManager } = settings;
 
-  poses.addEventListener(`pose-lost`, onPoseLost);
-  poses.addEventListener(`pose-gained`, onPoseGained);
-  
   /**
-   * Data received from remote
+   * Received data from remote
    * @param {ReceivedData} d 
    */
   remote.onData = (d) => {
     if (d.data && Array.isArray(d.data)) {
-      // Send incoming poses to PosesManager
-      poses.onData(d.data, d._from);
+      poseManager.onData(d.data, d._from);
     } else {
       console.warn(`Got data we did not expect`);
       console.log(d);
     }
   };
 
-  // Resize canvas element to match viewport
-  Dom.fullSizeCanvas(`#canvas`, args => {
-    saveState({ bounds: args.bounds });
-  });
+  // Keep CANVAS filling the screen
+  Dom.fullSizeCanvas(`#canvas`, args => updateState({ bounds: args.bounds }));
 
   const drawLoop = () => {
     useState();
@@ -215,12 +182,11 @@ const setup = async () => {
 };
 setup();
 
-// #region Toolbox
 /**
- * Saves state
+ * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function updateState (s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -230,9 +196,7 @@ function saveState (s) {
 
 /**
  * @typedef { import("../../common-vision-source").Keypoint } Keypoint
- * @typedef { import("../../common-vision-source").ReceivedData } ReceivedData
  * @typedef { import("../../common-vision-source").Box } Box
  * @typedef { import("../../common-vision-source").Pose } Pose
- * @typedef { import ("../common-pose").PoseByKeypoint} PoseByKeypoint
+ * @typedef { import("../../common-vision-source").ReceivedData } ReceivedData
  */
-// #endregion

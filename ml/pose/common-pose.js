@@ -1,39 +1,52 @@
 import { Points } from '../../ixfx/geometry.js';
 import { interpolate } from '../../ixfx/data.js';
 import * as Dom from '../../ixfx/dom.js';
-import { Arrays, Maps } from '../../ixfx/collections.js';
+import { Arrays } from '../../ixfx/collections.js';
 
 const labelFont = `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`;
+const keypointNames = [ `left_ankle`,`right_ankle`,`left_shoulder`,`right_shoulder`,`left_hip`,`right_hip`,`nose`,`left_wrist`,`right_wrist`,`left_knee`,`right_knee`,`left_ear`,`right_ear`, `left_eye`, `right_eye`, `left_elbow`, `right_elbow` ];
 
 
 /**
- * Does a rough sanity check over keypoints, halving
- * the score of those that seem off.
+ * Does a rough sanity check over keypoints, reducing
+ * score of those that seem off
  * 
  * Checks:
  * 1. Shoulders below ears/nose
  * 2. Hip below shoulders
  * 3. Knees below hip
  * 4. Ankles below knees
- * @param {Pose} pose 
- * @returns {Pose}
+ * @param {Pose|PoseByKeypoint} pose 
+ * @returns {Pose|PoseByKeypoint}
  */
 export const sanityCheck = (pose, opts = {}) => {
   const shouldersBelowFace = opts.shouldersBelowFace ?? true;
   const hipBelowShoulders = opts.hipBelowShoulders ?? true;
   const kneesBelowHip = opts.kneesBelowHip ?? true;
   const anklesBelowKnees = opts.anklesBelowKnees ?? true;
-  const scoreThreshold = opts.scoreThreshold ?? 0;
-
-  const m = Maps.fromIterable(pose.keypoints, kp => kp.name ?? ``);
+  
+  const isRaw = `keypoints` in pose;
+ 
+  /**
+   * Gets a keypoint
+   * @param {string} name 
+   * @returns {Keypoint|undefined}
+   */
+  const getKp = (name) => {
+    if (isRaw) {
+      return pose.keypoints.find(kp => kp.name === name);
+    } else {
+      return pose[name];
+    }
+  };
 
   // Reduce keypoint score by 90% if one of the checks fails
   const multiplier = 0.1;
 
-  const leftShoulder = m.get(`left_shoulder`);
-  const leftEar = m.get(`left_ear`);
-  const rightShoulder = m.get(`right_shoulder`);
-  const rightEar = m.get(`right_ear`);
+  const leftShoulder = getKp(`left_shoulder`);
+  const leftEar = getKp(`left_ear`);
+  const rightShoulder = getKp(`right_shoulder`);
+  const rightEar = getKp(`right_ear`);
 
   /**
    * If a is higher in the frame than b,
@@ -54,8 +67,8 @@ export const sanityCheck = (pose, opts = {}) => {
     beBelow(rightShoulder, rightEar);
   }
 
-  const leftHip = m.get(`left_hip`);
-  const rightHip = m.get(`right_hip`);
+  const leftHip = getKp(`left_hip`);
+  const rightHip = getKp(`right_hip`);
 
   // Hip below shoulders
   if (hipBelowShoulders) {
@@ -64,8 +77,8 @@ export const sanityCheck = (pose, opts = {}) => {
   }
 
   // Knees ought to be below shoulders
-  const leftKnee = m.get(`left_knee`);
-  const rightKnee = m.get(`right_knee`);
+  const leftKnee = getKp(`left_knee`);
+  const rightKnee = getKp(`right_knee`);
 
   if (kneesBelowHip) {
     beBelow(leftKnee, leftHip);
@@ -73,42 +86,70 @@ export const sanityCheck = (pose, opts = {}) => {
   }
 
   // Ankles below knees
-  const leftAnkle = m.get(`left_ankle`);
-  const rightAnkle = m.get(`right_ankle`);
+  const leftAnkle = getKp(`left_ankle`);
+  const rightAnkle = getKp(`right_ankle`);
 
   if (anklesBelowKnees) {
     beBelow(leftAnkle, leftKnee);
     beBelow(rightAnkle, rightKnee);
   }
 
-  return {
-    ...pose,
-    keypoints: Maps.toArray(m).filter(kp => kp.score >= scoreThreshold)
-  };
+  if (isRaw) {
+    return {
+      ...pose
+    };
+    //  keypoints: pose.keypoints.filter(kp => kp.score >= scoreThreshold)
+    //};
+  } else {
+    const pp = { ...pose };
+    keypointNames.forEach(name => {
+      //const kp = pp[name];
+      //if (kp.score < scoreThreshold) delete pp[name];
+    });
+    return pp;
+  }
+
 };
 
 /**
+ * @typedef PoseProcessorOpts
+ * @property {number} [smoothingAmt]
+ * @property {boolean} [autoReset]
+ * @property {SanityChecks} [sanityChecks]
+ */
+/**
  * Returns a function that processes a pose
- * @param {number} smoothingAmt Smoothing amount 
- * @param {SanityChecks} sanityCheckOpts Options for sanity checking
+ * @param {PoseProcessorOpts} opts
  * @returns {PoseProcessor}
  */
-export const poseProcessor = (smoothingAmt, sanityCheckOpts) => {
-  /** @type {Pose|undefined} */
+export const poseProcessor = (opts = {}) => {
+  const smoothingAmt = opts.smoothingAmt ?? 0.5;
+  const autoReset = opts.autoReset ?? false;
+  const sanityCheckOpts = opts.sanityChecks;
+  
+  /** @type {Pose|PoseByKeypoint|undefined} */
   let processed  = undefined;
   
-  /** @type {string|null} */
-  let id = null;
+  /** @type {string|undefined} */
+  let poseId = undefined;
+
   /**
    * Process a pose
-   * @param {Pose} pose
-   * @returns {Pose|undefined}
+   * @param {Pose|PoseByKeypoint} pose
+   * @returns {Pose|PoseByKeypoint|undefined}
    */
   const process = (pose, allowOverwrite = false) => {
-    if (id && pose.id) {
-      if (id !== pose.id && !allowOverwrite) throw new Error(`Cannot process pose with new id ${pose.id}, since we started processing with pose id ${id}. Set allowOverwrite to true to ignore.`);
+    if (!(`id` in pose)) throw new Error(`pose does not have id parameter`);
+    if (!pose.id) throw new Error(`pose.id is null/undefined`);
+    if (poseId && pose.id) {
+      if (poseId !== pose.id) {
+        if (autoReset) {
+          poseId = pose.id;
+          processed = undefined;
+        } else if (!allowOverwrite) throw new Error(`Cannot process pose with new id ${pose.id}, since we started processing with pose id ${poseId}. Set allowOverwrite to true to ignore.`);
+      }
     } else if (pose.id) {
-      id = pose.id;
+      poseId = pose.id;
     }
 
     // Sanity check pose & remove points below threshold
@@ -122,34 +163,47 @@ export const poseProcessor = (smoothingAmt, sanityCheckOpts) => {
   return {
     process,
     processed,
-    id
+    id: () => poseId
   };
 };
 
 /**
    * Gets a keypoint from a pose
-   * @param {Pose|undefined} pose 
+   * @param {Pose|PoseByKeypoint|undefined} pose 
    * @param {string} name Keypoint name
    * @returns Keypoint|undefined
    */
-export const getKeypoint = (pose, name) => {
-  if (!pose) return;
-  return pose.keypoints.find(kp => kp.name === name);
+export const getKeypoint = (pose, name, threshold = 0) => {
+  if (!pose) return undefined;
+  /** @type {Keypoint|undefined} */
+  let kp;
+  if (`keypoints` in pose) {
+    kp = pose.keypoints.find(kp => kp.name === name);
+  } else {
+    kp = pose[name];
+  }
+  if (!kp) return undefined;
+  if (kp && kp.score >= threshold) return kp;
 };
 
 /**
  * Get all keypoints with given name from list of poses.
  * Keypoints are returned in array [[pose1, kp], [pose2, kp] ...]
- * @param {Pose[]} poses 
+ * @param {(Pose|PoseByKeypoint)[]} poses 
  * @param {string} keypointName 
- * @returns {[pose:Pose,kp:Keypoint|undefined][]}
+ * @returns {[pose:Pose|PoseByKeypoint,kp:Keypoint|undefined][]}
  */
-export const getKeypoints = (poses, keypointName) =>  poses.map(pose => [ pose, getKeypoint(pose, keypointName) ]);
+export const getKeypoints = (poses, keypointName, threshold = 0) =>  {
+  return poses.map(pose => {
+    const kp = getKeypoint(pose, keypointName, threshold);
+    return [ pose, kp ];
+  });
+};
 
 /**
  * Sort by keypoint X value, where leftmost will be at position 0
  * Returns an double-array of [[pose1,kp], [pose2,kp] ...]
- * @param {Pose[]} poses 
+ * @param {(Pose|PoseByKeypoint)[]} poses 
  */
 export const getSortedKeypointsByX = (poses, keypointName) => {
   const kps = getKeypoints(poses, keypointName);
@@ -162,19 +216,21 @@ export const getSortedKeypointsByX = (poses, keypointName) => {
 
 /**
  * Returns poses sorted by the x value of a named keypoint
- * @param {Pose[]} poses 
+ * @template {Pose|PoseByKeypoint} P
+ * @param {P[]} poses 
  * @param {string} keypointName 
- * @returns Pose[]
+ * @returns P[]
  */
 export const getSortedPosesByX = (poses, keypointName) => {
   const v = getSortedKeypointsByX(poses, keypointName);
   const r = v.map(v => v[0]);
   return r;
 };
+
 /**
  * Smoothes a pose
- * @param {Pose|undefined} a Earlier pose
- * @param {Pose} b Newer pose
+ * @param {Pose|PoseByKeypoint|undefined} a Earlier pose
+ * @param {Pose|PoseByKeypoint} b Newer pose
  */
 export const smoothPose = (amt, a, b) => {
   if (a === undefined && b === undefined) return;
@@ -184,32 +240,30 @@ export const smoothPose = (amt, a, b) => {
   const reconcileFn = (kpA, kpB) => smoothKeypoint(amt, kpA, kpB);
   
   // At startup might not have existing keypoints to compare against...
-  const existingKeypoints = a ? a.keypoints : [];
+  let existingKeypoints = getKeypointList(a);
+  let newKeypoints = getKeypointList(b);
 
+  // debugger;
   // Smooth, by merging old and new data with the reconcile function
   // which in this case does the averaging
-  const smoothed = Arrays.mergeByKey(keyFn, reconcileFn, existingKeypoints, b.keypoints);
+  const smoothed = /** @type {Keypoint[]} */(Arrays.mergeByKey(keyFn, reconcileFn, existingKeypoints, newKeypoints));
 
   // Return a new pose with mutated keypoints
-  return {
-    ...b,
-    keypoints: /** @type {Keypoint[]} */(smoothed)
-  };
+  if (`keypoints` in b) {
+    return {
+      ...b,
+      keypoints: smoothed
+    };    
+  } else {
+    let temp = {
+      ...b,
+    };
+    for (const kp of smoothed) {
+      if (kp.name) temp[kp.name] = kp;
+    } 
+    return temp;
+  }
 
-  // const existingKeypoints = Maps.fromIterable(a.keypoints, kp => kp.name ?? ``);
-  // const newKeypoints = Maps.fromIterable(b.keypoints, kp => kp.name ?? ``);
-
-  // const smoothed = existingKeypoints.map((existingKp, index) => {
-  //   // Find same
-  //   smoothKeypoint(amt, existingKp, newK)
-  // });
-
-  // Assumes keypoint indexes match up.
-  // if the source is discarding points, this will break us
-  // return {
-  //   ...b,
-  //   keypoints: a.keypoints.map((kp, index) => smoothKeypoint(amt, kp, b.keypoints[index]))
-  // };
 };
 
 /**
@@ -234,15 +288,15 @@ export const smoothKeypoint = (amt, a, b) => {
 };
 
 /**
-   * Returns an absolutely-positioned keypoint
-   * @param {Points.Point} point
-   * @param {{width:number,height:number}} bounds
-   * @param {boolean} horizontalMirror 
-   * @returns 
-   */
+ * Returns an absolutely-positioned keypoint
+ * @param {Points.Point} point
+ * @param {{width:number,height:number}} bounds
+ * @param {boolean} horizontalMirror 
+ * @returns 
+ */
 export const absPoint = (point, bounds, horizontalMirror = false) => ({
   ...point,
-  x: ((horizontalMirror ? 1 : 0) - point.x) * bounds.width,
+  x: (horizontalMirror ? 1 - point.x : point.x) * bounds.width,
   y: point.y * bounds.height
 });
 
@@ -279,14 +333,56 @@ export const getRightmost = (...points) => {
   return maxPoint;
 };
 
+
 /**
- * Returns a pose with all keypints converted to absolute positions
- * @param {Pose} p 
+ * 
+ * @param {Pose|PoseByKeypoint} pose 
+ * @returns {Keypoint[]}
+ */
+export const getKeypointList = (pose) => {
+  if (!pose) return [];
+  if (`keypoints` in pose) {
+    return pose.keypoints;
+  } else {
+    return keypointNames.map(name => pose[name]);
+  }
+};
+
+/**
+ * 
+ * @param {Pose|PoseByKeypoint} pose 
+ * @returns {Pose|PoseByKeypoint}
+ */
+export const ensureBoundingBox = (pose) => {
+  if (`box` in pose) return pose;
+
+  const kps = getKeypointList(pose);
+  const r = Points.bbox(...kps);
+  const box = {
+    yMin: r.y,
+    yMax: r.y + r.height,
+    xMin: r.x,
+    xMax: r.x + r.width,
+    width: r.width,
+    height: r.height
+  };
+
+  return {
+    // @ts-ignore
+    ...pose,
+    box: box
+  };
+};
+
+/**
+ * Returns a pose with all keypoints converted to absolute positions
+ * @param {Pose|PoseByKeypoint} p 
  * @param {{width:number, height:number}} bounds 
  * @param {boolean} horizontalMirror 
- * @returns {Pose}
+ * @returns {Pose|PoseByKeypoint}
  */
 export const absPose = (p, bounds, horizontalMirror = false) => {
+  if (p === undefined) throw new Error(`p is undefined`);
   const w = bounds.width;
   const h = bounds.height;
 
@@ -295,62 +391,124 @@ export const absPose = (p, bounds, horizontalMirror = false) => {
    * @param {Keypoint} point 
    * @returns 
    */
-  const absPoint = (point) => ({
-    ...point,
-    x: ((horizontalMirror ? 1 : 0) - point.x) * w,
-    y: point.y * h
-  });
-
-  const keypoints = p.keypoints.map(absPoint);
-  
-  const abs = {
-    keypoints,
-    id: p.id
+  const absPoint = (point) => {
+    if (!point) return;
+    return {
+      ...point,
+      x: ((horizontalMirror ? 1  - point.x : point.x)) * w,
+      y: point.y * h
+    };
   };
-  if (p.score) abs.score =p.score;
-  if (p.box) {
+
+  const abs = {
+    ...p,
+    id: p.id,
+    source: p.source,
+    score:p.score
+  };
+
+  if (`box` in p) {
     abs.box = {
       yMin: p.box.yMin * h,
       yMax: p.box.yMax * h,
       xMin: p.box.xMin * w,
-      xMax: p.box.xMax* w,
+      xMax: p.box.xMax * w,
       width: p.box.width * w,
       height: p.box.height * h
     };
   }
+
+  if (`keypoints` in p) {
+    // @ts-ignore
+    abs.keypoints = p.keypoints.map(absPoint);
+  } else {
+    keypointNames.forEach(name => {
+      abs[name] = absPoint(p[name]);
+    });
+  }
+  // @ts-ignore
   return abs;
 };
 
-
 /**
  * Draw an absolutely-positioned pose
- * @param {Pose} p 
+ * @param {Pose|PoseByKeypoint} p 
  * @param {CanvasRenderingContext2D} ctx 
  * @param {PoseDrawOpts} opts
  */
 export const debugDrawPose = (ctx, p, opts = {}) => {
-  const radius = opts.radius ?? 10;
+  const radius = opts.pointRadius ?? 10;
   const threshold = opts.threshold ?? 0;
   const fillStyle = opts.colour ?? `black`;
+  const lineWidth = opts.lineWidth ?? radius;
+  const labelKeypoints = opts.labelKeypoints ?? true;
 
   ctx.fillStyle = fillStyle;
-  //ctx.strokeStyle = `black`;
   ctx.textBaseline = `top`;
   ctx.font = `12pt ${labelFont}`;
 
   // Draw each keypoint
-  p.keypoints.forEach(kp => {
+  const keypoints = (`keypoints` in p) ? p.keypoints : keypointNames.map(n => /** @type {Keypoint} */(p[n]));
+
+  keypoints.forEach(kp => {
+    if (!kp) return;
     if (kp.score === undefined || kp.score < threshold) return;
     const pointOpts =  {
-      title: kp.name,
+      title: labelKeypoints ? kp.name : undefined,
       subTitle: Math.floor(kp.score * 100) + `%`,
-      radius
+      radius,
+      lineWidth
     };
     drawAbsPoint(ctx, kp, pointOpts);
   });
+
+  if (opts.connectKeypoints) {
+    const m = `keypoints` in p ? poseByKeypoint(p) : p;
+    drawAbsKeypointLine(ctx, m, `right_hip`, `right_knee`, opts);
+    drawAbsKeypointLine(ctx, m, `left_hip`, `left_knee`, opts);
+    drawAbsKeypointLine(ctx, m, `right_elbow`, `right_wrist`, opts);
+    drawAbsKeypointLine(ctx, m, `left_elbow`, `left_wrist`, opts);
+    drawAbsKeypointLine(ctx, m, `left_knee`, `left_ankle`, opts);
+    drawAbsKeypointLine(ctx, m, `right_knee`, `right_ankle`, opts);
+    drawAbsKeypointLine(ctx, m, `right_shoulder`, `right_hip`, opts);
+    drawAbsKeypointLine(ctx, m, `left_shoulder`, `left_hip`, opts);
+    drawAbsKeypointLine(ctx, m, `left_shoulder`, `right_shoulder`, opts);
+    drawAbsKeypointLine(ctx, m, `right_shoulder`, `right_elbow`, opts);
+    drawAbsKeypointLine(ctx, m, `left_shoulder`, `left_elbow`, opts);
+    drawAbsKeypointLine(ctx, m, `left_hip`, `right_hip`, opts);
+    drawAbsKeypointLine(ctx, m, `left_eye`, `nose`, opts);
+    drawAbsKeypointLine(ctx, m, `right_eye`, `nose`, opts);
+
+  }
 };
 
+/**
+ * 
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {PoseByKeypoint} pose 
+ * @param {string} a 
+ * @param {string} b 
+ * @param {PoseDrawOpts} opts 
+ * @returns 
+ */
+export const drawAbsKeypointLine = (ctx, pose, a, b, opts) => {
+  const kpA = pose[a];
+  const kpB = pose[b];
+  const lineWidth = opts.lineWidth ?? 10;
 
+  if (!kpA || !kpB) return;
+  if (opts.threshold) {
+    if (kpA.score < opts.threshold || kpB.score < opts.threshold) return;
+  }
+
+  ctx.beginPath();
+  if (opts.colour) ctx.strokeStyle = opts.colour;
+  ctx.lineWidth = lineWidth;
+  ctx.moveTo(kpA.x,kpA.y);
+  ctx.lineTo(kpB.x, kpB.y);
+  ctx.stroke();
+
+};
 
 /**
  * Draws an absolutely-positioned point
@@ -410,19 +568,13 @@ export const drawCenteredText = (msg, ctx, offsetX, offsetY) => {
  * In this case, it is determined by distance between nose keypoints.
  * 
  * TODO: It should ideally take into account all keypoints.
- * @param {Pose} a 
- * @param {Pose} b 
+ * @param {PoseByKeypoint} a 
+ * @param {PoseByKeypoint} b 
  */
 export const poseSimilarity = (a, b) => {
-
-  let pointA = getKeypoint(a, `nose`);// a.keypoints[0];
-  let pointB = getKeypoint(b, `nose`); //b.keypoints[0];
-
-  // If either a or b is undefined, lets
-  // say they have no similarity
-  if (!pointA || !pointB) return 0;
-  
-  return 1 - Points.distance(pointA, pointB);
+  let centroidA = Points.centroid(a.nose, a.left_shoulder, a.left_hip, a.right_shoulder, a.right_hip);
+  let centroidB = Points.centroid(b.nose, b.left_shoulder, b.left_hip, b.right_shoulder, b.right_hip);
+  return 1 - Points.distance(centroidA, centroidB);
 };
 
 /**
@@ -462,6 +614,10 @@ export const setup = () => {
     const el = evt.target;
     if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
   });
+
+  document.getElementById(`lnkNewWindow`)?.addEventListener(`click`, evt => {
+    document.getElementById(`sourceSection`)?.remove();
+  });
 };
 
 /**
@@ -475,6 +631,46 @@ export const mapKeypoints = (pose) => {
   return m;
 };
 
+
+/**
+ * Returns a Pose mapped by keypoint name
+ * @param {Pose} pose
+ * @returns {PoseByKeypoint} 
+ */
+export const poseByKeypoint = (pose) => {
+  const getKp = (name) => {
+    const k = pose.keypoints.find(kp => kp.name === name);
+    if (!k) throw new Error(`Keypoint ${name} not found on pose`);
+    return k;
+  };
+  // @ts-ignore
+  const hue = `hue` in pose ? pose.hue: -1;
+  return {
+    score: pose.score ?? 0,
+    id: pose.id,
+    hue,
+    source: pose.source,
+    box: pose.box,
+    left_eye: getKp(`left_eye`),
+    right_eye: getKp(`right_eye`),
+    left_elbow: getKp(`left_elbow`),
+    right_elbow: getKp(`right_elbow`),
+    left_ankle: getKp( `left_ankle`),
+    right_ankle: getKp(`right_ankle`),
+    left_shoulder: getKp(`left_shoulder`),
+    right_shoulder: getKp(`right_shoulder`),
+    left_hip: getKp(`left_hip`),
+    right_hip: getKp(`right_hip`),
+    nose: getKp(`nose`),
+    left_wrist: getKp(`left_wrist`),
+    right_wrist: getKp(`right_wrist`),
+    left_knee: getKp(`left_knee`),
+    right_knee: getKp(`right_knee`),
+    left_ear: getKp(`left_ear`),
+    right_ear: getKp(`right_ear`),
+  };
+};
+
 export function setText(id, msg) {
   const el = document.getElementById(id);
   if (el) {
@@ -483,6 +679,8 @@ export function setText(id, msg) {
     }
   }
 }
+
+
 /**
  * @typedef { import("../common-vision-source").Keypoint } Keypoint
  * @typedef { import("../common-vision-source").Box } Box
@@ -498,6 +696,7 @@ export function setText(id, msg) {
  * @property {number} [scoreThreshold]
  */
 
+
 /**
  * @typedef KeypointDrawOpts
  * @property {string} [title]
@@ -509,20 +708,48 @@ export function setText(id, msg) {
  * @typedef PoseDrawOpts
  * @property {string} [colour]
  * @property {number} [threshold]
- * @property {number} [radius]
+ * @property {number} [pointRadius]
+ * @property {number} [lineWidth]
+ * @property {boolean} [labelKeypoints]
+ * @property {boolean} [connectKeypoints]
  */
-
 
 /**
  * @callback PoseProcess
- * @param {Pose} pose
+ * @param {Pose|PoseByKeypoint} pose
  * @param {boolean} [allowOverwrite]
+ * @returns {Pose|PoseByKeypoint|undefined}
  */
 
 /**
  * @typedef {object} PoseProcessor
  * @property {PoseProcess} process
- * @property {Pose|undefined} processed
- * @property {string|null} id
+ * @property {Pose|PoseByKeypoint|undefined} processed
+ * @property {()=>string|undefined} id
  */
 
+/**
+ * @typedef {Object} PoseByKeypoint
+ * @property {Keypoint} nose
+ * @property {Keypoint} left_wrist
+ * @property {Keypoint} right_wrist
+ * @property {Keypoint} left_ankle
+ * @property {Keypoint} right_ankle
+ * @property {Keypoint} left_hip
+ * @property {Keypoint} right_hip
+ * @property {Keypoint} left_knee
+ * @property {Keypoint} right_knee
+ * @property {Keypoint} left_shoulder
+ * @property {Keypoint} right_shoulder
+ * @property {Keypoint} left_ear
+ * @property {Keypoint} right_ear 
+ * @property {Keypoint} left_elbow
+ * @property {Keypoint} right_elbow
+ * @property {Keypoint} left_eye
+ * @property {Keypoint} right_eye
+ * @property {string} id
+ * @property {string} source
+ * @property {number} score
+ * @property {number} hue
+ * @property {Box} box
+ */
