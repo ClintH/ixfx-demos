@@ -44,6 +44,9 @@ declare module "Guards" {
     /**
      * Throws an error if `value` is not an integer, or does not meet guard criteria.
      * See {@link number} for guard details, or use that if integer checking is not required.
+     *
+     * Note:
+     * * `bipolar` will mean -1, 0 or 1.
      * @param value Value to check
      * @param paramName Param name for customising exception message
      * @param range Guard specifier.
@@ -63,774 +66,6 @@ declare module "Guards" {
     export const array: (value: unknown, paramName?: string) => void;
     /** Throws an error if parameter is not defined */
     export const defined: <T>(argument: T | undefined) => argument is T;
-}
-declare module "Text" {
-    /**
-     * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
-     *
-     * ```js
-     * // Yields ` orange `;
-     * between(`apple orange melon`, `apple`, `melon`);
-     * ```
-     * @param source Source text
-     * @param start Start match
-     * @param end If undefined, `start` will be used instead
-     * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
-     * @returns
-     */
-    export const between: (source: string, start: string, end?: string, lastEndMatch?: boolean) => string | undefined;
-    /**
-     * Returns first position of the given character code, or -1 if not found.
-     * @param source Source string
-     * @param code Code to seek
-     * @param start Start index, 0 by default
-     * @param end End index (inclusive), source.length-1 by default
-     * @returns Found position, or -1 if not found
-     */
-    export const indexOfCharCode: (source: string, code: number, start?: number, end?: number) => number;
-    /**
-     * Returns `source` with chars removed at `removeStart` position
-     * ```js
-     * omitChars(`hello there`, 1, 3);
-     * // Yields: `ho there`
-     * ```
-     * @param source
-     * @param removeStart Start point to remove
-     * @param removeLength Number of characters to remove
-     * @returns
-     */
-    export const omitChars: (source: string, removeStart: number, removeLength: number) => string;
-    /**
-     * Splits a string into `length`-size chunks.
-     *
-     * If `length` is greater than the length of `source`, a single element array is returned with source.
-     * The final array element may be smaller if we ran out of characters.
-     *
-     * ```js
-     * splitByLength(`hello there`, 2);
-     * // Yields:
-     * // [`he`, `ll`, `o `, `th`, `er`, `e`]
-     * ```
-     * @param source Source string
-     * @param length Length of each chunk
-     * @returns
-     */
-    export const splitByLength: (source: string, length: number) => readonly string[];
-    /**
-     * Returns the `source` string up until (and excluding) `match`. If match is not
-     * found, all of `source` is returned.
-     *
-     * ```js
-     * // Yields `apple `
-     * untilMarch(`apple orange melon`, `orange`);
-     * ```
-     * @param source
-     * @param match
-     * @param startPos If provided, gives the starting offset. Default 0
-     */
-    export const untilMatch: (source: string, match: string, startPos?: number) => string;
-    /**
-     * 'Unwraps' a string, removing one or more 'wrapper' strings that it starts and ends with.
-     * ```js
-     * unwrap("'hello'", "'");        // hello
-     * unwrap("apple", "a");          // apple
-     * unwrap("wow", "w");            // o
-     * unwrap(`"'blah'"`, '"', "'");  // blah
-     * ```
-     * @param source
-     * @param wrappers
-     * @returns
-     */
-    export const unwrap: (source: string, ...wrappers: readonly string[]) => string;
-    /**
-     * A range
-     */
-    export type Range = {
-        /**
-         * Text of range
-         */
-        readonly text: string;
-        /**
-         * Start position, with respect to source text
-         */
-        readonly start: number;
-        /**
-         * End position, with respect to source text
-         */
-        readonly end: number;
-        /**
-         * Index of range. First range is 0
-         */
-        readonly index: number;
-    };
-    export type LineSpan = {
-        readonly start: number;
-        readonly end: number;
-        readonly length: number;
-    };
-    /**
-     * Calculates the span, defined in {@link Range} indexes, that includes `start` through to `end` character positions.
-     *
-     * After using {@link splitRanges} to split text, `lineSpan` is used to associate some text coordinates with ranges.
-     *
-     * @param ranges Ranges
-     * @param start Start character position, in source text reference
-     * @param end End character position, in source text reference
-     * @returns Span
-     */
-    export const lineSpan: (ranges: readonly Range[], start: number, end: number) => LineSpan;
-    /**
-     * Splits a source string into ranges:
-     * ```js
-     * const ranges = splitRanges("hello;there;fella", ";");
-     * ```
-     *
-     * Each range consists of:
-     * ```js
-     * {
-     *  text: string  - the text of range
-     *  start: number - start pos of range, wrt to source
-     *  end: number   - end pos of range, wrt to source
-     *  index: number - index of range (starting at 0)
-     * }
-     * ```
-     * @param source
-     * @param split
-     * @returns
-     */
-    export const splitRanges: (source: string, split: string) => readonly Range[];
-    /**
-     * Counts the number of times one of `chars` appears at the front of
-     * a string, contiguously.
-     *
-     * ```js
-     * countCharsFromStart(`  hi`, ` `); // 2
-     * countCharsFromStart(`hi  `, ` `); // 0
-     * countCharsFromStart(`  hi  `, ` `); // 2
-     * ```
-     * @param source
-     * @param chars
-     * @returns
-     */
-    export const countCharsFromStart: (source: string, ...chars: readonly string[]) => number;
-    /**
-     * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
-     * If _end_ is omitted, the the `start` value will be used.
-     *
-     * ```js
-     * startsEnds(`This is a string`, `This`, `string`); // True
-     * startsEnds(`This is a string`, `is`, `a`); // False
-     * starsEnds(`test`, `t`); // True, starts and ends with 't'
-     * ```
-     * @param source String to search within
-     * @param start Start
-     * @param end End (if omitted, start will be looked for at end as well)
-     * @returns True if source starts and ends with provided values.
-     */
-    export const startsEnds: (source: string, start: string, end?: string) => boolean;
-    export const htmlEntities: (source: string) => string;
-}
-declare module "IterableAsync" {
-    import { IsEqual } from "Util";
-    /**
-     * Breaks an iterable into array chunks
-     * ```js
-     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
-     * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
-     * ```
-     * @param it
-     * @param size
-     */
-    export function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
-    /**
-     * Return concatenation of iterators
-     * @param its
-     */
-    export function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
-    /**
-     * Drops elements that do not meet the predicate `f`.
-     * ```js
-     * dropWhile([1, 2, 3, 4], e => e < 3);
-     * returns [3, 4]
-     * ```
-     * @param it
-     * @param f
-     */
-    export function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
-    /**
-     * Returns true if items in two iterables are equal, as
-     * determined by the `equality` function.
-     * @param it1
-     * @param it2
-     * @param equality
-     * @returns
-     */
-    export function equals<V>(it1: Iterable<V>, it2: Iterable<V>, equality?: IsEqual<V>): Promise<boolean | undefined>;
-    /**
-     * Returns _true_ if `f` returns _true_ for
-     * every item in iterable
-     * @param it
-     * @param f
-     * @returns
-     */
-    export function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
-    /**
-     * Yields `v` for each item within `it`.
-     *
-     * ```js
-     * fill([1, 2, 3], 0);
-     * // Yields: [0, 0, 0]
-     * ```
-     * @param it
-     * @param v
-     */
-    export function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
-    /**
-     * Filters an iterable, returning items which match `f`.
-     *
-     * ```js
-     * filter([1, 2, 3, 4], e => e % 2 == 0);
-     * returns [2, 4]
-     * ```
-     * @param it
-     * @param f
-     */
-    export function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
-    /**
-     * Returns first item from iterable `it` that matches predicate `f`
-     * ```js
-     * find([1, 2, 3, 4], e => e > 2);
-     * // Yields: 3
-     * ```
-     * @param it
-     * @param f
-     * @returns
-     */
-    export function find<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
-    /**
-     * Returns a 'flattened' copy of array, un-nesting arrays one level
-     * ```js
-     * flatten([1, [2, 3], [[4]]]);
-     * // Yields: [1, 2, 3, [4]];
-     * ```
-     * @param it
-     */
-    export function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
-    /**
-     * Execute function `f` for each item in iterable
-     * @param it
-     * @param f
-     */
-    export function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
-    /**
-     * Maps an iterable of type `V` to type `X`.
-     * ```js
-     * map([1, 2, 3], e => e*e)
-     * returns [1, 4, 9]
-     * ```
-     * @param it
-     * @param f
-     */
-    export function map<V, X>(it: AsyncIterable<V>, f: (v: V) => X): AsyncGenerator<Awaited<X>, void, unknown>;
-    /**
-     * Returns the maximum seen of an iterable
-     * ```js
-     * min([
-     *  {i:0,v:1},
-     *  {i:1,v:9},
-     *  {i:2,v:-2}
-     * ], (a, b) => a.v > b.v);
-     * // Yields: {i:1, v:-9}
-     * ```
-     * @param it Iterable
-     * @param gt Should return _true_ if `a` is greater than `b`.
-     * @returns
-     */
-    export function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
-    /**
-     * Returns the minimum seen of an iterable
-     * ```js
-     * min([
-     *  {i:0,v:1},
-     *  {i:1,v:9},
-     *  {i:2,v:-2}
-     * ], (a, b) => a.v > b.v);
-     * // Yields: {i:2, v:-2}
-     * ```
-     * @param it Iterable
-     * @param gt Should return _true_ if `a` is greater than `b`.
-     * @returns
-     */
-    export function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
-    /**
-     * Returns count from `start` for a given length
-     * ```js
-     * range(-5, 10);
-     * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
-     * ```
-     * @param start
-     * @param len
-     */
-    export function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
-    /**
-     * Reduce for iterables
-     * ```js
-     * reduce([1, 2, 3], (acc, cur) => acc + cur, 0);
-     * // Yields: 6
-     * ```
-     * @param it Iterable
-     * @param f Function
-     * @param start Start value
-     * @returns
-     */
-    export function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
-    /**
-     * Returns a section from an iterable
-     * @param it Iterable
-     * @param start Start index
-     * @param end End index (or until completion)
-     */
-    export function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
-    /**
-     * Returns true the first time `f` returns true. Useful for spotting any occurrence of
-     * data, and exiting quickly
-     * ```js
-     * some([1, 2, 3, 4], e => e % 3 === 0);
-     * // Yields: true
-     * ```
-     * @param it Iterable
-     * @param f Filter function
-     * @returns
-     */
-    export function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
-    /**
-     * Returns items for which the filter function returns _true_
-     * ```js
-     * takeWhile([ 1, 2, 3, 4 ], e => e < 3);
-     * // Yields: [ 1, 2 ]
-     * ```
-     * @param it Iterable
-     * @param f Filter function
-     * @returns
-     */
-    export function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
-    /**
-     * Returns an array of values from an iterator.
-     *
-     * ```js
-     * const data = await toArray(adsrSample(opts, 10));
-     * ```
-     *
-     * Note: If the iterator is infinite, be sure to provide a `count` or the function
-     * will never return.
-     *
-     * @param it Asynchronous iterable
-     * @param count Number of items to return, by default all.
-     * @returns
-     */
-    export function toArray<V>(it: AsyncIterable<V>, count?: number): Promise<readonly V[]>;
-    /**
-     * Returns unique items from iterables, given a particular key function
-     * ```js
-     * unique([{i:0,v:2},{i:1,v:3},{i:2,v:2}], e => e.v);
-     * Yields:  [{i:0,v:2},{i:1,v:3}]
-     * @param it
-     * @param f
-     */
-    export function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
-    /**
-     * Combine same-positioned items from several iterables
-     * ```js
-     * zip( [1, 2, 3], [4, 5, 6], [7, 8, 9] );
-     * Yields: [ [1, 4, 7], [2, 5, 8], [3, 6, 9] ]
-     * ```
-     * @param its
-     * @returns
-     */
-    export function zip<V>(...its: readonly AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
-}
-declare module "Util" {
-    export * as IterableAsync from "IterableAsync";
-    /**
-     * Returns `fallback` if `v` is NaN, otherwise returns `v`
-     * @param v
-     * @param fallback
-     * @returns
-     */
-    export const ifNaN: (v: number, fallback: number) => number;
-    /**
-     * Returns true if `x` is a power of two
-     * @param x
-     * @returns True if `x` is a power of two
-     */
-    export const isPowerOfTwo: (x: number) => boolean;
-    /**
-     * Returns the relative difference from the `initial` value
-     * ```js
-     * const rel = relativeDifference(100);
-     * rel(100); // 1
-     * rel(150); // 1.5
-     * rel(50);  // 0.5
-     * ```
-     *
-     * The code for this is simple:
-     * ```js
-     * const relativeDifference = (initial) => (v) => v/initial
-     * ```
-     * @param {number} initial
-     * @returns
-     */
-    export const relativeDifference: (initial: number) => (v: number) => number;
-    /**
-     * Returns a field on object `o` by a dotted path.
-     * ```
-     * const d = {
-     *  accel: {x: 1, y: 2, z: 3},
-     *  gyro:  {x: 4, y: 5, z: 6}
-     * };
-     * getFieldByPath(d, `accel.x`); // 1
-     * getFieldByPath(d, `gyro.z`);  // 6
-     * getFieldByPath(d, `gyro`);    // {x:4, y:5, z:6}
-     * getFieldByPath(d, ``);        // Returns original object
-     * ```
-     *
-     * If a field does not exist, `undefined` is returned.
-     * Use {@link getFieldPaths} to get a list of paths.
-     * @param o
-     * @param path
-     * @returns
-     */
-    export const getFieldByPath: (o: any, path?: string) => any | undefined;
-    /**
-     * Returns a list of paths for all the fields on `o`
-     * ```
-     * const d = {
-     *  accel: {x: 1, y: 2, z: 3},
-     *  gyro:  {x: 4, y: 5, z: 6}
-     * };
-     * const paths = getFieldPaths(d);
-     * // Yields [ `accel.x`, `accel.y`,`accel.z`,`gyro.x`,`gyro.y`,`gyro.z` ]
-     * ```
-     *
-     * Use {@link getFieldByPath} to fetch data by this 'path' string.
-     * @param o
-     * @returns
-     */
-    export const getFieldPaths: (o: any) => readonly string[];
-    /**
-     * Rounds `v` up to the nearest multiple of `multiple`
-     * ```
-     * roundMultiple(19, 20); // 20
-     * roundMultiple(21, 20); // 40
-     * ```
-     * @param v
-     * @param multiple
-     * @returns
-     */
-    export const roundUpToMultiple: (v: number, multiple: number) => number;
-    export type ToString<V> = (itemToMakeStringFor: V) => string;
-    /**
-     * Function that returns true if `a` and `b` are considered equal
-     */
-    export type IsEqual<V> = (a: V, b: V) => boolean;
-    /**
-     * Default comparer function is equiv to checking `a === b`
-     */
-    export const isEqualDefault: <V>(a: V, b: V) => boolean;
-    /**
-     * Comparer returns true if string representation of `a` and `b` are equal.
-     * Uses `toStringDefault` to generate a string representation (`JSON.stringify`)
-     * @returns True if the contents of `a` and `b` are equal
-     */
-    export const isEqualValueDefault: <V>(a: V, b: V) => boolean;
-    /**
-     * A default converter to string that uses JSON.stringify if its an object, or the thing itself if it's a string
-     */
-    export const toStringDefault: <V>(itemToMakeStringFor: V) => string;
-    export const runningiOS: () => boolean;
-}
-declare module "collections/Map" {
-    import { IsEqual, ToString } from "Util";
-    /**
-     * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
-     * what key value might be under.
-     *
-     * Having a comparer function is useful to check by value rather than object reference.
-     *
-     * @example Find key value based on string equality
-     * ```js
-     * hasKeyValue(map,`hello`, `samantha`, (a, b) => a === b);
-     * ```
-     * @param map Map to search
-     * @param key Key to search
-     * @param value Value to search
-     * @param comparer Function to determine match
-     * @returns True if key is found
-     */
-    export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
-    export type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
-    /**
-     * Returns a function that fetches a value from a map, or generates and sets it if not present.
-     * Undefined is never returned, because if `fn` yields that, an error is thrown.
-     *
-     * See {@link getOrGenerateSync} for a synchronous version.
-     *
-     * ```
-     * const m = getOrGenerate(new Map(), (key) => {
-     *  return key.toUppercase();
-     * });
-     *
-     * // Not contained in map, so it will run the uppercase function,
-     * // setting the value to the key 'hello'.
-     * const v = await m(`hello`);  // Yields 'HELLO'
-     * const v1 = await m(`hello`); // Value exists, so it is returned ('HELLO')
-     * ```
-     *
-     */
-    export const getOrGenerate: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
-    /**
-     * @inheritDoc getOrGenerate
-     * @param map
-     * @param fn
-     * @returns
-     */
-    export const getOrGenerateSync: <K, V, Z>(map: Map<K, V>, fn: (key: K, args?: Z | undefined) => V) => (key: K, args?: Z | undefined) => V;
-    /**
-     * Adds items to a map only if their key doesn't already exist
-     *
-     * Uses provided {@link Util.ToString} function to create keys for items. Item is only added if it doesn't already exist.
-     * Thus the older item wins out, versus normal `Map.set` where the newest wins.
-     *
-     *
-     * @example
-     * ```js
-     * const map = new Map();
-     * const peopleArray = [ _some people objects..._];
-     * addUniqueByHash(map, p => p.name, ...peopleArray);
-     * ```
-     * @param set
-     * @param hashFunc
-     * @param values
-     * @returns
-     */
-    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
-    /**
-     * Returns true if _any_ key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
-     * if you only want to find a value under a certain key.
-     *
-     * Having a comparer function is useful to check by value rather than object reference.
-     * @example Finds value where name is 'samantha', regardless of other properties
-     * ```js
-     * hasAnyValue(map, {name:`samantha`}, (a, b) => a.name === b.name);
-     * ```
-     *
-     * Works by comparing `value` against all values contained in `map` for equality using the provided `comparer`.
-     *
-     * @param map Map to search
-     * @param value Value to find
-     * @param comparer Function that determines matching. Should return true if `a` and `b` are considered equal.
-     * @returns True if value is found
-     */
-    export const hasAnyValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer: IsEqual<V>) => boolean;
-    /**
-     * Returns values where `predicate` returns true.
-     *
-     * If you just want the first match, use `find`
-     *
-     * @example All people over thirty
-     * ```js
-     * // for-of loop
-     * for (const v of filter(people, person => person.age > 30)) {
-     *
-     * }
-     * // If you want an array
-     * const overThirty = Array.from(filter(people, person => person.age > 30));
-     * ```
-     * @param map Map
-     * @param predicate Filtering predicate
-     * @returns Values that match predicate
-     */
-    export function filter<V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean): Generator<V, void, unknown>;
-    /**
-     * Copies data to an array
-     * @param map
-     * @returns
-     */
-    export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
-    /**
-     * Returns a Map from an iterable
-     * @param data Input data
-     * @param keyFn Function which returns a string id
-     * @param allowOverwrites If true, items with same id will silently overwrite each other, with last write wins
-     * @returns
-     */
-    export const fromIterable: <V>(data: Iterable<V>, keyFn: (v: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
-    /**
-     * Returns the first found item that matches `predicate` or _undefined_.
-     *
-     * If you want all matches, use {@link filter}.
-     *
-     * @example First person over thirty
-     * ```js
-     * const overThirty = find(people, person => person.age > 30);
-     * ```
-     * @param map Map to search
-     * @param predicate Function that returns true for a matching item
-     * @returns Found item or _undefined_
-     */
-    export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
-    /**
-     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link mapToObj}.
-     *
-     * ```js
-     * const map = new Map();
-     * map.set(`name`, `Alice`);
-     * map.set(`pet`, `dog`);
-     *
-     * const o = mapToObjTransform(map, v => {
-     *  ...v,
-     *  registered: true
-     * });
-     *
-     * // Yields: { name: `Alice`, pet: `dog`, registered: true }
-     * ```
-     *
-     * If the goal is to create a new map with transformed values, use {@link transformMap}.
-     * @param m
-     * @param valueTransform
-     * @typeParam T Value type of input map
-     * @typeParam K Value type of destination map
-     * @returns
-     */
-    export const mapToObjTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => {
-        readonly [key: string]: K;
-    };
-    /**
-     * Zips together an array of keys and values into an object. Requires that
-     * `keys` and `values` are the same length.
-     *
-     * @example
-     * ```js
-     * const o = zipKeyValue([`a`, `b`, `c`], [0, 1, 2])
-     * Yields: { a: 0, b: 1, c: 2}
-     *```
-      * @param keys String keys
-      * @param values Values
-      * @typeParam V Type of values
-      * @return Object with keys and values
-      */
-    export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
-        [k: string]: V | undefined;
-    };
-    /**
-     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>, returning as a new Map.
-     *
-     * @example
-     * ```js
-     * const mapOfStrings = new Map();
-     * mapOfStrings.set(`a`, `10`);
-     * mapOfStrings.get(`a`); // Yields `10` (a string)
-     *
-     * // Convert a map of string->string to string->number
-     * const mapOfInts = transformMap(mapOfStrings, (value, key) => parseInt(value));
-     *
-     * mapOfInts.get(`a`); // Yields 10 (a proper number)
-     * ```
-     *
-     * If you want to combine values into a single object, consider instead  {@link mapToObjTransform}.
-     * @param source
-     * @param transformer
-     * @typeParam K Type of keys (generally a string)
-     * @typeParam V Type of input map values
-     * @typeParam R Type of output map values
-     * @returns
-     */
-    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
-    /**
-     * Converts a `Map` to a plain object, useful for serializing to JSON
-     *
-     * @example
-     * ```js
-     * const str = JSON.stringify(mapToObj(map));
-     * ```
-     * @param m
-     * @returns
-     */
-    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
-        readonly [key: string]: T;
-    };
-    /**
-     * Converts Map to Array with a provided `transformer` function. Useful for plucking out certain properties
-     * from contained values and for creating a new map based on transformed values from an input map.
-     *
-     * @example Get an array of ages from a map of Person objects
-     * ```js
-     * let person = { age: 29, name: `John`};
-     * map.add(person.name, person);
-     *
-     * const ages = mapToArray(map, (key, person) => person.age);
-     * // [29, ...]
-     * ```
-     *
-     * In the above example, the `transformer` function returns a number, but it could
-     * just as well return a transformed version of the input:
-     *
-     * ```js
-     * // Return with random heights and uppercased name
-     * mapToArray(map, (key, person) => ({
-     *  ...person,
-     *  height: Math.random(),
-     *  name: person.name.toUpperCase();
-     * }))
-     * // Yields:
-     * // [{height: 0.12, age: 29, name: "JOHN"}, ...]
-     * ```
-     * @param m
-     * @param transformer A function that takes a key and item, returning a new item.
-     * @returns
-     */
-    export const mapToArray: <K, V, R>(m: ReadonlyMap<K, V>, transformer: (key: K, item: V) => R) => readonly R[];
-    /**
-     * Returns a result of a merged into b.
-     * B is always the 'newer' data that takes
-     * precedence.
-     */
-    export type MergeReconcile<V> = (a: V, b: V) => V;
-    /**
-     * Merges maps left to right, using the provided
-     * `reconcile` function to choose a winner when keys overlap.
-     *
-     * There's also [Arrays.mergeByKey](functions/Collections.Arrays.mergeByKey.html) if you don't already have a map.
-     *
-     * For example, if we have the map A:
-     * 1 => `A-1`, 2 => `A-2`, 3 => `A-3`
-     *
-     * And map B:
-     * 2 => `B-1`, 2 => `B-2`, 4 => `B-4`
-     *
-     * If they are merged with the reconile function:
-     * ```js
-     * const reconcile = (a, b) => b.replace(`-`, `!`);
-     * const output = mergeByKey(reconcile, mapA, mapB);
-     * ```
-     *
-     * The final result will be:
-     *
-     * 1 => `B!1`, 2 => `B!2`, 3 => `A-3`, 4 => `B-4`
-     *
-     * In this toy example, it's obvious how the reconciler transforms
-     * data where the keys overlap. For the keys that do not overlap -
-     * 3 and 4 in this example - they are copied unaltered.
-     *
-     * A practical use for `mergeByKey` has been in smoothing keypoints
-     * from a TensorFlow pose. In this case, we want to smooth new keypoints
-     * with older keypoints. But if a keypoint is not present, for it to be
-     * passed through.
-     *
-     * @param reconcile
-     * @param maps
-     */
-    export const mergeByKey: <K, V>(reconcile: MergeReconcile<V>, ...maps: readonly ReadonlyMap<K, V>[]) => ReadonlyMap<K, V>;
 }
 declare module "data/Clamp" {
     /**
@@ -2264,6 +1499,131 @@ declare module "collections/MapMutable" {
      */
     export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
 }
+declare module "collections/ExpiringMap" {
+    import { SimpleEventEmitter } from "Events";
+    export type Opts = {
+        readonly capacity?: number;
+        readonly evictPolicy?: `none` | `oldestAccess` | `oldestSet`;
+        readonly autoDeletePolicy?: `none` | `access` | `set`;
+        readonly autoDeleteElapsedMs?: number;
+    };
+    export type ExpiringMapEvent<K, V> = {
+        readonly key: K;
+        readonly value: V;
+    };
+    export type ExpiringMapEvents<K, V> = {
+        /**
+         * Fires when an item is removed due to eviction
+         * or automatic expiry
+         */
+        readonly expired: ExpiringMapEvent<K, V>;
+        /**
+         * Fires when a item with a new key is added
+         */
+        readonly newKey: ExpiringMapEvent<K, V>;
+        /**
+         * Fires when an item is manually removed,
+         * removed due to eviction or automatic expiry
+         */
+        readonly removed: ExpiringMapEvent<K, V>;
+    };
+    /***
+     * A map that can have a capacity limit.
+     *
+     * By default, it uses the `none` eviction policy, meaning that when full
+     * an error will be thrown if attempting to add new keys.
+     *
+     * Eviction policies:
+     * `oldestAccess` removes the item that hasn't been accessed the longest,
+     * `oldestSet` removes the item that hasn't been updated the longest.
+     *
+     * Events:
+     * * `expired`: when an item is automatically removed.
+     * * `removed`: when an item is manually or automatically removed.
+     * * `newKey`: when a new key is added
+     */
+    export class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, V>> {
+        #private;
+        private capacity;
+        private store;
+        private keyCount;
+        private evictPolicy;
+        private autoDeleteElapsedMs;
+        private autoDeletePolicy;
+        constructor(opts: Opts);
+        /**
+         * Returns the number of keys being stored.
+         */
+        get keyLength(): number;
+        entries(): IterableIterator<[k: K, v: V]>;
+        values(): IterableIterator<V>;
+        keys(): IterableIterator<K>;
+        /**
+         * Returns the elapsed time since `key`
+         * was set. Returns _undefined_ if `key`
+         * does not exist
+         */
+        elapsedSet(key: K): number | undefined;
+        /**
+         * Returns the elapsed time since `key`
+         * was accessed. Returns _undefined_ if `key`
+         * does not exist
+         */
+        elapsedGet(key: K): number | undefined;
+        /**
+         * Returns true if `key` is stored.
+         * Does not affect the key's last access time.
+         * @param key
+         * @returns
+         */
+        has(key: K): boolean;
+        /**
+         * Gets an item from the map by key, returning
+         * undefined if not present
+         * @param key Key
+         * @returns Value, or undefined
+         */
+        get(key: K): V | undefined;
+        /**
+         * Deletes the value under `key`, if present.
+         *
+         * Returns _true_ if something was removed.
+         * @param key
+         * @returns
+         */
+        delete(key: K): boolean;
+        /**
+         * Updates the lastSet/lastGet time for a value
+         * under `k`.
+         *
+         * Returns false if key was not found
+         * @param key
+         * @returns
+         */
+        touch(key: K): boolean;
+        private findEvicteeKey;
+        /**
+         * Deletes all values where the the time since
+         * last access is greater than `time`.
+         *
+         * Remove items are returned
+         * @param time
+         */
+        deleteWithElapsed(time: number, prop: `access` | `set`): [k: K, v: V][];
+        /**
+         * Sets the `key` to be `value`.
+         *
+         * If the key already exists, it is updated.
+         *
+         * If the map is full, according to its capacity,
+         * another value is selected for removal.
+         * @param key
+         * @param value
+         * @returns
+         */
+        set(key: K, value: V): void;
+    }
+}
 declare module "collections/index" {
     export * from "collections/Interfaces";
     export { mapSet, mapCircularMutable, mapArray } from "collections/MapMultiMutable";
@@ -2346,6 +1706,7 @@ declare module "collections/index" {
      * Create queues with {@link queue} or {@link queueMutable}. These return a {@link Queue} or {@link QueueMutable} respectively.
      */
     export * as Queues from "collections/Queue";
+    export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts } from "collections/ExpiringMap";
     /**
      * Maps associate keys with values. Several helper functions are provided
      * for working with the standard JS Map class.
@@ -5127,6 +4488,19 @@ declare module "geometry/Rect" {
      * Multiplication applies to the first parameter's x/y fields, if present.
      */
     export function multiply(a: Rect, b: Rect | number, c?: number): Rect;
+    export function multiply(a: RectPositioned, b: Rect): RectPositioned;
+    /**
+     * Multiplies all components of `rect` by `amount`
+     * @param rect
+     * @param amount
+     */
+    export function multiplyScalar(rect: Rect, amount: number): Rect;
+    /**
+     * Multiplies all components of `rect` by `amount`
+     * @param rect
+     * @param amount
+     */
+    export function multiplyScalar(rect: RectPositioned, amount: number): RectPositioned;
     /**
      * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
      *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
@@ -6269,6 +5643,7 @@ declare module "geometry/Point" {
     export const angle: (a: Point, b?: Point, c?: Point) => number;
     /**
      * Calculates the [centroid](https://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points) of a set of points
+     * Undefined values are skipped over.
      *
      * ```js
      * // Find centroid of a list of points
@@ -6422,7 +5797,10 @@ declare module "geometry/Point" {
      */
     export function subtract(a: Point, x: number, y?: number): Point;
     /**
-     * Subtracts two sets of x,y pairs
+     * Subtracts two sets of x,y pairs.
+     *
+     * If first parameter is a Point, any additional properties of it
+     * are included in returned Point.
      * @param x1
      * @param y1
      * @param x2
@@ -6580,6 +5958,7 @@ declare module "geometry/Point" {
     export function multiply(a: Point, x: number, y?: number): Point;
     /**
      * Multiplies all components by `v`.
+     * Existing properties of `pt` are maintained.
      *
      * ```js
      * multiplyScalar({ x:2, y:4 }, 2);
@@ -6672,6 +6051,11 @@ declare module "geometry/Point" {
      * Returns above 0 if a.x > b.x (to the right)
      * Returns 0 if a.x === b.x
      * Returns below 0 if a.x < b.x (to the left)
+     *
+     * @example Sorting by x
+     * ```js
+     * arrayOfPoints.sort(Points.compareByX);
+     * ```
      * @param a
      * @param b
      * @returns
@@ -8089,14 +7473,16 @@ declare module "geometry/Scaler" {
     import { Point } from "geometry/Point";
     import { Rect } from "geometry/Rect";
     /**
-     * A scale function that takes an input value to scale. Input can be in the form of {x,y} or two number parameters.
+     * A scale function that takes an input value to scale.
+     * Input can be in the form of `{ x, y }` or two number parameters.
      *
      * ```js
      * scale(10, 20);
-     * scale({x:10, y:20});
+     * scale({ x:10, y:20 });
      * ```
      *
-     * Output range can be specified as a {width,height} or two number parameters. If omitted, the default range
+     * Output range can be specified as a `{ width, height }` or two number parameters.
+     * If omitted, the default range
      * is used.
      *
      * ```js
@@ -8282,6 +7668,12 @@ declare module "geometry/TriangleRight" {
      *       .       .
      *    .           .
      * a .............. b
+     * ```
+     *
+     *
+     * ```js
+     * // Triangle pointing up to 0,0 with sides of 15
+     * Triangles.Right.fromC({ adjacent: 15, opposite:15 }, { x: 0, y: 0 });
      * ```
      * @param t
      * @param origin
@@ -9845,6 +9237,28 @@ declare module "io/Camera" {
      */
     export const start: (constraints?: Constraints) => Promise<StartResult>;
 }
+declare module "io/VideoFile" {
+    /**
+     * Result from starting a camera
+     */
+    export type StartResult = {
+        /**
+         * Call dispose to stop the camera feed and remove any created resources,
+         * such as a VIDEO element
+         */
+        readonly dispose: () => void;
+        /**
+         * Video element camera is connected to
+         */
+        readonly videoEl: HTMLVideoElement;
+    };
+    /**
+     * Starts video file playback, creating a VIDEO element automatically.
+     * @param file File
+     * @returns StartResult
+     */
+    export const start: (file: File) => Promise<StartResult>;
+}
 declare module "visual/Video" {
     export type Capturer = {
         start(): void;
@@ -9984,7 +9398,7 @@ declare module "visual/Video" {
     export const manualCapture: (sourceVideoEl: HTMLVideoElement, opts?: ManualCaptureOpts) => ManualCapturer;
 }
 declare module "io/FrameProcessor" {
-    export type Sources = `` | `camera`;
+    export type Sources = `` | `camera` | `video`;
     import * as Camera from "io/Camera";
     import * as Video from "visual/Video";
     /**
@@ -10024,7 +9438,9 @@ declare module "io/FrameProcessor" {
         private _teardownNeeded;
         private _cameraConstraints;
         private _cameraStartResult;
-        private _cameraCapture;
+        private _videoSourceCapture;
+        private _videoFile;
+        private _videoStartResult;
         private _showCanvas;
         private _showPreview;
         private _postCaptureDraw;
@@ -10060,10 +9476,13 @@ declare module "io/FrameProcessor" {
          * @param constraints Override of constraints when requesting camera access
          */
         useCamera(constraints?: Camera.Constraints): Promise<void>;
+        useVideo(file: File): Promise<void>;
         /**
          * Initialises camera
          */
         private initCamera;
+        private initVideo;
+        private postInit;
         /**
          * Closes down connections and removes created elements.
          * Once disposed, the frame processor cannot be used
@@ -10106,6 +9525,7 @@ declare module "io/index" {
      */
     export * as Espruino from "io/Espruino";
     export * as Camera from "io/Camera";
+    export * as VideoFile from "io/VideoFile";
     export { FrameProcessor, FrameProcessorOpts } from "io/FrameProcessor";
     /**
      * Microcontrollers such as Arduinos connected via USB serial
@@ -10115,6 +9535,225 @@ declare module "io/index" {
      *
      */
     export * as Serial from "io/Serial";
+}
+declare module "IterableAsync" {
+    import { IsEqual } from "Util";
+    /**
+     * Breaks an iterable into array chunks
+     * ```js
+     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
+     * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+     * ```
+     * @param it
+     * @param size
+     */
+    export function chunks<V>(it: Iterable<V>, size: number): AsyncGenerator<Awaited<V>[], void, unknown>;
+    /**
+     * Return concatenation of iterators
+     * @param its
+     */
+    export function concat<V>(...its: readonly Iterable<V>[]): AsyncGenerator<Awaited<V>, void, undefined>;
+    /**
+     * Drops elements that do not meet the predicate `f`.
+     * ```js
+     * dropWhile([1, 2, 3, 4], e => e < 3);
+     * returns [3, 4]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function dropWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, undefined>;
+    /**
+     * Returns true if items in two iterables are equal, as
+     * determined by the `equality` function.
+     * @param it1
+     * @param it2
+     * @param equality
+     * @returns
+     */
+    export function equals<V>(it1: Iterable<V>, it2: Iterable<V>, equality?: IsEqual<V>): Promise<boolean | undefined>;
+    /**
+     * Returns _true_ if `f` returns _true_ for
+     * every item in iterable
+     * @param it
+     * @param f
+     * @returns
+     */
+    export function every<V>(it: Iterable<V>, f: (v: V) => boolean): Promise<boolean>;
+    /**
+     * Yields `v` for each item within `it`.
+     *
+     * ```js
+     * fill([1, 2, 3], 0);
+     * // Yields: [0, 0, 0]
+     * ```
+     * @param it
+     * @param v
+     */
+    export function fill<V>(it: AsyncIterable<V>, v: V): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Filters an iterable, returning items which match `f`.
+     *
+     * ```js
+     * filter([1, 2, 3, 4], e => e % 2 == 0);
+     * returns [2, 4]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function filter<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Returns first item from iterable `it` that matches predicate `f`
+     * ```js
+     * find([1, 2, 3, 4], e => e > 2);
+     * // Yields: 3
+     * ```
+     * @param it
+     * @param f
+     * @returns
+     */
+    export function find<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<V | undefined>;
+    /**
+     * Returns a 'flattened' copy of array, un-nesting arrays one level
+     * ```js
+     * flatten([1, [2, 3], [[4]]]);
+     * // Yields: [1, 2, 3, [4]];
+     * ```
+     * @param it
+     */
+    export function flatten<V>(it: AsyncIterable<V>): AsyncGenerator<any, void, unknown>;
+    /**
+     * Execute function `f` for each item in iterable
+     * @param it
+     * @param f
+     */
+    export function forEach<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<void>;
+    /**
+     * Maps an iterable of type `V` to type `X`.
+     * ```js
+     * map([1, 2, 3], e => e*e)
+     * returns [1, 4, 9]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function map<V, X>(it: AsyncIterable<V>, f: (v: V) => X): AsyncGenerator<Awaited<X>, void, unknown>;
+    /**
+     * Returns the maximum seen of an iterable
+     * ```js
+     * min([
+     *  {i:0,v:1},
+     *  {i:1,v:9},
+     *  {i:2,v:-2}
+     * ], (a, b) => a.v > b.v);
+     * // Yields: {i:1, v:-9}
+     * ```
+     * @param it Iterable
+     * @param gt Should return _true_ if `a` is greater than `b`.
+     * @returns
+     */
+    export function max<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+    /**
+     * Returns the minimum seen of an iterable
+     * ```js
+     * min([
+     *  {i:0,v:1},
+     *  {i:1,v:9},
+     *  {i:2,v:-2}
+     * ], (a, b) => a.v > b.v);
+     * // Yields: {i:2, v:-2}
+     * ```
+     * @param it Iterable
+     * @param gt Should return _true_ if `a` is greater than `b`.
+     * @returns
+     */
+    export function min<V>(it: AsyncIterable<V>, gt?: (a: V, b: V) => boolean): Promise<V | undefined>;
+    /**
+     * Returns count from `start` for a given length
+     * ```js
+     * range(-5, 10);
+     * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+     * ```
+     * @param start
+     * @param len
+     */
+    export function range(start: number, len: number): AsyncGenerator<number, void, unknown>;
+    /**
+     * Reduce for iterables
+     * ```js
+     * reduce([1, 2, 3], (acc, cur) => acc + cur, 0);
+     * // Yields: 6
+     * ```
+     * @param it Iterable
+     * @param f Function
+     * @param start Start value
+     * @returns
+     */
+    export function reduce<V>(it: AsyncIterable<V>, f: (acc: V, current: V) => V, start: V): Promise<V>;
+    /**
+     * Returns a section from an iterable
+     * @param it Iterable
+     * @param start Start index
+     * @param end End index (or until completion)
+     */
+    export function slice<V>(it: AsyncIterable<V>, start?: number, end?: number): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Returns true the first time `f` returns true. Useful for spotting any occurrence of
+     * data, and exiting quickly
+     * ```js
+     * some([1, 2, 3, 4], e => e % 3 === 0);
+     * // Yields: true
+     * ```
+     * @param it Iterable
+     * @param f Filter function
+     * @returns
+     */
+    export function some<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Promise<boolean>;
+    /**
+     * Returns items for which the filter function returns _true_
+     * ```js
+     * takeWhile([ 1, 2, 3, 4 ], e => e < 3);
+     * // Yields: [ 1, 2 ]
+     * ```
+     * @param it Iterable
+     * @param f Filter function
+     * @returns
+     */
+    export function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Returns an array of values from an iterator.
+     *
+     * ```js
+     * const data = await toArray(adsrSample(opts, 10));
+     * ```
+     *
+     * Note: If the iterator is infinite, be sure to provide a `count` or the function
+     * will never return.
+     *
+     * @param it Asynchronous iterable
+     * @param count Number of items to return, by default all.
+     * @returns
+     */
+    export function toArray<V>(it: AsyncIterable<V>, count?: number): Promise<readonly V[]>;
+    /**
+     * Returns unique items from iterables, given a particular key function
+     * ```js
+     * unique([{i:0,v:2},{i:1,v:3},{i:2,v:2}], e => e.v);
+     * Yields:  [{i:0,v:2},{i:1,v:3}]
+     * @param it
+     * @param f
+     */
+    export function unique<V>(it: AsyncIterable<V>, f?: ((id: V) => V)): AsyncGenerator<Awaited<V>, void, unknown>;
+    /**
+     * Combine same-positioned items from several iterables
+     * ```js
+     * zip( [1, 2, 3], [4, 5, 6], [7, 8, 9] );
+     * Yields: [ [1, 4, 7], [2, 5, 8], [3, 6, 9] ]
+     * ```
+     * @param its
+     * @returns
+     */
+    export function zip<V>(...its: readonly AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
 }
 declare module "IterableSync" {
     /**
@@ -10439,6 +10078,164 @@ declare module "Generators" {
      * @returns
      */
     export const numericPercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
+}
+declare module "visual/Colour" {
+    import * as d3Colour from 'd3-color';
+    import { RandomSource } from "Random";
+    export type Hsl = {
+        h: number;
+        s: number;
+        l: number;
+        opacity?: number;
+    };
+    export type Rgb = {
+        r: number;
+        g: number;
+        b: number;
+        opacity?: number;
+    };
+    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
+    /**
+     * @private
+     */
+    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
+    /**
+     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
+     */
+    export type Colourish = string | d3Colour.ColorCommonInstance;
+    /**
+     * Options for interpolation
+     */
+    export type InterpolationOpts = {
+        /**
+         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
+         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
+         */
+        gamma?: number;
+        /**
+         * Colour space
+         */
+        space?: Spaces;
+        /**
+         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
+         */
+        long?: boolean;
+    };
+    /**
+     * Parses colour to `{ h, s, l }`. `opacity` field is added if it exists on source.
+     * @param colour
+     * @returns
+     */
+    export const toHsl: (colour: Colourish) => Hsl;
+    /**
+     * Returns a full HSL colour string (eg `hsl(20,50%,75%)`) based on a index.
+     * It's useful for generating perceptually different shades as the index increments.
+     *
+     * ```
+     * el.style.backgroundColor = goldenAgeColour(10);
+     * ```
+     *
+     * Saturation and lightness can be specified, as numeric ranges of 0-1.
+     *
+     * @param saturation Saturation (0-1), defaults to 0.5
+     * @param lightness Lightness (0-1), defaults to 0.75
+     * @param alpha Opacity (0-1), defaults to 1.0
+     * @returns HSL colour string eg `hsl(20,50%,75%)`
+     */
+    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string | undefined;
+    /**
+     * Returns a random hue component
+     * ```
+     * // Generate hue
+     * const h =randomHue(); // 0-359
+     *
+     * // Generate hue and assign as part of a HSL string
+     * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
+     * ```
+     * @param rand
+     * @returns
+     */
+    export const randomHue: (rand?: RandomSource) => number;
+    /**
+     * Parses colour to `{ r, g, b }`. `opacity` field is added if it exists on source.
+     * [Named colours](https://html-color-codes.info/color-names/)
+     * @param colour
+     * @returns
+     */
+    export const toRgb: (colour: Colourish) => Rgb;
+    /**
+     * Returns a colour in hex format `#000000`
+     * @param colour
+     * @returns Hex format, including #
+     */
+    export const toHex: (colour: Colourish) => string;
+    /**
+     * Returns a variation of colour with its opacity multiplied by `amt`.
+     *
+     * ```js
+     * // Return a colour string for blue that is 50% opaque
+     * opacity(`blue`, 0.5);
+     * // eg: `rgba(0,0,255,0.5)`
+     *
+     * // Returns a colour string that is 50% more opaque
+     * opacity(`hsla(200,100%,50%,50%`, 0.5);
+     * // eg: `hsla(200,100%,50%,25%)`
+     * ```
+     *
+     * [Named colours](https://html-color-codes.info/color-names/)
+     * @param colour A valid CSS colour
+     * @param amt Amount to multiply opacity by
+     * @returns String representation of colour
+     */
+    export const opacity: (colour: Colourish, amt: number) => string;
+    /**
+     * Gets a CSS variable.
+     * @example Fetch --accent variable, or use `yellow` if not found.
+     * ```
+     * getCssVariable(`accent`, `yellow`);
+     * ```
+     * @param name Name of variable. Omit the `--`
+     * @param fallbackColour Fallback colour if not found
+     * @param root  Element to search variable from
+     * @returns Colour or fallback.
+     */
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
+    /**
+     * Interpolates between two colours, returning a string in the form `rgb(r,g,b)`
+     *
+     * @example
+     * ```js
+     * // Get 50% between blue and red
+     * interpolate(0.5, `blue`, `red`);
+     *
+     * // Get midway point, with specified colour space
+     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
+     * ```
+     *
+     * [Named colours](https://html-color-codes.info/color-names/)
+     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
+     * @param from Starting colour
+     * @param to Final colour
+     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
+     * @returns String representation of colour, eg. `rgb(r,g,b)`
+     */
+    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
+    /**
+     * Produces a scale of colours as a string array
+     *
+     * @example
+     * ```js
+     * // Yields array of 5 colour strings
+     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
+     * // Produces scale between three colours
+     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
+     * ```
+     * @param steps Number of colours
+     * @param opts Options for interpolation, or string colour space eg `hsl`
+     * @param colours From/end colours (or more)
+     * @returns
+     */
+    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
 }
 declare module "dom/Util" {
     import { Observable } from 'rxjs';
@@ -13191,13 +12988,13 @@ declare module "data/Correlate" {
      *  { id:`1`, x:101, y:200 }
      * ]
      * ```
-     * @param fn
+     * @param similarityFn
      * @param lastData
      * @param newData
      * @param opts
      * @returns
      */
-    export const align: <V>(fn: Similarity<V>, lastData: readonly DataWithId<V>[] | undefined, newData: readonly DataWithId<V>[], opts?: AlignOpts) => any[];
+    export const align: <V>(similarityFn: Similarity<V>, lastData: readonly DataWithId<V>[] | undefined, newData: readonly DataWithId<V>[], opts?: AlignOpts) => readonly DataWithId<V>[];
     /**
      * Returns a function that attempts to align a series of data by its id.
      * See also {@link align} for a version with no internal storage.
@@ -13222,6 +13019,177 @@ declare module "data/Correlate" {
      */
     export const alignById: <V>(fn: Similarity<V>, opts?: AlignOpts) => (newData: DataWithId<V>[]) => DataWithId<V>[];
 }
+declare module "data/Pool" {
+    import * as Debug from "Debug";
+    export type FullPolicy = `error` | `evictOldestUser`;
+    export type Opts<V> = {
+        /**
+         * Maximum number of resources for this pool
+         */
+        readonly capacity?: number;
+        /**
+         * If above 0, users will be removed if there is no activity after this interval.
+         * Activity is marked whenever `use` us called with that user key
+         */
+        readonly userExpireAfterMs?: number;
+        /**
+         * If above 0, resources with no users will be automatically removed after this interval
+         */
+        readonly resourcesWithoutUserExpireAfterMs?: number;
+        /**
+         * Maximum number of users per resource. Defaults to 0
+         */
+        readonly capacityPerResource?: number;
+        /**
+         * What to do if pool is full and a new resource allocation is requested
+         */
+        readonly fullPolicy?: FullPolicy;
+        /**
+         * If true, additional logging will trace activity of pool
+         */
+        readonly debug?: boolean;
+        /**
+         * If specified, this function will generate new resources as needed.
+         */
+        readonly generate?: () => V;
+        /**
+         * If specified, this function will be called when a resource is disposed
+         */
+        readonly free?: (v: V) => void;
+    };
+    export type InitPoolItem = <V>(id: string) => V;
+    export type PoolState = `idle` | `active` | `disposed`;
+    export class PoolUser<V> {
+        readonly key: string;
+        readonly resource: Resource<V>;
+        private lastUpdate;
+        private pool;
+        private state;
+        private userExpireAfterMs;
+        constructor(key: string, resource: Resource<V>);
+        get elapsed(): number;
+        toString(): string;
+        get isExpired(): boolean;
+        get isDisposed(): boolean;
+        get isValid(): boolean;
+        keepAlive(): void;
+        /**
+         * @internal
+         * @param reason
+         * @returns
+         */
+        _dispose(reason: string): void;
+        release(reason: string): void;
+    }
+    export class Resource<V> {
+        readonly pool: Pool<V>;
+        private state;
+        private readonly _data;
+        private users;
+        private readonly capacityPerResource;
+        private readonly resourcesWithoutUserExpireAfterMs;
+        private lastUsersChange;
+        constructor(pool: Pool<V>, data: V);
+        get data(): V;
+        toString(): string;
+        /**
+         * @internal
+         * @param user
+         */
+        _assign(user: PoolUser<V>): void;
+        /**
+         * @internal
+         * @param user
+         */
+        _release(user: PoolUser<V>): void;
+        get hasUserCapacity(): boolean;
+        get usersCount(): number;
+        /**
+         * Returns true if automatic expiry is enabled, and that interval
+         * has elapsed since the users list has changed for this resource
+         */
+        get isExpiredFromUsers(): boolean;
+        get isDisposed(): boolean;
+        dispose(reason: string): void;
+    }
+    export class Pool<V> {
+        private _resources;
+        private _users;
+        readonly capacity: number;
+        readonly userExpireAfterMs: number;
+        readonly resourcesWithoutUserExpireAfterMs: number;
+        readonly capacityPerResource: number;
+        readonly fullPolicy: FullPolicy;
+        readonly generateResource?: () => V;
+        readonly freeResource?: (v: V) => void;
+        readonly log: Debug.LogSet;
+        constructor(opts: Opts<V>);
+        dumpToString(): string;
+        getUsersByLongestElapsed(): PoolUser<V>[];
+        /**
+         * Returns resources sorted with least used first
+         * @returns
+         */
+        getResourcesSortedByUse(): Resource<V>[];
+        addResource(resource: V): Resource<V>;
+        maintain(): void;
+        /**
+         * Iterate over resources in the pool.
+         * To iterate over the data associated with each resource, use
+         * `values`.
+         */
+        resources(): Generator<Resource<V>, void, unknown>;
+        /**
+         * Iterate over resource values in the pool.
+         * to iterate over the resources, use `resources`.
+         *
+         * Note that values may be returned even though there is no
+         * active user.
+         */
+        values(): Generator<V, void, unknown>;
+        /**
+         * Unassociate a key with a pool item
+         * @param userKey
+         */
+        release(userKey: string, reason?: string): void;
+        /**
+        * @internal
+        * @param user
+        */
+        _release(user: PoolUser<V>): void;
+        /**
+         * @internal
+         * @param resource
+         * @param _
+         */
+        _releaseResource(resource: Resource<V>, _: string): void;
+        hasResource(res: V): boolean;
+        hasUser(userKey: string): boolean;
+        /**
+         * @internal
+         * @param key
+         * @param resource
+         * @returns
+         */
+        private _assign;
+        /**
+         * @internal
+         * @param userKey
+         * @returns
+         */
+        private _find;
+        get usersLength(): number;
+        useValue(userKey: string): V;
+        /**
+         * Gets a pool item based on a user key.
+         * The same key should return the same pool item,
+         * for as long as it still exists.
+         * @param userKey
+         * @returns
+         */
+        use(userKey: string): Resource<V>;
+    }
+}
 declare module "data/index" {
     export * as Normalise from "data/Normalise";
     export * from "data/FrequencyMutable";
@@ -13237,6 +13205,7 @@ declare module "data/index" {
     export * from "data/Interpolate";
     export * from "data/Wrap";
     export * as Correlate from "data/Correlate";
+    export * as Pool from "data/Pool";
     export const piPi: number;
     export type NumberFunction = () => number;
 }
@@ -14382,165 +14351,610 @@ declare module "Random" {
      * @returns Random string
      */
     export const string: (length: number) => string;
+    /**
+     * Generates a short roughly unique id
+     * @returns
+     */
     export const shortGuid: () => string;
 }
-declare module "visual/Colour" {
-    import * as d3Colour from 'd3-color';
-    import { RandomSource } from "Random";
-    export type Hsl = {
-        h: number;
-        s: number;
-        l: number;
-        opacity?: number;
-    };
-    export type Rgb = {
-        r: number;
-        g: number;
-        b: number;
-        opacity?: number;
-    };
-    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
+declare module "Text" {
+    import { string as random } from "Random";
+    export { random };
     /**
-     * @private
-     */
-    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
-    /**
-     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
-     */
-    export type Colourish = string | d3Colour.ColorCommonInstance;
-    /**
-     * Options for interpolation
-     */
-    export type InterpolationOpts = {
-        /**
-         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
-         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
-         */
-        gamma?: number;
-        /**
-         * Colour space
-         */
-        space?: Spaces;
-        /**
-         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
-         */
-        long?: boolean;
-    };
-    /**
-     * Parses colour to `{ h, s, l }`. `opacity` field is added if it exists on source.
-     * @param colour
-     * @returns
-     */
-    export const toHsl: (colour: Colourish) => Hsl;
-    /**
-     * Returns a full HSL colour string (eg `hsl(20,50%,75%)`) based on a index.
-     * It's useful for generating perceptually different shades as the index increments.
-     *
-     * ```
-     * el.style.backgroundColor = goldenAgeColour(10);
-     * ```
-     *
-     * Saturation and lightness can be specified, as numeric ranges of 0-1.
-     *
-     * @param saturation Saturation (0-1), defaults to 0.5
-     * @param lightness Lightness (0-1), defaults to 0.75
-     * @param alpha Opacity (0-1), defaults to 1.0
-     * @returns HSL colour string eg `hsl(20,50%,75%)`
-     */
-    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string | undefined;
-    /**
-     * Returns a random hue component
-     * ```
-     * // Generate hue
-     * const h =randomHue(); // 0-359
-     *
-     * // Generate hue and assign as part of a HSL string
-     * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
-     * ```
-     * @param rand
-     * @returns
-     */
-    export const randomHue: (rand?: RandomSource) => number;
-    /**
-     * Parses colour to `{ r, g, b }`. `opacity` field is added if it exists on source.
-     * [Named colours](https://html-color-codes.info/color-names/)
-     * @param colour
-     * @returns
-     */
-    export const toRgb: (colour: Colourish) => Rgb;
-    /**
-     * Returns a colour in hex format `#000000`
-     * @param colour
-     * @returns Hex format, including #
-     */
-    export const toHex: (colour: Colourish) => string;
-    /**
-     * Returns a variation of colour with its opacity multiplied by `amt`.
+     * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
      *
      * ```js
-     * // Return a colour string for blue that is 50% opaque
-     * opacity(`blue`, 0.5);
-     * // eg: `rgba(0,0,255,0.5)`
-     *
-     * // Returns a colour string that is 50% more opaque
-     * opacity(`hsla(200,100%,50%,50%`, 0.5);
-     * // eg: `hsla(200,100%,50%,25%)`
+     * // Yields ` orange `;
+     * between(`apple orange melon`, `apple`, `melon`);
      * ```
-     *
-     * [Named colours](https://html-color-codes.info/color-names/)
-     * @param colour A valid CSS colour
-     * @param amt Amount to multiply opacity by
-     * @returns String representation of colour
+     * @param source Source text
+     * @param start Start match
+     * @param end If undefined, `start` will be used instead
+     * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
+     * @returns
      */
-    export const opacity: (colour: Colourish, amt: number) => string;
+    export const between: (source: string, start: string, end?: string, lastEndMatch?: boolean) => string | undefined;
     /**
-     * Gets a CSS variable.
-     * @example Fetch --accent variable, or use `yellow` if not found.
-     * ```
-     * getCssVariable(`accent`, `yellow`);
-     * ```
-     * @param name Name of variable. Omit the `--`
-     * @param fallbackColour Fallback colour if not found
-     * @param root  Element to search variable from
-     * @returns Colour or fallback.
+     * Returns first position of the given character code, or -1 if not found.
+     * @param source Source string
+     * @param code Code to seek
+     * @param start Start index, 0 by default
+     * @param end End index (inclusive), source.length-1 by default
+     * @returns Found position, or -1 if not found
      */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
+    export const indexOfCharCode: (source: string, code: number, start?: number, end?: number) => number;
     /**
-     * Interpolates between two colours, returning a string in the form `rgb(r,g,b)`
+     * Returns `source` with chars removed at `removeStart` position
+     * ```js
+     * omitChars(`hello there`, 1, 3);
+     * // Yields: `ho there`
+     * ```
+     * @param source
+     * @param removeStart Start point to remove
+     * @param removeLength Number of characters to remove
+     * @returns
+     */
+    export const omitChars: (source: string, removeStart: number, removeLength: number) => string;
+    /**
+     * Splits a string into `length`-size chunks.
+     *
+     * If `length` is greater than the length of `source`, a single element array is returned with source.
+     * The final array element may be smaller if we ran out of characters.
+     *
+     * ```js
+     * splitByLength(`hello there`, 2);
+     * // Yields:
+     * // [`he`, `ll`, `o `, `th`, `er`, `e`]
+     * ```
+     * @param source Source string
+     * @param length Length of each chunk
+     * @returns
+     */
+    export const splitByLength: (source: string, length: number) => readonly string[];
+    /**
+     * Returns the `source` string up until (and excluding) `match`. If match is not
+     * found, all of `source` is returned.
+     *
+     * ```js
+     * // Yields `apple `
+     * untilMarch(`apple orange melon`, `orange`);
+     * ```
+     * @param source
+     * @param match
+     * @param startPos If provided, gives the starting offset. Default 0
+     */
+    export const untilMatch: (source: string, match: string, startPos?: number) => string;
+    /**
+     * 'Unwraps' a string, removing one or more 'wrapper' strings that it starts and ends with.
+     * ```js
+     * unwrap("'hello'", "'");        // hello
+     * unwrap("apple", "a");          // apple
+     * unwrap("wow", "w");            // o
+     * unwrap(`"'blah'"`, '"', "'");  // blah
+     * ```
+     * @param source
+     * @param wrappers
+     * @returns
+     */
+    export const unwrap: (source: string, ...wrappers: readonly string[]) => string;
+    /**
+     * A range
+     */
+    export type Range = {
+        /**
+         * Text of range
+         */
+        readonly text: string;
+        /**
+         * Start position, with respect to source text
+         */
+        readonly start: number;
+        /**
+         * End position, with respect to source text
+         */
+        readonly end: number;
+        /**
+         * Index of range. First range is 0
+         */
+        readonly index: number;
+    };
+    export type LineSpan = {
+        readonly start: number;
+        readonly end: number;
+        readonly length: number;
+    };
+    /**
+     * Calculates the span, defined in {@link Range} indexes, that includes `start` through to `end` character positions.
+     *
+     * After using {@link splitRanges} to split text, `lineSpan` is used to associate some text coordinates with ranges.
+     *
+     * @param ranges Ranges
+     * @param start Start character position, in source text reference
+     * @param end End character position, in source text reference
+     * @returns Span
+     */
+    export const lineSpan: (ranges: readonly Range[], start: number, end: number) => LineSpan;
+    /**
+     * Splits a source string into ranges:
+     * ```js
+     * const ranges = splitRanges("hello;there;fella", ";");
+     * ```
+     *
+     * Each range consists of:
+     * ```js
+     * {
+     *  text: string  - the text of range
+     *  start: number - start pos of range, wrt to source
+     *  end: number   - end pos of range, wrt to source
+     *  index: number - index of range (starting at 0)
+     * }
+     * ```
+     * @param source
+     * @param split
+     * @returns
+     */
+    export const splitRanges: (source: string, split: string) => readonly Range[];
+    /**
+     * Counts the number of times one of `chars` appears at the front of
+     * a string, contiguously.
+     *
+     * ```js
+     * countCharsFromStart(`  hi`, ` `); // 2
+     * countCharsFromStart(`hi  `, ` `); // 0
+     * countCharsFromStart(`  hi  `, ` `); // 2
+     * ```
+     * @param source
+     * @param chars
+     * @returns
+     */
+    export const countCharsFromStart: (source: string, ...chars: readonly string[]) => number;
+    /**
+     * Returns _true_ if `source` starts and ends with `start` and `end`. Case-sensitive.
+     * If _end_ is omitted, the the `start` value will be used.
+     *
+     * ```js
+     * startsEnds(`This is a string`, `This`, `string`); // True
+     * startsEnds(`This is a string`, `is`, `a`); // False
+     * starsEnds(`test`, `t`); // True, starts and ends with 't'
+     * ```
+     * @param source String to search within
+     * @param start Start
+     * @param end End (if omitted, start will be looked for at end as well)
+     * @returns True if source starts and ends with provided values.
+     */
+    export const startsEnds: (source: string, start: string, end?: string) => boolean;
+    export const htmlEntities: (source: string) => string;
+}
+declare module "Util" {
+    export * as IterableAsync from "IterableAsync";
+    export * as Debug from "Debug";
+    /**
+     * Returns `fallback` if `v` is NaN, otherwise returns `v`
+     * @param v
+     * @param fallback
+     * @returns
+     */
+    export const ifNaN: (v: number, fallback: number) => number;
+    /**
+     * Returns true if `x` is a power of two
+     * @param x
+     * @returns True if `x` is a power of two
+     */
+    export const isPowerOfTwo: (x: number) => boolean;
+    /**
+     * Returns the relative difference from the `initial` value
+     * ```js
+     * const rel = relativeDifference(100);
+     * rel(100); // 1
+     * rel(150); // 1.5
+     * rel(50);  // 0.5
+     * ```
+     *
+     * The code for this is simple:
+     * ```js
+     * const relativeDifference = (initial) => (v) => v/initial
+     * ```
+     * @param {number} initial
+     * @returns
+     */
+    export const relativeDifference: (initial: number) => (v: number) => number;
+    /**
+     * Returns a field on object `o` by a dotted path.
+     * ```
+     * const d = {
+     *  accel: {x: 1, y: 2, z: 3},
+     *  gyro:  {x: 4, y: 5, z: 6}
+     * };
+     * getFieldByPath(d, `accel.x`); // 1
+     * getFieldByPath(d, `gyro.z`);  // 6
+     * getFieldByPath(d, `gyro`);    // {x:4, y:5, z:6}
+     * getFieldByPath(d, ``);        // Returns original object
+     * ```
+     *
+     * If a field does not exist, `undefined` is returned.
+     * Use {@link getFieldPaths} to get a list of paths.
+     * @param o
+     * @param path
+     * @returns
+     */
+    export const getFieldByPath: (o: any, path?: string) => any | undefined;
+    /**
+     * Returns a list of paths for all the fields on `o`
+     * ```
+     * const d = {
+     *  accel: {x: 1, y: 2, z: 3},
+     *  gyro:  {x: 4, y: 5, z: 6}
+     * };
+     * const paths = getFieldPaths(d);
+     * // Yields [ `accel.x`, `accel.y`,`accel.z`,`gyro.x`,`gyro.y`,`gyro.z` ]
+     * ```
+     *
+     * Use {@link getFieldByPath} to fetch data by this 'path' string.
+     * @param o
+     * @returns
+     */
+    export const getFieldPaths: (o: any) => readonly string[];
+    /**
+     * Rounds `v` up to the nearest multiple of `multiple`
+     * ```
+     * roundMultiple(19, 20); // 20
+     * roundMultiple(21, 20); // 40
+     * ```
+     * @param v
+     * @param multiple
+     * @returns
+     */
+    export const roundUpToMultiple: (v: number, multiple: number) => number;
+    export type ToString<V> = (itemToMakeStringFor: V) => string;
+    /**
+     * Function that returns true if `a` and `b` are considered equal
+     */
+    export type IsEqual<V> = (a: V, b: V) => boolean;
+    /**
+     * Default comparer function is equiv to checking `a === b`
+     */
+    export const isEqualDefault: <V>(a: V, b: V) => boolean;
+    /**
+     * Comparer returns true if string representation of `a` and `b` are equal.
+     * Uses `toStringDefault` to generate a string representation (`JSON.stringify`)
+     * @returns True if the contents of `a` and `b` are equal
+     */
+    export const isEqualValueDefault: <V>(a: V, b: V) => boolean;
+    /**
+     * A default converter to string that uses JSON.stringify if its an object, or the thing itself if it's a string
+     */
+    export const toStringDefault: <V>(itemToMakeStringFor: V) => string;
+    export const runningiOS: () => boolean;
+    /**
+     * Default sort comparer, following same sematics as Array.sort
+     * @param x
+     * @param y
+     * @returns
+     */
+    export const defaultComparer: (x: any, y: any) => 0 | 1 | -1;
+}
+declare module "collections/Map" {
+    import { IsEqual, ToString } from "Util";
+    /**
+     * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
+     * what key value might be under.
+     *
+     * Having a comparer function is useful to check by value rather than object reference.
+     *
+     * @example Find key value based on string equality
+     * ```js
+     * hasKeyValue(map,`hello`, `samantha`, (a, b) => a === b);
+     * ```
+     * @param map Map to search
+     * @param key Key to search
+     * @param value Value to search
+     * @param comparer Function to determine match
+     * @returns True if key is found
+     */
+    export const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comparer: IsEqual<V>) => boolean;
+    /**
+     * Deletes all key/values from map where value matches `value`,
+     * with optional comparer. Mutates map.
+     * @param map
+     * @param value
+     * @param comparer
+     */
+    export const deleteByValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer?: IsEqual<V>) => void;
+    export type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
+    export interface Mappish<K, V> {
+        get(key: K): V | undefined;
+        set(key: K, value: V): void;
+    }
+    /**
+     * Returns a function that fetches a value from a map, or generates and sets it if not present.
+     * Undefined is never returned, because if `fn` yields that, an error is thrown.
+     *
+     * See {@link getOrGenerateSync} for a synchronous version.
+     *
+     * ```
+     * const m = getOrGenerate(new Map(), (key) => {
+     *  return key.toUppercase();
+     * });
+     *
+     * // Not contained in map, so it will run the uppercase function,
+     * // setting the value to the key 'hello'.
+     * const v = await m(`hello`);  // Yields 'HELLO'
+     * const v1 = await m(`hello`); // Value exists, so it is returned ('HELLO')
+     * ```
+     *
+     */
+    export const getOrGenerate: <K, V, Z>(map: Mappish<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
+    /**
+     * @inheritDoc getOrGenerate
+     * @param map
+     * @param fn
+     * @returns
+     */
+    export const getOrGenerateSync: <K, V, Z>(map: Mappish<K, V>, fn: (key: K, args?: Z | undefined) => V) => (key: K, args?: Z | undefined) => V;
+    /**
+     * Adds items to a map only if their key doesn't already exist
+     *
+     * Uses provided {@link Util.ToString} function to create keys for items. Item is only added if it doesn't already exist.
+     * Thus the older item wins out, versus normal `Map.set` where the newest wins.
+     *
      *
      * @example
      * ```js
-     * // Get 50% between blue and red
-     * interpolate(0.5, `blue`, `red`);
+     * const map = new Map();
+     * const peopleArray = [ _some people objects..._];
+     * addUniqueByHash(map, p => p.name, ...peopleArray);
+     * ```
+     * @param set
+     * @param hashFunc
+     * @param values
+     * @returns
+     */
+    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
+    /**
+     * Returns a array of entries from a map, sorted by value
      *
-     * // Get midway point, with specified colour space
-     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
+     * ```js
+     * const m = new Map();
+     * m.set(`4491`, { name: `Bob` });
+     * m.set(`2319`, { name: `Alice` });
+     * const sorted = Maps.sortByValue(m, defaultComparer);
+     * ```
+     * @param map
+     * @param compareFn
+     * @returns
+     */
+    export const sortByValue: <K, V>(map: ReadonlyMap<K, V>, compareFn: (a: V, b: V) => number) => [K, V][];
+    /**
+     * Returns an array of entries from a map, sorted by a property of the value
+     *
+     * ```js
+     * cosnt m = new Map();
+     * m.set(`4491`, { name: `Bob` });
+     * m.set(`2319`, { name: `Alice` });
+     * const sorted = Maps.sortByValue(m, `name`);
+     * ```
+     * @param map Map to sort
+     * @param prop Property of value
+     * @param compareFn Comparer. If unspecified, uses a default.
+     */
+    export const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, prop: string, compareFn?: ((a: Z, b: Z) => number) | undefined) => [K, V][];
+    /**
+     * Returns true if _any_ key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
+     * if you only want to find a value under a certain key.
+     *
+     * Having a comparer function is useful to check by value rather than object reference.
+     * @example Finds value where name is 'samantha', regardless of other properties
+     * ```js
+     * hasAnyValue(map, {name:`samantha`}, (a, b) => a.name === b.name);
      * ```
      *
-     * [Named colours](https://html-color-codes.info/color-names/)
-     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
-     * @param from Starting colour
-     * @param to Final colour
-     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
-     * @returns String representation of colour, eg. `rgb(r,g,b)`
+     * Works by comparing `value` against all values contained in `map` for equality using the provided `comparer`.
+     *
+     * @param map Map to search
+     * @param value Value to find
+     * @param comparer Function that determines matching. Should return true if `a` and `b` are considered equal.
+     * @returns True if value is found
      */
-    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
+    export const hasAnyValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer: IsEqual<V>) => boolean;
     /**
-     * Produces a scale of colours as a string array
+     * Returns values where `predicate` returns true.
+     *
+     * If you just want the first match, use `find`
+     *
+     * @example All people over thirty
+     * ```js
+     * // for-of loop
+     * for (const v of filter(people, person => person.age > 30)) {
+     *
+     * }
+     * // If you want an array
+     * const overThirty = Array.from(filter(people, person => person.age > 30));
+     * ```
+     * @param map Map
+     * @param predicate Filtering predicate
+     * @returns Values that match predicate
+     */
+    export function filter<V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean): Generator<V, void, unknown>;
+    /**
+     * Copies data to an array
+     * @param map
+     * @returns
+     */
+    export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
+    /**
+     * Returns a Map from an iterable
+     * @param data Input data
+     * @param keyFn Function which returns a string id
+     * @param allowOverwrites If true, items with same id will silently overwrite each other, with last write wins
+     * @returns
+     */
+    export const fromIterable: <V>(data: Iterable<V>, keyFn: (v: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
+    /**
+     * Returns the first found item that matches `predicate` or _undefined_.
+     *
+     * If you want all matches, use {@link filter}.
+     *
+     * @example First person over thirty
+     * ```js
+     * const overThirty = find(people, person => person.age > 30);
+     * ```
+     * @param map Map to search
+     * @param predicate Function that returns true for a matching item
+     * @returns Found item or _undefined_
+     */
+    export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
+    /**
+     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link mapToObj}.
+     *
+     * ```js
+     * const map = new Map();
+     * map.set(`name`, `Alice`);
+     * map.set(`pet`, `dog`);
+     *
+     * const o = mapToObjTransform(map, v => {
+     *  ...v,
+     *  registered: true
+     * });
+     *
+     * // Yields: { name: `Alice`, pet: `dog`, registered: true }
+     * ```
+     *
+     * If the goal is to create a new map with transformed values, use {@link transformMap}.
+     * @param m
+     * @param valueTransform
+     * @typeParam T Value type of input map
+     * @typeParam K Value type of destination map
+     * @returns
+     */
+    export const mapToObjTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => {
+        readonly [key: string]: K;
+    };
+    /**
+     * Zips together an array of keys and values into an object. Requires that
+     * `keys` and `values` are the same length.
      *
      * @example
      * ```js
-     * // Yields array of 5 colour strings
-     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
-     * // Produces scale between three colours
-     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
+     * const o = zipKeyValue([`a`, `b`, `c`], [0, 1, 2])
+     * Yields: { a: 0, b: 1, c: 2}
+     *```
+      * @param keys String keys
+      * @param values Values
+      * @typeParam V Type of values
+      * @return Object with keys and values
+      */
+    export const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V | undefined>) => {
+        [k: string]: V | undefined;
+    };
+    /**
+     * Like `Array.map`, but for a Map. Transforms from Map<K,V> to Map<K,R>, returning as a new Map.
+     *
+     * @example
+     * ```js
+     * const mapOfStrings = new Map();
+     * mapOfStrings.set(`a`, `10`);
+     * mapOfStrings.get(`a`); // Yields `10` (a string)
+     *
+     * // Convert a map of string->string to string->number
+     * const mapOfInts = transformMap(mapOfStrings, (value, key) => parseInt(value));
+     *
+     * mapOfInts.get(`a`); // Yields 10 (a proper number)
      * ```
-     * @param steps Number of colours
-     * @param opts Options for interpolation, or string colour space eg `hsl`
-     * @param colours From/end colours (or more)
+     *
+     * If you want to combine values into a single object, consider instead  {@link mapToObjTransform}.
+     * @param source
+     * @param transformer
+     * @typeParam K Type of keys (generally a string)
+     * @typeParam V Type of input map values
+     * @typeParam R Type of output map values
      * @returns
      */
-    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
+    export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
+    /**
+     * Converts a `Map` to a plain object, useful for serializing to JSON
+     *
+     * @example
+     * ```js
+     * const str = JSON.stringify(mapToObj(map));
+     * ```
+     * @param m
+     * @returns
+     */
+    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
+        readonly [key: string]: T;
+    };
+    /**
+     * Converts Map to Array with a provided `transformer` function. Useful for plucking out certain properties
+     * from contained values and for creating a new map based on transformed values from an input map.
+     *
+     * @example Get an array of ages from a map of Person objects
+     * ```js
+     * let person = { age: 29, name: `John`};
+     * map.add(person.name, person);
+     *
+     * const ages = mapToArray(map, (key, person) => person.age);
+     * // [29, ...]
+     * ```
+     *
+     * In the above example, the `transformer` function returns a number, but it could
+     * just as well return a transformed version of the input:
+     *
+     * ```js
+     * // Return with random heights and uppercased name
+     * mapToArray(map, (key, person) => ({
+     *  ...person,
+     *  height: Math.random(),
+     *  name: person.name.toUpperCase();
+     * }))
+     * // Yields:
+     * // [{height: 0.12, age: 29, name: "JOHN"}, ...]
+     * ```
+     * @param m
+     * @param transformer A function that takes a key and item, returning a new item.
+     * @returns
+     */
+    export const mapToArray: <K, V, R>(m: ReadonlyMap<K, V>, transformer: (key: K, item: V) => R) => readonly R[];
+    /**
+     * Returns a result of a merged into b.
+     * B is always the 'newer' data that takes
+     * precedence.
+     */
+    export type MergeReconcile<V> = (a: V, b: V) => V;
+    /**
+     * Merges maps left to right, using the provided
+     * `reconcile` function to choose a winner when keys overlap.
+     *
+     * There's also [Arrays.mergeByKey](functions/Collections.Arrays.mergeByKey.html) if you don't already have a map.
+     *
+     * For example, if we have the map A:
+     * 1 => `A-1`, 2 => `A-2`, 3 => `A-3`
+     *
+     * And map B:
+     * 2 => `B-1`, 2 => `B-2`, 4 => `B-4`
+     *
+     * If they are merged with the reconile function:
+     * ```js
+     * const reconcile = (a, b) => b.replace(`-`, `!`);
+     * const output = mergeByKey(reconcile, mapA, mapB);
+     * ```
+     *
+     * The final result will be:
+     *
+     * 1 => `B!1`, 2 => `B!2`, 3 => `A-3`, 4 => `B-4`
+     *
+     * In this toy example, it's obvious how the reconciler transforms
+     * data where the keys overlap. For the keys that do not overlap -
+     * 3 and 4 in this example - they are copied unaltered.
+     *
+     * A practical use for `mergeByKey` has been in smoothing keypoints
+     * from a TensorFlow pose. In this case, we want to smooth new keypoints
+     * with older keypoints. But if a keypoint is not present, for it to be
+     * passed through.
+     *
+     * @param reconcile
+     * @param maps
+     */
+    export const mergeByKey: <K, V>(reconcile: MergeReconcile<V>, ...maps: readonly ReadonlyMap<K, V>[]) => ReadonlyMap<K, V>;
 }
 declare module "Debug" {
     /**
@@ -14555,10 +14969,16 @@ declare module "Debug" {
      * @param prefix
      * @returns
      */
-    export const logSet: (prefix: string) => {
-        log: (m: any) => void;
-        warn: (m: any) => void;
-        error: (m: any) => void;
+    export const logSet: (prefix: string, verbose?: boolean) => {
+        log: Logger;
+        warn: Logger;
+        error: Logger;
+    };
+    export type Logger = (m: any) => void;
+    export type LogSet = {
+        readonly log: Logger;
+        readonly warn: Logger;
+        readonly error: Logger;
     };
     /**
      * Returns a console logging function which prefixes messages. This is
@@ -14582,7 +15002,7 @@ declare module "Debug" {
      * @param kind
      * @returns
      */
-    export const logger: (prefix: string, kind?: `log` | `warn` | `error`) => (m: any) => void;
+    export const logger: (prefix: string, kind?: `log` | `warn` | `error`) => Logger;
 }
 declare module "Filters" {
     export const threshold: (threshold: number) => (v: number) => boolean;
@@ -14645,6 +15065,7 @@ declare module "__tests__/collections/queue.test" { }
 declare module "__tests__/collections/sets.test" { }
 declare module "__tests__/collections/stack.test" { }
 declare module "__tests__/data/data.test" { }
+declare module "__tests__/data/pool.test" { }
 declare module "flow/BehaviourTree" {
     export type TaskState = `Failed` | `Running` | `Success`;
     export type Task = {
