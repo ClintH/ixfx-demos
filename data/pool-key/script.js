@@ -4,8 +4,8 @@ import { Pool } from '../../ixfx/data.js';
 const settings = Object.freeze({
   pool: Pool.create({
     capacity: 10,
-    userExpireAfterMs: 1000,
-    resourcesWithoutUserExpireAfterMs: 10000,
+    userExpireAfterMs: 1*1000,
+    resourcesWithoutUserExpireAfterMs: 5*1000,
     fullPolicy: `evictOldestUser`,
     // Generate a new resource (in this example, a HTML element)
     generate: () => {
@@ -48,8 +48,6 @@ const useState = () => {
  */
 const onKeyDown = (evt) => {
   const { keysDown } = state;
-  console.log(evt.key);
-
   saveState({
     // Add key to list of keys down, if it's not already there
     keysDown: Arrays.pushUnique(keysDown, [ evt.key ])

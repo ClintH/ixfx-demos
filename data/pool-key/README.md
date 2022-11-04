@@ -1,6 +1,6 @@
 # pool-key
 
-Demonstrates the ixfx Pool class.
+Demonstrates the ixfx Pool class. [Try demo online](https://clinth.github.io/ixfx-demos/data/pool-key/).
 
 Pool resources in this case are HTML elements. These are generated on-demand up to the capacity of the Pool and automatically removed after an interval.
 
