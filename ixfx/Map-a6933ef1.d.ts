@@ -1,4 +1,198 @@
-import { I as IsEqual, T as ToString } from './Util-dd245d43.js';
+import { I as IsEqual, T as ToString } from './Util-21b4ff67.js';
+import { S as SimpleEventEmitter } from './Events-170d1411.js';
+
+/**
+ * Expiring map options
+ */
+declare type Opts = {
+    /**
+     * Capacity limit
+     */
+    readonly capacity?: number;
+    /**
+     * Policy for evicting items if capacity is reached
+     */
+    readonly evictPolicy?: `none` | `oldestGet` | `oldestSet`;
+    /**
+     * Automatic deletion policy.
+     * none: no automatic deletion (default)
+     * get/set: interval based on last get/set
+     * either: if either interval has elapsed
+     */
+    readonly autoDeletePolicy?: `none` | `get` | `set` | `either`;
+    /**
+     * Automatic deletion interval
+     */
+    readonly autoDeleteElapsedMs?: number;
+};
+/**
+ * Event from the ExpiringMap
+ */
+declare type ExpiringMapEvent<K, V> = {
+    readonly key: K;
+    readonly value: V;
+};
+declare type ExpiringMapEvents<K, V> = {
+    /**
+     * Fires when an item is removed due to eviction
+     * or automatic expiry
+     */
+    readonly expired: ExpiringMapEvent<K, V>;
+    /**
+     * Fires when a item with a new key is added
+     */
+    readonly newKey: ExpiringMapEvent<K, V>;
+    /**
+     * Fires when an item is manually removed,
+     * removed due to eviction or automatic expiry
+     */
+    readonly removed: ExpiringMapEvent<K, V>;
+};
+/**
+ * Create a ExpiringMap instance
+ * @param opts
+ * @returns
+ */
+declare const create: <K, V>(opts?: Opts) => ExpiringMap<K, V>;
+/***
+ * A map that can have a capacity limit. The elapsed time for each get/set
+ * operation is maintained allowing for items to be automatically removed.
+ * `has()` does not affect the last access time.
+ *
+ * By default, it uses the `none` eviction policy, meaning that when full
+ * an error will be thrown if attempting to add new keys.
+ *
+ * Eviction policies:
+ * `oldestGet` removes the item that hasn't been accessed the longest,
+ * `oldestSet` removes the item that hasn't been updated the longest.
+ *
+ * ```js
+ * const map = new ExpiringMap();
+ * map.set(`fruit`, `apple`);
+ *
+ * // Remove all entries that were set more than 100ms ago
+ * map.deleteWithElapsed(100, `set`);
+ * // Remove all entries that were last accessed more than 100ms ago
+ * map.deleteWithElapsed(100, `get`);
+ * // Returns the elapsed time since `fruit` was last accessed
+ * map.elapsedGet(`fruit`);
+ * // Returns the elapsed time since `fruit` was last set
+ * map.elapsedSet(`fruit`);
+ * ```
+ *
+ * Last set/get time for a key can be manually reset using `touch(key)`.
+ *
+ *
+ * Events:
+ * * `expired`: when an item is automatically removed.
+ * * `removed`: when an item is manually or automatically removed.
+ * * `newKey`: when a new key is added
+ *
+ * ```js
+ * map.addEventListener(`expired`, evt => {
+ *  const { key, value } = evt;
+ * });
+ * ```
+ * The map can automatically remove items based on elapsed intervals.
+ *
+ * @example Automatically delete items that haven't been accessed for one second
+ * ```js
+ * const map = new ExpiringMap({
+ *  autoDeleteElapsed: 1000,
+ *  autoDeletePolicy: `get`
+ * });
+ * ```
+ *
+ * @example Automatically delete the oldest item if we reach a capacity limit
+ * ```
+ * const map = new ExpiringMap({
+ *  capacity: 5,
+ *  evictPolicy: `oldestSet`
+ * });
+ * ```
+ */
+declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, V>> {
+    #private;
+    private capacity;
+    private store;
+    private keyCount;
+    private evictPolicy;
+    private autoDeleteElapsedMs;
+    private autoDeletePolicy;
+    constructor(opts?: Opts);
+    /**
+     * Returns the number of keys being stored.
+     */
+    get keyLength(): number;
+    entries(): IterableIterator<[k: K, v: V]>;
+    values(): IterableIterator<V>;
+    keys(): IterableIterator<K>;
+    /**
+     * Returns the elapsed time since `key`
+     * was set. Returns _undefined_ if `key`
+     * does not exist
+     */
+    elapsedSet(key: K): number | undefined;
+    /**
+     * Returns the elapsed time since `key`
+     * was accessed. Returns _undefined_ if `key`
+     * does not exist
+     */
+    elapsedGet(key: K): number | undefined;
+    /**
+     * Returns true if `key` is stored.
+     * Does not affect the key's last access time.
+     * @param key
+     * @returns
+     */
+    has(key: K): boolean;
+    /**
+     * Gets an item from the map by key, returning
+     * undefined if not present
+     * @param key Key
+     * @returns Value, or undefined
+     */
+    get(key: K): V | undefined;
+    /**
+     * Deletes the value under `key`, if present.
+     *
+     * Returns _true_ if something was removed.
+     * @param key
+     * @returns
+     */
+    delete(key: K): boolean;
+    /**
+     * Updates the lastSet/lastGet time for a value
+     * under `k`.
+     *
+     * Returns false if key was not found
+     * @param key
+     * @returns
+     */
+    touch(key: K): boolean;
+    private findEvicteeKey;
+    /**
+     * Deletes all values where elapsed time has past
+     * for get/set or either.
+     *
+     * Remove items are returned
+     * @param time
+     * @param prop get/set/either
+     */
+    deleteWithElapsed(time: number, prop: `get` | `set` | `either`): [k: K, v: V][];
+    /**
+     * Sets the `key` to be `value`.
+     *
+     * If the key already exists, it is updated.
+     *
+     * If the map is full, according to its capacity,
+     * another value is selected for removal.
+     * @param key
+     * @param value
+     * @returns
+     */
+    set(key: K, value: V): void;
+}
 
 /**
  * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
@@ -101,7 +295,7 @@ declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, h
  * const sorted = Maps.sortByValue(m, comparer);
  * ```
  *
- * `sortByValue` takes a comparison function that should return -1, 0 or 1 to indicate order of `a` to `b`. If not provided, {@link defaultComparer} is used.
+ * `sortByValue` takes a comparison function that should return -1, 0 or 1 to indicate order of `a` to `b`. If not provided, {@link Util.defaultComparer} is used.
  * @param map
  * @param compareFn
  * @returns
@@ -417,6 +611,10 @@ declare const Map$1_toObject: typeof toObject;
 declare const Map$1_mapToArray: typeof mapToArray;
 type Map$1_MergeReconcile<V> = MergeReconcile<V>;
 declare const Map$1_mergeByKey: typeof mergeByKey;
+type Map$1_ExpiringMap<K, V> = ExpiringMap<K, V>;
+declare const Map$1_ExpiringMap: typeof ExpiringMap;
+type Map$1_ExpiringMapEvent<K, V> = ExpiringMapEvent<K, V>;
+type Map$1_ExpiringMapEvents<K, V> = ExpiringMapEvents<K, V>;
 declare namespace Map$1 {
   export {
     Map$1_hasKeyValue as hasKeyValue,
@@ -442,7 +640,12 @@ declare namespace Map$1 {
     Map$1_mapToArray as mapToArray,
     Map$1_MergeReconcile as MergeReconcile,
     Map$1_mergeByKey as mergeByKey,
+    create as expiringMap,
+    Map$1_ExpiringMap as ExpiringMap,
+    Map$1_ExpiringMapEvent as ExpiringMapEvent,
+    Map$1_ExpiringMapEvents as ExpiringMapEvents,
+    Opts as ExpiringMapOpts,
   };
 }
 
-export { GetOrGenerate as G, Map$1 as M, Mappish as a, getOrGenerateSync as b, addKeepingExisting as c, deleteByValue as d, sortByValueProperty as e, hasAnyValue as f, getOrGenerate as g, hasKeyValue as h, filter as i, fromIterable as j, fromObject as k, addObject as l, find as m, mapToObjTransform as n, transformMap as o, toObject as p, mapToArray as q, MergeReconcile as r, sortByValue as s, toArray as t, mergeByKey as u, zipKeyValue as z };
+export { ExpiringMap as E, GetOrGenerate as G, Map$1 as M, Opts as O, Mappish as a, getOrGenerateSync as b, addKeepingExisting as c, deleteByValue as d, sortByValueProperty as e, hasAnyValue as f, getOrGenerate as g, hasKeyValue as h, filter as i, fromIterable as j, fromObject as k, addObject as l, find as m, mapToObjTransform as n, transformMap as o, toObject as p, mapToArray as q, MergeReconcile as r, sortByValue as s, toArray as t, mergeByKey as u, create as v, ExpiringMapEvent as w, ExpiringMapEvents as x, zipKeyValue as z };

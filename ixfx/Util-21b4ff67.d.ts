@@ -330,6 +330,32 @@ declare namespace Debug {
  */
 declare const ifNaN: (v: number, fallback: number) => number;
 /**
+ * Maps the properties of an object through a map function.
+ * In terms of typesafety, the mapped properties are assumed to have the
+ * same type.
+ *
+ * ```js
+ * const o = {
+ *  x: 10,
+ *  y: 20,
+ *  width: 200,
+ *  height: 200
+ * }
+ *
+ * // Make each property use an averager instead
+ * const oAvg = mapObject(o, (value, key) => {
+ *  return movingAverage(10);
+ * });
+ *
+ * // Add a value to the averager
+ * oAvg.x.add(20);
+ * ```
+ */
+declare const mapObject: <X extends Record<string, unknown>, V>(object: X, mapFn: (value: any, key?: readonly [keyof X] | undefined, index?: number) => V) => RemapObjectPropertyType<X, V>;
+declare type RemapObjectPropertyType<OriginalType, PropType> = {
+    readonly [Property in keyof OriginalType]: PropType;
+};
+/**
  * Returns true if `x` is a power of two
  * @param x
  * @returns True if `x` is a power of two
@@ -428,6 +454,8 @@ declare const runningiOS: () => boolean;
 declare const defaultComparer: (x: any, y: any) => 0 | 1 | -1;
 
 declare const Util_ifNaN: typeof ifNaN;
+declare const Util_mapObject: typeof mapObject;
+type Util_RemapObjectPropertyType<OriginalType, PropType> = RemapObjectPropertyType<OriginalType, PropType>;
 declare const Util_isPowerOfTwo: typeof isPowerOfTwo;
 declare const Util_relativeDifference: typeof relativeDifference;
 declare const Util_getFieldByPath: typeof getFieldByPath;
@@ -445,6 +473,8 @@ declare const Util_Debug: typeof Debug;
 declare namespace Util {
   export {
     Util_ifNaN as ifNaN,
+    Util_mapObject as mapObject,
+    Util_RemapObjectPropertyType as RemapObjectPropertyType,
     Util_isPowerOfTwo as isPowerOfTwo,
     Util_relativeDifference as relativeDifference,
     Util_getFieldByPath as getFieldByPath,
@@ -462,4 +492,4 @@ declare namespace Util {
   };
 }
 
-export { Debug as D, IsEqual as I, LogSet as L, ToString as T, Util as U, IterableAsync as a, isPowerOfTwo as b, getFieldPaths as c, roundUpToMultiple as d, isEqualDefault as e, isEqualValueDefault as f, getFieldByPath as g, runningiOS as h, ifNaN as i, defaultComparer as j, relativeDifference as r, toStringDefault as t };
+export { Debug as D, IsEqual as I, LogSet as L, RemapObjectPropertyType as R, ToString as T, Util as U, IterableAsync as a, isPowerOfTwo as b, getFieldPaths as c, roundUpToMultiple as d, isEqualDefault as e, isEqualValueDefault as f, getFieldByPath as g, runningiOS as h, ifNaN as i, defaultComparer as j, mapObject as m, relativeDifference as r, toStringDefault as t };

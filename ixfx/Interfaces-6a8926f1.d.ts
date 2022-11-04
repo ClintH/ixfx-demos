@@ -1,5 +1,5 @@
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
-import { T as ToString, I as IsEqual } from './Util-dd245d43.js';
+import { T as ToString, I as IsEqual } from './Util-21b4ff67.js';
 
 declare type ArrayKeys<K, V> = ReadonlyArray<readonly [key: K, value: V]>;
 declare type ObjKeys<K, V> = ReadonlyArray<{
@@ -171,7 +171,7 @@ interface QueueMutable<V> {
 }
 /**
  * A Set which stores unique items determined by their value, rather
- * than object reference (unlike the default JS Set). Create with {@link set}. Immutable.
+ * than object reference (unlike the default JS Set). Create with {@link Sets.set}. Immutable.
  *
  * By default the `JSON.stringify()` representation is considered the 'key' for an object.
  * Pass in a function to `setMutable` to define your own way of creating keys for values. The principle should

@@ -451,7 +451,7 @@ declare module "collections/Interfaces" {
     }
     /**
      * A Set which stores unique items determined by their value, rather
-     * than object reference (unlike the default JS Set). Create with {@link set}. Immutable.
+     * than object reference (unlike the default JS Set). Create with {@link Sets.set}. Immutable.
      *
      * By default the `JSON.stringify()` representation is considered the 'key' for an object.
      * Pass in a function to `setMutable` to define your own way of creating keys for values. The principle should
@@ -1566,131 +1566,6 @@ declare module "collections/MapMutable" {
      */
     export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
 }
-declare module "collections/ExpiringMap" {
-    import { SimpleEventEmitter } from "Events";
-    export type Opts = {
-        readonly capacity?: number;
-        readonly evictPolicy?: `none` | `oldestAccess` | `oldestSet`;
-        readonly autoDeletePolicy?: `none` | `access` | `set`;
-        readonly autoDeleteElapsedMs?: number;
-    };
-    export type ExpiringMapEvent<K, V> = {
-        readonly key: K;
-        readonly value: V;
-    };
-    export type ExpiringMapEvents<K, V> = {
-        /**
-         * Fires when an item is removed due to eviction
-         * or automatic expiry
-         */
-        readonly expired: ExpiringMapEvent<K, V>;
-        /**
-         * Fires when a item with a new key is added
-         */
-        readonly newKey: ExpiringMapEvent<K, V>;
-        /**
-         * Fires when an item is manually removed,
-         * removed due to eviction or automatic expiry
-         */
-        readonly removed: ExpiringMapEvent<K, V>;
-    };
-    /***
-     * A map that can have a capacity limit.
-     *
-     * By default, it uses the `none` eviction policy, meaning that when full
-     * an error will be thrown if attempting to add new keys.
-     *
-     * Eviction policies:
-     * `oldestAccess` removes the item that hasn't been accessed the longest,
-     * `oldestSet` removes the item that hasn't been updated the longest.
-     *
-     * Events:
-     * * `expired`: when an item is automatically removed.
-     * * `removed`: when an item is manually or automatically removed.
-     * * `newKey`: when a new key is added
-     */
-    export class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, V>> {
-        #private;
-        private capacity;
-        private store;
-        private keyCount;
-        private evictPolicy;
-        private autoDeleteElapsedMs;
-        private autoDeletePolicy;
-        constructor(opts: Opts);
-        /**
-         * Returns the number of keys being stored.
-         */
-        get keyLength(): number;
-        entries(): IterableIterator<[k: K, v: V]>;
-        values(): IterableIterator<V>;
-        keys(): IterableIterator<K>;
-        /**
-         * Returns the elapsed time since `key`
-         * was set. Returns _undefined_ if `key`
-         * does not exist
-         */
-        elapsedSet(key: K): number | undefined;
-        /**
-         * Returns the elapsed time since `key`
-         * was accessed. Returns _undefined_ if `key`
-         * does not exist
-         */
-        elapsedGet(key: K): number | undefined;
-        /**
-         * Returns true if `key` is stored.
-         * Does not affect the key's last access time.
-         * @param key
-         * @returns
-         */
-        has(key: K): boolean;
-        /**
-         * Gets an item from the map by key, returning
-         * undefined if not present
-         * @param key Key
-         * @returns Value, or undefined
-         */
-        get(key: K): V | undefined;
-        /**
-         * Deletes the value under `key`, if present.
-         *
-         * Returns _true_ if something was removed.
-         * @param key
-         * @returns
-         */
-        delete(key: K): boolean;
-        /**
-         * Updates the lastSet/lastGet time for a value
-         * under `k`.
-         *
-         * Returns false if key was not found
-         * @param key
-         * @returns
-         */
-        touch(key: K): boolean;
-        private findEvicteeKey;
-        /**
-         * Deletes all values where the the time since
-         * last access is greater than `time`.
-         *
-         * Remove items are returned
-         * @param time
-         */
-        deleteWithElapsed(time: number, prop: `access` | `set`): [k: K, v: V][];
-        /**
-         * Sets the `key` to be `value`.
-         *
-         * If the key already exists, it is updated.
-         *
-         * If the map is full, according to its capacity,
-         * another value is selected for removal.
-         * @param key
-         * @param value
-         * @returns
-         */
-        set(key: K, value: V): void;
-    }
-}
 declare module "collections/index" {
     export * from "collections/Interfaces";
     export { mapSet, mapCircularMutable, mapArray } from "collections/MapMultiMutable";
@@ -1755,7 +1630,7 @@ declare module "collections/index" {
      *
      * ixfx's {@link SetImmutable} (or {@link SetMutable}) compares items by value rather than reference, unlike the default JS implementation.
      *
-     * Create using {@link set} or {@link setMutable}
+     * Create using {@link Sets.set} or {@link Sets.setMutable}
      */
     export * as Sets from "collections/Set";
     /**
@@ -1773,7 +1648,6 @@ declare module "collections/index" {
      * Create queues with {@link queue} or {@link queueMutable}. These return a {@link Queue} or {@link QueueMutable} respectively.
      */
     export * as Queues from "collections/Queue";
-    export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts } from "collections/ExpiringMap";
     /**
      * Maps associate keys with values. Several helper functions are provided
      * for working with the standard JS Map class.
@@ -4106,6 +3980,7 @@ declare module "modulation/Envelope" {
 }
 declare module "geometry/Rect" {
     import { Points, Lines } from "geometry/index";
+    import { RandomSource } from "Random";
     export type Rect = {
         readonly width: number;
         readonly height: number;
@@ -4635,6 +4510,23 @@ declare module "geometry/Rect" {
      * @returns
      */
     export const area: (rect: Rect) => number;
+    /**
+     * Returns a random positioned Rect on a 0..1 scale.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const r = Rects.random(); // eg {x: 0.2549012, y:0.859301, width: 0.5212, height: 0.1423 }
+     * ```
+     *
+     * A custom source of randomness can be provided:
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * import { weightedSkewed } from "https://unpkg.com/ixfx/dist/random.js"
+     * const r = Rects.random(weightedSkewed(`quadIn`));
+     * ```
+     * @param rando
+     * @returns
+     */
+    export const random: (rando?: RandomSource) => RectPositioned;
 }
 declare module "modulation/Forces" {
     /**
@@ -12577,6 +12469,10 @@ declare module "index" {
      *
      * * Create with {@link map} or {@link mapMutable}
      *
+     * {@link Maps.ExpiringMap} has the same semantics as a regular map, but can automatically remove items if they haven't been set/get for a given interval, and/or if a capacity limit is reached.
+     *
+     * * Create with {@link Maps.expiringMap}
+     *
      * ### Map-of
      *
      * {@link MapOfMutable} allows for several values to be stored under a single key. Unlike a regular JS Map
@@ -14754,6 +14650,32 @@ declare module "Util" {
      */
     export const ifNaN: (v: number, fallback: number) => number;
     /**
+     * Maps the properties of an object through a map function.
+     * In terms of typesafety, the mapped properties are assumed to have the
+     * same type.
+     *
+     * ```js
+     * const o = {
+     *  x: 10,
+     *  y: 20,
+     *  width: 200,
+     *  height: 200
+     * }
+     *
+     * // Make each property use an averager instead
+     * const oAvg = mapObject(o, (value, key) => {
+     *  return movingAverage(10);
+     * });
+     *
+     * // Add a value to the averager
+     * oAvg.x.add(20);
+     * ```
+     */
+    export const mapObject: <X extends Record<string, unknown>, V>(object: X, mapFn: (value: any, key?: readonly [keyof X] | undefined, index?: number) => V) => RemapObjectPropertyType<X, V>;
+    export type RemapObjectPropertyType<OriginalType, PropType> = {
+        readonly [Property in keyof OriginalType]: PropType;
+    };
+    /**
      * Returns true if `x` is a power of two
      * @param x
      * @returns True if `x` is a power of two
@@ -14851,8 +14773,204 @@ declare module "Util" {
      */
     export const defaultComparer: (x: any, y: any) => 0 | 1 | -1;
 }
+declare module "collections/ExpiringMap" {
+    import { SimpleEventEmitter } from "Events";
+    /**
+     * Expiring map options
+     */
+    export type Opts = {
+        /**
+         * Capacity limit
+         */
+        readonly capacity?: number;
+        /**
+         * Policy for evicting items if capacity is reached
+         */
+        readonly evictPolicy?: `none` | `oldestGet` | `oldestSet`;
+        /**
+         * Automatic deletion policy.
+         * none: no automatic deletion (default)
+         * get/set: interval based on last get/set
+         * either: if either interval has elapsed
+         */
+        readonly autoDeletePolicy?: `none` | `get` | `set` | `either`;
+        /**
+         * Automatic deletion interval
+         */
+        readonly autoDeleteElapsedMs?: number;
+    };
+    /**
+     * Event from the ExpiringMap
+     */
+    export type ExpiringMapEvent<K, V> = {
+        readonly key: K;
+        readonly value: V;
+    };
+    export type ExpiringMapEvents<K, V> = {
+        /**
+         * Fires when an item is removed due to eviction
+         * or automatic expiry
+         */
+        readonly expired: ExpiringMapEvent<K, V>;
+        /**
+         * Fires when a item with a new key is added
+         */
+        readonly newKey: ExpiringMapEvent<K, V>;
+        /**
+         * Fires when an item is manually removed,
+         * removed due to eviction or automatic expiry
+         */
+        readonly removed: ExpiringMapEvent<K, V>;
+    };
+    /**
+     * Create a ExpiringMap instance
+     * @param opts
+     * @returns
+     */
+    export const create: <K, V>(opts?: Opts) => ExpiringMap<K, V>;
+    /***
+     * A map that can have a capacity limit. The elapsed time for each get/set
+     * operation is maintained allowing for items to be automatically removed.
+     * `has()` does not affect the last access time.
+     *
+     * By default, it uses the `none` eviction policy, meaning that when full
+     * an error will be thrown if attempting to add new keys.
+     *
+     * Eviction policies:
+     * `oldestGet` removes the item that hasn't been accessed the longest,
+     * `oldestSet` removes the item that hasn't been updated the longest.
+     *
+     * ```js
+     * const map = new ExpiringMap();
+     * map.set(`fruit`, `apple`);
+     *
+     * // Remove all entries that were set more than 100ms ago
+     * map.deleteWithElapsed(100, `set`);
+     * // Remove all entries that were last accessed more than 100ms ago
+     * map.deleteWithElapsed(100, `get`);
+     * // Returns the elapsed time since `fruit` was last accessed
+     * map.elapsedGet(`fruit`);
+     * // Returns the elapsed time since `fruit` was last set
+     * map.elapsedSet(`fruit`);
+     * ```
+     *
+     * Last set/get time for a key can be manually reset using `touch(key)`.
+     *
+     *
+     * Events:
+     * * `expired`: when an item is automatically removed.
+     * * `removed`: when an item is manually or automatically removed.
+     * * `newKey`: when a new key is added
+     *
+     * ```js
+     * map.addEventListener(`expired`, evt => {
+     *  const { key, value } = evt;
+     * });
+     * ```
+     * The map can automatically remove items based on elapsed intervals.
+     *
+     * @example Automatically delete items that haven't been accessed for one second
+     * ```js
+     * const map = new ExpiringMap({
+     *  autoDeleteElapsed: 1000,
+     *  autoDeletePolicy: `get`
+     * });
+     * ```
+     *
+     * @example Automatically delete the oldest item if we reach a capacity limit
+     * ```
+     * const map = new ExpiringMap({
+     *  capacity: 5,
+     *  evictPolicy: `oldestSet`
+     * });
+     * ```
+     */
+    export class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, V>> {
+        #private;
+        private capacity;
+        private store;
+        private keyCount;
+        private evictPolicy;
+        private autoDeleteElapsedMs;
+        private autoDeletePolicy;
+        constructor(opts?: Opts);
+        /**
+         * Returns the number of keys being stored.
+         */
+        get keyLength(): number;
+        entries(): IterableIterator<[k: K, v: V]>;
+        values(): IterableIterator<V>;
+        keys(): IterableIterator<K>;
+        /**
+         * Returns the elapsed time since `key`
+         * was set. Returns _undefined_ if `key`
+         * does not exist
+         */
+        elapsedSet(key: K): number | undefined;
+        /**
+         * Returns the elapsed time since `key`
+         * was accessed. Returns _undefined_ if `key`
+         * does not exist
+         */
+        elapsedGet(key: K): number | undefined;
+        /**
+         * Returns true if `key` is stored.
+         * Does not affect the key's last access time.
+         * @param key
+         * @returns
+         */
+        has(key: K): boolean;
+        /**
+         * Gets an item from the map by key, returning
+         * undefined if not present
+         * @param key Key
+         * @returns Value, or undefined
+         */
+        get(key: K): V | undefined;
+        /**
+         * Deletes the value under `key`, if present.
+         *
+         * Returns _true_ if something was removed.
+         * @param key
+         * @returns
+         */
+        delete(key: K): boolean;
+        /**
+         * Updates the lastSet/lastGet time for a value
+         * under `k`.
+         *
+         * Returns false if key was not found
+         * @param key
+         * @returns
+         */
+        touch(key: K): boolean;
+        private findEvicteeKey;
+        /**
+         * Deletes all values where elapsed time has past
+         * for get/set or either.
+         *
+         * Remove items are returned
+         * @param time
+         * @param prop get/set/either
+         */
+        deleteWithElapsed(time: number, prop: `get` | `set` | `either`): [k: K, v: V][];
+        /**
+         * Sets the `key` to be `value`.
+         *
+         * If the key already exists, it is updated.
+         *
+         * If the map is full, according to its capacity,
+         * another value is selected for removal.
+         * @param key
+         * @param value
+         * @returns
+         */
+        set(key: K, value: V): void;
+    }
+}
 declare module "collections/Map" {
     import { IsEqual, ToString } from "Util";
+    export { create as expiringMap, ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts } from "collections/ExpiringMap";
     /**
      * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
      * what key value might be under.
@@ -14954,7 +15072,7 @@ declare module "collections/Map" {
      * const sorted = Maps.sortByValue(m, comparer);
      * ```
      *
-     * `sortByValue` takes a comparison function that should return -1, 0 or 1 to indicate order of `a` to `b`. If not provided, {@link defaultComparer} is used.
+     * `sortByValue` takes a comparison function that should return -1, 0 or 1 to indicate order of `a` to `b`. If not provided, {@link Util.defaultComparer} is used.
      * @param map
      * @param compareFn
      * @returns

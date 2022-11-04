@@ -1,9 +1,9 @@
-import { b as MapArrayEvents, c as MultiValue, d as MapMultiOpts, M as MapOfMutable, e as MapArrayOpts, f as MapSetOpts, g as MapCircularOpts, C as CircularArray, h as SimpleMapArrayMutable, D as DiscardPolicy, a as Stack$1, i as StackMutable, j as Queue$1, Q as QueueMutable, E as EitherKey, k as MapImmutable, l as MapMutable, A as ArrayKeys, O as ObjKeys, V as ValueSetEventMap, m as SetImmutable, S as SetMutable, n as StackBase } from './Interfaces-4d04fb57.js';
+import { b as MapArrayEvents, c as MultiValue, d as MapMultiOpts, M as MapOfMutable, e as MapArrayOpts, f as MapSetOpts, g as MapCircularOpts, C as CircularArray, h as SimpleMapArrayMutable, D as DiscardPolicy, a as Stack$1, i as StackMutable, j as Queue$1, Q as QueueMutable, E as EitherKey, k as MapImmutable, l as MapMutable, A as ArrayKeys, O as ObjKeys, V as ValueSetEventMap, m as SetImmutable, S as SetMutable, n as StackBase } from './Interfaces-6a8926f1.js';
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
-import { T as ToString } from './Util-dd245d43.js';
-import { s as setMutable, S as Set } from './Set-3d9e5fd8.js';
-import { A as Arrays } from './Arrays-3ede4cd5.js';
-import { M as Map$1 } from './Map-bd337a51.js';
+import { T as ToString } from './Util-21b4ff67.js';
+import { s as setMutable, S as Set } from './Set-5b4e2b9f.js';
+import { A as Arrays } from './Arrays-ad1173f7.js';
+import { M as Map$1 } from './Map-a6933ef1.js';
 
 /**
  * @internal
@@ -374,129 +374,6 @@ declare const map: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V> | unde
  */
 declare const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
 
-declare type Opts = {
-    readonly capacity?: number;
-    readonly evictPolicy?: `none` | `oldestAccess` | `oldestSet`;
-    readonly autoDeletePolicy?: `none` | `access` | `set`;
-    readonly autoDeleteElapsedMs?: number;
-};
-declare type ExpiringMapEvent<K, V> = {
-    readonly key: K;
-    readonly value: V;
-};
-declare type ExpiringMapEvents<K, V> = {
-    /**
-     * Fires when an item is removed due to eviction
-     * or automatic expiry
-     */
-    readonly expired: ExpiringMapEvent<K, V>;
-    /**
-     * Fires when a item with a new key is added
-     */
-    readonly newKey: ExpiringMapEvent<K, V>;
-    /**
-     * Fires when an item is manually removed,
-     * removed due to eviction or automatic expiry
-     */
-    readonly removed: ExpiringMapEvent<K, V>;
-};
-/***
- * A map that can have a capacity limit.
- *
- * By default, it uses the `none` eviction policy, meaning that when full
- * an error will be thrown if attempting to add new keys.
- *
- * Eviction policies:
- * `oldestAccess` removes the item that hasn't been accessed the longest,
- * `oldestSet` removes the item that hasn't been updated the longest.
- *
- * Events:
- * * `expired`: when an item is automatically removed.
- * * `removed`: when an item is manually or automatically removed.
- * * `newKey`: when a new key is added
- */
-declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, V>> {
-    #private;
-    private capacity;
-    private store;
-    private keyCount;
-    private evictPolicy;
-    private autoDeleteElapsedMs;
-    private autoDeletePolicy;
-    constructor(opts: Opts);
-    /**
-     * Returns the number of keys being stored.
-     */
-    get keyLength(): number;
-    entries(): IterableIterator<[k: K, v: V]>;
-    values(): IterableIterator<V>;
-    keys(): IterableIterator<K>;
-    /**
-     * Returns the elapsed time since `key`
-     * was set. Returns _undefined_ if `key`
-     * does not exist
-     */
-    elapsedSet(key: K): number | undefined;
-    /**
-     * Returns the elapsed time since `key`
-     * was accessed. Returns _undefined_ if `key`
-     * does not exist
-     */
-    elapsedGet(key: K): number | undefined;
-    /**
-     * Returns true if `key` is stored.
-     * Does not affect the key's last access time.
-     * @param key
-     * @returns
-     */
-    has(key: K): boolean;
-    /**
-     * Gets an item from the map by key, returning
-     * undefined if not present
-     * @param key Key
-     * @returns Value, or undefined
-     */
-    get(key: K): V | undefined;
-    /**
-     * Deletes the value under `key`, if present.
-     *
-     * Returns _true_ if something was removed.
-     * @param key
-     * @returns
-     */
-    delete(key: K): boolean;
-    /**
-     * Updates the lastSet/lastGet time for a value
-     * under `k`.
-     *
-     * Returns false if key was not found
-     * @param key
-     * @returns
-     */
-    touch(key: K): boolean;
-    private findEvicteeKey;
-    /**
-     * Deletes all values where the the time since
-     * last access is greater than `time`.
-     *
-     * Remove items are returned
-     * @param time
-     */
-    deleteWithElapsed(time: number, prop: `access` | `set`): [k: K, v: V][];
-    /**
-     * Sets the `key` to be `value`.
-     *
-     * If the key already exists, it is updated.
-     *
-     * If the map is full, according to its capacity,
-     * another value is selected for removal.
-     * @param key
-     * @param value
-     * @returns
-     */
-    set(key: K, value: V): void;
-}
-
 declare const index_mapSet: typeof mapSet;
 declare const index_mapCircularMutable: typeof mapCircularMutable;
 declare const index_mapArray: typeof mapArray;
@@ -512,10 +389,6 @@ declare const index_mapMutable: typeof mapMutable;
 type index_MapOfMutableImpl<V, M> = MapOfMutableImpl<V, M>;
 declare const index_MapOfMutableImpl: typeof MapOfMutableImpl;
 declare const index_Arrays: typeof Arrays;
-type index_ExpiringMap<K, V> = ExpiringMap<K, V>;
-declare const index_ExpiringMap: typeof ExpiringMap;
-type index_ExpiringMapEvent<K, V> = ExpiringMapEvent<K, V>;
-type index_ExpiringMapEvents<K, V> = ExpiringMapEvents<K, V>;
 declare const index_ArrayKeys: typeof ArrayKeys;
 declare const index_ObjKeys: typeof ObjKeys;
 declare const index_EitherKey: typeof EitherKey;
@@ -556,10 +429,6 @@ declare namespace index {
     index_Arrays as Arrays,
     Set as Sets,
     Queue as Queues,
-    index_ExpiringMap as ExpiringMap,
-    index_ExpiringMapEvent as ExpiringMapEvent,
-    index_ExpiringMapEvents as ExpiringMapEvents,
-    Opts as ExpiringMapOpts,
     Map$1 as Maps,
     index_ArrayKeys as ArrayKeys,
     index_ObjKeys as ObjKeys,
@@ -587,4 +456,4 @@ declare namespace index {
   };
 }
 
-export { ExpiringMap as E, MapOfMutableImpl as M, Opts as O, Queue as Q, Stack as S, mapCircularMutable as a, mapArray as b, circularArray as c, stack as d, stackMutable as e, queueMutable as f, map as g, mapMutable as h, index as i, ExpiringMapEvent as j, ExpiringMapEvents as k, mapSet as m, queue as q, simpleMapArrayMutable as s };
+export { MapOfMutableImpl as M, Queue as Q, Stack as S, mapCircularMutable as a, mapArray as b, circularArray as c, stack as d, stackMutable as e, queueMutable as f, map as g, mapMutable as h, index as i, mapSet as m, queue as q, simpleMapArrayMutable as s };

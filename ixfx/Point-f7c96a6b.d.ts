@@ -1,4 +1,4 @@
-import { a as RandomSource } from './Arrays-3ede4cd5.js';
+import { a as RandomSource } from './Arrays-ad1173f7.js';
 
 declare type Path = {
     length(): number;
@@ -1562,6 +1562,23 @@ declare const perimeter: (rect: Rect) => number;
  * @returns
  */
 declare const area: (rect: Rect) => number;
+/**
+ * Returns a random positioned Rect on a 0..1 scale.
+ * ```js
+ * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+ * const r = Rects.random(); // eg {x: 0.2549012, y:0.859301, width: 0.5212, height: 0.1423 }
+ * ```
+ *
+ * A custom source of randomness can be provided:
+ * ```js
+ * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+ * import { weightedSkewed } from "https://unpkg.com/ixfx/dist/random.js"
+ * const r = Rects.random(weightedSkewed(`quadIn`));
+ * ```
+ * @param rando
+ * @returns
+ */
+declare const random$1: (rando?: RandomSource) => RectPositioned;
 
 type Rect$1_Rect = Rect;
 type Rect$1_RectPositioned = RectPositioned;
@@ -1630,6 +1647,7 @@ declare namespace Rect$1 {
     Rect$1_edges as edges,
     Rect$1_perimeter as perimeter,
     Rect$1_area as area,
+    random$1 as random,
   };
 }
 

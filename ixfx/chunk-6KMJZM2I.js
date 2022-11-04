@@ -7699,7 +7699,6 @@ __export(Line_exports, {
 var collections_exports = {};
 __export(collections_exports, {
   Arrays: () => Arrays_exports,
-  ExpiringMap: () => ExpiringMap,
   MapOfMutableImpl: () => MapOfMutableImpl,
   Maps: () => Map_exports,
   Queues: () => Queue_exports,
@@ -7731,6 +7730,7 @@ __export(Util_exports, {
   isEqualDefault: () => isEqualDefault,
   isEqualValueDefault: () => isEqualValueDefault,
   isPowerOfTwo: () => isPowerOfTwo,
+  mapObject: () => mapObject,
   relativeDifference: () => relativeDifference,
   roundUpToMultiple: () => roundUpToMultiple,
   runningiOS: () => runningiOS,
@@ -7878,9 +7878,11 @@ __export(Debug_exports, {
 // src/collections/Map.ts
 var Map_exports = {};
 __export(Map_exports, {
+  ExpiringMap: () => ExpiringMap,
   addKeepingExisting: () => addKeepingExisting,
   addObject: () => addObject,
   deleteByValue: () => deleteByValue,
+  expiringMap: () => create,
   filter: () => filter,
   find: () => find,
   fromIterable: () => fromIterable,
@@ -7899,6 +7901,169 @@ __export(Map_exports, {
   transformMap: () => transformMap,
   zipKeyValue: () => zipKeyValue
 });
+
+// src/collections/ExpiringMap.ts
+var create = (opts = {}) => new ExpiringMap(opts);
+var _maintain, maintain_fn;
+var ExpiringMap = class extends SimpleEventEmitter {
+  constructor(opts = {}) {
+    super();
+    __privateAdd(this, _maintain);
+    __publicField(this, "capacity");
+    __publicField(this, "store");
+    __publicField(this, "keyCount");
+    __publicField(this, "evictPolicy");
+    __publicField(this, "autoDeleteElapsedMs");
+    __publicField(this, "autoDeletePolicy");
+    this.capacity = opts.capacity ?? -1;
+    integer(this.capacity, `nonZero`, `capacity`);
+    this.store = /* @__PURE__ */ new Map();
+    this.keyCount = 0;
+    if (opts.evictPolicy && this.capacity <= 0)
+      throw new Error(`evictPolicy is set, but no capacity limit is set`);
+    this.evictPolicy = opts.evictPolicy ?? `none`;
+    this.autoDeleteElapsedMs = opts.autoDeleteElapsedMs ?? -1;
+    this.autoDeletePolicy = opts.autoDeletePolicy ?? `none`;
+    if (this.autoDeleteElapsedMs > 0) {
+      setInterval(() => __privateMethod(this, _maintain, maintain_fn).call(this), Math.max(1e3, this.autoDeleteElapsedMs * 2));
+    }
+  }
+  get keyLength() {
+    return this.keyCount;
+  }
+  *entries() {
+    for (const entry of this.store.entries()) {
+      yield [entry[0], entry[1].value];
+    }
+  }
+  *values() {
+    for (const v of this.store.values()) {
+      yield v.value;
+    }
+  }
+  *keys() {
+    yield* this.store.keys();
+  }
+  elapsedSet(key) {
+    const v = this.store.get(key);
+    if (!v)
+      return v;
+    return Date.now() - v.lastSet;
+  }
+  elapsedGet(key) {
+    const v = this.store.get(key);
+    if (!v)
+      return v;
+    return Date.now() - v.lastGet;
+  }
+  has(key) {
+    return this.store.has(key);
+  }
+  get(key) {
+    const v = this.store.get(key);
+    if (v) {
+      return v.value;
+    }
+  }
+  delete(key) {
+    const val = this.store.get(key);
+    if (!val)
+      return false;
+    const d = this.store.delete(key);
+    this.keyCount = this.keyCount - 1;
+    this.fireEvent(`removed`, {
+      key,
+      value: val.value
+    });
+    return d;
+  }
+  touch(key) {
+    const v = this.store.get(key);
+    if (!v)
+      return false;
+    this.store.set(key, {
+      ...v,
+      lastSet: Date.now(),
+      lastGet: Date.now()
+    });
+    return true;
+  }
+  findEvicteeKey() {
+    if (this.evictPolicy === `none`)
+      return null;
+    let sortBy = ``;
+    if (this.evictPolicy === `oldestGet`)
+      sortBy = `lastGet`;
+    else if (this.evictPolicy === `oldestSet`)
+      sortBy = `lastSet`;
+    else
+      throw Error(`Unknown eviction policy ${this.evictPolicy}`);
+    const sorted = sortByValueProperty(this.store, sortBy);
+    return sorted[0][0];
+  }
+  deleteWithElapsed(time2, prop) {
+    const entries = [...this.store.entries()];
+    const prune = [];
+    const now = Date.now();
+    for (const e of entries) {
+      const elapsedGet = now - e[1].lastGet;
+      const elapsedSet = now - e[1].lastSet;
+      const elapsed = prop === `get` ? elapsedGet : prop === `set` ? elapsedSet : Math.max(elapsedGet, elapsedSet);
+      if (elapsed >= time2) {
+        prune.push([e[0], e[1].value]);
+      }
+    }
+    for (const e of prune) {
+      this.store.delete(e[0]);
+      this.keyCount = this.keyCount - 1;
+      const eventArgs = {
+        key: e[0],
+        value: e[1]
+      };
+      this.fireEvent(`expired`, eventArgs);
+      this.fireEvent(`removed`, eventArgs);
+    }
+    return prune;
+  }
+  set(key, value) {
+    const existing = this.store.get(key);
+    if (existing) {
+      this.store.set(key, {
+        ...existing,
+        lastSet: performance.now()
+      });
+      return;
+    }
+    if (this.keyCount === this.capacity && this.capacity > 0) {
+      const key2 = this.findEvicteeKey();
+      if (!key2)
+        throw new Error(`ExpiringMap full (capacity: ${this.capacity})`);
+      const existing2 = this.store.get(key2);
+      this.store.delete(key2);
+      this.keyCount = this.keyCount - 1;
+      if (existing2) {
+        const eventArgs = { key: key2, value: existing2.value };
+        this.fireEvent(`expired`, eventArgs);
+        this.fireEvent(`removed`, eventArgs);
+      }
+    }
+    this.keyCount++;
+    this.store.set(key, {
+      lastGet: 0,
+      lastSet: Date.now(),
+      value
+    });
+    this.fireEvent(`newKey`, { key, value });
+  }
+};
+_maintain = new WeakSet();
+maintain_fn = function() {
+  if (this.autoDeletePolicy === `none`)
+    return;
+  this.deleteWithElapsed(this.autoDeleteElapsedMs, this.autoDeletePolicy);
+};
+
+// src/collections/Map.ts
 var hasKeyValue = (map3, key, value, comparer) => {
   if (!map3.has(key))
     return false;
@@ -9072,6 +9237,10 @@ var ifNaN = (v, fallback) => {
     return fallback;
   return v;
 };
+var mapObject = (object, mapFn) => {
+  const mapped = Object.entries(object).map(([key, value], i) => [key, mapFn(value, key, i)]);
+  return Object.fromEntries(mapped);
+};
 var isPowerOfTwo = (x) => Math.log2(x) % 1 === 0;
 var relativeDifference = (initial) => (v) => v / initial;
 var getFieldByPath = (o, path2 = ``) => {
@@ -9734,164 +9903,6 @@ var mapMutable = (...data) => {
     isEmpty: () => m.size === 0,
     has: (key) => has(m, key)
   };
-};
-
-// src/collections/ExpiringMap.ts
-var _maintain, maintain_fn;
-var ExpiringMap = class extends SimpleEventEmitter {
-  constructor(opts) {
-    super();
-    __privateAdd(this, _maintain);
-    __publicField(this, "capacity");
-    __publicField(this, "store");
-    __publicField(this, "keyCount");
-    __publicField(this, "evictPolicy");
-    __publicField(this, "autoDeleteElapsedMs");
-    __publicField(this, "autoDeletePolicy");
-    this.capacity = opts.capacity ?? -1;
-    integer(this.capacity, `nonZero`, `capacity`);
-    this.store = /* @__PURE__ */ new Map();
-    this.keyCount = 0;
-    if (opts.evictPolicy && this.capacity <= 0)
-      throw new Error(`evictPolicy is set, but no capacity limit is set`);
-    this.evictPolicy = opts.evictPolicy ?? `none`;
-    this.autoDeleteElapsedMs = opts.autoDeleteElapsedMs ?? -1;
-    this.autoDeletePolicy = opts.autoDeletePolicy ?? `none`;
-    if (this.autoDeleteElapsedMs > 0) {
-      setInterval(() => __privateMethod(this, _maintain, maintain_fn).call(this), Math.max(1e3, this.autoDeleteElapsedMs * 2));
-    }
-  }
-  get keyLength() {
-    return this.keyCount;
-  }
-  *entries() {
-    for (const entry of this.store.entries()) {
-      yield [entry[0], entry[1].value];
-    }
-  }
-  *values() {
-    for (const v of this.store.values()) {
-      yield v.value;
-    }
-  }
-  *keys() {
-    yield* this.store.keys();
-  }
-  elapsedSet(key) {
-    const v = this.store.get(key);
-    if (!v)
-      return v;
-    return Date.now() - v.lastSet;
-  }
-  elapsedGet(key) {
-    const v = this.store.get(key);
-    if (!v)
-      return v;
-    return Date.now() - v.lastGet;
-  }
-  has(key) {
-    return this.store.has(key);
-  }
-  get(key) {
-    const v = this.store.get(key);
-    if (v) {
-      return v.value;
-    }
-  }
-  delete(key) {
-    const val = this.store.get(key);
-    if (!val)
-      return false;
-    const d = this.store.delete(key);
-    this.keyCount = this.keyCount - 1;
-    this.fireEvent(`removed`, {
-      key,
-      value: val.value
-    });
-    return d;
-  }
-  touch(key) {
-    const v = this.store.get(key);
-    if (!v)
-      return false;
-    this.store.set(key, {
-      ...v,
-      lastSet: Date.now(),
-      lastGet: Date.now()
-    });
-    return true;
-  }
-  findEvicteeKey() {
-    if (this.evictPolicy === `none`)
-      return null;
-    let sortBy = ``;
-    if (this.evictPolicy === `oldestAccess`)
-      sortBy = `lastGet`;
-    else if (this.evictPolicy === `oldestSet`)
-      sortBy = `lastSet`;
-    else
-      throw Error(`Unknown eviction policy ${this.evictPolicy}`);
-    const sorted = sortByValueProperty(this.store, sortBy);
-    return sorted[0][0];
-  }
-  deleteWithElapsed(time2, prop) {
-    const entries = [...this.store.entries()];
-    const prune = [];
-    const now = Date.now();
-    for (const e of entries) {
-      const elapsed = now - (prop === `access` ? e[1].lastGet : e[1].lastSet);
-      if (elapsed >= time2) {
-        prune.push([e[0], e[1].value]);
-      }
-    }
-    for (const e of prune) {
-      this.store.delete(e[0]);
-      this.keyCount = this.keyCount - 1;
-      const eventArgs = {
-        key: e[0],
-        value: e[1]
-      };
-      this.fireEvent(`expired`, eventArgs);
-      this.fireEvent(`removed`, eventArgs);
-    }
-    return prune;
-  }
-  set(key, value) {
-    const existing = this.store.get(key);
-    if (existing) {
-      this.store.set(key, {
-        ...existing,
-        lastSet: performance.now()
-      });
-      return;
-    }
-    if (this.keyCount === this.capacity && this.capacity > 0) {
-      const key2 = this.findEvicteeKey();
-      if (!key2)
-        throw new Error(`ExpiringMap full (capacity: ${this.capacity})`);
-      const existing2 = this.store.get(key2);
-      this.store.delete(key2);
-      this.keyCount = this.keyCount - 1;
-      if (existing2) {
-        const eventArgs = { key: key2, value: existing2.value };
-        this.fireEvent(`expired`, eventArgs);
-        this.fireEvent(`removed`, eventArgs);
-      }
-    }
-    this.keyCount++;
-    this.store.set(key, {
-      lastGet: 0,
-      lastSet: Date.now(),
-      value
-    });
-    this.fireEvent(`newKey`, { key, value });
-  }
-};
-_maintain = new WeakSet();
-maintain_fn = function() {
-  if (this.autoDeletePolicy === `none`)
-    return;
-  this.deleteWithElapsed(this.autoDeleteElapsedMs, this.autoDeletePolicy);
 };
 
 // src/geometry/Line.ts
@@ -11019,10 +11030,10 @@ function normaliseByRect2(a, b, c, d) {
 var random = (rando) => {
   if (rando === void 0)
     rando = defaultRandom;
-  return {
+  return Object.freeze({
     x: rando(),
     y: rando()
-  };
+  });
 };
 var wrap2 = (pt, ptMax = { x: 1, y: 1 }, ptMin = { x: 0, y: 0 }) => {
   guard(pt, `pt`);
@@ -13745,6 +13756,7 @@ __export(Rect_exports, {
   perimeter: () => perimeter,
   placeholder: () => placeholder,
   placeholderPositioned: () => placeholderPositioned,
+  random: () => random2,
   subtract: () => subtract3,
   sum: () => sum3,
   toArray: () => toArray3
@@ -14086,6 +14098,16 @@ var perimeter = (rect2) => {
 var area2 = (rect2) => {
   guard5(rect2);
   return rect2.height * rect2.width;
+};
+var random2 = (rando) => {
+  if (rando === void 0)
+    rando = defaultRandom;
+  return Object.freeze({
+    x: rando(),
+    y: rando(),
+    width: rando(),
+    height: rando()
+  });
 };
 
 // src/geometry/Ellipse.ts
@@ -20635,7 +20657,7 @@ var Plot = class extends CanvasBox {
   }
   createSeriesFromObject(o, prefix = ``) {
     const keys = Object.keys(o);
-    const create4 = (key) => {
+    const create5 = (key) => {
       const v = o[key];
       if (typeof v === `object`) {
         return this.createSeriesFromObject(v, prefix + key + ".");
@@ -20645,7 +20667,7 @@ var Plot = class extends CanvasBox {
         return [];
       }
     };
-    return keys.flatMap(create4);
+    return keys.flatMap(create5);
   }
   createSeries(name, type = `array`, seriesOpts) {
     const len = this.seriesLength;
@@ -20670,9 +20692,9 @@ var Plot = class extends CanvasBox {
 // src/visual/Palette.ts
 var Palette_exports = {};
 __export(Palette_exports, {
-  create: () => create
+  create: () => create2
 });
-var create = (fallbacks) => new PaletteImpl(fallbacks);
+var create2 = (fallbacks) => new PaletteImpl(fallbacks);
 var _store, _aliases, _lastFallback, _elementBase;
 var PaletteImpl = class {
   constructor(fallbacks) {
@@ -22576,7 +22598,7 @@ __export(Pool_exports, {
   Pool: () => Pool,
   PoolUser: () => PoolUser,
   Resource: () => Resource,
-  create: () => create2
+  create: () => create3
 });
 var PoolUser = class extends SimpleEventEmitter {
   constructor(key, resource) {
@@ -22913,7 +22935,7 @@ Users: \r
     throw new Error(`Pool is fully used (${this.fullPolicy})`);
   }
 };
-var create2 = (opts = {}) => new Pool(opts);
+var create3 = (opts = {}) => new Pool(opts);
 
 // src/data/index.ts
 var piPi8 = Math.PI * 2;
@@ -22935,12 +22957,12 @@ var cos3 = Math.cos;
 var pi4 = Math.PI;
 var sin3 = Math.sin;
 var time = function(nameOrFn, durationMs) {
-  return create3(nameOrFn, durationMs, msElapsedTimer);
+  return create4(nameOrFn, durationMs, msElapsedTimer);
 };
 var tick = function(nameOrFn, durationTicks) {
-  return create3(nameOrFn, durationTicks, ticksElapsedTimer);
+  return create4(nameOrFn, durationTicks, ticksElapsedTimer);
 };
-var create3 = function(nameOrFn, duration, timerSource) {
+var create4 = function(nameOrFn, duration, timerSource) {
   let fn;
   if (typeof nameOrFn === `function`)
     fn = nameOrFn;
@@ -23468,6 +23490,8 @@ export {
   startsEnds,
   htmlEntities,
   Text_exports,
+  create,
+  ExpiringMap,
   hasKeyValue,
   deleteByValue,
   getOrGenerate,
@@ -23493,6 +23517,7 @@ export {
   Colour_exports,
   Debug_exports,
   ifNaN,
+  mapObject,
   isPowerOfTwo,
   relativeDifference,
   getFieldByPath,
@@ -23517,7 +23542,6 @@ export {
   Queue_exports,
   map,
   mapMutable,
-  ExpiringMap,
   collections_exports,
   Line_exports,
   TrackerBase,
@@ -23693,4 +23717,4 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-//# sourceMappingURL=chunk-VUZ7N4PL.js.map
+//# sourceMappingURL=chunk-6KMJZM2I.js.map

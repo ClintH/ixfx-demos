@@ -1,6 +1,5 @@
 import {
   Arrays_exports,
-  ExpiringMap,
   MapOfMutableImpl,
   Map_exports,
   Queue_exports,
@@ -15,7 +14,7 @@ import {
   queueMutable,
   stack,
   stackMutable
-} from "./chunk-VUZ7N4PL.js";
+} from "./chunk-6KMJZM2I.js";
 import {
   Set_exports,
   setMutable
@@ -31,7 +30,6 @@ import {
 import "./chunk-FU5PERHQ.js";
 export {
   Arrays_exports as Arrays,
-  ExpiringMap,
   MapOfMutableImpl,
   Map_exports as Maps,
   Queue_exports as Queues,
