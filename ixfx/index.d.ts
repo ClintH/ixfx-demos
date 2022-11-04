@@ -451,6 +451,66 @@ declare module "collections/Interfaces" {
     }
     /**
      * A Set which stores unique items determined by their value, rather
+     * than object reference (unlike the default JS Set). Create with {@link set}. Immutable.
+     *
+     * By default the `JSON.stringify()` representation is considered the 'key' for an object.
+     * Pass in a function to `setMutable` to define your own way of creating keys for values. The principle should
+     * be that objects that you consider identical should have the same string key value.
+     *
+     * The {@link SetMutable} alternative also has events for monitoring changes.
+     *
+     * @example Overview of functions
+     * ```js
+     * const s = setMutable();
+     * s.add(item);    // Add one or more items. Items with same key are overriden.
+     * s.has(item);    // Returns true if item value is present
+     * s.clear();      // Remove everything
+     * s.delete(item); // Delete item by value
+     * s.toArray();    // Returns values as an array
+     * s.values();     // Returns an iterator over values
+     * ```
+     *
+     * @example Example usage
+     * ```js
+     * // Data to add
+     * const people = [
+     *  {name: `Barry`, city: `London`}
+     *  {name: `Sally`, city: `Bristol`}
+     * ];
+     *
+     * // Create a set, defining how keys will be generated
+     * let s = set(person => {
+     *    // Key person objects by name and city.
+     *    // ie. Generated keys will be: `Barry-London`, `Sally-Bristol`
+     *    return `${person.name}-${person.city}`
+     * });
+     *
+     * // Add list - since it's immutable, a changed copy is returned
+     * s = s.add(...people);
+     *
+     * // Accessing: has/get
+     * s.has({name:`Barry`, city:`Manchester`})); // False, key is different (Barry-Manchester)
+     * s.has({name:`Barry`, city:`London`}));     // True, we have Barry-London as a key
+     * s.has(people[1]);   // True, key of object is found (Sally-Bristol)
+     *
+     * // Deleting (returns changed copy)
+     * s = s.delete({name:`Barry`, city:`London`});
+     * ```
+     *
+     * @template V Type of data stored
+     */
+    export interface SetImmutable<V> {
+        has(v: V): boolean;
+        add(...values: ReadonlyArray<V>): SetImmutable<V>;
+        values(): IterableIterator<V>;
+        /**
+       * Returns an array of values
+       */
+        toArray(): V[];
+        delete(v: V): SetImmutable<V>;
+    }
+    /**
+     * A Set which stores unique items determined by their value, rather
      * than object reference (unlike the default JS Set). Create with {@link setMutable}. Mutable.
      *
      * By default the `JSON.stringify()` representation is considered the 'key' for an object.
@@ -1254,10 +1314,17 @@ declare module "collections/MapMultiMutable" {
 }
 declare module "collections/Set" {
     import { ToString } from "Util";
-    import { SetMutable } from "collections/Interfaces";
+    import { SetMutable, SetImmutable } from "collections/Interfaces";
+    /**
+     * Immutable set that uses a `keyString` function to determine uniqueness
+     *
+     * @param keyString Function that produces a key based on a value. If unspecified, uses `JSON.stringify`.
+     * @returns
+     */
+    export const set: <V>(keyString: ToString<V>) => SetImmutable<V>;
     /**
      * Creates a {@link SetMutable}.
-     * @param keyString Function that produces a key for items. If unspecified uses JSON.stringify
+     * @param keyString Function that produces a key based on a value. If unspecified, uses `JSON.stringify`
      * @returns
      */
     export const setMutable: <V>(keyString?: ToString<V> | undefined) => SetMutable<V>;
@@ -1686,9 +1753,9 @@ declare module "collections/index" {
     /**
      * Sets store unique items.
      *
-     * ixfx's {@link SetMutable} compares items by value rather than reference, unlike the default JS implementation.
+     * ixfx's {@link SetImmutable} (or {@link SetMutable}) compares items by value rather than reference, unlike the default JS implementation.
      *
-     * Create using {@link setMutable}
+     * Create using {@link set} or {@link setMutable}
      */
     export * as Sets from "collections/Set";
     /**
@@ -1722,7 +1789,7 @@ declare module "collections/index" {
      * Transformations:
      * * {@link toArray}: Returns the values of the map as an array
      * * {@link mapToArray}: Applies a function to convert a map's values to an array
-     * * {@link mapToObj}: Coverts a Map to a plain object, useful for JSON serialising.
+     * * {@link toObject}: Coverts a Map to a plain object, useful for JSON serialising.
      * * {@link mapToObjTransform}: Converts a map to a plain object, but applying a function to values
      * * {@link transformMap}: Like `Array.map`, but for Maps. Useful for generating a map as a transform of an input map.
      * * {@link zipKeyValue}: Given an array of keys and values, combines them together into a map
@@ -12293,7 +12360,7 @@ declare module "index" {
      * * {@link pointsTracker}: Tracks changes in multiple x,y coordinates. Useful for tracking each finger touch on a screen, for example.
      * * {@link frequencyMutable}: Count occurences of a value
      *
-     *
+     * * {@link Pool.Pool}: Manage a shared set of resources
      * @example Importing
      * ```js
      * // If library is stored two directories up under `ixfx/`
@@ -13020,8 +13087,15 @@ declare module "data/Correlate" {
     export const alignById: <V>(fn: Similarity<V>, opts?: AlignOpts) => (newData: DataWithId<V>[]) => DataWithId<V>[];
 }
 declare module "data/Pool" {
+    import { SimpleEventEmitter } from "Events";
     import * as Debug from "Debug";
+    /**
+     * Policy for when the pool is fully used
+     */
     export type FullPolicy = `error` | `evictOldestUser`;
+    /**
+     * Pool options
+     */
     export type Opts<V> = {
         /**
          * Maximum number of resources for this pool
@@ -13037,7 +13111,7 @@ declare module "data/Pool" {
          */
         readonly resourcesWithoutUserExpireAfterMs?: number;
         /**
-         * Maximum number of users per resource. Defaults to 0
+         * Maximum number of users per resource. Defaults to 1
          */
         readonly capacityPerResource?: number;
         /**
@@ -13057,21 +13131,50 @@ declare module "data/Pool" {
          */
         readonly free?: (v: V) => void;
     };
-    export type InitPoolItem = <V>(id: string) => V;
+    /**
+     * Function that initialises a pool item
+     */
+    /**
+     * State of pool
+     */
     export type PoolState = `idle` | `active` | `disposed`;
-    export class PoolUser<V> {
+    export type PoolUserEventMap<V> = {
+        readonly disposed: {
+            readonly data: V;
+            readonly reason: string;
+        };
+        readonly released: {
+            readonly data: V;
+            readonly reason: string;
+        };
+    };
+    /**
+     * A use of a pool resource
+     *
+     * Has two events, _disposed_ and _released_.
+     */
+    export class PoolUser<V> extends SimpleEventEmitter<PoolUserEventMap<V>> {
         readonly key: string;
         readonly resource: Resource<V>;
-        private lastUpdate;
-        private pool;
-        private state;
-        private userExpireAfterMs;
+        private _lastUpdate;
+        private _pool;
+        private _state;
+        private _userExpireAfterMs;
+        /**
+         * Constructor
+         * @param key User key
+         * @param resource Resource being used
+         */
         constructor(key: string, resource: Resource<V>);
-        get elapsed(): number;
+        /**
+         * Returns a human readable debug string
+         * @returns
+         */
         toString(): string;
-        get isExpired(): boolean;
-        get isDisposed(): boolean;
-        get isValid(): boolean;
+        /**
+         * Resets countdown for instance expiry.
+         * Throws an error if instance is disposed.
+         */
         keepAlive(): void;
         /**
          * @internal
@@ -13079,8 +13182,33 @@ declare module "data/Pool" {
          * @returns
          */
         _dispose(reason: string): void;
+        /**
+         * Release this instance
+         * @param reason
+         */
         release(reason: string): void;
+        get data(): V;
+        /**
+         * Returns true if this instance has expired.
+         * Expiry counts if elapsed time is greater than `userExpireAfterMs`
+         */
+        get isExpired(): boolean;
+        /**
+         * Returns elapsed time since last 'update'
+         */
+        get elapsed(): number;
+        /**
+         * Returns true if instance is disposed
+         */
+        get isDisposed(): boolean;
+        /**
+         * Returns true if instance is neither disposed nor expired
+         */
+        get isValid(): boolean;
     }
+    /**
+     * A resource allocated in the Pool
+     */
     export class Resource<V> {
         readonly pool: Pool<V>;
         private state;
@@ -13089,29 +13217,62 @@ declare module "data/Pool" {
         private readonly capacityPerResource;
         private readonly resourcesWithoutUserExpireAfterMs;
         private lastUsersChange;
+        /**
+         * Constructor.
+         * @param pool Pool
+         * @param data Data
+         */
         constructor(pool: Pool<V>, data: V);
+        /**
+         * Gets data associated with resource.
+         * Throws an error if disposed
+         */
         get data(): V;
+        /**
+         * Returns a human-readable debug string for resource
+         * @returns
+         */
         toString(): string;
         /**
+         * Assigns a user to this resource.
          * @internal
          * @param user
          */
         _assign(user: PoolUser<V>): void;
         /**
+         * Releases a user from this resource
          * @internal
          * @param user
          */
         _release(user: PoolUser<V>): void;
+        /**
+         * Returns true if resource can have additional users allocated
+         */
         get hasUserCapacity(): boolean;
+        /**
+         * Returns number of uses of the resource
+         */
         get usersCount(): number;
         /**
          * Returns true if automatic expiry is enabled, and that interval
          * has elapsed since the users list has changed for this resource
          */
         get isExpiredFromUsers(): boolean;
+        /**
+         * Returns true if instance is disposed
+         */
         get isDisposed(): boolean;
+        /**
+         * Disposes the resource.
+         * If it is already disposed, it does nothing.
+         * @param reason
+         * @returns
+         */
         dispose(reason: string): void;
     }
+    /**
+     * Resource pool
+     */
     export class Pool<V> {
         private _resources;
         private _users;
@@ -13120,18 +13281,42 @@ declare module "data/Pool" {
         readonly resourcesWithoutUserExpireAfterMs: number;
         readonly capacityPerResource: number;
         readonly fullPolicy: FullPolicy;
-        readonly generateResource?: () => V;
+        private generateResource?;
         readonly freeResource?: (v: V) => void;
         readonly log: Debug.LogSet;
-        constructor(opts: Opts<V>);
+        /**
+         * Constructor.
+         *
+         * By default, no capacity limit, one user per resource
+         * @param opts Pool options
+         */
+        constructor(opts?: Opts<V>);
+        /**
+         * Returns a debug string of Pool state
+         * @returns
+         */
         dumpToString(): string;
+        /**
+         * Sorts users by longest elapsed time since update
+         * @returns
+         */
         getUsersByLongestElapsed(): PoolUser<V>[];
         /**
          * Returns resources sorted with least used first
          * @returns
          */
         getResourcesSortedByUse(): Resource<V>[];
+        /**
+         * Adds a resource to the pool.
+         * Throws an error if the capacity limit is reached.
+         * @param resource
+         * @returns
+         */
         addResource(resource: V): Resource<V>;
+        /**
+       * Performs maintenance, removing disposed/expired resources & users.
+       * This is called automatically when using a resource.
+       */
         maintain(): void;
         /**
          * Iterate over resources in the pool.
@@ -13163,7 +13348,17 @@ declare module "data/Pool" {
          * @param _
          */
         _releaseResource(resource: Resource<V>, _: string): void;
+        /**
+         * Returns true if `v` has an associted resource in the pool
+         * @param res
+         * @returns
+         */
         hasResource(res: V): boolean;
+        /**
+         * Returns true if a given `userKey` is in use.
+         * @param userKey
+         * @returns
+         */
         hasUser(userKey: string): boolean;
         /**
          * @internal
@@ -13177,8 +13372,16 @@ declare module "data/Pool" {
          * @param userKey
          * @returns
          */
-        private _find;
+        private _findUser;
+        /**
+         * Return the number of users
+         */
         get usersLength(): number;
+        /**
+         * 'Uses' a resource, returning the value
+         * @param userKey
+         * @returns
+         */
         useValue(userKey: string): V;
         /**
          * Gets a pool item based on a user key.
@@ -13187,8 +13390,14 @@ declare module "data/Pool" {
          * @param userKey
          * @returns
          */
-        use(userKey: string): Resource<V>;
+        use(userKey: string): PoolUser<V>;
     }
+    /**
+     * Creates an instance of a Pool
+     * @param opts
+     * @returns
+     */
+    export const create: <V>(opts?: Opts<V>) => Pool<V>;
 }
 declare module "data/index" {
     export * as Normalise from "data/Normalise";
@@ -14179,6 +14388,15 @@ declare module "collections/Arrays" {
      * @returns
      */
     export const reducePairwise: <V, X>(arr: readonly V[], reducer: (acc: X, a: V, b: V) => X, initial: X) => X;
+    /**
+     * Assuming that `input` array is only unique values, this function
+     * returns a new array with unique items from `values` added.
+     *
+     * If `comparer` function is not provided, values are compared by reference.
+     * @param input
+     * @param values
+     */
+    export const pushUnique: <V>(input: readonly V[], values: readonly V[], comparer?: IsEqual<V> | undefined) => readonly V[];
 }
 declare module "Random" {
     import { randomIndex, randomElement } from "collections/Arrays";
@@ -14655,6 +14873,16 @@ declare module "collections/Map" {
     /**
      * Deletes all key/values from map where value matches `value`,
      * with optional comparer. Mutates map.
+     *
+     * ```js
+     * import { Maps } from "https://unpkg.com/ixfx/dist/collections.js"
+     *
+     * // Compare fruits based on their colour property
+     * const colourComparer = (a, b) => a.colour === b.colour;
+     *
+     * // Deletes all values where .colour = `red`
+     * Maps.deleteByValue(map, { colour: `red` }, colourComparer);
+     * ```
      * @param map
      * @param value
      * @param comparer
@@ -14700,30 +14928,38 @@ declare module "collections/Map" {
      *
      * @example
      * ```js
+     * import { Maps } from "https://unpkg.com/ixfx/dist/collections.js";
      * const map = new Map();
      * const peopleArray = [ _some people objects..._];
-     * addUniqueByHash(map, p => p.name, ...peopleArray);
+     * Maps.addKeepingExisting(map, p => p.name, ...peopleArray);
      * ```
      * @param set
      * @param hashFunc
      * @param values
      * @returns
      */
-    export const addUniqueByHash: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
+    export const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
     /**
-     * Returns a array of entries from a map, sorted by value
+     * Returns a array of entries from a map, sorted by value.
      *
      * ```js
      * const m = new Map();
      * m.set(`4491`, { name: `Bob` });
      * m.set(`2319`, { name: `Alice` });
-     * const sorted = Maps.sortByValue(m, defaultComparer);
+     *
+     * // Compare by name
+     * const comparer = (a, b) => defaultComparer(a.name, b.name);
+     *
+     * // Get sorted values
+     * const sorted = Maps.sortByValue(m, comparer);
      * ```
+     *
+     * `sortByValue` takes a comparison function that should return -1, 0 or 1 to indicate order of `a` to `b`. If not provided, {@link defaultComparer} is used.
      * @param map
      * @param compareFn
      * @returns
      */
-    export const sortByValue: <K, V>(map: ReadonlyMap<K, V>, compareFn: (a: V, b: V) => number) => [K, V][];
+    export const sortByValue: <K, V>(map: ReadonlyMap<K, V>, compareFn?: ((a: V, b: V) => number) | undefined) => void;
     /**
      * Returns an array of entries from a map, sorted by a property of the value
      *
@@ -14783,12 +15019,58 @@ declare module "collections/Map" {
     export const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
     /**
      * Returns a Map from an iterable
+     *
+     * ```js
+     * const data = [
+     *  { fruit: `granny-smith`, family: `apple`, colour: `green` }
+     *  { fruit: `mango`, family: `stone-fruit`, colour: `orange` }
+     * ];
+     * const map = Maps.fromIterable(data, v => v.fruit);
+     * ```
      * @param data Input data
      * @param keyFn Function which returns a string id
      * @param allowOverwrites If true, items with same id will silently overwrite each other, with last write wins
      * @returns
      */
     export const fromIterable: <V>(data: Iterable<V>, keyFn: (v: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
+    /**
+     * Returns a Map from an object, or array of objects.
+     * Assumes the top-level properties of the object is the key.
+     *
+     * ```js
+     * const data = {
+     *  Sally: { name: `Sally`, colour: `red` },
+     *  Bob: { name: `Bob`, colour: `pink` }
+     * };
+     * const map = Maps.fromObject(data);
+     * map.get(`Sally`); // { name: `Sally`, colour: `red` }
+     * ```
+     *
+     * To add an object to an existing map, use {@link addObject}.
+     * @param data
+     * @returns
+     */
+    export const fromObject: <V>(data: any) => ReadonlyMap<string, V>;
+    /**
+     * Adds an object to an existing map. It assumes a structure where
+     * each top-level property is a key:
+     *
+     * ```js
+     * const data = {
+     *  Sally: { name: `Sally`, colour: `red` },
+     *  Bob: { name: `Bob`, colour: `pink` }
+     * };
+     * const map = new Map();
+     * Maps.addObject(map, data);
+     *
+     * map.get(`Sally`); // { name: `Sally`, colour: `red` }
+     * ```
+     *
+     * To create a new map from an object, use {@link fromObject} instead.
+     * @param map
+     * @param data
+     */
+    export const addObject: <V>(map: Map<string, V>, data: any) => void;
     /**
      * Returns the first found item that matches `predicate` or _undefined_.
      *
@@ -14804,7 +15086,7 @@ declare module "collections/Map" {
      */
     export const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
     /**
-     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link mapToObj}.
+     * Converts a map to a simple object, transforming from type `T` to `K` as it does so. If no transforms are needed, use {@link toObject}.
      *
      * ```js
      * const map = new Map();
@@ -14871,16 +15153,25 @@ declare module "collections/Map" {
      */
     export const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (value: V, key: K) => R) => Map<K, R>;
     /**
-     * Converts a `Map` to a plain object, useful for serializing to JSON
+     * Converts a `Map` to a plain object, useful for serializing to JSON.
+     * To convert back to a map use {@link fromObject}.
      *
      * @example
      * ```js
-     * const str = JSON.stringify(mapToObj(map));
+     * const map = new Map();
+     * map.set(`Sally`, { name: `Sally`, colour: `red` });
+     * map.set(`Bob`, { name: `Bob`, colour: `pink });
+     *
+     * const objects = Maps.toObject(map);
+     * // Yields: {
+    * //  Sally: { name: `Sally`, colour: `red` },
+    * //  Bob: { name: `Bob`, colour: `pink` }
+    * // }
      * ```
      * @param m
      * @returns
      */
-    export const mapToObj: <T>(m: ReadonlyMap<string, T>) => {
+    export const toObject: <T>(m: ReadonlyMap<string, T>) => {
         readonly [key: string]: T;
     };
     /**
@@ -15106,13 +15397,6 @@ declare module "__tests__/geometry/scaler.test" { }
 declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }
-declare module "collections/LinkedList" {
-    export type Node<V> = {
-        readonly prev: Node<V> | undefined;
-        readonly next: Node<V> | undefined;
-        readonly value: V;
-    };
-}
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";

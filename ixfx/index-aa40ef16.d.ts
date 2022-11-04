@@ -2,9 +2,9 @@ import { M as MinMaxAvgTotal } from './NumericArrays-ab236e6c.js';
 import { T as ToString, L as LogSet } from './Util-dd245d43.js';
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
 import { a as KeyValue } from './KeyValue-d250f191.js';
-import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as Timestamped, c as TrackedValueMap, n as numberTracker } from './NumberTracker-625ebf1b.js';
-import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-816e8153.js';
-import { C as Coord } from './Polar-b1b6d937.js';
+import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as Timestamped, c as TrackedValueMap, n as numberTracker } from './NumberTracker-1fcb89d1.js';
+import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-f34c1a33.js';
+import { C as Coord } from './Polar-cde6afe8.js';
 
 /**
  * Normalises numbers, adjusting min/max as new values are processed.
@@ -996,7 +996,13 @@ declare namespace Correlate {
   };
 }
 
+/**
+ * Policy for when the pool is fully used
+ */
 declare type FullPolicy = `error` | `evictOldestUser`;
+/**
+ * Pool options
+ */
 declare type Opts<V> = {
     /**
      * Maximum number of resources for this pool
@@ -1012,7 +1018,7 @@ declare type Opts<V> = {
      */
     readonly resourcesWithoutUserExpireAfterMs?: number;
     /**
-     * Maximum number of users per resource. Defaults to 0
+     * Maximum number of users per resource. Defaults to 1
      */
     readonly capacityPerResource?: number;
     /**
@@ -1032,21 +1038,50 @@ declare type Opts<V> = {
      */
     readonly free?: (v: V) => void;
 };
-declare type InitPoolItem = <V>(id: string) => V;
+/**
+ * Function that initialises a pool item
+ */
+/**
+ * State of pool
+ */
 declare type PoolState = `idle` | `active` | `disposed`;
-declare class PoolUser<V> {
+declare type PoolUserEventMap<V> = {
+    readonly disposed: {
+        readonly data: V;
+        readonly reason: string;
+    };
+    readonly released: {
+        readonly data: V;
+        readonly reason: string;
+    };
+};
+/**
+ * A use of a pool resource
+ *
+ * Has two events, _disposed_ and _released_.
+ */
+declare class PoolUser<V> extends SimpleEventEmitter<PoolUserEventMap<V>> {
     readonly key: string;
     readonly resource: Resource<V>;
-    private lastUpdate;
-    private pool;
-    private state;
-    private userExpireAfterMs;
+    private _lastUpdate;
+    private _pool;
+    private _state;
+    private _userExpireAfterMs;
+    /**
+     * Constructor
+     * @param key User key
+     * @param resource Resource being used
+     */
     constructor(key: string, resource: Resource<V>);
-    get elapsed(): number;
+    /**
+     * Returns a human readable debug string
+     * @returns
+     */
     toString(): string;
-    get isExpired(): boolean;
-    get isDisposed(): boolean;
-    get isValid(): boolean;
+    /**
+     * Resets countdown for instance expiry.
+     * Throws an error if instance is disposed.
+     */
     keepAlive(): void;
     /**
      * @internal
@@ -1054,8 +1089,33 @@ declare class PoolUser<V> {
      * @returns
      */
     _dispose(reason: string): void;
+    /**
+     * Release this instance
+     * @param reason
+     */
     release(reason: string): void;
+    get data(): V;
+    /**
+     * Returns true if this instance has expired.
+     * Expiry counts if elapsed time is greater than `userExpireAfterMs`
+     */
+    get isExpired(): boolean;
+    /**
+     * Returns elapsed time since last 'update'
+     */
+    get elapsed(): number;
+    /**
+     * Returns true if instance is disposed
+     */
+    get isDisposed(): boolean;
+    /**
+     * Returns true if instance is neither disposed nor expired
+     */
+    get isValid(): boolean;
 }
+/**
+ * A resource allocated in the Pool
+ */
 declare class Resource<V> {
     readonly pool: Pool<V>;
     private state;
@@ -1064,29 +1124,62 @@ declare class Resource<V> {
     private readonly capacityPerResource;
     private readonly resourcesWithoutUserExpireAfterMs;
     private lastUsersChange;
+    /**
+     * Constructor.
+     * @param pool Pool
+     * @param data Data
+     */
     constructor(pool: Pool<V>, data: V);
+    /**
+     * Gets data associated with resource.
+     * Throws an error if disposed
+     */
     get data(): V;
+    /**
+     * Returns a human-readable debug string for resource
+     * @returns
+     */
     toString(): string;
     /**
+     * Assigns a user to this resource.
      * @internal
      * @param user
      */
     _assign(user: PoolUser<V>): void;
     /**
+     * Releases a user from this resource
      * @internal
      * @param user
      */
     _release(user: PoolUser<V>): void;
+    /**
+     * Returns true if resource can have additional users allocated
+     */
     get hasUserCapacity(): boolean;
+    /**
+     * Returns number of uses of the resource
+     */
     get usersCount(): number;
     /**
      * Returns true if automatic expiry is enabled, and that interval
      * has elapsed since the users list has changed for this resource
      */
     get isExpiredFromUsers(): boolean;
+    /**
+     * Returns true if instance is disposed
+     */
     get isDisposed(): boolean;
+    /**
+     * Disposes the resource.
+     * If it is already disposed, it does nothing.
+     * @param reason
+     * @returns
+     */
     dispose(reason: string): void;
 }
+/**
+ * Resource pool
+ */
 declare class Pool<V> {
     private _resources;
     private _users;
@@ -1095,18 +1188,42 @@ declare class Pool<V> {
     readonly resourcesWithoutUserExpireAfterMs: number;
     readonly capacityPerResource: number;
     readonly fullPolicy: FullPolicy;
-    readonly generateResource?: () => V;
+    private generateResource?;
     readonly freeResource?: (v: V) => void;
     readonly log: LogSet;
-    constructor(opts: Opts<V>);
+    /**
+     * Constructor.
+     *
+     * By default, no capacity limit, one user per resource
+     * @param opts Pool options
+     */
+    constructor(opts?: Opts<V>);
+    /**
+     * Returns a debug string of Pool state
+     * @returns
+     */
     dumpToString(): string;
+    /**
+     * Sorts users by longest elapsed time since update
+     * @returns
+     */
     getUsersByLongestElapsed(): PoolUser<V>[];
     /**
      * Returns resources sorted with least used first
      * @returns
      */
     getResourcesSortedByUse(): Resource<V>[];
+    /**
+     * Adds a resource to the pool.
+     * Throws an error if the capacity limit is reached.
+     * @param resource
+     * @returns
+     */
     addResource(resource: V): Resource<V>;
+    /**
+   * Performs maintenance, removing disposed/expired resources & users.
+   * This is called automatically when using a resource.
+   */
     maintain(): void;
     /**
      * Iterate over resources in the pool.
@@ -1138,7 +1255,17 @@ declare class Pool<V> {
      * @param _
      */
     _releaseResource(resource: Resource<V>, _: string): void;
+    /**
+     * Returns true if `v` has an associted resource in the pool
+     * @param res
+     * @returns
+     */
     hasResource(res: V): boolean;
+    /**
+     * Returns true if a given `userKey` is in use.
+     * @param userKey
+     * @returns
+     */
     hasUser(userKey: string): boolean;
     /**
      * @internal
@@ -1152,8 +1279,16 @@ declare class Pool<V> {
      * @param userKey
      * @returns
      */
-    private _find;
+    private _findUser;
+    /**
+     * Return the number of users
+     */
     get usersLength(): number;
+    /**
+     * 'Uses' a resource, returning the value
+     * @param userKey
+     * @returns
+     */
     useValue(userKey: string): V;
     /**
      * Gets a pool item based on a user key.
@@ -1162,28 +1297,36 @@ declare class Pool<V> {
      * @param userKey
      * @returns
      */
-    use(userKey: string): Resource<V>;
+    use(userKey: string): PoolUser<V>;
 }
+/**
+ * Creates an instance of a Pool
+ * @param opts
+ * @returns
+ */
+declare const create: <V>(opts?: Opts<V>) => Pool<V>;
 
 type Pool$1_FullPolicy = FullPolicy;
 type Pool$1_Opts<V> = Opts<V>;
-type Pool$1_InitPoolItem = InitPoolItem;
 type Pool$1_PoolState = PoolState;
+type Pool$1_PoolUserEventMap<V> = PoolUserEventMap<V>;
 type Pool$1_PoolUser<V> = PoolUser<V>;
 declare const Pool$1_PoolUser: typeof PoolUser;
 type Pool$1_Resource<V> = Resource<V>;
 declare const Pool$1_Resource: typeof Resource;
 type Pool$1_Pool<V> = Pool<V>;
 declare const Pool$1_Pool: typeof Pool;
+declare const Pool$1_create: typeof create;
 declare namespace Pool$1 {
   export {
     Pool$1_FullPolicy as FullPolicy,
     Pool$1_Opts as Opts,
-    Pool$1_InitPoolItem as InitPoolItem,
     Pool$1_PoolState as PoolState,
+    Pool$1_PoolUserEventMap as PoolUserEventMap,
     Pool$1_PoolUser as PoolUser,
     Pool$1_Resource as Resource,
     Pool$1_Pool as Pool,
+    Pool$1_create as create,
   };
 }
 

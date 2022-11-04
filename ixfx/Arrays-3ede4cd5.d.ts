@@ -874,6 +874,15 @@ declare const mergeByKey: <V>(keyFn: ToString<V>, reconcile: MergeReconcile<V>, 
  * @returns
  */
 declare const reducePairwise: <V, X>(arr: readonly V[], reducer: (acc: X, a: V, b: V) => X, initial: X) => X;
+/**
+ * Assuming that `input` array is only unique values, this function
+ * returns a new array with unique items from `values` added.
+ *
+ * If `comparer` function is not provided, values are compared by reference.
+ * @param input
+ * @param values
+ */
+declare const pushUnique: <V>(input: readonly V[], values: readonly V[], comparer?: IsEqual<V> | undefined) => readonly V[];
 
 declare const Arrays_guardArray: typeof guardArray;
 declare const Arrays_guardIndex: typeof guardIndex;
@@ -898,6 +907,7 @@ declare const Arrays_chunks: typeof chunks;
 type Arrays_MergeReconcile<V> = MergeReconcile<V>;
 declare const Arrays_mergeByKey: typeof mergeByKey;
 declare const Arrays_reducePairwise: typeof reducePairwise;
+declare const Arrays_pushUnique: typeof pushUnique;
 declare const Arrays_weight: typeof weight;
 declare const Arrays_validNumbers: typeof validNumbers;
 declare const Arrays_dotProduct: typeof dotProduct;
@@ -938,6 +948,7 @@ declare namespace Arrays {
     Arrays_MergeReconcile as MergeReconcile,
     Arrays_mergeByKey as mergeByKey,
     Arrays_reducePairwise as reducePairwise,
+    Arrays_pushUnique as pushUnique,
     Arrays_weight as weight,
     Arrays_validNumbers as validNumbers,
     Arrays_dotProduct as dotProduct,
@@ -956,4 +967,4 @@ declare namespace Arrays {
   };
 }
 
-export { Arrays as A, without as B, Colour$1 as C, until as D, remove as E, groupBy as F, sample as G, chunks as H, mergeByKey as I, reducePairwise as J, MergeReconcile as M, Random as R, RandomSource as a, randomElement as b, weightedSkewed as c, defaultRandom as d, weightedInteger as e, gaussianSkewed as f, gaussian as g, float as h, integer as i, shortGuid as j, randomHue as k, guardArray as l, guardIndex as m, areValuesIdentical as n, intersection as o, flatten as p, interleave as q, randomIndex as r, string as s, ensureLength as t, filterBetween as u, randomPluck as v, weighted as w, shuffle as x, sortByNumericProperty as y, zip as z };
+export { Arrays as A, without as B, Colour$1 as C, until as D, remove as E, groupBy as F, sample as G, chunks as H, mergeByKey as I, reducePairwise as J, pushUnique as K, MergeReconcile as M, Random as R, RandomSource as a, randomElement as b, weightedSkewed as c, defaultRandom as d, weightedInteger as e, gaussianSkewed as f, gaussian as g, float as h, integer as i, shortGuid as j, randomHue as k, guardArray as l, guardIndex as m, areValuesIdentical as n, intersection as o, flatten as p, interleave as q, randomIndex as r, string as s, ensureLength as t, filterBetween as u, randomPluck as v, weighted as w, shuffle as x, sortByNumericProperty as y, zip as z };

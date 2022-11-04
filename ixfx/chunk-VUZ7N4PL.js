@@ -1,7 +1,7 @@
 import {
   Set_exports,
   setMutable
-} from "./chunk-CVOJ7BL7.js";
+} from "./chunk-VCCD7R7D.js";
 import {
   IterableAsync_exports,
   pingPong,
@@ -7301,6 +7301,7 @@ __export(Arrays_exports, {
   minFast: () => minFast,
   minIndex: () => minIndex,
   minMaxAvg: () => minMaxAvg,
+  pushUnique: () => pushUnique,
   randomElement: () => randomElement,
   randomIndex: () => randomIndex,
   randomPluck: () => randomPluck,
@@ -7877,22 +7878,24 @@ __export(Debug_exports, {
 // src/collections/Map.ts
 var Map_exports = {};
 __export(Map_exports, {
-  addUniqueByHash: () => addUniqueByHash,
+  addKeepingExisting: () => addKeepingExisting,
+  addObject: () => addObject,
   deleteByValue: () => deleteByValue,
   filter: () => filter,
   find: () => find,
   fromIterable: () => fromIterable,
+  fromObject: () => fromObject,
   getOrGenerate: () => getOrGenerate,
   getOrGenerateSync: () => getOrGenerateSync,
   hasAnyValue: () => hasAnyValue,
   hasKeyValue: () => hasKeyValue,
   mapToArray: () => mapToArray,
-  mapToObj: () => mapToObj,
   mapToObjTransform: () => mapToObjTransform,
   mergeByKey: () => mergeByKey,
   sortByValue: () => sortByValue,
   sortByValueProperty: () => sortByValueProperty,
   toArray: () => toArray,
+  toObject: () => toObject,
   transformMap: () => transformMap,
   zipKeyValue: () => zipKeyValue
 });
@@ -7927,7 +7930,7 @@ var getOrGenerateSync = (map3, fn) => (key, args) => {
   map3.set(key, value);
   return value;
 };
-var addUniqueByHash = (set2, hashFunc, ...values) => {
+var addKeepingExisting = (set2, hashFunc, ...values) => {
   const s = set2 === void 0 ? /* @__PURE__ */ new Map() : new Map(set2);
   values.forEach((v) => {
     const vStr = hashFunc(v);
@@ -7937,7 +7940,10 @@ var addUniqueByHash = (set2, hashFunc, ...values) => {
   });
   return s;
 };
-var sortByValue = (map3, compareFn) => [...map3.entries()].sort((a, b) => compareFn(a[1], b[1]));
+var sortByValue = (map3, compareFn) => {
+  const f = compareFn ?? defaultComparer;
+  [...map3.entries()].sort((a, b) => f(a[1], b[1]));
+};
 var sortByValueProperty = (map3, prop, compareFn) => {
   const cfn = typeof compareFn === `undefined` ? defaultComparer : compareFn;
   return [...map3.entries()].sort((aE, bE) => {
@@ -7967,6 +7973,21 @@ var fromIterable = (data, keyFn, allowOverwrites = false) => {
   }
   return m;
 };
+var fromObject = (data) => {
+  const map3 = /* @__PURE__ */ new Map();
+  if (Array.isArray(data)) {
+    data.forEach((d) => addObject(map3, d));
+  } else {
+    addObject(map3, data);
+  }
+  return map3;
+};
+var addObject = (map3, data) => {
+  const entries = Object.entries(data);
+  for (const [key, value] of entries) {
+    map3.set(key, value);
+  }
+};
 var find = (map3, predicate) => Array.from(map3.values()).find((vv) => predicate(vv));
 var mapToObjTransform = (m, valueTransform) => Array.from(m).reduce((obj, [key, value]) => {
   const t4 = valueTransform(value);
@@ -7981,7 +8002,7 @@ var zipKeyValue = (keys, values) => {
 var transformMap = (source, transformer) => new Map(
   Array.from(source, (v) => [v[0], transformer(v[1], v[0])])
 );
-var mapToObj = (m) => Array.from(m).reduce((obj, [key, value]) => {
+var toObject = (m) => Array.from(m).reduce((obj, [key, value]) => {
   obj[key] = value;
   return obj;
 }, {});
@@ -9331,7 +9352,7 @@ var mapSet = (opts) => {
     get name() {
       return `set`;
     },
-    add: (dest, values) => addUniqueByHash(dest, hash, ...values),
+    add: (dest, values) => addKeepingExisting(dest, hash, ...values),
     count: (source) => source.size,
     find: (source, predicate) => find(source, predicate),
     filter: (source, predicate) => filter(source, predicate),
@@ -20614,7 +20635,7 @@ var Plot = class extends CanvasBox {
   }
   createSeriesFromObject(o, prefix = ``) {
     const keys = Object.keys(o);
-    const create3 = (key) => {
+    const create4 = (key) => {
       const v = o[key];
       if (typeof v === `object`) {
         return this.createSeriesFromObject(v, prefix + key + ".");
@@ -20624,7 +20645,7 @@ var Plot = class extends CanvasBox {
         return [];
       }
     };
-    return keys.flatMap(create3);
+    return keys.flatMap(create4);
   }
   createSeries(name, type = `array`, seriesOpts) {
     const len = this.seriesLength;
@@ -22554,38 +22575,70 @@ var Pool_exports = {};
 __export(Pool_exports, {
   Pool: () => Pool,
   PoolUser: () => PoolUser,
-  Resource: () => Resource
+  Resource: () => Resource,
+  create: () => create2
 });
-var PoolUser = class {
+var PoolUser = class extends SimpleEventEmitter {
   constructor(key, resource) {
+    super();
     this.key = key;
     this.resource = resource;
-    __publicField(this, "lastUpdate");
-    __publicField(this, "pool");
-    __publicField(this, "state");
-    __publicField(this, "userExpireAfterMs");
-    this.lastUpdate = performance.now();
-    this.pool = resource.pool;
-    this.userExpireAfterMs = this.pool.userExpireAfterMs;
-    this.state = `idle`;
-    this.pool.log.log(`PoolUser ctor key: ${this.key}`);
-  }
-  get elapsed() {
-    return performance.now() - this.lastUpdate;
+    __publicField(this, "_lastUpdate");
+    __publicField(this, "_pool");
+    __publicField(this, "_state");
+    __publicField(this, "_userExpireAfterMs");
+    this._lastUpdate = performance.now();
+    this._pool = resource.pool;
+    this._userExpireAfterMs = this._pool.userExpireAfterMs;
+    this._state = `idle`;
+    this._pool.log.log(`PoolUser ctor key: ${this.key}`);
   }
   toString() {
     if (this.isDisposed)
       return `PoolUser. State: disposed`;
-    return `PoolUser. State: ${this.state} Elapsed: ${performance.now() - this.lastUpdate} Data: ${JSON.stringify(this.resource.data)}`;
+    return `PoolUser. State: ${this._state} Elapsed: ${performance.now() - this._lastUpdate} Data: ${JSON.stringify(this.resource.data)}`;
+  }
+  keepAlive() {
+    if (this._state === `disposed`)
+      throw new Error(`PoolItem disposed`);
+    this._lastUpdate = performance.now();
+  }
+  _dispose(reason) {
+    if (this._state === `disposed`)
+      return;
+    const resource = this.resource;
+    const data = resource.data;
+    this._state = `disposed`;
+    resource._release(this);
+    this._pool.log.log(`PoolUser dispose key: ${this.key} reason: ${reason}`);
+    this.fireEvent(`disposed`, { data, reason });
+    super.clearEventListeners();
+  }
+  release(reason) {
+    if (this.isDisposed)
+      throw new Error(`User disposed`);
+    const resource = this.resource;
+    const data = resource.data;
+    this._pool.log.log(`PoolUser release key: ${this.key} reason: ${reason}`);
+    this.fireEvent(`released`, { data, reason });
+    this._dispose(`release-${reason}`);
+  }
+  get data() {
+    if (this.isDisposed)
+      throw new Error(`User disposed`);
+    return this.resource.data;
   }
   get isExpired() {
-    if (this.userExpireAfterMs > 0) {
-      return performance.now() > this.lastUpdate + this.userExpireAfterMs;
+    if (this._userExpireAfterMs > 0) {
+      return performance.now() > this._lastUpdate + this._userExpireAfterMs;
     }
     return false;
   }
+  get elapsed() {
+    return performance.now() - this._lastUpdate;
+  }
   get isDisposed() {
-    return this.state === `disposed`;
+    return this._state === `disposed`;
   }
   get isValid() {
     if (this.isDisposed || this.isExpired)
@@ -22593,22 +22646,6 @@ var PoolUser = class {
     if (this.resource.isDisposed)
       return false;
     return true;
-  }
-  keepAlive() {
-    if (this.state === `disposed`)
-      throw new Error(`PoolItem disposed`);
-    this.lastUpdate = performance.now();
-  }
-  _dispose(reason) {
-    if (this.state === `disposed`)
-      return;
-    this.state = `disposed`;
-    this.resource._release(this);
-    this.pool.log.log(`PoolUser dispose key: ${this.key} reason: ${reason}`);
-  }
-  release(reason) {
-    this.pool.log.log(`PoolUser release key: ${this.key} reason: ${reason}`);
-    this._dispose(`release-${reason}`);
   }
 };
 var Resource = class {
@@ -22666,6 +22703,7 @@ var Resource = class {
   dispose(reason) {
     if (this.state === `disposed`)
       return;
+    const data = this._data;
     this.state = `disposed`;
     this.pool.log.log(`Resource disposed (${reason})`);
     for (const u of this.users) {
@@ -22675,11 +22713,11 @@ var Resource = class {
     this.lastUsersChange = performance.now();
     this.pool._releaseResource(this, reason);
     if (this.pool.freeResource)
-      this.pool.freeResource(this.data);
+      this.pool.freeResource(data);
   }
 };
 var Pool = class {
-  constructor(opts) {
+  constructor(opts = {}) {
     __publicField(this, "_resources");
     __publicField(this, "_users");
     __publicField(this, "capacity");
@@ -22693,18 +22731,24 @@ var Pool = class {
     this.capacity = opts.capacity ?? -1;
     this.fullPolicy = opts.fullPolicy ?? `error`;
     this.capacityPerResource = opts.capacityPerResource ?? 1;
+    this.userExpireAfterMs = opts.userExpireAfterMs ?? -1;
+    this.resourcesWithoutUserExpireAfterMs = opts.resourcesWithoutUserExpireAfterMs ?? -1;
     this.generateResource = opts.generate;
     this.freeResource = opts.free;
     this._users = /* @__PURE__ */ new Map();
     this._resources = [];
-    this.userExpireAfterMs = opts.userExpireAfterMs ?? -1;
-    this.resourcesWithoutUserExpireAfterMs = opts.resourcesWithoutUserExpireAfterMs ?? -1;
     this.log = logSet(`Pool`, opts.debug ?? false);
+    const timer = Math.max(this.userExpireAfterMs, this.resourcesWithoutUserExpireAfterMs);
+    if (timer > 0) {
+      setInterval(() => {
+        this.maintain();
+      }, timer * 1.1);
+    }
   }
   dumpToString() {
     let r = `Pool
     capacity: ${this.capacity} userExpireAfterMs: ${this.userExpireAfterMs} capacityPerResource: ${this.capacityPerResource}
-    resources count: ${this.resources.length}`;
+    resources count: ${this._resources.length}`;
     const res = this._resources.map((r2) => r2.toString()).join(`\r
 	`);
     r += `\r
@@ -22740,6 +22784,10 @@ Users: \r
     });
   }
   addResource(resource) {
+    if (resource === void 0)
+      throw new Error(`Cannot add undefined resource`);
+    if (resource === null)
+      throw new Error(`Cannot add null resource`);
     if (this.capacity > 0 && this._resources.length === this.capacity)
       throw new Error(`Capacity limit (${this.capacity}) reached. Cannot add more.`);
     this.log.log(`Adding resource: ${JSON.stringify(resource)}`);
@@ -22778,7 +22826,7 @@ Users: \r
       changed = true;
     }
     if (changed) {
-      this.log.log(`End: resource len: ${this.resources.length} users: ${this.usersLength}`);
+      this.log.log(`End: resource len: ${this._resources.length} users: ${this.usersLength}`);
     }
   }
   *resources() {
@@ -22818,17 +22866,18 @@ Users: \r
     resource._assign(u);
     return u;
   }
-  _find(userKey) {
+  _findUser(userKey) {
     const sorted = this.getResourcesSortedByUse();
     if (sorted.length > 0 && sorted[0].hasUserCapacity) {
       this.log.log(`resource has capacity: ${sorted[0].data}`);
       const u = this._assign(userKey, sorted[0]);
-      return u.resource;
+      return u;
     }
-    if (this.generateResource && (this.capacity < 0 || this.resources.length < this.capacity)) {
+    if (this.generateResource && (this.capacity < 0 || this._resources.length < this.capacity)) {
+      this.log.log(`capacity: ${this.capacity} resources: ${this._resources.length}`);
       const newResource = this.addResource(this.generateResource());
-      this._assign(userKey, newResource);
-      return newResource;
+      const u = this._assign(userKey, newResource);
+      return u;
     }
   }
   get usersLength() {
@@ -22836,16 +22885,16 @@ Users: \r
   }
   useValue(userKey) {
     const res = this.use(userKey);
-    return res.data;
+    return res.resource.data;
   }
   use(userKey) {
     const pi5 = this._users.get(userKey);
     if (pi5) {
       pi5.keepAlive();
-      return pi5.resource;
+      return pi5;
     }
     this.maintain();
-    const match = this._find(userKey);
+    const match = this._findUser(userKey);
     if (match)
       return match;
     if (this.fullPolicy === `error`) {
@@ -22856,7 +22905,7 @@ Users: \r
       const users = this.getUsersByLongestElapsed();
       if (users.length > 0) {
         this.release(users[0].key, `evictedOldestUser`);
-        const match2 = this._find(userKey);
+        const match2 = this._findUser(userKey);
         if (match2)
           return match2;
       }
@@ -22864,6 +22913,7 @@ Users: \r
     throw new Error(`Pool is fully used (${this.fullPolicy})`);
   }
 };
+var create2 = (opts = {}) => new Pool(opts);
 
 // src/data/index.ts
 var piPi8 = Math.PI * 2;
@@ -22885,12 +22935,12 @@ var cos3 = Math.cos;
 var pi4 = Math.PI;
 var sin3 = Math.sin;
 var time = function(nameOrFn, durationMs) {
-  return create2(nameOrFn, durationMs, msElapsedTimer);
+  return create3(nameOrFn, durationMs, msElapsedTimer);
 };
 var tick = function(nameOrFn, durationTicks) {
-  return create2(nameOrFn, durationTicks, ticksElapsedTimer);
+  return create3(nameOrFn, durationTicks, ticksElapsedTimer);
 };
-var create2 = function(nameOrFn, duration, timerSource) {
+var create3 = function(nameOrFn, duration, timerSource) {
   let fn;
   if (typeof nameOrFn === `function`)
     fn = nameOrFn;
@@ -23330,6 +23380,17 @@ var reducePairwise = (arr, reducer, initial) => {
   }
   return initial;
 };
+var pushUnique = (input, values, comparer) => {
+  const c = comparer ?? isEqualDefault;
+  const ret = [...input];
+  for (const v of values) {
+    const found = ret.find((i) => c(i, v));
+    if (found)
+      continue;
+    ret.push(v);
+  }
+  return ret;
+};
 
 // src/KeyValue.ts
 var byKey = (reverse = false) => (0, import_function.pipe)(
@@ -23411,18 +23472,20 @@ export {
   deleteByValue,
   getOrGenerate,
   getOrGenerateSync,
-  addUniqueByHash,
+  addKeepingExisting,
   sortByValue,
   sortByValueProperty,
   hasAnyValue,
   filter,
   toArray,
   fromIterable,
+  fromObject,
+  addObject,
   find,
   mapToObjTransform,
   zipKeyValue,
   transformMap,
-  mapToObj,
+  toObject,
   mapToArray,
   mergeByKey,
   Map_exports,
@@ -23613,6 +23676,7 @@ export {
   chunks,
   mergeByKey2,
   reducePairwise,
+  pushUnique,
   Arrays_exports
 };
 /*! *****************************************************************************
@@ -23629,4 +23693,4 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-//# sourceMappingURL=chunk-XOJ3BXNV.js.map
+//# sourceMappingURL=chunk-VUZ7N4PL.js.map

@@ -1,9 +1,9 @@
-import { b as MapArrayEvents, c as MultiValue, d as MapMultiOpts, M as MapOfMutable, e as MapArrayOpts, f as MapSetOpts, g as MapCircularOpts, C as CircularArray, h as SimpleMapArrayMutable, D as DiscardPolicy, a as Stack$1, i as StackMutable, j as Queue$1, Q as QueueMutable, E as EitherKey, k as MapImmutable, l as MapMutable, A as ArrayKeys, O as ObjKeys, V as ValueSetEventMap, S as SetMutable, m as StackBase } from './Interfaces-63c75980.js';
+import { b as MapArrayEvents, c as MultiValue, d as MapMultiOpts, M as MapOfMutable, e as MapArrayOpts, f as MapSetOpts, g as MapCircularOpts, C as CircularArray, h as SimpleMapArrayMutable, D as DiscardPolicy, a as Stack$1, i as StackMutable, j as Queue$1, Q as QueueMutable, E as EitherKey, k as MapImmutable, l as MapMutable, A as ArrayKeys, O as ObjKeys, V as ValueSetEventMap, m as SetImmutable, S as SetMutable, n as StackBase } from './Interfaces-4d04fb57.js';
 import { S as SimpleEventEmitter } from './Events-170d1411.js';
 import { T as ToString } from './Util-dd245d43.js';
-import { s as setMutable, S as Set } from './Set-69a093e1.js';
-import { A as Arrays } from './Arrays-c81fbf3f.js';
-import { M as Map$1 } from './Map-cf5c2622.js';
+import { s as setMutable, S as Set } from './Set-3d9e5fd8.js';
+import { A as Arrays } from './Arrays-3ede4cd5.js';
+import { M as Map$1 } from './Map-bd337a51.js';
 
 /**
  * @internal
@@ -527,6 +527,7 @@ declare const index_MapArrayOpts: typeof MapArrayOpts;
 declare const index_ValueSetEventMap: typeof ValueSetEventMap;
 declare const index_DiscardPolicy: typeof DiscardPolicy;
 declare const index_QueueMutable: typeof QueueMutable;
+declare const index_SetImmutable: typeof SetImmutable;
 declare const index_SetMutable: typeof SetMutable;
 declare const index_MapOfMutable: typeof MapOfMutable;
 declare const index_MapArrayEvents: typeof MapArrayEvents;
@@ -572,6 +573,7 @@ declare namespace index {
     index_DiscardPolicy as DiscardPolicy,
     Queue$1 as Queue,
     index_QueueMutable as QueueMutable,
+    index_SetImmutable as SetImmutable,
     index_SetMutable as SetMutable,
     index_MapOfMutable as MapOfMutable,
     index_MapArrayEvents as MapArrayEvents,

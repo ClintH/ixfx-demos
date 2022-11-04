@@ -9,24 +9,57 @@ import {
 // src/collections/Set.ts
 var Set_exports = {};
 __export(Set_exports, {
+  set: () => set,
   setMutable: () => setMutable
 });
+var StringSetImpl = class {
+  constructor(keyString, map) {
+    __publicField(this, "store");
+    __publicField(this, "keyString");
+    this.store = map ?? /* @__PURE__ */ new Map();
+    this.keyString = keyString ?? defaultKeyer;
+  }
+  add(...values) {
+    const s = new Map(this.store);
+    for (const v of values) {
+      const key = this.keyString(v);
+      s.set(key, v);
+    }
+    return new StringSetImpl(this.keyString, s);
+  }
+  delete(v) {
+    const s = new Map(this.store);
+    const key = this.keyString(v);
+    if (s.delete(key))
+      return new StringSetImpl(this.keyString, s);
+    return this;
+  }
+  has(v) {
+    const key = this.keyString(v);
+    return this.store.has(key);
+  }
+  toArray() {
+    return [...this.store.values()];
+  }
+  *values() {
+    yield* this.store.values();
+  }
+};
+var set = (keyString) => new StringSetImpl(keyString);
 var setMutable = (keyString = void 0) => new MutableStringSetImpl(keyString);
+var defaultKeyer = (a) => {
+  if (typeof a === `string`) {
+    return a;
+  } else {
+    return JSON.stringify(a);
+  }
+};
 var MutableStringSetImpl = class extends SimpleEventEmitter {
   constructor(keyString = void 0) {
     super();
     __publicField(this, "store", /* @__PURE__ */ new Map());
     __publicField(this, "keyString");
-    if (keyString === void 0) {
-      keyString = (a) => {
-        if (typeof a === `string`) {
-          return a;
-        } else {
-          return JSON.stringify(a);
-        }
-      };
-    }
-    this.keyString = keyString;
+    this.keyString = keyString ?? defaultKeyer;
   }
   add(...v) {
     v.forEach((i) => {
@@ -57,7 +90,8 @@ var MutableStringSetImpl = class extends SimpleEventEmitter {
 };
 
 export {
+  set,
   setMutable,
   Set_exports
 };
-//# sourceMappingURL=chunk-CVOJ7BL7.js.map
+//# sourceMappingURL=chunk-VCCD7R7D.js.map
