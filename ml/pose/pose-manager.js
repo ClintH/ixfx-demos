@@ -1,6 +1,6 @@
 // #region Imports
 import { Correlate } from '../../ixfx/data.js';
-import { Maps, ExpiringMap } from '../../ixfx/collections.js';
+import { Maps } from '../../ixfx/collections.js';
 import { poseProcessor, poseSimilarity, poseByKeypoint } from './common-pose.js';
 // #endregion
 
@@ -46,13 +46,13 @@ export class PosesManager extends EventTarget {
    * Automatically delete if we don't access an id after 30s.
    * This suggests we're not receiving data from it.
    * 
-   * @type {ExpiringMap<string,Source>} */
+   * @type {Maps.ExpiringMap<string,Source>} */
   #sources;
   #sourcesGet;
 
   /**
    * Pose id -> PoseData
-   * @type {ExpiringMap<string,PoseData>}
+   * @type {Maps.ExpiringMap<string,PoseData>}
    */
   #poses;
   #posesGet;
@@ -81,8 +81,8 @@ export class PosesManager extends EventTarget {
       }
     };
     this.#debug = opts.debug ?? false;
-    const sourceMapOpts = opts.sourcesMapOpts ?? { autoDeletePolicy: `access`, autoDeleteElapsedMs: 30*1000 };
-    this.#sources = new ExpiringMap(sourceMapOpts);
+    const sourceMapOpts = opts.sourcesMapOpts ?? { autoDeletePolicy: `get`, autoDeleteElapsedMs: 30*1000 };
+    this.#sources = Maps.expiringMap(sourceMapOpts);
     this.#sourcesGet = Maps.getOrGenerateSync(this.#sources, (key, args) => {
       return {
         id: key,
@@ -91,8 +91,8 @@ export class PosesManager extends EventTarget {
     });
     this.#sources.addEventListener(`removed`, evt => this.#onSourceLost(evt));
     
-    const posesMapOpts = opts.posesMapOpts ?? { autoDeletePolicy:`access`, autoDeleteElapsedMs: 1000 };
-    this.#poses = new ExpiringMap(posesMapOpts);
+    const posesMapOpts = opts.posesMapOpts ?? { autoDeletePolicy:`get`, autoDeleteElapsedMs: 1000 };
+    this.#poses = Maps.expiringMap(posesMapOpts);
     this.#posesGet = Maps.getOrGenerateSync(this.#poses, (key, args) => {
       return new PoseData(key, this);
     });
@@ -254,9 +254,9 @@ export class PosesManager extends EventTarget {
  * @typedef { import("./common-pose").PoseProcessorOpts } PoseProcessorOpts
  * @typedef { import("./common-pose").PoseByKeypoint } PoseByKeypoint
  * @typedef { import("../../ixfx/data.js").Correlate.AlignOpts} CorrelatorOpts
- * @typedef { import("../../ixfx/collections").ExpiringMapOpts } ExpiringMapOpts
- * @typedef { import("../../ixfx/collections").ExpiringMapEvent<string,Source> } SourcesMapEvent
- * @typedef { import("../../ixfx/collections").ExpiringMapEvent<string,PoseData> } PosesMapEvent
+ * @typedef { import("../../ixfx/collections").Maps.ExpiringMapOpts } ExpiringMapOpts
+ * @typedef { import("../../ixfx/collections").Maps.ExpiringMapEvent<string,Source> } SourcesMapEvent
+ * @typedef { import("../../ixfx/collections").Maps.ExpiringMapEvent<string,PoseData> } PosesMapEvent
  */
 
 /**
