@@ -4,11 +4,13 @@
  */
 import { movingAverage } from '../../ixfx/data.js';
 import { Points } from '../../ixfx/geometry.js';
+import { mapObject } from '../../ixfx/util.js';
 
 const settings = Object.freeze({
-  avgX: movingAverage(100),
-  avgY: movingAverage(100),
+  // Create an averager over {x, y}
+  average: mapObject({ x:0, y:0 }, (v) => movingAverage(100))
 });
+
 
 let state = Object.freeze({
   avg: { x: 0, y: 0 },
@@ -22,13 +24,13 @@ const update = () => {
 };
 
 const addAverage = (absX, absY) => {
-  const { avgX, avgY } = settings;
+  const { x, y } = settings.average;
 
   // Add relative x,y to their respective movingAverage instance
   updateState ({
     avg: {
-      x: avgX.add(absX / window.innerWidth),
-      y: avgY.add(absY / window.innerHeight)
+      x: x.add(absX / window.innerWidth),
+      y: y.add(absY / window.innerHeight)
     }
   });
 };
