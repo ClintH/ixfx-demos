@@ -12,20 +12,22 @@ import {
   Rect_exports,
   Scaler_exports,
   Shape_exports,
+  Sphere_exports,
+  SurfacePoints_exports,
   Triangle_exports,
   Vector_exports,
   Waypoint_exports,
   degreeToRadian,
   radianToDegree,
   radiansFromAxisX
-} from "./chunk-6KMJZM2I.js";
-import "./chunk-VCCD7R7D.js";
-import "./chunk-Q7VCWVGI.js";
-import "./chunk-QYDSXTXY.js";
-import "./chunk-XPJU5VHR.js";
-import "./chunk-7EVATTA2.js";
+} from "./chunk-YA2Y6API.js";
+import "./chunk-ZPOLPYF5.js";
+import "./chunk-T7A6QVCM.js";
+import "./chunk-ZF2RJVNY.js";
+import "./chunk-ZCGOU5ZT.js";
+import "./chunk-4ROCE47J.js";
 import "./chunk-JSN2YTED.js";
-import "./chunk-EVWUBOZU.js";
+import "./chunk-OVCUSACM.js";
 import "./chunk-FU5PERHQ.js";
 export {
   Arc_exports as Arcs,
@@ -41,6 +43,8 @@ export {
   Rect_exports as Rects,
   Scaler_exports as Scaler,
   Shape_exports as Shapes,
+  Sphere_exports as Spheres,
+  SurfacePoints_exports as SurfacePoints,
   Triangle_exports as Triangles,
   Vector_exports as Vectors,
   Waypoint_exports as Waypoints,

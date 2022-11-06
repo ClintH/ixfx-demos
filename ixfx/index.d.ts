@@ -5422,7 +5422,8 @@ declare module "geometry/Point" {
         readonly z: number;
     };
     /**
-     * Returns a Point form of either a point, x,y params or x,y,z params
+     * Returns a Point form of either a point, x,y params or x,y,z params.
+     * If parameters are undefined, an empty point is returned (0, 0)
      * @ignore
      * @param a
      * @param b
@@ -6613,6 +6614,16 @@ declare module "geometry/Circle" {
      */
     export const nearest: (circle: CirclePositioned | readonly CirclePositioned[], b: Points.Point) => Points.Point;
     /**
+     * Returns a positioned version of a circle.
+     * If circle is already positioned, it is returned.
+     * If no default position is supplied, 0,0 is used.
+     * @param circle
+     * @param defaultPositionOrX
+     * @param y
+     * @returns
+     */
+    export const toPositioned: (circle: Circle | CirclePositioned, defaultPositionOrX?: Points.Point | number, y?: number) => CirclePositioned;
+    /**
      * Returns a `CircularPath` representation of a circle
      *
      * @param {CirclePositioned} circle
@@ -7428,6 +7439,12 @@ declare module "geometry/Waypoint" {
         distance: number;
     }[];
 }
+declare module "geometry/Sphere" {
+    import * as Points from "geometry/Point";
+    export type Sphere = Points.Point3d & {
+        readonly radius: number;
+    };
+}
 declare module "geometry/Scaler" {
     import { Point } from "geometry/Point";
     import { Rect } from "geometry/Rect";
@@ -7496,6 +7513,90 @@ declare module "geometry/Scaler" {
      * @returns
      */
     export const scaler: (scaleBy?: `both` | `min` | `max` | `width` | `height`, defaultRect?: Rect) => Scaler;
+}
+declare module "geometry/SurfacePoints" {
+    import { Sphere } from "geometry/Sphere";
+    import * as Points from "geometry/Point";
+    import { Circle } from "geometry/Circle";
+    /**
+     * Options for a Vogel spiral
+     */
+    export type VogelSpiralOpts = {
+        /**
+         * Upper limit of points to produce.
+         * By default, 5000.
+         */
+        readonly maxPoints?: number;
+        /**
+         * Density value (0..1) which determines spacing of points.
+         * This is useful because it scales with whatever circle radius is given
+         * Use this parameter OR the `spacing` parameter.
+         */
+        readonly density?: number;
+        /**
+         * Spacing between points.
+         * Use this option OR the density value.
+         */
+        readonly spacing?: number;
+        /**
+         * Rotation offset to apply, in radians. 0 by default
+         */
+        readonly rotation?: number;
+    };
+    /**
+     * Generates points on a Vogel spiral - a sunflower-like arrangement of points.
+     *
+     * @example With no arguments, assumes a unit circle
+     * ```js
+     * for (const pt of vogelSpiral()) {
+     *  // Generate points on a unit circle, with 95% density
+     * }
+     * ```
+     *
+     *
+     * @example Specifying a circle and options
+     * ```js
+     * const circle = { radius: 100, x: 100, y: 100 };
+     * const opts = {
+     *  maxPoints: 50,
+     *  density: 0.99
+     * };
+     * for (const pt of vogelSpiral(circle, opts)) {
+     *  // Do something with point...
+     * }
+     * ```
+     *
+     * @example Array format
+     * ```js
+     * const ptsArray = [...vogelSpiral(circle, opts)];
+     * ```
+     * @param circle
+     * @param opts
+     */
+    export function vogelSpiral(circle?: Circle, opts?: VogelSpiralOpts): IterableIterator<Points.Point>;
+    /**
+     * Fibonacci sphere algorithm. Generates points
+     * distributed on a sphere.
+     *
+     * @example Generate points of a unit sphere
+     * ```js
+     * for (const pt of sphereFibonacci(100)) {
+     *  // pt.x, pt.y, pt.z
+     * }
+     * ```
+     *
+     * @example Generate points into an array
+     * ```js
+     * const sphere = { radius: 10, x: 10, y: 200 }
+     * const pts = [...sphereFibonacci(100, 0, sphere)];
+     * ```
+     *
+     * Source: https://codepen.io/elchininet/pen/vXeRyL
+     *
+     * @param samples
+     * @returns
+     */
+    export function sphereFibonacci(samples?: number, rotationRadians?: number, sphere?: Sphere): IterableIterator<Points.Point3d>;
 }
 declare module "geometry/TriangleEquilateral" {
     import { Circle } from "geometry/Circle";
@@ -7986,11 +8087,11 @@ declare module "geometry/Triangle" {
      */
     export const isEquilateral: (t: Triangle) => boolean;
     /**
-     * Returns true if it is an isoceles triangle
+     * Returns true if it is an isosceles triangle
      * @param t
      * @returns
      */
-    export const isIsoceles: (t: Triangle) => boolean;
+    export const isIsosceles: (t: Triangle) => boolean;
     /**
      * Returns true if at least one interior angle is 90 degrees
      * @param t
@@ -8161,12 +8262,73 @@ declare module "geometry/index" {
     import * as Points from "geometry/Point";
     import * as Rects from "geometry/Rect";
     import * as Ellipses from "geometry/Ellipse";
-    import * as Polar from "geometry/Polar";
     import * as Shapes from "geometry/Shape";
     import * as Vectors from "geometry/Vector";
     import * as Waypoints from "geometry/Waypoint";
-    export { Circles, Arcs, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Polar, Shapes, Vectors, Waypoints };
+    import * as Spheres from "geometry/Sphere";
+    import * as Polar from "geometry/Polar";
+    export { Circles, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Waypoints, Spheres };
     export * as Scaler from "geometry/Scaler";
+    /**
+     * Work with arcs. Arcs are a angle-limited circle, describing a wedge.
+     *
+     * {@link ArcPositioned} has a origin x,y.
+     *
+     * Conversions:
+     * - {@link fromDegrees}
+     * - {@link toLine}: A line from start/end position of arc
+     * - {@link toSvg}: Returns an SVG representation of arc
+     *
+     * Calculations:
+     * - {@link bbox}: Bounding box
+     * - {@link interpolate}: Interplate two arcs
+     * - {@link point}: Find a point on the arc, given an angle
+     * - {@link length}: Circumference of arc
+     *
+     * Comparisons:
+     * - {@link isArc}: Returns true if object is Arc-ish
+     * - {@link isEqual}: Returns true if two objects have identical arc properties
+     */
+    export { Arcs };
+    /**
+     * Generate a few basic geometric shapes
+     * Overview:
+     * * {@link arrow}
+     * * {@link starburst}
+     */
+    export { Shapes };
+    /**
+     * Helper functions for working with vectors, which can either be a {@link Points.Point} or Polar {@link Polar.Coord}.
+     * While most of the functionality is provided in either of those modules, the Vector module lets you cleanly
+     * interoperate between these two coordinates.
+     */
+    export { Vectors };
+    /**
+     * Work with Polar coordinates.
+     * A Polar {@link Coord} is just `{ angleRadians:number, distance: number }`.
+     *
+     * Conversion: {@link toCartesian}, {@link fromCartesian}, {@link toString}
+     *
+     * Math: {@link divide}, {@link invert}, {@link multiply}, {@link dotProduct}
+     *
+     * Geometric manipulations: {@link rotate}, {@link rotateDegrees}
+     *
+     * Cleaning: {@link clampMagnitude}, {@link normalise}
+     *
+     * Debugging: {@link toString}
+     *
+     * Comparisons: {@link isAntiParallel}, {@link isOpposite}, {@link isParallel}, {@link isCoord}
+     */
+    export { Polar };
+    /**
+     * Functions for producing points within a shape.
+     * Useful for creating patterns.
+     *
+     * Overview:
+     * * {@link sphereFibonacci}: Generate points on a sphere
+     * * {@link vogelSpiral}: Generate a sunflower-esque pattern of points in a circle
+     */
+    export * as SurfacePoints from "geometry/SurfacePoints";
     /**
      * Triangle processing.
      *
@@ -8175,9 +8337,32 @@ declare module "geometry/index" {
      * - {@link Triangles.fromPoints}: Create from three `{ x, y }` sets
      * - {@link Triangles.fromRadius}: Equilateral triangle of a given radius and center
      *
-     * There are two sub-modules for dealing with particular triangles:
+     * There are sub-modules for dealing with particular triangles:
      * - {@link Triangles.Equilateral}: Equilateral triangls
      * - {@link Triangles.Right}: Right-angled triangles
+     * - {@link Triangles.Isosceles}: Iscosceles triangles
+     *
+     * Calculations
+     * - {@link angles}: Internal angles in radians. {@link anglesDegrees} for degrees.
+     * - {@link area}: Area of triangle
+     * - {@link bbox}: Bounding box
+     * - {@link centroid}: Centroid of triangle
+     * - {@link perimeter}: Calculate perimeter
+     * - {@link lengths}: Return array lengths of triangle's edges
+     * - {@link rotate}, {@link rotateByVertex}
+     *
+     * Conversions
+     * - {@link edges}: Edges of triangle as {@link Lines.Line}
+     * - {@link corners}: Corner positions
+     * - {@link innerCircle}: Largest circle to fit within triangle
+     * - {@link outerCircle}: Largest circle to enclose triangle
+     * - {@link toFlatArray}
+     *
+     * Comparisons
+     * - {@link intersectsPoint}: Whether a point intersects triangle
+     * - {@link isEqual}: Check whether two triangles have equal values
+     * - {@link isAcute}, {@link isEquilateral}, {@link isIsosceles}, {@link isRightAngle}
+     * - {@link isTriangle}: Returns true if object has expected properties of a triangle
      */
     export * as Triangles from "geometry/Triangle";
     /**
@@ -10206,6 +10391,8 @@ declare module "dom/Util" {
             readonly width: number;
             readonly height: number;
             readonly center: Points.Point;
+            readonly min: number;
+            readonly max: number;
         };
     };
     export type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
@@ -12263,7 +12450,21 @@ declare module "index" {
      */
     export * as Data from "data/index";
     /**
-     * Functions for different shapes, paths and coordinate spaces
+     * Functions for different shapes, paths and coordinate spaces.
+     *
+     * A foundation module is {@link Points} for working with x, y (and maybe z).
+     * It has the top-level helper functions: {@link degreeToRadian} and {@link radianToDegree}
+     *
+     * Basic shapes: {@link Arcs}, {@link Circles}, {@link Ellipses}, {@link Lines}, {@link Rects}, {@link Triangles}
+     *
+     * Curves & paths: {@link Beziers}, {@link Paths}, {@link Compound}
+     *
+     * Util:
+     * * {@link Polar}: Polar coordinates
+     * * {@link Scaler}: Simplify back and forth conversion between absolute/relative Cartesian coordinates
+     * * {@link Shapes}: Generates a few shapes like arrows
+     * * {@link SurfacePoints}: Generate points within a shape. Useful for creating patterns
+     * * {@link Vectors}: Vector operations working on either Cartesian or polar coordinates
      * @example Importing
      * ```js
      * // If library is stored two directories up under `ixfx/`
