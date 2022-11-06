@@ -1,7 +1,7 @@
-export { c as CanvasOpts, C as CanvasResizeArgs, z as CreateUpdateElement, q as DataFormatter, s as DataTableOpts, b as DomRxOpts, D as DragDrop, E as ElementResizeArgs, a as Log, L as LogOpts, O as Opts, P as PluckOpts, R as Rx, T as TransformOpts, d as canvasHelper, u as clear, y as copyToClipboard, m as createAfter, n as createIn, g as cycleCssClass, t as dataTable, o as dataTableList, F as defaultErrorHandler, e as fullSizeCanvas, f as fullSizeElement, h as getTranslation, l as log, p as parentSize, j as parentSizeCanvas, B as pointerVisualise, A as reconcileChildren, x as resizeObservable, k as resolveEl, r as rx, v as themeChangeObservable, w as windowResize } from './index-b28ee6bb.js';
+export { c as CanvasOpts, C as CanvasResizeArgs, z as CreateUpdateElement, q as DataFormatter, s as DataTableOpts, b as DomRxOpts, D as DragDrop, E as ElementResizeArgs, a as Log, L as LogOpts, O as Opts, P as PluckOpts, R as Rx, T as TransformOpts, d as canvasHelper, u as clear, y as copyToClipboard, m as createAfter, n as createIn, g as cycleCssClass, t as dataTable, o as dataTableList, F as defaultErrorHandler, e as fullSizeCanvas, f as fullSizeElement, h as getTranslation, l as log, p as parentSize, j as parentSizeCanvas, B as pointerVisualise, A as reconcileChildren, x as resizeObservable, k as resolveEl, r as rx, v as themeChangeObservable, w as windowResize } from './index-9f39ae22.js';
 export { F as Forms } from './Forms-da86557a.js';
 import 'rxjs';
-import './Point-b217e9a5.js';
+import './Point-63f58637.js';
 import './Arrays-be287664.js';
 import './Util-55c68770.js';
 import './NumericArrays-736bab66.js';
@@ -11,4 +11,4 @@ import './StateMachine-2013f64a.js';
 import './Events-5892cf2f.js';
 import './Delay-3496e708.js';
 import 'd3-color';
-import './Scaler-449133b0.js';
+import './Scaler-00d5656c.js';

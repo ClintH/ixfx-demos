@@ -1,4 +1,4 @@
-export { A as AudioAnalysers, a as AudioVisualisers, N as Bluetooth, c as Camera, C as Codec, E as Espruino, F as FrameProcessor, d as FrameProcessorOpts, e as Serial, S as StringReceiveBuffer, b as StringWriteBuffer, V as VideoFile } from './index-9cacbf37.js';
+export { A as AudioAnalysers, a as AudioVisualisers, N as Bluetooth, c as Camera, C as Codec, E as Espruino, F as FrameProcessor, d as FrameProcessorOpts, e as Serial, S as StringReceiveBuffer, b as StringWriteBuffer, V as VideoFile } from './index-ba3f5314.js';
 import './Events-5892cf2f.js';
 import './StateMachine-2013f64a.js';
 import './Interfaces-afd3b408.js';
@@ -7,7 +7,7 @@ import './index-4ea24214.js';
 import './Delay-3496e708.js';
 import './NumberTracker-794c55a4.js';
 import './Map-95c1173f.js';
-import './Point-b217e9a5.js';
+import './Point-63f58637.js';
 import './Arrays-be287664.js';
 import './NumericArrays-736bab66.js';
 import './Easing-efe1b2db.js';

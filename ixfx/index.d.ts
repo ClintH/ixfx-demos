@@ -16,6 +16,7 @@ declare module "Guards" {
     `aboveZero` | `belowZero` | `percentage` | `bipolar`;
     /**
      * Throws an error if `t` is not a number or within specified range.
+     * Use an empty string for no special range constraints.
      * Alternatives: {@link integer} for additional integer check, {@link percent} for percentage-range.
      *
      * * positive: must be at least zero
@@ -5391,7 +5392,7 @@ declare module "Numbers" {
      */
     export function filter(it: Iterable<unknown>): Generator<unknown, void, unknown>;
     /**
-     * Rounds `v` by `every`.
+     * Rounds `v` by `every`. Middle values are rounded up by default.
      *
      * ```js
      * quantiseEvery(11, 10);  // 10
@@ -5400,12 +5401,57 @@ declare module "Numbers" {
      * quantiseEvery(4, 10);   // 0
      * quantiseEvery(100, 10); // 100
      * ```
+     *
      * @param v
      * @param every
      * @param middleRoundsUp
      * @returns
      */
     export const quantiseEvery: (v: number, every: number, middleRoundsUp?: boolean) => number;
+    /**
+     * Generates a `step`-length series of values between `start` and `end` (inclusive).
+     * Each value will be equally spaced.
+     *
+     * ```js
+     * for (const v of linearSpace(1, 5, 6)) {
+     *  // Yields: 1, 2, 3, 4, 5, 6
+     * }
+     * ```
+     *
+     * Numbers can be produced from large to small as well
+     * ```js
+     * const values = [...linearSpace(10, 5, 3)];
+     * // Yields: [10, 7.5, 5]
+     * ```
+     * @param start Start number (inclusive)
+     * @param end  End number (inclusive)
+     * @param steps How many steps to make from start -> end
+     * @param precision Number of decimal points to round to
+     */
+    export function linearSpace(start: number, end: number, steps: number, precision?: number): IterableIterator<number>;
+    /**
+     * Rounds a number to given number of decimal places.
+     *
+     * If you are reusing the same rounding, consider {@link rounder}.
+     * ```js
+     * round(10.12345, 2); // 10.12
+     * round(10.12345, 1); // 10.1
+     * round(10.12345);    // 10
+     * ```
+     * @param v
+     * @param decimalPlaces
+     */
+    export const round: (v: number, decimalPlaces?: number) => number;
+    /**
+     * Returns a number rounding function
+     * ```js
+     * const r = rounder(2);
+     * r(10.12355); // 10.12
+     * ```
+     * @param decimalPlaces
+     * @returns
+     */
+    export const rounder: (decimalPlaces?: number) => (x: number) => number;
 }
 declare module "geometry/Point" {
     import { Circles, Lines, Points, Rects } from "geometry/index";
@@ -7517,7 +7563,7 @@ declare module "geometry/Scaler" {
 declare module "geometry/SurfacePoints" {
     import { Sphere } from "geometry/Sphere";
     import * as Points from "geometry/Point";
-    import { Circle } from "geometry/Circle";
+    import { Circle, CirclePositioned } from "geometry/Circle";
     /**
      * Options for a Vogel spiral
      */
@@ -7548,7 +7594,7 @@ declare module "geometry/SurfacePoints" {
      *
      * @example With no arguments, assumes a unit circle
      * ```js
-     * for (const pt of vogelSpiral()) {
+     * for (const pt of circleVogelSpiral()) {
      *  // Generate points on a unit circle, with 95% density
      * }
      * ```
@@ -7561,19 +7607,45 @@ declare module "geometry/SurfacePoints" {
      *  maxPoints: 50,
      *  density: 0.99
      * };
-     * for (const pt of vogelSpiral(circle, opts)) {
+     * for (const pt of circleVogelSpiral(circle, opts)) {
      *  // Do something with point...
      * }
      * ```
      *
      * @example Array format
      * ```js
-     * const ptsArray = [...vogelSpiral(circle, opts)];
+     * const ptsArray = [...circleVogelSpiral(circle, opts)];
      * ```
      * @param circle
      * @param opts
      */
-    export function vogelSpiral(circle?: Circle, opts?: VogelSpiralOpts): IterableIterator<Points.Point>;
+    export function circleVogelSpiral(circle?: Circle, opts?: VogelSpiralOpts): IterableIterator<Points.Point>;
+    export type CircleRingsOpts = {
+        readonly rings?: number;
+        /**
+         * Rotation offset, in radians
+         */
+        readonly rotation?: number;
+    };
+    /**
+     * Generates points spaced out on the given number of rings.
+     *
+     * Get points as array
+     * ```js
+     * const circle = { radius: 5, x: 100, y: 100 };
+     * const opts = { rings: 5 };
+     * const points = [...circleRings(circle, rings)];
+     * ```
+     *
+     * Or iterate over them
+     * ```js
+     * for (const point of circleRings(circle, opts)) {
+     * }
+     * ```
+     * Source: http://www.holoborodko.com/pavel/2015/07/23/generating-equidistant-points-on-unit-disk/#more-3453
+     * @param circle
+     */
+    export function circleRings(circle?: Circle | CirclePositioned, opts?: CircleRingsOpts): IterableIterator<Points.Point>;
     /**
      * Fibonacci sphere algorithm. Generates points
      * distributed on a sphere.

@@ -46,10 +46,18 @@ const update = () => {
   const { circleAbs } = state;
   const rotation = /** @type number */(radiansRange.next().value);
 
-  const pointsAbs = [ ...SurfacePoints.vogelSpiral(circleAbs, {
+  // Produce points on a Vogel spiral
+  const pointsAbs = [ ...SurfacePoints.circleVogelSpiral(circleAbs, {
     ...vogelOpts,
     rotation
   }) ];
+
+  // As an alternative...
+  // Produce points across 15 rings
+  // const pointsAbs = [ ...SurfacePoints.circleRings(circleAbs, { 
+  //   rings: 15,
+  //   rotation 
+  // }) ];
 
   saveState({
     pointsAbs
