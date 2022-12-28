@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>circle-ring</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 200;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 80%);
+      --fg: hsl(var(--hue), 100%, 30%);
+    }
+
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+    }
+
+    section {
+      padding: 1em;
+    }
+
+    .pt {
+      height: 5em;
+      width: 5em;
+      border-radius: 100%;
+      position: absolute;
+      background-color: hsl(var(--hue), 50%, 5%);
+
+    }
+  </style>
+  <section>
+    <h1>circle-ring</h1>
+  </section>
+  <script type="module" src="script.js"></script>
+
+</body>
+
+</html>
