@@ -4,6 +4,7 @@ import {
   Map_exports,
   Queue_exports,
   Stack_exports,
+  Trees_exports,
   circularArray,
   map,
   mapArray,
@@ -14,19 +15,19 @@ import {
   queueMutable,
   stack,
   stackMutable
-} from "./chunk-BBJTOTYF.js";
+} from "./chunk-UMAEVBXR.js";
 import {
   Set_exports,
   setMutable
-} from "./chunk-ZPOLPYF5.js";
-import "./chunk-FR25YNY2.js";
-import "./chunk-BAXIADUG.js";
-import "./chunk-DXG5CRMI.js";
-import "./chunk-LCTS33YV.js";
+} from "./chunk-VCCD7R7D.js";
+import "./chunk-SUBXAB65.js";
+import "./chunk-4R4FHD4A.js";
+import "./chunk-5MINYKUA.js";
+import "./chunk-AWNGL7KJ.js";
 import "./chunk-DEXQDIBZ.js";
 import {
   simpleMapArrayMutable
-} from "./chunk-OVCUSACM.js";
+} from "./chunk-EVWUBOZU.js";
 import "./chunk-FU5PERHQ.js";
 export {
   Arrays_exports as Arrays,
@@ -35,6 +36,7 @@ export {
   Queue_exports as Queues,
   Set_exports as Sets,
   Stack_exports as Stacks,
+  Trees_exports as Trees,
   circularArray,
   map,
   mapArray,

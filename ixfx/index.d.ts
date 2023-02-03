@@ -302,6 +302,7 @@ declare module "collections/Interfaces" {
         has(source: M, value: V): boolean;
         add(destination: M | undefined, values: ReadonlyArray<V>): M;
         toArray(source: M): ReadonlyArray<V> | undefined;
+        iterable(source: M): IterableIterator<V>;
         find(source: M, predicate: (v: V) => boolean): V | unknown;
         filter(source: M, predicate: (v: V) => boolean): Iterable<V>;
         without(source: M, value: V): ReadonlyArray<V>;
@@ -1231,6 +1232,13 @@ declare module "collections/MapMultiMutable" {
          * or undefined if key does not exist
          */
         get(key: string): readonly V[] | undefined;
+        /**
+         * Iterate over the values stored under `key`.
+         * If key does not exist, iteration is essentially a no-op
+         * @param key
+         * @returns
+         */
+        valuesFor(key: string): Generator<V, void, undefined>;
         getSource(key: string): M | undefined;
         keys(): string[];
         keysAndCounts(): Array<[string, number]>;
@@ -1241,7 +1249,7 @@ declare module "collections/MapMultiMutable" {
      * @example
      * ```js
      * const map = mapArray();
-     * map.add(`hello`, [1,2,3,4]); // Adds series of numbers under key `hello`
+     * map.addKeyedValues(`hello`, [1,2,3,4]); // Adds series of numbers under key `hello`
      *
      * const hello = map.get(`hello`); // Get back values
      * ```
@@ -1567,6 +1575,27 @@ declare module "collections/MapMutable" {
      */
     export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
 }
+declare module "collections/Trees" {
+    /**
+     * Source: https://github.com/amejiarosario/dsa.js-data-structures-algorithms-javascript/blob/c20acfb32f057355fa51fc0fedbdacebcab78baf/src/data-structures/trees/tree-node.js
+     * License: MIT
+     */
+    export class TreeNode<V> {
+        value: V;
+        descendants: TreeNode<V>[];
+        constructor(value: V);
+    }
+    /***
+     * Breadth-first traversal
+     */
+    export function bfs<V>(root: TreeNode<V>): Generator<TreeNode<V> | undefined, void, unknown>;
+    /**
+     * Depth-first traversal
+     * @param root
+     * @returns
+     */
+    export function dfs<V>(root: TreeNode<V>): Generator<TreeNode<V> | undefined, void, unknown>;
+}
 declare module "collections/index" {
     export * from "collections/Interfaces";
     export { mapSet, mapCircularMutable, mapArray } from "collections/MapMultiMutable";
@@ -1578,6 +1607,7 @@ declare module "collections/index" {
     export { map } from "collections/MapImmutable";
     export { mapMutable } from "collections/MapMutable";
     export { MapOfMutableImpl } from "collections/MapMultiMutable";
+    export * as Trees from "collections/Trees";
     /**
      * Stacks store items in order.
      *
@@ -3979,9 +4009,313 @@ declare module "modulation/Envelope" {
      */
     export function adsrSample(opts: EnvelopeOpts, sampleRateMs: number): AsyncGenerator<number, void, unknown>;
 }
+declare module "geometry/Intersects" {
+    import { CirclePositioned } from "geometry/Circle";
+    import { RectPositioned } from "geometry/Rect";
+    export const circleRect: (a: CirclePositioned, b: RectPositioned) => boolean;
+    export const circleCircle: (a: CirclePositioned, b: CirclePositioned) => boolean;
+}
+declare module "geometry/Circle" {
+    import { Path } from "geometry/Path";
+    import { Line } from "geometry/Line";
+    import { Points, Rects } from "geometry/index";
+    import { RandomSource } from "Random";
+    /**
+     * A circle
+     */
+    export type Circle = {
+        readonly radius: number;
+    };
+    /**
+     * A {@link Circle} with position
+     */
+    export type CirclePositioned = Points.Point & Circle;
+    export type CircularPath = Circle & Path & {
+        readonly kind: `circular`;
+    };
+    /**
+     * Returns true if parameter has x,y. Does not verify if parameter is a circle or not
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     *
+     * const circleA = { radius: 5 };
+     * Circles.isPositioned(circle); // false
+     *
+     * const circleB = { radius: 5, x: 10, y: 10 }
+     * Circles.isPositioned(circle); // true
+     * ```
+     * @param p Circle
+     * @returns
+     */
+    export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
+    export const isCircle: (p: Circle | CirclePositioned | any) => p is Circle;
+    export const isCirclePositioned: (p: Circle | CirclePositioned | any) => p is CirclePositioned;
+    /**
+     * Returns a point on a circle at a specified angle in radians
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     *
+     * // Circle without position
+     * const circleA = { radius: 5 };
+     *
+     * // Get point at angle Math.PI, passing in a origin coordinate
+     * const ptA = Circles.point(circleA, Math.PI, {x: 10, y: 10 });
+     *
+     * // Point on circle with position
+     * const circleB = { radius: 5, x: 10, y: 10};
+     * const ptB = Circles.point(circleB, Math.PI);
+     * ```
+     * @param circle
+     * @param angleRadian Angle in radians
+     * @param Origin or offset of calculated point. By default uses center of circle or 0,0 if undefined
+     * @returns Point oo circle
+     */
+    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
+    /**
+     * Returns the center of a circle
+     *
+     * If the circle has an x,y, that is the center.
+     * If not, `radius` is used as the x and y.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circle = { radius: 5, x: 10, y: 10};
+     *
+     * // Yields: { x: 5, y: 10 }
+     * Circles.center(circle);
+     * ```
+     *
+     * It's a trivial function, but can make for more understandable code
+     * @param circle
+     * @returns Center of circle
+     */
+    export const center: (circle: CirclePositioned | Circle) => Readonly<{
+        x: number;
+        y: number;
+    }>;
+    /**
+     * Computes relative position along circle
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circle = { radius: 100, x: 100, y: 100 };
+     *
+     * // Get a point halfway around circle
+     * // Yields { x, y }
+     * const pt = Circles.interpolate(circle, 0.5);
+     * ```
+     * @param circle
+     * @param t Position, 0-1
+     * @returns
+     */
+    export const interpolate: (circle: CirclePositioned, t: number) => Points.Point;
+    /**
+     * Returns circumference of `circle` (alias of {@link circumference})
+     * @param circle
+     * @returns
+     */
+    export const length: (circle: Circle) => number;
+    /**
+     * Returns circumference of `circle` (alias of {@link length})
+     * @param circle
+     * @returns
+     */
+    export const circumference: (circle: Circle) => number;
+    /**
+     * Returns the area of `circle`.
+     * @param circle
+     * @returns
+     */
+    export const area: (circle: Circle) => number;
+    /**
+     * Computes a bounding box that encloses circle
+     * @param circle
+     * @returns
+     */
+    export const bbox: (circle: CirclePositioned | Circle) => Rects.RectPositioned | Rects.Rect;
+    /**
+     * Returns true if `b` is completely contained by `a`
+     *
+     * ```js
+     * // Compare two points
+     * isContainedBy(circleA, circleB);
+     *
+     * // Compare a circle with a point
+     * isContainedBy(circleA, {x: 10, y: 20});
+     *
+     * // Define radius as third parameter
+     * isContainedBy(circleA, {x: 10, y: 20}, 20);
+     * ```
+     * @param a Circle
+     * @param b Circle or point to compare to
+     * @param c Radius to accompany parameter b if it's a point
+     * @returns
+     */
+    export const isContainedBy: (a: CirclePositioned, b: CirclePositioned | Points.Point, c?: number) => boolean;
+    /***
+     * Returns true if radius, x or y are NaN
+     */
+    export const isNaN: (a: Circle | CirclePositioned) => boolean;
+    /**
+     * Returns true if `a` or `b` overlap, are equal, or `a` contains `b`.
+     * A circle can be checked for intersections with another CirclePositioned, Point or RectPositioned.
+     *
+     * Use `intersections` to find the points of intersection.
+     *
+     * @param a Circle
+     * @param b Circle or point to test
+     * @returns True if circle overlap
+     */
+    export const isIntersecting: (a: CirclePositioned, b: CirclePositioned | Points.Point | Rects.RectPositioned, c?: number) => boolean;
+    /**
+     *
+     * Returns the points of intersection betweeen `a` and `b`.
+     *
+     * Returns an empty array if circles are equal, one contains the other or if they don't touch at all.
+     *
+     * @param a Circle
+     * @param b Circle
+     * @returns Points of intersection, or an empty list if there are none
+     */
+    export const intersections: (a: CirclePositioned, b: CirclePositioned) => readonly Points.Point[];
+    /**
+     * Returns true if the two objects have the same values
+     *
+     * ```js
+     * const circleA = { radius: 10, x: 5, y: 5 };
+     * const circleB = { radius: 10, x: 5, y: 5 };
+     *
+     * circleA === circleB; // false, because identity of objects is different
+     * Circles.isEqual(circleA, circleB); // true, because values are the same
+     * ```
+     *
+     * Circles must both be positioned or not.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqual: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
+    export type RandomPointOpts = {
+        readonly strategy?: `naive` | `uniform`;
+        readonly randomSource?: RandomSource;
+    };
+    /**
+     * Returns a random point within a circle.
+     *
+     * By default creates a uniform distribution.
+     *
+     * ```js
+     * const pt = randomPoint({radius: 5});
+     * const pt = randomPoint({radius: 5, x: 10, y: 20});
+     * ```'
+     *
+     * Generate points with a gaussian distribution
+     * ```js
+     * const pt = randomPoint(circle, {
+     *  randomSource: Random.gaussian
+     * })
+     * ```
+     * @param within Circle to generate a point within
+     * @param opts Options
+     * @returns
+     */
+    export const randomPoint: (within: Circle | CirclePositioned, opts?: RandomPointOpts) => Points.Point;
+    export function multiplyScalar(a: CirclePositioned, value: number): CirclePositioned;
+    export function multiplyScalar(a: Circle, value: number): Circle;
+    /**
+     * Returns the distance between two circle centers.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circleA = { radius: 5, x: 5, y: 5 }
+     * const circleB = { radius: 10, x: 20, y: 20 }
+     * const distance = Circles.distanceCenter(circleA, circleB);
+     * ```
+     * Throws an error if either is lacking position.
+     * @param a
+     * @param b
+     * @returns Distance
+     */
+    export const distanceCenter: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
+    /**
+     * Returns the distance between the exterior of two circles, or between the exterior of a circle and point.
+     * If `b` overlaps or is enclosed by `a`, distance is 0.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circleA = { radius: 5, x: 5, y: 5 }
+     * const circleB = { radius: 10, x: 20, y: 20 }
+     * const distance = Circles.distanceCenter(circleA, circleB);
+     * ```
+     * @param a
+     * @param b
+     */
+    export const distanceFromExterior: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
+    type ToSvg = {
+        (radius: number, sweep: boolean, origin: Points.Point): readonly string[];
+        (circle: Circle, sweep: boolean, origin: Points.Point): readonly string[];
+        (circle: CirclePositioned, sweep: boolean): readonly string[];
+    };
+    /**
+     * Creates a SVG path segment.
+     * @param a Circle or radius
+     * @param sweep If true, path is 'outward'
+     * @param origin Origin of path. Required if first parameter is just a radius or circle is non-positioned
+     * @returns
+     */
+    export const toSvg: ToSvg;
+    /**
+     * Returns the nearest point on `circle` closest to `point`.
+     *
+     * ```js
+     * import { Circles } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const pt = Circles.nearest(circle, {x:10,y:10});
+     * ```
+     *
+     * If an array of circles is provided, it will be the closest point amongst all the circles
+     * @param circle Circle or array of circles
+     * @param point
+     * @returns Point `{ x, y }`
+     */
+    export const nearest: (circle: CirclePositioned | readonly CirclePositioned[], b: Points.Point) => Points.Point;
+    /**
+     * Returns a positioned version of a circle.
+     * If circle is already positioned, it is returned.
+     * If no default position is supplied, 0,0 is used.
+     * @param circle
+     * @param defaultPositionOrX
+     * @param y
+     * @returns
+     */
+    export const toPositioned: (circle: Circle | CirclePositioned, defaultPositionOrX?: Points.Point | number, y?: number) => CirclePositioned;
+    /**
+     * Returns a `CircularPath` representation of a circle
+     *
+     * @param {CirclePositioned} circle
+     * @returns {CircularPath}
+     */
+    export const toPath: (circle: CirclePositioned) => CircularPath;
+    /**
+     * Returns the point(s) of intersection between a circle and line.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circle = { radius: 5, x: 5, y: 5 };
+     * const line = { a: { x: 0, y: 0 }, b: { x: 10, y: 10 } };
+     * const pts = Circles.intersectionLine(circle, line);
+     * ```
+     * @param circle
+     * @param line
+     * @returns Point(s) of intersection, or empty array
+     */
+    export const intersectionLine: (circle: CirclePositioned, line: Line) => readonly Points.Point[];
+}
 declare module "geometry/Rect" {
     import { Points, Lines } from "geometry/index";
     import { RandomSource } from "Random";
+    import { CirclePositioned } from "geometry/Circle";
     export type Rect = {
         readonly width: number;
         readonly height: number;
@@ -4512,6 +4846,12 @@ declare module "geometry/Rect" {
      */
     export const area: (rect: Rect) => number;
     /**
+     * Returns true if `a` or `b` overlap, are equal, or `a` contains `b`.
+     * A rectangle can be checked for intersections with another RectPositioned, CirclePositioned or Point.
+     *
+     */
+    export const isIntersecting: (a: RectPositioned, b: CirclePositioned | Points.Point) => boolean;
+    /**
      * Returns a random positioned Rect on a 0..1 scale.
      * ```js
      * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
@@ -4528,6 +4868,27 @@ declare module "geometry/Rect" {
      * @returns
      */
     export const random: (rando?: RandomSource) => RectPositioned;
+    export type RandomPointOpts = {
+        readonly strategy?: `naive`;
+        readonly randomSource?: RandomSource;
+        readonly margin?: {
+            readonly x: number;
+            readonly y: number;
+        };
+    };
+    /**
+     * Returns a random point within a circle.
+     *
+     * By default creates a uniform distribution.
+     *
+     * ```js
+     * const pt = randomPoint({width: 5, height: 10});
+     * ```'
+     * @param within Circle to generate a point within
+     * @param opts Options
+     * @returns
+     */
+    export const randomPoint: (within: Rect | RectPositioned, opts?: RandomPointOpts) => Points.Point;
 }
 declare module "modulation/Forces" {
     /**
@@ -6433,264 +6794,6 @@ declare module "geometry/Arc" {
      */
     export const isEqual: (a: Arc | ArcPositioned, b: Arc | ArcPositioned) => boolean;
 }
-declare module "geometry/Circle" {
-    import { Path } from "geometry/Path";
-    import { Line } from "geometry/Line";
-    import { Points, Rects } from "geometry/index";
-    /**
-     * A circle
-     */
-    export type Circle = {
-        readonly radius: number;
-    };
-    /**
-     * A {@link Circle} with position
-     */
-    export type CirclePositioned = Points.Point & Circle;
-    export type CircularPath = Circle & Path & {
-        readonly kind: `circular`;
-    };
-    /**
-     * Returns true if parameter has x,y. Does not verify if parameter is a circle or not
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     *
-     * const circleA = { radius: 5 };
-     * Circles.isPositioned(circle); // false
-     *
-     * const circleB = { radius: 5, x: 10, y: 10 }
-     * Circles.isPositioned(circle); // true
-     * ```
-     * @param p Circle
-     * @returns
-     */
-    export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
-    export const isCircle: (p: Circle | CirclePositioned | any) => p is Circle;
-    export const isCirclePositioned: (p: Circle | CirclePositioned | any) => p is CirclePositioned;
-    /**
-     * Returns a point on a circle at a specified angle in radians
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     *
-     * // Circle without position
-     * const circleA = { radius: 5 };
-     *
-     * // Get point at angle Math.PI, passing in a origin coordinate
-     * const ptA = Circles.point(circleA, Math.PI, {x: 10, y: 10 });
-     *
-     * // Point on circle with position
-     * const circleB = { radius: 5, x: 10, y: 10};
-     * const ptB = Circles.point(circleB, Math.PI);
-     * ```
-     * @param circle
-     * @param angleRadian Angle in radians
-     * @param Origin or offset of calculated point. By default uses center of circle or 0,0 if undefined
-     * @returns Point oo circle
-     */
-    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
-    /**
-     * Returns the center of a circle
-     *
-     * If the circle has an x,y, that is the center.
-     * If not, `radius` is used as the x and y.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circle = { radius: 5, x: 10, y: 10};
-     *
-     * // Yields: { x: 5, y: 10 }
-     * Circles.center(circle);
-     * ```
-     *
-     * It's a trivial function, but can make for more understandable code
-     * @param circle
-     * @returns Center of circle
-     */
-    export const center: (circle: CirclePositioned | Circle) => Readonly<{
-        x: number;
-        y: number;
-    }>;
-    /**
-     * Computes relative position along circle
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circle = { radius: 100, x: 100, y: 100 };
-     *
-     * // Get a point halfway around circle
-     * // Yields { x, y }
-     * const pt = Circles.interpolate(circle, 0.5);
-     * ```
-     * @param circle
-     * @param t Position, 0-1
-     * @returns
-     */
-    export const interpolate: (circle: CirclePositioned, t: number) => Points.Point;
-    /**
-     * Returns circumference of `circle` (alias of {@link circumference})
-     * @param circle
-     * @returns
-     */
-    export const length: (circle: Circle) => number;
-    /**
-     * Returns circumference of `circle` (alias of {@link length})
-     * @param circle
-     * @returns
-     */
-    export const circumference: (circle: Circle) => number;
-    /**
-     * Returns the area of `circle`.
-     * @param circle
-     * @returns
-     */
-    export const area: (circle: Circle) => number;
-    /**
-     * Computes a bounding box that encloses circle
-     * @param circle
-     * @returns
-     */
-    export const bbox: (circle: CirclePositioned | Circle) => Rects.RectPositioned | Rects.Rect;
-    /**
-     * Returns true if `b` is completely contained by `a`
-     *
-     * @param a Circle
-     * @param b Circle or point to compare to
-     * @returns
-     */
-    export const isContainedBy: (a: CirclePositioned, b: CirclePositioned | Points.Point) => boolean;
-    /***
-     * Returns true if radius, x or y are NaN
-     */
-    export const isNaN: (a: Circle | CirclePositioned) => boolean;
-    /**
-     * Returns true if a or b overlap or are equal
-     *
-     * Use `intersections` to find the points of intersection
-     *
-     * @param a Circle
-     * @param b Circle or point to test
-     * @returns True if circle overlap
-     */
-    export const isIntersecting: (a: CirclePositioned, b: CirclePositioned | Points.Point) => boolean;
-    /**
-     * Returns the points of intersection betweeen `a` and `b`.
-     *
-     * Returns an empty array if circles are equal, one contains the other or if they don't touch at all.
-     *
-     * @param a Circle
-     * @param b Circle
-     * @returns Points of intersection, or an empty list if there are none
-     */
-    export const intersections: (a: CirclePositioned, b: CirclePositioned) => readonly Points.Point[];
-    /**
-     * Returns true if the two objects have the same values
-     *
-     * ```js
-     * const circleA = { radius: 10, x: 5, y: 5 };
-     * const circleB = { radius: 10, x: 5, y: 5 };
-     *
-     * circleA === circleB; // false, because identity of objects is different
-     * Circles.isEqual(circleA, circleB); // true, because values are the same
-     * ```
-     *
-     * Circles must both be positioned or not.
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isEqual: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
-    export function multiplyScalar(a: CirclePositioned, value: number): CirclePositioned;
-    export function multiplyScalar(a: Circle, value: number): Circle;
-    /**
-     * Returns the distance between two circle centers.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circleA = { radius: 5, x: 5, y: 5 }
-     * const circleB = { radius: 10, x: 20, y: 20 }
-     * const distance = Circles.distanceCenter(circleA, circleB);
-     * ```
-     * Throws an error if either is lacking position.
-     * @param a
-     * @param b
-     * @returns Distance
-     */
-    export const distanceCenter: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
-    /**
-     * Returns the distance between the exterior of two circles, or between the exterior of a circle and point.
-     * If `b` overlaps or is enclosed by `a`, distance is 0.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circleA = { radius: 5, x: 5, y: 5 }
-     * const circleB = { radius: 10, x: 20, y: 20 }
-     * const distance = Circles.distanceCenter(circleA, circleB);
-     * ```
-     * @param a
-     * @param b
-     */
-    export const distanceFromExterior: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
-    type ToSvg = {
-        (radius: number, sweep: boolean, origin: Points.Point): readonly string[];
-        (circle: Circle, sweep: boolean, origin: Points.Point): readonly string[];
-        (circle: CirclePositioned, sweep: boolean): readonly string[];
-    };
-    /**
-     * Creates a SVG path segment.
-     * @param a Circle or radius
-     * @param sweep If true, path is 'outward'
-     * @param origin Origin of path. Required if first parameter is just a radius or circle is non-positioned
-     * @returns
-     */
-    export const toSvg: ToSvg;
-    /**
-     * Returns the nearest point on `circle` closest to `point`.
-     *
-     * ```js
-     * import { Circles } from 'https://unpkg.com/ixfx/dist/geometry.js'
-     * const pt = Circles.nearest(circle, {x:10,y:10});
-     * ```
-     *
-     * If an array of circles is provided, it will be the closest point amongst all the circles
-     * @param circle Circle or array of circles
-     * @param point
-     * @returns Point `{ x, y }`
-     */
-    export const nearest: (circle: CirclePositioned | readonly CirclePositioned[], b: Points.Point) => Points.Point;
-    /**
-     * Returns a positioned version of a circle.
-     * If circle is already positioned, it is returned.
-     * If no default position is supplied, 0,0 is used.
-     * @param circle
-     * @param defaultPositionOrX
-     * @param y
-     * @returns
-     */
-    export const toPositioned: (circle: Circle | CirclePositioned, defaultPositionOrX?: Points.Point | number, y?: number) => CirclePositioned;
-    /**
-     * Returns a `CircularPath` representation of a circle
-     *
-     * @param {CirclePositioned} circle
-     * @returns {CircularPath}
-     */
-    export const toPath: (circle: CirclePositioned) => CircularPath;
-    /**
-     * Returns the point(s) of intersection between a circle and line.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circle = { radius: 5, x: 5, y: 5 };
-     * const line = { a: { x: 0, y: 0 }, b: { x: 10, y: 10 } };
-     * const pts = Circles.intersectionLine(circle, line);
-     * ```
-     * @param circle
-     * @param line
-     * @returns Point(s) of intersection, or empty array
-     */
-    export const intersectionLine: (circle: CirclePositioned, line: Line) => readonly Points.Point[];
-}
 declare module "geometry/CompoundPath" {
     import { Points, Paths, Rects } from "geometry/index";
     export type CompoundPath = Paths.Path & {
@@ -6815,10 +6918,28 @@ declare module "geometry/Grid" {
         readonly visited?: SetMutable<Cell>;
         readonly reversed?: boolean;
         readonly debug?: boolean;
+        readonly boundsWrap?: BoundsLogic;
     };
+    /**
+     * Visitor function.
+     *
+     * Implementations:
+     * * {@link cells}: left-to-right, top-to-bottom. Same as {@link visitorRow}
+     * * {@link visitorBreadth}, {@link visitorDepth}
+     * * {@link visitorColumn}: top-to-bottom, left-to-right.
+     * * {@link visitorRandom}: Any unvisited location
+     * * {@link visitorRandomContiguous}: A random direct neighbour of current cell
+     */
     export type Visitor = (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     export type NeighbourMaybe = readonly [keyof Neighbours, Cell | undefined];
     export type Neighbour = readonly [keyof Neighbours, Cell];
+    /**
+     * A function that returns a value (or _undefined_) based on a _cell_
+     *
+     * Implementations:
+     * * {@link access1dArray}: For accessing a single-dimension array as a grid
+     */
+    export type CellAccessor<V> = (cell: Cell, wrap: BoundsLogic) => V | undefined;
     /**
      * Neighbour selector logic. For a given set of `neighbours` pick one to visit next.
      */
@@ -6828,7 +6949,8 @@ declare module "geometry/Grid" {
      */
     export type IdentifyNeighbours = (grid: Grid, origin: Cell) => ReadonlyArray<Neighbour>;
     /**
-     * Returns _true_ if grids `a` and `b` are equal in value
+     * Returns _true_ if grids `a` and `b` are equal in value.
+     * Returns _false_ if either parameter is undefined.
      *
      * @param a
      * @param b
@@ -6838,12 +6960,18 @@ declare module "geometry/Grid" {
     /**
      * Returns a key string for a cell instance
      * A key string allows comparison of instances by value rather than reference
+     *
+     * ```js
+     * cellKeyString({x:10,y:20});
+     * // Yields: "Cell{10,20}";
+     * ```
      * @param v
      * @returns
      */
     export const cellKeyString: (v: Cell) => string;
     /**
-     * Returns true if two cells equal. Returns false if either cell (or both) are undefined
+     * Returns _true_ if two cells equal.
+     * Returns _false_ if either cell are undefined
      *
      * @param a
      * @param b
@@ -6869,37 +6997,92 @@ declare module "geometry/Grid" {
     /**
      * Returns a visual rectangle of the cell, positioned from the top-left corner
      *
+     * ```js
+     * const cell = { x: 1, y: 0 };
+     *
+     * // 5x5 grid, each cell 5px in size
+     * const grid = { rows: 5, cols: 5, size: 5 }
+     *
+     * const r = rectangleForCell(cell, grid);
+     *
+     * // Yields: { x: 5, y: 0, width: 5, height: 5 }
+     * ```
      * @param cell
      * @param grid
      * @return
      */
     export const rectangleForCell: (cell: Cell, grid: Grid & GridVisual) => Rects.RectPositioned;
     /**
+     * Generator that returns rectangles for each cell in a grid
+     *
+     * @example Draw rectangles
+     * ```js
+     * import { Drawing } from 'visuals.js'
+     * const rects = [...Grids.asRectangles(grid)];
+     * Drawing.rect(ctx, rects, { strokeStyle: `silver`});
+     * ```
+     * @param grid
+     */
+    export function asRectangles(grid: GridVisual & Grid): IterableIterator<Rects.RectPositioned>;
+    /**
+     * Returns a two-dimensional array according to `grid`
+     * size.
+     *
+     * ```js
+     * const a = Grids.toArray({ rows: 3, cols: 2 });
+     * Yields:
+     * [ [_,_] ]
+     * [ [_,_] ]
+     * [ [_,_] ]
+     * ```
+     *
+     * `initialValue` can be provided to set the value
+     * for all cells.
+     * @param grid
+     * @param initialValue
+     * @returns
+     */
+    export const toArray: <V>(grid: Grid, initialValue?: V | undefined) => V[][];
+    /**
      * Returns the cell at a specified visual coordinate
+     * or _undefined_ if the position is outside of the grid.
+     *
+     * `position` must be in same coordinate/scale as the grid.
      *
      * @param position Position, eg in pixels
      * @param grid Grid
      * @return Cell at position or undefined if outside of the grid
      */
-    export const cellAtPoint: (position: Points.Point, grid: Grid & GridVisual) => Cell | undefined;
+    export const cellAtPoint: (grid: Grid & GridVisual, position: Points.Point) => Cell | undefined;
     /**
-     * Returns a list of all cardinal directions
+     * Returns a list of all cardinal directions: n, ne, nw, e, s, se, sw, w
      */
     export const allDirections: readonly CardinalDirection[];
     /**
-     * Returns a list of + shaped directions (ie. excluding diaganol)
+     * Returns a list of + shaped directions: n, e, s, w
      */
     export const crossDirections: readonly CardinalDirection[];
     /**
-     * Returns neighbours for a cell. If no `directions` are provided, it defaults to all.
+     * Returns neighbours for a cell. If no `directions` are provided, it defaults to {@link allDirections}.
      *
      * ```js
-     * const n = neighbours = ({rows: 5, cols: 5}, {x:2, y:2} `wrap`);
+     * const grid = { rows: 5, cols: 5 };
+     * const cell = { x:2, y:2 };
+     *
+     * // Get n,ne,nw,e,s,se,sw and w neighbours
+     * const n = Grids.neighbours(grid, cell, `wrap`);
+     *
+     * Yields:
      * {
      *  n: {x: 2, y: 1}
      *  s: {x: 2, y: 3}
      *  ....
      * }
+     * ```
+     *
+     * Returns neighbours without diagonals (ie n, e, s, w):
+     * ```js
+     * const n = Grids.neighbours(grid, cell, `stop`, Grids.crossDirections);
      * ```
      * @returns Returns a map of cells, keyed by cardinal direction
      * @param grid Grid
@@ -6908,8 +7091,12 @@ declare module "geometry/Grid" {
      * @param directions Directions to return
      */
     export const neighbours: (grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: ReadonlyArray<CardinalDirection>) => Neighbours;
+    export function visitNeigbours(grid: Grid, cell: Cell, bounds?: BoundsLogic, directions?: ReadonlyArray<CardinalDirection>): Generator<Readonly<{
+        readonly x: number;
+        readonly y: number;
+    }>, void, unknown>;
     /**
-     * Returns the visual midpoint of a cell (eg pixel coordinate)
+     * Returns the visual midpoint of a cell (eg. pixel coordinate)
      *
      * @param cell
      * @param grid
@@ -6917,11 +7104,11 @@ declare module "geometry/Grid" {
      */
     export const cellMiddle: (cell: Cell, grid: Grid & GridVisual) => Points.Point;
     /**
-     * Returns the cells on the line of start and end, inclusive
+     * Returns the cells on the line of `start` and `end`, inclusive
      *
      * ```js
      * // Get cells that connect 0,0 and 10,10
-     * const cells = getLine({x:0,y:0}, {x:10,y:10});
+     * const cells = Grids.getLine({x:0,y:0}, {x:10,y:10});
      * ```
      *
      * This function does not handle wrapped coordinates.
@@ -6932,7 +7119,7 @@ declare module "geometry/Grid" {
     export const getLine: (start: Cell, end: Cell) => ReadonlyArray<Cell>;
     /**
      * Returns cells that correspond to the cardinal directions at a specified distance
-     *
+     * i.e. it projects a line from `start` cell in all cardinal directions and returns the cells at `steps` distance.
      * @param grid Grid
      * @param steps Distance
      * @param start Start poiint
@@ -6975,7 +7162,7 @@ declare module "geometry/Grid" {
      * Different behaviour can be specified for how to handle when coordinates exceed the bounds of the grid
      *
      *
-     * Note: x and y wrapping are calculated independently. A large wrapping of x, for example won't shift down a line
+     * Note: x and y wrapping are calculated independently. A large wrapping of x, for example won't shift up/down a line
      * @param grid Grid to traverse
      * @param vector Offset in x/y
      * @param start Start point
@@ -7024,8 +7211,15 @@ declare module "geometry/Grid" {
     export const visitorDepth: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     export const visitorBreadth: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     export const visitorRandomContiguous: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
+    /**
+     * Visit by following rows. Normal order is left-to-right, top-to-bottom.
+     * @param grid
+     * @param start
+     * @param opts
+     * @returns
+     */
     export const visitorRandom: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
-    export const visitorRow: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
+    export const visitorRow: (grid: Grid, start?: Cell, opts?: VisitorOpts) => VisitGenerator;
     /**
      * Runs the provided `visitor` for `steps`, returning the cell we end at
      *
@@ -7050,9 +7244,12 @@ declare module "geometry/Grid" {
     export const visitorColumn: (grid: Grid, start: Cell, opts?: VisitorOpts) => VisitGenerator;
     /**
      * Enumerate rows of grid, returning all the cells in the row
+     * as an array
+     *
      * ```js
      * for (const row of Grid.rows(shape)) {
      *  // row is an array of Cells.
+     *  // [ {x:0, y:0}, {x:1, y:0} ... ]
      * }
      * ```
      * @param grid
@@ -7073,6 +7270,82 @@ declare module "geometry/Grid" {
         x: number;
         y: number;
     }, void, unknown>;
+    export const access1dArray: <V>(array: readonly V[], cols: number) => CellAccessor<V>;
+    /**
+     * Returns a function that updates a 2D array representation
+     * of a grid. Array is mutated.
+     *
+     * ```js
+     * const m = Grids.array2dUpdater(grid, array);
+     * m(someValue, { x:2, y:3 });
+     * ```
+     * @param grid
+     * @param array
+     * @returns
+     */
+    export const array2dUpdater: <V>(grid: Grid & GridVisual, array: V[][]) => (v: V, position: Points.Point) => void;
+    /**
+     * Visits a grid packed into an array.
+     *
+     * @example By default visits left-to-right, top-to-bottom:
+     * ```js
+     * const data = [1, 2, 3, 4, 5, 6];
+     * const cols = 2;
+     * for (const [value,index] of visitArray(data, cols)) {
+     *  // Yields: 1, 2, 3, 4, 5, 6
+     * }
+     * ```
+     *
+     * @example
+     * ```js
+     * ```
+     * @param array
+     * @param cols
+     * @param iteratorFn
+     */
+    export function visitArray<V>(array: readonly V[], cols: number, iteratorFn?: Visitor, opts?: VisitorOpts): IterableIterator<readonly [data: V, index: number]>;
+    /**
+     * Returns the index for a given cell.
+     * This is useful if a grid is stored in an array.
+     *
+     * ```js
+     * const data = [
+     *  1, 2,
+     *  3, 4,
+     *  5, 6 ];
+     * const cols = 2; // Grid of 2 columns wide
+     * const index = indexFromCell(cols, {x: 1, y: 1});
+     * // Yields an index of 3
+     * console.log(data[index]); // Yields 4
+     * ```
+     *
+     * Bounds logic is applied to cell.x/y separately. Wrapping
+     * only ever happens in same col/row.
+     * @see cellFromIndex
+     * @param colsOrGrid
+     * @param cell
+     * @returns
+     */
+    export const indexFromCell: (grid: Grid, cell: Cell, wrap: BoundsLogic) => number | undefined;
+    /**
+     * Returns x,y from an array index.
+     *
+     * ```js
+     *  const data = [
+     *   1, 2,
+     *   3, 4,
+     *   5, 6 ];
+     *
+     * // Cols of 2, index 2 (ie. data[2] == 3)
+     * const cell = cellFromIndex(2, 2);
+     * // Yields: {x: 0, y: 1}
+     * ```
+     * @see indexFromCell
+     * @param colsOrGrid
+     * @param index
+     * @returns
+     */
+    export const cellFromIndex: (colsOrGrid: number | Grid, index: number) => Cell;
 }
 declare module "geometry/Ellipse" {
     import { Path } from "geometry/Path";
@@ -7285,6 +7558,22 @@ declare module "geometry/Polar" {
 }
 declare module "geometry/Shape" {
     import { Triangles, Points, Rects, Circles } from "geometry/index";
+    import { CirclePositioned } from "geometry/Circle";
+    import { RandomSource } from "Random";
+    import { RectPositioned } from "geometry/Rect";
+    export type ContainsResult = `none` | `contained`;
+    export type ShapePositioned = CirclePositioned | RectPositioned;
+    /**
+     * Returns the intersection result between a and b.
+     * @param a
+     * @param b
+     */
+    export const isIntersecting: (a: ShapePositioned, b: ShapePositioned | Points.Point) => boolean;
+    export type RandomPointOpts = {
+        readonly randomSource?: RandomSource;
+        readonly margin?: Points.Point;
+    };
+    export const randomPoint: (shape: ShapePositioned, opts?: RandomPointOpts) => Points.Point;
     /**
      * Returns the center of a shape
      * Shape can be: rectangle, triangle, circle
@@ -7491,6 +7780,51 @@ declare module "geometry/Sphere" {
         readonly radius: number;
     };
 }
+declare module "geometry/CirclePacking" {
+    import * as Circles from "geometry/Circle";
+    import * as Shapes from "geometry/Shape";
+    import { RandomSource } from "Random";
+    export type RandomOpts = {
+        readonly attempts?: number;
+        readonly randomSource?: RandomSource;
+    };
+    /**
+     * Naive randomised circle packing.
+     * [Algorithm by Taylor Hobbs](https://tylerxhobbs.com/essays/2016/a-randomized-approach-to-cicle-packing)
+     */
+    export const random: (circles: readonly Circles.Circle[], container: Shapes.ShapePositioned, opts?: RandomOpts) => Circles.CirclePositioned[];
+}
+declare module "geometry/Layout" {
+    export * as CirclePacking from "geometry/CirclePacking";
+}
+declare module "geometry/QuadTree" {
+    import { Points, Rects } from "geometry/index";
+    import { TreeNode } from "collections/Trees";
+    import { ShapePositioned } from "geometry/Shape";
+    enum Direction {
+        Nw = 0,
+        Ne = 1,
+        Sw = 2,
+        Se = 3
+    }
+    type QuadTreeItem = Points.Point | ShapePositioned;
+    export const quadTree: (bounds: Rects.RectPositioned, initialData?: readonly QuadTreeItem[], opts?: Partial<QuadTreeOpts>) => QuadTreeNode;
+    export class QuadTreeNode extends TreeNode<void> {
+        #private;
+        readonly boundary: Rects.RectPositioned;
+        readonly level: number;
+        readonly opts: QuadTreeOpts;
+        items: QuadTreeItem[];
+        constructor(boundary: Rects.RectPositioned, level: number, opts: QuadTreeOpts);
+        direction(d: Direction): QuadTreeNode | undefined;
+        add(p: QuadTreeItem): boolean;
+        couldHold(p: Points.Point): boolean;
+    }
+    export type QuadTreeOpts = {
+        readonly maxItems: number;
+        readonly maxLevels: number;
+    };
+}
 declare module "geometry/Scaler" {
     import { Point } from "geometry/Point";
     import { Rect } from "geometry/Rect";
@@ -7560,115 +7894,163 @@ declare module "geometry/Scaler" {
      */
     export const scaler: (scaleBy?: `both` | `min` | `max` | `width` | `height`, defaultRect?: Rect) => Scaler;
 }
-declare module "geometry/SurfacePoints" {
-    import { Sphere } from "geometry/Sphere";
-    import * as Points from "geometry/Point";
-    import { Circle, CirclePositioned } from "geometry/Circle";
+declare module "visual/Colour" {
+    import * as d3Colour from 'd3-color';
+    import { RandomSource } from "Random";
+    export type Hsl = {
+        h: number;
+        s: number;
+        l: number;
+        opacity?: number;
+    };
+    export type Rgb = {
+        r: number;
+        g: number;
+        b: number;
+        opacity?: number;
+    };
+    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
     /**
-     * Options for a Vogel spiral
+     * @private
      */
-    export type VogelSpiralOpts = {
+    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
+    /**
+     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
+     */
+    export type Colourish = string | d3Colour.ColorCommonInstance;
+    /**
+     * Options for interpolation
+     */
+    export type InterpolationOpts = {
         /**
-         * Upper limit of points to produce.
-         * By default, 5000.
+         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
+         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
          */
-        readonly maxPoints?: number;
+        gamma?: number;
         /**
-         * Density value (0..1) which determines spacing of points.
-         * This is useful because it scales with whatever circle radius is given
-         * Use this parameter OR the `spacing` parameter.
+         * Colour space
          */
-        readonly density?: number;
+        space?: Spaces;
         /**
-         * Spacing between points.
-         * Use this option OR the density value.
+         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
          */
-        readonly spacing?: number;
-        /**
-         * Rotation offset to apply, in radians. 0 by default
-         */
-        readonly rotation?: number;
+        long?: boolean;
     };
     /**
-     * Generates points on a Vogel spiral - a sunflower-like arrangement of points.
-     *
-     * @example With no arguments, assumes a unit circle
-     * ```js
-     * for (const pt of circleVogelSpiral()) {
-     *  // Generate points on a unit circle, with 95% density
-     * }
-     * ```
-     *
-     *
-     * @example Specifying a circle and options
-     * ```js
-     * const circle = { radius: 100, x: 100, y: 100 };
-     * const opts = {
-     *  maxPoints: 50,
-     *  density: 0.99
-     * };
-     * for (const pt of circleVogelSpiral(circle, opts)) {
-     *  // Do something with point...
-     * }
-     * ```
-     *
-     * @example Array format
-     * ```js
-     * const ptsArray = [...circleVogelSpiral(circle, opts)];
-     * ```
-     * @param circle
-     * @param opts
-     */
-    export function circleVogelSpiral(circle?: Circle, opts?: VogelSpiralOpts): IterableIterator<Points.Point>;
-    export type CircleRingsOpts = {
-        readonly rings?: number;
-        /**
-         * Rotation offset, in radians
-         */
-        readonly rotation?: number;
-    };
-    /**
-     * Generates points spaced out on the given number of rings.
-     *
-     * Get points as array
-     * ```js
-     * const circle = { radius: 5, x: 100, y: 100 };
-     * const opts = { rings: 5 };
-     * const points = [...circleRings(circle, rings)];
-     * ```
-     *
-     * Or iterate over them
-     * ```js
-     * for (const point of circleRings(circle, opts)) {
-     * }
-     * ```
-     * Source: http://www.holoborodko.com/pavel/2015/07/23/generating-equidistant-points-on-unit-disk/#more-3453
-     * @param circle
-     */
-    export function circleRings(circle?: Circle | CirclePositioned, opts?: CircleRingsOpts): IterableIterator<Points.Point>;
-    /**
-     * Fibonacci sphere algorithm. Generates points
-     * distributed on a sphere.
-     *
-     * @example Generate points of a unit sphere
-     * ```js
-     * for (const pt of sphereFibonacci(100)) {
-     *  // pt.x, pt.y, pt.z
-     * }
-     * ```
-     *
-     * @example Generate points into an array
-     * ```js
-     * const sphere = { radius: 10, x: 10, y: 200 }
-     * const pts = [...sphereFibonacci(100, 0, sphere)];
-     * ```
-     *
-     * Source: https://codepen.io/elchininet/pen/vXeRyL
-     *
-     * @param samples
+     * Parses colour to `{ h, s, l }`. `opacity` field is added if it exists on source.
+     * @param colour
      * @returns
      */
-    export function sphereFibonacci(samples?: number, rotationRadians?: number, sphere?: Sphere): IterableIterator<Points.Point3d>;
+    export const toHsl: (colour: Colourish) => Hsl;
+    /**
+     * Returns a full HSL colour string (eg `hsl(20,50%,75%)`) based on a index.
+     * It's useful for generating perceptually different shades as the index increments.
+     *
+     * ```
+     * el.style.backgroundColor = goldenAgeColour(10);
+     * ```
+     *
+     * Saturation and lightness can be specified, as numeric ranges of 0-1.
+     *
+     * @param saturation Saturation (0-1), defaults to 0.5
+     * @param lightness Lightness (0-1), defaults to 0.75
+     * @param alpha Opacity (0-1), defaults to 1.0
+     * @returns HSL colour string eg `hsl(20,50%,75%)`
+     */
+    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string | undefined;
+    /**
+     * Returns a random hue component
+     * ```
+     * // Generate hue
+     * const h =randomHue(); // 0-359
+     *
+     * // Generate hue and assign as part of a HSL string
+     * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
+     * ```
+     * @param rand
+     * @returns
+     */
+    export const randomHue: (rand?: RandomSource) => number;
+    /**
+     * Parses colour to `{ r, g, b }`. `opacity` field is added if it exists on source.
+     * [Named colours](https://html-color-codes.info/color-names/)
+     * @param colour
+     * @returns
+     */
+    export const toRgb: (colour: Colourish) => Rgb;
+    /**
+     * Returns a colour in hex format `#000000`
+     * @param colour
+     * @returns Hex format, including #
+     */
+    export const toHex: (colour: Colourish) => string;
+    /**
+     * Returns a variation of colour with its opacity multiplied by `amt`.
+     *
+     * ```js
+     * // Return a colour string for blue that is 50% opaque
+     * opacity(`blue`, 0.5);
+     * // eg: `rgba(0,0,255,0.5)`
+     *
+     * // Returns a colour string that is 50% more opaque
+     * opacity(`hsla(200,100%,50%,50%`, 0.5);
+     * // eg: `hsla(200,100%,50%,25%)`
+     * ```
+     *
+     * [Named colours](https://html-color-codes.info/color-names/)
+     * @param colour A valid CSS colour
+     * @param amt Amount to multiply opacity by
+     * @returns String representation of colour
+     */
+    export const opacity: (colour: Colourish, amt: number) => string;
+    /**
+     * Gets a CSS variable.
+     * @example Fetch --accent variable, or use `yellow` if not found.
+     * ```
+     * getCssVariable(`accent`, `yellow`);
+     * ```
+     * @param name Name of variable. Omit the `--`
+     * @param fallbackColour Fallback colour if not found
+     * @param root  Element to search variable from
+     * @returns Colour or fallback.
+     */
+    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
+    /**
+     * Interpolates between two colours, returning a string in the form `rgb(r,g,b)`
+     *
+     * @example
+     * ```js
+     * // Get 50% between blue and red
+     * interpolate(0.5, `blue`, `red`);
+     *
+     * // Get midway point, with specified colour space
+     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
+     * ```
+     *
+     * [Named colours](https://html-color-codes.info/color-names/)
+     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
+     * @param from Starting colour
+     * @param to Final colour
+     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
+     * @returns String representation of colour, eg. `rgb(r,g,b)`
+     */
+    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
+    /**
+     * Produces a scale of colours as a string array
+     *
+     * @example
+     * ```js
+     * // Yields array of 5 colour strings
+     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
+     * // Produces scale between three colours
+     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
+     * ```
+     * @param steps Number of colours
+     * @param opts Options for interpolation, or string colour space eg `hsl`
+     * @param colours From/end colours (or more)
+     * @returns
+     */
+    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
 }
 declare module "geometry/TriangleEquilateral" {
     import { Circle } from "geometry/Circle";
@@ -8323,6 +8705,1705 @@ declare module "geometry/Triangle" {
      */
     export const rotate: (t: Triangle, amountRadian?: number, origin?: Points.Point) => Triangle;
 }
+declare module "dom/Util" {
+    import { Observable } from 'rxjs';
+    import * as Points from "geometry/Point";
+    import { Scaler } from "geometry/index";
+    export type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
+        readonly el: V;
+        readonly bounds: {
+            readonly width: number;
+            readonly height: number;
+            readonly center: Points.Point;
+            readonly min: number;
+            readonly max: number;
+        };
+    };
+    export type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
+        readonly ctx: CanvasRenderingContext2D;
+    };
+    export const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Observable<Event>;
+    export type CanvasOpts = {
+        readonly skipCss?: boolean;
+        readonly fullSize?: boolean;
+        readonly scaleBy?: `both` | `width` | `height` | `min` | `max`;
+    };
+    export const canvasHelper: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, opts: CanvasOpts) => {
+        abs: Scaler.ScaleFn;
+        rel: Scaler.ScaleFn;
+        getContext: () => void;
+    };
+    /**
+     * Resizes given canvas element to match window size.
+     * To resize canvas to match its parent, use {@link parentSizeCanvas}.
+     *
+     * To make the canvas appear propery, it sets the following CSS:
+     * ```css
+     * {
+     *  top: 0;
+     *  left: 0;
+     *  zIndex: -1;
+     *  position: fixed;
+     * }
+     * ```
+     * Pass _true_ for `skipCss` to avoid this.
+     *
+     * Provide a callback for when resize happens.
+     * @param domQueryOrEl Query string or reference to canvas element
+     * @param onResized Callback for when resize happens, eg for redrawing canvas
+     * @param skipCss if true, style are not added
+     * @returns Observable
+     */
+    export const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, onResized?: ((args: CanvasResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
+    /**
+     * Given an array of class class names, this will cycle between them each time
+     * it is called.
+     *
+     * Eg, assume `list` is: [ `a`, `b`, `c` ]
+     *
+     * If `el` already has the class `a`, the first time it is called, class `a`
+     * is removed, and `b` added. The next time `b` is swapped for `c`. Once again,
+     * `c` will swap with `a` and so on.
+     *
+     * If `el` is undefined or null, function silently returns.
+     * @param el Element
+     * @param list List of class names
+     * @returns
+     */
+    export const cycleCssClass: (el: HTMLElement, list: readonly string[]) => void;
+    /**
+     * Sets width/height atributes on the given element according to the size of its parent.
+     * @param domQueryOrEl Elememnt to resize
+     * @param onResized Callback when resize happens
+     * @param timeoutMs Timeout for debouncing events
+     * @returns
+     */
+    export const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    /**
+     * Source: https://zellwk.com/blog/translate-in-javascript
+     * @param domQueryOrEl
+     */
+    export const getTranslation: (domQueryOrEl: string | HTMLElement) => Points.Point;
+    /**
+     * Resizes given canvas to its parent element.
+     * To resize canvas to match the viewport, use {@link fullSizeCanvas}.
+     *
+     * Provide a callback for when resize happens.
+     * @param domQueryOrEl Query string or reference to canvas element
+     * @param onResized Callback for when resize happens, eg for redrawing canvas
+     * @returns Observable
+     */
+    export const parentSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: CanvasResizeArgs) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
+    /**
+     * Returns an Observable for window resize. Default 100ms debounce.
+     * @param timeoutMs
+     * @returns
+     */
+    export const windowResize: (timeoutMs?: number) => Observable<Event>;
+    /**
+     * Resolves either a string or HTML element to an element.
+     * Useful when an argument is either an HTML element or query.
+     *
+     * ```js
+     * resolveEl(`#someId`);
+     * resolveEl(someElement);
+     * ```
+     * @param domQueryOrEl
+     * @returns
+     */
+    export const resolveEl: <V extends Element>(domQueryOrEl: string | V) => V;
+    /**
+     * Creates an element after `sibling`
+     * ```
+     * const el = createAfter(siblingEl, `DIV`);
+     * ```
+     * @param sibling Element
+     * @param tagName Element to create
+     * @returns New element
+     */
+    export const createAfter: (sibling: HTMLElement, tagName: string) => HTMLElement;
+    /**
+     * Creates an element inside of `parent`
+     * ```
+     * const newEl = createIn(parentEl, `DIV`);
+     * ```
+     * @param parent Parent element
+     * @param tagName Tag to create
+     * @returns New element
+     */
+    export const createIn: (parent: HTMLElement, tagName: string) => HTMLElement;
+    /**
+     * Creates a table based on a list of objects
+     * ```
+     * const t = dataTableList(parentEl, map);
+     *
+     * t(newMap)
+     * ```
+     */
+    export const dataTableList: (parentOrQuery: HTMLElement | string, data: ReadonlyMap<string, object>) => (data: ReadonlyMap<string, object>) => void;
+    /**
+     * Format data. Return _undefined_ to signal that
+     * data was not handled.
+     */
+    export type DataFormatter = (data: object, path: string) => string | undefined;
+    export type DataTableOpts = {
+        readonly formatter?: DataFormatter;
+        readonly precision?: number;
+        readonly roundNumbers?: boolean;
+    };
+    /**
+     * Creates a HTML table where each row is a key-value pair from `data`.
+     * First column is the key, second column data.
+     *
+     * ```js
+     * const dt = dataTable(`#hostDiv`);
+     * dt({
+     *  name: `Blerg`,
+     *  height: 120
+     * });
+     * ```
+     */
+    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object, opts?: DataTableOpts) => (data: object) => void;
+    /**
+     * Remove all child nodes from `parent`
+     * @param parent
+     */
+    export const clear: (parent: HTMLElement) => void;
+    /**
+     * Observer when document's class changes
+     *
+     * ```js
+     * const c = themeChangeObservable();
+     * c.subscribe(() => {
+     *  // Class has changed...
+     * });
+     * ```
+     * @returns
+     */
+    export const themeChangeObservable: () => Observable<readonly MutationRecord[]>;
+    /**
+     * Observer when element resizes. Specify `timeoutMs` to debounce.
+     *
+     * ```
+     * const o = resizeObservable(myEl, 500);
+     * o.subscribe(() => {
+     *  // called 500ms after last resize
+     * });
+     * ```
+     * @param elem
+     * @param timeoutMs Tiemout before event gets triggered
+     * @returns
+     */
+    export const resizeObservable: (elem: Element, timeoutMs?: number) => Observable<readonly ResizeObserverEntry[]>;
+    /**
+     * Copies string representation of object to clipboard
+     * @param obj
+     * @returns Promise
+     */
+    export const copyToClipboard: (obj: object) => Promise<unknown>;
+    export type CreateUpdateElement<V> = (item: V, el: HTMLElement | null) => HTMLElement;
+    export const reconcileChildren: <V>(parentEl: HTMLElement, list: ReadonlyMap<string, V>, createUpdate: CreateUpdateElement<V>) => void;
+}
+declare module "visual/Drawing" {
+    import * as Points from "geometry/Point";
+    import * as Paths from "geometry/Path";
+    import * as Lines from "geometry/Line";
+    import * as Triangles from "geometry/Triangle";
+    import * as Circles from "geometry/Circle";
+    import * as Arcs from "geometry/Arc";
+    import * as Beziers from "geometry/Bezier";
+    import * as Rects from "geometry/Rect";
+    import * as Ellipses from "geometry/Ellipse";
+    import { Stack } from "collections/index";
+    export type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
+    /**
+     * Gets a 2d drawing context from canvas element or query, or throws an error
+     * @param canvasElCtxOrQuery Canvas element reference or DOM query
+     * @returns Drawing context.
+     */
+    export const getCtx: (canvasElCtxOrQuery: CanvasCtxQuery) => CanvasRenderingContext2D;
+    /**
+     * Makes a helper object that wraps together a bunch of drawing functions that all use the same drawing context
+     * @param ctxOrCanvasEl Drawing context or canvs element reference
+     * @param canvasBounds Bounds of drawing (optional). Used for limiting `textBlock`
+     * @returns
+     */
+    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect) => {
+        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts): void;
+        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts): void;
+        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: DrawingOpts & {
+            filled?: boolean;
+        }): void;
+        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts): void;
+        connectedPoints(pointsToDraw: Points.Point[], opts?: DrawingOpts & {
+            loop?: boolean;
+        }): void;
+        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts): void;
+        dot(dotPosition: Points.Point | Points.Point[], opts?: DrawingOpts & {
+            radius: number;
+            outlined?: boolean;
+            filled?: boolean;
+        }): void;
+        circle(circlesToDraw: Circles.CirclePositioned | Circles.CirclePositioned[], opts: DrawingOpts): void;
+        arc(arcsToDraw: Arcs.ArcPositioned | Arcs.ArcPositioned[], opts: DrawingOpts): void;
+        textBlock(lines: string[], opts: DrawingOpts & {
+            anchor: Points.Point;
+            anchorPadding?: number;
+            bounds?: Rects.RectPositioned;
+        }): void;
+    };
+    /**
+     * Drawing options
+     */
+    export type DrawingOpts = {
+        /**
+         * Stroke style
+         */
+        readonly strokeStyle?: string;
+        /**
+         * Fill style
+         */
+        readonly fillStyle?: string;
+        /**
+         * If true, diagnostic helpers will be drawn
+         */
+        readonly debug?: boolean;
+    };
+    export type LineOpts = {
+        readonly lineWidth?: number;
+        readonly lineCap?: CanvasLineCap;
+        readonly lineJoin?: CanvasLineJoin;
+    };
+    /**
+     * Draws one or more arcs.
+     * @param ctx
+     * @param arcs
+     * @param opts
+     */
+    export const arc: (ctx: CanvasRenderingContext2D, arcs: Arcs.ArcPositioned | ReadonlyArray<Arcs.ArcPositioned>, opts?: DrawingOpts) => void;
+    /**
+     * A drawing stack operation
+     */
+    export type StackOp = (ctx: CanvasRenderingContext2D) => void;
+    /**
+     * A drawing stack (immutable)
+     */
+    export type DrawingStack = Readonly<{
+        /**
+         * Push a new drawing op
+         * @param op Operation to add
+         * @returns stack with added op
+         */
+        push(...ops: readonly StackOp[]): DrawingStack;
+        /**
+         * Pops an operatiomn
+         * @returns Drawing stack with item popped
+         */
+        pop(): DrawingStack;
+        /**
+         * Applies drawing stack
+         */
+        apply(): DrawingStack;
+    }>;
+    /**
+     * Creates and returns an immutable drawing stack for a context
+     * @param ctx Context
+     * @param stk Initial stack operations
+     * @returns
+     */
+    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp>) => DrawingStack;
+    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts) => void;
+    /**
+     * Draws one or more circles. Will draw outline/fill depending on
+     * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
+     *
+     * ```js
+     * // Draw a circle with radius of 10 at 0,0
+     * circle(ctx, {radius:10});
+     *
+     * // Draw a circle of radius 10 at 100,100
+     * circle(ctx, {radius: 10, x: 100, y: 100});
+     *
+     * // Draw two blue outlined circles
+     * circle(ctx, [ {radius: 5}, {radius: 10} ], {strokeStyle:`blue`});
+     * ```
+     * @param ctx Drawing context
+     * @param circlesToDraw Circle(s) to draw
+     * @param opts Drawing options
+     */
+    export const circle: (ctx: CanvasRenderingContext2D, circlesToDraw: Circles.CirclePositioned | readonly Circles.CirclePositioned[], opts?: DrawingOpts) => void;
+    /**
+     * Draws one or more ellipses. Will draw outline/fill depending on
+     * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
+     * @param ctx
+     * @param ellipsesToDraw
+     * @param opts
+     */
+    export const ellipse: (ctx: CanvasRenderingContext2D, ellipsesToDraw: Ellipses.EllipsePositioned | readonly Ellipses.EllipsePositioned[], opts?: DrawingOpts) => void;
+    /**
+     * Draws one or more paths.
+     * supported paths are quadratic beziers and lines.
+     * @param ctx
+     * @param pathsToDraw
+     * @param opts
+     */
+    export const paths: (ctx: CanvasRenderingContext2D, pathsToDraw: readonly Paths.Path[] | Paths.Path, opts?: Readonly<{
+        readonly strokeStyle?: string;
+        readonly debug?: boolean;
+    }>) => void;
+    /**
+     * Draws a line between all the given points.
+     * If a fillStyle is specified, it will be filled.
+     *
+     * See also:
+     * * {@link line}: Draw one or more lines
+     *
+     * @param ctx
+     * @param pts
+     */
+    export const connectedPoints: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
+        readonly loop?: boolean;
+        readonly fillStyle?: string;
+        readonly strokeStyle?: string;
+    }) => void;
+    /**
+     * Draws labels for a set of points
+     * @param ctx
+     * @param pts Points to draw
+     * @param opts
+     * @param labels Labels for points
+     */
+    export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
+        readonly fillStyle?: string;
+    }, labels?: readonly string[]) => void;
+    /**
+     * Returns `point` with the canvas's translation matrix applied
+     * @param ctx
+     * @param point
+     * @returns
+     */
+    export const translatePoint: (ctx: CanvasRenderingContext2D, point: Points.Point) => Points.Point;
+    /**
+     * Creates a new HTML IMG element with a snapshot of the
+     * canvas. Element will need to be inserted into the document.
+     *
+     * ```
+     * const myCanvas = document.getElementById('someCanvas');
+     * const el = copyToImg(myCanvas);
+     * document.getElementById('images').appendChild(el);
+     * ```
+     * @param canvasEl
+     * @returns
+     */
+    export const copyToImg: (canvasEl: HTMLCanvasElement) => HTMLImageElement;
+    /**
+     * Draws filled circle(s) at provided point(s)
+     * @param ctx
+     * @param pos
+     * @param opts
+     */
+    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: DrawingOpts & {
+        readonly radius?: number;
+        readonly outlined?: boolean;
+        readonly filled?: boolean;
+    }) => void;
+    /**
+     * Draws a cubic or quadratic bezier
+     * @param ctx
+     * @param bezierToDraw
+     * @param opts
+     */
+    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts) => void;
+    /**
+     * Draws one or more lines.
+     *
+     * Each line is drawn independently, ie it's not assumed lines are connected.
+     *
+     * See also:
+     * * {@link connectedPoints}: Draw a series of connected points
+     * @param ctx
+     * @param toDraw
+     * @param opts
+     */
+    export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: LineOpts & DrawingOpts) => void;
+    /**
+     * Draws one or more triangles
+     * @param ctx
+     * @param toDraw
+     * @param opts
+     */
+    export const triangle: (ctx: CanvasRenderingContext2D, toDraw: Triangles.Triangle | readonly Triangles.Triangle[], opts?: DrawingOpts & {
+        readonly filled?: boolean;
+    }) => void;
+    /**
+     * Draws one or more rectangles
+     * @param ctx
+     * @param toDraw
+     * @param opts
+     */
+    export const rect: (ctx: CanvasRenderingContext2D, toDraw: Rects.RectPositioned | readonly Rects.RectPositioned[], opts?: DrawingOpts & {
+        readonly filled?: boolean;
+        readonly stroked?: boolean;
+    }) => void;
+    /**
+     * Returns the width of `text`. Rounds number up to nearest multiple if provided. If
+     * text is empty or undefined, 0 is returned.
+     * @param ctx
+     * @param text
+     * @param widthMultiple
+     * @returns
+     */
+    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null, padding?: number, widthMultiple?: number) => number;
+    /**
+     * Draws a block of text. Each array item is considered a line.
+     * @param ctx
+     * @param lines
+     * @param opts
+     */
+    export const textBlock: (ctx: CanvasRenderingContext2D, lines: readonly string[], opts: DrawingOpts & {
+        readonly anchor: Points.Point;
+        readonly anchorPadding?: number;
+        readonly bounds?: Rects.RectPositioned;
+    }) => void;
+    export type HorizAlign = `left` | `right` | `center`;
+    export type VertAlign = `top` | `center` | `bottom`;
+    /**
+     * Draws an aligned text block
+     */
+    export const textBlockAligned: (ctx: CanvasRenderingContext2D, text: readonly string[] | string, opts: DrawingOpts & {
+        readonly bounds: Rects.RectPositioned;
+        readonly horiz?: HorizAlign;
+        readonly vert?: VertAlign;
+    }) => void;
+}
+declare module "visual/SvgMarkers" {
+    import { MarkerOpts, DrawingOpts } from "visual/Svg";
+    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: () => SVGElement) => SVGMarkerElement;
+    export const markerPrebuilt: (elem: SVGElement | null, opts: MarkerOpts, _context: DrawingOpts) => string;
+}
+declare module "visual/SvgElements" {
+    import { CirclePositioned } from "geometry/Circle";
+    import * as Lines from "geometry/Line";
+    import * as Points from "geometry/Point";
+    import * as Svg from "visual/Svg";
+    /**
+     * Creates and adds an SVG path element
+     * @example
+     * ```js
+     * const paths = [
+     *  `M300,200`,
+     *  `a25,25 -30 0,1 50, -25 l 50,-25`
+     * ]
+     * const pathEl = path(paths, parentEl);
+     * ```
+     * @param svgOrArray Path syntax, or array of paths. Can be empty if path data will be added later
+     * @param parent SVG parent element
+     * @param opts Options Drawing options
+     * @returns
+     */
+    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts, queryOrExisting?: string | SVGPathElement) => SVGPathElement;
+    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts) => SVGPathElement;
+    /**
+     * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
+     * @param elem Element
+     * @param circle Circle
+     * @param opts Drawing options
+     * @returns SVGCircleElement
+     */
+    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts) => SVGCircleElement;
+    /**
+     * Creates or reuses a `SVGCircleElement`.
+     *
+     * To update an existing element, use `circleUpdate`
+     * @param circle
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement) => SVGCircleElement;
+    /**
+     * Creates or resuses a `SVGGElement` (group)
+     *
+     * To update an existing elemnet, use `groupUpdate`
+     * @param children
+     * @param parent
+     * @param queryOrExisting
+     * @returns
+     */
+    export const group: (children: readonly SVGElement[], parent: SVGElement, queryOrExisting?: string | SVGGElement) => SVGGElement;
+    export const groupUpdate: (elem: SVGGElement, children: readonly SVGElement[]) => SVGGElement;
+    /**
+     * Creates or reuses a SVGLineElement.
+     *
+     * @param line
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts, queryOrExisting?: string | SVGLineElement) => SVGLineElement;
+    /**
+     * Updates a SVGLineElement instance with potentially changed line and drawing data
+     * @param lineEl
+     * @param line
+     * @param opts
+     * @returns
+     */
+    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts) => SVGLineElement;
+    /**
+     * Updates an existing SVGTextPathElement instance with text and drawing options
+     * @param el
+     * @param text
+     * @param opts
+     * @returns
+     */
+    export const textPathUpdate: (el: SVGTextPathElement, text?: string, opts?: Svg.TextPathDrawingOpts) => SVGTextPathElement;
+    /**
+     * Creates or reuses a SVGTextPathElement.
+     * @param pathRef
+     * @param text
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts, queryOrExisting?: string | SVGTextPathElement) => SVGTextPathElement;
+    /**
+     * Updates an existing SVGTextElement instance with position, text and drawing options
+     * @param el
+     * @param pos
+     * @param text
+     * @param opts
+     * @returns
+     */
+    export const textUpdate: (el: SVGTextElement, pos?: Points.Point, text?: string, opts?: Svg.TextDrawingOpts) => SVGTextElement;
+    /**
+     * Creates or reuses a SVGTextElement
+     * @param pos Position of text
+     * @param text Text
+     * @param parent
+     * @param opts
+     * @param queryOrExisting
+     * @returns
+     */
+    export const text: (text: string, parent: SVGElement, pos?: Points.Point, opts?: Svg.TextDrawingOpts, queryOrExisting?: string | SVGTextElement) => SVGTextElement;
+    /**
+     * Creates a square grid based at a center point, with cells having `spacing` height and width.
+     *
+     * It fits in as many cells as it can within `width` and `height`.
+     *
+     * Returns a SVG group, consisting of horizontal and vertical lines
+     * @param parent Parent element
+     * @param center Center point of grid
+     * @param spacing Width/height of cells
+     * @param width How wide grid should be
+     * @param height How high grid should be
+     * @param opts
+     */
+    export const grid: (parent: SVGElement, center: Points.Point, spacing: number, width: number, height: number, opts?: Svg.LineDrawingOpts) => SVGGElement;
+}
+declare module "visual/Svg" {
+    import { CirclePositioned } from "geometry/Circle";
+    import * as Lines from "geometry/Line";
+    import * as Points from "geometry/Point";
+    import * as Elements from "visual/SvgElements";
+    import * as Rects from "geometry/Rect";
+    export { Elements };
+    export type MarkerOpts = StrokeOpts & DrawingOpts & {
+        readonly id: string;
+        readonly markerWidth?: number;
+        readonly markerHeight?: number;
+        readonly orient?: string;
+        readonly viewBox?: string;
+        readonly refX?: number;
+        readonly refY?: number;
+    };
+    /**
+     * Drawing options
+     */
+    export type DrawingOpts = {
+        /**
+         * Style for fill. Eg `black`.
+         * @see [fill](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill)
+         */
+        readonly fillStyle?: string;
+        /**
+         * Opacity (0..1)
+         */
+        readonly opacity?: number;
+        /**
+         * If true, debug helpers are drawn
+         */
+        readonly debug?: boolean;
+    };
+    export type StrokeOpts = {
+        /**
+         * Line cap
+         * @see [stroke-linecap](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-linecap)
+         */
+        readonly strokeLineCap?: `butt` | `round` | `square`;
+        /**
+         * Width of stroke, eg `2`
+         * @see [stroke-width](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-width)
+         */
+        readonly strokeWidth?: number;
+        /**
+        * Stroke dash pattern, eg `5`
+        * @see [stroke-dasharray](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray)
+        */
+        readonly strokeDash?: string;
+        /**
+         * Style for lines. Eg `white`.
+         * @see [stroke](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke)
+         */
+        readonly strokeStyle?: string;
+    };
+    /**
+     * Line drawing options
+     */
+    export type LineDrawingOpts = DrawingOpts & MarkerDrawingOpts & StrokeOpts;
+    export type CircleDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
+    export type PathDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
+    export type MarkerDrawingOpts = {
+        readonly markerEnd?: MarkerOpts;
+        readonly markerStart?: MarkerOpts;
+        readonly markerMid?: MarkerOpts;
+    };
+    /**
+     * Text drawing options
+     */
+    export type TextDrawingOpts = StrokeOpts & DrawingOpts & {
+        readonly anchor?: `start` | `middle` | `end`;
+        readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
+        readonly userSelect?: boolean;
+    };
+    /**
+     * Text path drawing options
+     */
+    export type TextPathDrawingOpts = TextDrawingOpts & {
+        readonly method?: `align` | `stretch`;
+        readonly side?: `left` | `right`;
+        readonly spacing?: `auto` | `exact`;
+        readonly startOffset?: number;
+        readonly textLength?: number;
+    };
+    /**
+     * Creates and appends a SVG element.
+     *
+     * ```js
+     * // Create a circle
+     * const circleEl = createOrResolve(parentEl, `SVGCircleElement`);
+     * ```
+     *
+     * If `queryOrExisting` is specified, it is used as a query to find an existing element. If
+     * query starts with `#`, this will be set as the element id, if created.
+     *
+     * ```js
+     * // Creates an element with id 'myCircle' if it doesn't exist
+     * const circleEl = createOrResolve(parentEl, `SVGCircleElement`, `#myCircle`);
+     * ```
+     * @param parent Parent element
+     * @param type Type of SVG element
+     * @param queryOrExisting Query, eg `#id`
+     * @returns
+     */
+    export const createOrResolve: <V extends SVGElement>(parent: SVGElement, type: string, queryOrExisting?: string | V | undefined) => V;
+    export const remove: <V extends SVGElement>(parent: SVGElement, queryOrExisting: string | V) => void;
+    export const clear: (parent: SVGElement) => void;
+    /**
+     * Creates an element of `type` and with `id` (if specified)
+     * @param type Element type, eg `circle`
+     * @param id Optional id to assign to element
+     * @returns Element
+     */
+    export const createEl: <V extends SVGElement>(type: string, id?: string) => V;
+    /**
+     * Applies path drawing options to given element
+     * Applies: markerEnd, markerStart, markerMid
+     * @param elem Element (presumed path)
+     * @param opts Options
+     */
+    export const applyPathOpts: (elem: SVGElement, opts: PathDrawingOpts) => void;
+    /**
+     * Applies drawing options to given SVG element.
+     * Applies: fillStyle
+     * @param elem Element
+     * @param opts Drawing options
+     */
+    export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
+    /**
+     * Applies drawing options to given SVG element.
+     * Applies: strokeStyle, strokeWidth, strokeDash, strokeLineCap
+     * @param elem Element
+     * @param opts
+     */
+    export const applyStrokeOpts: (elem: SVGElement, opts: StrokeOpts) => void;
+    /**
+     * Helper to make SVG elements with a common parent.
+     *
+     * Create with {@link makeHelper}.
+     */
+    export type SvgHelper = {
+        remove(queryOrExisting: string | SVGElement): void;
+        /**
+         * Creates a text element
+         * @param text Text
+         * @param pos Position
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        text(text: string, pos: Points.Point, opts?: TextDrawingOpts, queryOrExisting?: string | SVGTextElement): SVGTextElement;
+        /**
+         * Creates text on a path
+         * @param pathRef Reference to path element
+         * @param text Text
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        textPath(pathRef: string, text: string, opts?: TextDrawingOpts, queryOrExisting?: string | SVGTextPathElement): SVGTextPathElement;
+        /**
+         * Creates a line
+         * @param line Line
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        line(line: Lines.Line, opts?: LineDrawingOpts, queryOrExisting?: string | SVGLineElement): SVGLineElement;
+        /**
+         * Creates a circle
+         * @param circle Circle
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        circle(circle: CirclePositioned, opts?: CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
+        /**
+         * Creates a path
+         * @param svgStr Path description, or empty string
+         * @param opts Drawing options
+         * @param queryOrExisting DOM query to look up existing element, or the element instance
+         */
+        path(svgStr: string | readonly string[], opts?: PathDrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
+        /**
+         * Creates a grid of horizontal and vertical lines inside of a group
+         * @param center Grid origin
+         * @param spacing Cell size
+         * @param width Width of grid
+         * @param height Height of grid
+         * @param opts Drawing options
+         */
+        grid(center: Points.Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts): SVGGElement;
+        /**
+         * Returns an element if it exists in parent
+         * @param selectors Eg `#path`
+         */
+        query<V extends SVGElement>(selectors: string): V | null;
+        /**
+         * Gets/sets the width of the parent
+         */
+        get width(): number;
+        set width(width: number);
+        /**
+         * Gets the parent
+         */
+        get parent(): SVGElement;
+        /**
+         * Gets/sets the height of the parent
+         */
+        get height(): number;
+        set height(height: number);
+        /**
+         * Deletes all child elements
+         */
+        clear(): void;
+    };
+    /**
+     * Get the bounds of an SVG element (determined by its width/height attribs)
+     * @param svg
+     * @returns
+     */
+    export const getBounds: (svg: SVGElement) => Rects.Rect;
+    /**
+     * Set the bounds of an element, using its width/height attribs.
+     * @param svg
+     * @param bounds
+     */
+    export const setBounds: (svg: SVGElement, bounds: Rects.Rect) => void;
+    /**
+     * Creates a {@link SvgHelper} for the creating and management of SVG elements.
+     * @param parent
+     * @param parentOpts
+     * @returns
+     */
+    export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts & StrokeOpts) => SvgHelper;
+}
+declare module "visual/Plot" {
+    import { CircularArray, MapOfMutable } from "collections/Interfaces";
+    import { Rect } from "geometry/Rect";
+    export type Plotter = {
+        add(value: number, series?: string, skipDrawing?: boolean): void;
+        drawValue(index: number): void;
+        /**
+         * Draws current data. Useful if skipDrawing was true for earlier add() calls.
+         */
+        draw(): void;
+        clear(): void;
+        dispose(): void;
+    };
+    /**
+     * Series
+     */
+    export type Series = {
+        min: number;
+        max: number;
+        range: number;
+        name: string;
+        colour: string;
+        lastValue?: number;
+        hoverValue?: number;
+    };
+    /**
+     * Drawing options
+     */
+    export type DrawingOpts = PlotOpts & {
+        x: Axis;
+        y: Axis;
+        ctx: CanvasRenderingContext2D;
+        textHeight: number;
+        capacity: number;
+        coalesce: boolean;
+        margin: number;
+        canvasSize: Rect;
+        clearCanvas: boolean;
+        translucentPlot?: boolean;
+        highlightIndex?: number;
+        leadingEdgeDot: boolean;
+        debug: boolean;
+        digitsPrecision: number;
+        lineWidth: number;
+        defaultSeriesColour: string;
+        defaultSeriesVariable?: string;
+        showLegend: boolean;
+        pointer: {
+            x: number;
+            y: number;
+        };
+    };
+    /**
+     * Properties for an axis
+     */
+    export type Axis = {
+        allowedSeries?: string[];
+        /**
+         * Name of axis, eg `x`
+         */
+        name: string;
+        /**
+         * Colour to use for axis labels
+         */
+        colour?: string;
+        /**
+         * Forced scale for values
+         */
+        scaleRange?: [number, number];
+        /**
+         * Forced range for labelling, by default
+         * uses scaleRange
+         */
+        labelRange?: [number, number];
+        /**
+         * Width of axis line
+         */
+        lineWidth: number;
+        /**
+         * How line ends
+         */
+        endWith: `none` | `arrow`;
+        /**
+         * Where to place the name of the axis
+         */
+        namePosition: `none` | `end` | `side`;
+        /**
+         * Width for y axis, height for x axis
+         */
+        textSize: number;
+        /**
+         * If true, axis labels (ie numeric scale) are shown. Default: true
+         */
+        showLabels: boolean;
+        /**
+         * If true, a line is drawn to represent axis. Default: true
+         */
+        showLine: boolean;
+    };
+    export type SeriesColours = {
+        [id: string]: string | undefined;
+    };
+    /**
+     * Plotter options
+     */
+    export type PlotOpts = {
+        debug?: boolean;
+        seriesColours?: SeriesColours;
+        /**
+         * Default: 2
+         */
+        digitsPrecision?: number;
+        x?: Axis;
+        y?: Axis;
+        plotSize?: Rect;
+        autoSizeCanvas?: boolean;
+        style?: `connected` | `dots` | `none`;
+        /**
+         * Number of items to keep in the circular array
+         * Default: 10
+         */
+        capacity?: number;
+        textHeight?: number;
+        /**
+         * Width of plotted line
+         */
+        lineWidth?: number;
+        /**
+         * If true, sub-pixel data points are ignored
+         */
+        coalesce?: boolean;
+        /**
+         * Fixed range to scale Y values. By default normalises values
+         * as they come in. This will also determine the y-axis labels and drawing
+         */
+        /**
+         * How many horizontal pixels per data point. If unspecified,
+         * it will scale based on width of canvas and capacity.
+         */
+        defaultSeriesColour?: string;
+        defaultSeriesVariable?: string;
+        showLegend?: boolean;
+    };
+    export const defaultAxis: (name: string) => Axis;
+    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours) => Series[];
+    export const add: (buffer: BufferType, value: number, series?: string) => void;
+    export type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
+    export const drawValue: (index: number, buffer: BufferType, drawing: DrawingOpts) => void;
+    /**
+     * Draws a `buffer` of data with `drawing` options.
+     *
+     * @param buffer
+     * @param drawing
+     */
+    export const draw: (buffer: BufferType, drawing: DrawingOpts) => void;
+    /**
+     * Creates a simple horizontal data plot within a DIV.
+     *
+     * ```
+     * const p = plot(`#parentDiv`);
+     * p.add(10);
+     * p.clear();
+     *
+     * // Plot data using series
+     * p.add(-1, `temp`);
+     * p.add(0.4, `humidty`);
+     * ```
+     *
+     * Options can be specified to customise plot
+     * ```
+     * const p = plot(`#parentDiv`, {
+     *  capacity: 100,     // How many data points to store (default: 10)
+     *  showYAxis: false,  // Toggle whether y axis is shown (default: true)
+     *  lineWidth: 2,      // Width of plot line (default: 2)
+     *  yAxes:  [`temp`],  // Only show these y axes (by default all are shown)
+     *  coalesce: true,    // If true, sub-pixel data points are skipped, improving performance for dense plots at the expense of plot precision
+     * });
+     * ```
+     *
+     * For all `capacity` values other than `0`, a circular array is used to track data. Otherwise an array is used that will
+     * grow infinitely.
+     *
+     * By default, will attempt to use CSS variable `--series[seriesName]` for axis colours.
+     *  `--series[name]-axis` for titles. Eg `--seriesX`. For data added without a named series,
+     * it will use `--series` and `--series-axis`.
+     * @param parentElOrQuery
+     * @param opts
+     * @return Plotter instance
+     */
+    export const plot: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => Plotter;
+}
+declare module "visual/SceneGraph" {
+    import { Points } from "geometry/index";
+    import * as Rects from "geometry/Rect";
+    export type Measurement = {
+        size: Rects.Rect | Rects.RectPositioned;
+        ref: Box;
+        children: Array<Measurement | undefined>;
+    };
+    export type PxUnit = {
+        value: number;
+        type: `px`;
+    };
+    export type BoxUnit = PxUnit;
+    export type BoxRect = {
+        x?: BoxUnit;
+        y?: BoxUnit;
+        width?: BoxUnit;
+        height?: BoxUnit;
+    };
+    export class MeasureState {
+        bounds: Rects.Rect;
+        pass: number;
+        measurements: Map<string, Measurement>;
+        constructor(bounds: Rects.Rect);
+        getSize(id: string): Rects.Rect | undefined;
+        resolveToPx(u: BoxUnit | undefined, defaultValue: number): number;
+    }
+    export abstract class Box {
+        visual: Rects.RectPositioned;
+        private _desiredSize;
+        private _lastMeasure;
+        protected children: Box[];
+        protected readonly _parent: Box | undefined;
+        private _idMap;
+        debugLayout: boolean;
+        private _visible;
+        protected _ready: boolean;
+        takesSpaceWhenInvisible: boolean;
+        needsDrawing: boolean;
+        protected _needsLayout: boolean;
+        debugHue: number;
+        readonly id: string;
+        constructor(parent: Box | undefined, id: string);
+        hasChild(box: Box): boolean;
+        notify(msg: string, source: Box): void;
+        protected onNotify(msg: string, source: Box): void;
+        protected onChildAdded(child: Box): void;
+        setReady(ready: boolean, includeChildren?: boolean): void;
+        get visible(): boolean;
+        set visible(v: boolean);
+        get desiredSize(): BoxRect | undefined;
+        set desiredSize(v: BoxRect | undefined);
+        onLayoutNeeded(): void;
+        private notifyChildLayoutNeeded;
+        get root(): Box;
+        protected measurePreflight(): void;
+        /**
+         * Applies measurement, returning true if size is different than before
+         * @param size
+         * @returns
+         */
+        measureApply(m: Measurement, force: boolean): boolean;
+        debugLog(m: any): void;
+        measureStart(opts: MeasureState, force: boolean, parent?: Measurement): Measurement | undefined;
+        protected measureSelf(opts: MeasureState, parent?: Measurement): Rects.RectPositioned | Rects.Rect | undefined;
+        /**
+         * Called when update() is called
+         * @param force
+         */
+        protected abstract updateBegin(force: boolean): MeasureState;
+        protected updateDone(state: MeasureState, force: boolean): void;
+        abstract onUpdateDone(state: MeasureState, force: boolean): void;
+        update(force?: boolean): void;
+    }
+    export class CanvasMeasureState extends MeasureState {
+        readonly ctx: CanvasRenderingContext2D;
+        constructor(bounds: Rects.Rect, ctx: CanvasRenderingContext2D);
+    }
+    export class CanvasBox extends Box {
+        readonly canvasEl: HTMLCanvasElement;
+        constructor(parent: CanvasBox | undefined, canvasEl: HTMLCanvasElement, id: string);
+        private designateRoot;
+        protected onClick(p: Points.Point): void;
+        private notifyClick;
+        private notifyPointerLeave;
+        private notifyPointerMove;
+        protected onPointerLeave(): void;
+        protected onPointerMove(p: Points.Point): void;
+        protected updateBegin(): MeasureState;
+        onUpdateDone(state: MeasureState, force: boolean): void;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+    }
+}
+declare module "visual/Plot2" {
+    import { Points, Rects } from "geometry/index";
+    import * as Sg from "visual/SceneGraph";
+    /**
+     * A data source
+     */
+    export interface DataSource {
+        dirty: boolean;
+        type: string;
+        get range(): DataRange;
+        add(value: number): void;
+        clear(): void;
+    }
+    /**
+     * Plot options
+     */
+    export type Opts = {
+        /**
+         * If true, Canvas will be resized to fit parent
+         */
+        autoSize?: boolean;
+        /**
+         * Colour for axis lines & labels
+         */
+        axisColour?: string;
+        /**
+         * Width for axis lines
+         */
+        axisWidth?: number;
+    };
+    /**
+     * Series options
+     */
+    export type SeriesOpts = {
+        /**
+         * Colour for series
+         */
+        colour: string;
+        /**
+         * Visual width/height (depends on drawingStyle)
+         */
+        width?: number;
+        /**
+         * How series should be rendered
+         */
+        drawingStyle?: `line` | `dotted` | `bar`;
+        /**
+         * Preferred data range
+         */
+        axisRange?: DataRange;
+        /**
+         * If true, range will stay at min/max, rather than continuously adapting
+         * to the current data range.
+         */
+        visualRangeStretch?: boolean;
+    };
+    export type DataPoint = {
+        value: number;
+        index: number;
+        title?: string;
+    };
+    export type DataHitPoint = (pt: Points.Point) => [point: DataPoint | undefined, distance: number];
+    export type DataRange = {
+        min: number;
+        max: number;
+        changed?: boolean;
+    };
+    export class Series {
+        private plot;
+        name: string;
+        colour: string;
+        source: DataSource;
+        drawingStyle: `line` | `dotted` | `bar`;
+        width: number;
+        dataHitPoint: DataHitPoint | undefined;
+        tooltip?: string;
+        precision: number;
+        readonly axisRange: DataRange;
+        lastPxPerPt: number;
+        protected _visualRange: DataRange;
+        protected _visualRangeStretch: boolean;
+        constructor(name: string, sourceType: `array` | `stream`, plot: Plot, opts: SeriesOpts);
+        formatValue(v: number): string;
+        get visualRange(): DataRange;
+        scaleValue(value: number): number;
+        add(value: number): void;
+        /**
+         * Clears the underlying source
+         * and sets a flag that the plot area needs redrawing
+         */
+        clear(): void;
+    }
+    export class PlotArea extends Sg.CanvasBox {
+        private plot;
+        paddingPx: number;
+        piPi: number;
+        pointerDistanceThreshold: number;
+        lastRangeChange: number;
+        pointer: Points.Point | undefined;
+        constructor(plot: Plot);
+        clear(): void;
+        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
+        protected onNotify(msg: string, source: Sg.Box): void;
+        protected onPointerLeave(): void;
+        protected onPointerMove(p: Points.Point): void;
+        protected measurePreflight(): void;
+        updateTooltip(): void;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        computeY(series: Series, rawValue: number): number;
+        drawDataSet(series: Series, d: number[], ctx: CanvasRenderingContext2D): void;
+    }
+    export class Legend extends Sg.CanvasBox {
+        private plot;
+        sampleSize: {
+            width: number;
+            height: number;
+        };
+        padding: number;
+        widthSnapping: number;
+        constructor(plot: Plot);
+        clear(): void;
+        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        protected onNotify(msg: string, source: Sg.Box): void;
+    }
+    export class AxisX extends Sg.CanvasBox {
+        private plot;
+        paddingPx: number;
+        colour?: string;
+        constructor(plot: Plot);
+        clear(): void;
+        protected onNotify(msg: string, source: Sg.Box): void;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
+    }
+    export class AxisY extends Sg.CanvasBox {
+        private plot;
+        private _maxDigits;
+        seriesToShow: string | undefined;
+        paddingPx: number;
+        colour?: string;
+        lastRange: DataRange;
+        lastPlotAreaHeight: number;
+        constructor(plot: Plot);
+        clear(): void;
+        protected measurePreflight(): void;
+        protected onNotify(msg: string, source: Sg.Box): void;
+        protected measureSelf(opts: Sg.MeasureState): Rects.RectPositioned;
+        protected drawSelf(ctx: CanvasRenderingContext2D): void;
+        getSeries(): Series | undefined;
+        seriesAxis(series: Series, ctx: CanvasRenderingContext2D): void;
+    }
+    /**
+     * Canvas-based data plotter.
+     *
+     * ```
+     * const p = new Plot(document.getElementById(`myCanvas`), opts);
+     *
+     * // Plot 1-5 as series  test'
+     * p.createSeries(`test`, `array`, [1,2,3,4,5]);
+     *
+     * // Create a streaming series, add a random number
+     * const s = p.createSeries(`test2`, `stream`);
+     * s.add(Math.random());
+     * ```
+     * `createSeries` returns the {@link Series} instance with properties for fine-tuning
+     *
+     * For simple usage, use `plot(someData)` which automatically creates
+     * series for the properties of an object.
+     */
+    export class Plot extends Sg.CanvasBox {
+        plotArea: PlotArea;
+        legend: Legend;
+        axisX: AxisX;
+        axisY: AxisY;
+        axisColour: string;
+        axisWidth: number;
+        series: Map<string, Series>;
+        private _frozen;
+        defaultSeriesOpts?: SeriesOpts;
+        constructor(canvasEl: HTMLCanvasElement, opts?: Opts);
+        /**
+         * Calls 'clear()' on each of the series
+         */
+        clearSeries(): void;
+        /**
+         * Removes all series, plot, legend
+         * and axis data.
+         */
+        clear(): void;
+        get frozen(): boolean;
+        set frozen(v: boolean);
+        seriesArray(): Series[];
+        get seriesLength(): number;
+        /**
+         * Plots a simple object, eg `{ x: 10, y: 20, z: 300 }`
+         * Series are automatically created for each property of `o`
+         *
+         * Be sure to call `update()` to visually refresh.
+         * @param o
+         */
+        plot(o: any): void;
+        createSeriesFromObject(o: any, prefix?: string): Series[];
+        createSeries(name?: string, type?: `stream` | `array`, seriesOpts?: SeriesOpts): Series;
+    }
+}
+declare module "visual/Palette" {
+    /**
+     * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
+     *
+     */
+    export type Palette = {
+        setElementBase(el: Element): void;
+        has(key: string): boolean;
+        /**
+         * Returns a colour by name.
+         *
+         * If the colour is not found:
+         *  1. Try to use a CSS variable `--key`, or
+         *  2. The next fallback colour is used (array cycles)
+         *
+         * @param key
+         * @returns
+         */
+        get(key: string, fallback?: string): string;
+        /**
+         * Gets a colour by key, adding and returning fallback if not present
+         * @param key Key of colour
+         * @param fallback Fallback colour if key is not found
+         */
+        getOrAdd(key: string, fallback?: string): string;
+        /**
+         * Adds a colour with a given key
+         *
+         * @param key
+         * @param colour
+         */
+        add(key: string, value: string): void;
+        alias(from: string, to: string): void;
+    };
+    export const create: (fallbacks?: readonly string[]) => Palette;
+}
+declare module "visual/Video" {
+    export type Capturer = {
+        start(): void;
+        cancel(): void;
+        readonly canvasEl: HTMLCanvasElement;
+    };
+    export type ManualCapturer = {
+        capture(): ImageData;
+        readonly canvasEl: HTMLCanvasElement;
+        dispose(): void;
+    };
+    export type CaptureOpts = {
+        readonly maxIntervalMs?: number;
+        readonly showCanvas?: boolean;
+        readonly workerScript?: string;
+        readonly onFrame?: (pixels: ImageData) => void;
+    };
+    export type ManualCaptureOpts = {
+        /**
+         * If true, the intermediate canvas is shown
+         * The intermediate canvas is where captures from the source are put in order
+         * to get the ImageData
+         */
+        readonly showCanvas?: boolean;
+        /**
+         * If specified, this function will be called after ImageData is captured
+         * from the intermediate canvs. This allows for drawing on top of the
+         * captured image.
+         */
+        readonly postCaptureDraw?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+        /**
+         * If specified, this is the canvas captured to
+         */
+        readonly canvasEl?: HTMLCanvasElement;
+    };
+    /**
+     * Options for frames generator
+     */
+    export type FramesOpts = {
+        /**
+         * Max frame rate (millis per frame), or 0 for animation speed
+         */
+        readonly maxIntervalMs?: number;
+        /**
+         * False by default, created canvas will be hidden
+         */
+        readonly showCanvas?: boolean;
+        /**
+         * If provided, this canvas will be used as the buffer rather than creating one.
+         */
+        readonly canvasEl?: HTMLCanvasElement;
+    };
+    /**
+     * Generator that yields frames from a video element as [ImageData](https://developer.mozilla.org/en-US/docs/Web/API/ImageData).
+     *
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * const ctx = canvasEl.getContext(`2d`);
+     * for await (const frame of Video.frames(videoEl)) {
+     *   // TODO: Some processing of pixels
+     *
+     *   // Draw image on to the visible canvas
+     *   ctx.putImageData(frame, 0, 0);
+     * }
+     * ```
+     *
+     * Under the hood it creates a hidden canvas where frames are drawn to. This is necessary
+     * to read back pixel data. An existing canvas can be used if it is passed in as an option.
+     *
+     * Options:
+     * * `canvasEl`: CANVAS element to use as a buffer (optional)
+     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
+     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
+     * @param sourceVideoEl
+     * @param opts
+     */
+    export function frames(sourceVideoEl: HTMLVideoElement, opts?: FramesOpts): AsyncIterable<ImageData>;
+    /**
+     * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
+     *
+     * @example Using a function
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * // Capture from a VIDEO element, handling frame data
+     * // imageData is ImageData type: https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+     * Video.capture(sourceVideoEl, {
+     *  onFrame(imageData => {
+     *    // Do something with pixels...
+     *  });
+     * });
+     * ```
+     *
+     * @example Using a worker
+     * ```js
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     *
+     * Video.capture(sourceVideoEl, {
+     *  workerScript: `./frameProcessor.js`
+     * });
+     * ```
+     *
+     * In frameProcessor.js:
+     * ```
+     * const process = (frame) => {
+     *  // ...process frame
+     *
+     *  // Send image back?
+     *  self.postMessage({frame});
+     * };
+     *
+     * self.addEventListener(`message`, evt => {
+     *   const {pixels, width, height} = evt.data;
+     *   const frame = new ImageData(new Uint8ClampedArray(pixels),
+     *     width, height);
+     *
+     *   // Process it
+     *   process(frame);
+     * });
+     * ```
+     *
+     * Options:
+     * * `canvasEl`: CANVAS element to use as a buffer (optional)
+     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
+     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
+     * * `workerScript`: If this specified, this URL will be loaded as a Worker, and frame data will be automatically posted to it
+     *
+     * Implementation: frames are captured using a animation-speed loop to a hidden canvas. From there
+     * the pixel data is extracted and sent to either destination. In future the intermediate drawing to a
+     * canvas could be skipped if it becomes possible to get pixel data from an ImageBitmap.
+     * @param sourceVideoEl Source VIDEO element
+     * @param opts
+     * @returns
+     */
+    export const capture: (sourceVideoEl: HTMLVideoElement, opts?: CaptureOpts) => Capturer;
+    export const manualCapture: (sourceVideoEl: HTMLVideoElement, opts?: ManualCaptureOpts) => ManualCapturer;
+}
+declare module "visual/ImageDataGrid" {
+    import * as Grids from "geometry/Grid";
+    import { Rgb } from "visual/Colour";
+    export const accessor: (image: ImageData) => Grids.CellAccessor<Rgb>;
+}
+declare module "visual/index" {
+    import * as Drawing from "visual/Drawing";
+    import * as Svg from "visual/Svg";
+    import * as Plot from "visual/Plot";
+    import * as Plot2 from "visual/Plot2";
+    import * as Palette from "visual/Palette";
+    import * as Colour from "visual/Colour";
+    import * as SceneGraph from "visual/SceneGraph";
+    import * as Video from "visual/Video";
+    export * as ImageDataGrid from "visual/ImageDataGrid";
+    /**
+     * Colour interpolation, scale generation and parsing
+     *
+     * Overview
+     * * {@link interpolate}: Blend colours
+     * * {@link scale}: Produce colour scale
+     * * {@link opacity}: Give a colour opacity
+     * * {@link randomHue}: Generate a random hue
+     * * {@link goldenAngleColour}: Pick perceptually different shades
+     *
+     * CSS
+     * * {@link getCssVariable}: Parse a CSS-defined colour
+     *
+     * Conversions: convert from 'blue', 'rgb(255,0,0)',  'hsl(0, 100%, 50%)' etc:
+     * * {@link toHex}: to a hex format string
+     * * {@link toHsl}: to a `{h, s, l}` object
+     * * {@link toRgb}: to a `{r, g, b}` object
+     */
+    export { Colour };
+    /**
+     * Working with video, either playback from a file or stream from a video camera.
+     *
+     * Overview
+     * * {@link frames}: Yields frames from a video camera
+     * * {@link capture}: Capture frames from a VIDEO element
+     *
+     * @example Importing
+     * ```js
+     * // If library is stored two directories up under `ixfx/`
+     * import {Video} from '../../ixfx/dist/visual.js';
+     * // Import from web
+     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
+     * ```
+     */
+    export { Video };
+    export { Palette, Drawing, Svg, Plot, Plot2, SceneGraph };
+}
+declare module "geometry/Convolve2d" {
+    import { Rgb } from "visual/Colour";
+    import * as Grids from "geometry/Grid";
+    export type Kernel = readonly (readonly number[])[];
+    export type CellWithValue<V> = readonly [cell: Grids.Cell, value: V | undefined];
+    export type ScalarAndValue<V> = readonly [scalar: number, v: V | undefined];
+    export type KernelCompute = <V>(offset: Grids.Cell, value: V) => V;
+    export type KernelReduce<V> = (values: readonly ScalarAndValue<V>[]) => V | undefined;
+    /**
+     * Multiply every element of kernel by the same `scalar` value.
+     * Returns new result, input is unmodified
+     * @param kernel
+     * @param scalar
+     * @returns
+     */
+    export const multiply: (kernel: Kernel, scalar: number) => Kernel;
+    export function convolveCell<V>(c: Grids.Cell, kernel: Kernel2dArray, source: Grids.Grid, access: Grids.CellAccessor<V>, reduce: KernelReduce<V>): V | undefined;
+    /**
+     * Performs kernel-based convolution over `image`.
+     * @param kernel
+     * @param image
+     */
+    export function convolveImage(kernel: Kernel, image: ImageData): Generator<CellWithValue<Rgb>, void, undefined>;
+    export function convolve<V>(kernel: Kernel, source: Grids.Grid, access: Grids.CellAccessor<V>, visitor: Grids.VisitGenerator, reduce: KernelReduce<V>, origin?: Grids.Cell): IterableIterator<CellWithValue<V>>;
+    type Kernel2dArray = ReadonlyArray<readonly [cell: Grids.Cell, value: number]>;
+    /**
+     * For a given kernel, returns an array of offsets. These
+     * consist of a cell offset (eg {x:-1,y:-1}) and the value at that kernel position.
+     * @param kernel
+     * @param origin
+     * @returns
+     */
+    export const kernel2dToArray: (kernel: Kernel, origin?: Grids.Cell) => Kernel2dArray;
+    export const rgbReducer: KernelReduce<Rgb>;
+    export const identityKernel: number[][];
+    export const edgeDetectionKernel: number[][];
+    export const sharpenKernel: number[][];
+    export const boxBlurKernel: Kernel;
+    export const gaussianBlur3Kernel: Kernel;
+    export const gaussianBlur5Kernel: Kernel;
+    export const unsharpMasking5Kernel: Kernel;
+}
+declare module "geometry/SurfacePoints" {
+    import { Sphere } from "geometry/Sphere";
+    import * as Points from "geometry/Point";
+    import { Circle, CirclePositioned } from "geometry/Circle";
+    /**
+     * Options for a Vogel spiral
+     */
+    export type VogelSpiralOpts = {
+        /**
+         * Upper limit of points to produce.
+         * By default, 5000.
+         */
+        readonly maxPoints?: number;
+        /**
+         * Density value (0..1) which determines spacing of points.
+         * This is useful because it scales with whatever circle radius is given
+         * Use this parameter OR the `spacing` parameter.
+         */
+        readonly density?: number;
+        /**
+         * Spacing between points.
+         * Use this option OR the density value.
+         */
+        readonly spacing?: number;
+        /**
+         * Rotation offset to apply, in radians. 0 by default
+         */
+        readonly rotation?: number;
+    };
+    /**
+     * Generates points on a Vogel spiral - a sunflower-like arrangement of points.
+     *
+     * @example With no arguments, assumes a unit circle
+     * ```js
+     * for (const pt of circleVogelSpiral()) {
+     *  // Generate points on a unit circle, with 95% density
+     * }
+     * ```
+     *
+     *
+     * @example Specifying a circle and options
+     * ```js
+     * const circle = { radius: 100, x: 100, y: 100 };
+     * const opts = {
+     *  maxPoints: 50,
+     *  density: 0.99
+     * };
+     * for (const pt of circleVogelSpiral(circle, opts)) {
+     *  // Do something with point...
+     * }
+     * ```
+     *
+     * @example Array format
+     * ```js
+     * const ptsArray = [...circleVogelSpiral(circle, opts)];
+     * ```
+     * @param circle
+     * @param opts
+     */
+    export function circleVogelSpiral(circle?: Circle, opts?: VogelSpiralOpts): IterableIterator<Points.Point>;
+    export type CircleRingsOpts = {
+        readonly rings?: number;
+        /**
+         * Rotation offset, in radians
+         */
+        readonly rotation?: number;
+    };
+    /**
+     * Generates points spaced out on the given number of rings.
+     *
+     * Get points as array
+     * ```js
+     * const circle = { radius: 5, x: 100, y: 100 };
+     * const opts = { rings: 5 };
+     * const points = [...circleRings(circle, rings)];
+     * ```
+     *
+     * Or iterate over them
+     * ```js
+     * for (const point of circleRings(circle, opts)) {
+     * }
+     * ```
+     * Source: http://www.holoborodko.com/pavel/2015/07/23/generating-equidistant-points-on-unit-disk/#more-3453
+     * @param circle
+     */
+    export function circleRings(circle?: Circle | CirclePositioned, opts?: CircleRingsOpts): IterableIterator<Points.Point>;
+    /**
+     * Fibonacci sphere algorithm. Generates points
+     * distributed on a sphere.
+     *
+     * @example Generate points of a unit sphere
+     * ```js
+     * for (const pt of sphereFibonacci(100)) {
+     *  // pt.x, pt.y, pt.z
+     * }
+     * ```
+     *
+     * @example Generate points into an array
+     * ```js
+     * const sphere = { radius: 10, x: 10, y: 200 }
+     * const pts = [...sphereFibonacci(100, 0, sphere)];
+     * ```
+     *
+     * Source: https://codepen.io/elchininet/pen/vXeRyL
+     *
+     * @param samples
+     * @returns
+     */
+    export function sphereFibonacci(samples?: number, rotationRadians?: number, sphere?: Sphere): IterableIterator<Points.Point3d>;
+}
 declare module "geometry/index" {
     import * as Arcs from "geometry/Arc";
     import * as Beziers from "geometry/Bezier";
@@ -8339,8 +10420,12 @@ declare module "geometry/index" {
     import * as Waypoints from "geometry/Waypoint";
     import * as Spheres from "geometry/Sphere";
     import * as Polar from "geometry/Polar";
+    import * as Layouts from "geometry/Layout";
     export { Circles, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Waypoints, Spheres };
+    export { Layouts };
+    export { quadTree } from "geometry/QuadTree";
     export * as Scaler from "geometry/Scaler";
+    export * as Convolve2d from "geometry/Convolve2d";
     /**
      * Work with arcs. Arcs are a angle-limited circle, describing a wedge.
      *
@@ -9475,144 +11560,6 @@ declare module "io/VideoFile" {
      */
     export const start: (file: File) => Promise<StartResult>;
 }
-declare module "visual/Video" {
-    export type Capturer = {
-        start(): void;
-        cancel(): void;
-        readonly canvasEl: HTMLCanvasElement;
-    };
-    export type ManualCapturer = {
-        capture(): ImageData;
-        readonly canvasEl: HTMLCanvasElement;
-        dispose(): void;
-    };
-    export type CaptureOpts = {
-        readonly maxIntervalMs?: number;
-        readonly showCanvas?: boolean;
-        readonly workerScript?: string;
-        readonly onFrame?: (pixels: ImageData) => void;
-    };
-    export type ManualCaptureOpts = {
-        /**
-         * If true, the intermediate canvas is shown
-         * The intermediate canvas is where captures from the source are put in order
-         * to get the ImageData
-         */
-        readonly showCanvas?: boolean;
-        /**
-         * If specified, this function will be called after ImageData is captured
-         * from the intermediate canvs. This allows for drawing on top of the
-         * captured image.
-         */
-        readonly postCaptureDraw?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
-        /**
-         * If specified, this is the canvas captured to
-         */
-        readonly canvasEl?: HTMLCanvasElement;
-    };
-    /**
-     * Options for frames generator
-     */
-    export type FramesOpts = {
-        /**
-         * Max frame rate (millis per frame), or 0 for animation speed
-         */
-        readonly maxIntervalMs?: number;
-        /**
-         * False by default, created canvas will be hidden
-         */
-        readonly showCanvas?: boolean;
-        /**
-         * If provided, this canvas will be used as the buffer rather than creating one.
-         */
-        readonly canvasEl?: HTMLCanvasElement;
-    };
-    /**
-     * Generator that yields frames from a video element as [ImageData](https://developer.mozilla.org/en-US/docs/Web/API/ImageData).
-     *
-     * ```js
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     *
-     * const ctx = canvasEl.getContext(`2d`);
-     * for await (const frame of Video.frames(videoEl)) {
-     *   // TODO: Some processing of pixels
-     *
-     *   // Draw image on to the visible canvas
-     *   ctx.putImageData(frame, 0, 0);
-     * }
-     * ```
-     *
-     * Under the hood it creates a hidden canvas where frames are drawn to. This is necessary
-     * to read back pixel data. An existing canvas can be used if it is passed in as an option.
-     *
-     * Options:
-     * * `canvasEl`: CANVAS element to use as a buffer (optional)
-     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
-     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
-     * @param sourceVideoEl
-     * @param opts
-     */
-    export function frames(sourceVideoEl: HTMLVideoElement, opts?: FramesOpts): AsyncIterable<ImageData>;
-    /**
-     * Captures frames from a video element. It can send pixel data to a function or post to a worker script.
-     *
-     * @example Using a function
-     * ```js
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     *
-     * // Capture from a VIDEO element, handling frame data
-     * // imageData is ImageData type: https://developer.mozilla.org/en-US/docs/Web/API/ImageData
-     * Video.capture(sourceVideoEl, {
-     *  onFrame(imageData => {
-     *    // Do something with pixels...
-     *  });
-     * });
-     * ```
-     *
-     * @example Using a worker
-     * ```js
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     *
-     * Video.capture(sourceVideoEl, {
-     *  workerScript: `./frameProcessor.js`
-     * });
-     * ```
-     *
-     * In frameProcessor.js:
-     * ```
-     * const process = (frame) => {
-     *  // ...process frame
-     *
-     *  // Send image back?
-     *  self.postMessage({frame});
-     * };
-     *
-     * self.addEventListener(`message`, evt => {
-     *   const {pixels, width, height} = evt.data;
-     *   const frame = new ImageData(new Uint8ClampedArray(pixels),
-     *     width, height);
-     *
-     *   // Process it
-     *   process(frame);
-     * });
-     * ```
-     *
-     * Options:
-     * * `canvasEl`: CANVAS element to use as a buffer (optional)
-     * * `maxIntervalMs`: Max frame rate (0 by default, ie runs as fast as possible)
-     * * `showCanvas`: Whether buffer canvas will be shown (false by default)
-     * * `workerScript`: If this specified, this URL will be loaded as a Worker, and frame data will be automatically posted to it
-     *
-     * Implementation: frames are captured using a animation-speed loop to a hidden canvas. From there
-     * the pixel data is extracted and sent to either destination. In future the intermediate drawing to a
-     * canvas could be skipped if it becomes possible to get pixel data from an ImageBitmap.
-     * @param sourceVideoEl Source VIDEO element
-     * @param opts
-     * @returns
-     */
-    export const capture: (sourceVideoEl: HTMLVideoElement, opts?: CaptureOpts) => Capturer;
-    export const manualCapture: (sourceVideoEl: HTMLVideoElement, opts?: ManualCaptureOpts) => ManualCapturer;
-}
 declare module "io/FrameProcessor" {
     export type Sources = `` | `camera` | `video`;
     import * as Camera from "io/Camera";
@@ -10294,1566 +12241,6 @@ declare module "Generators" {
      * @returns
      */
     export const numericPercent: (interval?: number, repeating?: boolean, start?: number, end?: number) => Generator<number, void, unknown>;
-}
-declare module "visual/Colour" {
-    import * as d3Colour from 'd3-color';
-    import { RandomSource } from "Random";
-    export type Hsl = {
-        h: number;
-        s: number;
-        l: number;
-        opacity?: number;
-    };
-    export type Rgb = {
-        r: number;
-        g: number;
-        b: number;
-        opacity?: number;
-    };
-    export type Spaces = `hsl` | `rgb` | `lab` | `hcl` | `cubehelix`;
-    /**
-     * @private
-     */
-    export type Colour = d3Colour.RGBColor | d3Colour.HSLColor;
-    /**
-     * A representation of colour. Eg: `blue`, `rgb(255,0,0)`, `hsl(20,100%,50%)`
-     */
-    export type Colourish = string | d3Colour.ColorCommonInstance;
-    /**
-     * Options for interpolation
-     */
-    export type InterpolationOpts = {
-        /**
-         * Gamma correction. Eg 4 brightens values. Only applies to rgb and cubehelix
-         * [Read more](https://github.com/d3/d3-interpolate#interpolate_gamma)
-         */
-        gamma?: number;
-        /**
-         * Colour space
-         */
-        space?: Spaces;
-        /**
-         * If true, interpolation happens the longer distance. Only applies to hsl, hcl and cubehelix
-         */
-        long?: boolean;
-    };
-    /**
-     * Parses colour to `{ h, s, l }`. `opacity` field is added if it exists on source.
-     * @param colour
-     * @returns
-     */
-    export const toHsl: (colour: Colourish) => Hsl;
-    /**
-     * Returns a full HSL colour string (eg `hsl(20,50%,75%)`) based on a index.
-     * It's useful for generating perceptually different shades as the index increments.
-     *
-     * ```
-     * el.style.backgroundColor = goldenAgeColour(10);
-     * ```
-     *
-     * Saturation and lightness can be specified, as numeric ranges of 0-1.
-     *
-     * @param saturation Saturation (0-1), defaults to 0.5
-     * @param lightness Lightness (0-1), defaults to 0.75
-     * @param alpha Opacity (0-1), defaults to 1.0
-     * @returns HSL colour string eg `hsl(20,50%,75%)`
-     */
-    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string | undefined;
-    /**
-     * Returns a random hue component
-     * ```
-     * // Generate hue
-     * const h =randomHue(); // 0-359
-     *
-     * // Generate hue and assign as part of a HSL string
-     * el.style.backgroundColor = `hsl(${randomHue(), 50%, 75%})`;
-     * ```
-     * @param rand
-     * @returns
-     */
-    export const randomHue: (rand?: RandomSource) => number;
-    /**
-     * Parses colour to `{ r, g, b }`. `opacity` field is added if it exists on source.
-     * [Named colours](https://html-color-codes.info/color-names/)
-     * @param colour
-     * @returns
-     */
-    export const toRgb: (colour: Colourish) => Rgb;
-    /**
-     * Returns a colour in hex format `#000000`
-     * @param colour
-     * @returns Hex format, including #
-     */
-    export const toHex: (colour: Colourish) => string;
-    /**
-     * Returns a variation of colour with its opacity multiplied by `amt`.
-     *
-     * ```js
-     * // Return a colour string for blue that is 50% opaque
-     * opacity(`blue`, 0.5);
-     * // eg: `rgba(0,0,255,0.5)`
-     *
-     * // Returns a colour string that is 50% more opaque
-     * opacity(`hsla(200,100%,50%,50%`, 0.5);
-     * // eg: `hsla(200,100%,50%,25%)`
-     * ```
-     *
-     * [Named colours](https://html-color-codes.info/color-names/)
-     * @param colour A valid CSS colour
-     * @param amt Amount to multiply opacity by
-     * @returns String representation of colour
-     */
-    export const opacity: (colour: Colourish, amt: number) => string;
-    /**
-     * Gets a CSS variable.
-     * @example Fetch --accent variable, or use `yellow` if not found.
-     * ```
-     * getCssVariable(`accent`, `yellow`);
-     * ```
-     * @param name Name of variable. Omit the `--`
-     * @param fallbackColour Fallback colour if not found
-     * @param root  Element to search variable from
-     * @returns Colour or fallback.
-     */
-    export const getCssVariable: (name: string, fallbackColour?: string, root?: HTMLElement) => string;
-    /**
-     * Interpolates between two colours, returning a string in the form `rgb(r,g,b)`
-     *
-     * @example
-     * ```js
-     * // Get 50% between blue and red
-     * interpolate(0.5, `blue`, `red`);
-     *
-     * // Get midway point, with specified colour space
-     * interpolate(0.5, `hsl(200, 100%, 50%)`, `pink`, {space: `hcl`});
-     * ```
-     *
-     * [Named colours](https://html-color-codes.info/color-names/)
-     * @param amount Amount (0 = from, 0.5 halfway, 1= to)
-     * @param from Starting colour
-     * @param to Final colour
-     * @param optsOrSpace Options for interpolation, or string name for colour space, eg `hsl`.
-     * @returns String representation of colour, eg. `rgb(r,g,b)`
-     */
-    export const interpolate: (amount: number, from: Colourish, to: Colourish, optsOrSpace?: string | InterpolationOpts) => string;
-    /**
-     * Produces a scale of colours as a string array
-     *
-     * @example
-     * ```js
-     * // Yields array of 5 colour strings
-     * const s = scale(5, {space:`hcl`}, `blue`, `red`);
-     * // Produces scale between three colours
-     * const s = scale(5, {space:`hcl`}, `blue`, `yellow`, `red`);
-     * ```
-     * @param steps Number of colours
-     * @param opts Options for interpolation, or string colour space eg `hsl`
-     * @param colours From/end colours (or more)
-     * @returns
-     */
-    export const scale: (steps: number, opts: InterpolationOpts | string, ...colours: Colourish[]) => string[];
-}
-declare module "dom/Util" {
-    import { Observable } from 'rxjs';
-    import * as Points from "geometry/Point";
-    import { Scaler } from "geometry/index";
-    export type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
-        readonly el: V;
-        readonly bounds: {
-            readonly width: number;
-            readonly height: number;
-            readonly center: Points.Point;
-            readonly min: number;
-            readonly max: number;
-        };
-    };
-    export type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
-        readonly ctx: CanvasRenderingContext2D;
-    };
-    export const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Observable<Event>;
-    export type CanvasOpts = {
-        readonly skipCss?: boolean;
-        readonly fullSize?: boolean;
-        readonly scaleBy?: `both` | `width` | `height` | `min` | `max`;
-    };
-    export const canvasHelper: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, opts: CanvasOpts) => {
-        abs: Scaler.ScaleFn;
-        rel: Scaler.ScaleFn;
-        getContext: () => void;
-    };
-    /**
-     * Resizes given canvas element to match window size.
-     * To resize canvas to match its parent, use {@link parentSizeCanvas}.
-     *
-     * To make the canvas appear propery, it sets the following CSS:
-     * ```css
-     * {
-     *  top: 0;
-     *  left: 0;
-     *  zIndex: -1;
-     *  position: fixed;
-     * }
-     * ```
-     * Pass _true_ for `skipCss` to avoid this.
-     *
-     * Provide a callback for when resize happens.
-     * @param domQueryOrEl Query string or reference to canvas element
-     * @param onResized Callback for when resize happens, eg for redrawing canvas
-     * @param skipCss if true, style are not added
-     * @returns Observable
-     */
-    export const fullSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement | undefined | null, onResized?: ((args: CanvasResizeArgs) => void) | undefined, skipCss?: boolean) => Observable<Event>;
-    /**
-     * Given an array of class class names, this will cycle between them each time
-     * it is called.
-     *
-     * Eg, assume `list` is: [ `a`, `b`, `c` ]
-     *
-     * If `el` already has the class `a`, the first time it is called, class `a`
-     * is removed, and `b` added. The next time `b` is swapped for `c`. Once again,
-     * `c` will swap with `a` and so on.
-     *
-     * If `el` is undefined or null, function silently returns.
-     * @param el Element
-     * @param list List of class names
-     * @returns
-     */
-    export const cycleCssClass: (el: HTMLElement, list: readonly string[]) => void;
-    /**
-     * Sets width/height atributes on the given element according to the size of its parent.
-     * @param domQueryOrEl Elememnt to resize
-     * @param onResized Callback when resize happens
-     * @param timeoutMs Timeout for debouncing events
-     * @returns
-     */
-    export const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
-    /**
-     * Source: https://zellwk.com/blog/translate-in-javascript
-     * @param domQueryOrEl
-     */
-    export const getTranslation: (domQueryOrEl: string | HTMLElement) => Points.Point;
-    /**
-     * Resizes given canvas to its parent element.
-     * To resize canvas to match the viewport, use {@link fullSizeCanvas}.
-     *
-     * Provide a callback for when resize happens.
-     * @param domQueryOrEl Query string or reference to canvas element
-     * @param onResized Callback for when resize happens, eg for redrawing canvas
-     * @returns Observable
-     */
-    export const parentSizeCanvas: (domQueryOrEl: string | HTMLCanvasElement, onResized?: ((args: CanvasResizeArgs) => void) | undefined, timeoutMs?: number) => import("rxjs").Subscription;
-    /**
-     * Returns an Observable for window resize. Default 100ms debounce.
-     * @param timeoutMs
-     * @returns
-     */
-    export const windowResize: (timeoutMs?: number) => Observable<Event>;
-    /**
-     * Resolves either a string or HTML element to an element.
-     * Useful when an argument is either an HTML element or query.
-     *
-     * ```js
-     * resolveEl(`#someId`);
-     * resolveEl(someElement);
-     * ```
-     * @param domQueryOrEl
-     * @returns
-     */
-    export const resolveEl: <V extends Element>(domQueryOrEl: string | V) => V;
-    /**
-     * Creates an element after `sibling`
-     * ```
-     * const el = createAfter(siblingEl, `DIV`);
-     * ```
-     * @param sibling Element
-     * @param tagName Element to create
-     * @returns New element
-     */
-    export const createAfter: (sibling: HTMLElement, tagName: string) => HTMLElement;
-    /**
-     * Creates an element inside of `parent`
-     * ```
-     * const newEl = createIn(parentEl, `DIV`);
-     * ```
-     * @param parent Parent element
-     * @param tagName Tag to create
-     * @returns New element
-     */
-    export const createIn: (parent: HTMLElement, tagName: string) => HTMLElement;
-    /**
-     * Creates a table based on a list of objects
-     * ```
-     * const t = dataTableList(parentEl, map);
-     *
-     * t(newMap)
-     * ```
-     */
-    export const dataTableList: (parentOrQuery: HTMLElement | string, data: ReadonlyMap<string, object>) => (data: ReadonlyMap<string, object>) => void;
-    /**
-     * Format data. Return _undefined_ to signal that
-     * data was not handled.
-     */
-    export type DataFormatter = (data: object, path: string) => string | undefined;
-    export type DataTableOpts = {
-        readonly formatter?: DataFormatter;
-        readonly precision?: number;
-        readonly roundNumbers?: boolean;
-    };
-    /**
-     * Creates a HTML table where each row is a key-value pair from `data`.
-     * First column is the key, second column data.
-     *
-     * ```js
-     * const dt = dataTable(`#hostDiv`);
-     * dt({
-     *  name: `Blerg`,
-     *  height: 120
-     * });
-     * ```
-     */
-    export const dataTable: (parentOrQuery: HTMLElement | string, data?: object, opts?: DataTableOpts) => (data: object) => void;
-    /**
-     * Remove all child nodes from `parent`
-     * @param parent
-     */
-    export const clear: (parent: HTMLElement) => void;
-    /**
-     * Observer when document's class changes
-     *
-     * ```js
-     * const c = themeChangeObservable();
-     * c.subscribe(() => {
-     *  // Class has changed...
-     * });
-     * ```
-     * @returns
-     */
-    export const themeChangeObservable: () => Observable<readonly MutationRecord[]>;
-    /**
-     * Observer when element resizes. Specify `timeoutMs` to debounce.
-     *
-     * ```
-     * const o = resizeObservable(myEl, 500);
-     * o.subscribe(() => {
-     *  // called 500ms after last resize
-     * });
-     * ```
-     * @param elem
-     * @param timeoutMs Tiemout before event gets triggered
-     * @returns
-     */
-    export const resizeObservable: (elem: Element, timeoutMs?: number) => Observable<readonly ResizeObserverEntry[]>;
-    /**
-     * Copies string representation of object to clipboard
-     * @param obj
-     * @returns Promise
-     */
-    export const copyToClipboard: (obj: object) => Promise<unknown>;
-    export type CreateUpdateElement<V> = (item: V, el: HTMLElement | null) => HTMLElement;
-    export const reconcileChildren: <V>(parentEl: HTMLElement, list: ReadonlyMap<string, V>, createUpdate: CreateUpdateElement<V>) => void;
-}
-declare module "visual/Drawing" {
-    import * as Points from "geometry/Point";
-    import * as Paths from "geometry/Path";
-    import * as Lines from "geometry/Line";
-    import * as Triangles from "geometry/Triangle";
-    import * as Circles from "geometry/Circle";
-    import * as Arcs from "geometry/Arc";
-    import * as Beziers from "geometry/Bezier";
-    import * as Rects from "geometry/Rect";
-    import * as Ellipses from "geometry/Ellipse";
-    import { Stack } from "collections/index";
-    export type CanvasCtxQuery = null | string | CanvasRenderingContext2D | HTMLCanvasElement;
-    /**
-     * Gets a 2d drawing context from canvas element or query, or throws an error
-     * @param canvasElCtxOrQuery Canvas element reference or DOM query
-     * @returns Drawing context.
-     */
-    export const getCtx: (canvasElCtxOrQuery: CanvasCtxQuery) => CanvasRenderingContext2D;
-    /**
-     * Makes a helper object that wraps together a bunch of drawing functions that all use the same drawing context
-     * @param ctxOrCanvasEl Drawing context or canvs element reference
-     * @param canvasBounds Bounds of drawing (optional). Used for limiting `textBlock`
-     * @returns
-     */
-    export const makeHelper: (ctxOrCanvasEl: CanvasCtxQuery, canvasBounds?: Rects.Rect) => {
-        paths(pathsToDraw: Paths.Path[], opts?: DrawingOpts): void;
-        line(lineToDraw: Lines.Line | Lines.Line[], opts?: DrawingOpts): void;
-        rect(rectsToDraw: Rects.RectPositioned | Rects.RectPositioned[], opts?: DrawingOpts & {
-            filled?: boolean;
-        }): void;
-        bezier(bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts): void;
-        connectedPoints(pointsToDraw: Points.Point[], opts?: DrawingOpts & {
-            loop?: boolean;
-        }): void;
-        pointLabels(pointsToDraw: Points.Point[], opts?: DrawingOpts): void;
-        dot(dotPosition: Points.Point | Points.Point[], opts?: DrawingOpts & {
-            radius: number;
-            outlined?: boolean;
-            filled?: boolean;
-        }): void;
-        circle(circlesToDraw: Circles.CirclePositioned | Circles.CirclePositioned[], opts: DrawingOpts): void;
-        arc(arcsToDraw: Arcs.ArcPositioned | Arcs.ArcPositioned[], opts: DrawingOpts): void;
-        textBlock(lines: string[], opts: DrawingOpts & {
-            anchor: Points.Point;
-            anchorPadding?: number;
-            bounds?: Rects.RectPositioned;
-        }): void;
-    };
-    /**
-     * Drawing options
-     */
-    export type DrawingOpts = {
-        /**
-         * Stroke style
-         */
-        readonly strokeStyle?: string;
-        /**
-         * Fill style
-         */
-        readonly fillStyle?: string;
-        /**
-         * If true, diagnostic helpers will be drawn
-         */
-        readonly debug?: boolean;
-    };
-    export type LineOpts = {
-        readonly lineWidth?: number;
-        readonly lineCap?: CanvasLineCap;
-        readonly lineJoin?: CanvasLineJoin;
-    };
-    /**
-     * Draws one or more arcs.
-     * @param ctx
-     * @param arcs
-     * @param opts
-     */
-    export const arc: (ctx: CanvasRenderingContext2D, arcs: Arcs.ArcPositioned | ReadonlyArray<Arcs.ArcPositioned>, opts?: DrawingOpts) => void;
-    /**
-     * A drawing stack operation
-     */
-    export type StackOp = (ctx: CanvasRenderingContext2D) => void;
-    /**
-     * A drawing stack (immutable)
-     */
-    export type DrawingStack = Readonly<{
-        /**
-         * Push a new drawing op
-         * @param op Operation to add
-         * @returns stack with added op
-         */
-        push(...ops: readonly StackOp[]): DrawingStack;
-        /**
-         * Pops an operatiomn
-         * @returns Drawing stack with item popped
-         */
-        pop(): DrawingStack;
-        /**
-         * Applies drawing stack
-         */
-        apply(): DrawingStack;
-    }>;
-    /**
-     * Creates and returns an immutable drawing stack for a context
-     * @param ctx Context
-     * @param stk Initial stack operations
-     * @returns
-     */
-    export const drawingStack: (ctx: CanvasRenderingContext2D, stk?: Stack<StackOp>) => DrawingStack;
-    export const lineThroughPoints: (ctx: CanvasRenderingContext2D, points: readonly Points.Point[], opts?: DrawingOpts) => void;
-    /**
-     * Draws one or more circles. Will draw outline/fill depending on
-     * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
-     *
-     * ```js
-     * // Draw a circle with radius of 10 at 0,0
-     * circle(ctx, {radius:10});
-     *
-     * // Draw a circle of radius 10 at 100,100
-     * circle(ctx, {radius: 10, x: 100, y: 100});
-     *
-     * // Draw two blue outlined circles
-     * circle(ctx, [ {radius: 5}, {radius: 10} ], {strokeStyle:`blue`});
-     * ```
-     * @param ctx Drawing context
-     * @param circlesToDraw Circle(s) to draw
-     * @param opts Drawing options
-     */
-    export const circle: (ctx: CanvasRenderingContext2D, circlesToDraw: Circles.CirclePositioned | readonly Circles.CirclePositioned[], opts?: DrawingOpts) => void;
-    /**
-     * Draws one or more ellipses. Will draw outline/fill depending on
-     * whether `strokeStyle` or `fillStyle` params are present in the drawing options.
-     * @param ctx
-     * @param ellipsesToDraw
-     * @param opts
-     */
-    export const ellipse: (ctx: CanvasRenderingContext2D, ellipsesToDraw: Ellipses.EllipsePositioned | readonly Ellipses.EllipsePositioned[], opts?: DrawingOpts) => void;
-    /**
-     * Draws one or more paths.
-     * supported paths are quadratic beziers and lines.
-     * @param ctx
-     * @param pathsToDraw
-     * @param opts
-     */
-    export const paths: (ctx: CanvasRenderingContext2D, pathsToDraw: readonly Paths.Path[] | Paths.Path, opts?: Readonly<{
-        readonly strokeStyle?: string;
-        readonly debug?: boolean;
-    }>) => void;
-    /**
-     * Draws a line between all the given points.
-     * If a fillStyle is specified, it will be filled.
-     *
-     * See also:
-     * * {@link line}: Draw one or more lines
-     *
-     * @param ctx
-     * @param pts
-     */
-    export const connectedPoints: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
-        readonly loop?: boolean;
-        readonly fillStyle?: string;
-        readonly strokeStyle?: string;
-    }) => void;
-    /**
-     * Draws labels for a set of points
-     * @param ctx
-     * @param pts Points to draw
-     * @param opts
-     * @param labels Labels for points
-     */
-    export const pointLabels: (ctx: CanvasRenderingContext2D, pts: readonly Points.Point[], opts?: {
-        readonly fillStyle?: string;
-    }, labels?: readonly string[]) => void;
-    /**
-     * Returns `point` with the canvas's translation matrix applied
-     * @param ctx
-     * @param point
-     * @returns
-     */
-    export const translatePoint: (ctx: CanvasRenderingContext2D, point: Points.Point) => Points.Point;
-    /**
-     * Creates a new HTML IMG element with a snapshot of the
-     * canvas. Element will need to be inserted into the document.
-     *
-     * ```
-     * const myCanvas = document.getElementById('someCanvas');
-     * const el = copyToImg(myCanvas);
-     * document.getElementById('images').appendChild(el);
-     * ```
-     * @param canvasEl
-     * @returns
-     */
-    export const copyToImg: (canvasEl: HTMLCanvasElement) => HTMLImageElement;
-    /**
-     * Draws filled circle(s) at provided point(s)
-     * @param ctx
-     * @param pos
-     * @param opts
-     */
-    export const dot: (ctx: CanvasRenderingContext2D, pos: Points.Point | readonly Points.Point[], opts?: DrawingOpts & {
-        readonly radius?: number;
-        readonly outlined?: boolean;
-        readonly filled?: boolean;
-    }) => void;
-    /**
-     * Draws a cubic or quadratic bezier
-     * @param ctx
-     * @param bezierToDraw
-     * @param opts
-     */
-    export const bezier: (ctx: CanvasRenderingContext2D, bezierToDraw: Beziers.QuadraticBezier | Beziers.CubicBezier, opts?: DrawingOpts) => void;
-    /**
-     * Draws one or more lines.
-     *
-     * Each line is drawn independently, ie it's not assumed lines are connected.
-     *
-     * See also:
-     * * {@link connectedPoints}: Draw a series of connected points
-     * @param ctx
-     * @param toDraw
-     * @param opts
-     */
-    export const line: (ctx: CanvasRenderingContext2D, toDraw: Lines.Line | readonly Lines.Line[], opts?: LineOpts & DrawingOpts) => void;
-    /**
-     * Draws one or more triangles
-     * @param ctx
-     * @param toDraw
-     * @param opts
-     */
-    export const triangle: (ctx: CanvasRenderingContext2D, toDraw: Triangles.Triangle | readonly Triangles.Triangle[], opts?: DrawingOpts & {
-        readonly filled?: boolean;
-    }) => void;
-    /**
-     * Draws one or more rectangles
-     * @param ctx
-     * @param toDraw
-     * @param opts
-     */
-    export const rect: (ctx: CanvasRenderingContext2D, toDraw: Rects.RectPositioned | readonly Rects.RectPositioned[], opts?: DrawingOpts & {
-        readonly filled?: boolean;
-    }) => void;
-    /**
-     * Returns the width of `text`. Rounds number up to nearest multiple if provided. If
-     * text is empty or undefined, 0 is returned.
-     * @param ctx
-     * @param text
-     * @param widthMultiple
-     * @returns
-     */
-    export const textWidth: (ctx: CanvasRenderingContext2D, text?: string | null, padding?: number, widthMultiple?: number) => number;
-    /**
-     * Draws a block of text. Each array item is considered a line.
-     * @param ctx
-     * @param lines
-     * @param opts
-     */
-    export const textBlock: (ctx: CanvasRenderingContext2D, lines: readonly string[], opts: DrawingOpts & {
-        readonly anchor: Points.Point;
-        readonly anchorPadding?: number;
-        readonly bounds?: Rects.RectPositioned;
-    }) => void;
-    export type HorizAlign = `left` | `right` | `center`;
-    export type VertAlign = `top` | `center` | `bottom`;
-    /**
-     * Draws an aligned text block
-     */
-    export const textBlockAligned: (ctx: CanvasRenderingContext2D, text: readonly string[] | string, opts: DrawingOpts & {
-        readonly bounds: Rects.RectPositioned;
-        readonly horiz?: HorizAlign;
-        readonly vert?: VertAlign;
-    }) => void;
-}
-declare module "visual/SvgMarkers" {
-    import { MarkerOpts, DrawingOpts } from "visual/Svg";
-    export const createMarker: (id: string, opts: MarkerOpts, childCreator?: () => SVGElement) => SVGMarkerElement;
-    export const markerPrebuilt: (elem: SVGElement | null, opts: MarkerOpts, _context: DrawingOpts) => string;
-}
-declare module "visual/SvgElements" {
-    import { CirclePositioned } from "geometry/Circle";
-    import * as Lines from "geometry/Line";
-    import * as Points from "geometry/Point";
-    import * as Svg from "visual/Svg";
-    /**
-     * Creates and adds an SVG path element
-     * @example
-     * ```js
-     * const paths = [
-     *  `M300,200`,
-     *  `a25,25 -30 0,1 50, -25 l 50,-25`
-     * ]
-     * const pathEl = path(paths, parentEl);
-     * ```
-     * @param svgOrArray Path syntax, or array of paths. Can be empty if path data will be added later
-     * @param parent SVG parent element
-     * @param opts Options Drawing options
-     * @returns
-     */
-    export const path: (svgOrArray: string | readonly string[], parent: SVGElement, opts?: Svg.PathDrawingOpts, queryOrExisting?: string | SVGPathElement) => SVGPathElement;
-    export const pathUpdate: (elem: SVGPathElement, opts?: Svg.PathDrawingOpts) => SVGPathElement;
-    /**
-     * Updates an existing `SVGCircleElement` with potentially updated circle data and drawing options
-     * @param elem Element
-     * @param circle Circle
-     * @param opts Drawing options
-     * @returns SVGCircleElement
-     */
-    export const circleUpdate: (elem: SVGCircleElement, circle: CirclePositioned, opts?: Svg.CircleDrawingOpts) => SVGCircleElement;
-    /**
-     * Creates or reuses a `SVGCircleElement`.
-     *
-     * To update an existing element, use `circleUpdate`
-     * @param circle
-     * @param parent
-     * @param opts
-     * @param queryOrExisting
-     * @returns
-     */
-    export const circle: (circle: CirclePositioned, parent: SVGElement, opts?: Svg.CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement) => SVGCircleElement;
-    /**
-     * Creates or resuses a `SVGGElement` (group)
-     *
-     * To update an existing elemnet, use `groupUpdate`
-     * @param children
-     * @param parent
-     * @param queryOrExisting
-     * @returns
-     */
-    export const group: (children: readonly SVGElement[], parent: SVGElement, queryOrExisting?: string | SVGGElement) => SVGGElement;
-    export const groupUpdate: (elem: SVGGElement, children: readonly SVGElement[]) => SVGGElement;
-    /**
-     * Creates or reuses a SVGLineElement.
-     *
-     * @param line
-     * @param parent
-     * @param opts
-     * @param queryOrExisting
-     * @returns
-     */
-    export const line: (line: Lines.Line, parent: SVGElement, opts?: Svg.LineDrawingOpts, queryOrExisting?: string | SVGLineElement) => SVGLineElement;
-    /**
-     * Updates a SVGLineElement instance with potentially changed line and drawing data
-     * @param lineEl
-     * @param line
-     * @param opts
-     * @returns
-     */
-    export const lineUpdate: (lineEl: SVGLineElement, line: Lines.Line, opts?: Svg.LineDrawingOpts) => SVGLineElement;
-    /**
-     * Updates an existing SVGTextPathElement instance with text and drawing options
-     * @param el
-     * @param text
-     * @param opts
-     * @returns
-     */
-    export const textPathUpdate: (el: SVGTextPathElement, text?: string, opts?: Svg.TextPathDrawingOpts) => SVGTextPathElement;
-    /**
-     * Creates or reuses a SVGTextPathElement.
-     * @param pathRef
-     * @param text
-     * @param parent
-     * @param opts
-     * @param queryOrExisting
-     * @returns
-     */
-    export const textPath: (pathRef: string, text: string, parent: SVGElement, opts?: Svg.TextPathDrawingOpts, queryOrExisting?: string | SVGTextPathElement) => SVGTextPathElement;
-    /**
-     * Updates an existing SVGTextElement instance with position, text and drawing options
-     * @param el
-     * @param pos
-     * @param text
-     * @param opts
-     * @returns
-     */
-    export const textUpdate: (el: SVGTextElement, pos?: Points.Point, text?: string, opts?: Svg.TextDrawingOpts) => SVGTextElement;
-    /**
-     * Creates or reuses a SVGTextElement
-     * @param pos Position of text
-     * @param text Text
-     * @param parent
-     * @param opts
-     * @param queryOrExisting
-     * @returns
-     */
-    export const text: (text: string, parent: SVGElement, pos?: Points.Point, opts?: Svg.TextDrawingOpts, queryOrExisting?: string | SVGTextElement) => SVGTextElement;
-    /**
-     * Creates a square grid based at a center point, with cells having `spacing` height and width.
-     *
-     * It fits in as many cells as it can within `width` and `height`.
-     *
-     * Returns a SVG group, consisting of horizontal and vertical lines
-     * @param parent Parent element
-     * @param center Center point of grid
-     * @param spacing Width/height of cells
-     * @param width How wide grid should be
-     * @param height How high grid should be
-     * @param opts
-     */
-    export const grid: (parent: SVGElement, center: Points.Point, spacing: number, width: number, height: number, opts?: Svg.LineDrawingOpts) => SVGGElement;
-}
-declare module "visual/Svg" {
-    import { CirclePositioned } from "geometry/Circle";
-    import * as Lines from "geometry/Line";
-    import * as Points from "geometry/Point";
-    import * as Elements from "visual/SvgElements";
-    import * as Rects from "geometry/Rect";
-    export { Elements };
-    export type MarkerOpts = StrokeOpts & DrawingOpts & {
-        readonly id: string;
-        readonly markerWidth?: number;
-        readonly markerHeight?: number;
-        readonly orient?: string;
-        readonly viewBox?: string;
-        readonly refX?: number;
-        readonly refY?: number;
-    };
-    /**
-     * Drawing options
-     */
-    export type DrawingOpts = {
-        /**
-         * Style for fill. Eg `black`.
-         * @see [fill](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill)
-         */
-        readonly fillStyle?: string;
-        /**
-         * Opacity (0..1)
-         */
-        readonly opacity?: number;
-        /**
-         * If true, debug helpers are drawn
-         */
-        readonly debug?: boolean;
-    };
-    export type StrokeOpts = {
-        /**
-         * Line cap
-         * @see [stroke-linecap](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-linecap)
-         */
-        readonly strokeLineCap?: `butt` | `round` | `square`;
-        /**
-         * Width of stroke, eg `2`
-         * @see [stroke-width](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-width)
-         */
-        readonly strokeWidth?: number;
-        /**
-        * Stroke dash pattern, eg `5`
-        * @see [stroke-dasharray](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray)
-        */
-        readonly strokeDash?: string;
-        /**
-         * Style for lines. Eg `white`.
-         * @see [stroke](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke)
-         */
-        readonly strokeStyle?: string;
-    };
-    /**
-     * Line drawing options
-     */
-    export type LineDrawingOpts = DrawingOpts & MarkerDrawingOpts & StrokeOpts;
-    export type CircleDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
-    export type PathDrawingOpts = DrawingOpts & StrokeOpts & MarkerDrawingOpts;
-    export type MarkerDrawingOpts = {
-        readonly markerEnd?: MarkerOpts;
-        readonly markerStart?: MarkerOpts;
-        readonly markerMid?: MarkerOpts;
-    };
-    /**
-     * Text drawing options
-     */
-    export type TextDrawingOpts = StrokeOpts & DrawingOpts & {
-        readonly anchor?: `start` | `middle` | `end`;
-        readonly align?: `text-bottom` | `text-top` | `baseline` | `top` | `hanging` | `middle`;
-        readonly userSelect?: boolean;
-    };
-    /**
-     * Text path drawing options
-     */
-    export type TextPathDrawingOpts = TextDrawingOpts & {
-        readonly method?: `align` | `stretch`;
-        readonly side?: `left` | `right`;
-        readonly spacing?: `auto` | `exact`;
-        readonly startOffset?: number;
-        readonly textLength?: number;
-    };
-    /**
-     * Creates and appends a SVG element.
-     *
-     * ```js
-     * // Create a circle
-     * const circleEl = createOrResolve(parentEl, `SVGCircleElement`);
-     * ```
-     *
-     * If `queryOrExisting` is specified, it is used as a query to find an existing element. If
-     * query starts with `#`, this will be set as the element id, if created.
-     *
-     * ```js
-     * // Creates an element with id 'myCircle' if it doesn't exist
-     * const circleEl = createOrResolve(parentEl, `SVGCircleElement`, `#myCircle`);
-     * ```
-     * @param parent Parent element
-     * @param type Type of SVG element
-     * @param queryOrExisting Query, eg `#id`
-     * @returns
-     */
-    export const createOrResolve: <V extends SVGElement>(parent: SVGElement, type: string, queryOrExisting?: string | V | undefined) => V;
-    export const remove: <V extends SVGElement>(parent: SVGElement, queryOrExisting: string | V) => void;
-    export const clear: (parent: SVGElement) => void;
-    /**
-     * Creates an element of `type` and with `id` (if specified)
-     * @param type Element type, eg `circle`
-     * @param id Optional id to assign to element
-     * @returns Element
-     */
-    export const createEl: <V extends SVGElement>(type: string, id?: string) => V;
-    /**
-     * Applies path drawing options to given element
-     * Applies: markerEnd, markerStart, markerMid
-     * @param elem Element (presumed path)
-     * @param opts Options
-     */
-    export const applyPathOpts: (elem: SVGElement, opts: PathDrawingOpts) => void;
-    /**
-     * Applies drawing options to given SVG element.
-     * Applies: fillStyle
-     * @param elem Element
-     * @param opts Drawing options
-     */
-    export const applyOpts: (elem: SVGElement, opts: DrawingOpts) => void;
-    /**
-     * Applies drawing options to given SVG element.
-     * Applies: strokeStyle, strokeWidth, strokeDash, strokeLineCap
-     * @param elem Element
-     * @param opts
-     */
-    export const applyStrokeOpts: (elem: SVGElement, opts: StrokeOpts) => void;
-    /**
-     * Helper to make SVG elements with a common parent.
-     *
-     * Create with {@link makeHelper}.
-     */
-    export type SvgHelper = {
-        remove(queryOrExisting: string | SVGElement): void;
-        /**
-         * Creates a text element
-         * @param text Text
-         * @param pos Position
-         * @param opts Drawing options
-         * @param queryOrExisting DOM query to look up existing element, or the element instance
-         */
-        text(text: string, pos: Points.Point, opts?: TextDrawingOpts, queryOrExisting?: string | SVGTextElement): SVGTextElement;
-        /**
-         * Creates text on a path
-         * @param pathRef Reference to path element
-         * @param text Text
-         * @param opts Drawing options
-         * @param queryOrExisting DOM query to look up existing element, or the element instance
-         */
-        textPath(pathRef: string, text: string, opts?: TextDrawingOpts, queryOrExisting?: string | SVGTextPathElement): SVGTextPathElement;
-        /**
-         * Creates a line
-         * @param line Line
-         * @param opts Drawing options
-         * @param queryOrExisting DOM query to look up existing element, or the element instance
-         */
-        line(line: Lines.Line, opts?: LineDrawingOpts, queryOrExisting?: string | SVGLineElement): SVGLineElement;
-        /**
-         * Creates a circle
-         * @param circle Circle
-         * @param opts Drawing options
-         * @param queryOrExisting DOM query to look up existing element, or the element instance
-         */
-        circle(circle: CirclePositioned, opts?: CircleDrawingOpts, queryOrExisting?: string | SVGCircleElement): SVGCircleElement;
-        /**
-         * Creates a path
-         * @param svgStr Path description, or empty string
-         * @param opts Drawing options
-         * @param queryOrExisting DOM query to look up existing element, or the element instance
-         */
-        path(svgStr: string | readonly string[], opts?: PathDrawingOpts, queryOrExisting?: string | SVGPathElement): SVGPathElement;
-        /**
-         * Creates a grid of horizontal and vertical lines inside of a group
-         * @param center Grid origin
-         * @param spacing Cell size
-         * @param width Width of grid
-         * @param height Height of grid
-         * @param opts Drawing options
-         */
-        grid(center: Points.Point, spacing: number, width: number, height: number, opts?: LineDrawingOpts): SVGGElement;
-        /**
-         * Returns an element if it exists in parent
-         * @param selectors Eg `#path`
-         */
-        query<V extends SVGElement>(selectors: string): V | null;
-        /**
-         * Gets/sets the width of the parent
-         */
-        get width(): number;
-        set width(width: number);
-        /**
-         * Gets the parent
-         */
-        get parent(): SVGElement;
-        /**
-         * Gets/sets the height of the parent
-         */
-        get height(): number;
-        set height(height: number);
-        /**
-         * Deletes all child elements
-         */
-        clear(): void;
-    };
-    /**
-     * Get the bounds of an SVG element (determined by its width/height attribs)
-     * @param svg
-     * @returns
-     */
-    export const getBounds: (svg: SVGElement) => Rects.Rect;
-    /**
-     * Set the bounds of an element, using its width/height attribs.
-     * @param svg
-     * @param bounds
-     */
-    export const setBounds: (svg: SVGElement, bounds: Rects.Rect) => void;
-    /**
-     * Creates a {@link SvgHelper} for the creating and management of SVG elements.
-     * @param parent
-     * @param parentOpts
-     * @returns
-     */
-    export const makeHelper: (parent: SVGElement, parentOpts?: DrawingOpts & StrokeOpts) => SvgHelper;
-}
-declare module "visual/Plot" {
-    import { CircularArray, MapOfMutable } from "collections/Interfaces";
-    import { Rect } from "geometry/Rect";
-    export type Plotter = {
-        add(value: number, series?: string, skipDrawing?: boolean): void;
-        drawValue(index: number): void;
-        /**
-         * Draws current data. Useful if skipDrawing was true for earlier add() calls.
-         */
-        draw(): void;
-        clear(): void;
-        dispose(): void;
-    };
-    /**
-     * Series
-     */
-    export type Series = {
-        min: number;
-        max: number;
-        range: number;
-        name: string;
-        colour: string;
-        lastValue?: number;
-        hoverValue?: number;
-    };
-    /**
-     * Drawing options
-     */
-    export type DrawingOpts = PlotOpts & {
-        x: Axis;
-        y: Axis;
-        ctx: CanvasRenderingContext2D;
-        textHeight: number;
-        capacity: number;
-        coalesce: boolean;
-        margin: number;
-        canvasSize: Rect;
-        clearCanvas: boolean;
-        translucentPlot?: boolean;
-        highlightIndex?: number;
-        leadingEdgeDot: boolean;
-        debug: boolean;
-        digitsPrecision: number;
-        lineWidth: number;
-        defaultSeriesColour: string;
-        defaultSeriesVariable?: string;
-        showLegend: boolean;
-        pointer: {
-            x: number;
-            y: number;
-        };
-    };
-    /**
-     * Properties for an axis
-     */
-    export type Axis = {
-        allowedSeries?: string[];
-        /**
-         * Name of axis, eg `x`
-         */
-        name: string;
-        /**
-         * Colour to use for axis labels
-         */
-        colour?: string;
-        /**
-         * Forced scale for values
-         */
-        scaleRange?: [number, number];
-        /**
-         * Forced range for labelling, by default
-         * uses scaleRange
-         */
-        labelRange?: [number, number];
-        /**
-         * Width of axis line
-         */
-        lineWidth: number;
-        /**
-         * How line ends
-         */
-        endWith: `none` | `arrow`;
-        /**
-         * Where to place the name of the axis
-         */
-        namePosition: `none` | `end` | `side`;
-        /**
-         * Width for y axis, height for x axis
-         */
-        textSize: number;
-        /**
-         * If true, axis labels (ie numeric scale) are shown. Default: true
-         */
-        showLabels: boolean;
-        /**
-         * If true, a line is drawn to represent axis. Default: true
-         */
-        showLine: boolean;
-    };
-    export type SeriesColours = {
-        [id: string]: string | undefined;
-    };
-    /**
-     * Plotter options
-     */
-    export type PlotOpts = {
-        debug?: boolean;
-        seriesColours?: SeriesColours;
-        /**
-         * Default: 2
-         */
-        digitsPrecision?: number;
-        x?: Axis;
-        y?: Axis;
-        plotSize?: Rect;
-        autoSizeCanvas?: boolean;
-        style?: `connected` | `dots` | `none`;
-        /**
-         * Number of items to keep in the circular array
-         * Default: 10
-         */
-        capacity?: number;
-        textHeight?: number;
-        /**
-         * Width of plotted line
-         */
-        lineWidth?: number;
-        /**
-         * If true, sub-pixel data points are ignored
-         */
-        coalesce?: boolean;
-        /**
-         * Fixed range to scale Y values. By default normalises values
-         * as they come in. This will also determine the y-axis labels and drawing
-         */
-        /**
-         * How many horizontal pixels per data point. If unspecified,
-         * it will scale based on width of canvas and capacity.
-         */
-        defaultSeriesColour?: string;
-        defaultSeriesVariable?: string;
-        showLegend?: boolean;
-    };
-    export const defaultAxis: (name: string) => Axis;
-    export const calcScale: (buffer: BufferType, drawingOpts: DrawingOpts, seriesColours?: SeriesColours) => Series[];
-    export const add: (buffer: BufferType, value: number, series?: string) => void;
-    export type BufferType = MapOfMutable<number, CircularArray<number>> | MapOfMutable<number, ReadonlyArray<number>>;
-    export const drawValue: (index: number, buffer: BufferType, drawing: DrawingOpts) => void;
-    /**
-     * Draws a `buffer` of data with `drawing` options.
-     *
-     * @param buffer
-     * @param drawing
-     */
-    export const draw: (buffer: BufferType, drawing: DrawingOpts) => void;
-    /**
-     * Creates a simple horizontal data plot within a DIV.
-     *
-     * ```
-     * const p = plot(`#parentDiv`);
-     * p.add(10);
-     * p.clear();
-     *
-     * // Plot data using series
-     * p.add(-1, `temp`);
-     * p.add(0.4, `humidty`);
-     * ```
-     *
-     * Options can be specified to customise plot
-     * ```
-     * const p = plot(`#parentDiv`, {
-     *  capacity: 100,     // How many data points to store (default: 10)
-     *  showYAxis: false,  // Toggle whether y axis is shown (default: true)
-     *  lineWidth: 2,      // Width of plot line (default: 2)
-     *  yAxes:  [`temp`],  // Only show these y axes (by default all are shown)
-     *  coalesce: true,    // If true, sub-pixel data points are skipped, improving performance for dense plots at the expense of plot precision
-     * });
-     * ```
-     *
-     * For all `capacity` values other than `0`, a circular array is used to track data. Otherwise an array is used that will
-     * grow infinitely.
-     *
-     * By default, will attempt to use CSS variable `--series[seriesName]` for axis colours.
-     *  `--series[name]-axis` for titles. Eg `--seriesX`. For data added without a named series,
-     * it will use `--series` and `--series-axis`.
-     * @param parentElOrQuery
-     * @param opts
-     * @return Plotter instance
-     */
-    export const plot: (parentElOrQuery: string | HTMLElement, opts: PlotOpts) => Plotter;
-}
-declare module "visual/SceneGraph" {
-    import { Points } from "geometry/index";
-    import * as Rects from "geometry/Rect";
-    export type Measurement = {
-        size: Rects.Rect | Rects.RectPositioned;
-        ref: Box;
-        children: Array<Measurement | undefined>;
-    };
-    export type PxUnit = {
-        value: number;
-        type: `px`;
-    };
-    export type BoxUnit = PxUnit;
-    export type BoxRect = {
-        x?: BoxUnit;
-        y?: BoxUnit;
-        width?: BoxUnit;
-        height?: BoxUnit;
-    };
-    export class MeasureState {
-        bounds: Rects.Rect;
-        pass: number;
-        measurements: Map<string, Measurement>;
-        constructor(bounds: Rects.Rect);
-        getSize(id: string): Rects.Rect | undefined;
-        resolveToPx(u: BoxUnit | undefined, defaultValue: number): number;
-    }
-    export abstract class Box {
-        visual: Rects.RectPositioned;
-        private _desiredSize;
-        private _lastMeasure;
-        protected children: Box[];
-        protected readonly _parent: Box | undefined;
-        private _idMap;
-        debugLayout: boolean;
-        private _visible;
-        protected _ready: boolean;
-        takesSpaceWhenInvisible: boolean;
-        needsDrawing: boolean;
-        protected _needsLayout: boolean;
-        debugHue: number;
-        readonly id: string;
-        constructor(parent: Box | undefined, id: string);
-        hasChild(box: Box): boolean;
-        notify(msg: string, source: Box): void;
-        protected onNotify(msg: string, source: Box): void;
-        protected onChildAdded(child: Box): void;
-        setReady(ready: boolean, includeChildren?: boolean): void;
-        get visible(): boolean;
-        set visible(v: boolean);
-        get desiredSize(): BoxRect | undefined;
-        set desiredSize(v: BoxRect | undefined);
-        onLayoutNeeded(): void;
-        private notifyChildLayoutNeeded;
-        get root(): Box;
-        protected measurePreflight(): void;
-        /**
-         * Applies measurement, returning true if size is different than before
-         * @param size
-         * @returns
-         */
-        measureApply(m: Measurement, force: boolean): boolean;
-        debugLog(m: any): void;
-        measureStart(opts: MeasureState, force: boolean, parent?: Measurement): Measurement | undefined;
-        protected measureSelf(opts: MeasureState, parent?: Measurement): Rects.RectPositioned | Rects.Rect | undefined;
-        /**
-         * Called when update() is called
-         * @param force
-         */
-        protected abstract updateBegin(force: boolean): MeasureState;
-        protected updateDone(state: MeasureState, force: boolean): void;
-        abstract onUpdateDone(state: MeasureState, force: boolean): void;
-        update(force?: boolean): void;
-    }
-    export class CanvasMeasureState extends MeasureState {
-        readonly ctx: CanvasRenderingContext2D;
-        constructor(bounds: Rects.Rect, ctx: CanvasRenderingContext2D);
-    }
-    export class CanvasBox extends Box {
-        readonly canvasEl: HTMLCanvasElement;
-        constructor(parent: CanvasBox | undefined, canvasEl: HTMLCanvasElement, id: string);
-        private designateRoot;
-        protected onClick(p: Points.Point): void;
-        private notifyClick;
-        private notifyPointerLeave;
-        private notifyPointerMove;
-        protected onPointerLeave(): void;
-        protected onPointerMove(p: Points.Point): void;
-        protected updateBegin(): MeasureState;
-        onUpdateDone(state: MeasureState, force: boolean): void;
-        protected drawSelf(ctx: CanvasRenderingContext2D): void;
-    }
-}
-declare module "visual/Plot2" {
-    import { Points, Rects } from "geometry/index";
-    import * as Sg from "visual/SceneGraph";
-    /**
-     * A data source
-     */
-    export interface DataSource {
-        dirty: boolean;
-        type: string;
-        get range(): DataRange;
-        add(value: number): void;
-        clear(): void;
-    }
-    /**
-     * Plot options
-     */
-    export type Opts = {
-        /**
-         * If true, Canvas will be resized to fit parent
-         */
-        autoSize?: boolean;
-        /**
-         * Colour for axis lines & labels
-         */
-        axisColour?: string;
-        /**
-         * Width for axis lines
-         */
-        axisWidth?: number;
-    };
-    /**
-     * Series options
-     */
-    export type SeriesOpts = {
-        /**
-         * Colour for series
-         */
-        colour: string;
-        /**
-         * Visual width/height (depends on drawingStyle)
-         */
-        width?: number;
-        /**
-         * How series should be rendered
-         */
-        drawingStyle?: `line` | `dotted` | `bar`;
-        /**
-         * Preferred data range
-         */
-        axisRange?: DataRange;
-        /**
-         * If true, range will stay at min/max, rather than continuously adapting
-         * to the current data range.
-         */
-        visualRangeStretch?: boolean;
-    };
-    export type DataPoint = {
-        value: number;
-        index: number;
-        title?: string;
-    };
-    export type DataHitPoint = (pt: Points.Point) => [point: DataPoint | undefined, distance: number];
-    export type DataRange = {
-        min: number;
-        max: number;
-        changed?: boolean;
-    };
-    export class Series {
-        private plot;
-        name: string;
-        colour: string;
-        source: DataSource;
-        drawingStyle: `line` | `dotted` | `bar`;
-        width: number;
-        dataHitPoint: DataHitPoint | undefined;
-        tooltip?: string;
-        precision: number;
-        readonly axisRange: DataRange;
-        lastPxPerPt: number;
-        protected _visualRange: DataRange;
-        protected _visualRangeStretch: boolean;
-        constructor(name: string, sourceType: `array` | `stream`, plot: Plot, opts: SeriesOpts);
-        formatValue(v: number): string;
-        get visualRange(): DataRange;
-        scaleValue(value: number): number;
-        add(value: number): void;
-        /**
-         * Clears the underlying source
-         * and sets a flag that the plot area needs redrawing
-         */
-        clear(): void;
-    }
-    export class PlotArea extends Sg.CanvasBox {
-        private plot;
-        paddingPx: number;
-        piPi: number;
-        pointerDistanceThreshold: number;
-        lastRangeChange: number;
-        pointer: Points.Point | undefined;
-        constructor(plot: Plot);
-        clear(): void;
-        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
-        protected onNotify(msg: string, source: Sg.Box): void;
-        protected onPointerLeave(): void;
-        protected onPointerMove(p: Points.Point): void;
-        protected measurePreflight(): void;
-        updateTooltip(): void;
-        protected drawSelf(ctx: CanvasRenderingContext2D): void;
-        computeY(series: Series, rawValue: number): number;
-        drawDataSet(series: Series, d: number[], ctx: CanvasRenderingContext2D): void;
-    }
-    export class Legend extends Sg.CanvasBox {
-        private plot;
-        sampleSize: {
-            width: number;
-            height: number;
-        };
-        padding: number;
-        widthSnapping: number;
-        constructor(plot: Plot);
-        clear(): void;
-        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
-        protected drawSelf(ctx: CanvasRenderingContext2D): void;
-        protected onNotify(msg: string, source: Sg.Box): void;
-    }
-    export class AxisX extends Sg.CanvasBox {
-        private plot;
-        paddingPx: number;
-        colour?: string;
-        constructor(plot: Plot);
-        clear(): void;
-        protected onNotify(msg: string, source: Sg.Box): void;
-        protected drawSelf(ctx: CanvasRenderingContext2D): void;
-        protected measureSelf(opts: Sg.MeasureState, parent?: Sg.Measurement): Rects.Rect | Rects.RectPositioned | undefined;
-    }
-    export class AxisY extends Sg.CanvasBox {
-        private plot;
-        private _maxDigits;
-        seriesToShow: string | undefined;
-        paddingPx: number;
-        colour?: string;
-        lastRange: DataRange;
-        lastPlotAreaHeight: number;
-        constructor(plot: Plot);
-        clear(): void;
-        protected measurePreflight(): void;
-        protected onNotify(msg: string, source: Sg.Box): void;
-        protected measureSelf(opts: Sg.MeasureState): Rects.RectPositioned;
-        protected drawSelf(ctx: CanvasRenderingContext2D): void;
-        getSeries(): Series | undefined;
-        seriesAxis(series: Series, ctx: CanvasRenderingContext2D): void;
-    }
-    /**
-     * Canvas-based data plotter.
-     *
-     * ```
-     * const p = new Plot(document.getElementById(`myCanvas`), opts);
-     *
-     * // Plot 1-5 as series  test'
-     * p.createSeries(`test`, `array`, [1,2,3,4,5]);
-     *
-     * // Create a streaming series, add a random number
-     * const s = p.createSeries(`test2`, `stream`);
-     * s.add(Math.random());
-     * ```
-     * `createSeries` returns the {@link Series} instance with properties for fine-tuning
-     *
-     * For simple usage, use `plot(someData)` which automatically creates
-     * series for the properties of an object.
-     */
-    export class Plot extends Sg.CanvasBox {
-        plotArea: PlotArea;
-        legend: Legend;
-        axisX: AxisX;
-        axisY: AxisY;
-        axisColour: string;
-        axisWidth: number;
-        series: Map<string, Series>;
-        private _frozen;
-        defaultSeriesOpts?: SeriesOpts;
-        constructor(canvasEl: HTMLCanvasElement, opts?: Opts);
-        /**
-         * Calls 'clear()' on each of the series
-         */
-        clearSeries(): void;
-        /**
-         * Removes all series, plot, legend
-         * and axis data.
-         */
-        clear(): void;
-        get frozen(): boolean;
-        set frozen(v: boolean);
-        seriesArray(): Series[];
-        get seriesLength(): number;
-        /**
-         * Plots a simple object, eg `{ x: 10, y: 20, z: 300 }`
-         * Series are automatically created for each property of `o`
-         *
-         * Be sure to call `update()` to visually refresh.
-         * @param o
-         */
-        plot(o: any): void;
-        createSeriesFromObject(o: any, prefix?: string): Series[];
-        createSeries(name?: string, type?: `stream` | `array`, seriesOpts?: SeriesOpts): Series;
-    }
-}
-declare module "visual/Palette" {
-    /**
-     * Manage a set of colours. Uses CSS variables as a fallback if colour is not added
-     *
-     */
-    export type Palette = {
-        setElementBase(el: Element): void;
-        has(key: string): boolean;
-        /**
-         * Returns a colour by name.
-         *
-         * If the colour is not found:
-         *  1. Try to use a CSS variable `--key`, or
-         *  2. The next fallback colour is used (array cycles)
-         *
-         * @param key
-         * @returns
-         */
-        get(key: string, fallback?: string): string;
-        /**
-         * Gets a colour by key, adding and returning fallback if not present
-         * @param key Key of colour
-         * @param fallback Fallback colour if key is not found
-         */
-        getOrAdd(key: string, fallback?: string): string;
-        /**
-         * Adds a colour with a given key
-         *
-         * @param key
-         * @param colour
-         */
-        add(key: string, value: string): void;
-        alias(from: string, to: string): void;
-    };
-    export const create: (fallbacks?: readonly string[]) => Palette;
-}
-declare module "visual/index" {
-    import * as Drawing from "visual/Drawing";
-    import * as Svg from "visual/Svg";
-    import * as Plot from "visual/Plot";
-    import * as Plot2 from "visual/Plot2";
-    import * as Palette from "visual/Palette";
-    import * as Colour from "visual/Colour";
-    import * as SceneGraph from "visual/SceneGraph";
-    import * as Video from "visual/Video";
-    /**
-     * Colour interpolation, scale generation and parsing
-     *
-     * Overview
-     * * {@link interpolate}: Blend colours
-     * * {@link scale}: Produce colour scale
-     * * {@link opacity}: Give a colour opacity
-     * * {@link randomHue}: Generate a random hue
-     * * {@link goldenAngleColour}: Pick perceptually different shades
-     *
-     * CSS
-     * * {@link getCssVariable}: Parse a CSS-defined colour
-     *
-     * Conversions: convert from 'blue', 'rgb(255,0,0)',  'hsl(0, 100%, 50%)' etc:
-     * * {@link toHex}: to a hex format string
-     * * {@link toHsl}: to a `{h, s, l}` object
-     * * {@link toRgb}: to a `{r, g, b}` object
-     */
-    export { Colour };
-    /**
-     * Working with video, either playback from a file or stream from a video camera.
-     *
-     * Overview
-     * * {@link frames}: Yields frames from a video camera
-     * * {@link capture}: Capture frames from a VIDEO element
-     *
-     * @example Importing
-     * ```js
-     * // If library is stored two directories up under `ixfx/`
-     * import {Video} from '../../ixfx/dist/visual.js';
-     * // Import from web
-     * import {Video} from 'https://unpkg.com/ixfx/dist/visual.js'
-     * ```
-     */
-    export { Video };
-    export { Palette, Drawing, Svg, Plot, Plot2, SceneGraph };
 }
 declare module "dom/ShadowDom" {
     export const addShadowCss: (parentEl: HTMLElement, styles: string) => ShadowRoot;
@@ -14321,10 +14708,15 @@ declare module "collections/Arrays" {
      */
     export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
     /**
-     * Sorts an array of objects by the given property name, assuming its a number.
+     * Sorts an array of objects in ascending order
+     * by the given property name, assuming it is a number.
      *
-     * ```js`
-     * const data = [ { size: 10, colour: `red` }, { size: 20, colour: `blue` }, { size: 5, colour: `pink` }];
+     * ```js
+     * const data = [
+     *  { size: 10, colour: `red` },
+     *  { size: 20, colour: `blue` },
+     *  { size: 5, colour: `pink` }
+     * ];
      * const sorted = Arrays.sortByNumericProperty(data, `size`);
      *
      * Yields items ascending order:
@@ -15038,13 +15430,15 @@ declare module "Util" {
      */
     export const toStringDefault: <V>(itemToMakeStringFor: V) => string;
     export const runningiOS: () => boolean;
+    export type CompareResult = 0 | 1 | -1;
+    export type Comparer<V> = (a: V, b: V) => CompareResult;
     /**
      * Default sort comparer, following same sematics as Array.sort
      * @param x
      * @param y
      * @returns
      */
-    export const defaultComparer: (x: any, y: any) => 0 | 1 | -1;
+    export const defaultComparer: (x: any, y: any) => CompareResult;
 }
 declare module "collections/ExpiringMap" {
     import { SimpleEventEmitter } from "Events";
@@ -15642,16 +16036,27 @@ declare module "Debug" {
     /**
      * Returns a bundled collection of {@link logger}s
      *
-     * ```
+     * ```js
      * const con = logSet(`a`);
      * con.log(`Hello`);  // console.log(`a Hello`);
      * con.warn(`Uh-oh`); // console.warn(`a Uh-oh`);
      * con.error(`Eek!`); // console.error(`a Eek!`);
      * ```
-     * @param prefix
+     *
+     * By default each prefix is assigned a colour. To use
+     * another logic, provide the `colourKey` parameter.
+     *
+     * ```js
+     * // Both set of loggers will use same colour
+     * const con = logSet(`a`, true, `system`);
+     * const con2 = logSet(`b`, true, `system`);
+     * ```
+     * @param prefix Prefix for log messages
+     * @param verbose True by default. If false, log() messages are a no-op
+     * @param colourKey If specified, log messages will be coloured by this key instead of prefix (default)
      * @returns
      */
-    export const logSet: (prefix: string, verbose?: boolean) => {
+    export const logSet: (prefix: string, verbose?: boolean, colourKey?: string) => {
         log: Logger;
         warn: Logger;
         error: Logger;
@@ -15680,11 +16085,21 @@ declare module "Debug" {
      * error(`Uh-oh`);  // console.error(`a Uh-oh`);
      * warn(`Eek!`);    // console.warn(`a Eeek!`);
      * ```
+     *
+     * Provide the `colourKey` parameter to make log messages
+     * be coloured the same, even though the prefix is different.
+     * ```js
+     * // Both loggers will use the same colour because they
+     * // share the colour key `system`
+     * const log = logger(`a`,`log`,`system`);
+     * const log2 = logger(`b`, `log`, `system`);
+     * ```
      * @param prefix
      * @param kind
+     * @param colourKey Optional key to colour log lines by instead of prefix
      * @returns
      */
-    export const logger: (prefix: string, kind?: `log` | `warn` | `error`) => Logger;
+    export const logger: (prefix: string, kind?: `log` | `warn` | `error`, colourKey?: string) => Logger;
 }
 declare module "Filters" {
     export const threshold: (threshold: number) => (v: number) => boolean;
@@ -15788,6 +16203,241 @@ declare module "__tests__/geometry/scaler.test" { }
 declare module "__tests__/geometry/triangles.test" { }
 declare module "__tests__/modulation/pingPong.test" { }
 declare module "__tests__/temporal/numberTracker.test" { }
+declare module "collections/BinaryTreeNode" {
+    enum Side {
+        Left = 0,
+        Right = 1,
+        Neutral = 2
+    }
+    /**
+     * Binary Tree Node
+     * Source: https://github.com/amejiarosario/dsa.js-data-structures-algorithms-javascript/blob/master/src/data-structures/trees/binary-tree-node.js
+     * License: MIT
+     */
+    export class BinaryTreeNode<V> {
+        value: V;
+        left?: BinaryTreeNode<V>;
+        right?: BinaryTreeNode<V>;
+        parent?: BinaryTreeNode<V>;
+        parentSide: Side;
+        multiplicity: number;
+        constructor(value: V);
+        /**
+         * Set a left node descendants.
+         * Also, children get associated to parent.
+         */
+        setLeftAndUpdateParent(node?: BinaryTreeNode<V>): void;
+        /**
+         * Set a right node descendants.
+         * Also, children get associated to parent.
+         */
+        setRightAndUpdateParent(node?: BinaryTreeNode<V>): void;
+        /**
+         * Tell if is parent's left or right child
+         *
+         * @returns {string} side (left or right) this node is of its parent
+         */
+        get parentChildSide(): "right" | "left" | "root";
+        /**
+         * Return true if this node is its parent left child
+         */
+        get isParentLeftChild(): boolean;
+        /**
+         * Return true if this node is its parent right child
+         */
+        get isParentRightChild(): boolean;
+        /**
+         * Node is leaf is it has no descendants
+         */
+        get isLeaf(): boolean;
+        /**
+         * Get sibling of current node
+         */
+        get sibling(): BinaryTreeNode<V> | undefined;
+        /**
+         * Get parent sibling = uncle (duh)
+         */
+        get uncle(): BinaryTreeNode<V> | undefined;
+        get grandparent(): BinaryTreeNode<V> | undefined;
+        /**
+         * @returns {Number} left subtree height or 0 if no left child
+         */
+        get leftSubtreeHeight(): number;
+        /**
+         * @returns {Number} right subtree height or 0 if no right child
+         */
+        get rightSubtreeHeight(): number;
+        /**
+         * Get the max height of the subtrees.
+         *
+         * It recursively goes into each children calculating the height
+         *
+         * Height: distance from the deepest leaf to this node
+         */
+        get height(): number;
+        /**
+         * Returns the difference the heights on the left and right subtrees
+         */
+        get balanceFactor(): number;
+        /**
+         * Serialize node's values
+         */
+        toValues(): {
+            value: V;
+            left: V | undefined;
+            right: V | undefined;
+            parent: V | undefined;
+            parentSide: Side;
+        };
+        /**
+         * Convert Binary tree from an iterable (e.g. array)
+         * @param {array|string} iterable - The iterable
+         */
+        static from<V>(iterable: IterableIterator<V>): BinaryTreeNode<V> | undefined;
+    }
+}
+declare module "collections/BinarySearchTree" {
+    import { Comparer } from "Util";
+    import { BinaryTreeNode } from "collections/BinaryTreeNode";
+    /**
+     * BinarySearchTree
+     * Source: https://github.com/amejiarosario/dsa.js-data-structures-algorithms-javascript/blob/master/src/data-structures/trees/binary-search-tree.js
+     */
+    export class BinarySearchTree<V> {
+        readonly comparer: Comparer<V>;
+        root?: BinaryTreeNode<V>;
+        size: number;
+        constructor(comparer: Comparer<V>);
+        /**
+         * Insert value on the BST.
+         *
+         * If the value is already in the tree,
+         * then it increases the multiplicity value
+         * @param {any} value node's value to insert in the tree
+         * @returns {BinaryTreeNode} newly added node
+         */
+        add(value: V): BinaryTreeNode<V>;
+        /**
+         * Find if a node is present or not
+         * @param {any} value node to find
+         * @returns {boolean} true if is present, false otherwise
+         */
+        has(value: V): boolean;
+        /**
+         * @param {any} value value to find
+         * @returns {BinaryTreeNode|null} node if it found it or null if not
+         */
+        find(value: V): BinaryTreeNode<V> | undefined;
+        /**
+         * Recursively finds the node matching the value.
+         * If it doesn't find, it returns the leaf `parent` where the new value should be appended.
+         * @param {any} value Node's value to find
+         * @param {BinaryTreeNode} node first element to start the search (root is default)
+         * @param {BinaryTreeNode} parent keep track of parent (usually filled by recursion)
+         * @returns {object} node and its parent like {node, parent}
+         */
+        findNodeAndParent(value: V, node?: BinaryTreeNode<V>, parent?: BinaryTreeNode<V>): {
+            found?: BinaryTreeNode<V>;
+            parent?: BinaryTreeNode<V>;
+        };
+        /**
+         * Get the node with the max value of subtree: the right-most value (max)
+         * @param {BinaryTreeNode} node subtree's root
+         * @returns {BinaryTreeNode} right-most node (max value)
+         */
+        getRightmost(node?: BinaryTreeNode<V> | undefined): BinaryTreeNode<V> | undefined;
+        /**
+         * Get the node with the min value of subtree: the left-most value.
+         * @param {BinaryTreeNode} node subtree's root
+         * @returns {BinaryTreeNode} left-most node (min value)
+         */
+        getLeftmost(node?: BinaryTreeNode<V> | undefined): BinaryTreeNode<V> | undefined;
+        /**
+         * Remove a node from the tree
+         * @returns {boolean} false if not found and true if it was deleted
+         */
+        remove(value: V): boolean;
+        /**
+         * Combine left into right children into one subtree without given parent node.
+         *
+         * @example combineLeftIntoRightSubtree(30)
+         *
+         *      30*                             40
+         *    /     \                          /  \
+         *   10      40      combined        35   50
+         *     \    /  \    ---------->     /
+         *     15  35   50                 10
+         *                                   \
+         *                                    15
+         *
+         * It takes node 30 left subtree (10 and 15) and put it in the
+         * leftmost node of the right subtree (40, 35, 50).
+         *
+         * @param {BinaryTreeNode} node
+         * @returns {BinaryTreeNode} combined subtree
+         */
+        combineLeftIntoRightSubtree(node: BinaryTreeNode<V>): BinaryTreeNode<V> | undefined;
+        /**
+         * Breath-first search for a tree (always starting from the root element).
+         * @yields {BinaryTreeNode}
+         */
+        bfs(): Generator<BinaryTreeNode<V> | undefined, void, unknown>;
+        /**
+         * Depth-first search for a tree (always starting from the root element)
+         * @see preOrderTraversal Similar results to the pre-order transversal.
+         * @yields {BinaryTreeNode}
+         */
+        dfs(): Generator<BinaryTreeNode<V> | undefined, void, unknown>;
+        /**
+         * In-order traversal on a tree: left-root-right.
+         * If the tree is a BST, then the values will be sorted in ascendent order
+         * @param {BinaryTreeNode} node first node to start the traversal
+         * @yields {BinaryTreeNode}
+         */
+        inOrderTraversal(node?: BinaryTreeNode<V> | undefined): IterableIterator<BinaryTreeNode<V>>;
+        /**
+         * Pre-order traversal on a tree: root-left-right.
+         * Similar results to DFS
+         * @param {BinaryTreeNode} node first node to start the traversal
+         * @yields {BinaryTreeNode}
+         */
+        preOrderTraversal(node?: BinaryTreeNode<V> | undefined): IterableIterator<BinaryTreeNode<V>>;
+        /**
+         * Post-order traversal on a tree: left-right-root.
+         * @param {BinaryTreeNode} node first node to start the traversal
+         * @yields {BinaryTreeNode}
+         */
+        postOrderTraversal(node?: BinaryTreeNode<V> | undefined): IterableIterator<BinaryTreeNode<V>>;
+        /**
+         * Represent Binary Tree as an array.
+         *
+         * Leaf nodes will have two `undefined` descendants.
+         *
+         * The array representation of the binary tree is as follows:
+         *
+         * First element (index=0) is the root.
+         * The following two elements (index=1,2) are descendants of the root: left (a) and right (b).
+         * The next two elements (index=3,4) are the descendants of a
+         * The next two elements (index=5,6) are the descendants of b and so on.
+         *
+         *  0     1            2             3       4        5       6        n
+         * [root, a=root.left, b=root.right, a.left, a.right, b.left, b.right, ...]
+         *
+         * You can also find the parents as follows
+         *
+         * e.g.
+         * Parent 0: children 1,2
+         * Parent 1: children 3,4
+         * Parent 2: children 5,6
+         * Parent 3: children 7,8
+         *
+         * Given any index you can find the parent index with the following formula:
+         *
+         * parent = (index) => Math.floor((index-1)/2)
+         */
+        toArray(): (V | undefined)[];
+    }
+}
 declare module "components/HistogramVis" {
     import { LitElement } from 'lit';
     import { KeyValue } from "KeyValue";
@@ -15894,4 +16544,12 @@ declare module "data/Proportion" {
      * @returns Scaled value
      */
     export const proportion: (v: number | NumberFunction, t: number | NumberFunction) => number;
+}
+declare module "geometry/PoissonDisk" {
+    import * as Rects from "geometry/Rect";
+    export type PoissonDiskOpts = {
+        readonly radius?: number;
+        readonly limit?: number;
+    };
+    export const poissonDisk: (rect: Rects.RectPositioned, opts: PoissonDiskOpts) => void;
 }

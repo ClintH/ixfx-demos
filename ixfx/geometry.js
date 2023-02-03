@@ -3,8 +3,10 @@ import {
   Bezier_exports,
   Circle_exports,
   CompoundPath_exports,
+  Convolve2d_exports,
   Ellipse_exports,
   Grid_exports,
+  Layout_exports,
   Line_exports,
   Path_exports,
   Point_exports,
@@ -18,24 +20,27 @@ import {
   Vector_exports,
   Waypoint_exports,
   degreeToRadian,
+  quadTree,
   radianToDegree,
   radiansFromAxisX
-} from "./chunk-BBJTOTYF.js";
-import "./chunk-ZPOLPYF5.js";
-import "./chunk-FR25YNY2.js";
-import "./chunk-BAXIADUG.js";
-import "./chunk-DXG5CRMI.js";
-import "./chunk-LCTS33YV.js";
+} from "./chunk-UMAEVBXR.js";
+import "./chunk-VCCD7R7D.js";
+import "./chunk-SUBXAB65.js";
+import "./chunk-4R4FHD4A.js";
+import "./chunk-5MINYKUA.js";
+import "./chunk-AWNGL7KJ.js";
 import "./chunk-DEXQDIBZ.js";
-import "./chunk-OVCUSACM.js";
+import "./chunk-EVWUBOZU.js";
 import "./chunk-FU5PERHQ.js";
 export {
   Arc_exports as Arcs,
   Bezier_exports as Beziers,
   Circle_exports as Circles,
   CompoundPath_exports as Compound,
+  Convolve2d_exports as Convolve2d,
   Ellipse_exports as Ellipses,
   Grid_exports as Grids,
+  Layout_exports as Layouts,
   Line_exports as Lines,
   Path_exports as Paths,
   Point_exports as Points,
@@ -49,6 +54,7 @@ export {
   Vector_exports as Vectors,
   Waypoint_exports as Waypoints,
   degreeToRadian,
+  quadTree,
   radianToDegree,
   radiansFromAxisX
 };

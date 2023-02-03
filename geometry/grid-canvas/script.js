@@ -38,7 +38,7 @@ const update = () => {
   const gridMax = Math.max(grid.cols, grid.rows);
 
   // Find cell position for pointer
-  const pointerCell = Grids.cellAtPoint(pointer, { ...grid, size: cellSize });
+  const pointerCell = Grids.cellAtPoint( { ...grid, size: cellSize }, pointer);
 
   // Update each cell
   for (const cell of Grids.cells(grid)) {
