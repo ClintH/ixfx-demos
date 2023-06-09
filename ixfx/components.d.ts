@@ -1,16 +1,16 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-d250f191.js';
-import './NumericArrays-ab236e6c.js';
-import './Easing-8cf0c38b.js';
-import './index-36b4c92c.js';
-import './StateMachine-9182a02d.js';
-import './Events-170d1411.js';
-import './Delay-68bd0948.js';
+import { a as KeyValue } from './KeyValue-469d40ba.js';
+import './NumericArrays-09b4f2f0.js';
+import './Easing-0e62bc83.js';
+import './index-81b0750d.js';
+import './StateMachine-998e70a5.js';
+import './Events-f58b1bc8.js';
+import './Delay-879871ee.js';
 import 'fp-ts/lib/Ord.js';
 
-declare type Bar = {
+type Bar = {
     readonly percentage: number;
     readonly data: KeyValue;
 };

@@ -11,6 +11,7 @@ import {
   Path_exports,
   Point_exports,
   Polar_exports,
+  QuadTree_exports,
   Rect_exports,
   Scaler_exports,
   Shape_exports,
@@ -20,18 +21,15 @@ import {
   Vector_exports,
   Waypoint_exports,
   degreeToRadian,
-  quadTree,
   radianToDegree,
   radiansFromAxisX
-} from "./chunk-UMAEVBXR.js";
-import "./chunk-VCCD7R7D.js";
-import "./chunk-SUBXAB65.js";
-import "./chunk-4R4FHD4A.js";
-import "./chunk-5MINYKUA.js";
-import "./chunk-AWNGL7KJ.js";
-import "./chunk-DEXQDIBZ.js";
-import "./chunk-EVWUBOZU.js";
-import "./chunk-FU5PERHQ.js";
+} from "./chunk-FXHXRXLC.js";
+import "./chunk-V6H5FAK2.js";
+import "./chunk-HAK24YB3.js";
+import "./chunk-ENNFJSEP.js";
+import "./chunk-5M4HS36T.js";
+import "./chunk-I2JSJNLZ.js";
+import "./chunk-H4X2M26K.js";
 export {
   Arc_exports as Arcs,
   Bezier_exports as Beziers,
@@ -45,6 +43,7 @@ export {
   Path_exports as Paths,
   Point_exports as Points,
   Polar_exports as Polar,
+  QuadTree_exports as QuadTree,
   Rect_exports as Rects,
   Scaler_exports as Scaler,
   Shape_exports as Shapes,
@@ -54,7 +53,6 @@ export {
   Vector_exports as Vectors,
   Waypoint_exports as Waypoints,
   degreeToRadian,
-  quadTree,
   radianToDegree,
   radiansFromAxisX
 };

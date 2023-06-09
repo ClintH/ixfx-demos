@@ -108,11 +108,11 @@ const spawn = () => {
   const { things, pointer } = state;
   things.push({
     life: 1,
-    mass: Random.float(1, 0.5),
+    mass: Random.float({ min: 0.5, max: 1 }),
     position: pointer,
     velocity: {
-      x: Random.float(0.001, -0.001),
-      y: Random.float(0.001, 0.001)
+      x: Random.float({ min:-0.001, max: 0.001 }),
+      y: Random.float({ min: 0.001, max: 0.001, })
     }
   });
 };

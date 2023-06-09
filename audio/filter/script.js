@@ -83,7 +83,7 @@ const setup = () => {
     play();
 
     // Random value of 200Hz - 2kHz
-    updateState({ filterFreq: Random.integer(200,2000) });
+    updateState({ filterFreq: Random.integer({ min: 200, max: 2000 }) });
     useState();
   });
 

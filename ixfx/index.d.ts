@@ -33,6 +33,12 @@ declare module "Guards" {
      */
     export const number: (value?: number, range?: NumberGuardRange, paramName?: string) => boolean;
     /**
+     * Throws if `value` is _undefined_ or _null_.
+     * @param value
+     * @param paramName
+     */
+    export const nullUndef: (value: any, paramName?: string) => void;
+    /**
      * Throws an error if `value` is not in the range of 0-1.
      * Equiv to `number(value, `percentage`);`
      *
@@ -48,11 +54,38 @@ declare module "Guards" {
      *
      * Note:
      * * `bipolar` will mean -1, 0 or 1.
+     * * positive: must be at least zero
+     * * negative: must be zero or lower
+     * * aboveZero: must be above zero
+     * * belowZero: must be below zero
+     * * percentage: must be within 0-1, inclusive
+     * * nonZero: can be anything except zero
      * @param value Value to check
      * @param paramName Param name for customising exception message
      * @param range Guard specifier.
      */
     export const integer: (value: number, range?: NumberGuardRange, paramName?: string) => void;
+    /**
+     * Parses `value` as an integer, returning it if it meets the `range` criteria.
+     * If not, `defaultValue` is returned.
+     *
+     * ```js
+     * const i = integerParse('10', 'positive');    // 10
+     * const i = integerParse('10.5', 'positive');  // 10
+     * const i = integerParse('0', 'nonZero', 100); // 100
+     * ```
+     *
+     * NaN is returned if criteria does not match and no default is given
+     * ```js
+     * const i = integerParse('10', 'negative');    // NaN
+     * ```
+     *
+     * @param value
+     * @param range
+     * @param defaultValue
+     * @returns
+     */
+    export const integerParse: (value: any, range?: NumberGuardRange, defaultValue?: number) => number;
     /**
      * Returns true if parameter is an array of strings
      * @param value
@@ -300,8 +333,8 @@ declare module "collections/Interfaces" {
     export type MultiValue<V, M> = Readonly<{
         get name(): string;
         has(source: M, value: V): boolean;
-        add(destination: M | undefined, values: ReadonlyArray<V>): M;
-        toArray(source: M): ReadonlyArray<V> | undefined;
+        add(destination: M | undefined, values: Iterable<V>): M;
+        toArray(source: M): ReadonlyArray<V>;
         iterable(source: M): IterableIterator<V>;
         find(source: M, predicate: (v: V) => boolean): V | unknown;
         filter(source: M, predicate: (v: V) => boolean): Iterable<V>;
@@ -470,6 +503,7 @@ declare module "collections/Interfaces" {
      * s.delete(item); // Delete item by value
      * s.toArray();    // Returns values as an array
      * s.values();     // Returns an iterator over values
+     * s.size;         // Returns number of items in set
      * ```
      *
      * @example Example usage
@@ -503,6 +537,7 @@ declare module "collections/Interfaces" {
      */
     export interface SetImmutable<V> {
         has(v: V): boolean;
+        get size(): number;
         add(...values: ReadonlyArray<V>): SetImmutable<V>;
         values(): IterableIterator<V>;
         /**
@@ -530,6 +565,7 @@ declare module "collections/Interfaces" {
      * s.delete(item); // Delete item by value
      * s.toArray();    // Returns values as an array
      * s.values();     // Returns an iterator over values
+     * s.size;         // Number of items stored in set
      * ```
      *
      * @example Example usage
@@ -601,6 +637,10 @@ declare module "collections/Interfaces" {
          * Returns an array of values
          */
         toArray(): V[];
+        /**
+         * Returns the number of items stored in the set
+         */
+        get size(): number;
     }
     /**
      * Like a `Map` but multiple values can be stored for each key.
@@ -678,16 +718,21 @@ declare module "collections/Interfaces" {
         /**
          * Returns list of keys
          */
-        keys(): readonly string[];
+        keys(): IterableIterator<string>;
+        values(key: string): IterableIterator<V>;
+        /**
+         * Iterates over key-value pairs.
+         * Unlike a normal map, the same key may appear several times.
+         */
+        entries(): IterableIterator<[key: string, value: V]>;
         /**
          * Returns a list of all keys and count of items therein
          */
-        keysAndCounts(): Array<[string, number]>;
+        keysAndCounts(): IterableIterator<[string, number]>;
         /**
-         * Returns items under `key` or undefined if `key` is not found
+         * Returns items under `key` or an empty array if `key` is not found
          * @param key
          */
-        get(key: string): ReadonlyArray<V> | undefined;
         /**
          * Returns the object managing values under the specified `key`
          * @private
@@ -707,10 +752,10 @@ declare module "collections/Interfaces" {
          */
         has(key: string): boolean;
         /**
-       * Adds several `values` under the same `key`. Duplicate values are permitted, depending on implementation.
-       * @param key
-       * @param values
-       */
+         * Adds several `values` under the same `key`. Duplicate values are permitted, depending on implementation.
+         * @param key
+         * @param values
+         */
         addKeyedValues(key: string, ...values: ReadonlyArray<V>): void;
         /**
          * Adds a value, automatically extracting a key via the
@@ -729,6 +774,13 @@ declare module "collections/Interfaces" {
          */
         deleteKeyValue(key: string, value: V): boolean;
         /**
+         * Delete all occurrences of `value`, regardless of
+         * key it is stored under.
+         * Returns _true_ if something was deleted.
+         * @param value
+         */
+        deleteByValue(value: V): boolean;
+        /**
          * Deletes all values stored under `key`. Returns _true_ if key was found
          * @param key
          */
@@ -738,7 +790,7 @@ declare module "collections/Interfaces" {
          */
         get isEmpty(): boolean;
         /**
-         * REturns the length of the longest child item
+         * Returns the length of the longest child item
          */
         get lengthMax(): number;
         /**
@@ -830,10 +882,11 @@ declare module "collections/Interfaces" {
          */
         add(key: string, ...values: ReadonlyArray<V>): void;
         /**
-         * Get items at key. Returns _undefined_ if key does not exist
+         * Get items at key. Returns an empty array if it does not exist
          * @param key
          */
-        get(key: string): ReadonlyArray<V> | undefined;
+        get(key: string): IterableIterator<V>;
+        entries(): IterableIterator<[key: string, value: V]>;
         /**
          * Deletes the specified `value` under `key`. Returns true if found.
          * @param key
@@ -1219,19 +1272,22 @@ declare module "collections/MapMultiMutable" {
         debugString(): string;
         get isEmpty(): boolean;
         clear(): void;
-        addKeyedValues(key: string, ...values: ReadonlyArray<V>): void;
+        addKeyedValues(key: string, ...values: V[]): void;
         addValue(...values: ReadonlyArray<V>): void;
         hasKeyValue(key: string, value: V): boolean;
         has(key: string): boolean;
         deleteKeyValue(key: string, value: V): boolean;
+        private deleteKeyValueFromMap;
+        deleteByValue(value: V): boolean;
         delete(key: string): boolean;
         findKeyForValue(value: V): string | undefined;
         count(key: string): number;
         /**
-         * Returns the array of values stored under `key`
-         * or undefined if key does not exist
+         * Returns the array of values stored under `key`.
+         * An empty array is returned if there are no values
          */
-        get(key: string): readonly V[] | undefined;
+        get(key: string): readonly V[];
+        values(key: string): IterableIterator<V>;
         /**
          * Iterate over the values stored under `key`.
          * If key does not exist, iteration is essentially a no-op
@@ -1240,8 +1296,9 @@ declare module "collections/MapMultiMutable" {
          */
         valuesFor(key: string): Generator<V, void, undefined>;
         getSource(key: string): M | undefined;
-        keys(): string[];
-        keysAndCounts(): Array<[string, number]>;
+        keys(): IterableIterator<string>;
+        entries(): IterableIterator<[key: string, value: V]>;
+        keysAndCounts(): IterableIterator<[string, number]>;
         merge(other: MapOfMutable<V, M>): void;
     }
     /**
@@ -1575,26 +1632,1858 @@ declare module "collections/MapMutable" {
      */
     export const mapMutable: <K, V>(...data: EitherKey<K, V>) => MapMutable<K, V>;
 }
-declare module "collections/Trees" {
+declare module "geometry/Polar" {
+    import * as Points from "geometry/Point";
     /**
-     * Source: https://github.com/amejiarosario/dsa.js-data-structures-algorithms-javascript/blob/c20acfb32f057355fa51fc0fedbdacebcab78baf/src/data-structures/trees/tree-node.js
-     * License: MIT
+     * Polar coordinate, made up of a distance and angle in radians.
+     * Most computations involving Coords require an `origin` as well.
      */
-    export class TreeNode<V> {
-        value: V;
-        descendants: TreeNode<V>[];
-        constructor(value: V);
-    }
+    export type Coord = {
+        readonly distance: number;
+        readonly angleRadian: number;
+    };
+    /**
+     * Converts to Cartesian coordiantes
+     */
+    type ToCartesian = {
+        (point: Coord, origin?: Points.Point): Points.Point;
+        (distance: number, angleRadians: number, origin?: Points.Point): Points.Point;
+    };
+    /**
+     * Returns true if `p` seems to be a {@link Coord} (ie has both distance & angleRadian fields)
+     * @param p
+     * @returns True if `p` seems to be a Coord
+     */
+    export const isCoord: (p: number | unknown) => p is Coord;
+    /**
+     * Converts a Cartesian coordinate to polar
+     *
+     * ```js
+     * import { Polar } from 'https://unpkg.com/ixfx/dist/geometry.js';
+     *
+     * // Yields: { angleRadian, distance }
+     * const polar = Polar.fromCartesian({x: 50, y: 50}, origin);
+     * ```
+     *
+     * Any additional properties of `point` are copied to object.
+     * @param point Point
+     * @param origin Origin
+     * @returns
+     */
+    export const fromCartesian: (point: Points.Point, origin: Points.Point) => Coord;
+    /**
+     * Converts to Cartesian coordinate from polar.
+     *
+     * ```js
+     * import { Polar } from 'https://unpkg.com/ixfx/dist/geometry.js';
+     *
+     * const origin = { x: 50, y: 50}; // Polar origin
+     * // Yields: { x, y }
+     * const polar = Polar.toCartesian({ distance: 10, angleRadian: 0 }, origin);
+     * ```
+     *
+     * Distance and angle can be provided as numbers intead:
+     *
+     * ```
+     * // Yields: { x, y }
+     * const polar = Polar.toCartesian(10, 0, origin);
+     * ```
+     *
+     * @param a
+     * @param b
+     * @param c
+     * @returns
+     */
+    export const toCartesian: ToCartesian;
+    /**
+     * Produces an Archimedean spiral. It's a generator.
+     *
+     * ```js
+     * const s = spiral(0.1, 1);
+     * for (const coord of s) {
+     *  // Use Polar coord...
+     *  if (coord.step === 1000) break; // Stop after 1000 iterations
+     * }
+     * ```
+     *
+     * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
+     * @param zoom At smoothness 0.1, zoom starting at 1 is OK
+     */
+    export function spiral(smoothness: number, zoom: number): IterableIterator<Coord & {
+        readonly step: number;
+    }>;
+    /**
+     * Returns a rotated coordiante
+     * @param c Coordinate
+     * @param amountRadian Amount to rotate, in radians
+     * @returns
+     */
+    export const rotate: (c: Coord, amountRadian: number) => Coord;
+    export const normalise: (c: Coord) => Coord;
+    /**
+     * Throws an error if Coord is invalid
+     * @param p
+     * @param name
+     */
+    export const guard: (p: Coord, name?: string) => void;
+    /**
+     * Calculate dot product of two Coords.
+     *
+     * Eg, power is the dot product of force and velocity
+     *
+     * Dot products are also useful for comparing similarity of
+     *  angle between two unit Coord.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const dotProduct: (a: Coord, b: Coord) => number;
+    /**
+     * Inverts the direction of coordinate. Ie if pointing north, will point south.
+     * @param p
+     * @returns
+     */
+    export const invert: (p: Coord) => Coord;
+    /**
+     * Returns true if Coords have same magnitude but opposite direction
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isOpposite: (a: Coord, b: Coord) => boolean;
+    /**
+     * Returns true if Coords have the same direction, regardless of magnitude
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isParallel: (a: Coord, b: Coord) => boolean;
+    /**
+     * Returns true if coords are opposite direction, regardless of magnitude
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isAntiParallel: (a: Coord, b: Coord) => boolean;
+    /**
+     * Returns a rotated coordinate
+     * @param c Coordinate
+     * @param amountDeg Amount to rotate, in degrees
+     * @returns
+     */
+    export const rotateDegrees: (c: Coord, amountDeg: number) => Coord;
+    /**
+     * Produces an Archimedian spiral with manual stepping.
+     * @param step Step number. Typically 0, 1, 2 ...
+     * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
+     * @param zoom At smoothness 0.1, zoom starting at 1 is OK
+     * @returns
+     */
+    export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
+    /**
+     * Multiplies the magnitude of a coord by `amt`.
+     * Direction is unchanged.
+     * @param v
+     * @param amt
+     * @returns
+     */
+    export const multiply: (v: Coord, amt: number) => Coord;
+    /**
+     * Divides the magnitude of a coord by `amt`.
+     * Direction is unchanged.
+     * @param v
+     * @param amt
+     * @returns
+     */
+    export const divide: (v: Coord, amt: number) => Coord;
+    /**
+     * Clamps the magnitude of a vector
+     * @param v
+     * @param max
+     * @param min
+     * @returns
+     */
+    export const clampMagnitude: (v: Coord, max?: number, min?: number) => Coord;
+    /**
+     * Returns a human-friendly string representation `(distance, angleDeg)`.
+     * If `precision` is supplied, this will be the number of significant digits.
+     * @param p
+     * @returns
+     */
+    export const toString: (p: Coord, digits?: number) => string;
+    export const toPoint: (v: Coord, origin?: Readonly<{
+        x: 0;
+        y: 0;
+    }>) => Points.Point;
+}
+declare module "geometry/Path" {
+    import { Rects, Points } from "geometry/index";
+    export type Path = {
+        length(): number;
+        /**
+           * Returns a point at a relative (0.0-1.0) position along the path
+           *
+           * @param {number} t Relative position (0.0-1.0)
+           * @returns {Point} Point
+           */
+        interpolate(t: number): Points.Point;
+        bbox(): Rects.RectPositioned;
+        /**
+         * Returns the nearest point on path to `point`
+         * @param point
+         */
+        nearest(point: Points.Point): Points.Point;
+        toString(): string;
+        toSvgString(): readonly string[];
+        readonly kind: `compound` | `elliptical` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
+    };
+    /**
+     * Return the start point of a path
+     *
+     * @param path
+     * @return Point
+     */
+    export const getStart: (path: Path) => Points.Point;
+    /**
+     * Return the end point of a path
+     *
+     * @param path
+     * @return Point
+     */
+    export const getEnd: (path: Path) => Points.Point;
+    export type WithBeziers = {
+        getBeziers(): readonly Path[];
+    };
+}
+declare module "geometry/Rect" {
+    import { Points, Lines } from "geometry/index";
+    import { RandomSource } from "Random";
+    import { CirclePositioned } from "geometry/Circle";
+    export type Rect = {
+        readonly width: number;
+        readonly height: number;
+    };
+    export type RectPositioned = Points.Point & Rect;
+    export const empty: Readonly<{
+        width: 0;
+        height: 0;
+    }>;
+    export const emptyPositioned: Readonly<{
+        x: 0;
+        y: 0;
+        width: 0;
+        height: 0;
+    }>;
+    export const placeholder: Readonly<{
+        width: number;
+        height: number;
+    }>;
+    export const placeholderPositioned: Readonly<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    export const isEmpty: (rect: Rect) => boolean;
+    export const isPlaceholder: (rect: Rect) => boolean;
+    /**
+     * Returns _true_ if `p` has a position (x,y)
+     * @param p Point, Rect or RectPositiond
+     * @returns
+     */
+    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
+    /**
+     * Returns _true_ if `p` has width and height.
+     * @param p
+     * @returns
+     */
+    export const isRect: (p: number | unknown) => p is Rect;
+    /**
+     * Returns _true_ if `p` is a positioned rectangle
+     * Having width, height, x and y properties.
+     * @param p
+     * @returns
+     */
+    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
+    /**
+     * Initialise a rectangle based on the width and height of a HTML element.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * Rects.fromElement(document.querySelector(`body`));
+     * ```
+     * @param el
+     * @returns
+     */
+    export const fromElement: (el: HTMLElement) => Rect;
+    /**
+     * Returns _true_ if the width & height of the two rectangles is the same.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
+     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
+     *
+     * // True, even though x,y are different
+     * Rects.isEqualSize(rectA, rectB);
+     *
+     * // False, because coordinates are different
+     * Rects.isEqual(rectA, rectB)
+     * ```
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqualSize: (a: Rect, b: Rect) => boolean;
+    /**
+     * Returns a rectangle from width, height
+     * ```js
+     * const r = Rects.fromNumbers(100, 200);
+     * // {width: 100, height: 200}
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(width: number, height: number): Rect;
+    /**
+     * Returns a rectangle from x,y,width,height
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const r = Rects.fromNumbers(10, 20, 100, 200);
+     * // {x: 10, y: 20, width: 100, height: 200}
+     * ```
+     *
+     * Use the spread operator (...) if the source is an array:
+     * ```js
+     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
+     * ```
+     *
+     * Use {@link toArray} for the opposite conversion.
+     *
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
+    /**
+     * Rectangle as array: `[width, height]`
+     */
+    export type RectArray = readonly [width: number, height: number];
+    /**
+     * Positioned rectangle as array: `[x, y, width, height]`
+     */
+    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: Rect): RectArray;
+    /**
+     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
+     * // [10, 20, 100, 200]
+     * const r2 = Rects.toArray({ width: 100, height: 200 });
+     * // [100, 200]
+     * ```
+     * @param rect
+     * @see fromNumbers
+     */
+    export function toArray(rect: RectPositioned): RectPositionedArray;
+    /**
+     * Returns _true_ if two rectangles have identical values.
+     * Both rectangles must be positioned or not.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
+     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
+     *
+     * // False, because coordinates are different
+     * Rects.isEqual(rectA, rectB)
+     *
+     * // True, even though x,y are different
+     * Rects.isEqualSize(rectA, rectB);
+     * ```
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
+    /**
+     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 100, height: 100 };
+     * const rectB = { width: 200, height: 200 };
+     *
+     * // Yields: { width: -100, height: -100 }
+     * Rects.subtract(rectA, rectB);
+     * ```
+     * @param a
+     * @param b
+     */
+    export function subtract(a: Rect, b: Rect): Rect;
+    /**
+     * Subtracts a width/height from `a`, returning result.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100 };
+     *
+     * // Yields: { width: -100, height: -100 }
+     * Rects.subtract(rect, 200, 200);
+     * ```
+     * @param a
+     * @param width
+     * @param height
+     */
+    export function subtract(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Sums width/height of `b` with `a` (ie: a + b), returning result.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rectA = { width: 100, height: 100 };
+     * const rectB = { width: 200, height: 200 };
+     *
+     * // Yields: { width: 300, height: 300 }
+     * Rects.sum(rectA, rectB);
+     * ```
+     * @param a
+     * @param b
+     */
+    export function sum(a: Rect, b: Rect): Rect;
+    /**
+      * Sums width/height of `b` with `a` (ie: a + b), returning result.
+      * ```js
+      * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+      * const rect = { width: 100, height: 100 };
+      *
+      * // Yields: { width: 300, height: 300 }
+      * Rects.subtract(rect, 200, 200);
+      * ```
+      * @param a
+      * @param width
+      * @param height
+      */
+    export function sum(a: Rect, width: number, height?: number): Rect;
+    /**
+     * Returns _true_ if `point` is within, or on boundary of `rect`.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * Rects.intersectsPoint(rect, { x: 100, y: 100});
+     * ```
+     * @param rect
+     * @param point
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
+    /**
+     * Returns true if x,y coordinate is within, or on boundary of `rect`.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * Rects.intersectsPoint(rect, 100, 100);
+     * ```
+     * @param rect
+     * @param x
+     * @param y
+     */
+    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
+    /**
+     * Initialises a rectangle based on its center, a width and height
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Rectangle with center at 50,50, width 100 height 200
+     * Rects.fromCenter({x: 50, y:50}, 100, 200);
+     * ```
+     * @param origin
+     * @param width
+     * @param height
+     * @returns
+     */
+    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the distance from the perimeter of `rect` to `pt`.
+     * If the point is within the rectangle, 0 is returned.
+     *
+     * If `rect` does not have an x,y it's assumed to be 0,0
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 0, y: 0 };
+     * Rects.distanceFromExterior(rect, { x: 20, y: 20 });
+     * ```
+     * @param rect Rectangle
+     * @param pt Point
+     * @returns Distance
+     */
+    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
+    /**
+     * Return the distance of `pt` to the center of `rect`.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 0, y: 0 };
+     * Rects.distanceFromCenter(rect, { x: 20, y: 20 });
+     * ```
+     * @param rect
+     * @param pt
+     * @returns
+     */
+    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
+    /**
+     * Returns a rectangle based on provided four corners.
+     *
+     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
+     *
+     * Does some sanity checking such as:
+     *  - x will be smallest of topLeft/bottomLeft
+     *  - y will be smallest of topRight/topLeft
+     *  - width will be largest between top/bottom left and right
+     *  - height will be largest between left and right top/bottom
+     *
+     */
+    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
+    /**
+     * Throws an error if rectangle is missing fields or they
+     * are not valid.
+     * @param rect
+     * @param name
+     */
+    export const guard: (rect: Rect, name?: string) => void;
+    /**
+     * Creates a rectangle from its top-left coordinate, a width and height.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Rectangle at 50,50 with width of 100, height of 200.
+     * const rect = Rects.fromTopLeft({ x: 50, y:50 }, 100, 200);
+     * ```
+     * @param origin
+     * @param width
+     * @param height
+     * @returns
+     */
+    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
+    /**
+     * Returns the four corners of a rectangle as an array of Points.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 0, y: 0};
+     * const pts = Rects.corners(rect);
+     * ```
+     *
+     * If the rectangle is not positioned, is origin can be provided.
+     * @param rect
+     * @param origin
+     * @returns
+     */
+    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
+    /**
+     * Returns a point on the edge of rectangle
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = {x: 10, y: 10, width: 100, height: 50};
+     * Rects.getEdgeX(r1, `right`);  // Yields: 110
+     * Rects.getEdgeX(r1, `bottom`); // Yields: 10
+     *
+     * const r2 = {width: 100, height: 50};
+     * Rects.getEdgeX(r2, `right`);  // Yields: 100
+     * Rects.getEdgeX(r2, `bottom`); // Yields: 0
+     * ```
+     * @param rect
+     * @param edge Which edge: right, left, bottom, top
+     * @returns
+     */
+    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Returns a point on the edge of rectangle
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const r1 = {x: 10, y: 10, width: 100, height: 50};
+     * Rects.getEdgeY(r1, `right`);  // Yields: 10
+     * Rects.getEdgeY(r1, `bottom`); // Yields: 60
+     *
+     * const r2 = {width: 100, height: 50};
+     * Rects.getEdgeY(r2, `right`);  // Yields: 0
+     * Rects.getEdgeY(r2, `bottom`); // Yields: 50
+     * ```
+     * @param rect
+     * @param edge Which edge: right, left, bottom, top
+     * @returns
+     */
+    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
+    /**
+     * Returns `rect` divided by the width,height of `normaliseBy`.
+     * This can be useful for normalising based on camera frame.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const frameSize = {width: 640, height: 320};
+     * const object = { x: 320, y: 160, width: 64, height: 32};
+     *
+     * const n = Rects.normaliseByRect(object, frameSize);
+     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
+     * ```
+     *
+     * Height and width can be supplied instead of a rectangle too:
+     * ```js
+     * const n = Rects.normaliseByRect(object, 640, 320);
+     * ```
+     * @param rect
+     * @param normaliseBy
+     * @returns
+     */
+    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * Rects.multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * Rects.multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export function multiply(a: RectPositioned, b: Rect | number, c?: number): RectPositioned;
+    /**
+     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * // Normalised rectangle of width 50%, height 50%
+     * const r = {width: 0.5, height: 0.5};
+     *
+     * // Map to window:
+     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
+     * ```
+     *
+     * ```js
+     * // Returns {width: someRect.width * someOtherRect.width ...}
+     * Rects.multiply(someRect, someOtherRect);
+     *
+     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
+     * Rects.multiply(someRect, 100, 200);
+     * ```
+     *
+     * Multiplication applies to the first parameter's x/y fields, if present.
+     */
+    export function multiply(a: Rect, b: Rect | number, c?: number): Rect;
+    export function multiply(a: RectPositioned, b: Rect): RectPositioned;
+    /**
+     * Multiplies all components of `rect` by `amount`
+     * @param rect
+     * @param amount
+     */
+    export function multiplyScalar(rect: Rect, amount: number): Rect;
+    /**
+     * Multiplies all components of `rect` by `amount`
+     * @param rect
+     * @param amount
+     */
+    export function multiplyScalar(rect: RectPositioned, amount: number): RectPositioned;
+    /**
+     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
+     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     *
+     * const p = Rects.center({x:10, y:20, width:100, height:50});
+     * const p2 = Rects.center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
+     * ```
+     * @param rect Rectangle
+     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
+     * @returns
+     */
+    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
+    /**
+     * Returns the length of each side of the rectangle (top, right, bottom, left)
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * // Yields: array of length four
+     * const lengths = Rects.lengths(rect);
+     * ```
+     * @param rect
+     * @returns
+     */
+    export const lengths: (rect: RectPositioned) => readonly number[];
+    /**
+     * Returns four lines based on each corner.
+     * Lines are given in order: top, right, bottom, left
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * // Yields: array of length four
+     * const lines = Rects.lines(rect);
+     * ```
+     *
+     * @param {(RectPositioned|Rect)} rect
+     * @param {Points.Point} [origin]
+     * @returns {Lines.Line[]}
+     */
+    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
+    /**
+     * Returns the perimeter of `rect` (ie. sum of all edges)
+     *  * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * Rects.perimeter(rect);
+     * ```
+     * @param rect
+     * @returns
+     */
+    export const perimeter: (rect: Rect) => number;
+    /**
+     * Returns the area of `rect`
+     *
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const rect = { width: 100, height: 100, x: 100, y: 100 };
+     * Rects.area(rect);
+     * ```
+     * @param rect
+     * @returns
+     */
+    export const area: (rect: Rect) => number;
+    /**
+     * Returns true if `a` or `b` overlap, are equal, or `a` contains `b`.
+     * A rectangle can be checked for intersections with another RectPositioned, CirclePositioned or Point.
+     *
+     */
+    export const isIntersecting: (a: RectPositioned, b: CirclePositioned | Points.Point) => boolean;
+    /**
+     * Returns a random positioned Rect on a 0..1 scale.
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * const r = Rects.random(); // eg {x: 0.2549012, y:0.859301, width: 0.5212, height: 0.1423 }
+     * ```
+     *
+     * A custom source of randomness can be provided:
+     * ```js
+     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
+     * import { weightedSkewed } from "https://unpkg.com/ixfx/dist/random.js"
+     * const r = Rects.random(weightedSkewed(`quadIn`));
+     * ```
+     * @param rando
+     * @returns
+     */
+    export const random: (rando?: RandomSource) => RectPositioned;
+    export type RandomPointOpts = {
+        readonly strategy?: `naive`;
+        readonly randomSource?: RandomSource;
+        readonly margin?: {
+            readonly x: number;
+            readonly y: number;
+        };
+    };
+    /**
+     * Returns a random point within a circle.
+     *
+     * By default creates a uniform distribution.
+     *
+     * ```js
+     * const pt = randomPoint({width: 5, height: 10});
+     * ```'
+     * @param within Circle to generate a point within
+     * @param opts Options
+     * @returns
+     */
+    export const randomPoint: (within: Rect | RectPositioned, opts?: RandomPointOpts) => Points.Point;
+}
+declare module "geometry/Intersects" {
+    import { CirclePositioned } from "geometry/Circle";
+    import { RectPositioned } from "geometry/Rect";
+    export const circleRect: (a: CirclePositioned, b: RectPositioned) => boolean;
+    export const circleCircle: (a: CirclePositioned, b: CirclePositioned) => boolean;
+}
+declare module "geometry/Circle" {
+    import { Path } from "geometry/Path";
+    import { Line } from "geometry/Line";
+    import { Points, Rects } from "geometry/index";
+    import { RandomSource } from "Random";
+    /**
+     * A circle
+     */
+    export type Circle = {
+        readonly radius: number;
+    };
+    /**
+     * A {@link Circle} with position
+     */
+    export type CirclePositioned = Points.Point & Circle;
+    export type CircularPath = Circle & Path & {
+        readonly kind: `circular`;
+    };
+    /**
+     * Returns true if parameter has x,y. Does not verify if parameter is a circle or not
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     *
+     * const circleA = { radius: 5 };
+     * Circles.isPositioned(circle); // false
+     *
+     * const circleB = { radius: 5, x: 10, y: 10 }
+     * Circles.isPositioned(circle); // true
+     * ```
+     * @param p Circle
+     * @returns
+     */
+    export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
+    export const isCircle: (p: Circle | CirclePositioned | any) => p is Circle;
+    export const isCirclePositioned: (p: Circle | CirclePositioned | any) => p is CirclePositioned;
+    /**
+     * Returns a point on a circle at a specified angle in radians
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     *
+     * // Circle without position
+     * const circleA = { radius: 5 };
+     *
+     * // Get point at angle Math.PI, passing in a origin coordinate
+     * const ptA = Circles.point(circleA, Math.PI, {x: 10, y: 10 });
+     *
+     * // Point on circle with position
+     * const circleB = { radius: 5, x: 10, y: 10};
+     * const ptB = Circles.point(circleB, Math.PI);
+     * ```
+     * @param circle
+     * @param angleRadian Angle in radians
+     * @param Origin or offset of calculated point. By default uses center of circle or 0,0 if undefined
+     * @returns Point oo circle
+     */
+    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
+    /**
+     * Returns the center of a circle
+     *
+     * If the circle has an x,y, that is the center.
+     * If not, `radius` is used as the x and y.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circle = { radius: 5, x: 10, y: 10};
+     *
+     * // Yields: { x: 5, y: 10 }
+     * Circles.center(circle);
+     * ```
+     *
+     * It's a trivial function, but can make for more understandable code
+     * @param circle
+     * @returns Center of circle
+     */
+    export const center: (circle: CirclePositioned | Circle) => Readonly<{
+        x: number;
+        y: number;
+    }>;
+    /**
+     * Computes relative position along circle
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circle = { radius: 100, x: 100, y: 100 };
+     *
+     * // Get a point halfway around circle
+     * // Yields { x, y }
+     * const pt = Circles.interpolate(circle, 0.5);
+     * ```
+     * @param circle
+     * @param t Position, 0-1
+     * @returns
+     */
+    export const interpolate: (circle: CirclePositioned, t: number) => Points.Point;
+    /**
+     * Returns circumference of `circle` (alias of {@link circumference})
+     * @param circle
+     * @returns
+     */
+    export const length: (circle: Circle) => number;
+    /**
+     * Returns circumference of `circle` (alias of {@link length})
+     * @param circle
+     * @returns
+     */
+    export const circumference: (circle: Circle) => number;
+    /**
+     * Returns the area of `circle`.
+     * @param circle
+     * @returns
+     */
+    export const area: (circle: Circle) => number;
+    /**
+     * Computes a bounding box that encloses circle
+     * @param circle
+     * @returns
+     */
+    export const bbox: (circle: CirclePositioned | Circle) => Rects.RectPositioned | Rects.Rect;
+    /**
+     * Returns true if `b` is completely contained by `a`
+     *
+     * ```js
+     * // Compare two points
+     * isContainedBy(circleA, circleB);
+     *
+     * // Compare a circle with a point
+     * isContainedBy(circleA, {x: 10, y: 20});
+     *
+     * // Define radius as third parameter
+     * isContainedBy(circleA, {x: 10, y: 20}, 20);
+     * ```
+     * @param a Circle
+     * @param b Circle or point to compare to
+     * @param c Radius to accompany parameter b if it's a point
+     * @returns
+     */
+    export const isContainedBy: (a: CirclePositioned, b: CirclePositioned | Points.Point, c?: number) => boolean;
     /***
-     * Breadth-first traversal
+     * Returns true if radius, x or y are NaN
      */
-    export function bfs<V>(root: TreeNode<V>): Generator<TreeNode<V> | undefined, void, unknown>;
+    export const isNaN: (a: Circle | CirclePositioned) => boolean;
     /**
-     * Depth-first traversal
+     * Returns true if `a` or `b` overlap, are equal, or `a` contains `b`.
+     * A circle can be checked for intersections with another CirclePositioned, Point or RectPositioned.
+     *
+     * Use `intersections` to find the points of intersection.
+     *
+     * @param a Circle
+     * @param b Circle or point to test
+     * @returns True if circle overlap
+     */
+    export const isIntersecting: (a: CirclePositioned, b: CirclePositioned | Points.Point | Rects.RectPositioned, c?: number) => boolean;
+    /**
+     *
+     * Returns the points of intersection betweeen `a` and `b`.
+     *
+     * Returns an empty array if circles are equal, one contains the other or if they don't touch at all.
+     *
+     * @param a Circle
+     * @param b Circle
+     * @returns Points of intersection, or an empty list if there are none
+     */
+    export const intersections: (a: CirclePositioned, b: CirclePositioned) => readonly Points.Point[];
+    /**
+     * Returns true if the two objects have the same values
+     *
+     * ```js
+     * const circleA = { radius: 10, x: 5, y: 5 };
+     * const circleB = { radius: 10, x: 5, y: 5 };
+     *
+     * circleA === circleB; // false, because identity of objects is different
+     * Circles.isEqual(circleA, circleB); // true, because values are the same
+     * ```
+     *
+     * Circles must both be positioned or not.
+     * @param a
+     * @param b
+     * @returns
+     */
+    export const isEqual: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
+    export type RandomPointOpts = {
+        readonly strategy?: `naive` | `uniform`;
+        readonly randomSource?: RandomSource;
+    };
+    /**
+     * Returns a random point within a circle.
+     *
+     * By default creates a uniform distribution.
+     *
+     * ```js
+     * const pt = randomPoint({radius: 5});
+     * const pt = randomPoint({radius: 5, x: 10, y: 20});
+     * ```'
+     *
+     * Generate points with a gaussian distribution
+     * ```js
+     * const pt = randomPoint(circle, {
+     *  randomSource: Random.gaussian
+     * })
+     * ```
+     * @param within Circle to generate a point within
+     * @param opts Options
+     * @returns
+     */
+    export const randomPoint: (within: Circle | CirclePositioned, opts?: RandomPointOpts) => Points.Point;
+    export function multiplyScalar(a: CirclePositioned, value: number): CirclePositioned;
+    export function multiplyScalar(a: Circle, value: number): Circle;
+    /**
+     * Returns the distance between two circle centers.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circleA = { radius: 5, x: 5, y: 5 }
+     * const circleB = { radius: 10, x: 20, y: 20 }
+     * const distance = Circles.distanceCenter(circleA, circleB);
+     * ```
+     * Throws an error if either is lacking position.
+     * @param a
+     * @param b
+     * @returns Distance
+     */
+    export const distanceCenter: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
+    /**
+     * Returns the distance between the exterior of two circles, or between the exterior of a circle and point.
+     * If `b` overlaps or is enclosed by `a`, distance is 0.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circleA = { radius: 5, x: 5, y: 5 }
+     * const circleB = { radius: 10, x: 20, y: 20 }
+     * const distance = Circles.distanceCenter(circleA, circleB);
+     * ```
+     * @param a
+     * @param b
+     */
+    export const distanceFromExterior: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
+    type ToSvg = {
+        (radius: number, sweep: boolean, origin: Points.Point): readonly string[];
+        (circle: Circle, sweep: boolean, origin: Points.Point): readonly string[];
+        (circle: CirclePositioned, sweep: boolean): readonly string[];
+    };
+    /**
+     * Creates a SVG path segment.
+     * @param a Circle or radius
+     * @param sweep If true, path is 'outward'
+     * @param origin Origin of path. Required if first parameter is just a radius or circle is non-positioned
+     * @returns
+     */
+    export const toSvg: ToSvg;
+    /**
+     * Returns the nearest point on `circle` closest to `point`.
+     *
+     * ```js
+     * import { Circles } from 'https://unpkg.com/ixfx/dist/geometry.js'
+     * const pt = Circles.nearest(circle, {x:10,y:10});
+     * ```
+     *
+     * If an array of circles is provided, it will be the closest point amongst all the circles
+     * @param circle Circle or array of circles
+     * @param point
+     * @returns Point `{ x, y }`
+     */
+    export const nearest: (circle: CirclePositioned | readonly CirclePositioned[], b: Points.Point) => Points.Point;
+    /**
+     * Returns a positioned version of a circle.
+     * If circle is already positioned, it is returned.
+     * If no default position is supplied, 0,0 is used.
+     * @param circle
+     * @param defaultPositionOrX
+     * @param y
+     * @returns
+     */
+    export const toPositioned: (circle: Circle | CirclePositioned, defaultPositionOrX?: Points.Point | number, y?: number) => CirclePositioned;
+    /**
+     * Returns a `CircularPath` representation of a circle
+     *
+     * @param {CirclePositioned} circle
+     * @returns {CircularPath}
+     */
+    export const toPath: (circle: CirclePositioned) => CircularPath;
+    /**
+     * Returns the point(s) of intersection between a circle and line.
+     *
+     * ```js
+     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
+     * const circle = { radius: 5, x: 5, y: 5 };
+     * const line = { a: { x: 0, y: 0 }, b: { x: 10, y: 10 } };
+     * const pts = Circles.intersectionLine(circle, line);
+     * ```
+     * @param circle
+     * @param line
+     * @returns Point(s) of intersection, or empty array
+     */
+    export const intersectionLine: (circle: CirclePositioned, line: Line) => readonly Points.Point[];
+}
+declare module "geometry/Shape" {
+    import { Triangles, Points, Rects, Circles } from "geometry/index";
+    import { CirclePositioned } from "geometry/Circle";
+    import { RandomSource } from "Random";
+    import { RectPositioned } from "geometry/Rect";
+    export type ContainsResult = `none` | `contained`;
+    export type ShapePositioned = CirclePositioned | RectPositioned;
+    /**
+     * Returns the intersection result between a and b.
+     * @param a
+     * @param b
+     */
+    export const isIntersecting: (a: ShapePositioned, b: ShapePositioned | Points.Point) => boolean;
+    export type RandomPointOpts = {
+        readonly randomSource?: RandomSource;
+        readonly margin?: Points.Point;
+    };
+    export const randomPoint: (shape: ShapePositioned, opts?: RandomPointOpts) => Points.Point;
+    /**
+     * Returns the center of a shape
+     * Shape can be: rectangle, triangle, circle
+     * @param shape
+     * @returns
+     */
+    export const center: (shape?: Rects.Rect | Triangles.Triangle | Circles.Circle) => Points.Point;
+    /**
+     * Generates a starburst shape, returning an array of points. By default, initial point is top and horizontally-centred.
+     *
+     * ```
+     * // Generate a starburst with four spikes
+     * const pts = starburst(4, 100, 200);
+     * ```
+     *
+     * `points` of two produces a lozenge shape.
+     * `points` of three produces a triangle shape.
+     * `points` of five is the familiar 'star' shape.
+     *
+     * Note that the path will need to be closed back to the first point to enclose the shape.
+     *
+     * @example Create starburst and draw it. Note use of 'loop' flag to close the path
+     * ```
+     * const points = starburst(4, 100, 200);
+     * Drawing.connectedPoints(ctx, pts, {loop: true, fillStyle: `orange`, strokeStyle: `red`});
+     * ```
+     *
+     * Options:
+     * * initialAngleRadian: angle offset to begin from. This overrides the `-Math.PI/2` default.
+     *
+     * @param points Number of points in the starburst. Defaults to five, which produces a typical star
+     * @param innerRadius Inner radius. A proportionally smaller inner radius makes for sharper spikes. If unspecified, 50% of the outer radius is used.
+     * @param outerRadius Outer radius. Maximum radius of a spike to origin
+     * @param opts Options
+     * @param origin Origin, or `{ x:0, y:0 }` by default.
+     */
+    export const starburst: (outerRadius: number, points?: number, innerRadius?: number, origin?: Points.Point, opts?: {
+        readonly initialAngleRadian?: number;
+    }) => readonly Points.Point[];
+    export type ArrowOpts = {
+        readonly arrowSize?: number;
+        readonly tailLength?: number;
+        readonly tailThickness?: number;
+        readonly angleRadian?: number;
+    };
+    /**
+     * Returns the points forming an arrow.
+     *
+     * @example Create an arrow anchored by its tip at 100,100
+     * ```js
+     * const opts = {
+     *  tailLength: 10,
+     *  arrowSize: 20,
+     *  tailThickness: 5,
+     *  angleRadian: degreeToRadian(45)
+     * }
+     * const arrow = Shapes.arrow({x:100, y:100}, `tip`, opts); // Yields an array of points
+     *
+     * // Eg: draw points
+     * Drawing.connectedPoints(ctx, arrow, {strokeStyle: `red`, loop: true});
+     * ```
+     *
+     * @param origin Origin of arrow
+     * @param from Does origin describe the tip, tail or middle?
+     * @param opts Options for arrow
+     * @returns
+     */
+    export const arrow: (origin: Points.Point, from: `tip` | `tail` | `middle`, opts?: ArrowOpts) => readonly Points.Point[];
+}
+declare module "geometry/QuadTree" {
+    import { TreeNode } from "collections/Trees";
+    import { Points, Rects } from "geometry/index";
+    import { ShapePositioned } from "geometry/Shape";
+    /**
+     * Options for quad tree
+     */
+    export type QuadTreeOpts = {
+        /**
+         * Maximum items per node
+         */
+        readonly maxItems: number;
+        /**
+         * Maximum level of sub-division
+         */
+        readonly maxLevels: number;
+    };
+    /**
+     * Direction
+     */
+    export enum Direction {
+        Nw = 0,
+        Ne = 1,
+        Sw = 2,
+        Se = 3
+    }
+    /**
+     * A Point or ShapePositioned
+     */
+    export type QuadTreeItem = Points.Point | ShapePositioned;
+    /**
+     * Creates a QuadTreeNode
+     * @param bounds Bounds of region
+     * @param initialData Initial items to place in quad tree
+     * @param opts Options
+     * @returns New quad tree
+     */
+    /**
+     * QuadTreeNode
+     *
+     * To create, you probably want the {@link quadTree} function.
+     */
+    export class QuadTreeNode implements TreeNode {
+        #private;
+        readonly boundary: Rects.RectPositioned;
+        readonly level: number;
+        readonly opts: QuadTreeOpts;
+        /**
+         * Constructor
+         * @param boundary
+         * @param level
+         * @param opts
+         */
+        constructor(parent: QuadTreeNode | undefined, boundary: Rects.RectPositioned, level: number, opts: QuadTreeOpts);
+        getLengthChildren(): number;
+        parents(): IterableIterator<QuadTreeNode>;
+        children(): IterableIterator<QuadTreeNode>;
+        /**
+         * Get a descendant node in a given direction
+         * @param d
+         * @returns
+         */
+        direction(d: Direction): QuadTreeNode | undefined;
+        /**
+         * Add an item to the quadtree
+         * @param p
+         * @returns False if item is outside of boundary, True if item was added
+         */
+        add(p: QuadTreeItem): boolean;
+        /**
+         * Returns true if point is inside node's boundary
+         * @param p
+         * @returns
+         */
+        couldHold(p: Points.Point): boolean;
+    }
+}
+declare module "collections/TreeNodeMutable" {
+    import * as Trees from "collections/Trees";
+    /**
+     * Basic tree node implementation
+     */
+    export class TreeNodeMutable<V> implements Trees.TreeNode {
+        #private;
+        value: V;
+        readonly label: string;
+        /**
+         * Constructor
+         * @param value Value associated with node
+         * @param label Label
+         */
+        constructor(value: V, label: string);
+        getLengthChildren(): number;
+        hasChild: (possibleChild: TreeNodeMutable<V>) => boolean;
+        hasAnyChild: (possibleChild: TreeNodeMutable<V>) => boolean;
+        hasParent: (possibleParent: TreeNodeMutable<V>) => boolean;
+        hasAnyParent: (possibleParent: TreeNodeMutable<V>) => boolean;
+        getByPath: (path: string, opts?: Trees.PathOpts) => TreeNodeMutable<V> | undefined;
+        /**
+         * Adds a value by a string path.
+         * Automatically generates intermediate nodes.
+         *
+         * ```js
+         * const rootValue = {}
+         * const root = treeNodeMutable(rootValue, 'pc');
+         * root.addValueByPath({x:'c'},  'c');
+         * root.addValueByPath({x:'admin'}, 'c.users.admin');
+         * ```
+         *
+         * Creates the structure:
+         * ```
+         * pc         {}
+         * + c        {x: 'c' }
+         *  + users   undefined
+         *   + admin  {x: 'admin'}
+         * ```
+         * @param value
+         * @param path
+         * @param pathOpts
+         */
+        addValueByPath(value: V, path: string, pathOpts?: Trees.PathOpts): void;
+        /**
+         * Adds a child
+         * Throws an error if child cannot be added due to logical inconsistency (eg adding a child to self)
+         * @param child
+         */
+        add(child: TreeNodeMutable<V>): void;
+        /**
+         * Removes a child node.
+         * Throws an exception if child was not found
+         * @param child
+         */
+        remove(child: TreeNodeMutable<V>): void;
+        /**
+         * Sets the descendents of the node
+         * 'Unparents' existing children nodes. Checks each new node that it can
+         * be logically added
+         * @param d
+         */
+        setDescendants(d: TreeNodeMutable<V>[]): void;
+        /**
+         * Returns a string representation of tree
+         * @param indent
+         * @returns
+         */
+        prettyPrint(indent?: number): string;
+        /**
+         * Iterates all parents up to its root.
+         * First result is the immediate parent.
+         */
+        parents(): IterableIterator<TreeNodeMutable<V>>;
+        /**
+         * Iterates over the direct descendents of node
+         */
+        children(): IterableIterator<TreeNodeMutable<V>>;
+        /**
+         * Searches direct children, returning the node that has the given `label`
+         * @param label
+         * @returns
+         */
+        findChild(label: string): TreeNodeMutable<V> | undefined;
+        /**
+         * Returns _true_ if this node is root,
+         * ie. does not have a parent
+         */
+        get isRoot(): boolean;
+        /**
+         * Returns _true_ if this node has no children
+         */
+        get isEmpty(): boolean;
+    }
+    /**
+     * Creates a tree node from an object
+     * @param obj
+     * @param label
+     * @param parent
+     * @returns
+     */
+    export const fromObject: (obj: object, label?: string, parent?: TreeNodeMutable<any>) => TreeNodeMutable<any>;
+    /**
+     * Create a root tree node
+     * @param value Value associated with node
+     * @param label Label for node
+     * @returns New TreeNodeMutable instance
+     */
+    export const treeNodeMutable: <V>(value: V, label: string) => Trees.TreeNodeMutable<V>;
+}
+declare module "IterableSync" {
+    /**
+     * Return `it` broken up into chunks of `size`
+     *
+     * ```js
+     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
+     * // Yields: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+     * ```
+     * @param it
+     * @param size
+     * @returns
+     */
+    import { IsEqual } from "Util";
+    /**
+     * Return first value from an iterable, or _undefined_ if
+     * no values are generated
+     * @param it
+     * @returns
+     */
+    export function first<V>(it: Iterable<V>): V | undefined;
+    /**
+     * Returns last value from an iterable, or _undefined_
+     * if no values are generated
+     * @param it
+     */
+    export function last<V>(it: Iterable<V>): V | undefined;
+    /**
+     * Yields chunks of the iterable `it` such that the end of a chunk is the
+     * start of the next chunk.
+     *
+     * Eg, with the input [1,2,3,4,5] and a size of 2, we would get back
+     * [1,2], [2,3], [3,4], [4,5].
+     *
+     *
+     * @param it
+     * @param size
+     * @returns
+     */
+    export function chunksOverlapping<V>(it: Iterable<V>, size: number): Generator<V[], void, unknown>;
+    /**
+     * Breaks an iterable into array chunks
+     * ```js
+     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
+     * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+     * ```
+     * @param it
+     * @param size
+     */
+    export function chunks<V>(it: Iterable<V>, size: number): Generator<V[], void, unknown>;
+    /**
+     * Return concatenation of iterators
+     * @param its
+     */
+    export function concat<V>(...its: readonly Iterable<V>[]): Generator<V, void, undefined>;
+    /**
+     * Drops elements that do not meet the predicate `f`.
+     * ```js
+     * dropWhile([1, 2, 3, 4], e => e < 3);
+     * returns [3, 4]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function dropWhile<V>(it: Iterable<V>, f: (v: V) => boolean): Generator<V, void, undefined>;
+    /**
+     * Returns true if items in two iterables are equal, as
+     * determined by the `equality` function.
+     * @param it1
+     * @param it2
+     * @param equality
+     * @returns
+     */
+    export function equals<V>(it1: IterableIterator<V>, it2: IterableIterator<V>, equality?: IsEqual<V>): boolean | undefined;
+    /**
+     * Returns true if `f` returns true for
+     * every item in iterable
+     * @param it
+     * @param f
+     * @returns
+     */
+    export function every<V>(it: Iterable<V>, f: (v: V) => boolean): boolean;
+    /**
+     * Yields `v` for each item within `it`.
+     *
+     * ```js
+     * fill([1, 2, 3], 0);
+     * // Yields: [0, 0, 0]
+     * ```
+     * @param it
+     * @param v
+     */
+    export function fill<V>(it: Iterable<V>, v: V): Generator<V, void, unknown>;
+    /**
+     * Execute function `f` for each item in iterable
+     * @param it
+     * @param f
+     */
+    export function forEach<V>(it: Iterable<V>, f: (v: V) => boolean): void;
+    /**
+     * ```js
+     * filter([1, 2, 3, 4], e => e % 2 == 0);
+     * returns [2, 4]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function filter<V>(it: Iterable<V>, f: (v: V) => boolean): Generator<V, void, unknown>;
+    /**
+     * Returns first item from iterable `it` that matches predicate `f`
+     * ```js
+     * find([1, 2, 3, 4], e => e > 2);
+     * // Yields: 3
+     * ```
+     * @param it
+     * @param f
+     * @returns
+     */
+    export function find<V>(it: Iterable<V>, f: (v: V) => boolean): V | undefined;
+    /**
+     * Returns a 'flattened' copy of array, un-nesting arrays one level
+     * ```js
+     * flatten([1, [2, 3], [[4]]]);
+     * // Yields: [1, 2, 3, [4]];
+     * ```
+     * @param it
+     */
+    export function flatten<V>(it: Iterable<V>): Generator<any, void, unknown>;
+    /**
+     * Maps an iterable of type `V` to type `X`.
+     * ```js
+     * map([1, 2, 3], e => e*e)
+     * returns [1, 4, 9]
+     * ```
+     * @param it
+     * @param f
+     */
+    export function map<V, X>(it: Iterable<V>, f: (v: V) => X): Generator<X, void, unknown>;
+    /**
+     * Returns the maximum seen of an iterable
+     * ```js
+     * min([
+     *  {i:0,v:1},
+     *  {i:1,v:9},
+     *  {i:2,v:-2}
+     * ], (a, b) => a.v > b.v);
+     * // Yields: {i:1, v:-9}
+     * ```
+     * @param it Iterable
+     * @param gt Should return _true_ if `a` is greater than `b`.
+     * @returns
+     */
+    export function max<V>(it: Iterable<V>, gt?: (a: V, b: V) => boolean): V | undefined;
+    /**
+     * Returns the minimum seen of an iterable
+     * ```js
+     * min([
+     *  {i:0,v:1},
+     *  {i:1,v:9},
+     *  {i:2,v:-2}
+     * ], (a, b) => a.v > b.v);
+     * // Yields: {i:2, v:-2}
+     * ```
+     * @param it Iterable
+     * @param gt Should return _true_ if `a` is greater than `b`.
+     * @returns
+     */
+    export function min<V>(it: Iterable<V>, gt?: (a: V, b: V) => boolean): V | undefined;
+    /**
+     * Returns count from `start` for a given length
+     * ```js
+     * range(-5, 10);
+     * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+     * ```
+     * @param start
+     * @param len
+     */
+    export function range(start: number, len: number): Generator<number, void, unknown>;
+    /**
+     * Reduce for iterables
+     * ```js
+     * reduce([1, 2, 3], (acc, cur) => acc + cur, 0);
+     * // Yields: 6
+     * ```
+     * @param it Iterable
+     * @param f Function
+     * @param start Start value
+     * @returns
+     */
+    export function reduce<V>(it: Iterable<V>, f: (acc: V, current: V) => V, start: V): V;
+    /**
+     * Returns a section from an iterable
+     * @param it Iterable
+     * @param start Start index
+     * @param end End index (or until completion)
+     */
+    export function slice<V>(it: Iterable<V>, start?: number, end?: number): Generator<V, void, unknown>;
+    /**
+     * Returns true the first time `f` returns true. Useful for spotting any occurrence of
+     * data, and exiting quickly
+     * ```js
+     * some([1, 2, 3, 4], e => e % 3 === 0);
+     * // Yields: true
+     * ```
+     * @param it Iterable
+     * @param f Filter function
+     * @returns
+     */
+    export function some<V>(it: Iterable<V>, f: (v: V) => boolean): boolean;
+    /**
+     * Returns items for which the filter function returns _true_
+     * ```js
+     * takeWhile([ 1, 2, 3, 4 ], e => e < 3);
+     * // Yields: [ 1, 2 ]
+     * ```
+     * @param it Iterable
+     * @param f Filter function
+     * @returns
+     */
+    export function takeWhile<V>(it: Iterable<V>, f: (v: V) => boolean): Generator<V, void, unknown>;
+    /**
+     * Returns unique items from several iterables
+     * ```js
+     * unique([{i:0,v:2},{i:1,v:3},{i:2,v:2}], e => e.v);
+     * Yields: returns [{i:0,v:2},{i:1,v:3}]
+     *
+     * @param it
+     * @param f
+     */
+    export function unique<V>(it: Iterable<V>, f?: ((id: V) => V)): Generator<V, void, unknown>;
+    /**
+     * Combine same-positioned items from several iterables
+     * ```js
+     * zip( [1, 2, 3], [4, 5, 6], [7, 8, 9] );
+     * Yields: [ [1, 4, 7], [2, 5, 8], [3, 6, 9] ]
+     * ```
+     * @param its
+     * @returns
+     */
+    export function zip<V>(...its: readonly Iterable<V>[]): Generator<any[], void, unknown>;
+}
+declare module "collections/Trees" {
+    import { IsEqual } from "Util";
+    import { TreeNodeMutable, treeNodeMutable } from "collections/TreeNodeMutable";
+    export { treeNodeMutable, TreeNodeMutable };
+    export type Entry = [name: string, value: any];
+    /**
+     * TreeNode type
+     */
+    export type TreeNode = {
+        /**
+         * Direct children of node
+         */
+        children(): IterableIterator<TreeNode>;
+        /**
+         * Chain of parents of node. First result will be immediate parent,
+         * last result will be the terminating parent (root)
+         */
+        parents(): IterableIterator<TreeNode>;
+        getLengthChildren?(): number;
+    };
+    /**
+     * Options for parsing a path
+     */
+    export type PathOpts = {
+        /**
+         * Separator for path, eg '.'
+         */
+        separator?: string;
+        /**
+         * If true, [integer] will be used for arrays
+         */
+        allowArrayIndexes?: boolean;
+    };
+    /**
+     * Returns _true_ if `p` seems to match the `TreeNode` type.
+     * Returns _false_ if `p` is undefined or null.
+     *
+     * @param p
+     * @returns
+     */
+    export function isTreeNode(p: TreeNode | unknown): p is TreeNode;
+    /**
+     * Returns the count of immediate children for this
+     * TreeNode (or map, or plain object)
+     *
+     * ```js
+     * const basicObj = {
+     *  john: {
+     *    address: { postcode: 1234, city: 'Blahville' }
+     *  }
+     * }
+     * Trees.getLengthChildren(basicObj); // 1
+     * ```
+     * @param p
+     * @returns
+     */
+    export const getLengthChildren: (p: TreeNode | object) => number;
+    /**
+     * Returns a human-friendl debug string for a tree-like structure
+     * ```js
+     * console.log(Trees.prettyPrint(obj));
+     * ```
+     * @param indent
+     * @param node
+     * @param defaultLabel
+     * @returns
+     */
+    export const prettyPrint: (node: object, indent?: number, defaultLabel?: string) => string;
+    /**
+     * Returns the direct children of a tree-like object as a pairing
+     * of node label and value. Supports basic objects, Maps, arrays and {@link TreeNode}s.
+     *
+     * Sub-children are included as an object blob.
+     *
+     * @example Simple object
+     * ```js
+     * const o = {
+     *  colour: {
+     *    r: 0.5, g: 0.5, b: 0.5
+     *  }
+     * };
+     *
+     * const children = [...Trees.directChildren(o)];
+     * // Children:
+     * // [
+     * //  [ "colour", { b: 0.5, g: 0.5, r: 0.5 }]
+     * // ]
+     * ```
+     *
+     * Arrays are assigned a label based on index.
+     * @example Arrays
+     * ```js
+      const colours = [ {r:1,g:0,b:0}, {r:0,g:1,b:0}, {r:0,g:0,b:1} ];
+     * // Children:
+     * // [
+     * //  ["array[0]", {r:1,g:0,b:0}],
+     * //  ["array[1]", {r:0,g:1,b:0}],
+     * //  ["array[2]", {r:0,g:0,b:1}],
+     * // ]
+     * ```
+     *
+     * Pass in `defaultName` (eg 'colours') to have labels generated as 'colours[0]', etc.
+     * @param node
+     * @param defaultName
+     */
+    export function directChildren(node: object, defaultName?: string): IterableIterator<Entry>;
+    /**
+     * Returns the closest matching entry, tracing `path` in a tree.
+     * Returns an entry with _undefined_ value at the point where tracing stopped.
+     * Use {@link traceByPath} to step through all the segments.
+     *
+     * ```js
+     * const people = {
+     *  jane: {
+     *   address: {
+     *    postcode: 1000,
+     *    street: 'West St',
+     *    city: 'Blahville'
+     *   },
+     *   colour: 'red'
+     *  }
+     * }
+     * Trees.getByPath('jane.address.postcode', people); // '.' default separator
+     * // ['postcode', 1000]
+     * Trees.getByPath('jane.address.country.state', people);
+     * // ['country', undefined] - since full path could not be resolved.
+     * ```
+     * @param path Path, eg `jane.address.postcode`
+     * @param node Node to look within
+     * @param opts Options for parsing path. By default '.' is used as a separator
+     * @returns
+     */
+    export function getByPath(path: string, node: object, opts?: PathOpts): Entry;
+    /**
+     * Enumerates from root over nodes that lead to the given path terminus.
+     * Use {@link getByPath} to only fetch the closest matching entry.
+     *
+     * ```js
+     * const people = {
+     *  jane: {
+     *   address: {
+     *    postcode: 1000,
+     *    street: 'West St',
+     *    city: 'Blahville'
+     *   },
+     *   colour: 'red'
+     *  }
+     * }
+     * for (const p of Trees.traceByPath('jane.address.street', rootNode)) {
+     * // ["jane", { address: { postcode: 1000,street: 'West St', city: 'Blahville' }, colour: 'red'}],
+     * // ["address", { postcode: 1000, street: 'West St', city: 'Blahville' }],
+     * // ["street","West St"]
+     * }
+     * ```
+     *
+     * Results stop when the path can't be followed. The last entry will have a label of
+     * the last sought path segment, and _undefined_ as its value.
+     *
+     * @param path
+     * @param node
+     * @returns
+     */
+    export function traceByPath(path: string, node: object, opts?: PathOpts): Iterable<Entry>;
+    /**
+     * Depth-first traversal over object, array, Map or TreeNode
      * @param root
      * @returns
      */
-    export function dfs<V>(root: TreeNode<V>): Generator<TreeNode<V> | undefined, void, unknown>;
+    export function depthFirst(root: object): IterableIterator<Entry>;
+    /**
+     * Breadth-first traversal over object, array, Map or TreeNode
+     * @param root
+     * @returns
+     */
+    export function breadthFirst(root: object): IterableIterator<Entry>;
+    /**
+     * Returns _true_ if _possibleChild_ is contained within _parent_ tree.
+     * That is, it is any possible sub-child.
+     * @param parent Parent tree
+     * @param possibleChild Sought child
+     * @param eq Equality function, or {@link isEqualDefault} if undefined.
+     * @returns
+     */
+    export const hasAnyChild: <V extends TreeNode>(parent: V, possibleChild: V, eq?: IsEqual<V>) => boolean;
+    /**
+     * Returns _true_ if _possibleChild_ is contained within _maxDepth_ children
+     * of _parent_ node. By default only looks at immediate children (maxDepth = 0).
+     *
+     * ```js
+     * // Just check parentNode for childNode
+     * Trees.hasChild(parentNode, childNode);
+     * // See if parentNode or parentNode's parents have childNode
+     * Trees.hasChild(parentNode, childNode, 1);
+     * // Use custom equality function, in this case comparing on name field
+     * Trees.hasChild(parentNode, childNode, 0, (a, b) => a.name === b.name);
+     * ```
+     * @param parent Parent tree
+     * @param possibleChild Sought child
+     * @param maxDepth Maximum depth. 0 for immediate children, Number.MAX_SAFE_INTEGER for boundless
+     * @param eq Equality function, or {@link isEqualDefault} if undefined.
+     * @returns
+     */
+    export const hasChild: <V extends TreeNode>(parent: V, possibleChild: V, maxDepth?: number, eq?: IsEqual<V>) => boolean;
+    /**
+     * Returns _true_ if `child` exists within `possibleParent`. By default it only looks at the immediate
+     * parent (maxDepth: 0). Use Number.MAX_SAFE_INTEGER for searching recursively upwards (or {@link hasAnyParent})
+     * @param child Child being sought
+     * @param possibleParent Possible parent of child
+     * @param maxDepth Max depth of traversal. Default of 0 only looks for immediate parent.
+     * @param eq Equality comparison function. {@link isEqualDefault} used by default.
+     * @returns
+     */
+    export const hasParent: <V extends TreeNode>(child: V, possibleParent: V, maxDepth?: number, eq?: IsEqual<V>) => boolean;
+    /**
+     * Returns _true_ if `child` is parented at any level (grand-parented etc) by `possibleParent`
+     * @param child Child being sought
+     * @param possibleParent Possible parent of child
+     * @param eq Equality comparison function {@link isEqualDefault} used by default
+     * @returns
+     */
+    export const hasAnyParent: <V extends TreeNode>(child: V, possibleParent: V, eq?: IsEqual<V>) => boolean;
+    /**
+     * Returns _true_ if `prospectiveChild` can be legally added to `parent`.
+     * _False_ is returned if:
+     *  * `parent` and `prospectiveChild` are equal
+     *  * `parent` already contains `prospectiveChild`
+     *  * `prospectiveChild` has `parent` as its own child
+     *
+     * Throws an error if `parent` or `prospectiveChild` is null/undefined.
+     * @param parent Parent to add to
+     * @param prospectiveChild Prospective child
+     * @param eq Equality function
+     */
+    export const couldAddChild: <V extends TreeNode>(parent: V, prospectiveChild: V, eq?: IsEqual<V>) => void;
 }
 declare module "collections/index" {
     export * from "collections/Interfaces";
@@ -1700,45 +3589,6 @@ declare module "collections/index" {
      * * {@link zipKeyValue}: Given an array of keys and values, combines them together into a map
      */
     export * as Maps from "collections/Map";
-}
-declare module "geometry/Path" {
-    import { Rects, Points } from "geometry/index";
-    export type Path = {
-        length(): number;
-        /**
-           * Returns a point at a relative (0.0-1.0) position along the path
-           *
-           * @param {number} t Relative position (0.0-1.0)
-           * @returns {Point} Point
-           */
-        interpolate(t: number): Points.Point;
-        bbox(): Rects.RectPositioned;
-        /**
-         * Returns the nearest point on path to `point`
-         * @param point
-         */
-        nearest(point: Points.Point): Points.Point;
-        toString(): string;
-        toSvgString(): readonly string[];
-        readonly kind: `compound` | `elliptical` | `circular` | `arc` | `bezier/cubic` | `bezier/quadratic` | `line`;
-    };
-    /**
-     * Return the start point of a path
-     *
-     * @param path
-     * @return Point
-     */
-    export const getStart: (path: Path) => Points.Point;
-    /**
-     * Return the end point of a path
-     *
-     * @param path
-     * @return Point
-     */
-    export const getEnd: (path: Path) => Points.Point;
-    export type WithBeziers = {
-        getBeziers(): readonly Path[];
-    };
 }
 declare module "geometry/Line" {
     import { Points, Rects } from "geometry/index";
@@ -2388,10 +4238,28 @@ declare module "flow/Sleep" {
      *
      * {@link delay} and {@link sleep} are similar. `delay()` takes a parameter of what code to execute after the timeout, while `sleep()` just resolves after the timeout.
      *
+     * A value can be provided, which is returned on awaking:
+     * ```js
+     * const v = await sleep(1000, `hello`);
+     * // v = `hello`
+     * ```
+     *
+     * Provide an AbortSignal to cancel the sleep and throwing an exception
+     * so code after the sleep doesn't happen.
+     *
+     * ```js
+     * const ac = new AbortController();
+     * setTimeout(() => { ac.abort(); }, 1000); // Abort after 1s
+     *
+     * // Sleep for 1min
+     * await sleep(60*1000, undefined, ac.signal);
+     * console.log(`Awake`); // This line doesn't get called because an exception is thrown when aborting
+     * ```
      * @param timeoutMs
+     * @param signal
      * @return
      */
-    export const sleep: <V>(timeoutMs: number, value?: V | undefined) => Promise<V | undefined>;
+    export const sleep: <V>(timeoutMs: number, value?: V | undefined, signal?: AbortSignal) => Promise<V | undefined>;
 }
 declare module "flow/StateMachine" {
     import { SimpleEventEmitter } from "Events";
@@ -2849,21 +4717,23 @@ declare module "flow/Interval" {
      *
      * @example Return values from a generator every 500ms:
      * ```js
-     * // Make a generator that counts to 10
-     * const counter = count(10);
-     * for await (const v of interval(counter, 1000)) {
+     * import { interval } from 'https://unpkg.com/ixfx/dist/flow.js'
+     * import { count } from 'https://unpkg.com/ixfx/dist/generators.js'
+     * for await (const v of interval(count(10), 1000)) {
      *  // Do something with `v`
      * }
      * ```
-     *
      * If you just want to loop at a certain speed, consider using {@link continuously} instead.
+     *
+     * If the AbortSignal is triggered, an exception will be thrown, stopping iteration.
      * @template V Returns value of `produce` function
      * @param intervalMs Interval between execution
      * @param produce Function to call
+     * @param signal AbortSignal to cancel long sleeps. Throws an exception.
      * @template V Data type
      * @returns
      */
-    export const interval: <V>(produce: IntervalAsync<V>, intervalMs: number) => AsyncGenerator<Awaited<V>, void, unknown>;
+    export const interval: <V>(produce: IntervalAsync<V>, intervalMs: number, signal?: AbortSignal) => AsyncGenerator<Awaited<V>, void, unknown>;
 }
 declare module "flow/Timeout" {
     import { HasCompletion } from "flow/index";
@@ -2878,7 +4748,8 @@ declare module "flow/Timeout" {
         get isDone(): boolean;
     };
     /**
-     * Returns a {@link Timeout} that can be triggered, cancelled and reset
+     * Returns a {@link Timeout} that can be triggered, cancelled and reset. Use {@link continuously} for interval-
+     * based loops.
      *
      * Once `start()` is called, `callback` will be scheduled to execute after `timeoutMs`.
      * If `start()` is called again, the waiting period will be reset to `timeoutMs`.
@@ -2969,9 +4840,16 @@ declare module "flow/Continuously" {
      */
     export type Continuously = HasCompletion & {
         /**
-         * Starts loop. If already running, it is reset
+         * Starts loop. If already running, does nothing
          */
         start(): void;
+        /**
+         * (Re-)starts the loop. If an existing iteration has been
+         * scheduled, this is cancelled and started again.
+         *
+         * This can be useful when adjusting the interval
+         */
+        reset(): void;
         /**
          * How many milliseconds since start() was last called
          */
@@ -2981,20 +4859,45 @@ declare module "flow/Continuously" {
          */
         get ticks(): number;
         /**
-         * Whether loop has finished
+         * Returns true if the loop is not running (for some reason or another)
          */
         get isDone(): boolean;
         /**
-         * Stops loop
+         * If disposed, the continuously instance won't be re-startable
+         */
+        get isDisposed(): boolean;
+        /**
+         * Stops loop. It can be restarted using .start()
          */
         cancel(): void;
+        /**
+         * Set interval. Change will take effect on next loop. For it to kick
+         * in earlier, call .reset() after changing the value.
+         */
         set intervalMs(ms: number);
         get intervalMs(): number;
     };
     export type ContinuouslySyncCallback = (ticks?: number, elapsedMs?: number) => boolean | void;
     export type ContinuouslyAsyncCallback = (ticks?: number, elapsedMs?: number) => Promise<boolean | void>;
+    export type OnStartCalled = `continue` | `cancel` | `reset` | `dispose`;
+    export type ContinuouslyOpts = {
+        readonly fireBeforeWait?: boolean;
+        /**
+         * Called whenever .start() is invoked.
+         * If this function returns:
+         *  - `continue`: the loop starts if it hasn't started yet, or continues if already started
+         *  - `cancel`: loop stops, but can be re-started if .start() is called again
+         *  - `dispose`: loop stops and will throw an error if .start() is attempted to be called
+         *  - `reset`: loop resets (ie. existing scheduled task is cancelled)
+         *
+         */
+        readonly onStartCalled?: ((ticks?: number, elapsedMs?: number) => OnStartCalled);
+    };
     /**
-     * Returns a {@link Continuously} that continuously executes `callback`.
+     * Returns a {@link Continuously} that continuously at `intervalMs`, executing `callback`.
+     * By default, first the sleep period happens and then the callback happens.
+     * Use {@link Timeout} for a single event.
+     *
      * If callback returns _false_, loop exits.
      *
      * Call `start` to begin/reset loop. `cancel` stops loop.
@@ -3023,6 +4926,8 @@ declare module "flow/Continuously" {
      * c.cancel();   // Stop the loop, cancelling any up-coming calls to `fn`
      * c.elapsedMs;  // How many milliseconds have elapsed since start
      * c.ticks;      // How many iterations of loop since start
+     * c.intervalMs; // Get/set speed of loop. Change kicks-in at next loop.
+     *               // Use .start() to reset to new interval immediately
      * ```
      *
      * Asynchronous callback functions are supported too:
@@ -3038,19 +4943,35 @@ declare module "flow/Continuously" {
      * }).start();
      * ```
      *
-     * And if `callback` explicitly returns _false_, the loop will exit:
+     * If the callback explicitly returns _false_, the loop will be cancelled
      * ```js
-     * continuously((ticks) => {
+     * continuously(ticks => {
      *  // Stop after 100 iterations
      *  if (ticks > 100) return false;
      * }).start();
      * ```
+     *
+     * You can intercept the logic for calls to `start()` with `onStartCalled`. It can determine
+     * whether the `start()` proceeds, if the loop is cancelled, or the whole thing disposed,
+     * so it can't run any longer.
+     * ```js
+     * continuously(callback, intervalMs, {
+     *  onStartCalled:(ticks, elapsedMs) => {
+     *    if (elapsedMs > 1000) return `cancel`;
+     *  }
+     * }).start();
+     * ```
+     *
+     * To run `callback` *before* the sleep happens, set `fireBeforeWait`:
+     * ```js
+     * continuously(callback, intervalMs, { fireBeforeWait: true });
+     * ```
      * @param callback Function to run. If it returns false, loop exits.
-     * @param resetCallback Callback when/if loop is reset. If it returns false, loop exits
+     * @param opts Additional options
      * @param intervalMs
      * @returns
      */
-    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number, resetCallback?: ((ticks?: number, elapsedMs?: number) => boolean | void) | undefined) => Continuously;
+    export const continuously: (callback: ContinuouslyAsyncCallback | ContinuouslySyncCallback, intervalMs?: number, opts?: ContinuouslyOpts) => Continuously;
 }
 declare module "flow/Debounce" {
     import { TimeoutSyncCallback, TimeoutAsyncCallback } from "flow/Timeout";
@@ -3156,7 +5077,6 @@ declare module "flow/WaitFor" {
      * Helper function for calling code that should fail after a timeout.
      * In short, it allows you to signal when the function succeeded, to cancel it, or
      * to be notified if it was canceled or completes.
-     *
      *
      * @example Verbose example
      * ```js
@@ -3298,6 +5218,75 @@ declare module "flow/Every" {
      */
     export const everyNth: (nth: number, callback?: ((...args: readonly unknown[]) => void) | undefined) => (...args: unknown[]) => boolean;
 }
+declare module "flow/RunOnce" {
+    /**
+     * Runs a function once
+     *
+     * ```js
+     * const init = runOnce(() => {
+     *  // do some initialisation
+     * });
+     *
+     * init(); // Runs once
+     * init(); // no-op
+     * ```
+     * @param onRun
+     * @returns
+     */
+    export const runOnce: (onRun: () => boolean) => (() => boolean);
+}
+declare module "flow/TaskQueue" {
+    export type TaskQueueOpts = {
+        /**
+         * How long to wait before starting the queue 'thread'
+         * when something is added.
+         *
+         * Default: 500ms
+         */
+        readonly startDelayMs?: number;
+        /**
+         * Once running, sleeping period between each item
+         * being processed.
+         *
+         * Default: 100ms
+         */
+        readonly intervalMs?: number;
+    };
+    /**
+     * Simple task queue. Each task is awaited and run
+     * in turn.
+     *
+     * @example Usage
+     * ```js
+     * const q = new TaskQueue();
+     * q.add(async () => {
+     *  // Takes one second to run
+     *  await sleep(1000);
+     * });
+     * ```
+     */
+    export class TaskQueue {
+        static instance: TaskQueue;
+        private _timer;
+        private _queue;
+        private readonly _startDelayMs;
+        private readonly _intervalMs;
+        private constructor();
+        /**
+         * Adds a task. This triggers processing loop if not already started.
+         *
+         * ```js
+         * queue.add(async () => {
+         *  await sleep(1000);
+         * });
+         * ```
+         * @param task Task to run
+         */
+        add(task: () => void): void;
+        private schedule;
+        private processQueue;
+    }
+}
 declare module "flow/index" {
     import * as StateMachine from "flow/StateMachine";
     /**
@@ -3316,6 +5305,8 @@ declare module "flow/index" {
     export * from "flow/WaitFor";
     export * from "flow/Delay";
     export * from "flow/Every";
+    export * from "flow/RunOnce";
+    export { TaskQueue } from "flow/TaskQueue";
     export type HasCompletion = {
         get isDone(): boolean;
     };
@@ -4008,887 +5999,6 @@ declare module "modulation/Envelope" {
      * @returns
      */
     export function adsrSample(opts: EnvelopeOpts, sampleRateMs: number): AsyncGenerator<number, void, unknown>;
-}
-declare module "geometry/Intersects" {
-    import { CirclePositioned } from "geometry/Circle";
-    import { RectPositioned } from "geometry/Rect";
-    export const circleRect: (a: CirclePositioned, b: RectPositioned) => boolean;
-    export const circleCircle: (a: CirclePositioned, b: CirclePositioned) => boolean;
-}
-declare module "geometry/Circle" {
-    import { Path } from "geometry/Path";
-    import { Line } from "geometry/Line";
-    import { Points, Rects } from "geometry/index";
-    import { RandomSource } from "Random";
-    /**
-     * A circle
-     */
-    export type Circle = {
-        readonly radius: number;
-    };
-    /**
-     * A {@link Circle} with position
-     */
-    export type CirclePositioned = Points.Point & Circle;
-    export type CircularPath = Circle & Path & {
-        readonly kind: `circular`;
-    };
-    /**
-     * Returns true if parameter has x,y. Does not verify if parameter is a circle or not
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     *
-     * const circleA = { radius: 5 };
-     * Circles.isPositioned(circle); // false
-     *
-     * const circleB = { radius: 5, x: 10, y: 10 }
-     * Circles.isPositioned(circle); // true
-     * ```
-     * @param p Circle
-     * @returns
-     */
-    export const isPositioned: (p: Circle | Points.Point) => p is Points.Point;
-    export const isCircle: (p: Circle | CirclePositioned | any) => p is Circle;
-    export const isCirclePositioned: (p: Circle | CirclePositioned | any) => p is CirclePositioned;
-    /**
-     * Returns a point on a circle at a specified angle in radians
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     *
-     * // Circle without position
-     * const circleA = { radius: 5 };
-     *
-     * // Get point at angle Math.PI, passing in a origin coordinate
-     * const ptA = Circles.point(circleA, Math.PI, {x: 10, y: 10 });
-     *
-     * // Point on circle with position
-     * const circleB = { radius: 5, x: 10, y: 10};
-     * const ptB = Circles.point(circleB, Math.PI);
-     * ```
-     * @param circle
-     * @param angleRadian Angle in radians
-     * @param Origin or offset of calculated point. By default uses center of circle or 0,0 if undefined
-     * @returns Point oo circle
-     */
-    export const point: (circle: Circle | CirclePositioned, angleRadian: number, origin?: Points.Point) => Points.Point;
-    /**
-     * Returns the center of a circle
-     *
-     * If the circle has an x,y, that is the center.
-     * If not, `radius` is used as the x and y.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circle = { radius: 5, x: 10, y: 10};
-     *
-     * // Yields: { x: 5, y: 10 }
-     * Circles.center(circle);
-     * ```
-     *
-     * It's a trivial function, but can make for more understandable code
-     * @param circle
-     * @returns Center of circle
-     */
-    export const center: (circle: CirclePositioned | Circle) => Readonly<{
-        x: number;
-        y: number;
-    }>;
-    /**
-     * Computes relative position along circle
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circle = { radius: 100, x: 100, y: 100 };
-     *
-     * // Get a point halfway around circle
-     * // Yields { x, y }
-     * const pt = Circles.interpolate(circle, 0.5);
-     * ```
-     * @param circle
-     * @param t Position, 0-1
-     * @returns
-     */
-    export const interpolate: (circle: CirclePositioned, t: number) => Points.Point;
-    /**
-     * Returns circumference of `circle` (alias of {@link circumference})
-     * @param circle
-     * @returns
-     */
-    export const length: (circle: Circle) => number;
-    /**
-     * Returns circumference of `circle` (alias of {@link length})
-     * @param circle
-     * @returns
-     */
-    export const circumference: (circle: Circle) => number;
-    /**
-     * Returns the area of `circle`.
-     * @param circle
-     * @returns
-     */
-    export const area: (circle: Circle) => number;
-    /**
-     * Computes a bounding box that encloses circle
-     * @param circle
-     * @returns
-     */
-    export const bbox: (circle: CirclePositioned | Circle) => Rects.RectPositioned | Rects.Rect;
-    /**
-     * Returns true if `b` is completely contained by `a`
-     *
-     * ```js
-     * // Compare two points
-     * isContainedBy(circleA, circleB);
-     *
-     * // Compare a circle with a point
-     * isContainedBy(circleA, {x: 10, y: 20});
-     *
-     * // Define radius as third parameter
-     * isContainedBy(circleA, {x: 10, y: 20}, 20);
-     * ```
-     * @param a Circle
-     * @param b Circle or point to compare to
-     * @param c Radius to accompany parameter b if it's a point
-     * @returns
-     */
-    export const isContainedBy: (a: CirclePositioned, b: CirclePositioned | Points.Point, c?: number) => boolean;
-    /***
-     * Returns true if radius, x or y are NaN
-     */
-    export const isNaN: (a: Circle | CirclePositioned) => boolean;
-    /**
-     * Returns true if `a` or `b` overlap, are equal, or `a` contains `b`.
-     * A circle can be checked for intersections with another CirclePositioned, Point or RectPositioned.
-     *
-     * Use `intersections` to find the points of intersection.
-     *
-     * @param a Circle
-     * @param b Circle or point to test
-     * @returns True if circle overlap
-     */
-    export const isIntersecting: (a: CirclePositioned, b: CirclePositioned | Points.Point | Rects.RectPositioned, c?: number) => boolean;
-    /**
-     *
-     * Returns the points of intersection betweeen `a` and `b`.
-     *
-     * Returns an empty array if circles are equal, one contains the other or if they don't touch at all.
-     *
-     * @param a Circle
-     * @param b Circle
-     * @returns Points of intersection, or an empty list if there are none
-     */
-    export const intersections: (a: CirclePositioned, b: CirclePositioned) => readonly Points.Point[];
-    /**
-     * Returns true if the two objects have the same values
-     *
-     * ```js
-     * const circleA = { radius: 10, x: 5, y: 5 };
-     * const circleB = { radius: 10, x: 5, y: 5 };
-     *
-     * circleA === circleB; // false, because identity of objects is different
-     * Circles.isEqual(circleA, circleB); // true, because values are the same
-     * ```
-     *
-     * Circles must both be positioned or not.
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isEqual: (a: CirclePositioned | Circle, b: CirclePositioned | Circle) => boolean;
-    export type RandomPointOpts = {
-        readonly strategy?: `naive` | `uniform`;
-        readonly randomSource?: RandomSource;
-    };
-    /**
-     * Returns a random point within a circle.
-     *
-     * By default creates a uniform distribution.
-     *
-     * ```js
-     * const pt = randomPoint({radius: 5});
-     * const pt = randomPoint({radius: 5, x: 10, y: 20});
-     * ```'
-     *
-     * Generate points with a gaussian distribution
-     * ```js
-     * const pt = randomPoint(circle, {
-     *  randomSource: Random.gaussian
-     * })
-     * ```
-     * @param within Circle to generate a point within
-     * @param opts Options
-     * @returns
-     */
-    export const randomPoint: (within: Circle | CirclePositioned, opts?: RandomPointOpts) => Points.Point;
-    export function multiplyScalar(a: CirclePositioned, value: number): CirclePositioned;
-    export function multiplyScalar(a: Circle, value: number): Circle;
-    /**
-     * Returns the distance between two circle centers.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circleA = { radius: 5, x: 5, y: 5 }
-     * const circleB = { radius: 10, x: 20, y: 20 }
-     * const distance = Circles.distanceCenter(circleA, circleB);
-     * ```
-     * Throws an error if either is lacking position.
-     * @param a
-     * @param b
-     * @returns Distance
-     */
-    export const distanceCenter: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
-    /**
-     * Returns the distance between the exterior of two circles, or between the exterior of a circle and point.
-     * If `b` overlaps or is enclosed by `a`, distance is 0.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circleA = { radius: 5, x: 5, y: 5 }
-     * const circleB = { radius: 10, x: 20, y: 20 }
-     * const distance = Circles.distanceCenter(circleA, circleB);
-     * ```
-     * @param a
-     * @param b
-     */
-    export const distanceFromExterior: (a: CirclePositioned, b: CirclePositioned | Points.Point) => number;
-    type ToSvg = {
-        (radius: number, sweep: boolean, origin: Points.Point): readonly string[];
-        (circle: Circle, sweep: boolean, origin: Points.Point): readonly string[];
-        (circle: CirclePositioned, sweep: boolean): readonly string[];
-    };
-    /**
-     * Creates a SVG path segment.
-     * @param a Circle or radius
-     * @param sweep If true, path is 'outward'
-     * @param origin Origin of path. Required if first parameter is just a radius or circle is non-positioned
-     * @returns
-     */
-    export const toSvg: ToSvg;
-    /**
-     * Returns the nearest point on `circle` closest to `point`.
-     *
-     * ```js
-     * import { Circles } from 'https://unpkg.com/ixfx/dist/geometry.js'
-     * const pt = Circles.nearest(circle, {x:10,y:10});
-     * ```
-     *
-     * If an array of circles is provided, it will be the closest point amongst all the circles
-     * @param circle Circle or array of circles
-     * @param point
-     * @returns Point `{ x, y }`
-     */
-    export const nearest: (circle: CirclePositioned | readonly CirclePositioned[], b: Points.Point) => Points.Point;
-    /**
-     * Returns a positioned version of a circle.
-     * If circle is already positioned, it is returned.
-     * If no default position is supplied, 0,0 is used.
-     * @param circle
-     * @param defaultPositionOrX
-     * @param y
-     * @returns
-     */
-    export const toPositioned: (circle: Circle | CirclePositioned, defaultPositionOrX?: Points.Point | number, y?: number) => CirclePositioned;
-    /**
-     * Returns a `CircularPath` representation of a circle
-     *
-     * @param {CirclePositioned} circle
-     * @returns {CircularPath}
-     */
-    export const toPath: (circle: CirclePositioned) => CircularPath;
-    /**
-     * Returns the point(s) of intersection between a circle and line.
-     *
-     * ```js
-     * import { Circles } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * const circle = { radius: 5, x: 5, y: 5 };
-     * const line = { a: { x: 0, y: 0 }, b: { x: 10, y: 10 } };
-     * const pts = Circles.intersectionLine(circle, line);
-     * ```
-     * @param circle
-     * @param line
-     * @returns Point(s) of intersection, or empty array
-     */
-    export const intersectionLine: (circle: CirclePositioned, line: Line) => readonly Points.Point[];
-}
-declare module "geometry/Rect" {
-    import { Points, Lines } from "geometry/index";
-    import { RandomSource } from "Random";
-    import { CirclePositioned } from "geometry/Circle";
-    export type Rect = {
-        readonly width: number;
-        readonly height: number;
-    };
-    export type RectPositioned = Points.Point & Rect;
-    export const empty: Readonly<{
-        width: 0;
-        height: 0;
-    }>;
-    export const emptyPositioned: Readonly<{
-        x: 0;
-        y: 0;
-        width: 0;
-        height: 0;
-    }>;
-    export const placeholder: Readonly<{
-        width: number;
-        height: number;
-    }>;
-    export const placeholderPositioned: Readonly<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }>;
-    export const isEmpty: (rect: Rect) => boolean;
-    export const isPlaceholder: (rect: Rect) => boolean;
-    /**
-     * Returns _true_ if `p` has a position (x,y)
-     * @param p Point, Rect or RectPositiond
-     * @returns
-     */
-    export const isPositioned: (p: Points.Point | Rect | RectPositioned) => p is Points.Point;
-    /**
-     * Returns _true_ if `p` has width and height.
-     * @param p
-     * @returns
-     */
-    export const isRect: (p: number | unknown) => p is Rect;
-    /**
-     * Returns _true_ if `p` is a positioned rectangle
-     * Having width, height, x and y properties.
-     * @param p
-     * @returns
-     */
-    export const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
-    /**
-     * Initialise a rectangle based on the width and height of a HTML element.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js"
-     * Rects.fromElement(document.querySelector(`body`));
-     * ```
-     * @param el
-     * @returns
-     */
-    export const fromElement: (el: HTMLElement) => Rect;
-    /**
-     * Returns _true_ if the width & height of the two rectangles is the same.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
-     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
-     *
-     * // True, even though x,y are different
-     * Rects.isEqualSize(rectA, rectB);
-     *
-     * // False, because coordinates are different
-     * Rects.isEqual(rectA, rectB)
-     * ```
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isEqualSize: (a: Rect, b: Rect) => boolean;
-    /**
-     * Returns a rectangle from width, height
-     * ```js
-     * const r = Rects.fromNumbers(100, 200);
-     * // {width: 100, height: 200}
-     * ```
-     *
-     * Use {@link toArray} for the opposite conversion.
-     *
-     * @param width
-     * @param height
-     */
-    export function fromNumbers(width: number, height: number): Rect;
-    /**
-     * Returns a rectangle from x,y,width,height
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const r = Rects.fromNumbers(10, 20, 100, 200);
-     * // {x: 10, y: 20, width: 100, height: 200}
-     * ```
-     *
-     * Use the spread operator (...) if the source is an array:
-     * ```js
-     * const r3 = Rects.fromNumbers(...[10, 20, 100, 200]);
-     * ```
-     *
-     * Use {@link toArray} for the opposite conversion.
-     *
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     */
-    export function fromNumbers(x: number, y: number, width: number, height: number): RectPositioned;
-    /**
-     * Rectangle as array: `[width, height]`
-     */
-    export type RectArray = readonly [width: number, height: number];
-    /**
-     * Positioned rectangle as array: `[x, y, width, height]`
-     */
-    export type RectPositionedArray = readonly [x: number, y: number, width: number, height: number];
-    /**
-     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
-     * // [10, 20, 100, 200]
-     * const r2 = Rects.toArray({ width: 100, height: 200 });
-     * // [100, 200]
-     * ```
-     * @param rect
-     * @see fromNumbers
-     */
-    export function toArray(rect: Rect): RectArray;
-    /**
-     * Converts a rectangle to an array of numbers. See {@link fromNumbers} for the opposite conversion.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = Rects.toArray({ x: 10, y:20, width: 100, height: 200 });
-     * // [10, 20, 100, 200]
-     * const r2 = Rects.toArray({ width: 100, height: 200 });
-     * // [100, 200]
-     * ```
-     * @param rect
-     * @see fromNumbers
-     */
-    export function toArray(rect: RectPositioned): RectPositionedArray;
-    /**
-     * Returns _true_ if two rectangles have identical values.
-     * Both rectangles must be positioned or not.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 10, height: 10, x: 10, y: 10 };
-     * const rectB = { width: 10, height: 10, x: 20, y: 20 };
-     *
-     * // False, because coordinates are different
-     * Rects.isEqual(rectA, rectB)
-     *
-     * // True, even though x,y are different
-     * Rects.isEqualSize(rectA, rectB);
-     * ```
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isEqual: (a: Rect | RectPositioned, b: Rect | RectPositioned) => boolean;
-    /**
-     * Subtracts width/height of `b` from `a` (ie: a - b), returning result.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 100, height: 100 };
-     * const rectB = { width: 200, height: 200 };
-     *
-     * // Yields: { width: -100, height: -100 }
-     * Rects.subtract(rectA, rectB);
-     * ```
-     * @param a
-     * @param b
-     */
-    export function subtract(a: Rect, b: Rect): Rect;
-    /**
-     * Subtracts a width/height from `a`, returning result.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100 };
-     *
-     * // Yields: { width: -100, height: -100 }
-     * Rects.subtract(rect, 200, 200);
-     * ```
-     * @param a
-     * @param width
-     * @param height
-     */
-    export function subtract(a: Rect, width: number, height?: number): Rect;
-    /**
-     * Sums width/height of `b` with `a` (ie: a + b), returning result.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rectA = { width: 100, height: 100 };
-     * const rectB = { width: 200, height: 200 };
-     *
-     * // Yields: { width: 300, height: 300 }
-     * Rects.sum(rectA, rectB);
-     * ```
-     * @param a
-     * @param b
-     */
-    export function sum(a: Rect, b: Rect): Rect;
-    /**
-      * Sums width/height of `b` with `a` (ie: a + b), returning result.
-      * ```js
-      * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-      * const rect = { width: 100, height: 100 };
-      *
-      * // Yields: { width: 300, height: 300 }
-      * Rects.subtract(rect, 200, 200);
-      * ```
-      * @param a
-      * @param width
-      * @param height
-      */
-    export function sum(a: Rect, width: number, height?: number): Rect;
-    /**
-     * Returns _true_ if `point` is within, or on boundary of `rect`.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * Rects.intersectsPoint(rect, { x: 100, y: 100});
-     * ```
-     * @param rect
-     * @param point
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, point: Points.Point): boolean;
-    /**
-     * Returns true if x,y coordinate is within, or on boundary of `rect`.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * Rects.intersectsPoint(rect, 100, 100);
-     * ```
-     * @param rect
-     * @param x
-     * @param y
-     */
-    export function intersectsPoint(rect: Rect | RectPositioned, x: number, y: number): boolean;
-    /**
-     * Initialises a rectangle based on its center, a width and height
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Rectangle with center at 50,50, width 100 height 200
-     * Rects.fromCenter({x: 50, y:50}, 100, 200);
-     * ```
-     * @param origin
-     * @param width
-     * @param height
-     * @returns
-     */
-    export const fromCenter: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    /**
-     * Returns the distance from the perimeter of `rect` to `pt`.
-     * If the point is within the rectangle, 0 is returned.
-     *
-     * If `rect` does not have an x,y it's assumed to be 0,0
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 0, y: 0 };
-     * Rects.distanceFromExterior(rect, { x: 20, y: 20 });
-     * ```
-     * @param rect Rectangle
-     * @param pt Point
-     * @returns Distance
-     */
-    export const distanceFromExterior: (rect: RectPositioned, pt: Points.Point) => number;
-    /**
-     * Return the distance of `pt` to the center of `rect`.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 0, y: 0 };
-     * Rects.distanceFromCenter(rect, { x: 20, y: 20 });
-     * ```
-     * @param rect
-     * @param pt
-     * @returns
-     */
-    export const distanceFromCenter: (rect: RectPositioned, pt: Points.Point) => number;
-    /**
-     * Returns a rectangle based on provided four corners.
-     *
-     * To create a rectangle that contains an arbitary set of points, use {@link Geometry.Points.bbox | Geometry.Points.bbox}.
-     *
-     * Does some sanity checking such as:
-     *  - x will be smallest of topLeft/bottomLeft
-     *  - y will be smallest of topRight/topLeft
-     *  - width will be largest between top/bottom left and right
-     *  - height will be largest between left and right top/bottom
-     *
-     */
-    export const maxFromCorners: (topLeft: Points.Point, topRight: Points.Point, bottomRight: Points.Point, bottomLeft: Points.Point) => RectPositioned;
-    /**
-     * Throws an error if rectangle is missing fields or they
-     * are not valid.
-     * @param rect
-     * @param name
-     */
-    export const guard: (rect: Rect, name?: string) => void;
-    /**
-     * Creates a rectangle from its top-left coordinate, a width and height.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Rectangle at 50,50 with width of 100, height of 200.
-     * const rect = Rects.fromTopLeft({ x: 50, y:50 }, 100, 200);
-     * ```
-     * @param origin
-     * @param width
-     * @param height
-     * @returns
-     */
-    export const fromTopLeft: (origin: Points.Point, width: number, height: number) => RectPositioned;
-    /**
-     * Returns the four corners of a rectangle as an array of Points.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 0, y: 0};
-     * const pts = Rects.corners(rect);
-     * ```
-     *
-     * If the rectangle is not positioned, is origin can be provided.
-     * @param rect
-     * @param origin
-     * @returns
-     */
-    export const corners: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Points.Point[];
-    /**
-     * Returns a point on the edge of rectangle
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = {x: 10, y: 10, width: 100, height: 50};
-     * Rects.getEdgeX(r1, `right`);  // Yields: 110
-     * Rects.getEdgeX(r1, `bottom`); // Yields: 10
-     *
-     * const r2 = {width: 100, height: 50};
-     * Rects.getEdgeX(r2, `right`);  // Yields: 100
-     * Rects.getEdgeX(r2, `bottom`); // Yields: 0
-     * ```
-     * @param rect
-     * @param edge Which edge: right, left, bottom, top
-     * @returns
-     */
-    export const getEdgeX: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
-    /**
-     * Returns a point on the edge of rectangle
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const r1 = {x: 10, y: 10, width: 100, height: 50};
-     * Rects.getEdgeY(r1, `right`);  // Yields: 10
-     * Rects.getEdgeY(r1, `bottom`); // Yields: 60
-     *
-     * const r2 = {width: 100, height: 50};
-     * Rects.getEdgeY(r2, `right`);  // Yields: 0
-     * Rects.getEdgeY(r2, `bottom`); // Yields: 50
-     * ```
-     * @param rect
-     * @param edge Which edge: right, left, bottom, top
-     * @returns
-     */
-    export const getEdgeY: (rect: RectPositioned | Rect, edge: `right` | `bottom` | `left` | `top`) => number;
-    /**
-     * Returns `rect` divided by the width,height of `normaliseBy`.
-     * This can be useful for normalising based on camera frame.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const frameSize = {width: 640, height: 320};
-     * const object = { x: 320, y: 160, width: 64, height: 32};
-     *
-     * const n = Rects.normaliseByRect(object, frameSize);
-     * // Yields: {x: 0.5, y: 0.5, width: 0.1, height: 0.1}
-     * ```
-     *
-     * Height and width can be supplied instead of a rectangle too:
-     * ```js
-     * const n = Rects.normaliseByRect(object, 640, 320);
-     * ```
-     * @param rect
-     * @param normaliseBy
-     * @returns
-     */
-    export const normaliseByRect: (rect: Rect | RectPositioned, normaliseByOrWidth: Rect | number, height?: number) => Rect | RectPositioned;
-    /**
-     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Normalised rectangle of width 50%, height 50%
-     * const r = {width: 0.5, height: 0.5};
-     *
-     * // Map to window:
-     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
-     * ```
-     *
-     * ```js
-     * // Returns {width: someRect.width * someOtherRect.width ...}
-     * Rects.multiply(someRect, someOtherRect);
-     *
-     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
-     * Rects.multiply(someRect, 100, 200);
-     * ```
-     *
-     * Multiplication applies to the first parameter's x/y fields, if present.
-     */
-    export function multiply(a: RectPositioned, b: Rect | number, c?: number): RectPositioned;
-    /**
-     * Multiplies `a` by rectangle or width/height. Useful for denormalising a value.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * // Normalised rectangle of width 50%, height 50%
-     * const r = {width: 0.5, height: 0.5};
-     *
-     * // Map to window:
-     * const rr = Rects.multiply(r, window.innerWidth, window.innerHeight);
-     * ```
-     *
-     * ```js
-     * // Returns {width: someRect.width * someOtherRect.width ...}
-     * Rects.multiply(someRect, someOtherRect);
-     *
-     * // Returns {width: someRect.width * 100, height: someRect.height * 200}
-     * Rects.multiply(someRect, 100, 200);
-     * ```
-     *
-     * Multiplication applies to the first parameter's x/y fields, if present.
-     */
-    export function multiply(a: Rect, b: Rect | number, c?: number): Rect;
-    export function multiply(a: RectPositioned, b: Rect): RectPositioned;
-    /**
-     * Multiplies all components of `rect` by `amount`
-     * @param rect
-     * @param amount
-     */
-    export function multiplyScalar(rect: Rect, amount: number): Rect;
-    /**
-     * Multiplies all components of `rect` by `amount`
-     * @param rect
-     * @param amount
-     */
-    export function multiplyScalar(rect: RectPositioned, amount: number): RectPositioned;
-    /**
-     * Returns the center of a rectangle as a {@link Geometry.Points.Point}.
-     *  If the rectangle lacks a position and `origin` parameter is not provided, 0,0 is used instead.
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     *
-     * const p = Rects.center({x:10, y:20, width:100, height:50});
-     * const p2 = Rects.center({width: 100, height: 50}); // Assumes 0,0 for rect x,y
-     * ```
-     * @param rect Rectangle
-     * @param origin Optional origin. Overrides `rect` position if available. If no position is available 0,0 is used by default.
-     * @returns
-     */
-    export const center: (rect: RectPositioned | Rect, origin?: Points.Point) => Points.Point;
-    /**
-     * Returns the length of each side of the rectangle (top, right, bottom, left)
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * // Yields: array of length four
-     * const lengths = Rects.lengths(rect);
-     * ```
-     * @param rect
-     * @returns
-     */
-    export const lengths: (rect: RectPositioned) => readonly number[];
-    /**
-     * Returns four lines based on each corner.
-     * Lines are given in order: top, right, bottom, left
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * // Yields: array of length four
-     * const lines = Rects.lines(rect);
-     * ```
-     *
-     * @param {(RectPositioned|Rect)} rect
-     * @param {Points.Point} [origin]
-     * @returns {Lines.Line[]}
-     */
-    export const edges: (rect: RectPositioned | Rect, origin?: Points.Point) => readonly Lines.Line[];
-    /**
-     * Returns the perimeter of `rect` (ie. sum of all edges)
-     *  * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * Rects.perimeter(rect);
-     * ```
-     * @param rect
-     * @returns
-     */
-    export const perimeter: (rect: Rect) => number;
-    /**
-     * Returns the area of `rect`
-     *
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const rect = { width: 100, height: 100, x: 100, y: 100 };
-     * Rects.area(rect);
-     * ```
-     * @param rect
-     * @returns
-     */
-    export const area: (rect: Rect) => number;
-    /**
-     * Returns true if `a` or `b` overlap, are equal, or `a` contains `b`.
-     * A rectangle can be checked for intersections with another RectPositioned, CirclePositioned or Point.
-     *
-     */
-    export const isIntersecting: (a: RectPositioned, b: CirclePositioned | Points.Point) => boolean;
-    /**
-     * Returns a random positioned Rect on a 0..1 scale.
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * const r = Rects.random(); // eg {x: 0.2549012, y:0.859301, width: 0.5212, height: 0.1423 }
-     * ```
-     *
-     * A custom source of randomness can be provided:
-     * ```js
-     * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * import { weightedSkewed } from "https://unpkg.com/ixfx/dist/random.js"
-     * const r = Rects.random(weightedSkewed(`quadIn`));
-     * ```
-     * @param rando
-     * @returns
-     */
-    export const random: (rando?: RandomSource) => RectPositioned;
-    export type RandomPointOpts = {
-        readonly strategy?: `naive`;
-        readonly randomSource?: RandomSource;
-        readonly margin?: {
-            readonly x: number;
-            readonly y: number;
-        };
-    };
-    /**
-     * Returns a random point within a circle.
-     *
-     * By default creates a uniform distribution.
-     *
-     * ```js
-     * const pt = randomPoint({width: 5, height: 10});
-     * ```'
-     * @param within Circle to generate a point within
-     * @param opts Options
-     * @returns
-     */
-    export const randomPoint: (within: Rect | RectPositioned, opts?: RandomPointOpts) => Points.Point;
 }
 declare module "modulation/Forces" {
     /**
@@ -7372,277 +8482,6 @@ declare module "geometry/Ellipse" {
         readonly kind: `elliptical`;
     };
 }
-declare module "geometry/Polar" {
-    import * as Points from "geometry/Point";
-    /**
-     * Polar coordinate, made up of a distance and angle in radians.
-     * Most computations involving Coords require an `origin` as well.
-     */
-    export type Coord = {
-        readonly distance: number;
-        readonly angleRadian: number;
-    };
-    /**
-     * Converts to Cartesian coordiantes
-     */
-    type ToCartesian = {
-        (point: Coord, origin?: Points.Point): Points.Point;
-        (distance: number, angleRadians: number, origin?: Points.Point): Points.Point;
-    };
-    /**
-     * Returns true if `p` seems to be a {@link Coord} (ie has both distance & angleRadian fields)
-     * @param p
-     * @returns True if `p` seems to be a Coord
-     */
-    export const isCoord: (p: number | unknown) => p is Coord;
-    /**
-     * Converts a Cartesian coordinate to polar
-     *
-     * ```js
-     * import { Polar } from 'https://unpkg.com/ixfx/dist/geometry.js';
-     *
-     * // Yields: { angleRadian, distance }
-     * const polar = Polar.fromCartesian({x: 50, y: 50}, origin);
-     * ```
-     *
-     * Any additional properties of `point` are copied to object.
-     * @param point Point
-     * @param origin Origin
-     * @returns
-     */
-    export const fromCartesian: (point: Points.Point, origin: Points.Point) => Coord;
-    /**
-     * Converts to Cartesian coordinate from polar.
-     *
-     * ```js
-     * import { Polar } from 'https://unpkg.com/ixfx/dist/geometry.js';
-     *
-     * const origin = { x: 50, y: 50}; // Polar origin
-     * // Yields: { x, y }
-     * const polar = Polar.toCartesian({ distance: 10, angleRadian: 0 }, origin);
-     * ```
-     *
-     * Distance and angle can be provided as numbers intead:
-     *
-     * ```
-     * // Yields: { x, y }
-     * const polar = Polar.toCartesian(10, 0, origin);
-     * ```
-     *
-     * @param a
-     * @param b
-     * @param c
-     * @returns
-     */
-    export const toCartesian: ToCartesian;
-    /**
-     * Produces an Archimedean spiral. It's a generator.
-     *
-     * ```js
-     * const s = spiral(0.1, 1);
-     * for (const coord of s) {
-     *  // Use Polar coord...
-     *  if (coord.step === 1000) break; // Stop after 1000 iterations
-     * }
-     * ```
-     *
-     * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
-     * @param zoom At smoothness 0.1, zoom starting at 1 is OK
-     */
-    export function spiral(smoothness: number, zoom: number): IterableIterator<Coord & {
-        readonly step: number;
-    }>;
-    /**
-     * Returns a rotated coordiante
-     * @param c Coordinate
-     * @param amountRadian Amount to rotate, in radians
-     * @returns
-     */
-    export const rotate: (c: Coord, amountRadian: number) => Coord;
-    export const normalise: (c: Coord) => Coord;
-    /**
-     * Throws an error if Coord is invalid
-     * @param p
-     * @param name
-     */
-    export const guard: (p: Coord, name?: string) => void;
-    /**
-     * Calculate dot product of two Coords.
-     *
-     * Eg, power is the dot product of force and velocity
-     *
-     * Dot products are also useful for comparing similarity of
-     *  angle between two unit Coord.
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const dotProduct: (a: Coord, b: Coord) => number;
-    /**
-     * Inverts the direction of coordinate. Ie if pointing north, will point south.
-     * @param p
-     * @returns
-     */
-    export const invert: (p: Coord) => Coord;
-    /**
-     * Returns true if Coords have same magnitude but opposite direction
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isOpposite: (a: Coord, b: Coord) => boolean;
-    /**
-     * Returns true if Coords have the same direction, regardless of magnitude
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isParallel: (a: Coord, b: Coord) => boolean;
-    /**
-     * Returns true if coords are opposite direction, regardless of magnitude
-     * @param a
-     * @param b
-     * @returns
-     */
-    export const isAntiParallel: (a: Coord, b: Coord) => boolean;
-    /**
-     * Returns a rotated coordinate
-     * @param c Coordinate
-     * @param amountDeg Amount to rotate, in degrees
-     * @returns
-     */
-    export const rotateDegrees: (c: Coord, amountDeg: number) => Coord;
-    /**
-     * Produces an Archimedian spiral with manual stepping.
-     * @param step Step number. Typically 0, 1, 2 ...
-     * @param smoothness 0.1 pretty rounded, at around 5 it starts breaking down
-     * @param zoom At smoothness 0.1, zoom starting at 1 is OK
-     * @returns
-     */
-    export const spiralRaw: (step: number, smoothness: number, zoom: number) => Coord;
-    /**
-     * Multiplies the magnitude of a coord by `amt`.
-     * Direction is unchanged.
-     * @param v
-     * @param amt
-     * @returns
-     */
-    export const multiply: (v: Coord, amt: number) => Coord;
-    /**
-     * Divides the magnitude of a coord by `amt`.
-     * Direction is unchanged.
-     * @param v
-     * @param amt
-     * @returns
-     */
-    export const divide: (v: Coord, amt: number) => Coord;
-    /**
-     * Clamps the magnitude of a vector
-     * @param v
-     * @param max
-     * @param min
-     * @returns
-     */
-    export const clampMagnitude: (v: Coord, max?: number, min?: number) => Coord;
-    /**
-     * Returns a human-friendly string representation `(distance, angleDeg)`.
-     * If `precision` is supplied, this will be the number of significant digits.
-     * @param p
-     * @returns
-     */
-    export const toString: (p: Coord, digits?: number) => string;
-    export const toPoint: (v: Coord, origin?: Readonly<{
-        x: 0;
-        y: 0;
-    }>) => Points.Point;
-}
-declare module "geometry/Shape" {
-    import { Triangles, Points, Rects, Circles } from "geometry/index";
-    import { CirclePositioned } from "geometry/Circle";
-    import { RandomSource } from "Random";
-    import { RectPositioned } from "geometry/Rect";
-    export type ContainsResult = `none` | `contained`;
-    export type ShapePositioned = CirclePositioned | RectPositioned;
-    /**
-     * Returns the intersection result between a and b.
-     * @param a
-     * @param b
-     */
-    export const isIntersecting: (a: ShapePositioned, b: ShapePositioned | Points.Point) => boolean;
-    export type RandomPointOpts = {
-        readonly randomSource?: RandomSource;
-        readonly margin?: Points.Point;
-    };
-    export const randomPoint: (shape: ShapePositioned, opts?: RandomPointOpts) => Points.Point;
-    /**
-     * Returns the center of a shape
-     * Shape can be: rectangle, triangle, circle
-     * @param shape
-     * @returns
-     */
-    export const center: (shape?: Rects.Rect | Triangles.Triangle | Circles.Circle) => Points.Point;
-    /**
-     * Generates a starburst shape, returning an array of points. By default, initial point is top and horizontally-centred.
-     *
-     * ```
-     * // Generate a starburst with four spikes
-     * const pts = starburst(4, 100, 200);
-     * ```
-     *
-     * `points` of two produces a lozenge shape.
-     * `points` of three produces a triangle shape.
-     * `points` of five is the familiar 'star' shape.
-     *
-     * Note that the path will need to be closed back to the first point to enclose the shape.
-     *
-     * @example Create starburst and draw it. Note use of 'loop' flag to close the path
-     * ```
-     * const points = starburst(4, 100, 200);
-     * Drawing.connectedPoints(ctx, pts, {loop: true, fillStyle: `orange`, strokeStyle: `red`});
-     * ```
-     *
-     * Options:
-     * * initialAngleRadian: angle offset to begin from. This overrides the `-Math.PI/2` default.
-     *
-     * @param points Number of points in the starburst. Defaults to five, which produces a typical star
-     * @param innerRadius Inner radius. A proportionally smaller inner radius makes for sharper spikes. If unspecified, 50% of the outer radius is used.
-     * @param outerRadius Outer radius. Maximum radius of a spike to origin
-     * @param opts Options
-     * @param origin Origin, or `{ x:0, y:0 }` by default.
-     */
-    export const starburst: (outerRadius: number, points?: number, innerRadius?: number, origin?: Points.Point, opts?: {
-        readonly initialAngleRadian?: number;
-    }) => readonly Points.Point[];
-    export type ArrowOpts = {
-        readonly arrowSize?: number;
-        readonly tailLength?: number;
-        readonly tailThickness?: number;
-        readonly angleRadian?: number;
-    };
-    /**
-     * Returns the points forming an arrow.
-     *
-     * @example Create an arrow anchored by its tip at 100,100
-     * ```js
-     * const opts = {
-     *  tailLength: 10,
-     *  arrowSize: 20,
-     *  tailThickness: 5,
-     *  angleRadian: degreeToRadian(45)
-     * }
-     * const arrow = Shapes.arrow({x:100, y:100}, `tip`, opts); // Yields an array of points
-     *
-     * // Eg: draw points
-     * Drawing.connectedPoints(ctx, arrow, {strokeStyle: `red`, loop: true});
-     * ```
-     *
-     * @param origin Origin of arrow
-     * @param from Does origin describe the tip, tail or middle?
-     * @param opts Options for arrow
-     * @returns
-     */
-    export const arrow: (origin: Points.Point, from: `tip` | `tail` | `middle`, opts?: ArrowOpts) => readonly Points.Point[];
-}
 declare module "geometry/Vector" {
     import { Polar } from "geometry/index";
     import * as Lines from "geometry/Line";
@@ -7719,7 +8558,7 @@ declare module "geometry/Vector" {
      * @param min Minium magnitude
      * @returns
      */
-    export const clampMagnitude: (v: Vector, max?: number, min?: number) => Points.Point | Polar.Coord;
+    export const clampMagnitude: (v: Vector, max?: number, min?: number) => Polar.Coord | Points.Point;
     /**
      * Returns `a + b`.
      *
@@ -7728,7 +8567,7 @@ declare module "geometry/Vector" {
      * @param b
      * @returns
      */
-    export const sum: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    export const sum: (a: Vector, b: Vector) => Polar.Coord | Points.Point;
     /**
      * Returns `a - b`.
      *
@@ -7736,7 +8575,7 @@ declare module "geometry/Vector" {
      * @param a
      * @param b
      */
-    export const subtract: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    export const subtract: (a: Vector, b: Vector) => Polar.Coord | Points.Point;
     /**
      * Returns `a * b`.
      *
@@ -7744,7 +8583,7 @@ declare module "geometry/Vector" {
      * @param a
      * @param b
      */
-    export const multiply: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    export const multiply: (a: Vector, b: Vector) => Polar.Coord | Points.Point;
     /**
      * Returns `a / b`.
      *
@@ -7752,7 +8591,7 @@ declare module "geometry/Vector" {
      * @param a
      * @param b
      */
-    export const divide: (a: Vector, b: Vector) => Points.Point | Polar.Coord;
+    export const divide: (a: Vector, b: Vector) => Polar.Coord | Points.Point;
 }
 declare module "geometry/Waypoint" {
     import * as Points from "geometry/Point";
@@ -7796,34 +8635,6 @@ declare module "geometry/CirclePacking" {
 }
 declare module "geometry/Layout" {
     export * as CirclePacking from "geometry/CirclePacking";
-}
-declare module "geometry/QuadTree" {
-    import { Points, Rects } from "geometry/index";
-    import { TreeNode } from "collections/Trees";
-    import { ShapePositioned } from "geometry/Shape";
-    enum Direction {
-        Nw = 0,
-        Ne = 1,
-        Sw = 2,
-        Se = 3
-    }
-    type QuadTreeItem = Points.Point | ShapePositioned;
-    export const quadTree: (bounds: Rects.RectPositioned, initialData?: readonly QuadTreeItem[], opts?: Partial<QuadTreeOpts>) => QuadTreeNode;
-    export class QuadTreeNode extends TreeNode<void> {
-        #private;
-        readonly boundary: Rects.RectPositioned;
-        readonly level: number;
-        readonly opts: QuadTreeOpts;
-        items: QuadTreeItem[];
-        constructor(boundary: Rects.RectPositioned, level: number, opts: QuadTreeOpts);
-        direction(d: Direction): QuadTreeNode | undefined;
-        add(p: QuadTreeItem): boolean;
-        couldHold(p: Points.Point): boolean;
-    }
-    export type QuadTreeOpts = {
-        readonly maxItems: number;
-        readonly maxLevels: number;
-    };
 }
 declare module "geometry/Scaler" {
     import { Point } from "geometry/Point";
@@ -7957,7 +8768,7 @@ declare module "visual/Colour" {
      * @param alpha Opacity (0-1), defaults to 1.0
      * @returns HSL colour string eg `hsl(20,50%,75%)`
      */
-    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string | undefined;
+    export const goldenAngleColour: (index: number, saturation?: number, lightness?: number, alpha?: number) => string;
     /**
      * Returns a random hue component
      * ```
@@ -10276,10 +11087,10 @@ declare module "geometry/Convolve2d" {
      */
     export function convolveImage(kernel: Kernel, image: ImageData): Generator<CellWithValue<Rgb>, void, undefined>;
     export function convolve<V>(kernel: Kernel, source: Grids.Grid, access: Grids.CellAccessor<V>, visitor: Grids.VisitGenerator, reduce: KernelReduce<V>, origin?: Grids.Cell): IterableIterator<CellWithValue<V>>;
-    type Kernel2dArray = ReadonlyArray<readonly [cell: Grids.Cell, value: number]>;
+    export type Kernel2dArray = ReadonlyArray<readonly [cell: Grids.Cell, value: number]>;
     /**
      * For a given kernel, returns an array of offsets. These
-     * consist of a cell offset (eg {x:-1,y:-1}) and the value at that kernel position.
+     * consist of a cell offset (eg `{x:-1,y:-1}`) and the value at that kernel position.
      * @param kernel
      * @param origin
      * @returns
@@ -10423,7 +11234,12 @@ declare module "geometry/index" {
     import * as Layouts from "geometry/Layout";
     export { Circles, Lines, Rects, Points, Paths, Grids, Beziers, Compound, Ellipses, Waypoints, Spheres };
     export { Layouts };
-    export { quadTree } from "geometry/QuadTree";
+    /**
+     * Quad tree is a datastructure for efficiently determining whether
+     * a point/shape is at a location
+     * - {@link quadTree}: Create a quad tree
+     */
+    export * as QuadTree from "geometry/QuadTree";
     export * as Scaler from "geometry/Scaler";
     export * as Convolve2d from "geometry/Convolve2d";
     /**
@@ -10483,7 +11299,7 @@ declare module "geometry/index" {
      *
      * Overview:
      * * {@link sphereFibonacci}: Generate points on a sphere
-     * * {@link vogelSpiral}: Generate a sunflower-esque pattern of points in a circle
+     * * {@link circleVogelSpiral}: Generate a sunflower-esque pattern of points in a circle
      */
     export * as SurfacePoints from "geometry/SurfacePoints";
     /**
@@ -10820,7 +11636,7 @@ declare module "io/JsonDevice" {
 }
 declare module "io/Serial" {
     import { JsonDevice, JsonDeviceOpts, JsonDeviceEvents, JsonDataEvent } from "io/JsonDevice";
-    export { JsonDeviceEvents, JsonDeviceOpts, JsonDataEvent };
+    export type { JsonDeviceEvents, JsonDeviceOpts, JsonDataEvent };
     export type SerialOpts = JsonDeviceOpts & {
         readonly filters?: ReadonlyArray<SerialPortFilter>;
         readonly baudRate?: number;
@@ -10943,7 +11759,8 @@ declare module "io/Espruino" {
     import { StateChangeEvent } from "flow/StateMachine";
     import { ISimpleEventEmitter } from "Events";
     import { EspruinoSerialDevice, EspruinoSerialDeviceOpts } from "io/EspruinoSerialDevice";
-    export { EspruinoBleDevice, EspruinoSerialDevice, EspruinoSerialDeviceOpts };
+    export { EspruinoBleDevice, EspruinoSerialDevice };
+    export type { EspruinoSerialDeviceOpts };
     export type DataEvent = {
         readonly data: string;
     };
@@ -11689,7 +12506,8 @@ declare module "io/index" {
     export * as Espruino from "io/Espruino";
     export * as Camera from "io/Camera";
     export * as VideoFile from "io/VideoFile";
-    export { FrameProcessor, FrameProcessorOpts } from "io/FrameProcessor";
+    export { FrameProcessor } from "io/FrameProcessor";
+    export type { FrameProcessorOpts } from "io/FrameProcessor";
     /**
      * Microcontrollers such as Arduinos connected via USB serial
      *
@@ -11918,233 +12736,6 @@ declare module "IterableAsync" {
      */
     export function zip<V>(...its: readonly AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
 }
-declare module "IterableSync" {
-    /**
-     * Return `it` broken up into chunks of `size`
-     *
-     * ```js
-     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
-     * // Yields: [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
-     * ```
-     * @param it
-     * @param size
-     * @returns
-     */
-    import { IsEqual } from "Util";
-    /**
-     * Yields chunks of the iterable `it` such that the end of a chunk is the
-     * start of the next chunk.
-     *
-     * Eg, with the input [1,2,3,4,5] and a size of 2, we would get back
-     * [1,2], [2,3], [3,4], [4,5].
-     *
-     *
-     * @param it
-     * @param size
-     * @returns
-     */
-    export function chunksOverlapping<V>(it: Iterable<V>, size: number): Generator<V[], void, unknown>;
-    /**
-     * Breaks an iterable into array chunks
-     * ```js
-     * chunks([1,2,3,4,5,6,7,8,9,10], 3);
-     * // Yields [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
-     * ```
-     * @param it
-     * @param size
-     */
-    export function chunks<V>(it: Iterable<V>, size: number): Generator<V[], void, unknown>;
-    /**
-     * Return concatenation of iterators
-     * @param its
-     */
-    export function concat<V>(...its: readonly Iterable<V>[]): Generator<V, void, undefined>;
-    /**
-     * Drops elements that do not meet the predicate `f`.
-     * ```js
-     * dropWhile([1, 2, 3, 4], e => e < 3);
-     * returns [3, 4]
-     * ```
-     * @param it
-     * @param f
-     */
-    export function dropWhile<V>(it: Iterable<V>, f: (v: V) => boolean): Generator<V, void, undefined>;
-    /**
-     * Returns true if items in two iterables are equal, as
-     * determined by the `equality` function.
-     * @param it1
-     * @param it2
-     * @param equality
-     * @returns
-     */
-    export function equals<V>(it1: IterableIterator<V>, it2: IterableIterator<V>, equality?: IsEqual<V>): boolean | undefined;
-    /**
-     * Returns true if `f` returns true for
-     * every item in iterable
-     * @param it
-     * @param f
-     * @returns
-     */
-    export function every<V>(it: Iterable<V>, f: (v: V) => boolean): boolean;
-    /**
-     * Yields `v` for each item within `it`.
-     *
-     * ```js
-     * fill([1, 2, 3], 0);
-     * // Yields: [0, 0, 0]
-     * ```
-     * @param it
-     * @param v
-     */
-    export function fill<V>(it: Iterable<V>, v: V): Generator<V, void, unknown>;
-    /**
-     * Execute function `f` for each item in iterable
-     * @param it
-     * @param f
-     */
-    export function forEach<V>(it: Iterable<V>, f: (v: V) => boolean): void;
-    /**
-     * ```js
-     * filter([1, 2, 3, 4], e => e % 2 == 0);
-     * returns [2, 4]
-     * ```
-     * @param it
-     * @param f
-     */
-    export function filter<V>(it: Iterable<V>, f: (v: V) => boolean): Generator<V, void, unknown>;
-    /**
-     * Returns first item from iterable `it` that matches predicate `f`
-     * ```js
-     * find([1, 2, 3, 4], e => e > 2);
-     * // Yields: 3
-     * ```
-     * @param it
-     * @param f
-     * @returns
-     */
-    export function find<V>(it: Iterable<V>, f: (v: V) => boolean): V | undefined;
-    /**
-     * Returns a 'flattened' copy of array, un-nesting arrays one level
-     * ```js
-     * flatten([1, [2, 3], [[4]]]);
-     * // Yields: [1, 2, 3, [4]];
-     * ```
-     * @param it
-     */
-    export function flatten<V>(it: Iterable<V>): Generator<any, void, unknown>;
-    /**
-     * Maps an iterable of type `V` to type `X`.
-     * ```js
-     * map([1, 2, 3], e => e*e)
-     * returns [1, 4, 9]
-     * ```
-     * @param it
-     * @param f
-     */
-    export function map<V, X>(it: Iterable<V>, f: (v: V) => X): Generator<X, void, unknown>;
-    /**
-     * Returns the maximum seen of an iterable
-     * ```js
-     * min([
-     *  {i:0,v:1},
-     *  {i:1,v:9},
-     *  {i:2,v:-2}
-     * ], (a, b) => a.v > b.v);
-     * // Yields: {i:1, v:-9}
-     * ```
-     * @param it Iterable
-     * @param gt Should return _true_ if `a` is greater than `b`.
-     * @returns
-     */
-    export function max<V>(it: Iterable<V>, gt?: (a: V, b: V) => boolean): V | undefined;
-    /**
-     * Returns the minimum seen of an iterable
-     * ```js
-     * min([
-     *  {i:0,v:1},
-     *  {i:1,v:9},
-     *  {i:2,v:-2}
-     * ], (a, b) => a.v > b.v);
-     * // Yields: {i:2, v:-2}
-     * ```
-     * @param it Iterable
-     * @param gt Should return _true_ if `a` is greater than `b`.
-     * @returns
-     */
-    export function min<V>(it: Iterable<V>, gt?: (a: V, b: V) => boolean): V | undefined;
-    /**
-     * Returns count from `start` for a given length
-     * ```js
-     * range(-5, 10);
-     * // Yields: [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
-     * ```
-     * @param start
-     * @param len
-     */
-    export function range(start: number, len: number): Generator<number, void, unknown>;
-    /**
-     * Reduce for iterables
-     * ```js
-     * reduce([1, 2, 3], (acc, cur) => acc + cur, 0);
-     * // Yields: 6
-     * ```
-     * @param it Iterable
-     * @param f Function
-     * @param start Start value
-     * @returns
-     */
-    export function reduce<V>(it: Iterable<V>, f: (acc: V, current: V) => V, start: V): V;
-    /**
-     * Returns a section from an iterable
-     * @param it Iterable
-     * @param start Start index
-     * @param end End index (or until completion)
-     */
-    export function slice<V>(it: Iterable<V>, start?: number, end?: number): Generator<V, void, unknown>;
-    /**
-     * Returns true the first time `f` returns true. Useful for spotting any occurrence of
-     * data, and exiting quickly
-     * ```js
-     * some([1, 2, 3, 4], e => e % 3 === 0);
-     * // Yields: true
-     * ```
-     * @param it Iterable
-     * @param f Filter function
-     * @returns
-     */
-    export function some<V>(it: Iterable<V>, f: (v: V) => boolean): boolean;
-    /**
-     * Returns items for which the filter function returns _true_
-     * ```js
-     * takeWhile([ 1, 2, 3, 4 ], e => e < 3);
-     * // Yields: [ 1, 2 ]
-     * ```
-     * @param it Iterable
-     * @param f Filter function
-     * @returns
-     */
-    export function takeWhile<V>(it: Iterable<V>, f: (v: V) => boolean): Generator<V, void, unknown>;
-    /**
-     * Returns unique items from several iterables
-     * ```js
-     * unique([{i:0,v:2},{i:1,v:3},{i:2,v:2}], e => e.v);
-     * Yields: returns [{i:0,v:2},{i:1,v:3}]
-     *
-     * @param it
-     * @param f
-     */
-    export function unique<V>(it: Iterable<V>, f?: ((id: V) => V)): Generator<V, void, unknown>;
-    /**
-     * Combine same-positioned items from several iterables
-     * ```js
-     * zip( [1, 2, 3], [4, 5, 6], [7, 8, 9] );
-     * Yields: [ [1, 4, 7], [2, 5, 8], [3, 6, 9] ]
-     * ```
-     * @param its
-     * @returns
-     */
-    export function zip<V>(...its: readonly Iterable<V>[]): Generator<any[], void, unknown>;
-}
 declare module "Generators" {
     export { pingPong, pingPongPercent } from "modulation/PingPong";
     export * as Async from "IterableAsync";
@@ -12216,6 +12807,16 @@ declare module "Generators" {
      *
      * If you want to accumulate return values, consider using
      * {@link Flow.repeat}.
+     *
+     * @example Run some code every 100ms, 10 times:
+     * ```js
+     * import { interval } from 'https://unpkg.com/ixfx/dist/flow.js'
+     * import { count } from 'https://unpkg.com/ixfx/dist/generators.js'
+     * const counter = count(10);
+     * for await (const v of interval(counter, 100)) {
+     *  // Do something
+     * }
+     * ```
      * @param amount Number of integers to yield
      * @param offset Added to result
      */
@@ -12505,7 +13106,7 @@ declare module "data/ObjectTracker" {
     /**
      * A tracked value of type `V`.
      */
-    export class ObjectTracker<V> extends TrackerBase<V> {
+    export class ObjectTracker<V extends object> extends TrackerBase<V> {
         values: Timestamped<V>[];
         constructor(opts?: TrackedValueOpts);
         onTrimmed(): void;
@@ -14218,7 +14819,7 @@ declare module "modulation/Easing" {
     };
 }
 declare module "collections/NumericArrays" {
-    import * as Easings from "modulation/Easing";
+    import { EasingFn } from "modulation/Easing";
     /**
      * Applies a function `fn` to the elements of an array, weighting them based on their relative position.
      *
@@ -14324,7 +14925,7 @@ declare module "collections/NumericArrays" {
      * @param data Data to average
      * @param weightings Array of weightings that match up to data array, or an easing function
      */
-    export const averageWeighted: (data: readonly number[], weightings: (readonly number[]) | Easings.EasingFn) => number;
+    export const averageWeighted: (data: readonly number[], weightings: (readonly number[]) | EasingFn) => number;
     /**
      * Returns the minimum number out of `data`.
      * Undefined and non-numbers are silently ignored.
@@ -14487,7 +15088,7 @@ declare module "collections/Arrays" {
      * @param array
      * @param index
      */
-    export const guardIndex: <V>(array: readonly V[], index: number, paramName?: string) => void;
+    export const guardIndex: <V>(array: ArrayLike<V>, index: number, paramName?: string) => void;
     /**
      * Returns _true_ if all the contents of the array are identical.
      *
@@ -14514,7 +15115,7 @@ declare module "collections/Arrays" {
      * @param equality Equality checker. Uses string-conversion checking by default
      * @returns
      */
-    export const areValuesIdentical: <V>(array: readonly V[], equality?: IsEqual<V> | undefined) => boolean;
+    export const areValuesIdentical: <V>(array: V[] | readonly V[], equality?: IsEqual<V> | undefined) => boolean;
     /**
      * Returns the _intersection_ of two arrays: the elements that are in common.
      *
@@ -14527,7 +15128,7 @@ declare module "collections/Arrays" {
      * @param equality
      * @returns
      */
-    export const intersection: <V>(a1: readonly V[], a2: readonly V[], equality?: IsEqual<V>) => V[];
+    export const intersection: <V>(a1: V[] | readonly V[], a2: V[] | readonly V[], equality?: IsEqual<V>) => V[];
     /**
      * Returns a 'flattened' copy of array, un-nesting arrays one level
      * ```js
@@ -14537,7 +15138,7 @@ declare module "collections/Arrays" {
      * @param array
      * @returns
      */
-    export const flatten: <V>(array: readonly (V | readonly V[])[]) => readonly V[];
+    export const flatten: <V>(array: (V | readonly V[])[]) => V[];
     /**
      * Zip ombines the elements of two or more arrays based on their index.
      *
@@ -14562,7 +15163,7 @@ declare module "collections/Arrays" {
      * @param arrays
      * @returns Zipped together array
      */
-    export const zip: (...arrays: ReadonlyArray<any>) => ReadonlyArray<any>;
+    export const zip: (...arrays: Array<any> | ReadonlyArray<any>) => Array<any>;
     /**
      * Returns an interleaving of two or more arrays. All arrays must be the same length.
      *
@@ -14578,7 +15179,7 @@ declare module "collections/Arrays" {
      * @param arrays
      * @returns
      */
-    export const interleave: <V>(...arrays: readonly (readonly V[])[]) => readonly V[];
+    export const interleave: <V>(...arrays: (readonly V[])[] | readonly (readonly V[])[]) => V[];
     /**
      * Returns an copy of `data` with specified length.
      * If the input array is too long, it is truncated.
@@ -14603,7 +15204,7 @@ declare module "collections/Arrays" {
      * @param expand Expand strategy
      * @typeParam V Type of array
      */
-    export const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => readonly V[];
+    export const ensureLength: <V>(data: V[] | readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => V[];
     /**
      * Return elements from `array` that match a given `predicate`, and moreover are between
      * the given `startIndex` and `endIndex` (both inclusive).
@@ -14623,7 +15224,7 @@ declare module "collections/Arrays" {
      * @param startIndex Start index (defaults to 0)
      * @param endIndex End index (defaults to last index)
      */
-    export const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex?: number, endIndex?: number) => readonly V[];
+    export const filterBetween: <V>(array: V[] | readonly V[], predicate: (value: V, index: number, array: V[] | readonly V[]) => boolean, startIndex?: number, endIndex?: number) => V[];
     /**
      * Returns a random array index.
      *
@@ -14687,7 +15288,7 @@ declare module "collections/Arrays" {
      * @return Returns an object `{value:V|undefined, array:V[]}`
      *
      */
-    export const randomPluck: <V>(array: readonly V[], mutate?: boolean, rand?: RandomSource) => {
+    export const randomPluck: <V>(array: readonly V[] | V[], mutate?: boolean, rand?: RandomSource) => {
         readonly value: V | undefined;
         readonly array: V[];
     };
@@ -14706,7 +15307,7 @@ declare module "collections/Arrays" {
      * @returns Copy with items moved around randomly
      * @template V Type of array items
      */
-    export const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => readonly V[];
+    export const shuffle: <V>(dataToShuffle: V[] | readonly V[], rand?: RandomSource) => V[];
     /**
      * Sorts an array of objects in ascending order
      * by the given property name, assuming it is a number.
@@ -14725,7 +15326,7 @@ declare module "collections/Arrays" {
      * @param data
      * @param propertyName
      */
-    export const sortByNumericProperty: <V, K extends keyof V>(data: readonly V[], propertyName: K) => V[];
+    export const sortByNumericProperty: <V, K extends keyof V>(data: V[] | readonly V[], propertyName: K) => V[];
     /**
      * Returns an array with a value omitted. If value is not found, result will be a copy of input.
      * Value checking is completed via the provided `comparer` function.
@@ -14771,14 +15372,31 @@ declare module "collections/Arrays" {
      * @param comparer Comparison function. If not provided `Util.isEqualDefault` is used, which compares using `===`
      * @return Copy of array without value.
      */
-    export const without: <V>(data: readonly V[], value: V, comparer?: IsEqual<V>) => readonly V[];
+    export const without: <V>(data: V[] | readonly V[], value: V, comparer?: IsEqual<V>) => V[];
     /**
-     * Returns all items in `data` for as long as `predicate` returns true
+     * Returns all items in `data` for as long as `predicate` returns true.
+     *
+     * `predicate` returns an array of `[stop:boolean, acc:A]`. The first value
+     * is _true_ when the iteration should stop, and the `acc` is the accumulated value.
+     * This allows `until` to be used to carry over some state from item to item.
+     *
+     * @example Stop when we hit an item with value of 3
+     * ```js
+     * const v = Arrays.until([1,2,3,4,5], v => [v === 3, 0]);
+     * // [ 1, 2 ]
+     * ```
+     *
+     * @example Stop when we reach a total
+     * ```js
+     * // Stop when accumulated value reaches 6
+     * const v = Arrays.until[1,2,3,4,5], (v, acc) => [acc >= 7, v+acc], 0);
+     * // [1, 2, 3]
+     * ```
      * @param data
      * @param predicate
      * @returns
      */
-    export const until: <V, A>(data: readonly V[], predicate: (v: V, acc: A) => readonly [stop: boolean, acc: A], initial: A) => readonly V[];
+    export const until: <V, A>(data: V[] | readonly V[], predicate: (v: V, acc: A) => readonly [stop: boolean, acc: A], initial: A) => V[];
     /**
      * Removes an element at `index` index from `data`, returning the resulting array without modifying the original.
      *
@@ -14801,7 +15419,7 @@ declare module "collections/Arrays" {
      * @typeParam V Type of array
      * @returns
      */
-    export const remove: <V>(data: readonly V[], index: number) => readonly V[];
+    export const remove: <V>(data: V[] | readonly V[], index: number) => V[];
     /**
      * Groups data by a function `grouper`, returning data as a map with string
      * keys and array values. Multiple values can be assigned to the same group.
@@ -14837,7 +15455,7 @@ declare module "collections/Arrays" {
      * @typeParam V Type of values
      * @returns Map
      */
-    export const groupBy: <K, V>(array: readonly V[], grouper: (item: V) => K) => Map<K, V[]>;
+    export const groupBy: <K, V>(array: V[], grouper: (item: V) => K) => Map<K, V[]>;
     /**
      * Samples array
      *
@@ -14863,7 +15481,7 @@ declare module "collections/Arrays" {
      * @param amount Amount, given as a percentage (0..1) or the number of interval (ie 3 for every third item)
      * @returns
      */
-    export const sample: <V>(array: readonly V[], amount: number) => readonly V[];
+    export const sample: <V>(array: ArrayLike<V>, amount: number) => V[];
     /**
      * Return `arr` broken up into chunks of `size`
      *
@@ -14875,7 +15493,7 @@ declare module "collections/Arrays" {
      * @param size
      * @returns
      */
-    export function chunks<V>(arr: ReadonlyArray<V>, size: number): V[][];
+    export function chunks<V>(arr: Array<V> | ReadonlyArray<V>, size: number): V[][];
     /**
      * Returns a result of a merged into b.
      * B is always the 'newer' data that takes
@@ -14923,7 +15541,7 @@ declare module "collections/Arrays" {
      * @param reconcile Returns value to decide 'winner' when keys conflict.
      * @param arrays Arrays of data to merge
      */
-    export const mergeByKey: <V>(keyFn: ToString<V>, reconcile: MergeReconcile<V>, ...arrays: readonly (readonly V[])[]) => readonly V[];
+    export const mergeByKey: <V>(keyFn: ToString<V>, reconcile: MergeReconcile<V>, ...arrays: V[][]) => V[];
     /**
      * Reduces in a pairwise fashion.
      *
@@ -14948,23 +15566,64 @@ declare module "collections/Arrays" {
      * @param initial
      * @returns
      */
-    export const reducePairwise: <V, X>(arr: readonly V[], reducer: (acc: X, a: V, b: V) => X, initial: X) => X;
+    export const reducePairwise: <V, X>(arr: readonly V[] | V[], reducer: (acc: X, a: V, b: V) => X, initial: X) => X;
     /**
      * Assuming that `input` array is only unique values, this function
      * returns a new array with unique items from `values` added.
      *
-     * If `comparer` function is not provided, values are compared by reference.
+     * If `comparer` function is not provided, values are compared using the
+     * default === semantics (via {@link Util.isEqualDefault})
+     *
+     * ```js
+     * const existing = [ 1, 2, 3 ];
+     * const newValues = [ 3, 4, 5];
+     * const v = Arrays.pushUnique(existing, newValues);
+     * // [ 1, 2, 3, 4, 5]
+     * ```
+     *
+     * To combine one or more arrays, keeping only unique items, use {@link unique}
      * @param input
      * @param values
      */
-    export const pushUnique: <V>(input: readonly V[], values: readonly V[], comparer?: IsEqual<V> | undefined) => readonly V[];
+    export const pushUnique: <V>(input: readonly V[] | V[], values: readonly V[] | V[], comparer?: IsEqual<V> | undefined) => V[];
+    /**
+     * Returns two separate arrays of everything that `filter` returns _true_,
+     * and everything it returns _false_ on. The in-built Array.filter() in
+     * constrast only returns things that `filter` returns _true_ for.
+     *
+     * ```js
+     * const [ matching, nonMatching ] = filterAB(data, v => v.enabled);
+     * // `matching` is a list of items from `data` where .enabled is true
+     * // `nonMatching` is a list of items from `data` where .enabled is false
+     * ```
+     * @param data Array of data to filter
+     * @param filter Function which returns _true_ to add items to the A list, or _false_ for items to add to the B list
+     * @returns Array of two elements. The first is items that match `filter`, the second is items that do not.
+     */
+    export const filterAB: <V>(data: readonly V[] | V[], filter: (a: V) => boolean) => [a: V[], b: V[]];
+    /**
+     * Combines the values of one or more arrays, removing duplicates
+     * ```js
+     * const v = Arrays.unique([ [1, 2, 3, 4], [ 3, 4, 5, 6] ]);
+     * // [ 1, 2, 3, 4, 5, 6]
+     * ```
+     * @param arrays
+     * @param comparer
+     * @returns
+     */
+    export const unique: <V>(arrays: V[][], comparer?: <V_1>(a: V_1, b: V_1) => boolean) => V[];
 }
 declare module "Random" {
     import { randomIndex, randomElement } from "collections/Arrays";
-    import * as Easings from "modulation/Easing";
+    import { EasingName } from "modulation/Easing";
     export { randomIndex as arrayIndex };
     export { randomElement as arrayElement };
     export { randomHue as hue } from "visual/Colour";
+    export type RandomOpts = {
+        max: number;
+        min?: number;
+        source?: RandomSource;
+    };
     /**
      * Default random number generator: `Math.random`.
      */
@@ -14975,6 +15634,10 @@ declare module "Random" {
      * Predefined sources: {@link defaultRandom}, {@link gaussianSkewed}, {@link weightedSkewed}
      */
     export type RandomSource = () => number;
+    export type WeightedOpts = {
+        easing?: EasingName;
+        source?: RandomSource;
+    };
     /***
      * Returns a random number, 0..1, weighted by a given easing function.
      * Default easing is `quadIn`, which skews towards zero.
@@ -14990,11 +15653,10 @@ declare module "Random" {
      * const w = weightedSkewed(`quadIn`);
      * w(); // Produce a random number
      * ```
-     * @param easingName Easing name. `quadIn` by default.
-     * @param rand Source random generator. `Math.random` by default.
+     * @param easingName Easing name or options `quadIn` by default.
      * @returns Random number (0-1)
      */
-    export const weighted: (easingName?: Easings.EasingName, rand?: RandomSource) => number;
+    export const weighted: (easingNameOrOpts?: EasingName | WeightedOpts) => number;
     /**
      * Returns a curried version of {@link weighted}.
      *
@@ -15002,11 +15664,20 @@ declare module "Random" {
      * const w = weightedSkewed(`quadIn`);   // Returns a function
      * w(); // Produce a random number
      * ```
+     *
+     * If you want a random number directly, use {@link weighted}
+     * ```js
+     * weighted(`quadIn`); // Returns a random value
+     * ```
      * @param easingName
      * @param rand
      * @returns
      */
-    export const weightedSkewed: (easingName?: Easings.EasingName, rand?: RandomSource) => RandomSource;
+    export const weightedSkewed: (easingNameOrOpts?: EasingName | WeightedOpts) => RandomSource;
+    export type WeightedIntOpts = WeightedOpts & {
+        min?: number;
+        max: number;
+    };
     /**
      * Random integer, weighted according to an easing function.
      * Number will be inclusive of `min` and below `max`.
@@ -15035,13 +15706,10 @@ declare module "Random" {
      * Note: result from easing function will be clamped to
      * the min/max (by default 0-1);
      *
-     * @param max Maximum (exclusive)
-     * @param min Minimum number (inclusive), 0 by default
-     * @param rand Source random generator. `Math.random` by default.
-     * @param easing Easing to use, uses `quadIn` by default
+     * @param maxOrOpts Maximum (exclusive)
      * @returns
      */
-    export const weightedInteger: (minOrMax: number, maxOrEasing?: number | Easings.EasingName, easing?: Easings.EasingName, rand?: RandomSource) => number;
+    export const weightedInteger: (maxOrOpts: number | WeightedIntOpts) => number;
     /**
      * Returns a random number with gaussian (ie bell-curved) distribution
      * ```js
@@ -15088,23 +15756,33 @@ declare module "Random" {
      */
     export const gaussianSkewed: (skew?: number) => () => number;
     /**
-     * Returns a random integer between `max` (exclusive) and `min` (inclusive)
-     * If `min` is not specified, 0 is used.
+     * Returns a random integer between `max` (exclusive) and 0 (inclusive)
      *
      * ```js
-     * integer(10);    // Random number 0-9
-     * integer(5, 10); // Random number 5-9
-     * integer(-5);       // Random number from -4 to 0
-     * integer(-5, -10); // Random number from -10 to -6
+     * integer(10);  // Random number 0-9
      * ```
-     * @param max
-     * @param min
-     * @returns
+     *
+     * If a negative value is given, this is assumed to be the
+     * minimum (inclusive), with 0 as the max (inclusive)
+     * ```js
+     * integer(-5);  // Random number from -5 to 0
+     * ```
+     *
+     * Specify options for a custom minimum or source of random:
+     * ```js
+     * integer({ max: 5,  min: 10 });  // Random number 4-10
+     * integer({ max: -5, min: -10 }); // Random number from -10 to -6
+     * integer({ max: 10, source: Math.random }); // Random number between 0-9, with custom source of random
+     * ```
+     *
+     * Throws an error if max & min are equal
+     * @param maxOrOpts Max value (exclusive), or set of options
+     * @returns Random integer
      */
-    export const integer: (max: number, min?: number) => number;
+    export const integer: (maxOrOpts: number | RandomOpts) => number;
     /**
-     * Random a random float between `max` (exclusive) and `min` (inclusive).
-     * 1 and 0 are used as default max and min, respectively.
+     * Random float between `max` (exclusive) and 0 (inclusive). Max is 1 if unspecified.
+     *
      *
      * ```js
      * // Random number between 0..1 (but not including 1)
@@ -15112,29 +15790,120 @@ declare module "Random" {
      * const v = float();
      * // Random float between 0..100 (but not including 100)
      * const v = float(100);
-     * // Random float between 20..40 (possibily including 20, but always lower than 40)
-     * const v = float(20, 40);
      * ```
-     * @param max
-     * @param min
-     * @returns
+     *
+     * Options can be used:
+     * ```js
+     * // Random float between 20..40 (possibly including 20, but always lower than 40)
+     * const v = float({ min: 20, max: 40 });
+     * ```
+     * @param maxOrOpts Maximum value (exclusive) or options
+     * @returns Random number
      */
-    export const float: (max?: number, min?: number) => number;
+    export const float: (maxOrOpts?: number | RandomOpts) => number;
+    export type StringOpts = {
+        length: number;
+        source?: RandomSource;
+    };
     /**
      * Returns a string of random letters and numbers of a given `length`.
      *
      * ```js
+     * string();  // Random string of length 5
      * string(4); // eg. `4afd`
      * ```
      * @param length Length of random string
      * @returns Random string
      */
-    export const string: (length: number) => string;
+    export const string: (lengthOrOpts?: number | StringOpts) => void;
     /**
      * Generates a short roughly unique id
      * @returns
      */
     export const shortGuid: () => string;
+    /**
+     * Returns a random number of minutes, with a unit of milliseconds.
+     * Max value is exclusive
+     *
+     * ```js
+     * // Random value from 0 to one milli less than 5*60*1000
+     * minuteMs(5);
+     * ```
+     *
+     * Options can be specified instead:
+     * ```js
+     * // Random time between one minute and 5 minutes
+     * minuteMs({ max: 5, min: 1 });
+     * ```
+     *
+     * It's a very minor function, but can make
+     * code a little more literate:
+     * ```js
+     * // Random timeout of up to 5 mins
+     * setTimeout(() => { ... }, minuteMs(5));
+     * ```
+     * @param maxMinutesOrOpts
+     * @returns Milliseconds
+     */
+    export const minutesMs: (maxMinutesOrOpts: number | RandomOpts) => number;
+    /**
+     * Returns a random number of seconds, with a unit of milliseconds.
+     * Maximum value is exclusive.
+     *
+     * ```js
+     * // Random milliseconds between 0..4999
+     * secondsMs(5000);
+     * ```
+     *
+     * Options can be provided:
+     * ```js
+     * // Random milliseconds between 1000-4999
+     * secondsMs({ max:5, min:1 });
+     * ```
+     * It's a very minor function, but can make
+     * code a little more literate:
+     * ```js
+     * // Random timeout of up to 5 seconds
+     * setTimeout(() => { ...}, secondsMs(5));
+     * ```
+     * @param maxSecondsOrOpts Maximum seconds, or options.
+     * @returns Milliseconds
+     */
+    export const secondsMs: (maxSecondsOrOpts: number | RandomOpts) => number;
+    export type GenerateRandomOpts = RandomOpts & {
+        /**
+         * If true, number range is looped
+         */
+        loop?: boolean;
+    };
+    /**
+     * Returns a generator over random unique integers, up to
+     * but not including the given max value.
+     *
+     * ```js
+     * // 0..9 range
+     * const rand = [ ...generateIntegerUnique(10) ];
+     * // eg: [2, 9, 6, 0, 8, 7, 3, 4, 5, 1]
+     * ```
+     *
+     * Options can be provided:
+     * ```js
+     * // 5..9 range
+     * const rand = [ ...generateIntegerUnique({ min: 5, max: 10 })];
+     * ```
+     *
+     * Range can be looped. Once the initial random walk through the number
+     * range completes, it starts again in a new random way.
+     *
+     * ```js
+     * for (const r of generateIntegerUnique({ max: 10, loop: true })) {
+     *  // Warning: loops forever
+     * }
+     * ```
+     * @param maxOrOpts
+     * @returns
+     */
+    export function generateIntegerUnique(maxOrOpts: number | GenerateRandomOpts): IterableIterator<number>;
 }
 declare module "Text" {
     import { string as random } from "Random";
@@ -15148,11 +15917,25 @@ declare module "Text" {
      * ```
      * @param source Source text
      * @param start Start match
-     * @param end If undefined, `start` will be used instead
+     * @param end If undefined, the `start` string will be looked for
      * @param lastEndMatch If true, looks for the last match of `end` (default). If false, looks for the first match.
      * @returns
      */
     export const between: (source: string, start: string, end?: string, lastEndMatch?: boolean) => string | undefined;
+    /**
+     * Like {@link between}, but also returns the source string without the start/end match and what's between.
+     * ```js
+     * const [src,between] = betweenChomp('hello [there] friend', '[', ']');
+     * // src: 'hello  friend'
+     * // between: 'there'
+     * ```
+     * @param source
+     * @param start
+     * @param end
+     * @param lastEndMatch
+     * @returns
+     */
+    export const betweenChomp: (source: string, start: string, end?: string, lastEndMatch?: boolean) => [source: string, between: string | undefined];
     /**
      * Returns first position of the given character code, or -1 if not found.
      * @param source Source string
@@ -15163,9 +15946,11 @@ declare module "Text" {
      */
     export const indexOfCharCode: (source: string, code: number, start?: number, end?: number) => number;
     /**
-     * Returns `source` with chars removed at `removeStart` position
+     * Returns `source` with a given number of characters removed from a start position.
+     *
      * ```js
-     * omitChars(`hello there`, 1, 3);
+     * // Remove three characters starting at position 1
+     * omitChars(`hello there`, 1, 3); // ie. removes 'ell'
      * // Yields: `ho there`
      * ```
      * @param source
@@ -15202,11 +15987,29 @@ declare module "Text" {
      * @param match
      * @param startPos If provided, gives the starting offset. Default 0
      */
-    export const untilMatch: (source: string, match: string, startPos?: number) => string;
+    export const untilMatch: (source: string, match: string, opts?: MatchOpts) => string;
+    export type MatchOpts = {
+        startPos?: number;
+        fromEnd?: boolean;
+    };
+    /**
+     * Returns all the text in `source` that follows `match`. If not found, `source` is returned.
+     * ```js
+     * afterMatch(`Hello. There`, `.`); // ' There'
+     * afterMatch(`Hello, there', `,`); // 'Hello, there'
+     * ```
+     * @param source
+     * @param match
+     * @param startPos
+     * @returns
+     */
+    export const afterMatch: (source: string, match: string, opts?: MatchOpts) => string;
     /**
      * 'Unwraps' a string, removing one or more 'wrapper' strings that it starts and ends with.
+     * Only removes when a matching end is found.
      * ```js
      * unwrap("'hello'", "'");        // hello
+     * // No mataching end 'a', so nothing happens
      * unwrap("apple", "a");          // apple
      * unwrap("wow", "w");            // o
      * unwrap(`"'blah'"`, '"', "'");  // blah
@@ -15637,7 +16440,8 @@ declare module "collections/ExpiringMap" {
 }
 declare module "collections/Map" {
     import { IsEqual, ToString } from "Util";
-    export { create as expiringMap, ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts } from "collections/ExpiringMap";
+    export { create as expiringMap, ExpiringMap } from "collections/ExpiringMap";
+    export type { ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts } from "collections/ExpiringMap";
     /**
      * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
      * what key value might be under.
@@ -16148,7 +16952,6 @@ declare module "__tests__/guards.test" { }
 declare module "__tests__/iterableSync.test" { }
 declare module "__tests__/keyValue.test" { }
 declare module "__tests__/numbers.test" { }
-declare module "__tests__/random.test" { }
 declare module "__tests__/text.test" { }
 declare module "__tests__/util.test" { }
 declare module "__tests__/collections/arrays.test" { }
@@ -16160,7 +16963,10 @@ declare module "__tests__/collections/mapMutable.test" { }
 declare module "__tests__/collections/numericArrays.test" { }
 declare module "__tests__/collections/queue.test" { }
 declare module "__tests__/collections/sets.test" { }
+declare module "__tests__/collections/simpleMapArrayMutable.test" { }
 declare module "__tests__/collections/stack.test" { }
+declare module "__tests__/collections/tree.test" { }
+declare module "__tests__/collections/treeNodeMutable.test" { }
 declare module "__tests__/data/data.test" { }
 declare module "__tests__/data/pool.test" { }
 declare module "flow/BehaviourTree" {
@@ -16553,3 +17359,17 @@ declare module "geometry/PoissonDisk" {
     };
     export const poissonDisk: (rect: Rects.RectPositioned, opts: PoissonDiskOpts) => void;
 }
+declare module "test/util" {
+    import { ExecutionContext } from "ava";
+    export const areIntegers: (t: ExecutionContext, a: Array<number>) => void;
+    export const equalUnordered: (t: ExecutionContext, a: Array<any>, b: Array<any>) => void;
+    export type ExpectedOpts = {
+        lowerIncl?: number;
+        upperIncl?: number;
+        lowerExcl?: number;
+        upperExcl?: number;
+    };
+    export const rangeCheckInteger: (t: ExecutionContext, v: Array<number>, expected: ExpectedOpts) => void;
+    export const rangeCheck: (t: ExecutionContext, v: Array<number>, expected: ExpectedOpts) => void;
+}
+declare module "test/random" { }

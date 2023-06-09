@@ -98,7 +98,7 @@ const moveElement = (el, relativePosition) => {
  */
 const createThing = () => {
   const t = {
-    mass: Random.float(1, 0.5),
+    mass: Random.float({ min: 0.5, max: 1 }),
     id: Random.shortGuid(),
     // Assign random position (normalised 0..1 scale)
     position: Points.random(),

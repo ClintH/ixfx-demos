@@ -1,20 +1,18 @@
 import {
   getSorter
-} from "./chunk-UMAEVBXR.js";
-import "./chunk-VCCD7R7D.js";
-import "./chunk-SUBXAB65.js";
-import "./chunk-4R4FHD4A.js";
-import "./chunk-5MINYKUA.js";
-import "./chunk-AWNGL7KJ.js";
-import "./chunk-DEXQDIBZ.js";
-import "./chunk-EVWUBOZU.js";
+} from "./chunk-FXHXRXLC.js";
+import "./chunk-V6H5FAK2.js";
+import "./chunk-HAK24YB3.js";
+import "./chunk-ENNFJSEP.js";
+import "./chunk-5M4HS36T.js";
+import "./chunk-I2JSJNLZ.js";
 import {
   __decorateClass,
   __privateAdd,
   __privateGet,
   __privateSet,
   __publicField
-} from "./chunk-FU5PERHQ.js";
+} from "./chunk-H4X2M26K.js";
 
 // src/components/HistogramVis.ts
 import { LitElement, css, html } from "lit";
@@ -182,7 +180,10 @@ HistogramVis = __decorateClass([
 var _sorter;
 var FrequencyHistogramPlot = class {
   constructor(el) {
+    //readonly parentEl:HTMLElement;
+    // eslint-disable-next-line functional/prefer-readonly-type
     __publicField(this, "el");
+    // eslint-disable-next-line functional/prefer-readonly-type
     __privateAdd(this, _sorter, void 0);
     this.el = el;
   }
@@ -194,6 +195,12 @@ var FrequencyHistogramPlot = class {
       return;
     this.el.data = [];
   }
+  // init() {
+  //   if (this.el !== undefined) return; // already inited
+  //   // eslint-disable-next-line functional/immutable-data
+  //   this.el = document.createElement(`histogram-vis`);
+  //   this.parentEl.appendChild(this.el);
+  // }
   dispose() {
     const el = this.el;
     if (el === void 0)
