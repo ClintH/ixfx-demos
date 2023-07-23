@@ -1,16 +1,16 @@
 import {
   StateMachine,
+  bidirectionalDescriptionFromList,
   create,
   descriptionFromList,
   drive,
   fromList,
   fromListBidirectional
-} from "./chunk-HAK24YB3.js";
-import "./chunk-5M4HS36T.js";
-import "./chunk-I2JSJNLZ.js";
-import "./chunk-H4X2M26K.js";
+} from "./chunk-Y5UELOL6.js";
+import "./chunk-VFKWDAYV.js";
 export {
   StateMachine,
+  bidirectionalDescriptionFromList,
   create,
   descriptionFromList,
   drive,

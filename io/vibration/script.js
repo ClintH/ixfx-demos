@@ -3,7 +3,7 @@
  * See README.md
  */
 import { defaultErrorHandler } from '../../ixfx/dom.js';
-import { adsrSample, defaultAdsrOpts } from '../../ixfx/modulation.js';
+import { adsrIterable, defaultAdsrOpts } from '../../ixfx/modulation.js';
 import { IterableAsync } from '../../ixfx/util.js';
 import { repeat } from '../../ixfx/flow.js';
 import { interleave } from '../../ixfx/arrays.js';

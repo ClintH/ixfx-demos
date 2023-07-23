@@ -1,4 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
+import { clamp, scale } from '../../ixfx/data.js';
 
 // Define our Thing
 // In this demo, things have a position, suprise and elementId
@@ -17,7 +18,6 @@ const settings = Object.freeze({
 // State
 let state = Object.freeze({
   // Create a thing when starting
-  /** @type Thing */
   thing: generateThing()
 });
 
@@ -41,15 +41,15 @@ const useThing = (thing) => {
 };
 
 /**
- * Continually loops, updating the thing
+ * Updates a given thing based on state
  * @param {Thing} thing
+ * @returns {Thing}
  */
-const loopThing = (thing) => {
+const updateThingFromState = (thing) => {
   // In this function, we probably want the steps:
-  
   // 1. Alter properties based on external state/settings
   // 2. Alter properties based on the state of 'thing'
-  // 3. Apply 'intrinsic' logic of thing. Eg, that a variable will
+  // 3. Apply 'intrinsic' logic of thing. Eg. that a variable will
   //    always decrease a little each loop
   // 4. Apply sanity checks to properties, making sure they are within proper ranges
   // 5. Return a new Thing
@@ -66,15 +66,17 @@ const loopThing = (thing) => {
 const useState = () => {
   const { thing } = state;
 
-  // Use thing
+  // 1. Use extra properties in state...
+  
+  // 2. Use properties from thing
   useThing(thing);
 };
 
 const loop = () => {
   const { thing } = state;
 
-  // Compute new thing
-  const newThing = loopThing(thing);
+  // Compute new thing based on current state
+  const newThing = updateThingFromState(thing);
 
   // Save new thing into state
   updateState({ 
@@ -89,10 +91,11 @@ const loop = () => {
 };
 
 const setup = () => {
-  
+  // Add event listeners which update state
 };
-setup();
-loop();
+
+setup(); // Set up events
+loop(); // Set up processing loop
 
 /**
  * Generates a Thing

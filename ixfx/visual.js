@@ -8,13 +8,8 @@ import {
   SceneGraph_exports,
   Svg_exports,
   Video_exports
-} from "./chunk-FXHXRXLC.js";
-import "./chunk-V6H5FAK2.js";
-import "./chunk-HAK24YB3.js";
-import "./chunk-ENNFJSEP.js";
-import "./chunk-5M4HS36T.js";
-import "./chunk-I2JSJNLZ.js";
-import "./chunk-H4X2M26K.js";
+} from "./chunk-Y5UELOL6.js";
+import "./chunk-VFKWDAYV.js";
 export {
   Colour_exports as Colour,
   Drawing_exports as Drawing,

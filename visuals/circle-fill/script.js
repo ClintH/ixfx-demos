@@ -7,7 +7,7 @@ const settings = Object.freeze({
   numberOfPoints: 500,
   piPi:Math.PI*2,
   // Try also using other random sources, such as
-  // Random.weightedSkewed(`cubicIn`), or Random.gaussian()
+  // Random.weightedFn(`cubicIn`), or Random.gaussian()
   randomSource: Math.random,
   pointColour: `hsl(70, 100%, 50%)`,
   pointSize: 0.005,

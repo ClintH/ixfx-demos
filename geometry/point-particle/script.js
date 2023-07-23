@@ -1,17 +1,8 @@
 import * as Dom from '../../ixfx/dom.js';
 import { repeat } from '../../ixfx/flow.js';
 import { jitter } from '../../ixfx/modulation.js';
-import { flip, clamp } from '../../ixfx/data.js';
+import { flip } from '../../ixfx/data.js';
 import { gaussian } from '../../ixfx/random.js';
-
-/**
- * @typedef Particle
- * @property {number} x
- * @property {number} y
- * @property {number} age
- * @property {number} weight
- * @property {number} intensity
- */
 
 const settings = Object.freeze({
   // How much to age with each loop (% of current age)
@@ -20,8 +11,8 @@ const settings = Object.freeze({
   spawnPerLoop: 3,
   // How much to float upwards each loop (also affected by randomness and weight). Percentage of screen height
   yMovement: 0.01,
-  // Maximum jitter on x-axis (%)
-  xJitter: 0.03,
+  // Jitter to apply to particle x-axis
+  xJitter: jitter({ relative: 0.01, source: gaussian }),
   // Drawing settings
   dotHue: `194`,
   bgHue: `194`,
@@ -32,6 +23,10 @@ const settings = Object.freeze({
 let state = Object.freeze({
   /** @type {Particle[]} */
   particles: [],
+  /** 
+   * Relative pointer position (0,0) -> (1,1) 
+   * @type {Point}
+   * */
   pointer: { x: 0, y: 0 },
   /** @type {boolean} */
   pointerDown: false,
@@ -47,7 +42,7 @@ const onTick = () => {
   const { yMovement, spawnPerLoop, agePerLoop, xJitter } = settings;
   const { particles }  = state;
 
-  // 1. Age particles, deleting those that are too old
+  // 1. Age particles, deleting when they are too old
   const aged = particles
     .map(p => ({ ...p, age: p.age * flip(agePerLoop) }))
     .filter(p => p.age > 0.001);
@@ -58,7 +53,7 @@ const onTick = () => {
   // 3. Move particles: some jitter applied to X, and drift upwards
   const moved = withNew.map(p => ({
     ...p, 
-    x: jitter(clamp(p.x), xJitter * flip(p.weight), { type: `rel`, random: gaussian }),
+    x: xJitter(p.x),
     y: p.y - (p.weight*yMovement*Math.random())
   }));
 
@@ -168,10 +163,12 @@ const setup = () => {
   // Keep track of pointer moving
   document.addEventListener(`pointermove`, evt => {
     evt.preventDefault();
-    updateState({ pointer: {
-      x: evt.x/window.innerWidth,
-      y: evt.y/window.innerHeight
-    } });
+    updateState({ 
+      pointer: {
+        x: evt.x/window.innerWidth,
+        y: evt.y/window.innerHeight
+      }
+    });
   });
 
   // Keep track of pointer up/down status
@@ -192,7 +189,7 @@ const setup = () => {
 setup();
 
 /**
- * 
+ * Creates a particle
  * @returns {Particle}
  */
 function createParticle() {
@@ -217,3 +214,18 @@ function updateState (s) {
     ...s
   });
 }
+
+/**
+ * @typedef Particle
+ * @property {number} x
+ * @property {number} y
+ * @property {number} age
+ * @property {number} weight
+ * @property {number} intensity
+ */
+
+/**
+ * @typedef Point
+ * @property {number} x
+ * @property {number} y
+ */

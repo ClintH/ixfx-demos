@@ -1,42 +1,44 @@
 import { clamp } from '../../ixfx/data.js';
 import { continuously } from '../../ixfx/flow.js';
-import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
+import { IterableAsync } from  '../../ixfx/util.js';
+import { adsr, defaultAdsrOpts, adsrIterable } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
-  env: adsr({
+  sampleRateMs: 5,
+  envOpts: {
     ...defaultAdsrOpts(),
     attackBend: 1,
     attackDuration: 1500,
     releaseLevel: 0,
     sustainLevel: 1
-  }),
-  envSample: continuously(sampleEnvelope, 5)
+  },
+  sliderEl: /** @type {HTMLElement} */(document.getElementById(`slider`))
 });
 
 let state = Object.freeze({
   /** @type number */
   target: 0,
   /** @type number */
-  value: 0
+  value: 0,
+  abortController: new AbortController()
 });
 
-// Move level based on state
+// Move visual slider based on state
 const useState = () => {
+  const { sliderEl } = settings;
   const { value } = state;
 
   // Get HTML elements
   const fillEl = /** @type HTMLElement */(document.querySelector(`#slider>.fill`));
   if (!fillEl) return;
-  const slider = /** @type HTMLElement */fillEl.parentElement;
-  if (!slider) return;
 
   // Set height
   fillEl.style.height = `10px`;
 
   // Get size of level, slider & computed style of slider
   const fillBounds = fillEl.getBoundingClientRect();
-  const sliderBounds = slider.getBoundingClientRect();
-  const sliderStyle = getComputedStyle(slider);
+  const sliderBounds = sliderEl.getBoundingClientRect();
+  const sliderStyle = getComputedStyle(sliderEl);
 
   // Usable height is slider minus padding and size of level
   const usableHeight = sliderBounds.height - fillBounds.height - (parseFloat(sliderStyle.padding) * 3);
@@ -45,57 +47,55 @@ const useState = () => {
   fillEl.style.top = parseFloat(sliderStyle.padding) + ((usableHeight*value) - fillBounds.height/2) + `px`;
 };
 
-// Loop that runs via settings.envSample, reading
-// envelope value
-function sampleEnvelope() {
-  const { env } = settings;
-  const { target } = state;
-
-  // End sampling loop if envelope is done
-  if (env.isDone) return false;
-  
-  // Get value from envelope
-  const v = env.value;
-
-  // Modulate
-  const vv = v *  target;
-  
-  updateState({
-    value: vv
-  });
-
-  // Visual refresh
-  useState();
-}
-
 /**
- * 
+ * Handles 'pointerup' event on #slider
  * @param {PointerEvent} evt 
  */
-const onPointerUp = (evt) => {
-  const { env, envSample } = settings;
+const onPointerUp = async (evt) => {
+  const { envOpts,  sliderEl, sampleRateMs } = settings;
+  const { abortController } = state;
 
-  const slider = document.getElementById(`slider`);
-  if (!slider) return;
+  // Cancel existing envelope iteration
+  abortController.abort(`onPointerUp`);
   
-  // Get relative pos based on click within element
-  const pos = relativePosition(slider, evt);
+  // Get relative position based on click within element
+  const target = relativePosition(sliderEl, evt).y;
 
   // Update target based on relative y
   updateState({
-    target: pos.y
+    target,
+    abortController: new AbortController()
   });
 
-  // Trigger envelope & (re)start envelope sampler loop
-  env.trigger();
-  envSample.start();
+  // Options for adsrIterable
+  const opts = {
+    env: envOpts, 
+    sampleRateMs, 
+    signal: state.abortController.signal
+  };
+
+  try {
+    // Async loop through values of envelope over time
+    for await (const v of adsrIterable(opts)) {
+      // Modulate
+      const vv = v * target;
+
+      // Update state
+      updateState({
+        value: vv
+      });
+
+      // Visual refresh
+      useState();
+    }
+  } catch (ex) {
+    // Ignore errors - this can happen when we abort
+  }
 };
 
 const setup = () => {
-  const slider = document.getElementById(`slider`);
-  if (!slider) return;
-
-  slider.addEventListener(`pointerup`, onPointerUp);
+  const { sliderEl } = settings;
+  sliderEl.addEventListener(`pointerup`, onPointerUp);
 };
 setup();
 

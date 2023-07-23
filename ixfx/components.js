@@ -1,18 +1,10 @@
 import {
   getSorter
-} from "./chunk-FXHXRXLC.js";
-import "./chunk-V6H5FAK2.js";
-import "./chunk-HAK24YB3.js";
-import "./chunk-ENNFJSEP.js";
-import "./chunk-5M4HS36T.js";
-import "./chunk-I2JSJNLZ.js";
+} from "./chunk-Y5UELOL6.js";
 import {
   __decorateClass,
-  __privateAdd,
-  __privateGet,
-  __privateSet,
   __publicField
-} from "./chunk-H4X2M26K.js";
+} from "./chunk-VFKWDAYV.js";
 
 // src/components/HistogramVis.ts
 import { LitElement, css, html } from "lit";
@@ -37,15 +29,21 @@ var jsonData = (obj) => {
           return;
         }
         if (o[i].length !== 2) {
-          console.error(`Histogram inner arrays should consist of two elements`);
+          console.error(
+            `Histogram inner arrays should consist of two elements`
+          );
           return;
         }
         if (typeof o[i][0] !== `string`) {
-          console.error(`First element of inner array should be a string (index ${i})`);
+          console.error(
+            `First element of inner array should be a string (index ${i})`
+          );
           return;
         }
         if (typeof o[i][1] !== `number`) {
-          console.error(`Second element of inner array should be a number (index ${i})`);
+          console.error(
+            `Second element of inner array should be a number (index ${i})`
+          );
           return;
         }
       }
@@ -81,36 +79,51 @@ var HistogramVis = class extends LitElement {
     const colEnd = colStart + 1;
     const dataLabel = html`<div class="data">${freq}</div>`;
     const xAxis = html`${key}`;
-    return html`
-    <div class="bar" style="grid-area: ${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}">
-      <div class="barTrack" style="height: ${(percentage ?? 0) * 100}%"></div>
-      ${this.showDataLabels ? dataLabel : ``}
-    </div>
-    <div class="xAxisLabels" style="grid-area: ${rowStart + 2} / ${colStart} / ${rowEnd + 2} / ${colEnd}">
-      ${this.showXAxis ? xAxis : ``}
-    </div>`;
+    return html` <div
+        class="bar"
+        style="grid-area: ${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}"
+      >
+        <div class="barTrack" style="height: ${(percentage ?? 0) * 100}%"></div>
+        ${this.showDataLabels ? dataLabel : ``}
+      </div>
+      <div
+        class="xAxisLabels"
+        style="grid-area: ${rowStart + 2} / ${colStart} / ${rowEnd + 2} / ${colEnd}"
+      >
+        ${this.showXAxis ? xAxis : ``}
+      </div>`;
   }
   render() {
-    if ((this.data === void 0 || this.data.length === 0) && this.json === void 0)
+    if ((this.data === void 0 || this.data.length === 0) && this.json === void 0) {
       return html``;
+    }
     const d = this.data ?? this.json;
     const length = d.length;
     const highestCount = Math.max(...d.map((d2) => d2[1]));
-    const bars = d.map((kv) => ({ data: kv, percentage: kv[1] / highestCount }));
-    const xAxis = html`<div class="xAxis" style="grid-area: 2 / 1 / 3 / ${d.length + 1}"></div>`;
+    const bars = d.map((kv) => ({
+      data: kv,
+      percentage: kv[1] / highestCount
+    }));
+    const xAxis = html`<div
+      class="xAxis"
+      style="grid-area: 2 / 1 / 3 / ${d.length + 1}"
+    ></div>`;
     const height = this.height ? `height: ${this.height};` : ``;
-    const h = html`
-    <style>
-    div.chart {
-      grid-template-columns: repeat(${d.length}, minmax(2px, 1fr));
-    }
-    </style>
-    <div class="container" style="${height}">
-      <div class="chart">
-      ${repeat(bars, (bar) => bar.data[0], (b, index) => this.barTemplate(b, index, length))}
-        ${this.showXAxis ? xAxis : ``}
-      </div>
-    </div>`;
+    const h = html` <style>
+        div.chart {
+          grid-template-columns: repeat(${d.length}, minmax(2px, 1fr));
+        }
+      </style>
+      <div class="container" style="${height}">
+        <div class="chart">
+          ${repeat(
+      bars,
+      (bar) => bar.data[0],
+      (b, index) => this.barTemplate(b, index, length)
+    )}
+          ${this.showXAxis ? xAxis : ``}
+        </div>
+      </div>`;
     return h;
   }
 };
@@ -136,11 +149,12 @@ __publicField(HistogramVis, "styles", css`
       padding-left: 0.3vw;
       padding-right: 0.3vw;
     }
-    div.bar>div.barTrack {
+    div.bar > div.barTrack {
       background-color: var(--histogram-bar-color, gray);
       align-self: stretch;
     }
-    div.xAxisLabels, div.data {
+    div.xAxisLabels,
+    div.data {
       font-size: min(1vw, 1em);
       color: var(--histogram-label-color, currentColor);
     }
@@ -177,18 +191,18 @@ HistogramVis = __decorateClass([
 ], HistogramVis);
 
 // src/components/FrequencyHistogramPlot.ts
-var _sorter;
 var FrequencyHistogramPlot = class {
+  //readonly parentEl:HTMLElement;
+  // eslint-disable-next-line functional/prefer-readonly-type
+  el;
+  // eslint-disable-next-line functional/prefer-readonly-type
+  #sorter;
+  //eslint-disable-next-line functional/prefer-immutable-types
   constructor(el) {
-    //readonly parentEl:HTMLElement;
-    // eslint-disable-next-line functional/prefer-readonly-type
-    __publicField(this, "el");
-    // eslint-disable-next-line functional/prefer-readonly-type
-    __privateAdd(this, _sorter, void 0);
     this.el = el;
   }
   setAutoSort(sortStyle) {
-    __privateSet(this, _sorter, getSorter(sortStyle));
+    this.#sorter = getSorter(sortStyle);
   }
   clear() {
     if (this.el === void 0)
@@ -212,14 +226,13 @@ var FrequencyHistogramPlot = class {
       console.warn(`FrequencyHistogramPlot this.el undefined`);
       return;
     }
-    if (__privateGet(this, _sorter) !== void 0) {
-      this.el.data = __privateGet(this, _sorter).call(this, data);
+    if (this.#sorter !== void 0) {
+      this.el.data = this.#sorter(data);
     } else {
       this.el.data = [...data];
     }
   }
 };
-_sorter = new WeakMap();
 export {
   FrequencyHistogramPlot,
   HistogramVis

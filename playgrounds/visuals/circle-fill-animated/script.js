@@ -158,7 +158,7 @@ const setup = () => {
     } else if (v.startsWith(`Weighted (`)) {
       const easing = v.substring(10, v.length-1);
       // @ts-ignore
-      updateState({ randomSource: Random.weightedSkewed(easing) });
+      updateState({ randomSource: Random.weightedFn(easing) });
     } else {
       updateState({ randomSource:Math.random });
     }

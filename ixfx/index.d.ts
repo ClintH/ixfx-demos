@@ -2404,8 +2404,8 @@ declare module "geometry/Rect" {
      * A custom source of randomness can be provided:
      * ```js
      * import { Rects } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * import { weightedSkewed } from "https://unpkg.com/ixfx/dist/random.js"
-     * const r = Rects.random(weightedSkewed(`quadIn`));
+     * import { weightedFn } from "https://unpkg.com/ixfx/dist/random.js"
+     * const r = Rects.random(weightedFn(`quadIn`));
      * ```
      * @param rando
      * @returns
@@ -3430,7 +3430,7 @@ declare module "collections/Trees" {
      * That is, it is any possible sub-child.
      * @param parent Parent tree
      * @param possibleChild Sought child
-     * @param eq Equality function, or {@link isEqualDefault} if undefined.
+     * @param eq Equality function, or {@link Util.isEqualDefault} if undefined.
      * @returns
      */
     export const hasAnyChild: <V extends TreeNode>(parent: V, possibleChild: V, eq?: IsEqual<V>) => boolean;
@@ -3449,7 +3449,7 @@ declare module "collections/Trees" {
      * @param parent Parent tree
      * @param possibleChild Sought child
      * @param maxDepth Maximum depth. 0 for immediate children, Number.MAX_SAFE_INTEGER for boundless
-     * @param eq Equality function, or {@link isEqualDefault} if undefined.
+     * @param eq Equality function, or {@link Util.isEqualDefault} if undefined.
      * @returns
      */
     export const hasChild: <V extends TreeNode>(parent: V, possibleChild: V, maxDepth?: number, eq?: IsEqual<V>) => boolean;
@@ -3459,7 +3459,7 @@ declare module "collections/Trees" {
      * @param child Child being sought
      * @param possibleParent Possible parent of child
      * @param maxDepth Max depth of traversal. Default of 0 only looks for immediate parent.
-     * @param eq Equality comparison function. {@link isEqualDefault} used by default.
+     * @param eq Equality comparison function. {@link Util.isEqualDefault} used by default.
      * @returns
      */
     export const hasParent: <V extends TreeNode>(child: V, possibleParent: V, maxDepth?: number, eq?: IsEqual<V>) => boolean;
@@ -3467,7 +3467,7 @@ declare module "collections/Trees" {
      * Returns _true_ if `child` is parented at any level (grand-parented etc) by `possibleParent`
      * @param child Child being sought
      * @param possibleParent Possible parent of child
-     * @param eq Equality comparison function {@link isEqualDefault} used by default
+     * @param eq Equality comparison function {@link Util.isEqualDefault} used by default
      * @returns
      */
     export const hasAnyParent: <V extends TreeNode>(child: V, possibleParent: V, eq?: IsEqual<V>) => boolean;
@@ -5235,6 +5235,73 @@ declare module "flow/RunOnce" {
      */
     export const runOnce: (onRun: () => boolean) => (() => boolean);
 }
+declare module "flow/BackOff" {
+    /**
+     * Result of backoff
+     */
+    export type RetryWithBackOffResult = {
+        message?: string;
+        success: boolean;
+        attempts: number;
+        elapsed: number;
+    };
+    /**
+     * Backoff options
+     */
+    export type RetryWithBackOffOpts = Readonly<{
+        /**
+         * Number of attempts to make
+         */
+        count: number;
+        /**
+         * Starting milliseconds for sleeping after failure
+         */
+        startMs: number;
+        /**
+         * Optional abort signal
+         */
+        abort?: AbortSignal;
+        /**
+         * Log: true logs to console, pass a function for a custom logger
+         */
+        log?: boolean;
+        /**
+         * Math.pow factor. Defaults to 1.1
+         */
+        power?: number;
+    }>;
+    /**
+     * Keeps calling `cb` until it returns _true_. If it throws an exception,
+     * it will cancel the retry, bubbling the exception.
+     *
+     *
+     * ```js
+     * // A function that only works some of the time
+     * const flakyFn = async () => {
+     *  // do the thing
+     *  if (Math.random() > 0.9) return true; // success
+     *  return false; // 'failed'
+     * };
+     *
+     * // Retry it five times
+     * const result = await retryWithBackOff(flakyFn, {
+     *  count: 5,
+     *  startMs: 1000
+     * });
+     *
+     * if (result.success) {
+     *  // Yay
+     * } else {
+     *  console.log(`Failed after ${result.attempts} attempts. Elapsed: ${result.elapsed}`);
+     *  console.log(result.message);
+     * }
+     * ```
+     * @param cb Function to run
+     * @param opts Options
+     * @returns
+     */
+    export const retryWithBackOff: (cb: () => Promise<boolean>, opts: RetryWithBackOffOpts) => Promise<RetryWithBackOffResult>;
+}
 declare module "flow/TaskQueue" {
     export type TaskQueueOpts = {
         /**
@@ -5306,6 +5373,7 @@ declare module "flow/index" {
     export * from "flow/Delay";
     export * from "flow/Every";
     export * from "flow/RunOnce";
+    export * from "flow/BackOff";
     export { TaskQueue } from "flow/TaskQueue";
     export type HasCompletion = {
         get isDone(): boolean;
@@ -6584,6 +6652,54 @@ declare module "modulation/Oscillator" {
      */
     export function square(timerOrFreq: Timers.Timer | number): Generator<0 | 1, void, unknown>;
 }
+declare module "modulation/Jitter" {
+    import { RandomSource } from "Random";
+    export type JitterOpts = {
+        readonly relative?: number;
+        readonly absolute?: number;
+        readonly clamped?: boolean;
+        readonly source?: RandomSource;
+    };
+    export type JitterFn = (value: number) => number;
+    /**
+     * Jitters `value` by the absolute `jitter` amount.
+     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1.
+     * Pass `clamped:false` as an option to allow for arbitary ranges.
+     *
+     * `jitter` returns a function that calculates jitter. If you only need a one-off
+     * jitter, you can immediately execute the returned function:
+     * ```js
+     * import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
+     * // Compute 10% jitter of input 0.5
+     * const value = jitter({ relative: 0.1 })(0.5);
+     * ```
+     *
+     * However, if the returned jitter function is to be used again,
+     * assign it to a variable:
+     * ```js
+     * import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
+     * const myJitter = jitter({ absolute: 0.5 });
+     *
+     * // Jitter an input value 1.0
+     * const value = myJitter(1);
+     * ```
+     *
+     * A custom source for random numbers can be provided. Eg, use a weighted
+     * random number generator:
+     *
+     * ```js
+     * import { weighted } from 'https://unpkg.com/ixfx/dist/random.js';
+     * jitter({ relative: 0.1, source: weighted });
+     * ```
+     *
+     * Options
+     * * clamped: If false, `value`s out of percentage range can be used and return value may be beyond percentage range. True by default
+     * * random: Random source (default is Math.random)
+     * @param opts Options
+     * @returns Function that performs jitter
+     */
+    export const jitter: (opts?: JitterOpts) => JitterFn;
+}
 declare module "modulation/PingPong" {
     /**
      * Continually loops up and down between 0 and 1 by a specified interval.
@@ -6638,11 +6754,16 @@ declare module "modulation/PingPong" {
     export const pingPong: (interval: number, lower: number, upper: number, start?: number, rounding?: number) => Generator<number, never, unknown>;
 }
 declare module "modulation/index" {
-    import { RandomSource } from "Random";
     import * as Easings from "modulation/Easing";
     import * as Forces from "modulation/Forces";
     import * as Oscillators from "modulation/Oscillator";
+    import { JitterFn, JitterOpts, jitter } from "modulation/Jitter";
     export * from "modulation/PingPong";
+    /**
+     * Jitter
+     */
+    export { jitter };
+    export type { JitterFn, JitterOpts };
     /**
      * Easings module
      *
@@ -6721,54 +6842,6 @@ declare module "modulation/index" {
      *
      */
     export { Oscillators };
-    export type JitterOpts = {
-        readonly type?: `rel` | `abs`;
-        readonly clamped?: boolean;
-        readonly random?: RandomSource;
-    };
-    /**
-     * Jitters `value` by the absolute `jitter` amount.
-     * All values should be on a 0..1 scale, and the return value is by default clamped to 0..1.
-     * Pass `clamped:false` as an option
-     * to allow for arbitary ranges.
-     *
-     * ```js
-     * import { jitter } from 'https://unpkg.com/ixfx/dist/modulation.js';
-     *
-     * // Jitter 0.5 by 10% (absolute)
-     * // yields range of 0.4-0.6
-     * jitter(0.5, 0.1);
-     *
-     * // Jitter 0.5 by 10% (relative, 10% of 0.5)
-     * // yields range of 0.45-0.55
-     * jitter(0.5, 0.1, { type:`rel` });
-     * ```
-     *
-     * You can also opt not to clamp values:
-     * ```js
-     * // Yields range of -1.5 - 1.5
-     * jitter(0.5, 1, { clamped:false });
-     * ```
-     *
-     * A custom source for random numbers can be provided. Eg, use a weighted
-     * random number generator:
-     *
-     * ```js
-     * import { weighted } from 'https://unpkg.com/ixfx/dist/random.js';
-     * jitter(0.5, 0.1, { random: weighted };
-     * ```
-     *
-     * Options
-     * * clamped: If false, `value`s out of percentage range can be used and return value may
-     *    beyond percentage range. True by default
-     * * type: if `rel`, `jitter` is considered to be a percentage relative to `value`
-     *         if `abs`, `jitter` is considered to be an absolute value (default)
-     * @param value Value to jitter
-     * @param jitter Absolute amount to jitter by
-     * @param opts Jitter options
-     * @returns Jittered value
-     */
-    export const jitter: (value: number, jitter: number, opts?: JitterOpts) => number;
 }
 declare module "Numbers" {
     import { TrackedValueOpts } from "data/TrackedValue";
@@ -7613,8 +7686,8 @@ declare module "geometry/Point" {
      * A custom source of randomness can be provided:
      * ```js
      * import { Points } from "https://unpkg.com/ixfx/dist/geometry.js";
-     * import { weightedSkewed } from "https://unpkg.com/ixfx/dist/random.js"
-     * const pt = Points.random(weightedSkewed(`quadIn`));
+     * import { weightedFn } from "https://unpkg.com/ixfx/dist/random.js"
+     * const pt = Points.random(weightedFn(`quadIn`));
      * ```
      * @param rando
      * @returns
@@ -12737,6 +12810,17 @@ declare module "IterableAsync" {
     export function zip<V>(...its: readonly AsyncIterable<V>[]): AsyncGenerator<any[], void, unknown>;
 }
 declare module "Generators" {
+    import { integerUniqueGen } from "Random";
+    export { 
+    /**
+     * Generate unique integers within a given range
+     * * @example 0..9 range
+     * ```js
+     * const rand = [ ...randomUniqueInteger(10) ];
+     * // eg: [2, 9, 6, 0, 8, 7, 3, 4, 5, 1]
+     * ```
+     */
+    integerUniqueGen as randomUniqueInteger };
     export { pingPong, pingPongPercent } from "modulation/PingPong";
     export * as Async from "IterableAsync";
     export * as Sync from "IterableSync";
@@ -13621,7 +13705,7 @@ declare module "index" {
      * Aliases:
      * * {@link delayLoop}: A generator that yields at a given rate
      * * {@link interval}: Generates values from a given function with a given delay
-     *
+     * * {@link randomUniqueInteger}: Random unique integer
      * @example Importing
      * ```js
      * // If library is stored two directories up under `ixfx/`
@@ -13758,19 +13842,27 @@ declare module "index" {
     /**
      * Totally rando.
      *
-     * Overview:
-     * * {@link arrayElement} Random item from an array (alias of `Arrays.randomElement`)
-     * * {@link arrayIndex} Random index of an array (alias of `Arrays.randomIndex`)
-     * * {@link hue} Random hue - 0..359 number (alias of `Visual.Colour.randomHue`)
+     * Numbers
      * * {@link float} Random floating point number within a given range
      * * {@link integer} Random whole number within a given range
-     * * {@link string} Random string made up of letters and numbers
-     * * {@link shortGuid} Quasi-unique id generator
+     * Arrays
+     * * {@link arrayElement} Random item from an array (alias of `Arrays.randomElement`)
+     * * {@link arrayIndex} Random index of an array (alias of `Arrays.randomIndex`)
+     *
+     * Time
+     * * {@link minutesMs} Random range of minutes, value in milliseconds
+     * * {@link secondsMs} Random range of seconds, value in milliseconds
      *
      * Weighted random numbers:
      * * {@link weighted} Weigh distribution with an easing function
      * * {@link weightedInteger} As above, but whole numbers
      * * {@link gaussian} Gaussian (bell curve-like) distribution
+     *
+     * More
+     * * {@link hue} Random hue - 0..359 number (alias of `Visual.Colour.randomHue`)
+     * * {@link string} Random string made up of letters and numbers
+     * * {@link shortGuid} Quasi-unique id generator
+     *
      *
      * @example Importing (with aliasing)
      * ```js
@@ -14745,7 +14837,7 @@ declare module "modulation/Easing" {
      */
     export const crossfade: (amt: number, easingA: EasingFn, easingB: EasingFn) => number;
     /**
-     * @private
+     * Easing name
      */
     export type EasingName = keyof typeof functions;
     /**
@@ -15631,49 +15723,56 @@ declare module "Random" {
     /**
      * A random source.
      *
-     * Predefined sources: {@link defaultRandom}, {@link gaussianSkewed}, {@link weightedSkewed}
+     * Predefined sources: {@link defaultRandom}, {@link gaussianFn}, {@link weightedFn}
      */
     export type RandomSource = () => number;
+    /**
+     * Options for producing weighted distribution
+     */
     export type WeightedOpts = {
+        /**
+         * Easing function to use (optional)
+         */
         easing?: EasingName;
+        /**
+         * Random source (optional)
+         */
         source?: RandomSource;
     };
     /***
      * Returns a random number, 0..1, weighted by a given easing function.
      * Default easing is `quadIn`, which skews towards zero.
+     * Use {@link weighted} to get a value directly.
      *
      * ```js
-     * weighted();          // quadIn easing by default, which skews toward low values
-     * weighted(`quadOut`); // quadOut favours high values
-     * ```
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
+     * const r1 = Random.weightedFn();          // quadIn easing by default, which skews toward low values
+     * r1(); // Produce a value
      *
-     * Use {@link weightedSkewed} for a curried version that can be used as a {@link RandomSource}:
-     *
-     * ```js
-     * const w = weightedSkewed(`quadIn`);
-     * w(); // Produce a random number
+     * const r2 = Random.weightedFn(`quadOut`); // quadOut favours high values
+     * r2(); // Produce a value
      * ```
      * @param easingName Easing name or options `quadIn` by default.
+     * @see {@link weighted} Returns value instead of function
+     * @returns Function which returns a weighted random value
+     */
+    export const weightedFn: (easingNameOrOpts?: EasingName | WeightedOpts) => RandomSource;
+    /***
+     * Returns a random number, 0..1, weighted by a given easing function.
+     * Default easing is `quadIn`, which skews towards zero.
+     *
+     * Use {@link weightedFn} to return a function instead.
+     *
+     * ```js
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
+     * Random.weighted();          // quadIn easing by default, which skews toward low values
+     * Random.weighted(`quadOut`); // quadOut favours high values
+     * ```
+     * @param easingNameOrOpts Options. Uses 'quadIn' by default.
+     * @see {@link weightedFn} Returns a function rather than value
      * @returns Random number (0-1)
      */
     export const weighted: (easingNameOrOpts?: EasingName | WeightedOpts) => number;
-    /**
-     * Returns a curried version of {@link weighted}.
-     *
-     * ```js
-     * const w = weightedSkewed(`quadIn`);   // Returns a function
-     * w(); // Produce a random number
-     * ```
-     *
-     * If you want a random number directly, use {@link weighted}
-     * ```js
-     * weighted(`quadIn`); // Returns a random value
-     * ```
-     * @param easingName
-     * @param rand
-     * @returns
-     */
-    export const weightedSkewed: (easingNameOrOpts?: EasingName | WeightedOpts) => RandomSource;
     export type WeightedIntOpts = WeightedOpts & {
         min?: number;
         max: number;
@@ -15682,81 +15781,132 @@ declare module "Random" {
      * Random integer, weighted according to an easing function.
      * Number will be inclusive of `min` and below `max`.
      *
+     * @example 0..99
      * ```js
-     * // If only one parameter is provided, it's assumed to be the max:
-     * // Random number that might be 0 through to 99
-     * const r = weightedInteger(100);
-     *
-     * // If two numbers are given, it's assumed to be min, max
-     * // Random number that might be 20 through to 29
-     * const r = weightedInteger(20,30);
-     *
-     * // One number and string. First param is assumed to be
-     * // the max, second parameter the easing function
-     * const r = weightedInteger(100, `quadIn`)
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
+     * const r = Random.weightedIntegerFn(100);
+     * r(); // Produce value
      * ```
      *
-     * Useful for accessing a random array element:
+     * @example 20..29
      * ```js
-     * const list = [`mango`, `kiwi`, `grape`];
-     * // Yields random item from list
-     * list[weightedInteger(list.length)];
+     * const r = Random.weightedIntegerFn({ min: 20, max: 30 });
+     * r(); // Produce value
+     * ```
+     *
+     * @example  0..99 with 'quadIn' easing
+     * const r = Random.weightedInteger({ max: 100, easing: `quadIn` });
      * ```
      *
      * Note: result from easing function will be clamped to
      * the min/max (by default 0-1);
      *
      * @param maxOrOpts Maximum (exclusive)
-     * @returns
+     * @returns Function that produces a random weighted integer
+     */
+    export const weightedIntegerFn: (maxOrOpts: number | WeightedIntOpts) => RandomSource;
+    /**
+     * @example 0..99
+     * ```js
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
+     * Random.weightedInteger(100);
+     * ```
+     *
+     * @example 20..29
+     * ```js
+     * Random.weightedInteger({ min: 20, max: 30 });
+     * ```
+     *
+     * @example  0..99 with 'quadIn' easing
+     * ```js
+     * Random.weightedInteger({ max: 100, easing: `quadIn` })
+     * ```
+     * @inheritDoc {@link weightedIntegerFn}
+     * @param maxOrOpts
+     * @returns Random weighted integer
      */
     export const weightedInteger: (maxOrOpts: number | WeightedIntOpts) => number;
     /**
-     * Returns a random number with gaussian (ie bell-curved) distribution
+     * Returns a random number with gaussian (ie. bell-curved) distribution
+     *
+     * @example Random number between 0..1 with gaussian distribution
      * ```js
-     * // Yields a random number between 0..1
-     * // with a gaussian distribution
-     * gaussian();
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
+     * Random.gaussian();
      * ```
      *
-     * Distribution can also be skewed:
+     * @example Distribution can be skewed
      * ```js
-     * // Yields a skewed random value
-     * gaussian(10);
+     * Random.gaussian(10);
      * ```
      *
-     * Use the curried version in order to pass the random number generator elsewhere:
-     * ```js
-     * const g = gaussianSkewed(10);
-     * // Now it can be called without parameters
-     * g(); // Yields skewed random
-     *
-     * // Eg:
-     * shuffle(gaussianSkewed(10));
-     * ```
+    
      * @param skew Skew factor. Defaults to 1, no skewing. Above 1 will skew to left, below 1 will skew to right
      * @returns
      */
     export const gaussian: (skew?: number) => number;
     /**
-     * Returns a function of skewed gaussian values.
-     *
-     * This 'curried' function is useful when passing to other functions
+     * Returns a function that generates a gaussian-distributed random number
+     *  * @example Random number between 0..1 with gaussian distribution
      * ```js
-     * // Curry
-     * const g = gaussianSkewed(10);
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
      *
-     * // Now it can be called without parameters
-     * g(); // Returns skewed value
+     * // Create function
+     * const r = Random.gaussianFn();
      *
-     * // Eg:
-     * shuffle(gaussianSkewed(10));
+     * // Generate random value
+     * r();
      * ```
-     * @param skew Skew factor. Defaults to 1, no skewing. Above 1 will skew to left, below 1 will skew to right
+     *
+     * @example Pass the random number generator elsewhere
+     * ```js
+     * import * as Random from 'https://unpkg.com/ixfx/dist/random.js';
+     * import * as Arrays from 'https://unpkg.com/ixfx/dist/arrays.js';
+     * const r = Random.gaussianFn(10);
+     *
+     * // Randomise array with gaussian distribution
+     * Arrays.shuffle(r);
+     * ```
+     * @param skew
      * @returns
      */
-    export const gaussianSkewed: (skew?: number) => () => number;
+    export const gaussianFn: (skew?: number) => RandomSource;
+    /**
+     * Returns a function that produces a random integer between `max` (exclusive) and 0 (inclusive)
+     * Use {@link integer} if you want a random number directly.
+     *
+     * Invoke directly:
+     * ```js
+     * integerFn(10)();  // Random number 0-9
+     * ```
+     *
+     * Or keep a reference to re-compute:
+     * ```js
+     * const r = integerFn(10);
+     * r(); // Produce a random integer
+     * ```
+     *
+     * If a negative value is given, this is assumed to be the
+     * minimum (inclusive), with 0 as the max (inclusive)
+     * ```js
+     * integerFn(-5)();  // Random number from -5 to 0
+     * ```
+     *
+     * Specify options for a custom minimum or source of random:
+     * ```js
+     * integerFn({ max: 5,  min: 10 })();  // Random number 4-10
+     * integerFn({ max: -5, min: -10 })(); // Random number from -10 to -6
+     * integerFn({ max: 10, source: Math.random })(); // Random number between 0-9, with custom source of random
+     * ```
+     *
+     * Throws an error if max & min are equal
+     * @param maxOrOpts Max value (exclusive), or set of options
+     * @returns Random integer
+     */
+    export const integerFn: (maxOrOpts: number | RandomOpts) => RandomSource;
     /**
      * Returns a random integer between `max` (exclusive) and 0 (inclusive)
+     * Use {@link integerFn} to return a function instead.
      *
      * ```js
      * integer(10);  // Random number 0-9
@@ -15781,8 +15931,34 @@ declare module "Random" {
      */
     export const integer: (maxOrOpts: number | RandomOpts) => number;
     /**
+     * Returns a function that produces random float values.
+     * Use {@link float} to produce a valued directly.
+     *
      * Random float between `max` (exclusive) and 0 (inclusive). Max is 1 if unspecified.
      *
+     *
+     * ```js
+     * // Random number between 0..1 (but not including 1)
+     * // (this would be identical to Math.random())
+     * const r = floatFn();
+     * r(); // Execute to produce random value
+     *
+     * // Random float between 0..100 (but not including 100)
+     * const v = floatFn(100)();
+     * ```
+     *
+     * Options can be used:
+     * ```js
+     * // Random float between 20..40 (possibly including 20, but always lower than 40)
+     * const r = floatFn({ min: 20, max: 40 });
+     * ```
+     * @param maxOrOpts Maximum value (exclusive) or options
+     * @returns Random number
+     */
+    export const floatFn: (maxOrOpts?: number | RandomOpts) => RandomSource;
+    /**
+     * Returns a random float between `max` (exclusive) and 0 (inclusive). Max is 1 if unspecified.
+     * Use {@link floatFn} to get a function that produces values. This is used internally.
      *
      * ```js
      * // Random number between 0..1 (but not including 1)
@@ -15818,24 +15994,36 @@ declare module "Random" {
     export const string: (lengthOrOpts?: number | StringOpts) => void;
     /**
      * Generates a short roughly unique id
+     * ```js
+     * const id = shortGuid();
+     * ```
+     * @param opts Options.
      * @returns
      */
-    export const shortGuid: () => string;
+    export const shortGuid: (opts?: {
+        source?: RandomSource;
+    }) => string;
     /**
      * Returns a random number of minutes, with a unit of milliseconds.
-     * Max value is exclusive
+     * Max value is exclusive.
+     * Use {@link minutesMs} to get a value directly, or {@link minutesMsFn} to return a function.
      *
+     * @example Random value from 0 to one milli less than 5 * 60 * 1000
      * ```js
-     * // Random value from 0 to one milli less than 5*60*1000
-     * minuteMs(5);
+     * // Create function that returns value
+     * const f = minuteMsFn(5);
+     *
+     * f(); // Generate value
      * ```
      *
-     * Options can be specified instead:
+     * @example Specified options:
      * ```js
      * // Random time between one minute and 5 minutes
-     * minuteMs({ max: 5, min: 1 });
+     * const f = minuteMsFn({ max: 5, min: 1 });
+     * f();
      * ```
      *
+     * @remarks
      * It's a very minor function, but can make
      * code a little more literate:
      * ```js
@@ -15843,23 +16031,50 @@ declare module "Random" {
      * setTimeout(() => { ... }, minuteMs(5));
      * ```
      * @param maxMinutesOrOpts
+     * @see {@link minutesMs}
+     * @returns Function that produces a random value
+     */
+    export const minutesMsFn: (maxMinutesOrOpts: number | RandomOpts) => RandomSource;
+    /**
+     * @example Random value from 0 to one milli less than 5 * 60 * 1000
+     * ```js
+     * // Random value from 0 to one milli less than 5*60*1000
+     * minuteMs(5);
+     * ```
+     *
+     * @example Specified options:
+     * ```js
+     * // Random time between one minute and 5 minutes
+     * minuteMs({ max: 5, min: 1 });
+     * ```
+     * @inheritDoc minutesMsFn
+     *
+     * @param maxMinutesOrOpts
+     * @see {@link minutesMsFn}
      * @returns Milliseconds
      */
     export const minutesMs: (maxMinutesOrOpts: number | RandomOpts) => number;
     /**
-     * Returns a random number of seconds, with a unit of milliseconds.
+     * Returns function which produces a random number of seconds, with a unit of milliseconds.
      * Maximum value is exclusive.
+     * Use {@link secondsMs} to return a random value directly, or {@link secondsMsFn} to return a function.
      *
+     * @example Random milliseconds between 0..4999
      * ```js
-     * // Random milliseconds between 0..4999
-     * secondsMs(5000);
+     * // Create function
+     * const f = secondsMsFn(5000);
+     * // Produce a value
+     * const value = f();
      * ```
      *
-     * Options can be provided:
+     * @example Options can be provided
      * ```js
      * // Random milliseconds between 1000-4999
-     * secondsMs({ max:5, min:1 });
+     * const value = secondsMsFn({ max:5, min:1 })();
+     * // Note the extra () at the end to execute the function
      * ```
+     *
+     * @remarks
      * It's a very minor function, but can make
      * code a little more literate:
      * ```js
@@ -15868,6 +16083,22 @@ declare module "Random" {
      * ```
      * @param maxSecondsOrOpts Maximum seconds, or options.
      * @returns Milliseconds
+     */
+    export const secondsMsFn: (maxSecondsOrOpts: number | RandomOpts) => RandomSource;
+    /**
+     * @example Random milliseconds between 0..4999
+     * ```js
+     * secondsMs(5000);
+     * ```
+     *
+     * @example Options can be provided
+     * ```js
+     * // Random milliseconds between 1000-4999
+     * secondsMs({ max:5, min:1 });
+     * ```
+     * @inheritDoc secondsMsFn
+     * @param maxSecondsOrOpts
+     * @returns
      */
     export const secondsMs: (maxSecondsOrOpts: number | RandomOpts) => number;
     export type GenerateRandomOpts = RandomOpts & {
@@ -15880,30 +16111,35 @@ declare module "Random" {
      * Returns a generator over random unique integers, up to
      * but not including the given max value.
      *
+     * @example 0..9 range
      * ```js
-     * // 0..9 range
-     * const rand = [ ...generateIntegerUnique(10) ];
+     * const rand = [ ...integerUniqueGen(10) ];
      * // eg: [2, 9, 6, 0, 8, 7, 3, 4, 5, 1]
      * ```
      *
-     * Options can be provided:
+     * @example Options can be provided:
      * ```js
      * // 5..9 range
-     * const rand = [ ...generateIntegerUnique({ min: 5, max: 10 })];
+     * const rand = [ ...integerUniqueGen({ min: 5, max: 10 })];
      * ```
      *
      * Range can be looped. Once the initial random walk through the number
      * range completes, it starts again in a new random way.
      *
      * ```js
-     * for (const r of generateIntegerUnique({ max: 10, loop: true })) {
+     * for (const r of integerUniqueGen({ max: 10, loop: true })) {
      *  // Warning: loops forever
      * }
      * ```
+     *
+     * Behind the scenes, an array of numbers is created that captures the range, this is then
+     * shuffled on the first run, and again whenever the iterator loops, if that's allowed.
+     *
+     * As a consequence, large ranges will consume larger amounts of memory.
      * @param maxOrOpts
      * @returns
      */
-    export function generateIntegerUnique(maxOrOpts: number | GenerateRandomOpts): IterableIterator<number>;
+    export function integerUniqueGen(maxOrOpts: number | GenerateRandomOpts): IterableIterator<number>;
 }
 declare module "Text" {
     import { string as random } from "Random";
@@ -16242,6 +16478,12 @@ declare module "Util" {
      * @returns
      */
     export const defaultComparer: (x: any, y: any) => CompareResult;
+    /**
+     * Returns a human-friendly representation of elapsed milliseconds
+     * @param ms
+     * @returns
+     */
+    export const elapsedMs: (ms: number) => string;
 }
 declare module "collections/ExpiringMap" {
     import { SimpleEventEmitter } from "Events";
@@ -16442,6 +16684,26 @@ declare module "collections/Map" {
     import { IsEqual, ToString } from "Util";
     export { create as expiringMap, ExpiringMap } from "collections/ExpiringMap";
     export type { ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts } from "collections/ExpiringMap";
+    /**
+     * Gets the closest integer key to `target` in `data`.
+     * * Requires map to have numbers as keys, not strings
+     * * Math.round is used for rounding `target`.
+     *
+     * Examples:
+     * ```js
+     * // Assuming numeric keys 1, 2, 3, 4 exist:
+     * getClosestIntegerKey(map, 3);    // 3
+     * getClosestIntegerKey(map, 3.1);  // 3
+     * getClosestIntegerKey(map, 3.5);  // 4
+     * getClosestIntegerKey(map, 3.6);  // 4
+     * getClosestIntegerKey(map, 100);  // 4
+     * getClosestIntegerKey(map, -100); // 1
+     * ```
+     * @param data Map
+     * @param target Target value
+     * @returns
+     */
+    export const getClosestIntegerKey: <V>(data: Map<number, any>, target: number) => number;
     /**
      * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
      * what key value might be under.
@@ -16837,6 +17099,23 @@ declare module "collections/Map" {
     export const mergeByKey: <K, V>(reconcile: MergeReconcile<V>, ...maps: readonly ReadonlyMap<K, V>[]) => ReadonlyMap<K, V>;
 }
 declare module "Debug" {
+    export type LogKind = 'info' | 'debug' | 'error' | 'warn';
+    export type LogMsg = {
+        kind?: LogKind;
+        msg: any;
+        category?: string;
+    };
+    export type LogFn = (msg: LogMsg) => void;
+    /**
+     * Either a flag for default console logging, or a simple log function
+     */
+    export type LogOption = boolean | LogFn;
+    /**
+     * Resolve a LogOption to a function
+     * @param l
+     * @returns
+     */
+    export const resolveLogOption: (l?: LogOption) => LogFn;
     /**
      * Returns a bundled collection of {@link logger}s
      *
@@ -17359,6 +17638,29 @@ declare module "geometry/PoissonDisk" {
     };
     export const poissonDisk: (rect: Rects.RectPositioned, opts: PoissonDiskOpts) => void;
 }
+declare module "modulation/Drift" {
+    export type Drifter = {
+        update(v: number): number;
+        reset(): void;
+    };
+    /**
+     * WIP
+     * Returns a {@link Drifter} that moves a value over time.
+     *
+     * It keeps track of how much time has elapsed, accumulating `driftAmtPerMs`.
+     * The accumulated drift is wrapped on a 0..1 scale.
+     * ```js
+     * // Set up the drifer
+     * const d = drif(0.001);
+     *
+     * d.update(1.0);
+     * // Returns 1.0 + accumulated drift
+     * ```
+     * @param driftAmtPerMs
+     * @returns
+     */
+    export const drift: (driftAmtPerMs: number) => Drifter;
+}
 declare module "test/util" {
     import { ExecutionContext } from "ava";
     export const areIntegers: (t: ExecutionContext, a: Array<number>) => void;
@@ -17370,6 +17672,10 @@ declare module "test/util" {
         upperExcl?: number;
     };
     export const rangeCheckInteger: (t: ExecutionContext, v: Array<number>, expected: ExpectedOpts) => void;
-    export const rangeCheck: (t: ExecutionContext, v: Array<number>, expected: ExpectedOpts) => void;
+    export const someNearness: (t: ExecutionContext, v: Array<number> | readonly number[], range: number, target: number) => boolean | undefined;
+    export const someNearnessMany: (t: ExecutionContext, v: Array<number> | readonly number[], range: number, targets: number[]) => void;
+    export const rangeCheck: (t: ExecutionContext, v: Array<number> | readonly number[], expected: ExpectedOpts) => void;
 }
 declare module "test/random" { }
+declare module "test/collections/map" { }
+declare module "test/modulation/jitter" { }

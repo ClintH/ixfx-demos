@@ -2,7 +2,8 @@
  * Tracks the state of keys
  */
 const settings = Object.freeze({
-  keys: [ `f` ]
+  keys: [ `f` ],
+  info: innerText(`#info`)
 });
 
 /** 
@@ -20,6 +21,7 @@ let state = Object.freeze({
 });
 
 const useState = () => {
+  const { info } = settings;
   const { keys } = state;
 
   // Get state of 'f'
@@ -32,7 +34,7 @@ const useState = () => {
   if (s.pressed) {
     // Eg: if being held down, for how long
     const holdTime = performance.now() - s.startPress;
-    console.log(`Hold time: ${holdTime}`);
+    info(`Hold time: ${holdTime}`);
   }
 
   if (s.pressed) {
@@ -117,4 +119,15 @@ function getOrCreateKey(keyName) {
     state.keys.set(keyName, key);
   }
   return key;
+}
+
+function innerText(query) {
+  const el = document.querySelector(query);
+  return (txt) => {
+    if (el) {
+      el.innerText = txt;
+    } else {
+      console.log(txt);
+    }
+  };
 }

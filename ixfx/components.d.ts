@@ -1,13 +1,11 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-469d40ba.js';
-import './NumericArrays-09b4f2f0.js';
-import './Easing-0e62bc83.js';
-import './index-81b0750d.js';
-import './StateMachine-998e70a5.js';
-import './Events-f58b1bc8.js';
-import './Delay-879871ee.js';
+import { a as KeyValue } from './KeyValue-d8f38c11.js';
+import './NumericArrays-102a6613.js';
+import './index-09892b33.js';
+import './StateMachine-85790eb1.js';
+import './Events-b4b55fba.js';
 import 'fp-ts/lib/Ord.js';
 
 type Bar = {
@@ -60,7 +58,7 @@ declare class HistogramVis extends LitElement {
 }
 declare global {
     interface HTMLElementTagNameMap {
-        readonly "histogram-vis": HistogramVis;
+        readonly 'histogram-vis': HistogramVis;
     }
 }
 
