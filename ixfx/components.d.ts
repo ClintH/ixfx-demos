@@ -1,11 +1,8 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-d8f38c11.js';
-import './NumericArrays-102a6613.js';
-import './index-09892b33.js';
-import './StateMachine-85790eb1.js';
-import './Events-b4b55fba.js';
+import { a as KeyValue } from './KeyValue-30a823cf.js';
+import './MinMaxAvg-bf5430b4.js';
 import 'fp-ts/lib/Ord.js';
 
 type Bar = {

@@ -1,20 +1,38 @@
 import {
-  StateMachine,
-  bidirectionalDescriptionFromList,
-  create,
-  descriptionFromList,
-  drive,
+  StateMachineWithEvents,
+  bidirectionalFromList,
+  cloneState,
+  done,
   fromList,
-  fromListBidirectional
-} from "./chunk-Y5UELOL6.js";
-import "./chunk-VFKWDAYV.js";
+  init,
+  init2,
+  isValidTransition,
+  next,
+  normaliseTargets,
+  possible,
+  possibleTargets,
+  reset,
+  to,
+  validateMachine,
+  validateTransition
+} from "./chunk-G5YZ6YRD.js";
+import "./chunk-4DC2CRSB.js";
 export {
-  StateMachine,
-  bidirectionalDescriptionFromList,
-  create,
-  descriptionFromList,
-  drive,
+  StateMachineWithEvents as WithEvents,
+  bidirectionalFromList,
+  cloneState,
+  done,
+  init as driver,
   fromList,
-  fromListBidirectional
+  init2 as init,
+  isValidTransition,
+  next,
+  normaliseTargets,
+  possible,
+  possibleTargets,
+  reset,
+  to,
+  validateMachine,
+  validateTransition
 };
 //# sourceMappingURL=stateMachine.js.map

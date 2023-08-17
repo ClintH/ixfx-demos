@@ -1,9 +1,9 @@
 import {
-  queue,
-  queueMutable
-} from "./chunk-VFKWDAYV.js";
+  immutable,
+  mutable
+} from "./chunk-4DC2CRSB.js";
 export {
-  queue,
-  queueMutable
+  immutable,
+  mutable
 };
 //# sourceMappingURL=queues.js.map

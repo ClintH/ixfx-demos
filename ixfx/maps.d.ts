@@ -1,15 +1,16 @@
 import { S as SimpleEventEmitter } from './Events-b4b55fba.js';
-import { I as IsEqual, T as ToString } from './Util-c3f0181b.js';
-import { E as EitherKey } from './index-05958662.js';
-import { I as ICircularArray } from './IMapOfMutableExtended-7d5f05e2.js';
-import './index-09892b33.js';
-import './StateMachine-85790eb1.js';
-import './Trees-bc789afc.js';
-import './Arrays-4625c16d.js';
-import './NumericArrays-102a6613.js';
+import { I as IsEqual, T as ToString } from './Util-21835c84.js';
+import { E as EitherKey } from './index-1bc3a0dc.js';
+import { I as ICircularArray } from './IMapOfMutableExtended-2d4706a0.js';
+import './Debug-1701deb8.js';
+import './Trees-11733e5d.js';
+import './Arrays-83c49f17.js';
+import './index-e1bed935.js';
+import './StateMachine-0a0aaea7.js';
+import './MinMaxAvg-bf5430b4.js';
 import 'd3-color';
-import './index-e43c49f2.js';
-import './index-e3c92c89.js';
+import './index-c635db24.js';
+import './index-016f09b1.js';
 
 /**
  * Expiring map options
@@ -213,7 +214,12 @@ interface IMapOf<V> {
      * Iterates over all values stored under `key`
      * @param key
      */
-    values(key: string): IterableIterator<V>;
+    get(key: string): IterableIterator<V>;
+    /**
+     * Iterates over all values, regardless of key.
+     * Same value may re-appear if it's stored under different keys.
+     */
+    valuesFlat(): IterableIterator<V>;
     /**
      * Iterates over key-value pairs.
      * Unlike a normal map, the same key may appear several times.
@@ -229,7 +235,7 @@ interface IMapOf<V> {
      * @param key Key
      * @param value Value
      */
-    hasKeyValue(key: string, value: V, eq: IsEqual<V>): boolean;
+    hasKeyValue(key: string, value: V, eq?: IsEqual<V>): boolean;
     /**
      * Returns _true_ if `key` has any values
      * @param key
@@ -240,13 +246,17 @@ interface IMapOf<V> {
      */
     get isEmpty(): boolean;
     /**
-     * Returns the length of the longest child item
-     */
-    /**
      * Returns the number of values stored under `key`, or _0_ if `key` is not present.
      * @param key Key
      */
     count(key: string): number;
+    /**
+     * Finds the first key where value is stored.
+     * Note: value could be stored in multiple keys
+     * @param value Value to seek
+     * @returns Key, or undefined if value not found
+     */
+    firstKeyByValue(value: V, eq?: IsEqual<V> | undefined): string | undefined;
 }
 
 /**
@@ -458,30 +468,6 @@ declare const mutable: <K, V>(...data: EitherKey<K, V>) => IMapMutable<K, V>;
 
 interface IMapOfMutable<V> extends IMapOf<V> {
     /**
-     * Returns list of keys
-     */
-    /**
-     * Iterates over key-value pairs.
-     * Unlike a normal map, the same key may appear several times.
-     */
-    /**
-     * Returns a list of all keys and count of items therein
-     */
-    /**
-     * Returns items under `key` or an empty array if `key` is not found
-     * @param key
-     */
-    /**
-     * Returns _true_ if `value` is stored under `key`.
-     *
-     * @param key Key
-     * @param value Value
-     */
-    /**
-     * Returns _true_ if `key` is stored
-     * @param key
-     */
-    /**
      * Adds several `values` under the same `key`. Duplicate values are permitted, depending on implementation.
      * @param key
      * @param values
@@ -684,7 +670,7 @@ declare class MapOfSimpleBase<V> {
     /**
      * Iterate over all values (regardless of key)
      */
-    values(): IterableIterator<V>;
+    valuesFlat(): IterableIterator<V>;
     /**
      * Iterate over keys and length of values stored under keys
      */
@@ -827,11 +813,10 @@ declare class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V
     firstKeyByValue(value: V, eq?: IsEqual<V>): string | undefined;
     count(key: string): number;
     /**
-     * Returns the array of values stored under `key`.
+     * Iterates over values stored under `key`
      * An empty array is returned if there are no values
      */
-    get(key: string): readonly V[];
-    values(key: string): IterableIterator<V>;
+    get(key: string): IterableIterator<V>;
     /**
      * Iterate over the values stored under `key`.
      * If key does not exist, iteration is essentially a no-op
@@ -842,6 +827,7 @@ declare class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V
     getSource(key: string): M | undefined;
     keys(): IterableIterator<string>;
     entriesFlat(): IterableIterator<[key: string, value: V]>;
+    valuesFlat(): IterableIterator<V>;
     entries(): IterableIterator<[key: string, value: V[]]>;
     keysAndCounts(): IterableIterator<[string, number]>;
     merge(other: IMapOf<V>): void;
@@ -1163,7 +1149,8 @@ declare function filter<V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boo
  */
 declare const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
 /**
- * Returns a Map from an iterable
+ * Returns a Map from an iterable. By default throws an exception
+ * if iterable contains duplicate values.
  *
  * ```js
  * const data = [
@@ -1173,11 +1160,11 @@ declare const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
  * const map = Maps.fromIterable(data, v => v.fruit);
  * ```
  * @param data Input data
- * @param keyFn Function which returns a string id
- * @param allowOverwrites If true, items with same id will silently overwrite each other, with last write wins
+ * @param keyFn Function which returns a string id. By default uses the JSON value of the object.
+ * @param allowOverwrites When set to _true_, items with same id will silently overwrite each other, with last write wins. _false_ by default.
  * @returns
  */
-declare const fromIterable: <V>(data: Iterable<V>, keyFn: (v: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
+declare const fromIterable: <V>(data: Iterable<V>, keyFn?: (itemToMakeStringFor: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
 /**
  * Returns a Map from an object, or array of objects.
  * Assumes the top-level properties of the object is the key.

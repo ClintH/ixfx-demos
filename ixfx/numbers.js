@@ -1,29 +1,29 @@
 import {
-  average2 as average,
-  averageWeighted2 as averageWeighted,
-  filter2 as filter,
-  isValid,
-  linearSpace,
-  max2 as max,
-  min2 as min,
-  quantiseEvery,
-  round,
-  rounder,
-  total2 as total,
-  tracker
-} from "./chunk-Y5UELOL6.js";
-import "./chunk-VFKWDAYV.js";
-export {
   average,
   averageWeighted,
-  filter,
+  filter2 as filter,
+  isApproximately,
   isValid,
   linearSpace,
   max,
   min,
   quantiseEvery,
   round,
-  rounder,
+  total,
+  tracker
+} from "./chunk-G5YZ6YRD.js";
+import "./chunk-4DC2CRSB.js";
+export {
+  average,
+  averageWeighted,
+  filter,
+  isApproximately,
+  isValid,
+  linearSpace,
+  max,
+  min,
+  quantiseEvery,
+  round,
   total,
   tracker
 };

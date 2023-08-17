@@ -1,1 +1,1 @@
-export { b as IQueue, I as IQueueMutable, Q as QueueDiscardPolicy, a as QueueOpts, q as queue, c as queueMutable } from './index-e3c92c89.js';
+export { d as IQueueImmutable, I as IQueueMutable, b as QueueDiscardPolicy, c as QueueOpts, e as immutable, m as mutable } from './index-016f09b1.js';

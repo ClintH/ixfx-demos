@@ -4,7 +4,7 @@ import {
   MapOfSimpleMutable,
   addKeepingExisting,
   addObject,
-  create2 as create,
+  create,
   deleteByValue,
   filter,
   find,
@@ -17,11 +17,11 @@ import {
   getOrGenerateSync,
   hasAnyValue,
   hasKeyValue,
-  immutable,
+  immutable2 as immutable,
   mapToArray,
   mapToObjTransform,
   mergeByKey,
-  mutable,
+  mutable2 as mutable,
   ofArrayMutable,
   ofCircularMutable,
   ofSetMutable,
@@ -32,8 +32,8 @@ import {
   toObject,
   transformMap,
   zipKeyValue
-} from "./chunk-Y5UELOL6.js";
-import "./chunk-VFKWDAYV.js";
+} from "./chunk-G5YZ6YRD.js";
+import "./chunk-4DC2CRSB.js";
 export {
   ExpiringMap,
   MapOfMutableImpl,
