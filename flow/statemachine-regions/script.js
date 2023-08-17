@@ -1,14 +1,14 @@
 import { clamp } from '../../ixfx/data.js';
 import * as Dom from '../../ixfx/dom.js';
 import { Colour } from '../../ixfx/visual.js';
-import { StateMachine } from '../../ixfx/flow.js';
+import { StateMachine, Elapsed } from '../../ixfx/flow.js';
 import { Circles } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
   /**
    * Create a state machine that has states init <-> one <-> two <-> three
    */
-  sm: StateMachine.fromListBidirectional(`init`,`one`, `two`, `three`),
+  sm: StateMachine.bidirectionalFromList(`init`,`one`, `two`, `three`),
   resetMachineAfterMs: 2000,
   // Distance threshold for circles to activate
   distanceThreshold: 0.1,
@@ -22,6 +22,9 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
+  elapsed: Elapsed.infinity(),
+  /** @type string */
+  current: ``,
   bounds: {
     width: 0,
     height: 0,
@@ -34,34 +37,53 @@ let state = Object.freeze({
 /**
 * State machine 'driver'
 */
-const driver = StateMachine.drive(settings.sm, {
-  init: () => {
-    if (state.distances[0] > settings.distanceThreshold) return;
-    return { state: `one` };
+const driver = await StateMachine.driver(settings.sm, [
+  {
+    if: `init`,
+    then: () => {
+      if (state.distances[0] > settings.distanceThreshold) return;
+      return { next: `one` };
+    },
   },
-  one: () => {
-    if (state.distances[1] > settings.distanceThreshold) return;
-    return { state: `two` };
+  {
+    if: `one`,
+    then: () => {
+      if (state.distances[1] > settings.distanceThreshold) return;
+      return { next: `two` };
+    }
   },
-  two: () => {
-    if (state.distances[2] > settings.distanceThreshold) return;
-    return { next: true };
-  },
-});
+  { if: `two`,
+    then: () => {
+      if (state.distances[2] > settings.distanceThreshold) return;
+      return { next: true };
+    }
+  }
+]);
 
 
 /**
  * Process state gets called every second
  */
-const processState = () => {
+const processState = async () => {
   const { sm, resetMachineAfterMs } = settings;
-
+  const { current } = state;
+  let { elapsed } =state;
   // Get driver to do its thing
-  driver();
+  const result = await driver.run();
+
+  if (result?.value !== current) {
+    // State has changed, keep track of it
+    elapsed = Elapsed.since();
+    state = { 
+      ...state, 
+      elapsed, 
+      current: /** @type string */(result?.value) 
+    };
+  }
 
   // If nothing has changed for a while, reset machine
-  if (sm.elapsed >= resetMachineAfterMs) {
-    sm.reset();
+  if (elapsed() >= resetMachineAfterMs) {
+    driver.reset();
   }
 };
 
@@ -72,12 +94,12 @@ const processState = () => {
  * @returns 
  */
 const useState = (ctx) => {
-  const { bounds, distances } = state;
-  const { hue, circles, sm } = settings;
+  const { bounds, distances, current } = state;
+  const { hue, circles } = settings;
 
-  setText(`state`, settings.sm.state);
+  setText(`state`, current);
   ctx.clearRect(0,0,bounds.width,bounds.height);
-  const stateLabel = sm.state;
+  const stateLabel = current;
 
   // Draw each circle
   circles.forEach((c, index) =>  {

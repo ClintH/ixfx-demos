@@ -2,24 +2,41 @@ import { StateMachine } from '../../ixfx/flow.js';
 
 // Init settings
 const settings = Object.freeze({
-  sm: StateMachine.create(`sleep`, {
+  transitions: {
     sleep: `awake`,
     awake: [ `sleep`, `excited`, `angry` ],
     excited: `awake`,
     angry: `awake`
-  }),
-  stateEl: document.getElementById(`state`)
+  },
+  stateEl: /** @type HTMLElement */(document.getElementById(`state`)),
+  possibleStatesEl:  /** @type HTMLElement */(document.getElementById(`possibleStates`))
 });
+
+let state = Object.freeze({
+  sm: StateMachine.init(settings.transitions)
+});
+
+const useState = () => {
+  const { stateEl, possibleStatesEl } =settings;
+  const { sm } = state;
+  stateEl.innerText = sm.value;
+  possibleStatesEl.innerText = StateMachine.possible(sm).join(`, `);
+};
 
 // Updates machine based on button presses
 const updateMachine = (s) => {
-  const { sm, stateEl } = settings;
+  const { stateEl } = settings;
+  let { sm } = state;
   try {
-    sm.state = s;
-    if (stateEl) stateEl.innerText = sm.state;
+    console.log(`updateMachine: to: ${s}`);
+    // Try to transition machine, saving it to state
+    saveState({
+      sm: StateMachine.to(sm, s)
+    });
+    useState();
   } catch (ex) {
     console.error(ex);
-    if (stateEl) stateEl.innerHTML = sm.state + `<br />` + ex.message;
+    if (stateEl) stateEl.innerHTML = sm.value + `<br />` + ex.message;
   }
 };
 
@@ -36,5 +53,17 @@ const setup = () => {
     // the state to change to.
     updateMachine(el.innerText.toLocaleLowerCase());
   });
+  useState();
 };
 setup();
+
+/**
+ * Saves state
+ * @param {Partial<state>} s 
+ */
+function saveState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}
