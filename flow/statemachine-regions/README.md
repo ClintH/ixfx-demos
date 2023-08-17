@@ -6,4 +6,4 @@ This sketch demonstrates driving a state machine. Each circle is 'activated' bas
 [Online demo](https://clinth.github.io/ixfx-demos/flow/statemachine-regions/)
 
 Read more:
-* [flow/StateMachine.drive](https://clinth.github.io/ixfx/functions/Flow.StateMachine.drive.html)
+* [flow/StateMachine.drive](https://clinth.github.io/ixfx/functions/Flow.StateMachine.driver.html)

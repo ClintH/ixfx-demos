@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>regions</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: hsl(100,10%,80%);
+      --text: hsl(100,10%,10%);
+      --text-accent: hsl(100,60%,20%);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      padding: 1em;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    h1 {
+      color: var(--text-accent);
+    }
+  </style>
+    <div style="display: flex; padding: 2em">
+      <div style="font-size:4em" id="labelStateEmoji">        
+      </div>
+      <div style="font-size: 2em; vertical-align: center" id="labelState">
+      </div>
+      <div>
+       Energy:
+        <span id="labelEnergy">  </span>
+      </div>
+    </div>
+    
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
