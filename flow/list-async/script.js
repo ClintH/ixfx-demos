@@ -21,7 +21,7 @@ const settings = Object.freeze({
 
 let state = Object.freeze({
   // Eg: limit stack to 10 items
-  toProcess: Stacks.stack({ capacity: 10 })
+  toProcess: Stacks.immutable({ capacity: 10 })
 });
 
 const processor = continuously(() => {

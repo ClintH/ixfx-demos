@@ -146,7 +146,7 @@ const handlePredictions = (predictions, frameRect) => {
 
 /**
  * Received data via playback
- * @param {CommonSource.ObjectPrediction[]|CommonSource.Pose[]} frame
+ * @param {CommonSource.ObjectPrediction[]|CommonSource.Pose[]|CommonSource.Face[]} frame
  * @param {number} index
  * @param {CommonSource.Recording} rec 
  */

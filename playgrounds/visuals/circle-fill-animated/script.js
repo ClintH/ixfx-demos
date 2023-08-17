@@ -52,11 +52,11 @@ const onCodeUpdated = () => {
   const endExpr = () => evaluateExpression(state.endExpression, `end expression`);
   
   // Get start and end distances
-  const startDistances = /** @type number[] */(repeat(numberOfPoints, startExpr));
+  const startDistances = /** @type number[] */([ ...repeat(numberOfPoints, startExpr) ]);
   
   // If eval failed, exit
   if (startDistances.length < numberOfPoints) return;
-  let endDistances = /** @type number[] */(repeat(numberOfPoints, endExpr));
+  let endDistances = /** @type number[] */([ ...repeat(numberOfPoints, endExpr) ]);
 
   // If eval failed, use the same as start
   if (endDistances.length < numberOfPoints) endDistances = [ ...startDistances ];

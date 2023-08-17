@@ -1,15 +1,12 @@
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import { Plot2 } from "https://unpkg.com/ixfx/dist/visual.js";
-import { parentSize } from "https://unpkg.com/ixfx/dist/dom.js";
-
+import { Plot2 } from "../../ixfx/visual.js";
+import { parentSize } from "../../ixfx/dom.js";
 
 const settings = Object.freeze({
-  accelPlot: new Plot2.Plot(document.getElementById(`accelPlot`)),
-  accelGravPlot: new Plot2.Plot(document.getElementById(`accelGravPlot`)),
-  rotRatePlot: new Plot2.Plot(document.getElementById(`rotRatePlot`)),
-    
+  accelPlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.getElementById(`accelPlot`))),
+  accelGravPlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.getElementById(`accelGravPlot`))),
+  rotRatePlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.getElementById(`rotRatePlot`))),    
 });
-
 
 const r = new Remote({
   websocket: `wss://${window.location.host}/ws`,

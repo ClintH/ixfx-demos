@@ -8,11 +8,11 @@ const settings = Object.freeze({
 /**
  * @typedef MidiDevice
  * @property {string} id
- * @property {string} manufacturer
- * @property {string} name
+ * @property {string|null} manufacturer
+ * @property {string|null} name
  * @property {"input"|"output"} type
- * @property {"closed"} connection
- * @property {"connected"} state
+ * @property {"closed"|"open"|"pending"} connection
+ * @property {"connected"|"disconnected"} state
  * @method {onmidimessage} onmidimessage
  */
 
@@ -29,7 +29,8 @@ let state = Object.freeze({
   activeDevice: undefined
 });
 
-state.devices[0].
+//state.devices[0].
+
 /**
  * 
  * @param {KeyboardEvent} ev 
@@ -71,7 +72,7 @@ const initMidi = () => {
       /** @type MidiDevice[] */
       let devices = [];
       for (const i of inputs.values()) {
-        opts.push(i.name);
+        opts.push(i.name ?? `?`);
         devices.push({
           id: i.id,
           manufacturer: i.manufacturer,
@@ -79,11 +80,11 @@ const initMidi = () => {
           connection: i.connection,
           state: i.state,
           type: i.type
-        })
+        });
       }
 
       deviceSelEl?.setOpts(opts);
-      updateState({devices});
+      updateState({ devices });
     }, (err) => {
       console.log(err);
     });

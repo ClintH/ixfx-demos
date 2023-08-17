@@ -5,7 +5,7 @@
 import { Espruino } from '../../../ixfx/io.js';
 import { log } from '../../../ixfx/dom.js';
 import { forEachAsync } from '../../../ixfx/flow.js';
-import { stackMutable } from '../../../ixfx/collections.js';
+import { Stacks } from '../../../ixfx/collections.js';
 
 const settings = Object.freeze({
   log: log(`#log`, {
@@ -24,7 +24,7 @@ let state = Object.freeze({
   board: `puck`,
   /** @type Espruino.EspruinoDevice|undefined */
   espruino: undefined,
-  history: stackMutable(),
+  history: Stacks.mutable(),
   /** @type {number} */
   historyIndex: 0
 });

@@ -172,7 +172,7 @@ const setupEnvelope = () => {
       if (o.decayDuration > durationLimit) throw new Error(`decayDuration cannot be longer than ${durationLimit}ms.`);
       if (o.releaseDuration > durationLimit) throw new Error(`releaseDuration cannot be longer than ${durationLimit}ms.`);
 
-      const data = await IterableAsync.toArray(adsrIterable(o, sampleRate));
+      const data = await IterableAsync.toArray(adsrIterable({ env: o, sampleRateMs: sampleRate }));
       console.log(data);
 
       amplitudes = data.map(d => Math.round(d * 127));

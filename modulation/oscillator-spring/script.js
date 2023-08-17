@@ -2,8 +2,10 @@ import * as Flow from '../../ixfx/flow.js';
 import { Oscillators } from '../../ixfx/modulation.js';
 import { Points } from '../../ixfx/geometry.js';
 
+
 let state = Object.freeze({
-  spring: Oscillators.spring(),
+  // Default spring
+  spring: yieldNumber(Oscillators.spring()),
   to: { x: 0.5, y:0.5 },
   from: { x:0.5, y: 0.5 },
   /** @type number */
@@ -18,7 +20,7 @@ let state = Object.freeze({
 const onTick = () => {
   const { spring, to, from } = state;
 
-  const v = spring.next().value;
+  const v = spring();
   if (v === undefined) {
     // Spring is complete
     updateState({ 
@@ -93,7 +95,7 @@ const setup = () => {
       },
       from: state.currentPos 
     });
-    updateState({ spring: Oscillators.spring() });
+    updateState({ spring: yieldNumber(Oscillators.spring()) });
     run.start();
   });
 
@@ -110,4 +112,12 @@ function updateState (s) {
     ...state,
     ...s
   });
+}
+
+function yieldNumber(generator, defaultValue = undefined) {
+  return () => {
+    const v = generator.next().value;
+    if (v === undefined) return defaultValue;
+    return v;
+  };
 }

@@ -84,7 +84,7 @@ const setup = () => {
         await p.writeScript(script);
         onConnected(true);
         p.addEventListener(`data`, onData);
-      }, 1000);
+      },  1000);
 
     } catch (ex) {
       console.error(ex);

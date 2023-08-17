@@ -1,5 +1,5 @@
 // #region Imports
-import { completionMs } from '../../ixfx/flow.js';
+import { Elapsed } from '../../ixfx/flow.js';
 // #endregion
 
 const settings = Object.freeze({
@@ -8,8 +8,8 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  /** @type any */
-  completion: undefined
+  /** @type Elapsed.SinceFn */
+  completion: Elapsed.infinity()
 });
 
 const useState = () => {
@@ -18,12 +18,11 @@ const useState = () => {
   const indicatorEl = document.getElementById(`indicator`);
   const indicatorLevelEl = /** @type {HTMLElement} */(indicatorEl?.children[0]);
 
-  let v = 0;
-
-  // If there is a function, use it
-  if (completion) {
-    // Get current completion 0..1 (0-100%)
-    v = completion();
+  let v = completion();
+  
+  // If we've reset, use 0 instead
+  if (!Number.isFinite(v)) {
+    v = 0;
   }
   
   setDebug(`completion: ${v.toPrecision(2)}`);
@@ -37,7 +36,7 @@ document.getElementById(`one`)?.addEventListener(`pointerdown`, evt => {
 
   // Set a function to track elapsed time
   saveState({
-    completion: completionMs(settings.totalMs)
+    completion: Elapsed.progress(settings.totalMs, { clampValue: true })
   });
 });
 
@@ -46,7 +45,7 @@ document.getElementById(`one`)?.addEventListener(`pointerup`, evt => {
 
   // Remove the function
   saveState({
-    completion: undefined
+    completion: Elapsed.infinity()
   });
 });
 

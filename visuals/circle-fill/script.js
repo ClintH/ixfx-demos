@@ -86,7 +86,9 @@ const drawState = () => {
   const pts = randomPoints(absCircle, numberOfPoints);
 
   const size = pointSize * scaleBy; 
-  pts.forEach(pt => drawPoint(ctx, pt, pointColour, size));
+  for (const pt of pts) {
+    drawPoint(ctx, pt, pointColour, size);
+  }
 };
 
 

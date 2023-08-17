@@ -1,4 +1,4 @@
-import { log, Forms } from '../../../ixfx/dom.js';
+import { log, Forms } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
   pointerEl: document.getElementById(`pointerArea`),
@@ -135,12 +135,12 @@ const setup = () => {
   });
 
 
-  document.getElementById(`btnCurrentReset`).addEventListener(`click`, () => {
+  document.getElementById(`btnCurrentReset`)?.addEventListener(`click`, () => {
     clearPointers();
   });
 
 
-  document.getElementById(`btnClearLog`).addEventListener(`click`, () => {
+  document.getElementById(`btnClearLog`)?.addEventListener(`click`, () => {
     log.clear();
   });
 };

@@ -37,7 +37,8 @@ const update = () => {
 const sineApure = (ticks, x) => Math.sin(x + ticks);
 
 // With noise
-const sineA = (ticks, x) => jitter(Math.sin(x + ticks), 0.005, { clamped: false });
+const jitterFn = jitter({ clamped: false,relative: 0.005 });
+const sineA = (ticks, x) => jitterFn(Math.sin(x + ticks));
 const sineB = (ticks, x) => (Math.sin(x + ticks) + Math.sin(2 * x)) / 2;
 const sineC = (ticks, x) => (Math.sin(x + ticks) + Math.cos(2 * x)) / 2;
 const sineD = (ticks, x) => (Math.sin(x + ticks) + Math.tanh(x)) / 2;

@@ -127,7 +127,7 @@ async function read() {
   }
   // Adjust loop speed based on how quickly we're able to process
   const elapsed = performance.now() - start;
-  settings.loop.intervalMs = Math.floor(elapsed * 1.1);
+  settings.loop.interval = Math.floor(elapsed * 1.1);
 }
 
 
@@ -926,6 +926,7 @@ function updateState (s) {
  * @property {number} score
  * @property {Box} box
  * @property {string} id
+ * @property {number} hue
  * @property {string} source
  */
 /**
@@ -946,6 +947,7 @@ function updateState (s) {
  * @property {FaceKeypoint[]} keypoints
  * @property {number} score
  * @property {Box} box
+ * @property {number} hue
  * @property {string} source
  */
 

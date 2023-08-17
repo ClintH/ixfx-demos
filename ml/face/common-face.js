@@ -48,9 +48,9 @@ export const faceByKeypoint = (face) => {
     if (!k) throw new Error(`Keypoint ${name} not found on face`);
     return k;
   };
+
   // @ts-ignore
   const hue = `hue` in face ? face.hue: -1;
-
 
   return {
     score: face.score ?? 0,

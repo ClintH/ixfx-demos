@@ -27,7 +27,7 @@ let state = Object.freeze({
   },
   // Generate 100 random points
   // with x,y and radius on 0..1 scale
-  points: repeat(100, randomPoint)
+  points: [ ...repeat(100, randomPoint) ]
 });
 
 const useState = () => {

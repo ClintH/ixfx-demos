@@ -5,7 +5,7 @@
 import { defaultErrorHandler } from '../../ixfx/dom.js';
 import { adsrIterable, defaultAdsrOpts } from '../../ixfx/modulation.js';
 import { IterableAsync } from '../../ixfx/util.js';
-import { repeat } from '../../ixfx/flow.js';
+import { interval, repeat } from '../../ixfx/flow.js';
 import { interleave } from '../../ixfx/arrays.js';
 
 const settings = Object.freeze({
@@ -62,7 +62,6 @@ const onPointerDown = evt => {
 };
 
 const setup = async () => {
-
   // Display errors on page. Useful since we'll be running on a mobile
   defaultErrorHandler();
 
@@ -71,19 +70,22 @@ const setup = async () => {
   const lblEnvEl = document.getElementById(`lblEnv`);
   if (lblEnvEl) lblEnvEl.innerText = `Sampling envelope...`;
 
-  IterableAsync.toArray(adsrSample(settings.envOpts, settings.sampleRateMs)).then(env => {
-    // Map them to milliseconds, based on scaling setting
-    env = env.map(v => Math.round(v * settings.envScale));
+  // Get envelope as an iterable
+  const iter = await adsrIterable({ env: settings.envOpts, sampleRateMs: settings.sampleRateMs });
+  let env = await IterableAsync.toArray(iter);
 
-    // Generate an off pulse for each of the envelope's on pauses
-    const pauses = repeat(env.length, () => settings.restMs);
+  // Map them to milliseconds, based on scaling setting
+  env = env.map(v => Math.round(v * settings.envScale));
 
-    // Combine them together with ixfx's interleave function
-    updateState({ envData: interleave(env, pauses) });
+  // Generate an off pulse for each of the envelope's on pauses
+  const pauses = [ ...repeat(env.length, () => settings.restMs) ];
 
-    if (btnEnv) /** @type {HTMLButtonElement} */(btnEnv).disabled = false;
-    if (lblEnvEl) lblEnvEl.innerText = `Envelope sampled.`;
-  });
+  // Combine them together with ixfx's interleave function
+  updateState({ envData: interleave(env, pauses) });
+
+  if (btnEnv) /** @type {HTMLButtonElement} */(btnEnv).disabled = false;
+  if (lblEnvEl) lblEnvEl.innerText = `Envelope sampled.`;
+
 
   document.addEventListener(`pointerdown`, onPointerDown);
 

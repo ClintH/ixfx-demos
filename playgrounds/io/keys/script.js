@@ -1,7 +1,7 @@
 import { log, Forms } from '../../../ixfx/dom.js';
 
 const settings = Object.freeze({
-  lastEl: document.getElementById(`last`),
+  lastEl: /** @type HTMLElement */(document.getElementById(`last`)),
   log: log(`#log`, { timestamp: true })
 });
 
@@ -61,7 +61,7 @@ const setup = () => {
     handle(ev);
   });
 
-  document.getElementById(`btnLogClear`).addEventListener(`click`, () => {
+  document.getElementById(`btnLogClear`)?.addEventListener(`click`, () => {
     log.clear();
   });
 

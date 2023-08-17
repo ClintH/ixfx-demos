@@ -17,7 +17,7 @@ const connect = async () => {
     // Listen for events
     serial.addEventListener(`change`, evt => {
       console.log(`${evt.priorState} -> ${evt.newState}`);
-      if (evt.newState == `connected`) onConnected(true);
+      if (evt.newState === `connected`) onConnected(true);
       else onConnected(false);
     });
 

@@ -31,7 +31,7 @@ let state = Object.freeze({
     center: { x: 0, y: 0 }
   },
   /** @type readonly Forces.ForceAffected[] */
-  attractees: repeat(20, generate),
+  attractees: [ ...repeat(20, generate) ],
 });
 
 const onTick = () => {

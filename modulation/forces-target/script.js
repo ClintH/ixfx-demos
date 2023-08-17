@@ -19,9 +19,9 @@ let state = Object.freeze({
   // Assign random position (normalised 0..1 scale)
   position: Points.random(),
   // Starting velocity is 0, at rest
-  velocity: {x: 0, y: 0},
+  velocity: { x: 0, y: 0 },
   // Default target for acceleration: middle of screen
-  targetPos: {x: 0.5, y: 0.5},
+  targetPos: { x: 0.5, y: 0.5 },
   // Record size of window
   window: {
     width: window.innerWidth,
@@ -34,11 +34,11 @@ const onTick = () => {
   const { targetPos, position, velocity } = state;
 
   // Apply targetForce
-  const t = Forces.apply({velocity, position}, 
+  const t = Forces.apply({ velocity, position }, 
     // Push towards target
     Forces.targetForce(targetPos, target),
     dragForce
-    );
+  );
 
   // Wrap point to be between 0,0 and 1,1
   // This means if the new position is outside the bounds of the screen
@@ -56,7 +56,7 @@ const onTick = () => {
  * Position thing based on state
  */
 const useState = () => {
-  const {position} = state;
+  const { position } = state;
 
   const thingEl =  document.getElementById(`thing`);
   
@@ -65,7 +65,7 @@ const useState = () => {
 };
 
 const moveElement = (el, relativePos) => {
-  const {window} = state;
+  const { window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(relativePos, window.width, window.height);
@@ -95,25 +95,25 @@ const setup = () => {
   });
 
   window.addEventListener(`pointerup`, (ev) => {
-    const {window} = state;
+    const { window } = state;
 
     // Normalise pointer to be in relative coords
     const relPointer = Points.normaliseByRect(ev, window);
 
     // Set new target
-    updateState({targetPos: relPointer});
+    updateState({ targetPos: relPointer });
     moveElement(targetEl, state.targetPos);
   });
 
   moveElement(targetEl, state.targetPos);
-}
+};
 setup();
 
 /**
  * Update state
  * @param {Partial<state>} s 
  */
- function updateState (s) {
+function updateState (s) {
   state = Object.freeze({
     ...state,
     ...s

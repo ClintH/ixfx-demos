@@ -1,10 +1,11 @@
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 
 const settings = Object.freeze({
-  lastDataEl: document.querySelector(`#lastData`),
+  lastDataEl: /** @type HTMLElement */(document.querySelector(`#lastData`))
 });
 
 let state = Object.freeze({
+  /** @type boolean */
   paused: false
 });
 
@@ -26,12 +27,11 @@ const getAbg = (d) => ({
 });
 
 const onMotion = (evt) => {
-  const { lastDataEl, log } = settings;
+  const { lastDataEl } = settings;
   const { paused } = state;
   if (paused) return;
   
   const v = (x) => x.toPrecision(2);
-  
   
   // Grab some values
   const d = {
@@ -78,11 +78,11 @@ const startEvents = async () => {
   } else {
     window.addEventListener(`devicemotion`, onMotion);
   }
-  document.getElementById(`btnStart`).remove();
+  document.getElementById(`btnStart`)?.remove();
 };
 
 const setup = () => {
-  document.getElementById(`txtPeerId`).value = r.id;
+  /** @type HTMLInputElement */(document.getElementById(`txtPeerId`)).value = r.id;
   
   document.getElementById(`btnStart`)?.addEventListener(`click`, startEvents);
   document.getElementById(`btnPause`)?.addEventListener(`click`, evt => {

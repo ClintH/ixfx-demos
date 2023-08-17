@@ -50,7 +50,7 @@ const onKeyDown = (evt) => {
   const { keysDown } = state;
   saveState({
     // Add key to list of keys down, if it's not already there
-    keysDown: Arrays.pushUnique(keysDown, [ evt.key ])
+    keysDown: Arrays.unique([ ...keysDown,  evt.key  ])
   });
   useState();
 };
