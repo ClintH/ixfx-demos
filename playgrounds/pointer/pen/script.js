@@ -27,7 +27,9 @@ const updatePointer = (ev) => {
   shtml(`keys`, keyStr);
   shtml(`pressure`, pc(ev.pressure));
   
+  // @ts-ignore
   const altAngle = ev.altitudeAngle ?? 0;
+  // @ts-ignore
   const aziAngle = ev.azimuthAngle ?? 0;
   shtml(`altitudeAngle`, altAngle.toPrecision(3));
   shtml(`azimuthAngle`, aziAngle.toPrecision(3));
