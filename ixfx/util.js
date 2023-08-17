@@ -1,35 +1,39 @@
 import {
   Debug_exports,
   IterableAsync_exports,
+  comparerInverse,
   defaultComparer,
   defaultKeyer,
-  elapsedMs,
   getFieldByPath,
   getFieldPaths,
   ifNaN,
   isEqualDefault,
   isEqualValueDefault,
   isPowerOfTwo,
+  jsComparer,
   mapObject,
+  numericComparer,
   relativeDifference,
   roundUpToMultiple,
   runningiOS,
   toStringDefault
-} from "./chunk-Y5UELOL6.js";
-import "./chunk-VFKWDAYV.js";
+} from "./chunk-G5YZ6YRD.js";
+import "./chunk-4DC2CRSB.js";
 export {
   Debug_exports as Debug,
   IterableAsync_exports as IterableAsync,
+  comparerInverse,
   defaultComparer,
   defaultKeyer,
-  elapsedMs,
   getFieldByPath,
   getFieldPaths,
   ifNaN,
   isEqualDefault,
   isEqualValueDefault,
   isPowerOfTwo,
+  jsComparer,
   mapObject,
+  numericComparer,
   relativeDifference,
   roundUpToMultiple,
   runningiOS,
