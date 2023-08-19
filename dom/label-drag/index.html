@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>label-drag</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --bg:hsl(10,10%,20%);
+      --fg:hsl(10,10%,50%);
+      --fg-ix:hsl(10,10%,70%);
+      --bg-ix:hsl(10,10%,2%);
+    }
+
+    html,
+    body {
+      background-color:var(--bg);
+      color:var(--fg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    input.drag-edit {
+      border: none;
+      background-color: transparent;
+      color: var(--fg-ix);
+    }
+
+    input.drag-edit:focus {
+      background-color: var(--bg-ix);
+    }
+  </style>
+  <section>
+    <h1>label-drag</h1>
+    <p>Click and drag number to change.</p>
+    <input class="drag-edit" type="number" value="10">
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

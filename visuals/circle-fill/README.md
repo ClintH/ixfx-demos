@@ -4,7 +4,7 @@
 
 Function examples from [Guido Schmidt's sketch](https://editor.p5js.org/guidoschmidt/sketches/njMWGIsv1?s=09).
 
-Try the [playground version](https://clinth.github.io/ixfx-demos/playgrounds/visuals/circle-fill-animated/) to try out different functions interactively.
+Try the [playground version](https://clinth.github.io/ixfx-play/visuals/circle-fill-animated/index.html) to try out different functions interactively.
 
 See also:
 * [ixfx Random](https://clinth.github.io/ixfx-docs/gen/random/)

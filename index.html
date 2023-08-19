@@ -1,83 +1,117 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ixfx demos</title>
+    <link rel="stylesheet" href="./demos.css" />
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ixfx demos</title>
-  <link rel="stylesheet" href="./demos.css">
-</head>
+  <body>
+    <main>
+      <section id="parent">
+        <h1>ixfx demos</h1>
+        <div>
+          <h2>modules</h2>
+          <ul class="nobullets">
+            <li>/ <a href="./data/">data</a></li>
 
-<body>
-  <main>
-    <section id="parent">
-      <h1>ixfx demos</h1>
-      <div>
-        <h2>modules</h2>
-        <ul class="nobullets">
-          <li> / <a href="./data/">data</a></li>
+            <li>/ <a href="./dom/">dom</a></li>
+            <li>/ <a href="./geometry/">geometry</a></li>
+            <li>/ <a href="./io/">input output</a></li>
+            <li>/ <a href="./modulation/">modulation</a></li>
+            <li>/ <a href="./pointer/">pointer</a></li>
+            <li>/ <a href="./flow/">flow</a></li>
+          </ul>
+        </div>
 
-          <li> / <a href="./dom/">dom</a></li>
-          <li> / <a href="./geometry/">geometry</a></li>
-          <li> / <a href="./io/">input output</a></li>
-          <li> / <a href="./modulation/">modulation</a></li>
-          <li> / <a href="./pointer/">pointer</a></li>
-          <li> / <a href="./flow/">flow</a></li>
-        </ul>
-      </div>
+        <div>
+          <h2>media</h2>
+          <ul class="nobullets">
+            <li>/ <a href="./audio/">audio</a></li>
+            <li>/ <a href="./camera/">camera</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2><a href="./ml/">machine learning</a></h2>
+        </div>
+        <div>
+          <h2>etc</h2>
+          <ul class="nobullets">
+            <li>/ <a href="./starters/">starters</a></li>
+            <li>
+              / <a href="https://clinth.github.io/ixfx-play/">playgrounds</a>
+            </li>
+          </ul>
+        </div>
 
-      <div>
-        <h2>media</h2>
-        <ul class="nobullets">
-          <li> / <a href="./audio/">audio</a></li>
-          <li> / <a href="./camera/">camera</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2><a href="./ml/">machine learning</a></h2>
+        <div id="links">
+          <h2>links</h2>
+          <ul class="nobullets">
+            <li class="local">
+              &gt;
+              <a
+                title="View hosted version of demos"
+                href="https://clinth.github.io/ixfx-demos/"
+                >View demos online</a
+              >
+            </li>
+            <li>
+              &gt;
+              <a
+                title="Docs for ixfx"
+                href="https://clinth.github.io/ixfx-docs/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              &gt;
+              <a
+                title="Source code for these demos"
+                href="https://github.com/clinth/ixfx-demos/"
+                >GitHub</a
+              >
+            </li>
+            <li>
+              &gt;
+              <a href="https://github.com/ClintH/ixfx-demos/issues"
+                >Found a bug in a demo? Please report it!</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h2>edit online</h2>
+          <p>
+            It's possible to play with the code directly in your browser and see
+            the results using one of these options:
+          </p>
+          <ul class="nobullets">
+            <li>
+              <a href="https://gitpod.io/#https://github.com/ClintH/ixfx-demos"
+                >Gitpod</a
+              >
+              - requires GitHub login
+            </li>
+            <li>
+              <a href="https://glitch.com/edit/#!/ixfx-demos">Glitch</a> -
+              Editing experience not the best
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
 
-      </div>
-      <div>
-        <h2>etc</h2>
-        <ul class="nobullets">
-          <li> / <a href="./starters/">starters</a></li>
-          <li> / <a href="./playgrounds/">playgrounds</a></li>
-        </ul>
-      </div>
+    <script type="module">
+      const host = window.location.host;
 
-      <div id="links">
-        <h2>links</h2>
-        <ul class="nobullets">
-          <li class="local">&gt; <a title="View hosted version of demos"
-              href="https://clinth.github.io/ixfx-demos/">View demos online</a></li>
-          <li>&gt; <a title="Docs for ixfx" href="https://clinth.github.io/ixfx-docs/">Documentation</a></li>
-          <li>&gt; <a title="Source code for these demos" href="https://github.com/clinth/ixfx-demos/">GitHub</a></li>
-          <li>&gt; <a href="https://github.com/ClintH/ixfx-demos/issues">Found a bug in a demo? Please report it!</a>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h2>edit online</h2>
-        <p>It's possible to play with the code directly in your browser and see the results using one of these options:
-        </p>
-        <ul class="nobullets">
-          <li><a href="https://gitpod.io/#https://github.com/ClintH/ixfx-demos">Gitpod</a> - requires GitHub login</li>
-          <li><a href="https://glitch.com/edit/#!/ixfx-demos">Glitch</a> - Editing experience not the best</li>
-        </ul>
-      </div>
-    </section>
-
-  </main>
-
-  <script type="module">
-    const host = window.location.host;
-
-    // If we're online, hide #local
-    if (host.endsWith(`github.io`) || host.endsWith(`glitch.io`)) {
-      const el = document.getElementById(`local`);
-      document.querySelectorAll(`.local`).forEach(el => el.style.display = `none`);
-    }
-  </script>
-</body>
-
+      // If we're online, hide #local
+      if (host.endsWith(`github.io`) || host.endsWith(`glitch.io`)) {
+        const el = document.getElementById(`local`);
+        document
+          .querySelectorAll(`.local`)
+          .forEach((el) => (el.style.display = `none`));
+      }
+    </script>
+  </body>
 </html>

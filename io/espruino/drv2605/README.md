@@ -3,11 +3,10 @@
 Controls a DRV2605 haptic driver. This demo only works in Chrome.
 
 - [More about the DRV2605 module](http://www.espruino.com/DRV2605)
-- [DRV2605 playground](../../../playgrounds/io/espruino-drv2605/index.html)
-  ([online version](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-drv2605/))
+- [DRV2605 playground](https://clinth.github.io/ixfx-play/io/espruino-drv2605/index.html)
 - [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
 
-This demo (and the [playground](../../../playgrounds/io/espruino-drv2605/index.html)) expect the provided [`espruino.js`](https://raw.githubusercontent.com/ClintH/ixfx-demos/main/io/espruino/drv2605/espruino.js) to be flashed on to the Pico beforehand using the Espruino IDE. In doing this, an [additional code module](http://www.espruino.com/DRV2605) is automatically pulled in. This module is a 'driver' that does the low-level communication over I2C to the DRV2605. The DRV2605 in turn is a 'driver' for the motor.
+This demo (and the [playground](https://clinth.github.io/ixfx-play/io/espruino-repl/index.html)) expect the provided [`espruino.js`](https://raw.githubusercontent.com/ClintH/ixfx-demos/main/io/espruino/drv2605/espruino.js) to be flashed on to the Pico beforehand using the Espruino IDE. In doing this, an [additional code module](http://www.espruino.com/DRV2605) is automatically pulled in. This module is a 'driver' that does the low-level communication over I2C to the DRV2605. The DRV2605 in turn is a 'driver' for the motor.
 
 Remember that the haptic motors are not designed to run for long periods of time. They are meant for periodic bursts.
 

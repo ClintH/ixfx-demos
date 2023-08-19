@@ -35,9 +35,9 @@ unnecessary battery draining.
 
 # Online playgrounds
 
-- [repl](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-repl/) -
+- [repl](https://clinth.github.io/ixfx-play/io/espruino-repl/index.html) -
   Run simple code on a BLE Espruino
-- [plot](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-plot/) -
+- [plot](https://clinth.github.io/ixfx-play/io/espruino-plot/index.html) -
   Plot data from an BLE Espruino
-- [drv2605](https://clinth.github.io/ixfx-demos/playgrounds/io/espruino-drv2605/) -
+- [drv2605](https://clinth.github.io/ixfx-play/io/espruino-drv2605/index.html) -
   Play with the DRV2605 haptic controller and a Pico
