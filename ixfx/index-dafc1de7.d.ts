@@ -1,16 +1,10 @@
 import { S as SimpleEventEmitter } from './Events-b4b55fba.js';
+import { a as IStack, b as IStackImmutable, I as ICircularArray, c as circularArray, d as IMapOfMutableExtended, e as IMapOfMutable, M as MapArrayEvents, f as IMapOf } from './IMapOfMutableExtended-2d4706a0.js';
+import { a as Trees } from './Trees-11733e5d.js';
+import { A as Arrays } from './Arrays-83c49f17.js';
+import { S as SetStringImmutable, a as SetStringMutable, i as index$4 } from './index-c635db24.js';
+import { a as QueueImmutable, Q as QueueMutable, i as index$3 } from './index-016f09b1.js';
 import { I as IsEqual, T as ToString } from './Util-21835c84.js';
-import { E as EitherKey } from './index-dafc1de7.js';
-import { I as ICircularArray } from './IMapOfMutableExtended-2d4706a0.js';
-import './Debug-1701deb8.js';
-import './Trees-11733e5d.js';
-import './Arrays-83c49f17.js';
-import './index-e1bed935.js';
-import './StateMachine-0a0aaea7.js';
-import './MinMaxAvg-bf5430b4.js';
-import 'd3-color';
-import './index-c635db24.js';
-import './index-016f09b1.js';
 
 /**
  * Expiring map options
@@ -205,58 +199,205 @@ declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, 
     set(key: K, value: V): void;
 }
 
-interface IMapOf<V> {
+/**
+ * Stack (mutable)
+ *
+ * @example Overview
+ * ```
+ * stack.push(item); // Add one or more items to the top of the stack
+ * stack.pop(); // Removes and retiurns the item at the top of the stack (ie the newest thing)
+ * stack.peek; // Return what is at the top of the stack or undefined if empty
+ * stack.isEmpty/.isFull;
+ * stack.length; // How many items in stack
+ * stack.data; // Get the underlying array
+ * ```
+ *
+ * @example
+ * ```
+ * const sanga = new MutableStack();
+ * sanga.push(`bread`, `tomato`, `cheese`);
+ * sanga.peek;  // `cheese`
+ * sanga.pop(); // removes `cheese`
+ * sanga.peek;  // `tomato`
+ * sanga.push(`lettuce`, `cheese`); // Stack is now [`bread`, `tomato`, `lettuce`, `cheese`]
+ * ```
+ *
+ * Stack can also be created from the basis of an existing array. First index of array will be the bottom of the stack.
+ * @template V
+ */
+interface IStackMutable<V> extends IStack<V> {
     /**
-     * Iterates over all keys
-     */
-    keys(): IterableIterator<string>;
-    /**
-     * Iterates over all values stored under `key`
-     * @param key
-     */
-    get(key: string): IterableIterator<V>;
-    /**
-     * Iterates over all values, regardless of key.
-     * Same value may re-appear if it's stored under different keys.
-     */
-    valuesFlat(): IterableIterator<V>;
-    /**
-     * Iterates over key-value pairs.
-     * Unlike a normal map, the same key may appear several times.
-     */
-    entriesFlat(): IterableIterator<readonly [key: string, value: V]>;
-    /**
-     * Iteates over all keys and the count of values therein
-     */
-    keysAndCounts(): IterableIterator<readonly [string, number]>;
-    /**
-     * Returns _true_ if `value` is stored under `key`.
+     * Add items to the 'top' of the stack.
      *
-     * @param key Key
-     * @param value Value
+     * @param toAdd Items to add.
+     * @returns How many items were added
      */
-    hasKeyValue(key: string, value: V, eq?: IsEqual<V>): boolean;
+    push(...toAdd: ReadonlyArray<V>): number;
     /**
-     * Returns _true_ if `key` has any values
-     * @param key
+     * Remove and return item from the top of the stack, or _undefined_ if empty.
+     * If you just want to find out what's at the top, use {@link peek}.
      */
-    has(key: string): boolean;
-    /**
-     * Returns _true_ if the map is empty
-     */
+    pop(): V | undefined;
+}
+
+declare class StackImmutable<V> implements IStackImmutable<V> {
+    private readonly opts;
+    readonly data: ReadonlyArray<V>;
+    constructor(opts?: StackOpts, data?: ReadonlyArray<V>);
+    push(...toAdd: ReadonlyArray<V>): StackImmutable<V>;
+    pop(): IStackImmutable<V>;
+    forEach(fn: (v: V) => void): void;
+    forEachFromTop(fn: (v: V) => void): void;
     get isEmpty(): boolean;
-    /**
-     * Returns the number of values stored under `key`, or _0_ if `key` is not present.
-     * @param key Key
-     */
-    count(key: string): number;
-    /**
-     * Finds the first key where value is stored.
-     * Note: value could be stored in multiple keys
-     * @param value Value to seek
-     * @returns Key, or undefined if value not found
-     */
-    firstKeyByValue(value: V, eq?: IsEqual<V> | undefined): string | undefined;
+    get isFull(): boolean;
+    get peek(): V | undefined;
+    get length(): number;
+}
+/**
+ * Returns a stack. Immutable. Use {@link Stacks.mutable} for a mutable alternative.
+ *
+ * The basic usage is `push`/`pop` to add/remove, returning the modified stack. Use the
+ * property `peek` to see what's on top.
+ *
+ * @example Basic usage
+ * ```js
+ * // Create
+ * let s = stack();
+ * // Add one or more items
+ * s = s.push(1, 2, 3, 4);
+ * // See what's at the top of the stack
+ * s.peek;      // 4
+ *
+ * // Remove from the top of the stack, returning
+ * // a new stack without item
+ * s = s.pop();
+ * s.peek;        // 3
+ * ```
+ * @param opts Options
+ * @param startingItems List of items to add to stack. Items will be pushed 'left to right', ie array index 0 will be bottom of the stack.
+ */
+declare const immutable$1: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => IStackImmutable<V>;
+
+/**
+ * Creates a stack. Mutable. Use {@link StackImmutable} for an immutable alternative.
+ *
+ * @example Basic usage
+ * ```js
+ * // Create
+ * const s = new StackMutable();
+ * // Add one or more items
+ * s.push(1, 2, 3, 4);
+ *
+ * // See what's on top
+ * s.peek;  // 4
+ *
+ * // Remove the top-most, and return it
+ * s.pop();   // 4
+ *
+ * // Now there's a new top-most element
+ * s.peek;  // 3
+ * ```
+ */
+declare class StackMutable<V> implements IStackMutable<V> {
+    readonly opts: StackOpts;
+    data: ReadonlyArray<V>;
+    constructor(opts?: StackOpts, data?: ReadonlyArray<V>);
+    push(...toAdd: ReadonlyArray<V>): number;
+    forEach(fn: (v: V) => void): void;
+    forEachFromTop(fn: (v: V) => void): void;
+    pop(): V | undefined;
+    get isEmpty(): boolean;
+    get isFull(): boolean;
+    get peek(): V | undefined;
+    get length(): number;
+}
+/**
+ * Creates a stack. Mutable. Use {@link Stacks.immutable} for an immutable alternative.
+ *
+ * @example Basic usage
+ * ```js
+ * // Create
+ * const s = Stacks.mutable();
+ * // Add one or more items
+ * s.push(1, 2, 3, 4);
+ *
+ * // See what's on top
+ * s.peek;  // 4
+ *
+ * // Remove the top-most, and return it
+ * s.pop();   // 4
+ *
+ * // Now there's a new top-most element
+ * s.peek;  // 3
+ * ```
+ */
+declare const mutable$1: <V>(opts?: StackOpts, ...startingItems: readonly V[]) => IStackMutable<V>;
+
+type StackDiscardPolicy = `older` | `newer` | `additions`;
+type StackOpts = {
+    readonly debug?: boolean;
+    readonly capacity?: number;
+    readonly discardPolicy?: StackDiscardPolicy;
+};
+
+declare const index$2_IStack: typeof IStack;
+declare const index$2_IStackImmutable: typeof IStackImmutable;
+type index$2_IStackMutable<V> = IStackMutable<V>;
+type index$2_StackDiscardPolicy = StackDiscardPolicy;
+type index$2_StackOpts = StackOpts;
+declare namespace index$2 {
+  export {
+    index$2_IStack as IStack,
+    index$2_IStackImmutable as IStackImmutable,
+    index$2_IStackMutable as IStackMutable,
+    index$2_StackDiscardPolicy as StackDiscardPolicy,
+    index$2_StackOpts as StackOpts,
+    immutable$1 as immutable,
+    mutable$1 as mutable,
+  };
+}
+
+type ArrayKeys<K, V> = ReadonlyArray<readonly [key: K, value: V]>;
+type ObjKeys<K, V> = ReadonlyArray<{
+    readonly key: K;
+    readonly value: V;
+}>;
+type EitherKey<K, V> = ArrayKeys<K, V> | ObjKeys<K, V>;
+
+type index$1_ArrayKeys<K, V> = ArrayKeys<K, V>;
+declare const index$1_Arrays: typeof Arrays;
+type index$1_EitherKey<K, V> = EitherKey<K, V>;
+type index$1_ObjKeys<K, V> = ObjKeys<K, V>;
+declare const index$1_QueueImmutable: typeof QueueImmutable;
+declare const index$1_QueueMutable: typeof QueueMutable;
+declare const index$1_SetStringImmutable: typeof SetStringImmutable;
+declare const index$1_SetStringMutable: typeof SetStringMutable;
+type index$1_StackImmutable<V> = StackImmutable<V>;
+declare const index$1_StackImmutable: typeof StackImmutable;
+type index$1_StackMutable<V> = StackMutable<V>;
+declare const index$1_StackMutable: typeof StackMutable;
+declare const index$1_Trees: typeof Trees;
+declare const index$1_circularArray: typeof circularArray;
+declare namespace index$1 {
+  export {
+    index$1_ArrayKeys as ArrayKeys,
+    index$1_Arrays as Arrays,
+    ICircularArray as CircularArray,
+    index$1_EitherKey as EitherKey,
+    index as Maps,
+    index$1_ObjKeys as ObjKeys,
+    index$1_QueueImmutable as QueueImmutable,
+    index$1_QueueMutable as QueueMutable,
+    index$3 as Queues,
+    index$1_SetStringImmutable as SetStringImmutable,
+    index$1_SetStringMutable as SetStringMutable,
+    index$4 as Sets,
+    index$1_StackImmutable as StackImmutable,
+    index$1_StackMutable as StackMutable,
+    index$2 as Stacks,
+    index$1_Trees as Trees,
+    index$1_circularArray as circularArray,
+  };
 }
 
 /**
@@ -465,139 +606,6 @@ interface IMapMutable<K, V> {
  * @param data Optional initial data in the form of an array of `{ key: value }` or `[ key, value ]`
  */
 declare const mutable: <K, V>(...data: EitherKey<K, V>) => IMapMutable<K, V>;
-
-interface IMapOfMutable<V> extends IMapOf<V> {
-    /**
-     * Adds several `values` under the same `key`. Duplicate values are permitted, depending on implementation.
-     * @param key
-     * @param values
-     */
-    addKeyedValues(key: string, ...values: ReadonlyArray<V>): void;
-    /**
-     * Adds a value, automatically extracting a key via the
-     * `groupBy` function assigned in the constructor options.
-     * @param values Adds several values
-     */
-    addValue(...values: ReadonlyArray<V>): void;
-    /**
-     * Clears the map
-     */
-    clear(): void;
-    /**
-     * Deletes all values under `key` that match `value`.
-     * @param key Key
-     * @param value Value
-     */
-    deleteKeyValue(key: string, value: V): boolean;
-    /**
-     * Delete all occurrences of `value`, regardless of
-     * key it is stored under.
-     * Returns _true_ if something was deleted.
-     * @param value
-     */
-    deleteByValue(value: V): boolean;
-    /**
-     * Deletes all values stored under `key`. Returns _true_ if key was found
-     * @param key
-     */
-    delete(key: string): boolean;
-}
-
-/**
- * Events from mapArray
- */
-type MapArrayEvents<V> = {
-    readonly addedValues: {
-        readonly values: ReadonlyArray<V>;
-    };
-    readonly addedKey: {
-        readonly key: string;
-    };
-    readonly clear: boolean;
-    readonly deleteKey: {
-        readonly key: string;
-    };
-};
-/**
- * Like a `Map` but multiple values can be stored for each key.
- * Duplicate values can be added to the same or even a several keys.
- *
- * Three pre-defined MapOf's are available:
- * * {@link ofArrayMutable} - Map of arrays
- * * {@link ofSetMutable} - Map of unique items
- * * {@link ofCircularMutable} - Hold a limited set of values per key
- *
- * Adding
- * ```js
- * // Add one or more values using the predefined key function to generate a key
- * map.addValue(value1, value2, ...);
- * // Add one or more values under a specified key
- * map.addKeyedValues(key, value1, value2, ...);
- * ```
- *
- * Finding/accessing
- * ```js
- * // Returns all values stored under key
- * map.get(key);
- * // Returns the first key where value is found, or _undefined_ if not found
- * map.findKeyForValue(value);
- * // Returns _true_  if value is stored under key
- * map.hasKeyValue(key, value);
- * // Returns _true_ if map contains key
- * map.has(key);
- * ```
- *
- * Removing
- * ```js
- * // Removes everything
- * map.clear();
- * // Delete values under key. Returns _true_ if key was found.
- * map.delete(key);
- * // Deletes specified value under key. Returns _true_ if found.
- * map.deleteKeyValue(key, value);
- * ```
- *
- * Metadata about the map:
- * ```js
- * map.isEmpty;         // True/false
- * map.lengthMax;       // Largest count of items under any key
- * map.count(key);      // Count of items stored under key, or 0 if key is not present.
- * map.keys();          // Returns a string array of keys
- * map.keysAndCounts(); // Returns an array of [string,number] for all keys and number of values for each key
- * map.debugString();   // Returns a human-readable string dump of the contents
- * ```
- *
- * Events can be listened to via `addEventListener`
- * * `addedKey`, `addedValue` - when a new key is added, or when a new value is added
- * * `clear` - when contents are cleared
- * * `deleteKey` - when a key is deleted
- *
- * @example Event example
- * ```js
- * map.addEventLister(`addedKey`, ev => {
- *  // New key evt.key seen.
- * });
- * ```
- *
- * @template V Values stored under keys
- * @template M Type of data structure managing values
- */
-interface IMapOfMutableExtended<V, M> extends SimpleEventEmitter<MapArrayEvents<V>>, IMapOfMutable<V> {
-    /**
-     * Returns the object managing values under the specified `key`
-     * @private
-     * @param key
-     */
-    getSource(key: string): M | undefined;
-    /**
-     * Returns the type name. For in-built implementations, it will be one of: array, set or circular
-     */
-    get typeName(): string;
-    /**
-     * Returns a human-readable rendering of contents
-     */
-    debugString(): string;
-}
 
 /**
  * Map of array options
@@ -1381,4 +1389,111 @@ declare const mergeByKey: <K, V>(reconcile: MergeReconcile<V>, ...maps: readonly
 
 type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
 
-export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts, GetOrGenerate, IMapImmutable, IMapMutable, IMapOf, IMapOfMutable, IMapOfMutableExtended, IMappish, IWithEntries, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, MapSetOpts, MergeReconcile, MultiValue, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };
+type index_ExpiringMap<K, V> = ExpiringMap<K, V>;
+declare const index_ExpiringMap: typeof ExpiringMap;
+type index_ExpiringMapEvent<K, V> = ExpiringMapEvent<K, V>;
+type index_ExpiringMapEvents<K, V> = ExpiringMapEvents<K, V>;
+type index_GetOrGenerate<K, V, Z> = GetOrGenerate<K, V, Z>;
+type index_IMapImmutable<K, V> = IMapImmutable<K, V>;
+type index_IMapMutable<K, V> = IMapMutable<K, V>;
+declare const index_IMapOf: typeof IMapOf;
+declare const index_IMapOfMutable: typeof IMapOfMutable;
+declare const index_IMapOfMutableExtended: typeof IMapOfMutableExtended;
+type index_IMappish<K, V> = IMappish<K, V>;
+type index_IWithEntries<K, V> = IWithEntries<K, V>;
+declare const index_MapArrayEvents: typeof MapArrayEvents;
+type index_MapArrayOpts<V> = MapArrayOpts<V>;
+type index_MapCircularOpts<V> = MapCircularOpts<V>;
+type index_MapMultiOpts<V> = MapMultiOpts<V>;
+type index_MapOfMutableImpl<V, M> = MapOfMutableImpl<V, M>;
+declare const index_MapOfMutableImpl: typeof MapOfMutableImpl;
+type index_MapOfSimpleMutable<V> = MapOfSimpleMutable<V>;
+declare const index_MapOfSimpleMutable: typeof MapOfSimpleMutable;
+type index_MapSetOpts<V> = MapSetOpts<V>;
+type index_MergeReconcile<V> = MergeReconcile<V>;
+type index_MultiValue<V, M> = MultiValue<V, M>;
+declare const index_addKeepingExisting: typeof addKeepingExisting;
+declare const index_addObject: typeof addObject;
+declare const index_deleteByValue: typeof deleteByValue;
+declare const index_filter: typeof filter;
+declare const index_find: typeof find;
+declare const index_firstEntryByIterablePredicate: typeof firstEntryByIterablePredicate;
+declare const index_firstEntryByIterableValue: typeof firstEntryByIterableValue;
+declare const index_fromIterable: typeof fromIterable;
+declare const index_fromObject: typeof fromObject;
+declare const index_getClosestIntegerKey: typeof getClosestIntegerKey;
+declare const index_getOrGenerate: typeof getOrGenerate;
+declare const index_getOrGenerateSync: typeof getOrGenerateSync;
+declare const index_hasAnyValue: typeof hasAnyValue;
+declare const index_hasKeyValue: typeof hasKeyValue;
+declare const index_immutable: typeof immutable;
+declare const index_mapToArray: typeof mapToArray;
+declare const index_mapToObjTransform: typeof mapToObjTransform;
+declare const index_mergeByKey: typeof mergeByKey;
+declare const index_mutable: typeof mutable;
+declare const index_ofArrayMutable: typeof ofArrayMutable;
+declare const index_ofCircularMutable: typeof ofCircularMutable;
+declare const index_ofSetMutable: typeof ofSetMutable;
+declare const index_sortByValue: typeof sortByValue;
+declare const index_sortByValueProperty: typeof sortByValueProperty;
+declare const index_toArray: typeof toArray;
+declare const index_toObject: typeof toObject;
+declare const index_transformMap: typeof transformMap;
+declare const index_zipKeyValue: typeof zipKeyValue;
+declare namespace index {
+  export {
+    index_ExpiringMap as ExpiringMap,
+    index_ExpiringMapEvent as ExpiringMapEvent,
+    index_ExpiringMapEvents as ExpiringMapEvents,
+    Opts as ExpiringMapOpts,
+    index_GetOrGenerate as GetOrGenerate,
+    index_IMapImmutable as IMapImmutable,
+    index_IMapMutable as IMapMutable,
+    index_IMapOf as IMapOf,
+    index_IMapOfMutable as IMapOfMutable,
+    index_IMapOfMutableExtended as IMapOfMutableExtended,
+    index_IMappish as IMappish,
+    index_IWithEntries as IWithEntries,
+    index_MapArrayEvents as MapArrayEvents,
+    index_MapArrayOpts as MapArrayOpts,
+    index_MapCircularOpts as MapCircularOpts,
+    index_MapMultiOpts as MapMultiOpts,
+    index_MapOfMutableImpl as MapOfMutableImpl,
+    index_MapOfSimpleMutable as MapOfSimpleMutable,
+    index_MapSetOpts as MapSetOpts,
+    index_MergeReconcile as MergeReconcile,
+    index_MultiValue as MultiValue,
+    index_addKeepingExisting as addKeepingExisting,
+    index_addObject as addObject,
+    index_deleteByValue as deleteByValue,
+    create as expiringMap,
+    index_filter as filter,
+    index_find as find,
+    index_firstEntryByIterablePredicate as firstEntryByIterablePredicate,
+    index_firstEntryByIterableValue as firstEntryByIterableValue,
+    index_fromIterable as fromIterable,
+    index_fromObject as fromObject,
+    index_getClosestIntegerKey as getClosestIntegerKey,
+    index_getOrGenerate as getOrGenerate,
+    index_getOrGenerateSync as getOrGenerateSync,
+    index_hasAnyValue as hasAnyValue,
+    index_hasKeyValue as hasKeyValue,
+    index_immutable as immutable,
+    ofSimpleMutable as mapOfSimpleMutable,
+    index_mapToArray as mapToArray,
+    index_mapToObjTransform as mapToObjTransform,
+    index_mergeByKey as mergeByKey,
+    index_mutable as mutable,
+    index_ofArrayMutable as ofArrayMutable,
+    index_ofCircularMutable as ofCircularMutable,
+    index_ofSetMutable as ofSetMutable,
+    index_sortByValue as sortByValue,
+    index_sortByValueProperty as sortByValueProperty,
+    index_toArray as toArray,
+    index_toObject as toObject,
+    index_transformMap as transformMap,
+    index_zipKeyValue as zipKeyValue,
+  };
+}
+
+export { ArrayKeys as A, EitherKey as E, GetOrGenerate as G, ObjKeys as O, StackMutable as S, index as a, index$2 as b, StackImmutable as c, index$1 as i };

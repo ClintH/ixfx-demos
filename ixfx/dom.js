@@ -1,4 +1,5 @@
 import {
+  DataTable_exports,
   DragDrop_exports,
   Forms_exports,
   canvasHelper,
@@ -8,8 +9,6 @@ import {
   createAfter,
   createIn,
   cycleCssClass,
-  dataTable,
-  dataTableList,
   defaultErrorHandler,
   fullSizeCanvas,
   fullSizeElement,
@@ -29,9 +28,10 @@ import {
   themeChangeObservable,
   viewportToSpace,
   windowResize
-} from "./chunk-G5YZ6YRD.js";
+} from "./chunk-WFEZISLG.js";
 import "./chunk-4DC2CRSB.js";
 export {
+  DataTable_exports as DataTable,
   DragDrop_exports as DragDrop,
   Forms_exports as Forms,
   canvasHelper,
@@ -41,8 +41,6 @@ export {
   createAfter,
   createIn,
   cycleCssClass,
-  dataTable,
-  dataTableList,
   defaultErrorHandler,
   fullSizeCanvas,
   fullSizeElement,
