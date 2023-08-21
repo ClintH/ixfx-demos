@@ -1,5 +1,4 @@
 {
-  "liveServer.settings.multiRootWorkspaceName": "ixfx-demos",
   "js/ts.implicitProjectConfig.checkJs": true,
   "search.exclude": {
     "**/node_modules": true,

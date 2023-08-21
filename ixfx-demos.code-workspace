@@ -41,21 +41,14 @@
 		"typescript.inlayHints.variableTypes.enabled": false,
 		"typescript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
 		"editor.formatOnSave": true,
-		"workbench.colorCustomizations": {
-			"editorInlayHint.foreground": "#8686867f",
-			"editorInlayHint.background": "#0808081b",
-			// Overrides for specific kinds of inlay hints
-			"editorInlayHint.typeForeground": "#5288528c",
-			"editorInlayHint.parameterForeground": "#4d4861a2",
-		}
 	},
 	"extensions": {
 		"recommendations": [
-			"aaron-bond.better-comments",
 			"dbaeumer.vscode-eslint",
-			"gitpod.gitpod-desktop",
+			"motform.ixfx-highlight",
 			"yandeu.five-server",
-			"hpbsn.papermono"
+			"esbenp.prettier-vscode",
+			"philnash.ngrok-for-vscode"
 		]
 	}
 }

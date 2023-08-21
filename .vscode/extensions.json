@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "motform.ixfx-highlight",
+    "yandeu.five-server",
+    "esbenp.prettier-vscode",
+    "philnash.ngrok-for-vscode"
+  ]
+}
