@@ -1,6 +1,6 @@
 import { S as SimpleEventEmitter } from './Events-b4b55fba.js';
 import { I as IsEqual, T as ToString } from './Util-21835c84.js';
-import { E as EitherKey } from './index-dafc1de7.js';
+import { E as EitherKey } from './index-6aef9d62.js';
 import { I as ICircularArray } from './IMapOfMutableExtended-2d4706a0.js';
 import './Debug-1701deb8.js';
 import './Trees-11733e5d.js';
@@ -309,6 +309,13 @@ interface IMapImmutable<K, V> {
      */
     get(key: K): V | undefined;
     /**
+     * Sets `key` to be `value`, overwriting anything existing.
+     * Returns a new map with added key.
+     * @param key
+     * @param value
+     */
+    set(key: K, value: V): IMapImmutable<K, V>;
+    /**
      * Returns _true_ if map contains `key`
      * @example
      * ```js
@@ -342,7 +349,7 @@ interface IMapImmutable<K, V> {
  * // Creating
  * let m = map();
  * // Add
- * m = m.add(["name", "sally"]);
+ * m = m.set("name", "sally");
  * // Recall
  * m.get("name");
  * ```
@@ -358,8 +365,11 @@ interface IMapImmutable<K, V> {
  * ```js
  * // Create
  * let m = map();
- * // Add
+ * // Add as array or key & value pair
  * m = m.add(["name" , "sally"]);
+ * m = m.add({ key: "name", value: "sally" });
+ * // Add using the more typical set
+ * m = m.set("name", "sally");
  * m.get("name");   // "sally";
  * m.has("age");    // false
  * m.has("name");   // true
