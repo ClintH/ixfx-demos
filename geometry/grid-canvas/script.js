@@ -15,13 +15,14 @@ import { scalePercent } from '../../ixfx/data.js';
 const settings = Object.freeze({
   colour: `hotpink`,
   piPi: Math.PI * 2,
-  grid: { rows: 10, cols: 10 },
+  rows: 10,
+  cols: 10,
   modulators: new Map()
 });
 
 let state = Object.freeze({
-  /** @type {number} */
-  cellSize: 10,
+  /** @type {Grids.GridVisual} */
+  grid: { rows: settings.rows, cols: settings.cols, size: 10 },
   modValues: new Map(),
   pointer: { x: -1, y: -1 }
 });
@@ -30,15 +31,14 @@ const keyForCell = (cell) => cell.x + `-` + cell.y;
 
 // Update state of world
 const update = () => {
-  const { grid } = settings;
-  const { pointer, cellSize } = state;
+  const { pointer, grid } = state;
   const modValues = new Map();
 
   // Get larger of either row or col count
   const gridMax = Math.max(grid.cols, grid.rows);
 
   // Find cell position for pointer
-  const pointerCell = Grids.cellAtPoint( { ...grid, size: cellSize }, pointer);
+  const pointerCell = Grids.cellAtPoint( grid, pointer);
 
   // Update each cell
   for (const cell of Grids.cells(grid)) {
@@ -52,8 +52,7 @@ const update = () => {
 };
 
 const useState = () => {
-  const {  grid } = settings;
-  const { cellSize, modValues } = state;
+  const { grid, modValues } = state;
 
   const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
 
@@ -62,11 +61,10 @@ const useState = () => {
 
   ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
   
-  let sizedGrid = { ...grid, size: cellSize };
   ctx.strokeStyle = `white`;
   for (const cell of Grids.cells(grid)) {
     // Get bounds for cell, as well as current mod value
-    const rect = Grids.rectangleForCell(cell, sizedGrid);
+    const rect = Grids.rectangleForCell(grid, cell);
     const cellKey = keyForCell(cell);
     const modValue = modValues.get(cellKey);
 
@@ -155,7 +153,6 @@ const drawCell = (modValue, rect, ctx) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  const { grid } = settings;
 
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, args => {
@@ -166,7 +163,10 @@ const setup = () => {
     // We'd use minDimension if it was important
     // to not lose cells off the viewport
     updateState({
-      cellSize: maxDimension / Math.max(grid.rows, grid.cols)
+      grid: { 
+        rows: settings.rows, 
+        cols: settings.cols, 
+        size: maxDimension / Math.max(settings.rows, settings.cols) }
     });
   });
 

@@ -1,264 +1,477 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ixfx / geometry</title>
+    <link rel="stylesheet" href="../demos.css" />
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ixfx / geometry</title>
-  <link rel="stylesheet" href="../demos.css">
-</head>
+  <body>
+    <main>
+      <header><a href="../">../</a> geometry</header>
+      <p>
+        <a href="#arc">arcs</a>, <a href="#circle">circles</a>,
+        <a href="#grid">grid</a>, <a href="#polar">polar coordinates</a>,
+        <a href="#point">points</a>, <a href="#line">lines</a>,
+        <a href="#rectangle">rectangles</a>, <a href="#sphere">spheres</a>
+      </p>
 
-<body>
-  <main>
-    <header>
-      <a href="../">../</a> geometry
-    </header>
-    <p><a href="#arc">arcs</a>, <a href="#circle">circles</a>, <a href="#grid">grid</a>, <a href="#polar">polar
-        coordinates</a>, <a href="#point">points</a>, <a href="#line">lines</a>, <a href="#rectangle">rectangles</a>, <a
-        href="#sphere">spheres</a>
-    <ul class="pillbox">
-      <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/">Documentation</a></li>
-      <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.html">API Reference</a></li>
-    </ul>
-    <div class="demos">
-      <div>
-        <a name="arc">
-          <h1>arcs</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/arc/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Arcs.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/arc-drawing"></a>
-            <a href="./arc-drawing/">Drawing an arc with the canvas</a>
-            <div class="techniques">Arc drawing, radial gradients, stacked canvases, auto-sized canvas, ping-pong and
-              range generators
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/arc-svg"></a>
-            <a href="./arc-svg/">SVG arc</a>
-            <div class="techniques">Generators, degrees-to-radians, updating SVG, auto-sized element
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/arc-moving"></a>
-            <a href="./arc-moving/">Moving along an arc</a>
-            <div class="techniques">Relative point calculation, DOM element translate, ping-pong generator,
-              degrees-to-radians
-            </div>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <a name="circle">
-          <h1>circles</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/circle/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Circles.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-drawing"></a>
-            <a href="./circle-drawing/">Drawing a circle with the canvas</a>
-            <div class="techniques">Circle drawing, radial gradients, shape drawing function, auto-sized canvas,
-              ping-pong
-              generator
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-svg"></a>
-            <a href="./circle-svg/">SVG circle</a>: Animate an SVG circle
-            <div class="techniques">SVG, pointer event</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-path-svg"></a>
-            <a href="./circle-path-svg/">SVG circle path</a>: Animate text on a circular path
-            <div class="techniques">SVG</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-math"></a>
-            <a href="./circle-math/">Math</a>: Nearest point on circle perimeter
-            <div class="techniques">Circle functions</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-sunflower"></a>
-            <a href="./circle-sunflower/">Sunflower</a>: Calculate points using a Vogel spiral, making a sunflower
-            pattern.
-            <div class="techniques">Generators</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-ring"></a>
-            <a href="./circle-ring/">Ring</a>: Distribute elements around a circle
-            <div class="techniques">Polar coordinates</div>
-          </li>
-          <!-- <li><a href="#">Move along a circle</a></li>
+      <ul class="pillbox">
+        <li>
+          <a
+            class="pill"
+            href="https://clinth.github.io/ixfx-docs/types/geometry/"
+            >Documentation</a
+          >
+        </li>
+        <li>
+          <a
+            class="pill"
+            href="https://clinth.github.io/ixfx/modules/Geometry.html"
+            >API Reference</a
+          >
+        </li>
+      </ul>
+      <div class="demos">
+        <div>
+          <a name="arc">
+            <h1>arcs</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/arc/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Arcs.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/arc-drawing"
+              ></a>
+              <a href="./arc-drawing/">Drawing an arc with the canvas</a>
+              <div class="techniques">
+                Arc drawing, radial gradients, stacked canvases, auto-sized
+                canvas, ping-pong and range generators
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/arc-svg"
+              ></a>
+              <a href="./arc-svg/">SVG arc</a>
+              <div class="techniques">
+                Generators, degrees-to-radians, updating SVG, auto-sized element
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/arc-moving"
+              ></a>
+              <a href="./arc-moving/">Moving along an arc</a>
+              <div class="techniques">
+                Relative point calculation, DOM element translate, ping-pong
+                generator, degrees-to-radians
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <a name="circle">
+            <h1>circles</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/circle/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Circles.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-drawing"
+              ></a>
+              <a href="./circle-drawing/">Drawing a circle with the canvas</a>
+              <div class="techniques">
+                Circle drawing, radial gradients, shape drawing function,
+                auto-sized canvas, ping-pong generator
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-svg"
+              ></a>
+              <a href="./circle-svg/">SVG circle</a>: Animate an SVG circle
+              <div class="techniques">SVG, pointer event</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-path-svg"
+              ></a>
+              <a href="./circle-path-svg/">SVG circle path</a>: Animate text on
+              a circular path
+              <div class="techniques">SVG</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-math"
+              ></a>
+              <a href="./circle-math/">Math</a>: Nearest point on circle
+              perimeter
+              <div class="techniques">Circle functions</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-sunflower"
+              ></a>
+              <a href="./circle-sunflower/">Sunflower</a>: Calculate points
+              using a Vogel spiral, making a sunflower pattern.
+              <div class="techniques">Generators</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/circle-ring"
+              ></a>
+              <a href="./circle-ring/">Ring</a>: Distribute elements around a
+              circle
+              <div class="techniques">Polar coordinates</div>
+            </li>
+            <!-- <li><a href="#">Move along a circle</a></li>
           <li><a href="#">Circle/circle intersections</a></li>
           <li><a href="#">Circle/line intersections</a></li> -->
-        </ul>
-      </div>
-      <div>
-        <a name="#grid">
-          <h1>grid</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/grid/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Grids.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/grid-dom"></a>
-            <a href="./grid-dom/">DOM</a>: Generate DIVs based on grid cells
-            <div class="techniques">Grids, DOM manipulation</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/grid-canvas"></a>
-            <a href="./grid-canvas/">Canvas</a>: Draw elements based on grid cells, modulator-per-cell
-            <div class="techniques">Grids, canvas</div>
-          </li>
-          <!-- <li><a href="#">Dispersion</a></li>
-          <li><a href="#">Game of Life</a></li>
-          <li><a href="#">Sand</a></li> -->
-        </ul>
-      </div>
-      <div>
-        <a name="polar">
-          <h1>polar coordinates</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/units/#polar">Documentation</a>
-          </li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Polar.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/polar-spiral"></a>
-            <a href="./polar-spiral/">Spiral</a>: Draws a spiral based on polar coordinates and generators
-            <div class="techniques">Generators, canvas paths, ping-pong</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/polar-orbit"></a>
-            <a href="./polar-orbit/">Orbit</a>: Move an element in a circular orbit with polar coordinates
-            <div class="techniques">Polar, animation</div>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <a name="point">
-          <h1>points</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/point/">Documentation</a>
-          </li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Points.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-drawing"></a>
-            <a href="./point-drawing/">Drawing</a>: Drawing and animating points
-            <div class="techniques">Canvas, points, repeat</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-particle"></a>
-            <a href="./point-particle/">Particle</a>: Drawing and animating particles
-            <div class="techniques">Canvas, animating points, repeat, jitter</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-interpolate"></a>
-            <a href="./point-interpolate/">Interpolate</a>: Reach a target point over time
-            <div class="techniques">Interpolation, pointer events, relative coordinates</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-math"></a>
-            <a href="./point-math/">Math</a>: Calculate relative
-            coordinates, and compute distance and angle between two points
-            <div class="techniques">Pointer events, Points.distance, Points.angle</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-angle"></a>
-            <a href="./point-angle-avg/">Angle Avg</a>: Calculates average angle in a stream of points
-            <div class="techniques">Number and point tracker</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-centroid"></a>
-            <a href="./point-centroid-hull/">Centroid and Hull</a>: Centroid of two or more points, as well as enclosing
-            shape<div class="techniques">Points.centroid, Points.convexHull, Pointer events, relative coordinates
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-relation"></a>
-            <a href="./point-relation/">Relation</a>: Track angle, distance, centroid between two points
-            <div class="techniques">Points.relation, Pointer events, relative coordiantes</div>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <a name="line">
-          <h1>lines</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/line/">Documentation</a>
-          </li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Lines.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/line-math"></a>
-            <a href="./line-math/">Math</a>
-            <div class="techniques">Calculating distance, nearest point and interpolation</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/line-rotation"></a>
-            <a href="./line-rotation/">Rotation</a>
-            <div class="techniques">Canvas, relative coordinates</div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/line-svg"></a>
-            <a href="./line-svg/">SVG</a>
-            <div class="techniques">Lines, SVG, pointer events</div>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <a name="rectangle">
-          <h1>rectangles</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/rect/">Documentation</a>
-          </li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Rects.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/rectangle-drawing"></a>
-            <a href="./rectangle-drawing/">Drawing</a>
-            <div class="techniques">Creating rectangles, compute corners & lines of a rectangle</div>
-          </li>
-        </ul>
-      </div>
+          </ul>
+        </div>
+        <div>
+          <a name="grid">
+            <h1>grid</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/grid/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Grids.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/grid-dom"
+              ></a>
+              <a href="./grid-dom/">DOM</a>: Generate DIVs based on grid cells
+              <div class="techniques">Grids, DOM manipulation</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/grid-canvas"
+              ></a>
+              <a href="./grid-canvas/">Canvas</a>: Draw elements based on grid
+              cells, modulator-per-cell
+              <div class="techniques">Grids, canvas</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/grid-data"
+              ></a>
+              <a href="./grid-data/">Data</a>: Associate data with grid cells
+              <div class="techniques">Grids, canvas</div>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <a name="polar">
+            <h1>polar coordinates</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/units/#polar"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Polar.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/polar-spiral"
+              ></a>
+              <a href="./polar-spiral/">Spiral</a>: Draws a spiral based on
+              polar coordinates and generators
+              <div class="techniques">Generators, canvas paths, ping-pong</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/polar-orbit"
+              ></a>
+              <a href="./polar-orbit/">Orbit</a>: Move an element in a circular
+              orbit with polar coordinates
+              <div class="techniques">Polar, animation</div>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <a name="point">
+            <h1>points</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/point/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Points.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-drawing"
+              ></a>
+              <a href="./point-drawing/">Drawing</a>: Drawing and animating
+              points
+              <div class="techniques">Canvas, points, repeat</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-particle"
+              ></a>
+              <a href="./point-particle/">Particle</a>: Drawing and animating
+              particles
+              <div class="techniques">
+                Canvas, animating points, repeat, jitter
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-interpolate"
+              ></a>
+              <a href="./point-interpolate/">Interpolate</a>: Reach a target
+              point over time
+              <div class="techniques">
+                Interpolation, pointer events, relative coordinates
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-math"
+              ></a>
+              <a href="./point-math/">Math</a>: Calculate relative coordinates,
+              and compute distance and angle between two points
+              <div class="techniques">
+                Pointer events, Points.distance, Points.angle
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-angle"
+              ></a>
+              <a href="./point-angle-avg/">Angle Avg</a>: Calculates average
+              angle in a stream of points
+              <div class="techniques">Number and point tracker</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-centroid"
+              ></a>
+              <a href="./point-centroid-hull/">Centroid and Hull</a>: Centroid
+              of two or more points, as well as enclosing shape
+              <div class="techniques">
+                Points.centroid, Points.convexHull, Pointer events, relative
+                coordinates
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/point-relation"
+              ></a>
+              <a href="./point-relation/">Relation</a>: Track angle, distance,
+              centroid between two points
+              <div class="techniques">
+                Points.relation, Pointer events, relative coordinates
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <a name="line">
+            <h1>lines</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/line/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Lines.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/line-math"
+              ></a>
+              <a href="./line-math/">Math</a>
+              <div class="techniques">
+                Calculating distance, nearest point and interpolation
+              </div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/line-rotation"
+              ></a>
+              <a href="./line-rotation/">Rotation</a>
+              <div class="techniques">Canvas, relative coordinates</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/line-svg"
+              ></a>
+              <a href="./line-svg/">SVG</a>
+              <div class="techniques">Lines, SVG, pointer events</div>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <a name="rectangle">
+            <h1>rectangles</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/rect/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Rects.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/rectangle-drawing"
+              ></a>
+              <a href="./rectangle-drawing/">Drawing</a>
+              <div class="techniques">
+                Creating rectangles, compute corners & lines of a rectangle
+              </div>
+            </li>
+          </ul>
+        </div>
 
-      <div>
-        <a name="sphere">
-          <h1>spheres</h1>
-        </a>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/types/geometry/spheres/">Documentation</a>
-          </li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Geometry.Spheres.html">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/sphere-fibonacci"></a>
-            <a href="./sphere-fibonacci/">Fibonacci</a>: Generate points on a sphere
-            <div class="techniques">Canvas, Spheres</div>
-          </li>
-        </ul>
+        <div>
+          <a name="sphere">
+            <h1>spheres</h1>
+          </a>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/types/geometry/spheres/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Geometry.Spheres.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/geometry/sphere-fibonacci"
+              ></a>
+              <a href="./sphere-fibonacci/">Fibonacci</a>: Generate points on a
+              sphere
+              <div class="techniques">Canvas, Spheres</div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-  </main>
-</body>
-
+    </main>
+  </body>
 </html>
