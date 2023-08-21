@@ -69,7 +69,7 @@ const useState = () => {
   const { speed, speedAvg } = state;
   const { fontWidth, fontWeight } = settings;
   
-  innerText(`debug`,
+  setText(`debug`,
     `
     Speed: ${Points.toString(speed, 2)}
     Speed average: ${Points.toString(speedAvg, 2)}
@@ -89,8 +89,8 @@ const useState = () => {
  * @returns 
  */
 const setFontVariation = (id, width, weight) => {
-  const el = document.getElementById(`speed`);
-  if (!el) return;
+  const element = /** @type HTMLElement */(document.querySelector(`#speed`));
+  if (!element) return;
 
   // Generate CSS text for each variable font axis
   const wdth = `'wdth' ` + width;
@@ -98,21 +98,21 @@ const setFontVariation = (id, width, weight) => {
 
   // Apply to element
   // Note that axies must be in alphabetical order (!)
-  el.style.fontVariationSettings = `${wdth}, ${wght}`;
+  element.style.fontVariationSettings = `${wdth}, ${wght}`;
 };
 
 /**
- * @param {PointerEvent} evt
+ * @param {PointerEvent} event
  */
-const onPointerMove = (evt) => {
+const onPointerMove = (event) => {
   const { movement } = state;
 
   // Accumulate movement in x,y
   // Use Math.abs because we don't care about the direction
   updateState({
     movement: {
-      x: movement.x + Math.abs(evt.movementX),
-      y: movement.y + Math.abs(evt.movementY)
+      x: movement.x + Math.abs(event.movementX),
+      y: movement.y + Math.abs(event.movementY)
     }
   });
 };
@@ -142,11 +142,9 @@ function updateState (s) {
   });
 }
 
-function innerText(id, msg) {
-  const el = document.getElementById(id);
-  if (el) {
-    if (el.innerText !== msg) {
-      el.innerText = msg;
-    }
+function setText(id, message) {
+  const element =  /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element && element.textContent !== message) {
+    element.textContent = message;
   }
 }

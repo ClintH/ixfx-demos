@@ -51,7 +51,7 @@ let state = Object.freeze({
 const tick = () => {
   const { poses } = settings;
   
-  const allPoses = Array.from(poses.iteratePoses());
+  const allPoses = [...poses.iteratePoses()];
 
   // Do something with the pose data...
   // In this example, we're averaging the distance between noses of all poses.
@@ -64,7 +64,7 @@ const tick = () => {
 
   // Get pairwise combinations of poses
   // eg pose1 <-> pose2, pose2 <-> pose 3 ...
-  const pairs = Array.from(IterableSync.chunksOverlapping(sorted, 2));
+  const pairs = [...IterableSync.chunksOverlapping(sorted, 2)];
 
   for (const pair of pairs) {
     const aLeftHip = pair[0].left_hip;
@@ -103,31 +103,31 @@ const useState = () => {
 
 const drawState = () => {
   const { poses } = settings;
-  const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null}*/(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
   
   // Draw every pose
   for (const pose of poses.iteratePoses()) {
-    drawPose(ctx, pose);
+    drawPose(context, pose);
   }
 };
 
 /**
  * Draw pose
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {PoseByKeypoint} pose
  */
-const drawPose = (ctx, pose) => {
+const drawPose = (context, pose) => {
   // Get pose in absolute coordinates
   const abs = CommonPose.absPose(pose, state.bounds, settings.horizontalMirror);
   const colour = `hsl(${pose.hue}, 50%, 50%)`; 
 
   // Draw pose (debugDrawPose is defined in common-pose.js)
-  CommonPose.debugDrawPose(ctx, abs, {
+  CommonPose.debugDrawPose(context, abs, {
     colour,
   });
   
@@ -136,44 +136,44 @@ const drawPose = (ctx, pose) => {
     y: pose.box?.yMin ?? 0
   }, state.bounds, settings.horizontalMirror);
 
-  ctx.fillStyle = colour;
-  ctx.fillText(pose.id, boxMin.x, boxMin.y);
+  context.fillStyle = colour;
+  context.fillText(pose.id, boxMin.x, boxMin.y);
 };
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
-  //ctx.fillStyle = `orange`;
-  //ctx.fillRect(0, 0, width, height);
+  //context.fillStyle = `orange`;
+  //context.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //ctx.fillRect(0, 0, width, height);
+  //context.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
+  //context.fillRect(0, 0, width, height);
 };
 
 /**
  * Called when a pose we're tracking has disappeared
- * @param {*} evt 
+ * @param {*} event 
  */
-const onPoseLost = (evt) => {
-  const { poseId, pose } = evt.detail;
+const onPoseLost = (event) => {
+  const { poseId, pose } = event.detail;
   console.log(`Pose lost: ${poseId}`);
 };
 
 /**
  * Called when a new pose appears
- * @param {*} evt 
+ * @param {*} event 
  */
-const onPoseGained = (evt) => {
-  const { poseId, pose } = evt.detail;
+const onPoseGained = (event) => {
+  const { poseId, pose } = event.detail;
   console.log(`Pose gained: ${poseId}`);
 };
 
@@ -198,8 +198,8 @@ const setup = async () => {
   };
 
   // Resize canvas element to match viewport
-  Dom.fullSizeCanvas(`#canvas`, args => {
-    saveState({ bounds: args.bounds });
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
+    saveState({ bounds: arguments_.bounds });
   });
 
   const drawLoop = () => {

@@ -37,17 +37,17 @@ const update = () => {
 const sineApure = (ticks, x) => Math.sin(x + ticks);
 
 // With noise
-const jitterFn = jitter({ clamped: false,relative: 0.005 });
-const sineA = (ticks, x) => jitterFn(Math.sin(x + ticks));
+const jitterFunction = jitter({ clamped: false,relative: 0.005 });
+const sineA = (ticks, x) => jitterFunction(Math.sin(x + ticks));
 const sineB = (ticks, x) => (Math.sin(x + ticks) + Math.sin(2 * x)) / 2;
 const sineC = (ticks, x) => (Math.sin(x + ticks) + Math.cos(2 * x)) / 2;
 const sineD = (ticks, x) => (Math.sin(x + ticks) + Math.tanh(x)) / 2;
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   const { timeDivider } = settings;
   // Plot a series of functions...
 
@@ -58,25 +58,25 @@ const draw = (ctx) => {
   // offset and timeDivider options allow the function to be offset and its time scaling changed
   // this allows functions to have changed phases and varying speeds.
 
-  plotFunction(sineA, ctx, { strokeStyle: `lightblue` });
+  plotFunction(sineA, context, { strokeStyle: `lightblue` });
 
-  plotFunction(sineB, ctx, {
+  plotFunction(sineB, context, {
     strokeStyle: `salmon`,
     timeDivider: timeDivider * 1.8
   });
 
-  plotFunction(sineC, ctx, {
+  plotFunction(sineC, context, {
     strokeStyle: `lightgreen`,
     timeDivider: timeDivider * 0.5
   });
 
   // These two waves use the same function,
   // but with a slight offset
-  plotFunction(sineD, ctx, {
+  plotFunction(sineD, context, {
     strokeStyle: `yellow`
   });
 
-  plotFunction(sineD, ctx, {
+  plotFunction(sineD, context, {
     strokeStyle: `lightyellow`,
     offset: 0.1
   });
@@ -85,18 +85,18 @@ const draw = (ctx) => {
   // -------------
 
   // Random:
-  // plotFunction((ticks, x) => Math.random() * 2 - 1, ctx, {strokeStyle: `pink`});
+  // plotFunction((ticks, x) => Math.random() * 2 - 1, context, {strokeStyle: `pink`});
 
   // Straight line:
-  // plotFunction((ticks, x) => 0, ctx, {strokeStyle: `pink`});
+  // plotFunction((ticks, x) => 0, context, {strokeStyle: `pink`});
 
   // A line that sinks to the bottom
   // (since ticks is an ever-incrementing number)
-  // plotFunction((ticks, x) => ticks / 2, ctx, {strokeStyle: `pink`});
+  // plotFunction((ticks, x) => ticks / 2, context, {strokeStyle: `pink`});
 
   // A line that angles from top-left to bottom-right
   // `x` parameter is given as 0 ... 1
-  // plotFunction((ticks, x) => x * 2 - 1, ctx, {strokeStyle: `pink`});
+  // plotFunction((ticks, x) => x * 2 - 1, context, {strokeStyle: `pink`});
 };
 
 /**
@@ -106,66 +106,66 @@ const draw = (ctx) => {
  * * strokeStyle: string for canvas line drawing
  * * lineWidth: number for canvas line drawing
  * * timeDivider: overrides settings.timeDivider
- * @param {(ticks:number, x:number) => number} fn Function to plot
- * @param {CanvasRenderingContext2D} ctx Canvas context to draw on
- * @param {{strokeStyle?:string, lineWidth?:number, offset?:number, timeDivider?:number}} opts Options for this plot 
+ * @param {(ticks:number, x:number) => number} fnc Function to plot
+ * @param {CanvasRenderingContext2D} context Canvas context to draw on
+ * @param {{strokeStyle?:string, lineWidth?:number, offset?:number, timeDivider?:number}} options Options for this plot 
  */
-const plotFunction = (fn, ctx, opts = {}) => {
+const plotFunction = (fnc, context, options = {}) => {
   const { timeDivider, verticalPadding } = settings;
   const { ticks } = state;
 
   const w = state.bounds.width;
   const h = state.bounds.height - (verticalPadding * 2);
-  const fnTimeDivider = opts.timeDivider ?? timeDivider;
-  const offset = opts.offset ?? 0;
+  const functionTimeDivider = options.timeDivider ?? timeDivider;
+  const offset = options.offset ?? 0;
 
   // Use 100 points divided across width of screen
   const sampleWidth = Math.min(1, Math.floor(w / 100));
   for (let x = 0; x <= w; x += sampleWidth) {
-    const v = clamp(fn((ticks / fnTimeDivider) + offset, x / w), -1, 1);
+    const v = clamp(fnc((ticks / functionTimeDivider) + offset, x / w), -1, 1);
     const y = scale(v, -1, 1, 0, h) + verticalPadding;
 
     if (x === 0) {
-      ctx.beginPath();
-      ctx.moveTo(x , y);
+      context.beginPath();
+      context.moveTo(x , y);
     } else {
-      ctx.lineTo(x , y);
+      context.lineTo(x , y);
     }
   }
 
   // Apply visual settings
-  ctx.strokeStyle = opts.strokeStyle ?? settings.strokeStyle;
-  ctx.lineWidth = opts.lineWidth ?? settings.lineWidth;
-  ctx.stroke();
+  context.strokeStyle = options.strokeStyle ?? settings.strokeStyle;
+  context.lineWidth = options.lineWidth ?? settings.lineWidth;
+  context.stroke();
 };
 
 const useState = () => {
-  const canvasEl = document.getElementById(`canvas`);
-  const ctx = /** @type {HTMLCanvasElement} */(canvasEl).getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
+  if (!context) return;
   
   // Update state
   update();
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
   // For added flavour, change compositing mode when drawing functions
   // See: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
   //ctx.globalCompositeOperation = `hard-light`;
   //ctx.globalCompositeOperation = `overlay`;
-  ctx.globalCompositeOperation = `soft-light`;
+  context.globalCompositeOperation = `soft-light`;
 
   // Draw based on state
-  draw(ctx);
+  draw(context);
 
 };
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
@@ -176,18 +176,18 @@ const clear = (ctx) => {
   //ctx.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  ctx.globalCompositeOperation = `source-over`;
-  ctx.fillStyle = `hsla(200, 100%, 10%, 0.1)`;
-  ctx.fillRect(0, 0, width, height);
+  context.globalCompositeOperation = `source-over`;
+  context.fillStyle = `hsla(200, 100%, 10%, 0.1)`;
+  context.fillRect(0, 0, width, height);
 };
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 

@@ -52,21 +52,22 @@ const muteOscillator = () => {
 };
 
 const setup = () => {
-  const freqAreaEl = /** @type HTMLElement */document.getElementById(`freqArea`);
-  if (!freqAreaEl) return;
+  const freqAreaElement = /** @type HTMLElement */document.querySelector(`#freqArea`);
+  if (!freqAreaElement) return;
 
-  freqAreaEl.addEventListener(`pointerup`, muteOscillator);
-  freqAreaEl.addEventListener(`pointerleave`, muteOscillator);
-  freqAreaEl.addEventListener(`pointermove`, evt => {
+  freqAreaElement.addEventListener(`pointerup`, muteOscillator);
+  freqAreaElement.addEventListener(`pointerleave`, muteOscillator);
+  freqAreaElement.addEventListener(`pointermove`, event => {
+    const pointerEvent = /** @type PointerEvent */(event);
     // No button press
-    if (!evt.buttons) return;
+    if (!pointerEvent.buttons) return;
 
     // Size of DOM element
-    const bounds = freqAreaEl.getBoundingClientRect();
+    const bounds = freqAreaElement.getBoundingClientRect();
 
     // Calculate relative x,y
-    const x = scaleClamped(evt.offsetX, 0, bounds.width);
-    const y = scaleClamped(evt.offsetY, 0, bounds.height);
+    const x = scaleClamped(pointerEvent.offsetX, 0, bounds.width);
+    const y = scaleClamped(pointerEvent.offsetY, 0, bounds.height);
 
     // Set to state and use state
     updateState({ x, y });
@@ -112,39 +113,39 @@ function initAudio() {
 
 /**
  * Initialise audio with an oscillator source
- * @param {OscillatorOpts} [oscillatorOpts] 
+ * @param {OscillatorOpts} [oscillatorOptions] 
  * @returns {BasicAudio}
  */
-function initBasicAudio(oscillatorOpts = {}) {
+function initBasicAudio(oscillatorOptions = {}) {
   
-  const ctx = new AudioContext();
-  const oscType = oscillatorOpts.type ?? `sawtooth`;
-  const oscFreq = oscillatorOpts.frequency ?? 440;
+  const context = new AudioContext();
+  const oscType = oscillatorOptions.type ?? `sawtooth`;
+  const oscFreq = oscillatorOptions.frequency ?? 440;
 
   // Source oscillator
-  const source = ctx.createOscillator();
+  const source = context.createOscillator();
   source.type = oscType;
-  source.frequency.setValueAtTime(oscFreq, ctx.currentTime);
+  source.frequency.setValueAtTime(oscFreq, context.currentTime);
 
   // Create stereo panner
-  const pan = ctx.createStereoPanner();
+  const pan = context.createStereoPanner();
 
   // Create gain node
-  const gain = ctx.createGain();
+  const gain = context.createGain();
 
   // Create filter
-  const filter = ctx.createBiquadFilter();
+  const filter = context.createBiquadFilter();
 
   // Patch in
   // Oscillator -> gain -> panner -> speakers
   source.connect(gain);
   gain.connect(pan);
   pan.connect(filter);
-  filter.connect(ctx.destination);
+  filter.connect(context.destination);
 
   return {
     pan, gain, filter,
-    ctx,
+    ctx: context,
     osc:source
   };
 }

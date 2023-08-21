@@ -1,14 +1,10 @@
 // #region Settings & state
-const settings = Object.freeze({
+const settings = Object.freeze({});
 
-});
-
-let state = Object.freeze({
-});
+let state = Object.freeze({});
 // #endregion
 
-const useState = () => {
-};
+const useState = () => {};
 
 const setup = () => {
   // Call useState every half a second

@@ -6,7 +6,7 @@ export { i as Io } from './index-b681b5b9.js';
 export { i as Flow } from './index-e1bed935.js';
 export { G as Generators } from './Generators-41c1354b.js';
 export { i as Visual } from './index-9ccd7644.js';
-export { i as Dom } from './index-ecdf6d38.js';
+export { i as Dom } from './index-5fe46393.js';
 export { E as Events } from './Events-b4b55fba.js';
 export { i as Modulation } from './index-c986f835.js';
 export { i as Collections } from './index-6aef9d62.js';

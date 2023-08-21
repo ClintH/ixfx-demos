@@ -32,33 +32,33 @@ const useState = () => {
   const {  pointSize, lineStyle } = settings;
   const { centroid, convexHull } = state;
 
-  const centroidEl =  document.getElementById(`centroid`);
-  const svgEl = /** @type {SVGSVGElement|null} */(document.getElementById(`svg`));
+  const centroidElement = /** @type {HTMLElement} */ (document.querySelector(`#centroid`));
+  const svgElement = /** @type {SVGSVGElement|null} */(document.querySelector(`#svg`));
   
   // Position centroid
-  if (centroidEl) positionThing(centroidEl, centroid, pointSize);
+  if (centroidElement) positionThing(centroidElement, centroid, pointSize);
 
   // Create lines that form hull
-  if (!svgEl) return;
+  if (!svgElement) return;
   const lines = Lines.joinPointsToLines(...convexHull, convexHull[0]); // Add first point to close path
-  Svg.clear(svgEl);
-  lines.forEach((l, index) => {
-    Svg.Elements.line(l, svgEl, lineStyle, `#line-${index}`);
-  });
+  Svg.clear(svgElement);
+  for (const [index, l] of lines.entries()) {
+    Svg.Elements.line(l, svgElement, lineStyle, `#line-${index}`);
+  }
 };
 
 /**
  * Positions an element
- * @param {HTMLElement} el Element to position 
+ * @param {HTMLElement} element Element to position 
  * @param {Points.Point} point Centre 
  * @param {number} size Diameter of element 
  */
-const positionThing = (el, point, size) => {
-  el.style.width = size + `px`;
-  el.style.height = size + `px`;
-  el.style.left = (point.x - size / 2) + `px`;
-  el.style.top = (point.y - size / 2) + `px`;
-  el.title = Points.toString(point);
+const positionThing = (element, point, size) => {
+  element.style.width = size + `px`;
+  element.style.height = size + `px`;
+  element.style.left = (point.x - size / 2) + `px`;
+  element.style.top = (point.y - size / 2) + `px`;
+  element.title = Points.toString(point);
 };
 
 /**
@@ -74,12 +74,12 @@ const addPoint = (point) => {
   });
   
   // Create element for point
-  const el = document.createElement(`div`);
-  el.classList.add(`point`);
+  const element = document.createElement(`div`);
+  element.classList.add(`point`);
 
   // Position it
-  positionThing(el, point, pointSize);
-  document.body.append(el);
+  positionThing(element, point, pointSize);
+  document.body.append(element);
 
   // Update calculations
   update();
@@ -91,8 +91,8 @@ const addPoint = (point) => {
  */
 const setup = () => {
   // Add a point when clicking the document
-  document.addEventListener(`click`, evt => {
-    addPoint({ x: evt.x, y: evt.y });
+  document.addEventListener(`click`, event => {
+    addPoint({ x: event.x, y: event.y });
   });
 };
 setup();

@@ -1,26 +1,26 @@
 import { log, Forms } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
-  lastEl: /** @type HTMLElement */(document.getElementById(`last`)),
+  lastEl: /** @type HTMLElement */(document.querySelector(`#last`)),
   log: log(`#log`, { timestamp: true })
 });
 
 /**
  * 
- * @param {KeyboardEvent} ev 
+ * @param {KeyboardEvent} event 
  */
-const extract = (ev) => {
+const extract = (event) => {
   // Pull out some fields from the KeyEvent
-  const { altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type } = ev;
+  const { altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type } = event;
   return { altKey, metaKey, ctrlKey, shiftKey, key, code, repeat, type };
 };
 
 /**
  * 
- * @param {KeyboardEvent} ev 
+ * @param {KeyboardEvent} event
  */
-const toString = (ev) => {
-  const t = extract(ev);
+const toString = (event) => {
+  const t = extract(event);
   return `{
     key: ${t.key},
     code: ${t.code},
@@ -33,12 +33,14 @@ const toString = (ev) => {
   }`;
 };
 
-const onMotion = (evt) => {
-  console.log(evt);
+const onMotion = (event) => {
+  console.log(event);
 };
 
 const startEvents = async () => {
+  // @ts-ignore
   if (typeof DeviceMotionEvent.requestPermission === `function`) {
+  // @ts-ignore
     const p = await DeviceMotionEvent.requestPermission();
     if (p === `granted`) {
       window.addEventListener(`devicemotion`, onMotion);
@@ -57,31 +59,31 @@ const setup = () => {
   const chkKeyup = Forms.checkbox(`#evKeyup`);
   const chkKeypress = Forms.checkbox(`#evKeypress`);
 
-  const handle = (ev) => {
-    const s = toString(ev);
+  const handle = (event) => {
+    const s = toString(event);
     log.log(s.split(`\n`).join(``));
-    lastEl.innerText = s;
+    lastEl.textContent = s;
   };
 
-  document.addEventListener(`keydown`, (ev) => {
+  document.addEventListener(`keydown`, (event) => {
     if (!chkKeydown.checked) return;
-    handle(ev);
+    handle(event);
   });
 
-  document.addEventListener(`keyup`, (ev) => {
+  document.addEventListener(`keyup`, (event) => {
     if (!chkKeyup.checked) return;
-    handle(ev);
+    handle(event);
   });
 
-  document.addEventListener(`keypress`, (ev) => {
+  document.addEventListener(`keypress`, (event) => {
     if (!chkKeypress.checked) return;
-    handle(ev);
+    handle(event);
   });
 
-  document.getElementById(`btnLogClear`)?.addEventListener(`click`, () => {
+  document.querySelector(`#btnLogClear`)?.addEventListener(`click`, () => {
     log.clear();
   });
 
-  document.getElementById(`btnStart`)?.addEventListener(`click`, startEvents);
+  document.querySelector(`#btnStart`)?.addEventListener(`click`, startEvents);
 };
 setup();

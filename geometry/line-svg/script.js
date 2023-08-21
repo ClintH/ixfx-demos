@@ -47,7 +47,7 @@ const updateSvg = () => {
   const originAbs = Points.multiply(originPoint, bounds.width, bounds.height);
 
   /** @type {Svg.LineDrawingOpts} */
-  const drawingOpts = {
+  const drawingOptions = {
     strokeWidth,
     strokeStyle: settings.strokeStyle,
     strokeLineCap: `round`
@@ -61,7 +61,7 @@ const updateSvg = () => {
     const line = { a: originAbs, b: p };
 
     // Create or update line
-    Svg.Elements.line(line, svg, drawingOpts, `#ray${id}`);
+    Svg.Elements.line(line, svg, drawingOptions, `#ray${id}`);
   }
 };
 
@@ -70,36 +70,36 @@ const updateSvg = () => {
  */
 const setup = () => {
   // Resize SVG element to match viewport
-  Dom.parentSize(`svg`, args => {
+  Dom.parentSize(`svg`, arguments_ => {
     updateState({
       bounds: windowBounds()
     });
   });
 
-  window.addEventListener(`touchmove`, ev => {
-    ev.preventDefault();
+  window.addEventListener(`touchmove`, event => {
+    event.preventDefault();
   });
 
-  window.addEventListener(`pointerdown`, ev => {
+  window.addEventListener(`pointerdown`, event => {
     const { pointers } = state;
-    pointers[ev.pointerId] = { x: ev.offsetX, y: ev.offsetY };
+    pointers[event.pointerId] = { x: event.offsetX, y: event.offsetY };
     updateState({ pointers });
-    ev.preventDefault();
+    event.preventDefault();
   });
 
-  window.addEventListener(`pointerup`, ev => {
+  window.addEventListener(`pointerup`, event => {
     const { pointers } = state;
-    delete pointers[ev.pointerId];
+    delete pointers[event.pointerId];
     updateState({ pointers });
-    ev.preventDefault();
+    event.preventDefault();
   });
 
-  window.addEventListener(`pointermove`, ev => {
+  window.addEventListener(`pointermove`, event => {
     // Moving, but no press/touch
-    if (ev.buttons === 0) return;
+    if (event.buttons === 0) return;
     const { pointers } = state;
 
-    pointers[ev.pointerId] = { x: ev.offsetX, y: ev.offsetY };
+    pointers[event.pointerId] = { x: event.offsetX, y: event.offsetY };
     updateState({ pointers });
   });
 

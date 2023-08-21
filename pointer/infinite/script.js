@@ -31,35 +31,35 @@ let state = Object.freeze({
 const useThing = (thing) => {
   const { sizeEm } = settings;
 
-  const el = document.getElementById(`thing`);
-  if (!el) return;
+  const element = /** @type HTMLElement */(document.querySelector(`#thing`));
+  if (!element) return;
 
   const { position, mass } = thing;
 
   // Change opacity based on mass
-  el.style.opacity = mass.toString();
+  element.style.opacity = mass.toString();
 
   // Change size based on mass
-  el.style.height = el.style.width = `${sizeEm*mass}em`;
+  element.style.height = element.style.width = `${sizeEm*mass}em`;
 
   // Position
-  positionFromMiddle(el, position);
+  positionFromMiddle(element, position);
 };
 
 /**
  * Position an element from its middle
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element 
  * @param {Points.Point} relativePos 
  */
-const positionFromMiddle = (el, relativePos) => {
+const positionFromMiddle = (element, relativePos) => {
   // Convert relative to absolute units
   const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
   
-  const thingRect = el.getBoundingClientRect();
+  const thingRect = element.getBoundingClientRect();
   const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
 
   // Apply via CSS
-  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
+  element.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 };
 
 /**
@@ -97,15 +97,15 @@ const loop = () => {
   const { thing } = state;
   
   // Update freeze ray based on movement
-  const newFreeze = state.currentMovement / settings.movementMax;
+  const freezeRay = state.currentMovement / settings.movementMax;
 
   // Update thing
-  const newThing = loopThing(thing);
+  const thingUpdated = loopThing(thing);
 
   // Update state
   updateState({ 
-    thing: newThing,
-    freezeRay: newFreeze,
+    thing: thingUpdated,
+    freezeRay: freezeRay,
     currentMovement: 0
   });
 
@@ -115,13 +115,13 @@ const loop = () => {
 
 /**
  * Handles pointermove event
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} event 
  */
-const onPointerMove = (evt) => {
+const onPointerMove = (event) => {
   //console.log(`${evt.movementX}, ${evt.movementY}`);
 
   // Get magnitude of movement
-  const magnitude = Points.distance({ x: evt.movementX, y: evt.movementY });
+  const magnitude = Points.distance({ x: event.movementX, y: event.movementY });
   // Add to state
   updateState({ 
     currentMovement: state.currentMovement + magnitude 
@@ -129,27 +129,27 @@ const onPointerMove = (evt) => {
 };
 
 const setup = () => {
-  const btnStart = document.getElementById(`btnStart`);
-  const btnStop = document.getElementById(`btnStop`);
+  const buttonStart = document.querySelector(`#btnStart`);
+  const buttonStop = document.querySelector(`#btnStop`);
 
-  btnStart?.addEventListener(`click`, () => {
+  buttonStart?.addEventListener(`click`, () => {
     document.body.requestPointerLock();
   });
 
-  btnStop?.addEventListener(`click`, () => {
+  buttonStop?.addEventListener(`click`, () => {
     document.exitPointerLock();
   });
 
   // Handle when pointer lock is turned on/off
-  document.addEventListener(`pointerlockchange`, ev => {
+  document.addEventListener(`pointerlockchange`, event => {
     if (document.pointerLockElement === document.body) {
       // Pointer lock on
-      btnStart?.classList.add(`hidden`);
-      btnStop?.classList.remove(`hidden`);
+      buttonStart?.classList.add(`hidden`);
+      buttonStop?.classList.remove(`hidden`);
     } else {
       // Pointer lock off
-      btnStart?.classList.remove(`hidden`);
-      btnStop?.classList.add(`hidden`);
+      buttonStart?.classList.remove(`hidden`);
+      buttonStop?.classList.add(`hidden`);
     }
   });
 

@@ -71,7 +71,7 @@ const setup = () => {
   const { audioId } = settings;
 
   // Set pan to a random value
-  document.getElementById(`btnRandom`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnRandom`)?.addEventListener(`click`, event => {
     initAudio();
     const a = state.audio.get(audioId);
     if (!a) {
@@ -88,26 +88,27 @@ const setup = () => {
   });
 
   // Stops playback (or rather, pauses it)
-  document.getElementById(`btnStop`)?.addEventListener(`click`, stop);
+  document.querySelector(`#btnStop`)?.addEventListener(`click`, stop);
 
-  document.getElementById(`panArea`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#panArea`)?.addEventListener(`click`, event => {
     play();
   });
 
-  document.getElementById(`panArea`)?.addEventListener(`pointermove`, evt => {
+  document.querySelector(`#panArea`)?.addEventListener(`pointermove`, event => {
+    const pointerEvent = /** @type PointerEvent */(event);
     initAudio();
     // Size of area element
-    const bounds = /** @type HTMLElement */(evt.target).getBoundingClientRect();
+    const bounds = /** @type HTMLElement */(event.target).getBoundingClientRect();
 
     // Compute relative value
-    const freq = scaleClamped(evt.x, 0, bounds.width, 200, 2000);
+    const freq = scaleClamped(pointerEvent.x, 0, bounds.width, 200, 2000);
 
     // But we want -1 to 1 range
     updateState({ filterFreq: freq });
     useState();
   });
 
-  document.getElementById(`btnAutoStart`)?.addEventListener(`click`, async evt => {
+  document.querySelector(`#btnAutoStart`)?.addEventListener(`click`, async event => {
     const { autoFilterRate: autoPanRate, autoFilterUpdateRateMs: autoPanUpdateRateMs } = settings;
     initAudio();
 
@@ -123,7 +124,7 @@ const setup = () => {
     }
   });
 
-  document.getElementById(`btnAutoStop`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnAutoStop`)?.addEventListener(`click`, event => {
     updateState({ readingAutoFilter:false });
   });
   
@@ -152,32 +153,32 @@ function initAudio() {
   updateState({ initialised:true });
   /** @type Map<string,BasicAudio> */
   const ac = new Map();
-  document.querySelectorAll(`audio`).forEach(el => {
-    ac.set(el.id, initBasicAudio(el));
-  });
+  for (const element of document.querySelectorAll(`audio`)) {
+    ac.set(element.id, initBasicAudio(element));
+  }
   updateState({ audio:ac });
   return ac;
 }
 
 /**
  * Initialise audio
- * @param {HTMLMediaElement} audioEl 
+ * @param {HTMLMediaElement} audioElement 
  * @returns {BasicAudio}
  */
-function initBasicAudio(audioEl) {
-  const ctx = new AudioContext();
+function initBasicAudio(audioElement) {
+  const context = new AudioContext();
 
   // Source from AUDIO element
-  const source = ctx.createMediaElementSource(audioEl);
+  const source = context.createMediaElementSource(audioElement);
   
   // Create stereo panner
-  const pan = ctx.createStereoPanner();
+  const pan = context.createStereoPanner();
 
   // Create gain node
-  const gain = ctx.createGain();
+  const gain = context.createGain();
 
   // Create filter
-  const filter = ctx.createBiquadFilter();
+  const filter = context.createBiquadFilter();
   filter.type = settings.filterType;
 
   // Patch in
@@ -185,13 +186,13 @@ function initBasicAudio(audioEl) {
   source.connect(gain);
   gain.connect(pan);
   pan.connect(filter);
-  filter.connect(ctx.destination);
+  filter.connect(context.destination);
 
   return {
     pan, gain, filter,
-    id: audioEl.id,
-    ctx,
-    el:audioEl
+    id: audioElement.id,
+    ctx: context,
+    el:audioElement
   };
 }
 

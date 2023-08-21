@@ -55,13 +55,13 @@ const onData = (faces) => {
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
   //ctx.fillStyle = `orange`;
@@ -77,18 +77,18 @@ const useState = () => {
   const { pointRadius, horizontalMirror } = settings;
   if (processedFace === undefined) return;
 
-  const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null}*/(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Clear and draw current state
-  clear(ctx);
+  clear(context);
 
   // Convert coordinates to viewport-relative coordinates
   const abs = /** @type {FaceByKeypoint} */(CommonFace.absFace(processedFace, bounds, horizontalMirror));
 
   const pointRadiusAbs = pointRadius * bounds.width; 
-  CommonFace.debugDrawFace(ctx, abs, {
+  CommonFace.debugDrawFace(context, abs, {
     pointRadius: pointRadiusAbs,
     colour: `black`
   });
@@ -108,8 +108,8 @@ const setup = async () => {
   };
 
   // Fill viewport with Canvas element
-  Dom.fullSizeCanvas(`#canvas`, args => {
-    saveState({ bounds: args.bounds });
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
+    saveState({ bounds: arguments_.bounds });
   });
 
   // Loop

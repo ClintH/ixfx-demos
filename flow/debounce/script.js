@@ -5,7 +5,7 @@ const settings = Object.freeze({
   log: document.querySelector(`#log`)
 });
 
-const onMove = (elapsedMs, ...args) => {
+const onMove = (elapsedMs, ...arguments_) => {
   const { log } = settings;
   // PointerEvent if we wanted it...
   // const evt = args[0]; 

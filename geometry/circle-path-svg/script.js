@@ -65,20 +65,20 @@ const setup = () => {
   if (svg === null) return;
 
   // Resize SVG element to match viewport
-  Dom.parentSize(svg, args => {
+  Dom.parentSize(svg, arguments_ => {
     updateState({
       bounds: windowBounds()
     });
   });
 
   // Create an empty SVG path element for circle
-  const circleEl = Svg.Elements.path(``, svg, {
+  const circleElement = Svg.Elements.path(``, svg, {
     fillStyle: `none`,
     strokeStyle: `none`,
     strokeWidth: 1
   });
-  circleEl.id = `circlePath`;
-  updateState({ circleEl });
+  circleElement.id = `circlePath`;
+  updateState({ circleEl: circleElement });
 
   // Create text to go on path
   Svg.Elements.textPath(`#circlePath`, text, svg, {

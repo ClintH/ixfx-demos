@@ -35,7 +35,7 @@ let state = Object.freeze({
     y: 0.5
   },
   /** @type {readonly Thing[]} */
-  things: repeat(40, randomThing),
+  things: [...repeat(40, randomThing)],
   // thing: {
   //   x: 0.5,
   //   y: 0.5,
@@ -77,8 +77,8 @@ const computeState = () => {
   });
 
 
-  const newThings = state.things.map(computeThing);
-  updateState({ things: newThings });
+  const things = state.things.map(t => computeThing(t));
+  updateState({ things });
 
   setText(`debug`, `
   distance: ${distance}
@@ -97,120 +97,118 @@ const computeThing = (thing) => {
   const { distanceDiff } = state;
   const { scale, mass } = thing;
 
-  let newScale = scale * (0.9999);
+  let computedScale = scale * (0.9999);
   
-  newScale = newScale + (distanceDiff*mass*0.1);
-  newScale = clamp(newScale, 0.01);
+  computedScale = computedScale + (distanceDiff*mass*0.1);
+  computedScale = clamp(computedScale, 0.01);
 
   return {
     ...thing,
-    scale: newScale
+    scale: computedScale
   };
 
 };
 
 function setText(id, text) {
-  const el = document.getElementById(id);
-  if (el) {
-    if (el.innerText !== text) {
-      el.innerText = text;
-    }
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element && element.textContent !== text) {
+    element.textContent = text;
   }
 }
 
 const drawState = () => {
   const { pointA, pointB } = state;
   /** @type HTMLCanvasElement|null */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
-  state.things.forEach(thing => {
-    drawThing(ctx, thing);
-  });
+  for (const thing of state.things) {
+    drawThing(context, thing);
+  }
 
   // Draw new things
-  drawCircle(ctx, pointA, `red`);
-  drawCircle(ctx, pointB, `blue`);
+  drawCircle(context, pointA, `red`);
+  drawCircle(context, pointB, `blue`);
 
 };
 
 /**
  * Draw a thing
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Thing} thing
  */
-const drawThing = (ctx, thing) => {
+const drawThing = (context, thing) => {
   const posAbs = relativeToAbsolute(thing);
   const radius = thing.scale * window.innerWidth / 4;
   
   // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(posAbs.x, posAbs.y);
+  context.save();
+  context.translate(posAbs.x, posAbs.y);
 
   // Fill a circle
-  ctx.beginPath();
-  ctx.fillStyle = `hsl(${thing.mass*360}, 100%, 50%)`;
+  context.beginPath();
+  context.fillStyle = `hsl(${thing.mass*360}, 100%, 50%)`;
   
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fill();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fill();
 
   // Unwind translation
-  ctx.restore();
+  context.restore();
 };
 
 /**
  * Draw a circle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number}} circle
  * @param {string} fillStyle
  */
-const drawCircle = (ctx, circle, fillStyle) => {
+const drawCircle = (context, circle, fillStyle) => {
   const circlePosAbs = relativeToAbsolute(circle);
   const radius = 5;
 
   // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(circlePosAbs.x, circlePosAbs.y);
+  context.save();
+  context.translate(circlePosAbs.x, circlePosAbs.y);
 
   // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = fillStyle;
-  ctx.fill();
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fillStyle = fillStyle;
+  context.fill();
 
   // Unwind translation
-  ctx.restore();
+  context.restore();
 };
 
 /**
  * Clears canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
-  //ctx.fillStyle = `orange`;
-  //ctx.fillRect(0, 0, width, height);
+  //context.fillStyle = `orange`;
+  //context.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //ctx.fillRect(0, 0, width, height);
+  //context.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
+  //context.fillRect(0, 0, width, height);
 };
 
 /**
  * 
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} event 
  */
-const onPointerMove = (evt) => {
-  const pos = absoluteToRelative(evt);
+const onPointerMove = (event) => {
+  const pos = absoluteToRelative(event);
   updateState({
     pointA: pos
   });
@@ -234,9 +232,9 @@ function relativeToAbsolute(pos) {
  * Setup and run main loop 
  */
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {

@@ -19,14 +19,10 @@ let state = Object.freeze({
 
 const useState = () => {
   const { temp, pointer } = state;
-  const lblDataEl =document.getElementById(`lblData`);
-  if (!lblDataEl) return;
+  const lblDataElement = /** @type HTMLElement */(document.querySelector(`#lblData`));
+  if (!lblDataElement) return;
   
-  if (Number.isNaN(temp)) {
-    lblDataEl.innerText = `?°`;
-  } else {
-    lblDataEl.innerText = `${temp.toFixed(0)}°`;
-  }
+  lblDataElement.textContent = Number.isNaN(temp) ? `?°` : `${temp.toFixed(0)}°`;
 
   // Generate some text-shadow CSS for added 🎉
   const offsetX = (pointer.x * 20) - 10;
@@ -34,7 +30,7 @@ const useState = () => {
   const css = `${offsetX}px ${offsetY}px 0px hsl(356deg 76% 50% / 80%),
     ${offsetX * 2}px ${offsetY * 2}px 0px hsl(53deg 99% 40%),
     ${offsetX * 3}px ${offsetY * 3}px 0px hsl(180deg 100% 37%)`;
-  lblDataEl.style.textShadow = css;
+  lblDataElement.style.textShadow = css;
 };
 
 const setup = () => {
@@ -44,41 +40,41 @@ const setup = () => {
     setCssDisplay(`lblData`,  connected ? `contents` : `none`);
   };
 
-  document.addEventListener(`pointermove`, evt => {
+  document.addEventListener(`pointermove`, event => {
     updateState({
       pointer: {
-        x: evt.clientX / window.innerWidth,
-        y: evt.clientY / window.innerHeight
+        x: event.clientX / window.innerWidth,
+        y: event.clientY / window.innerHeight
       }
     });
     useState();
   });
 
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, async () => {
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, async () => {
     try {
       // Filter by name, if defined in settings
-      const opts = settings.device.length > 0 ? { name: settings.device } : {};
+      const options = settings.device.length > 0 ? { name: settings.device } : {};
 
       // Connect to Puck
-      const p = await Espruino.puck(opts);
+      const p = await Espruino.puck(options);
 
       // Listen for events
-      p.addEventListener(`change`, evt => {
-        console.log(`${evt.priorState} -> ${evt.newState}`);
-        if (evt.newState !== `connected`) onConnected(false);
+      p.addEventListener(`change`, event => {
+        console.log(`${event.priorState} -> ${event.newState}`);
+        if (event.newState !== `connected`) onConnected(false);
       });
 
-      p.addEventListener(`data`, evt => {
-        console.log(evt.data);
+      p.addEventListener(`data`, event => {
+        console.log(event.data);
         try {
-          const temp = parseFloat(evt.data);
+          const temporary = Number.parseFloat(event.data);
 
           updateState({
-            temp
+            temp: temporary
           });
           useState();
-        } catch (ex) {
-          console.warn(`Cannot convert to float: ${evt.data}`);
+        } catch {
+          console.warn(`Cannot convert to float: ${event.data}`);
         }
       });
 
@@ -87,8 +83,8 @@ const setup = () => {
         onConnected(true);
         p.writeScript(script);
       }, 1000);
-    } catch (ex) {
-      console.error(ex);
+    } catch (error) {
+      console.error(error);
     }
   });
 };
@@ -105,8 +101,14 @@ function updateState (s) {
   });
 }
 
-function setCssDisplay(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
-}
+/**
+ * Sets style.display for element
+ * @param {string} id Id of element
+ * @param {string} value Value of style.display to set
+ * @returns 
+ */
+const setCssDisplay = (id, value) => {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
+};

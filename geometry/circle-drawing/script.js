@@ -41,10 +41,10 @@ const update = () => {
 
 /**
  * Draw a gradient-filled circle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} radius 
  */
-const drawGradientCircle = (ctx, radius) => {
+const drawGradientCircle = (context, radius) => {
   // Grab state/settings we need
   const { pingPong, bounds } = state;
   const { piPi } = settings;
@@ -61,35 +61,35 @@ const drawGradientCircle = (ctx, radius) => {
   };
 
   // Create a gradient 'brush' based on size of circle
-  ctx.fillStyle = getGradient(ctx, inner, circleBounds);
+  context.fillStyle = getGradient(context, inner, circleBounds);
 
   // Fill circle
-  ctx.beginPath();
-  ctx.arc(center.x, center.y, radius, 0, piPi);
-  ctx.fill();
+  context.beginPath();
+  context.arc(center.x, center.y, radius, 0, piPi);
+  context.fill();
 };
 
 const useState = () => {
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
 
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  draw(ctx);
+  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  draw(context);
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   let { radius } = state;
   const { radiusDecay } = settings;
 
   // Uses ixfx's forEach and count to run the body 10 times
   forEach(count(10), () => {
     // Draw a circle with given radius  
-    drawGradientCircle(ctx, radius);
+    drawGradientCircle(context, radius);
 
     // Diminish radius
     radius *= radiusDecay;
@@ -101,10 +101,10 @@ const draw = (ctx) => {
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 
@@ -119,17 +119,17 @@ setup();
 
 /**
  * Returns a gradient fill
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{width:number, height:number, center: {x:number, y:number}}} bounds 
  */
-function getGradient (ctx, inner, bounds) {
+function getGradient (context, inner, bounds) {
   const { outerColour, innerColour } = settings;
 
   const c = bounds.center;
 
   // Make a gradient
   //  See: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
-  const g = ctx.createRadialGradient(
+  const g = context.createRadialGradient(
     c.x,
     c.y,
     inner,

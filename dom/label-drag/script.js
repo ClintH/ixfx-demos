@@ -1,27 +1,22 @@
-const settings = Object.freeze({
+const settings = Object.freeze({});
 
-});
-
-let state = Object.freeze({
-});
+let state = Object.freeze({});
 
 /**
  * 
  * @param {Element} el 
  */
-const bindElement = (el) => {
+const bindElement = (element) => {
   
-  el.addEventListener(`pointerdown`, evt => {
-    console.log(evt);
-    evt.preventDefault();
+  element.addEventListener(`pointerdown`, event => {
+    console.log(event);
+    event.preventDefault();
 
   });
-  el.addEventListener(`pointerup`, evt => {
-    console.log(evt);
+  element.addEventListener(`pointerup`, event => {
+    console.log(event);
   });
-  el.addEventListener(`pointermove`, evt => {
-
-  });
+  element.addEventListener(`pointermove`, event => {});
 };
 
 // Setup

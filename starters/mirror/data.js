@@ -12,17 +12,17 @@ const useState = () => {
   const { slider } = state;
 
   // Update numeric output
-  const labelEl = document.querySelector(`label[for="slider"]`);
-  if (labelEl) labelEl.innerHTML = slider.toString();
+  const labelElement = /** @type HTMLElement */(document.querySelector(`label[for="slider"]`));
+  if (labelElement) labelElement.innerHTML = slider.toString();
 
   // Map slider value to colour saturation
-  const spotEl = document.getElementById(`spot`);
+  const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
 
   // 0..100
   const saturation = Math.round(slider*100);
   const hsl = `hsl(var(--hue), ${saturation}%, 50%)`;
-  if (spotEl && !fullMode) {
-    spotEl.style.backgroundColor = hsl;
+  if (spotElement && !fullMode) {
+    spotElement.style.backgroundColor = hsl;
   } else if (fullMode) {
     document.body.style.backgroundColor = hsl; 
   }
@@ -31,25 +31,24 @@ const useState = () => {
 const setup = () => {
   const { fullMode } = settings;
 
-  document.getElementById(`slider`)?.addEventListener(`input`, evt => {
-    const el = /** @type HTMLInputElement|null */(evt.target);
-    if (!el) return;
+  document.querySelector(`#slider`)?.addEventListener(`input`, event => {
+    const element = /** @type HTMLInputElement|null */(event.target);
+    if (!element) return;
     // Slider is on range 0..1000, make into a 0..1 range
-    updateState({ slider: parseInt(el.value) / 1000 });
+    updateState({ slider: Number.parseInt(element.value) / 1000 });
     useState();
   });
 
-  const btnFullScreen = document.getElementById(`btnFullScreen`);
-  if (btnFullScreen) {
-    btnFullScreen.addEventListener(`click`, evt => {
-      document.documentElement.requestFullscreen();
-    });
-    if (!fullMode) btnFullScreen.style.display =`none`;
-  }
+  const buttonFullScreen = /** @type HTMLElement */(document.querySelector(`#btnFullScreen`));
+  
+  buttonFullScreen.addEventListener(`click`, event => {
+    document.documentElement.requestFullscreen();
+  });
+  if (!fullMode) buttonFullScreen.style.display =`none`;
   
   if (fullMode) {
-    const spotEl = document.getElementById(`spot`);
-    if (spotEl) spotEl.style.display = `none`;
+    const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
+    if (spotElement) spotElement.style.display = `none`;
   }
   useState();
 };

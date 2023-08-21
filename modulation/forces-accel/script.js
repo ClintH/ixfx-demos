@@ -4,7 +4,7 @@ import { continuously } from '../../ixfx/flow.js';
 import { pointTracker } from '../../ixfx/data.js';
 
 const settings = Object.freeze({
-  thingEl: document.getElementById(`thing`)
+  thingEl: document.querySelector(`#thing`)
 });
 
 let state = Object.freeze({
@@ -50,18 +50,18 @@ const useState = () => {
   const absPos = Points.multiply(position, window.width, window.height);
 
   // Move the element
-  moveEl(thingEl, absPos);
+  moveElement(thingEl, absPos);
 };
 
-const moveEl = (el, pos) => {
+const moveElement = (element, pos) => {
   // Get size of element to move
-  const size = el.getBoundingClientRect();
+  const size = element.getBoundingClientRect();
 
   // Point to move to is given point, minus half width & height -- ie the top-left corner
   const pt = Points.subtract(pos, size.width / 2, size.height / 2);
 
-  el.style.left = `${pt.x}px`;
-  el.style.top = `${pt.y}px`;
+  element.style.left = `${pt.x}px`;
+  element.style.top = `${pt.y}px`;
 };
 
 const setup = () => {
@@ -79,7 +79,7 @@ const setup = () => {
   });
 
   // On pointerup, assign a new velocity based on accumulated movement
-  window.addEventListener(`pointerup`, (ev) => {
+  window.addEventListener(`pointerup`, (event) => {
     const { pointerMovement } = state;
 
     // Get the last data from the pointTracker
@@ -91,8 +91,8 @@ const setup = () => {
       const avg = Points.divide(Points.normalise(nfo.fromInitial.average), 200);
 
       // For debug purposes, show velocity x,y on screen
-      const labelEl = document.getElementById(`velocity`);
-      if (labelEl) labelEl.innerText = Points.toString(avg);
+      const labelElement = /** @type HTMLElement */(document.querySelector(`#velocity`));
+      if (labelElement) labelElement.innerHTML = `accel x: ${avg.x}<br />accel y: ${avg.y}`;
 
       const { position, velocity } = Forces.apply(state,
         Forces.accelerationForce(avg, `dampen`));
@@ -103,14 +103,14 @@ const setup = () => {
     pointerMovement.reset();
   });
 
-  window.addEventListener(`pointermove`, (ev) => {
+  window.addEventListener(`pointermove`, (event) => {
     const { pointerMovement } = state;
 
     // Exit if no there's no press
-    if (ev.buttons === 0) return;
+    if (event.buttons === 0) return;
 
     // Track the movement
-    pointerMovement.seen({ x: ev.movementX, y: ev.movementY });
+    pointerMovement.seen({ x: event.movementX, y: event.movementY });
   });
 };
 setup();

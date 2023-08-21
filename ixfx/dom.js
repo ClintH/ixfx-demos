@@ -2,6 +2,7 @@ import {
   DataTable_exports,
   DragDrop_exports,
   Forms_exports,
+  byId,
   canvasHelper,
   cardinalPosition,
   clear,
@@ -10,6 +11,7 @@ import {
   createIn,
   cycleCssClass,
   defaultErrorHandler,
+  el,
   fullSizeCanvas,
   fullSizeElement,
   getTranslation,
@@ -25,15 +27,20 @@ import {
   resizeObservable,
   resolveEl,
   rx,
+  setCssClass,
+  setCssDisplay,
+  setHtml,
+  setText,
   themeChangeObservable,
   viewportToSpace,
   windowResize
-} from "./chunk-M3VSAKDD.js";
+} from "./chunk-XLMUH3F2.js";
 import "./chunk-4DC2CRSB.js";
 export {
   DataTable_exports as DataTable,
   DragDrop_exports as DragDrop,
   Forms_exports as Forms,
+  byId,
   canvasHelper,
   cardinalPosition,
   clear,
@@ -42,6 +49,7 @@ export {
   createIn,
   cycleCssClass,
   defaultErrorHandler,
+  el,
   fullSizeCanvas,
   fullSizeElement,
   getTranslation,
@@ -57,6 +65,10 @@ export {
   resizeObservable,
   resolveEl,
   rx,
+  setCssClass,
+  setCssDisplay,
+  setHtml,
+  setText,
   themeChangeObservable,
   viewportToSpace,
   windowResize

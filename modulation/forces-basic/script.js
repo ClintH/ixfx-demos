@@ -16,11 +16,11 @@ const settings = Object.freeze({
   },
   // FORCES
   // Wind adds acceleration. Force is dampened by mass
-  wind: Forces.accelerationForce({ x: 0.00001, y: 0 }, `dampen`),
+  wind: Forces.accelerationForce({ x: 0.000_01, y: 0 }, `dampen`),
   // Gravity adds acceleration. Force is magnified by mass
   gravity: Forces.accelerationForce({ x: 0, y: 0.0001 }, `multiply`),
   // Friction is calculated based on velocity. Force is magnified by mass
-  friction: Forces.velocityForce(0.00001, `multiply`),
+  friction: Forces.velocityForce(0.000_01, `multiply`),
   // Flip movement velocity if we hit a wall. And dampen it by 10%
   bouncer: Forces.constrainBounce({ width: 1, height: 1 }, 0.9),
   // Drag 
@@ -79,29 +79,29 @@ const useState = () => {
   const { liquid, maxRadius, hue } = settings;
 
   /** @type {CanvasRenderingContext2D|null|undefined} */
-  const ctx = canvas?.getContext(`2d`);
-  if (!ctx) return;
+  const context = canvas?.getContext(`2d`);
+  if (!context) return;
 
   // Draw 'air'
-  ctx.fillStyle = `pink`;
-  ctx.fillRect(0, 0, bounds.width, bounds.height);
+  context.fillStyle = `pink`;
+  context.fillRect(0, 0, bounds.width, bounds.height);
 
   // Draw 'liquid'
-  ctx.fillStyle = `IndianRed`;
+  context.fillStyle = `IndianRed`;
   const rectAbs = /** @type Rects.RectPositioned */(Rects.multiply(liquid, bounds));
-  ctx.fillRect(rectAbs.x, rectAbs.y, rectAbs.width, rectAbs.height);
+  context.fillRect(rectAbs.x, rectAbs.y, rectAbs.width, rectAbs.height);
 
   // Draw things
-  things.forEach(t => {
+  for (const t of things) {
     // Get canvas-relative position
     const pt = Points.multiply(t.position, bounds);
 
-    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${t.life})`;
-    ctx.beginPath();
+    context.fillStyle = `hsla(${hue}, 100%, 50%, ${t.life})`;
+    context.beginPath();
     const radius = maxRadius * t.mass;
-    ctx.ellipse(pt.x, pt.y, radius, radius, 0, 0, Math.PI * 2);
-    ctx.fill();
-  });
+    context.ellipse(pt.x, pt.y, radius, radius, 0, 0, Math.PI * 2);
+    context.fill();
+  }
 };
 
 const spawn = () => {
@@ -121,9 +121,9 @@ const spawn = () => {
  * Setup and run main loop 
  */
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {
@@ -133,10 +133,10 @@ const setup = () => {
   };
   loop();
 
-  document.addEventListener(`pointerup`, evt => {
+  document.addEventListener(`pointerup`, event => {
     updateState({ pointer: {
-      x: evt.x / window.innerWidth,
-      y: evt.y / window.innerHeight
+      x: event.x / window.innerWidth,
+      y: event.y / window.innerHeight
     } });
     spawn();
   });

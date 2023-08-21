@@ -8,8 +8,8 @@ const settings = Object.freeze({
     excited: `awake`,
     angry: `awake`
   },
-  stateEl: /** @type HTMLElement */(document.getElementById(`state`)),
-  possibleStatesEl:  /** @type HTMLElement */(document.getElementById(`possibleStates`))
+  stateEl: /** @type HTMLElement */(document.querySelector(`#state`)),
+  possibleStatesEl:  /** @type HTMLElement */(document.querySelector(`#possibleStates`))
 });
 
 let state = Object.freeze({
@@ -19,8 +19,8 @@ let state = Object.freeze({
 const useState = () => {
   const { stateEl, possibleStatesEl } =settings;
   const { sm } = state;
-  stateEl.innerText = sm.value;
-  possibleStatesEl.innerText = StateMachine.possible(sm).join(`, `);
+  stateEl.textContent = sm.value;
+  possibleStatesEl.textContent = StateMachine.possible(sm).join(`, `);
 };
 
 // Updates machine based on button presses
@@ -34,24 +34,24 @@ const updateMachine = (s) => {
       sm: StateMachine.to(sm, s)
     });
     useState();
-  } catch (ex) {
-    console.error(ex);
-    if (stateEl) stateEl.innerHTML = sm.value + `<br />` + ex.message;
+  } catch (error) {
+    console.error(error);
+    if (stateEl) stateEl.innerHTML = sm.value + `<br />` + error.message;
   }
 };
 
 // Set up
 const setup = () => {
-  document.addEventListener(`click`, (evt) => {
-    const el = /** @type HTMLElement */(evt.target);
+  document.addEventListener(`click`, (event) => {
+    const element = /** @type HTMLElement */(event.target);
 
     // If the click didn't happen on a BUTTON
     // we're not interested
-    if (el.nodeName !== `BUTTON`) return;
+    if (element.nodeName !== `BUTTON`) return;
 
     // Use the label of the button as 
     // the state to change to.
-    updateMachine(el.innerText.toLocaleLowerCase());
+    updateMachine(element.textContent?.toLocaleLowerCase());
   });
   useState();
 };

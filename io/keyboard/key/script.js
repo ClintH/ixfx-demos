@@ -1,12 +1,11 @@
-/**
- * Tracks the state of keys
- */
+
 const settings = Object.freeze({
   keys: [ `f` ],
   info: innerText(`#info`)
 });
 
 /** 
+ * The data we will track
  * @typedef KeyState 
  * @property {boolean} pressed
  * @property {boolean} repeating
@@ -28,19 +27,19 @@ const useState = () => {
   const s = keys.get(`f`);
   if (s === undefined) return;
 
-  const el = document.getElementById(`vis`);
-  if (!el) return;
+  const element = document.querySelector(`#vis`);
+  if (!element) return;
   
   if (s.pressed) {
     // Eg: if being held down, for how long
-    const holdTime = performance.now() - s.startPress;
+    const holdTime = Math.round(performance.now() - s.startPress);
     info(`Hold time: ${holdTime}`);
   }
 
   if (s.pressed) {
-    el.classList.add(`pressed`);
+    element.classList.add(`pressed`);
   } else {
-    el.classList.remove(`pressed`);
+    element.classList.remove(`pressed`);
   }
 };
 
@@ -48,12 +47,12 @@ const useState = () => {
  * Setup and run main loop 
  */
 const setup = () => {
-  document.addEventListener(`keydown`, evt => {
+  document.addEventListener(`keydown`, event => {
     // Is the key one that we're tracking?
-    if (!settings.keys.includes(evt.key)) return;
-    evt.preventDefault();
+    if (!settings.keys.includes(event.key)) return;
+    event.preventDefault();
 
-    let key = getOrCreateKey(evt.key);
+    let key = getOrCreateKey(event.key);
     
     // State has changed
     if (!key.pressed) key.startPress = performance.now();
@@ -62,21 +61,21 @@ const setup = () => {
     key = {
       ...key,
       pressed: true,
-      repeating: evt.repeat,
+      repeating: event.repeat,
       lastPress: performance.now()
     };
 
     // Save into state
-    state.keys.set(evt.key, key);
+    state.keys.set(event.key, key);
     useState();
   });
 
-  document.addEventListener(`keyup`, evt => {
+  document.addEventListener(`keyup`, event => {
     // Is the key one that we're tracking?
-    if (!settings.keys.includes(evt.key)) return;
-    evt.preventDefault();
+    if (!settings.keys.includes(event.key)) return;
+    event.preventDefault();
 
-    let key = getOrCreateKey(evt.key);
+    let key = getOrCreateKey(event.key);
 
     // Update key
     key = {
@@ -88,7 +87,7 @@ const setup = () => {
     };
 
     // Save into state
-    state.keys.set(evt.key, key);
+    state.keys.set(event.key, key);
     useState();
   });
 };
@@ -122,10 +121,10 @@ function getOrCreateKey(keyName) {
 }
 
 function innerText(query) {
-  const el = document.querySelector(query);
+  const element = document.querySelector(query);
   return (txt) => {
-    if (el) {
-      el.innerText = txt;
+    if (element) {
+      element.textContent = txt;
     } else {
       console.log(txt);
     }

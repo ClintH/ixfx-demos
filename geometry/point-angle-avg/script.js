@@ -47,12 +47,12 @@ const useState = () => {
 };
 
 
-const onPointerMove = (e) => {
+const onPointerMove = (event) => {
   const { moveTracker, angleAvg } = state;
-  e.preventDefault();
+  event.preventDefault();
 
-  const rel = relativePos(e);
-  const result = moveTracker.seen(rel);
+  const pointerRelative = relativePos(event);
+  const result = moveTracker.seen(pointerRelative);
 
   // Angle from last movement
   const angle = result.fromLast.angle;
@@ -92,9 +92,9 @@ function updateState (s) {
  * @returns void
  */
 function setText(id, text)  {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerText = text;
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  element.textContent = text;
 }
 
 /**
@@ -110,8 +110,8 @@ function relativePos(pos) {
 }
 
 function rotateElementById(id, rotation) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.style.transform = `rotate(${rotation}deg)`;
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element) {
+    element.style.transform = `rotate(${rotation}deg)`;
   }
 }

@@ -24,28 +24,34 @@ const connect = async () => {
   const { serial } = settings;
   try {
     // Listen for events
-    serial.addEventListener(`change`, evt => {
-      if (evt.newState === `connected`) onConnected(true);
+    serial.addEventListener(`change`, event => {
+      if (event.newState === `connected`) onConnected(true);
       else onConnected(false);
     });
 
     // Connect
     await serial.connect();
-  } catch (ex) {
-    console.error(ex);
+  } catch (error) {
+    console.error(error);
   }
 };
 
+/**
+ * Sets style.display for element
+ * @param {*} id Id of element
+ * @param {*} value Value of style.display to set
+ * @returns 
+ */
 const setCssDisplay = (id, value) => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
 };
 
 const setHtml = (id, value) => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = value;
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  element.innerHTML = value;
 };
 
 // Called when port is disconnected/connected
@@ -70,10 +76,10 @@ const useState = () => {
 
 const setup = () => {
   const { serial, rangeMax, rangeMin } = settings;
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
-  serial.addEventListener(`data`, evt => {
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
+  serial.addEventListener(`data`, event => {
     try {
-      const o = JSON.parse(evt.data.trim());
+      const o = JSON.parse(event.data.trim());
 
       // Get relative values
       const x = scale(o.x, rangeMin.x, rangeMax.x);
@@ -82,9 +88,9 @@ const setup = () => {
 
       updateState({ x, y, sw });
       useState();
-    } catch (ex) {
-      console.log(ex);
-      console.log(evt.data);
+    } catch (error) {
+      console.log(error);
+      console.log(event.data);
     }
   });
 

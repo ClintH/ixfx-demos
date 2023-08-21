@@ -3,7 +3,7 @@ import { intervalTracker } from "../../../ixfx/data.js";
 
 const settings = Object.freeze({
   // Element to hold created letters
-  lettersEl: document.getElementById(`letters`),
+  lettersEl: document.querySelector(`#letters`),
   // Keys to allow even though they aren't letters/digits
   allowCodes: [ `Backquote`, `Minus`, `Equal`, `Plus`, `Period`, `Semicolon`, `Comma`, `Slash`, `Quote`, `Backslash`, `BracketLeft`, `BracketRight` ],
   // Create a speed tracker that auto-resets after 3 samples
@@ -15,33 +15,36 @@ let state = Object.freeze({
   speed: 0
 });
 
-const logKeyEvent = (evt, prefix = `key`) => console.log(`${prefix} code: ${evt.code} key: ${evt.key} alt: ${evt.altKey} ctrl: ${evt.ctrlKey} meta: ${evt.metaKey} shift: ${evt.shiftKey}`);
+const logKeyEvent = (event, prefix = `key`) => console.log(`${prefix} code: ${event.code} key: ${event.key} alt: ${event.altKey} ctrl: ${event.ctrlKey} meta: ${event.metaKey} shift: ${event.shiftKey}`);
 
 /**
  * Key is bring pressed
- * @param {KeyboardEvent} evt 
+ * @param {KeyboardEvent} event 
  * @returns 
  */
-const onKeydown = (evt) => {
+const onKeydown = (event) => {
   const { allowCodes } = settings;
 
   // Uncomment to see some debug info on key event
   // logKeyEvent(evt, `keydown`);
 
   /** @type {string} */
-  const code = evt.code;
+  const code = event.code;
 
   // Special case a few keys
   switch (code) {
-  case `Backspace`:
+  case `Backspace`: {
     removeLastLetter();
     return;
-  case `Space`:
+  }
+  case `Space`: {
     addLetter(`&nbsp;`);
     return;
-  case `Enter`:
+  }
+  case `Enter`: {
     addWrap();
     return;
+  }
   }
 
   // Ignore keys that don't seem to be letters
@@ -53,65 +56,62 @@ const onKeydown = (evt) => {
 
   // What letter?
   /** @type {string} */
-  let letter = evt.key;
+  let letter = event.key;
 
   // Special case letters for some keys
   switch (code) {
-  case `Backquote`:
-    if (evt.shiftKey) letter = `~`;
-    else letter = `\``;
+  case `Backquote`: {
+    letter = event.shiftKey ? `~` : `\``;
     break;
-  case `Quote`:
-    if (evt.shiftKey) letter = `"`;
-    else letter = `'`;
+  }
+  case `Quote`: {
+    letter = event.shiftKey ? `"` : `'`;
     break;
-  case `Digit6`:
-    if (evt.shiftKey) letter = `^`;
+  }
+  case `Digit6`: {
+    if (event.shiftKey) letter = `^`;
     break;
+  }
   }
 
   // Add letter to DOM
-  const letterEl = addLetter(letter);
+  const letterElement = addLetter(letter);
 
   // Show off
-  effectsDemo(letterEl, letter);
+  effectsDemo(letterElement, letter);
 };
 
 /**
  * Apply some demo effects
- * @param {HTMLElement|undefined} letterEl 
+ * @param {HTMLElement|undefined} letterElement
  * @param {string} letter 
  */
-const effectsDemo = (letterEl, letter) => {
+const effectsDemo = (letterElement, letter) => {
   const { speed } = state;
-  if (!letterEl) return;
+  if (!letterElement) return;
   
   // Example: Apply random font weight to letter
-  letterEl.style.fontWeight = (200 + Math.round(400 * Math.random())).toString();
+  letterElement.style.fontWeight = (200 + Math.round(400 * Math.random())).toString();
 
   // Example: If it's uppercase, randomly boost size
-  if (letter.toLocaleUpperCase() === letter) {
-    letterEl.style.fontSize = (1 + (2 * Math.random())) + `em`;
-  } else {
-    letterEl.style.fontSize = `1em`;
-  }
+  letterElement.style.fontSize = letter.toLocaleUpperCase() === letter ? (1 + (2 * Math.random())) + `em` : `1em`;
 
   // Example: If letter is same as the one before, do a transform
-  const prevSibling = letterEl.previousSibling;
-  if (prevSibling && /** @type {HTMLElement}*/(prevSibling).innerHTML === letterEl.innerHTML) {
+  const previousSibling = letterElement.previousSibling;
+  if (previousSibling && /** @type {HTMLElement}*/(previousSibling).innerHTML === letterElement.innerHTML) {
     // translate on y axis a random amount between -10 and 10
-    letterEl.style.transform = `translateY(${Math.round(Math.random() * 20 - 10)}px)`;
+    letterElement.style.transform = `translateY(${Math.round(Math.random() * 20 - 10)}px)`;
   }
 
   // Example: Apply typing speed to padding
-  letterEl.style.paddingRight = (speed * 10) + `px`;
+  letterElement.style.paddingRight = (speed * 10) + `px`;
 };
 
 /**
  * Key is released
- * @param {KeyboardEvent} evt 
+ * @param {KeyboardEvent} event
  */
-const onKeyup = (evt) => {
+const onKeyup = (event) => {
   const { speedTracker } = settings;
 
   speedTracker.mark();
@@ -146,9 +146,9 @@ const removeLastLetter = () => {
 const addWrap = () => {
   const { lettersEl } = settings;
   if (!lettersEl) return;
-  const el = document.createElement(`span`);
-  el.style.width = `100%`;
-  lettersEl.append(el);
+  const element = document.createElement(`span`);
+  element.style.width = `100%`;
+  lettersEl.append(element);
 };
 
 /**
@@ -158,17 +158,17 @@ const addWrap = () => {
  */
 const addLetter = (letter) => {
   const { lettersEl } = settings;
-  const hintEl = document.getElementById(`hint`);
+  const hintElement = document.querySelector(`#hint`);
 
-  if (!lettersEl || !hintEl) return;
+  if (!lettersEl || !hintElement) return;
 
   //hintEl.style.display = `none`;
-  hintEl.classList.add(`hidden`);
+  hintElement.classList.add(`hidden`);
 
-  const el = document.createElement(`span`);
-  el.innerHTML = letter;
-  lettersEl.append(el);
-  return el;
+  const element = document.createElement(`span`);
+  element.innerHTML = letter;
+  lettersEl.append(element);
+  return element;
 };
 
 const setup = () => {
@@ -190,7 +190,7 @@ function updateState (s) {
 }
 
 function setHtml(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = value;
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  element.innerHTML = value;
 }

@@ -133,117 +133,114 @@ async function read() {
 
 /**
  * Display HTML/text results
- * @param {HtmlProducer} htmlFn
+ * @param {HtmlProducer} htmlFunction
  */
-export const displayTextResults = (htmlFn) => {
+export const displayTextResults = (htmlFunction) => {
   if (!state.enableTextResults || !state.displayData) return;
-  const el = document.getElementById(`cs-data`);
-  if (el) el.innerHTML = htmlFn();
+  const element = document.querySelector(`#cs-data`);
+  if (element) element.innerHTML = htmlFunction();
 };
 
 /**
  * Display a list of string
- * @param {ListProducer} listFn 
+ * @param {ListProducer} listFunction 
  * @param {boolean} numbered If true(default) list will be numbered
  */
-export const displayListResults = (listFn, numbered = true) => {
+export const displayListResults = (listFunction, numbered = true) => {
   if (!state.enableTextResults || !state.displayData) return;
 
-  const list = listFn();
+  const list = listFunction();
 
   let max = Math.max(state.lastListCount, list.length);
   let toAdd = max - list.length;
 
-  for (let i = 0; i < toAdd; i++) list.push(`&nbsp;`);
+  for (let index = 0; index < toAdd; index++) list.push(`&nbsp;`);
   let html = numbered ? `<ol>` : `<ul>`;
   html += list.map(txt => `<li>${txt}</li>`).join(`\n`);
   html += numbered ? `</ol>` : `</ul>`;
 
-  const el = document.getElementById(`cs-data`);
-  if (el) el.innerHTML = html;
+  const element = document.querySelector(`#cs-data`);
+  if (element) element.innerHTML = html;
 
   updateState({ lastListCount: max });
 };
 
 /**
  * Display text in the status line
- * @param {string} msg 
+ * @param {string} message 
  */
-export const status = (msg) => {
-  const el = document.getElementById(`cs-lblStatus`);
-  if (el) el.innerText = msg;
+export const status = (message) => {
+  const element = document.querySelector(`#cs-lblStatus`);
+  if (element) element.textContent = message;
 };
 
 /**
  * Draws centered text (assuming canvas has been offset already)
- * @param {string} msg 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {string} message 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} offsetX 
  * @param {number} offsetY 
  * @returns 
  */
-export const drawCenteredText = (ctx, msg, offsetX, offsetY) => {
-  const x = offsetX ?? 0;
-  const y = offsetY ?? 0;
-  const txt = ctx.measureText(msg);
-  ctx.fillText(msg,
-    -txt.width / 2 + x,
-    -txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent / 2 + y);
+export const drawCenteredText = (context, message, offsetX = 0, offsetY = 0) => {
+  const txt = context.measureText(message);
+  context.fillText(message,
+    -txt.width / 2 + offsetX,
+    -txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent / 2 + offsetY);
   return txt;
 };
 
 /**
  * Draws an absolutely-positioned dot
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Points.Point} pt
  * @param {number} radius Radius for dot
  * @param {boolean} fill If true, dot is filled-in
  * @param {boolean} stroke If true, dot outline is drawn
  */
-export const drawAbsDot = (ctx, pt, radius = -1, fill = true, stroke = false) => {
+export const drawAbsDot = (context, pt, radius = -1, fill = true, stroke = false) => {
   if (radius === -1) radius = settings.defaultDotRadius;
-  ctx.beginPath();
-  ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
-  if (fill) ctx.fill();
-  if (stroke) ctx.stroke();
-  ctx.closePath();
+  context.beginPath();
+  context.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+  if (fill) context.fill();
+  if (stroke) context.stroke();
+  context.closePath();
 };
 
 /**
  * Draw a set of {x,y} pairs as a connected line.
  * Skips undefined points.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param  {...{x:number,y:number}|undefined} pts 
  */
-export const drawLine = (ctx, ...pts) => {
+export const drawLine = (context, ...pts) => {
   let drawn = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const pt = pts[i];
+  for (const pt of pts) {
     if (pt === undefined) continue;
     if (drawn === 0) {
-      ctx.moveTo(pt.x, pt.y);
+      context.moveTo(pt.x, pt.y);
     } else {
-      ctx.lineTo(pt.x, pt.y);
+      context.lineTo(pt.x, pt.y);
     }
     drawn++;
   }
-  if (drawn > 1) ctx.stroke();
+  if (drawn > 1) context.stroke();
 };
 
 export const setCssFlag = (flagValue, cssFilter, cssTrueClass) => {
-  document.querySelectorAll(cssFilter).forEach(el => {
+  for (const element of document.querySelectorAll(cssFilter)) {
     if (flagValue) {
-      el.classList.add(cssTrueClass);
+      element.classList.add(cssTrueClass);
     } else {
-      el.classList.remove(cssTrueClass);
+      element.classList.remove(cssTrueClass);
     }
-  });
+  }
 };
 
 export const setReady = (ready) => {
-  const btnCameraStart = document.getElementById(`cs-btnCameraStart`);
+  const buttonCameraStart = document.querySelector(`#cs-btnCameraStart`);
   setCssFlag(ready, `.needs-ready`, `ready`);
-  if (btnCameraStart)  /** @type {HTMLButtonElement}*/(btnCameraStart).disabled = false;
+  if (buttonCameraStart)  /** @type {HTMLButtonElement}*/(buttonCameraStart).disabled = false;
 };
 
 export const clearRecordings = () => {
@@ -256,8 +253,8 @@ export const clearRecordings = () => {
  * @returns {Recording[]}
  */
 const getRecordings = () => {
-  const recordingsStr = localStorage.getItem(`recordings`);
-  const recordings = recordingsStr === null ? [] : JSON.parse(recordingsStr);
+  const recordingsString = localStorage.getItem(`recordings`);
+  const recordings = recordingsString === null ? [] : JSON.parse(recordingsString);
   return recordings;
 };
 
@@ -268,23 +265,23 @@ const getRecordings = () => {
  */
 const updateRecordingsUi = (recordings) => {
   // Update select
-  const el = document.getElementById(`cs-selRecording`);
-  if (el === null) return;
-  el.innerHTML = ``;
-  recordings.forEach(r => {
+  const element = document.querySelector(`#cs-selRecording`);
+  if (element === null) return;
+  element.innerHTML = ``;
+  for (const r of recordings) {
     const opt = document.createElement(`option`);
     opt.setAttribute(`data-name`, r.name);
-    opt.innerText = `${r.name} (${r.data.length})`;
-    el.append(opt);
-  });
+    opt.textContent = `${r.name} (${r.data.length})`;
+    element.append(opt);
+  }
 
   // Select most recent
-  /** @type {HTMLSelectElement} */(el).selectedIndex = recordings.length - 1;
+  /** @type {HTMLSelectElement} */(element).selectedIndex = recordings.length - 1;
 
   // Disable if there are no recordings
-  const btnPlay = document.getElementById(`cs-btnPlayback`);
-  if (btnPlay) /** @type {HTMLButtonElement} */(btnPlay).disabled = recordings.length === 0;
-  /** @type {HTMLSelectElement} */(el).disabled = recordings.length === 0;
+  const buttonPlay = document.querySelector(`#cs-btnPlayback`);
+  if (buttonPlay) /** @type {HTMLButtonElement} */(buttonPlay).disabled = recordings.length === 0;
+  /** @type {HTMLSelectElement} */(element).disabled = recordings.length === 0;
 };
 
 /**
@@ -294,12 +291,12 @@ const updateRecordingsUi = (recordings) => {
  */
 const setVideo = async (start, file) => {
 
-  const btnVideoStartStop = document.getElementById(`cs-btnVideoStartStop`);
+  const buttonVideoStartStop = document.querySelector(`#cs-btnVideoStartStop`);
 
   if (start && file) {
     // Stop camera if running
     setCamera(false);
-    if (btnVideoStartStop) /** @type {HTMLButtonElement}*/(btnVideoStartStop).disabled = true;
+    if (buttonVideoStartStop) /** @type {HTMLButtonElement}*/(buttonVideoStartStop).disabled = true;
     try {
       // Set up frame processor
       caller.frameProcessor = new FrameProcessor(caller.frameProcessorOpts);
@@ -309,7 +306,7 @@ const setVideo = async (start, file) => {
       settings.loop.start();
 
     } finally {
-      if (btnVideoStartStop) /** @type {HTMLButtonElement}*/(btnVideoStartStop).disabled = false;
+      if (buttonVideoStartStop) /** @type {HTMLButtonElement}*/(buttonVideoStartStop).disabled = false;
     }
   } else {
     // Stop loop and dispose of frame processor
@@ -320,10 +317,10 @@ const setVideo = async (start, file) => {
 };
 
 export const startRecorderPlayback = async () => {
-  const el = document.getElementById(`cs-selRecording`);
-  if (el === null) return;
+  const element = document.querySelector(`#cs-selRecording`);
+  if (element === null) return;
 
-  const name = /** @type {HTMLSelectElement} */(el).selectedOptions[0].getAttribute(`data-name`);
+  const name = /** @type {HTMLSelectElement} */(element).selectedOptions[0].getAttribute(`data-name`);
 
   const rec = getRecordings().find(r => r.name === name);
   if (rec === undefined) {
@@ -343,18 +340,18 @@ export const startRecorderPlayback = async () => {
   await setCamera(false);
   await setVideo(false);
 
-  const btn = document.getElementById(`cs-btnPlayback`);
-  if (btn !== null) btn.innerText = `stop`;
-  /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnRecord`)).disabled = true;
+  const button = document.querySelector(`#cs-btnPlayback`);
+  if (button !== null) button.textContent = `stop`;
+  /** @type {HTMLButtonElement}*/(document.querySelector(`#cs-btnRecord`)).disabled = true;
 
   // Set canvas
-  const canvasEl = /** @type HTMLCanvasElement|null */(document.getElementById(`dataCanvas`));
-  if (canvasEl) {
-    canvasEl.width = rec.frameSize.width;
-    canvasEl.height = rec.frameSize.height;
+  const canvasElement = /** @type HTMLCanvasElement|null */(document.querySelector(`#dataCanvas`));
+  if (canvasElement) {
+    canvasElement.width = rec.frameSize.width;
+    canvasElement.height = rec.frameSize.height;
   }
 
-  const ctx = getDrawingContext();
+  const context = getDrawingContext();
   const frameSize = rec.frameSize;
   let index = 0;
   updateState({ recorder:`playing` });
@@ -363,17 +360,17 @@ export const startRecorderPlayback = async () => {
     const d = rec.data[index];
     recorderStatus(`${index + 1}/${rec.data.length}`);
     onPlayback(d, index, rec);
-    if (ctx) postCaptureDraw(ctx.ctx, ctx.width, ctx.height);
+    if (context) postCaptureDraw(context.ctx, context.width, context.height);
     index++;
     if (index + 1 === rec.data.length || state.recorder !== `playing`) {
-      if (!settings.loopRecorderPlayback) {
+      if (settings.loopRecorderPlayback) {
+        index = 0;
+      } else {
         console.log(`Playback done of ${rec.data.length} steps.`);
         recorderStatus(``);
         stopRecorderPlayback();
         updateState({ currentSource:`none` });
         return false; // Stop loop
-      } else {
-        index = 0;
       }
     }
   }, caller.playbackRateMs).start();
@@ -381,10 +378,10 @@ export const startRecorderPlayback = async () => {
 
 const stopRecorderPlayback = () => {
   updateState({ recorder: `` });
-  let btn = document.getElementById(`cs-btnPlayback`);
-  if (btn !== null) btn.innerText = `play_arrow`;
+  let button = document.querySelector(`#cs-btnPlayback`);
+  if (button !== null) button.textContent = `play_arrow`;
 
-  /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnRecord`)).disabled = false;
+  /** @type {HTMLButtonElement}*/(document.querySelector(`#cs-btnRecord`)).disabled = false;
 
 };
 
@@ -394,26 +391,26 @@ const stopRecorderPlayback = () => {
  * @returns {{width:number,height:number,ctx:CanvasRenderingContext2D}|undefined}
  */
 export const getDrawingContext = () => {
-  const canvasEl = /** @type HTMLCanvasElement|null */(document.getElementById(`dataCanvas`));
+  const canvasElement = /** @type HTMLCanvasElement|null */(document.querySelector(`#dataCanvas`));
 
   //caller.frameProcessor?.getCapturer()?.canvasEl;
-  if (!canvasEl) {
+  if (!canvasElement) {
     console.log(`Warning, drawing canvas not found`);
     return;
   }
-  const ctx = canvasEl.getContext(`2d`);
-  if (ctx === null) return;
+  const context = canvasElement.getContext(`2d`);
+  if (context === null) return;
   return {
-    width: canvasEl.width,
-    height: canvasEl.height,
-    ctx: ctx
+    width: canvasElement.width,
+    height: canvasElement.height,
+    ctx: context
   };
 };
 
 const stopRecording = async () => {
   if (state.recorder !== `recording`) return;
   updateState({ recorder: `` });
-  /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnPlayback`)).disabled = false;
+  /** @type {HTMLButtonElement}*/(document.querySelector(`#cs-btnPlayback`)).disabled = false;
 
   recorderStatus(``);
 
@@ -443,13 +440,13 @@ const startRecording = async () => {
     frameSize: { width: 0, height: 0 }
   },
   recorder: `recording` });
-  /** @type {HTMLButtonElement}*/(document.getElementById(`cs-btnPlayback`)).disabled = true;
+  /** @type {HTMLButtonElement}*/(document.querySelector(`#cs-btnPlayback`)).disabled = true;
 };
 
-const recorderStatus = (msg) => {
-  const el = document.getElementById(`lblRecorderStatus`);
-  if (el === null) return;
-  el.innerText = msg;
+const recorderStatus = (message) => {
+  const element = document.querySelector(`#lblRecorderStatus`);
+  if (element === null) return;
+  element.textContent = message;
 };
 
 export const onRecordData = (data, frameSize) => {
@@ -602,23 +599,23 @@ const addUi = () => {
 /**
  * Called after a frame is captured from the video source.
  * This allows us to draw on top of the frame after it has been analysed.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} width 
  * @param {number} height 
  */
-function postCaptureDraw(ctx, width, height) {
+function postCaptureDraw(context, width, height) {
   const { videoOpacity } = settings;
-  if (state.displaySource && state.currentSource === `camera`) {
+
+  context.fillStyle = (state.displaySource && state.currentSource === `camera`) ?
     // Clear canvas with some translucent white to fade out video
-    ctx.fillStyle = `rgba(255,255,255,${videoOpacity})`;
-  } else {
-    // Clear canvas completely white
-    ctx.fillStyle = `rgb(255,255,255)`;
-  }
-  ctx.fillRect(0, 0, width, height);
+    `rgba(255,255,255,${videoOpacity})`
+    :  // Clear canvas completely white
+    `rgb(255,255,255)`;
+  
+  context.fillRect(0, 0, width, height);
 
   if (state.displayData) {
-    caller.postCaptureDraw(ctx, width, height);
+    caller.postCaptureDraw(context, width, height);
   }
 }
 
@@ -634,9 +631,9 @@ export const toggleUi = (enabled) => {
   }
 
   const uiElements = document.querySelectorAll(`.cs-ui`);
-  uiElements.forEach(uiEl => {
-    /** @type {HTMLElement} */(uiEl).style.display = enabled ? `block` : `none`;
-  });
+  for (const uiElement of uiElements) {
+    /** @type {HTMLElement} */(uiElement).style.display = enabled ? `block` : `none`;
+  }
   updateState({ uiVisible:enabled });
   return enabled;
 };
@@ -645,26 +642,26 @@ export const toggleUi = (enabled) => {
  * Set up
  * @param {OnFrame} onFrame Callback when a frame is ready for processing
  * @param {OnPlayback} onPlayback Callback for when there is a playback data set
- * @param {FrameProcessorOpts} frameProcessorOpts Options for the frame processor
+ * @param {FrameProcessorOpts} frameProcessorOptions Options for the frame processor
  * @param {number} playbackRateMs Delay between each frame of recorded data playback
  */
-export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRateMs) => {
+export const setup = async (onFrame, onPlayback, frameProcessorOptions, playbackRateMs) => {
   addUi();
 
-  const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
-  const btnRecord = document.getElementById(`cs-btnRecord`);
-  const btnPlayback = document.getElementById(`cs-btnPlayback`);
-  const btnVideoPlayback = document.getElementById(`cs-btnVideoPlayback`);
+  const buttonCameraStartStop = document.querySelector(`#cs-btnCameraStartStop`);
+  const buttonRecord = document.querySelector(`#cs-btnRecord`);
+  const buttonPlayback = document.querySelector(`#cs-btnPlayback`);
+  const buttonVideoPlayback = document.querySelector(`#cs-btnVideoPlayback`);
 
-  const btnFreeze = document.getElementById(`cs-btnFreeze`);
-  const chkSourceShow = document.getElementById(`cs-chkSourceShow`);
-  const chkDataShow = document.getElementById(`cs-chkDataShow`);
-  const selCamera = document.getElementById(`cs-selCamera`);
+  const buttonFreeze = document.querySelector(`#cs-btnFreeze`);
+  const chkSourceShow = document.querySelector(`#cs-chkSourceShow`);
+  const chkDataShow = document.querySelector(`#cs-chkDataShow`);
+  const selCamera = document.querySelector(`#cs-selCamera`);
 
-  const dataEl = document.getElementById(`cs-data`);
+  const dataElement = /** @type HTMLElement */(document.querySelector(`#cs-data`));
 
-  const captureCanvasEl = document.getElementById(`dataCanvas`);
-  if (!captureCanvasEl) throw new Error(`Capture canvas null`);
+  const captureCanvasElement = document.querySelector(`#dataCanvas`);
+  if (!captureCanvasElement) throw new Error(`Capture canvas null`);
 
   if (!(`mediaDevices` in navigator)) {
     console.warn(`navigator.mediaDevices is missing -- are you running over https:// or http://127.0.01 ?`);
@@ -675,7 +672,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
     if (d.kind !== `videoinput`) continue;
     const opt = document.createElement(`option`);
     opt.setAttribute(`data-id`, d.deviceId);
-    opt.innerText = d.label;
+    opt.textContent = d.label;
     selCamera?.append(opt);
   }
 
@@ -684,8 +681,8 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
   if (playbackRateMs) caller.playbackRateMs = playbackRateMs;
 
   // Override default settings with what has been provided
-  if (frameProcessorOpts.cameraConstraints) {
-    let cc = { ...caller.frameProcessorOpts.cameraConstraints, ...frameProcessorOpts.cameraConstraints };
+  if (frameProcessorOptions.cameraConstraints) {
+    let cc = { ...caller.frameProcessorOpts.cameraConstraints, ...frameProcessorOptions.cameraConstraints };
 
     // @ts-ignore
     if (cc.facingMode === `back`) cc.facingMode = `environment`;
@@ -707,30 +704,30 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
     caller.frameProcessorOpts.cameraConstraints = cc;
   } else {
     // use existing
-    frameProcessorOpts.cameraConstraints = caller.frameProcessorOpts.cameraConstraints;
+    frameProcessorOptions.cameraConstraints = caller.frameProcessorOpts.cameraConstraints;
   }
 
-  if (frameProcessorOpts !== undefined) {
-    caller.frameProcessorOpts = frameProcessorOpts;
+  if (frameProcessorOptions !== undefined) {
+    caller.frameProcessorOpts = frameProcessorOptions;
   }
 
   // Intercept drawing
-  caller.postCaptureDraw = frameProcessorOpts.postCaptureDraw;
-  frameProcessorOpts.postCaptureDraw = postCaptureDraw;
+  caller.postCaptureDraw = frameProcessorOptions.postCaptureDraw;
+  frameProcessorOptions.postCaptureDraw = postCaptureDraw;
   // @ts-ignore
-  frameProcessorOpts.captureCanvasEl = /* @type HTMLCanvasElement */(captureCanvasEl);
+  frameProcessorOptions.captureCanvasEl = /* @type HTMLCanvasElement */(captureCanvasElement);
   
   setReady(false);
   defaultErrorHandler();
   status(`Loading...`);
 
-  btnFreeze?.addEventListener(`click`, evt => {
+  buttonFreeze?.addEventListener(`click`, event => {
     updateState({ freeze: !state.freeze });
-    const el = evt?.target;
-    if (el) /** @type {HTMLElement}*/(el).innerText = state.freeze ? `severe_cold` : `ac_unit`;
+    const element = event?.target;
+    if (element) /** @type {HTMLElement}*/(element).textContent = state.freeze ? `severe_cold` : `ac_unit`;
   });
 
-  btnCameraStartStop?.addEventListener(`click`, async () => {
+  buttonCameraStartStop?.addEventListener(`click`, async () => {
     const start = settings.loop.isDone;
     if (state.currentSource !== `camera` && start) updateState({ currentSource: `camera` });
     else if (!start && state.currentSource === `camera`) updateState({ currentSource:`none` });
@@ -747,7 +744,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
 
   chkDataShow?.addEventListener(`change`, () => {
     updateState({ displayData: /** @type {HTMLInputElement} */(chkDataShow).checked });
-    if (dataEl) dataEl.style.display = state.displayData ? `block` : `none`;
+    if (dataElement) dataElement.style.display = state.displayData ? `block` : `none`;
   });
 
   selCamera?.addEventListener(`change`, () => {
@@ -762,32 +759,32 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
       cc.facingMode = `user`;
       cc.deviceId = undefined;
     } else {
-      const opts = /** @type {HTMLSelectElement} */(selCamera).selectedOptions;
-      const opt = opts.item(0);
-      if (opt !== null) {
+      const options = /** @type {HTMLSelectElement} */(selCamera).selectedOptions;
+      const opt = options.item(0);
+      if (opt === null) {
+        console.warn(`Weirdness, no item selected`);
+      } else {
         cc.facingMode = undefined;
         // @ts-ignore
         cc.deviceId = opt.getAttribute(`data-id`);
-      } else {
-        console.warn(`Weirdness, no item selected`);
       }
     }
     caller.frameProcessorOpts.cameraConstraints = cc;
   });
 
-  btnRecord?.addEventListener(`click`, () => {
+  buttonRecord?.addEventListener(`click`, () => {
     if (state.recorder === `playing`) stopRecorderPlayback();
 
     if (state.recorder === `recording`) {
-      btnRecord.innerText = `fiber_manual_record`;
+      buttonRecord.textContent = `fiber_manual_record`;
       stopRecording();
     } else if (state.recorder === ``) {
-      btnRecord.innerText = `stop_circle`;
+      buttonRecord.textContent = `stop_circle`;
       startRecording();
     }
   });
 
-  btnPlayback?.addEventListener(`click`, async () => {
+  buttonPlayback?.addEventListener(`click`, async () => {
     if (state.recorder === `recording`) await stopRecording();
     if (state.recorder === `playing`) {
       stopRecorderPlayback();
@@ -796,10 +793,10 @@ export const setup = async (onFrame, onPlayback, frameProcessorOpts, playbackRat
     startRecorderPlayback();
   });
 
-  const videoFileEl = /** @type {HTMLInputElement} */(document.getElementById(`cs-videoFile`));
-  videoFileEl?.addEventListener(`change`, e => {
+  const videoFileElement = /** @type {HTMLInputElement} */(document.querySelector(`#cs-videoFile`));
+  videoFileElement?.addEventListener(`change`, event => {
     // @ts-ignore
-    const file = /** @type {File|undefined} */(e.target.files[0]);
+    const file = /** @type {File|undefined} */(event.target.files[0]);
     setVideo(true, file);
   });
 
@@ -817,20 +814,20 @@ const onStreamStarted = () => {
   
   // Update UI
   if (state.currentSource === `camera`) {
-    const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
-    if (btnCameraStartStop) btnCameraStartStop.innerText = `stop_circle`;
+    const buttonCameraStartStop = document.querySelector(`#cs-btnCameraStartStop`);
+    if (buttonCameraStartStop) buttonCameraStartStop.textContent = `stop_circle`;
   }
 
   setCssFlag(true, `.needs-stream`, `streaming`);
 };
 
 const onStreamStopped = () => {
-  const dataEl = document.getElementById(`cs-data`);
-  const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
-  const selCamera = document.getElementById(`cs-selCamera`);
+  const dataElement = document.querySelector(`#cs-data`);
+  const buttonCameraStartStop = document.querySelector(`#cs-btnCameraStartStop`);
+  const selCamera = document.querySelector(`#cs-selCamera`);
   // Update UI
-  if (dataEl) dataEl.innerHTML = ``;
-  if (btnCameraStartStop) btnCameraStartStop.innerText = `check_circle`;
+  if (dataElement) dataElement.innerHTML = ``;
+  if (buttonCameraStartStop) buttonCameraStartStop.textContent = `check_circle`;
   /** @type {HTMLSelectElement}*/(selCamera).disabled = false;
   setCssFlag(false, `.needs-stream`, `streaming`);
 };
@@ -840,15 +837,15 @@ const onStreamStopped = () => {
  * @param {boolean} start 
  */
 const setCamera = async (start) => {
-  const dataEl = document.getElementById(`cs-data`);
-  const btnCameraStartStop = document.getElementById(`cs-btnCameraStartStop`);
-  const selCamera = document.getElementById(`cs-selCamera`);
+  const dataElement = document.querySelector(`#cs-data`);
+  const buttonCameraStartStop = document.querySelector(`#cs-btnCameraStartStop`);
+  const selCamera = document.querySelector(`#cs-selCamera`);
 
   if (start) {
     // Stop video if running
     setVideo(false);
   
-    /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = true;
+    /** @type {HTMLButtonElement}*/(buttonCameraStartStop).disabled = true;
     try {
       // Start
       /** @type {HTMLSelectElement}*/(selCamera).disabled = true;
@@ -861,7 +858,7 @@ const setCamera = async (start) => {
       settings.loop.start();
     
     } finally {
-      /** @type {HTMLButtonElement}*/(btnCameraStartStop).disabled = false;
+      /** @type {HTMLButtonElement}*/(buttonCameraStartStop).disabled = false;
     }
   } else {
     // Stop loop and dispose of frame processor
@@ -1060,7 +1057,7 @@ function updateState (s) {
  * @callback createDetector
  * @param {string} model
  * @param {any} args
- * @returns {PoseDetector}
+ * @returns {Promise<PoseDetector>}
  */
 
 /**

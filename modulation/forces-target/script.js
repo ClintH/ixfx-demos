@@ -58,31 +58,31 @@ const onTick = () => {
 const useState = () => {
   const { position } = state;
 
-  const thingEl =  document.getElementById(`thing`);
+  const thingElement =  document.querySelector(`#thing`);
   
   // Move the element
-  moveElement(thingEl, position);
+  moveElement(thingElement, position);
 };
 
-const moveElement = (el, relativePos) => {
+const moveElement = (element, relativePos) => {
   const { window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(relativePos, window.width, window.height);
 
   // Get size of element to move
-  const size = el.getBoundingClientRect();
+  const size = element.getBoundingClientRect();
 
   // Point to move to is given point, minus half width & height -- ie the top-left corner
   const pt = Points.subtract(absPos, size.width / 2, size.height / 2);
 
-  el.style.left = `${pt.x}px`;
-  el.style.top = `${pt.y}px`;
+  element.style.left = `${pt.x}px`;
+  element.style.top = `${pt.y}px`;
 };
 
 
 const setup = () => {
-  const targetEl = document.getElementById(`target`);
+  const targetElement = document.querySelector(`#target`);
 
   continuously(() => {
     onTick();
@@ -94,18 +94,18 @@ const setup = () => {
     updateState({ window: { width: window.innerWidth, height: window.innerHeight } } );
   });
 
-  window.addEventListener(`pointerup`, (ev) => {
+  window.addEventListener(`pointerup`, (event) => {
     const { window } = state;
 
     // Normalise pointer to be in relative coords
-    const relPointer = Points.normaliseByRect(ev, window);
+    const pointerRelative = Points.normaliseByRect(event, window);
 
     // Set new target
-    updateState({ targetPos: relPointer });
-    moveElement(targetEl, state.targetPos);
+    updateState({ targetPos: pointerRelative });
+    moveElement(targetElement, state.targetPos);
   });
 
-  moveElement(targetEl, state.targetPos);
+  moveElement(targetElement, state.targetPos);
 };
 setup();
 

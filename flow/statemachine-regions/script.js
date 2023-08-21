@@ -90,19 +90,19 @@ const processState = async () => {
 /**
  * useState does the visual drawing.
  * Gets called at animation speed.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @returns 
  */
-const useState = (ctx) => {
+const useState = (context) => {
   const { bounds, distances, current } = state;
   const { hue, circles } = settings;
 
   setText(`state`, current);
-  ctx.clearRect(0,0,bounds.width,bounds.height);
+  context.clearRect(0,0,bounds.width,bounds.height);
   const stateLabel = current;
 
   // Draw each circle
-  circles.forEach((c, index) =>  {
+  for (const [index, c] of circles.entries()) {
     // Distance inverted (so 1 is close, 0 far)
     const d = Math.floor((1 - distances[index]) * 100);
 
@@ -117,81 +117,84 @@ const useState = (ctx) => {
     let strokeStyle = `hsl(${hue}, 50%, ${lightness*100}%)`;
 
     // Draw
-    drawCircle(ctx, c, fillStyle, strokeStyle);
+    drawCircle(context, c, fillStyle, strokeStyle);
   
-  });
+  }
 };
 
 /**
  * Draw a circle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Circles.CirclePositioned} circle
  */
-const drawCircle = (ctx, circle, fillStyle, strokeStyle) => {
+const drawCircle = (context, circle, fillStyle, strokeStyle) => {
   // Get absolute point
   const circlePos = toAbsolutePoint(circle);
 
   // Translate to middle of circle
-  ctx.save();
-  ctx.translate(circlePos.x, circlePos.y);
+  context.save();
+  context.translate(circlePos.x, circlePos.y);
 
   // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, circle.radius*window.innerWidth, 0, Math.PI * 2);
-  ctx.fillStyle = fillStyle;
-  ctx.fill();
-  ctx.lineWidth = 5;
-  ctx.strokeStyle = strokeStyle;
-  ctx.stroke();
-  ctx.closePath();
+  context.beginPath();
+  context.arc(0, 0, circle.radius*window.innerWidth, 0, Math.PI * 2);
+  context.fillStyle = fillStyle;
+  context.fill();
+  context.lineWidth = 5;
+  context.strokeStyle = strokeStyle;
+  context.stroke();
+  context.closePath();
 
   // Unwind translation
-  ctx.restore();
+  context.restore();
 };
 
-const onPointerMove = (evt) => {
+const onPointerMove = (event) => {
   const { circles } = settings;
 
   // Compute relative point on a 0..1 scale
-  const rel = {
-    x: clamp(evt.x / window.innerWidth),
-    y: clamp(evt.y / window.innerHeight)
+  const pointer = {
+    x: clamp(event.x / window.innerWidth),
+    y: clamp(event.y / window.innerHeight)
   };
 
   // Compute distances to each circle
-  const distances = circles.map(c => Circles.distanceCenter(c, rel));
+  const distances = circles.map(c => Circles.distanceCenter(c, pointer));
 
   updateState({ distances });
 };
 
+const createCircle = (x, y) => {
+  return {
+    radius: 0.1,
+    x, y
+  };
+};
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  const createCircle = (x, y) => {
-    return {
-      radius: 0.1,
-      x, y
-    };
-  };
-  settings.circles.push(createCircle(0.2, 0.5));
-  settings.circles.push(createCircle(0.5, 0.5));
-  settings.circles.push(createCircle(0.8, 0.5));
 
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  settings.circles.push(
+    createCircle(0.2, 0.5),
+    createCircle(0.5, 0.5),
+    createCircle(0.8, 0.5)
+  );
+
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ bounds: arguments_.bounds });
   });
 
   document.addEventListener(`pointermove`, onPointerMove);
 
   /** @type HTMLCanvasElement|null */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
   
   const loop = () => {
-    if (ctx) useState(ctx);
+    if (context) useState(context);
     window.setTimeout(loop, 10);
   };
   loop();
@@ -230,9 +233,9 @@ function toAbsolutePoint(p) {
  * @returns void
  */
 function setText(id, text)  {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (el.innerText === text) return;
-  el.innerText = text;
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  if (element.textContent === text) return;
+  element.textContent = text;
 }
 //#endregion

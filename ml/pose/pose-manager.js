@@ -64,13 +64,13 @@ export class PosesManager extends EventTarget {
   #debug;
   /**
    * 
-   * @param {PosesManagerOpts} opts 
+   * @param {PosesManagerOpts} options 
    */
-  constructor(opts = {}) {
+  constructor(options = {}) {
     super();
-    this.#correlationOpts = opts.correlation ?? { matchThreshold: 0.95 };
+    this.#correlationOpts = options.correlation ?? { matchThreshold: 0.95 };
 
-    this.#processorOpts = opts.processor ?? {
+    this.#processorOpts = options.processor ?? {
       smoothingAmt: 0.2,
       sanityChecks: {
         anklesBelowKnees: true,
@@ -80,68 +80,68 @@ export class PosesManager extends EventTarget {
         scoreThreshold: 0.6
       }
     };
-    this.#debug = opts.debug ?? false;
-    const sourceMapOpts = opts.sourcesMapOpts ?? { autoDeletePolicy: `get`, autoDeleteElapsedMs: 30*1000 };
-    this.#sources = Maps.expiringMap(sourceMapOpts);
-    this.#sourcesGet = Maps.getOrGenerateSync(this.#sources, (key, args) => {
+    this.#debug = options.debug ?? false;
+    const sourceMapOptions = options.sourcesMapOpts ?? { autoDeletePolicy: `get`, autoDeleteElapsedMs: 30*1000 };
+    this.#sources = Maps.expiringMap(sourceMapOptions);
+    this.#sourcesGet = Maps.getOrGenerateSync(this.#sources, (key, arguments_) => {
       return {
         id: key,
         lastPoses:[]
       };
     });
-    this.#sources.addEventListener(`removed`, evt => this.#onSourceLost(evt));
+    this.#sources.addEventListener(`removed`, event => this.#onSourceLost(event));
     
-    const posesMapOpts = opts.posesMapOpts ?? { autoDeletePolicy:`get`, autoDeleteElapsedMs: 1000 };
-    this.#poses = Maps.expiringMap(posesMapOpts);
-    this.#posesGet = Maps.getOrGenerateSync(this.#poses, (key, args) => {
+    const posesMapOptions = options.posesMapOpts ?? { autoDeletePolicy:`get`, autoDeleteElapsedMs: 1000 };
+    this.#poses = Maps.expiringMap(posesMapOptions);
+    this.#posesGet = Maps.getOrGenerateSync(this.#poses, (key, arguments_) => {
       return new PoseData(key, this);
     });
 
-    this.#poses.addEventListener(`newKey`, evt => this.#onPoseGained(evt));
-    this.#poses.addEventListener(`removed`, evt => this.#onPoseLost(evt));
+    this.#poses.addEventListener(`newKey`, event => this.#onPoseGained(event));
+    this.#poses.addEventListener(`removed`, event => this.#onPoseLost(event));
   }
 
   log(m) {
     if (!this.#debug) return;
-    console.log(`PoseManager `, m);
+    console.log(`PoseManager`, m);
   }
 
   /**
    * A new pose detected
-   * @param {PosesMapEvent} evt 
+   * @param {PosesMapEvent} event 
    */
-  #onPoseGained(evt) {
-    this.log(`onPoseGained: ${evt.key}. Total: ${this.#poses.keyLength}`);
+  #onPoseGained(event) {
+    this.log(`onPoseGained: ${event.key}. Total: ${this.#poses.keyLength}`);
     this.dispatchEvent(new CustomEvent(`pose-gained`,
       {
         detail:{
-          poseId: evt.key,
-          pose:evt.value
+          poseId: event.key,
+          pose:event.value
         } 
       }));
   }
 
   /**
    * An existing pose is lost
-   * @param {PosesMapEvent} evt 
+   * @param {PosesMapEvent} event 
    */
-  #onPoseLost(evt) {
-    this.log(`onPoseLost: ${evt.key}. Total: ${this.#poses.keyLength}`);
+  #onPoseLost(event) {
+    this.log(`onPoseLost: ${event.key}. Total: ${this.#poses.keyLength}`);
     this.dispatchEvent(new CustomEvent(`pose-lost`,
       {
         detail:{
-          poseId: evt.key,
-          pose:evt.value
+          poseId: event.key,
+          pose:event.value
         } 
       }));
   }
   
   /**
    * 
-   * @param {SourcesMapEvent} evt
+   * @param {SourcesMapEvent} event
    */
-  #onSourceLost(evt) {
-    const { key, value } = evt;
+  #onSourceLost(event) {
+    const { key, value } = event;
     this.log(`onSourceLost: ${key}`);
 
     for (const p of value.lastPoses) {
@@ -191,7 +191,7 @@ export class PosesManager extends EventTarget {
  * @param {string} from Sender id
  */
   onData(poses, from) {
-    const posesByKeypoint = poses.map(poseByKeypoint);
+    const posesByKeypoint = poses.map(kp => poseByKeypoint(kp));
 
     // Get or add new Source according to sender's id
     const source = this.#sourcesGet(from);

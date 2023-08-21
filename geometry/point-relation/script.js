@@ -1,17 +1,18 @@
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
 
+
 // Initial state with empty values
 let state = Object.freeze({
   /** 
    * PointRelation instance that tracks relation between pointerdown
    * location and current location
-   * @type {Points.PointRelation|null} */
-  relationFromPointerDown: null,
+   * @type {Points.PointRelation|undefined} */
+  relationFromPointerDown: undefined,
   /** 
    * Last result from relationFromPointerDown
-   * @type {Points.PointRelationResult|null}
+   * @type {Points.PointRelationResult|undefined}
    */
-  results: null,
+  results: undefined,
 });
 
 const useState = () => {
@@ -22,45 +23,47 @@ const useState = () => {
 
   const angleDeg = radianToDegree(angle);
   
+  // Data to dump
+  const lines = [
+    `Distance start: ${distanceFromStart.toPrecision(2)}`,
+    `Distance last: ${distanceFromLast.toPrecision(2)}`,
+    `Angle deg: ${Math.round(angleDeg)}`,
+    `Average: ${Points.toString(average, 2)}`,
+    `Centroid: ${Points.toString(centroid, 2)}`,
+    `Speed: ${speed.toPrecision(2)}`]
+  
+  // Wrap in DIVs
+  const linesWithDivs = lines.map(l => `<DIV>${l}</DIV>`);
   // Update labels
-  setText(`info`,
-    `
-  Distance start: ${distanceFromStart.toPrecision(2)}
-  Distance last: ${distanceFromLast.toPrecision(2)}
-  Angle deg: ${Math.round(angleDeg)}
-  Average: ${Points.toString(average, 2)}
-  Centroid: ${Points.toString(centroid, 2)}
-  Speed: ${speed.toPrecision(2)}
-  `
-  );
+  setHtml(`info`, linesWithDivs.join(``));
 };
 
-const onPointerDown = e => {
-  e.preventDefault();
+const onPointerDown = event => {
+  event.preventDefault();
 
   // Convert to relative coordinate
-  const rel = relativePos(e);
+  const pointerRelative = relativePos(event);
  
   // Init new 'relation', and update state
-  updateState({ relationFromPointerDown: Points.relation(rel) });
+  updateState({ relationFromPointerDown: Points.relation(pointerRelative) });
 
   // Position 'reference' element
-  positionIdByRelative(`reference`, rel);
+  positionIdByRelative(`reference`, pointerRelative);
 
   document.body.classList.add(`moving`);
 };
 
-const onPointerMove = e => {
+const onPointerMove = event => {
   const { relationFromPointerDown } = state;
   if (!relationFromPointerDown) return;
-  e.preventDefault();
+  event.preventDefault();
 
-  const rel = relativePos(e);
+  const pointerRelative = relativePos(event);
 
-  const results = relationFromPointerDown(rel);
+  const results = relationFromPointerDown(pointerRelative);
 
   // Position 'reference' element
-  positionIdByRelative(`thing`, rel);
+  positionIdByRelative(`thing`, pointerRelative);
 
   updateState({ results });
   useState();
@@ -68,11 +71,11 @@ const onPointerMove = e => {
   return false;
 };
 
-const onPointerUp = e => {
+const onPointerUp = event => {
   // Hide element offscreen when there's a pointer up
   positionIdByRelative(`reference`, { x: -1, y: -1 });
 
-  updateState({ relationFromPointerDown: null });
+  updateState({ relationFromPointerDown: undefined });
   document.body.classList.remove(`moving`);
 };
 
@@ -115,11 +118,11 @@ function relativePos(pos) {
  * @param {string} text
  * @returns void
  */
-function setText(id, text)  {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (el.innerText === text) return;
-  el.innerText = text;
+function setHtml(id, text)  {
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  if (element.textContent === text) return;
+  element.innerHTML = text;
 }
 
 /**
@@ -128,11 +131,11 @@ function setText(id, text)  {
  * @param pos {{x:number, y:number}} Relative coordinate
  */
 function positionIdByRelative(id, pos) {
-  const el = document.getElementById(id);  
-  if (!el) return;
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));  
+  if (!element) return;
   pos = Points.multiply(pos, window.innerWidth, window.innerHeight);
 
-  const b = el.getBoundingClientRect();
+  const b = element.getBoundingClientRect();
   const p = Points.subtract(pos, b.width / 2, b.height / 2);
-  el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+  element.style.transform = `translate(${p.x}px, ${p.y}px)`;
 }

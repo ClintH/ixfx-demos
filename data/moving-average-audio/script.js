@@ -40,28 +40,28 @@ const useState = () => {
   setText(`lblRawLevel`, toPercentage(rawLevel));
 
   // Make sure value is 0...1, and then invert it
-  const rawLevelRel = flip(clamp(rawLevel));
-  const avgLevelRel = flip(clamp(avgLevel));
+  const rawRelative = flip(clamp(rawLevel));
+  const avgRelative = flip(clamp(avgLevel));
 
   // Position circles according to relative level
-  relativeMove(document.getElementById(`avgLevel`), avgLevelRel);
-  relativeMove(document.getElementById(`rawLevel`), rawLevelRel);
+  relativeMove(document.querySelector(`#avgLevel`), avgRelative);
+  relativeMove(document.querySelector(`#rawLevel`), rawRelative);
 };
 
 /**
  * Positions an element on the y axis according to some relative amount
- * @param {HTMLElement|null} el 
- * @param {number} relAmount 
+ * @param {HTMLElement|null} element 
+ * @param {number} relativeValue 
  */
-const relativeMove = (el, relAmount) => {
-  if (!el) return;
-  const size = el.getBoundingClientRect();
+const relativeMove = (element, relativeValue) => {
+  if (!element) return;
+  const size = element.getBoundingClientRect();
   const h = window.innerHeight;
   const w = window.innerWidth;
 
   const x = (w - size.width) / 2;
-  const y = (h - size.height * 3) * relAmount;
-  el.style.transform = `translate(${x}px, ${y}px)`;
+  const y = (h - size.height * 3) * relativeValue;
+  element.style.transform = `translate(${x}px, ${y}px)`;
 };
 
 /**
@@ -70,8 +70,8 @@ const relativeMove = (el, relAmount) => {
  * @param {string} txt 
  */
 const setText = (id, txt) => {
-  const el = document.getElementById(id);
-  if (el) el.innerText = txt;
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element) element.textContent = txt;
 };
 /**
  * Called each time we have a new reading
@@ -93,14 +93,14 @@ const onData = (level) => {
 const setup = () => {
   // Show unexpected errors on the page to help debugger;
   defaultErrorHandler();
-  document.getElementById(`btnStart`)?.addEventListener(`click`, () => {
+  document.querySelector(`#btnStart`)?.addEventListener(`click`, () => {
     // Initialise analyser. 
     // Analyser runs in a loop, calling `onData` very fast. 
     // We use that loop to drive the sketch rather than make another
     AudioAnalysers.peakLevel(onData);
 
     // Disable button if start is clicked
-    document.getElementById(`btnStart`)?.setAttribute(`disabled`, `true`);
+    document.querySelector(`#btnStart`)?.setAttribute(`disabled`, `true`);
   });
 };
 setup();

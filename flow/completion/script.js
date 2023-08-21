@@ -15,8 +15,8 @@ let state = Object.freeze({
 const useState = () => {
   const { completion }  = state;
 
-  const indicatorEl = document.getElementById(`indicator`);
-  const indicatorLevelEl = /** @type {HTMLElement} */(indicatorEl?.children[0]);
+  const indicatorElement = document.querySelector(`#indicator`);
+  const indicatorLevelElement = /** @type {HTMLElement} */(indicatorElement?.children[0]);
 
   let v = completion();
   
@@ -28,11 +28,11 @@ const useState = () => {
   setDebug(`completion: ${v.toPrecision(2)}`);
 
   // Assign to height
-  indicatorLevelEl.style.height = (v*100)+ `%`; 
+  indicatorLevelElement.style.height = (v*100)+ `%`; 
 };
 
-document.getElementById(`one`)?.addEventListener(`pointerdown`, evt => {
-  evt.stopPropagation();
+document.querySelector(`#one`)?.addEventListener(`pointerdown`, event => {
+  event.stopPropagation();
 
   // Set a function to track elapsed time
   saveState({
@@ -40,8 +40,8 @@ document.getElementById(`one`)?.addEventListener(`pointerdown`, evt => {
   });
 });
 
-document.getElementById(`one`)?.addEventListener(`pointerup`, evt => {
-  evt.stopPropagation();
+document.querySelector(`#one`)?.addEventListener(`pointerup`, event => {
+  event.stopPropagation();
 
   // Remove the function
   saveState({
@@ -66,11 +66,11 @@ function saveState (s) {
   });
 }
 
-function setDebug(msg) {
-  const el = document.getElementById(`debug`);
-  if (!el) return;
-  if (el.innerText === msg) return;
-  el.innerText = msg;
+function setDebug(message) {
+  const element = document.querySelector(`#debug`);
+  if (!element) return;
+  if (element.textContent === message) return;
+  element.textContent = message;
 }
 
 setup();

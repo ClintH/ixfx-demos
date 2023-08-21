@@ -1,11 +1,10 @@
 import { Points } from '../../ixfx/geometry.js';
 import { Oscillators } from '../../ixfx/modulation.js';
-import { scale } from '../../ixfx/data.js';
 
-import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
+import { adsr, defaultAdsrOpts as defaultAdsrOptions } from '../../ixfx/modulation.js';
 
-// Define our Thing
 /** 
+ * Define our Thing
  * @typedef Thing
  * @property {Points.Point} position
  * @property {Generator<number>} oscillator
@@ -16,7 +15,7 @@ import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
 const settings = Object.freeze({
   sizeEm: 10,
   envelope: {
-    ...defaultAdsrOpts(),
+    ...defaultAdsrOptions(),
     // Override some envelope options...
     // See: https://clinth.github.io/ixfx-docs/modulation/envelope/
     sustainLevel: 1,
@@ -32,7 +31,6 @@ let state = Object.freeze({
   // Create a thing, to control HTML element with id 'thing'
   /** @type Thing */
   thing: generateThing(`thing`),
-
 });
 
 /**
@@ -40,13 +38,13 @@ let state = Object.freeze({
  * @param {Thing} thing 
  */
 const useThing = (thing) => {
-  const el = document.getElementById(`thing`);
-  if (!el) return;
+  const element = /** @type HTMLElement */(document.querySelector(`#thing`));
+  if (!element) return;
 
   const { position  } = thing;
  
   // Position
-  positionFromMiddle(el, position);
+  positionFromMiddle(element, position);
 };
 
 
@@ -56,16 +54,16 @@ const useThing = (thing) => {
  */
 const onTickThing = (thing) => {
   // Get latest value from this thing's envelope
-  let envValue = thing.envelope.value;
+  let envelopeValue = thing.envelope.value;
   
   // Returns NaN if envelope is not yet triggered
-  if (Number.isNaN(envValue)) envValue = 0;
+  if (Number.isNaN(envelopeValue)) envelopeValue = 0;
   
   // Get the latest vaue from this thing's oscillator
   const oscValue = thing.oscillator.next().value;
 
-  // Combine!
-  const v = oscValue * envValue;
+  // Combine oscillator value and envelope value
+  const v = oscValue * envelopeValue;
   
   // Compute relative position based on value
   const position = {
@@ -89,14 +87,13 @@ const useState = () => {
 };
 
 const onTick = () => {
-  const { thing } = state;
 
   // Update thing
-  const newThing = onTickThing(thing);
+  const thing = onTickThing(state.thing);
 
   // Update state with changed thing
   updateState({ 
-    thing: newThing,
+    thing,
   });
 
   useState();
@@ -109,14 +106,14 @@ const loop = () => {
 
 const setup = () => {
   // Trigger and hold envelopes when pointer is down
-  window.addEventListener(`pointerdown`, evt => {
+  window.addEventListener(`pointerdown`, event => {
     const { thing } = state;
     console.log(`Envelope trigger`);
     thing.envelope.trigger(false);
   });
 
   // Release envelope on pointerup
-  window.addEventListener(`pointerup`, evt => {
+  window.addEventListener(`pointerup`, event => {
     const { thing } = state;
     console.log(`Envelope release`);
     thing.envelope.release();
@@ -157,16 +154,16 @@ function updateState (s) {
 
 /**
  * Position an element from its middle
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element
  * @param {Points.Point} relativePos 
  */
-function positionFromMiddle (el, relativePos) {
+function positionFromMiddle (element, relativePos) {
   // Convert relative to absolute units
   const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
   
-  const thingRect = el.getBoundingClientRect();
+  const thingRect = element.getBoundingClientRect();
   const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
 
   // Apply via CSS
-  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
+  element.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 }

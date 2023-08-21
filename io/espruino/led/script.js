@@ -72,10 +72,10 @@ const setLedPwm = (pinName, rate) => {
 function blinkLed() {
   const { blinkLed } = settings;
   const { blinkState } = state;
-  const newState = !blinkState;
+  const s = !blinkState;
 
-  setLed(blinkLed, newState);
-  updateState({ blinkState: newState });
+  setLed(blinkLed, s);
+  updateState({ blinkState: s });
 }
 
 const setup = () => {
@@ -91,60 +91,65 @@ const setup = () => {
   const connect = async () => {
     try {
       // Filter by name, if defined in settings
-      const opts = settings.device.length > 0 ? { name: settings.device } : {};
+      const options = settings.device.length > 0 ? { name: settings.device } : {};
 
       // Connect to Puck
-      const p = await Espruino.puck(opts);
+      const p = await Espruino.puck(options);
       console.log(`Connected`);
       
       // Listen for events
-      p.addEventListener(`change`, evt => {
-        console.log(`${evt.priorState} -> ${evt.newState}`);
+      p.addEventListener(`change`, event => {
+        console.log(`${event.priorState} -> ${event.newState}`);
       });
 
       onConnected(true);
       updateState({ puck: p });
-    } catch (ex) {
-      console.error(ex);
+    } catch (error) {
+      console.error(error);
       onConnected(false);
     }
   };
 
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
 
   // Manual checkboxes
-  document.getElementById(`manual`)?.addEventListener(`change`, evt => {
-    const el = /** @type {HTMLInputElement} */(evt.target);
-    if (!el) return;
-    const val = el.checked;
-    setLed(el.id.toLocaleUpperCase(), val);
+  document.querySelector(`#manual`)?.addEventListener(`change`, event => {
+    const element = /** @type {HTMLInputElement} */(event.target);
+    if (!element) return;
+    const value = element.checked;
+    setLed(element.id.toLocaleUpperCase(), value);
   });
 
-  document.getElementById(`btnBlinkStart`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnBlinkStart`)?.addEventListener(`click`, event => {
     settings.blinker.start();
   });
 
-  document.getElementById(`btnBlinkStop`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnBlinkStop`)?.addEventListener(`click`, event => {
     settings.blinker.cancel();
   });
 
-  document.getElementById(`rangePwm`)?.addEventListener(`input`, evt => {
-    const el = /** @type {HTMLInputElement} */(evt.target);
-    if (!el) return;
+  document.querySelector(`#rangePwm`)?.addEventListener(`input`, event => {
+    const element = /** @type {HTMLInputElement} */(event.target);
+    if (!element) return;
     
     // HTML element has range of 0..100, need 0..1
-    const pwm = parseInt(el.value)/100;
+    const pwm = Number.parseInt(element.value)/100;
     setLedPwm(settings.pwmLed, pwm);
   });
 };
 setup();
 
-
-function setCssDisplay(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
-}
+/**
+ * Sets style.display for element
+ * @param {*} id Id of element
+ * @param {*} value Value of style.display to set
+ * @returns 
+ */
+const setCssDisplay = (id, value) => {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
+};
 
 /**
  * Update state

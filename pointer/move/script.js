@@ -32,19 +32,19 @@ let state = Object.freeze({
 const useThing = (thing) => {
   const { sizeEm } = settings;
 
-  const el = document.getElementById(`thing`);
-  if (!el) return;
+  const element = /** @type HTMLElement */(document.querySelector(`#thing`));
+  if (!element) return;
 
   const { position, mass } = thing;
 
   // Change opacity based on mass
-  el.style.opacity = mass.toString();
+  element.style.opacity = mass.toString();
 
   // Change size based on mass
-  el.style.height = el.style.width = `${sizeEm*mass}em`;
+  element.style.height = element.style.width = `${sizeEm*mass}em`;
 
   // Position
-  positionFromMiddle(el, position);
+  positionFromMiddle(element, position);
 };
 
 /**
@@ -82,15 +82,15 @@ const loop = () => {
   const { thing } = state;
   
   // Update freeze ray based on movement
-  const newFreeze = state.currentMovement / settings.movementMax;
+  const freeze = state.currentMovement / settings.movementMax;
 
   // Update thing
-  const newThing = loopThing(thing);
+  const thingUpdated = loopThing(thing);
 
   // Update state
   updateState({ 
-    thing: newThing,
-    freezeRay: newFreeze,
+    thing: thingUpdated,
+    freezeRay: freeze,
     currentMovement: 0
   });
 
@@ -98,9 +98,9 @@ const loop = () => {
   window.requestAnimationFrame(loop);
 };
 
-const onPointerMove = (evt) => {    
+const onPointerMove = (event) => {    
   // Get magnitude of movement
-  const magnitude = Points.distance({ x: evt.movementX, y: evt.movementY });
+  const magnitude = Points.distance({ x: event.movementX, y: event.movementY });
   // Add to state
   updateState({ 
     currentMovement: state.currentMovement + magnitude 
@@ -151,16 +151,16 @@ function updateThing(thing, data) {
 
 /**
  * Position an element from its middle
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element 
  * @param {Points.Point} relativePos 
  */
-function positionFromMiddle(el, relativePos) {
+function positionFromMiddle(element, relativePos) {
   // Convert relative to absolute units
   const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
   
-  const thingRect = el.getBoundingClientRect();
+  const thingRect = element.getBoundingClientRect();
   const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
 
   // Apply via CSS
-  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
+  element.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 }

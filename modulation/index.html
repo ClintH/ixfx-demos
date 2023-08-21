@@ -1,126 +1,235 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ixfx - modulation</title>
+    <link rel="stylesheet" href="../demos.css" />
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ixfx - modulation</title>
-  <link rel="stylesheet" href="../demos.css">
-</head>
-
-<body>
-
-  <main>
-    <header>
-      <a href="../">../</a> modulation
-    </header>
-    <ul class="pillbox">
-      <li><a class="pill" href="https://clinth.github.io/ixfx-docs/modulation/envelope/">Documentation</a></li>
-      <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Modulation.html">API Reference</a></li>
-    </ul>
-    <p>
-      The <a href="https://clinth.github.io/fn-vis/">function visualiser</a> can be helpful when playing with
-      modulation.
-    </p>
-    <div class="demos">
-      <div>
-        <h1>envelope</h1>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/modulation/envelope/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Modulation.html#adsr">API Reference</a></li>
-        </ul>
-        <ul class="nobullets">
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/env-decay"></a> <a
-              href="./env-decay/">decay</a>: Using an envelope to gradually reduce a value</li>
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/env-set"></a> <a
-              href="./env-set/">set</a>: Use an envelope to reach a target value</li>
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/env-osc"></a> <a
-              href="./env-osc/">osc</a>: Cross-modulate an envelope and oscillator</li>
-        </ul>
+  <body>
+    <main>
+      <header><a href="../">../</a> modulation</header>
+      <ul class="pillbox">
+        <li>
+          <a
+            class="pill"
+            href="https://clinth.github.io/ixfx-docs/modulation/envelope/"
+            >Documentation</a
+          >
+        </li>
+        <li>
+          <a
+            class="pill"
+            href="https://clinth.github.io/ixfx/modules/Modulation.html"
+            >API Reference</a
+          >
+        </li>
+      </ul>
+      <p>
+        The <a href="https://fn-vis.pages.dev">function visualiser</a> can be
+        helpful when playing with modulation.
+      </p>
+      <div class="demos">
+        <div>
+          <h1>envelope</h1>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/modulation/envelope/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Modulation.html#adsr"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/env-decay"
+              ></a>
+              <a href="./env-decay/">decay</a>: Using an envelope to gradually
+              reduce a value
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/env-set"
+              ></a>
+              <a href="./env-set/">set</a>: Use an envelope to reach a target
+              value
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/env-osc"
+              ></a>
+              <a href="./env-osc/">osc</a>: Cross-modulate an envelope and
+              oscillator
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h1>easing</h1>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/modulation/easing/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Modulation.Easings.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/easing-tick"
+              ></a>
+              <a href="./easing-tick/">tick</a>: Easing over <em>ticks</em>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/easing-timer"
+              ></a>
+              <a href="./easing-timer/">timer</a>: Easing over time
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/easing-set"
+              ></a>
+              <a href="./easing-set/">set</a>: Use an easing function to reach a
+              target value
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h1>oscillators</h1>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/modulation/oscillator/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Modulation.Oscillators.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/oscillator-spring"
+              ></a>
+              <a href="./oscillator-spring/">spring</a>: Spring physics
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/oscillator-starter"
+              ></a>
+              <a href="./oscillator-starter/">starter</a>: Empty sketch to get
+              you going
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h1>forces</h1>
+          <ul class="pillbox">
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx-docs/modulation/forces/"
+                >Documentation</a
+              >
+            </li>
+            <li>
+              <a
+                class="pill"
+                href="https://clinth.github.io/ixfx/modules/Modulation.Forces.html"
+                >API Reference</a
+              >
+            </li>
+          </ul>
+          <ul class="nobullets">
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-basic"
+              ></a>
+              <a href="./forces-basic/">basic</a>: Gravity, drag, wind, friction
+              <div class="techniques">Canvas, particles</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-pendulum"
+              ></a>
+              <a href="./forces-pendulum/">pendulum</a>: Swinging thing
+              <div class="techniques">Canvas</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-attractor"
+              ></a>
+              <a href="./forces-attractor/">attractor</a>: Attraction/orbiting
+              <div class="techniques">Canvas, shapes, particles</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-target"
+              ></a>
+              <a href="./forces-target/">target</a>: Use forces to move to a
+              target position
+              <div class="techniques">DOM, velocity, acceleration, pointer</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-accel"
+              ></a>
+              <a href="./forces-accel/">acceleration</a>: Pointer movement
+              applied as acceleration
+              <div class="techniques">DOM, velocity, acceleration, pointer</div>
+            </li>
+            <li>
+              <a
+                class="source"
+                href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-accel-particles"
+              ></a>
+              <a href="./forces-accel-particles/">acceleration (particles)</a>:
+              Extension of acceleration sketch but supporting many particles.
+              <div class="techniques">
+                DOM, velocity, acceleration, particles, pointer
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <h1>easing</h1>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/modulation/easing/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Modulation.Easings.html">API Reference</a>
-          </li>
-        </ul>
-        <ul class="nobullets">
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/easing-tick"></a> <a
-              href="./easing-tick/">tick</a>: Easing over <em>ticks</em></li>
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/easing-timer"></a> <a
-              href="./easing-timer/">timer</a>: Easing over time </li>
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/easing-set"></a> <a
-              href="./easing-set/">set</a>: Use an easing function to reach a target value</li>
-        </ul>
-      </div>
-      <div>
-        <h1>oscillators</h1>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/modulation/oscillator/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Modulation.Oscillators.html">API Reference</a>
-          </li>
-        </ul>
-        <ul class="nobullets">
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/oscillator-spring"></a>
-            <a href="./oscillator-spring/">spring</a>: Spring physics
-          </li>
-          <li><a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/oscillator-starter"></a>
-            <a href="./oscillator-starter/">starter</a>: Empty sketch to get you going
-          </li>
-        </ul>
-      </div>
-      <div>
-        <h1>forces</h1>
-        <ul class="pillbox">
-          <li><a class="pill" href="https://clinth.github.io/ixfx-docs/modulation/forces/">Documentation</a></li>
-          <li><a class="pill" href="https://clinth.github.io/ixfx/modules/Modulation.Forces.html">API Reference</a>
-          </li>
-        </ul>
-        <ul class="nobullets">
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-basic"></a>
-            <a href="./forces-basic/">basic</a>: Gravity, drag, wind, friction
-            <div class="techniques">Canvas, particles
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-pendulum"></a>
-            <a href="./forces-pendulum/">pendulum</a>: Swinging thing
-            <div class="techniques">Canvas
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-attractor"></a>
-            <a href="./forces-attractor/">attractor</a>: Attraction/orbiting
-            <div class="techniques">Canvas, shapes, particles
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-target"></a>
-            <a href="./forces-target/">target</a>: Use forces to move to a target position
-            <div class="techniques">DOM, velocity, acceleration, pointer
-            </div>
-          </li>
-          <li>
-            <a class="source" href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-accel"></a>
-            <a href="./forces-accel/">acceleration</a>: Pointer movement applied as acceleration
-            <div class="techniques">DOM, velocity, acceleration, pointer
-            </div>
-          </li>
-          <li>
-            <a class="source"
-              href="https://github.com/ClintH/ixfx-demos/tree/main/modulation/forces-accel-particles"></a>
-            <a href="./forces-accel-particles/">acceleration (particles)</a>: Extension of acceleration sketch but
-            supporting many particles.
-            <div class="techniques">DOM, velocity, acceleration, particles, pointer
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-  </main>
-</body>
-
+    </main>
+  </body>
 </html>

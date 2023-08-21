@@ -68,52 +68,52 @@ const update = () => {
 
 /**
  * Draws a line using relative coordinates
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{a:{x:number,y:number}, b:{x:number,y:number}}} line 
  * @param {string} strokeStyle
  */
-const drawRelativeLine = (ctx, line, strokeStyle = `yellow`) => {
+const drawRelativeLine = (context, line, strokeStyle = `yellow`) => {
   const { bounds } = state;
   const a = Points.multiply(line.a, bounds.width, bounds.height);
   const b = Points.multiply(line.b, bounds.width, bounds.height);
 
-  ctx.beginPath();
-  ctx.strokeStyle = strokeStyle;
-  ctx.lineWidth = 4;
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.stroke();
+  context.beginPath();
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = 4;
+  context.moveTo(a.x, a.y);
+  context.lineTo(b.x, b.y);
+  context.stroke();
 };
 
 /**
  * Draw a dot at a relative position
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number}} dot 
  * @param {string} fillStyle 
  */
-const drawRelativeDot = (ctx, dot, fillStyle = `red`, label = ``) => {
+const drawRelativeDot = (context, dot, fillStyle = `red`, label = ``) => {
   const { bounds } = state;
   const abs = Points.multiply(dot, bounds.width, bounds.height);
 
-  drawDot(ctx, abs, fillStyle);
+  drawDot(context, abs, fillStyle);
   if (label.length > 0) {
-    ctx.fillStyle = `black`;
-    ctx.fillText(label, abs.x, abs.y);
+    context.fillStyle = `black`;
+    context.fillText(label, abs.x, abs.y);
   }
 
 };
 
 /**
  * Draw a dot at an absolute position
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number}} dot 
  * @param {string} fillStyle 
  */
-const drawDot = (ctx, dot, fillStyle = `red`) => {
-  ctx.beginPath();
-  ctx.fillStyle = fillStyle;
-  ctx.arc(dot.x, dot.y, 5, 0, piPi);
-  ctx.fill();
+const drawDot = (context, dot, fillStyle = `red`) => {
+  context.beginPath();
+  context.fillStyle = fillStyle;
+  context.arc(dot.x, dot.y, 5, 0, piPi);
+  context.fill();
 };
 
 const useState = () => {
@@ -121,35 +121,35 @@ const useState = () => {
   const { lineStyle, pointerStyle, nearestStyle  } = settings;
   const { pointer, nearestPoint, distance, rotatedLine } = state;
   
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
 
-  const ctx = canvasEl?.getContext(`2d`);
+  const context = canvasElement?.getContext(`2d`);
 
-  if (!ctx) return;
+  if (!context) return;
 
   // Clear canvas
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Draw new things
-  const lblAngleRad = document.getElementById(`lblAngleRad`);
-  const lblSlope = document.getElementById(`lblSlope`);
-  const lblDistance = document.getElementById(`lblDistance`);
+  const lblAngleRad = document.querySelector(`#lblAngleRad`);
+  const lblSlope = document.querySelector(`#lblSlope`);
+  const lblDistance = document.querySelector(`#lblDistance`);
 
   // Draw rotated line and end points
-  drawRelativeLine(ctx, rotatedLine, lineStyle);
-  drawRelativeDot(ctx, rotatedLine.a, lineStyle, `A`);
-  drawRelativeDot(ctx, rotatedLine.b, lineStyle, `B`);
+  drawRelativeLine(context, rotatedLine, lineStyle);
+  drawRelativeDot(context, rotatedLine.a, lineStyle, `A`);
+  drawRelativeDot(context, rotatedLine.b, lineStyle, `B`);
 
   // Draw a dot for the pointer
-  drawRelativeDot(ctx, pointer, pointerStyle);
+  drawRelativeDot(context, pointer, pointerStyle);
 
   // Draw dot for closest point
-  drawRelativeDot(ctx, nearestPoint, nearestStyle);
+  drawRelativeDot(context, nearestPoint, nearestStyle);
 
   // Print out current distance to cursor
-  if (lblDistance) lblDistance.innerText = distance.toPrecision(2);
-  if (lblAngleRad) lblAngleRad.innerText = Lines.angleRadian(rotatedLine).toPrecision(2);
-  if (lblSlope) lblSlope.innerText = Lines.slope(rotatedLine).toPrecision(2);
+  if (lblDistance) lblDistance.textContent = distance.toPrecision(2);
+  if (lblAngleRad) lblAngleRad.textContent = Lines.angleRadian(rotatedLine).toPrecision(2);
+  if (lblSlope) lblSlope.textContent = Lines.slope(rotatedLine).toPrecision(2);
   
 };
 
@@ -158,18 +158,18 @@ const useState = () => {
  */
 const setup = () => {
   // Resize canvas to match viewport
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 
-  document.addEventListener(`pointermove`, e => {
+  document.addEventListener(`pointermove`, event => {
     const { bounds } = state;
     updateState({
       // Calc relative pointer position (on 0..1 scale)
-      pointer: Points.divide(e.clientX, e.clientY, bounds.width, bounds.height)
+      pointer: Points.divide(event.clientX, event.clientY, bounds.width, bounds.height)
     });
   });
 

@@ -8,7 +8,7 @@ const piPi = Math.PI * 2;
 const settings = Object.freeze({
   // Set up three lines, using relative coordinates
   lineMid: {
-    a: { x: 0.10, y: 0.5 },
+    a: { x: 0.1, y: 0.5 },
     b: { x: 0.3, y: 0.5 }
   },
   lineStart: {
@@ -17,7 +17,7 @@ const settings = Object.freeze({
   },
   lineEnd: {
     a: { x: 0.7, y: 0.5 },
-    b: { x: 0.80, y: 0.5 }
+    b: { x: 0.8, y: 0.5 }
   },
   // How much to increment by on each loop (radians)
   rotationIncrement: 0.005,
@@ -55,46 +55,46 @@ const update = () => {
 
 /**
  * Draw a line based on relative coordinates
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{a:{x:number,y:number}, b:{x:number,y:number}}} line 
  * @param {string} strokeStyle
  */
-const drawRelativeLine = (ctx, line, strokeStyle = `yellow`) => {
+const drawRelativeLine = (context, line, strokeStyle = `yellow`) => {
   const { bounds } = state;
   const a = Points.multiply(line.a, bounds.width, bounds.height);
   const b = Points.multiply(line.b, bounds.width, bounds.height);
 
-  ctx.beginPath();
-  ctx.strokeStyle = strokeStyle;
-  ctx.lineWidth = 4;
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.stroke();
+  context.beginPath();
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = 4;
+  context.moveTo(a.x, a.y);
+  context.lineTo(b.x, b.y);
+  context.stroke();
 };
 
 /**
  * Draw a dot at a relative position
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number}} dot 
  * @param {string} fillStyle 
  */
-const drawRelativeDot = (ctx, dot, fillStyle = `red`) => {
+const drawRelativeDot = (context, dot, fillStyle = `red`) => {
   const { bounds } = state;
   const abs = Points.multiply(dot, bounds.width, bounds.height);
-  drawDot(ctx, abs, fillStyle);
+  drawDot(context, abs, fillStyle);
 };
 
 /**
  * Draw a dot at an absolute position
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number}} dot 
  * @param {string} fillStyle 
  */
-const drawDot = (ctx, dot, fillStyle = `red`) => {
-  ctx.beginPath();
-  ctx.fillStyle = fillStyle;
-  ctx.arc(dot.x, dot.y, 5, 0, piPi);
-  ctx.fill();
+const drawDot = (context, dot, fillStyle = `red`) => {
+  context.beginPath();
+  context.fillStyle = fillStyle;
+  context.arc(dot.x, dot.y, 5, 0, piPi);
+  context.fill();
 };
 
 const useState = () => {
@@ -102,23 +102,23 @@ const useState = () => {
   const { lineMid, lineStart, lineEnd } = state;
   const { width, height } = state.bounds;
 
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
 
-  if (!ctx) return;
+  if (!context) return;
 
   // Clear
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Draw each line, and show the point by which it is rotating...
-  drawRelativeLine(ctx, lineMid, lineStyle);
-  drawRelativeDot(ctx, Lines.interpolate(0.5, lineMid), lineStyle);
+  drawRelativeLine(context, lineMid, lineStyle);
+  drawRelativeDot(context, Lines.interpolate(0.5, lineMid), lineStyle);
 
-  drawRelativeLine(ctx, lineStart, lineStyle);
-  drawRelativeDot(ctx, Lines.interpolate(0, lineStart), lineStyle);
+  drawRelativeLine(context, lineStart, lineStyle);
+  drawRelativeDot(context, Lines.interpolate(0, lineStart), lineStyle);
 
-  drawRelativeLine(ctx, lineEnd, lineStyle);
-  drawRelativeDot(ctx, Lines.interpolate(1, lineEnd), lineStyle);
+  drawRelativeLine(context, lineEnd, lineStyle);
+  drawRelativeDot(context, Lines.interpolate(1, lineEnd), lineStyle);
 };
 
 /**
@@ -126,10 +126,10 @@ const useState = () => {
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 

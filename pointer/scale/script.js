@@ -11,8 +11,8 @@ pointerVisualise(document.body);
 
 // Setings
 const settings = Object.freeze({
-  containerEl: document.getElementById(`container`),
-  thingEl: document.getElementById(`thing`)
+  containerEl: /** @type HTMLElement */(document.querySelector(`#container`)),
+  thingEl: /** @type HTMLElement */(document.querySelector(`#thing`))
 });
 
 // State
@@ -28,14 +28,14 @@ let state = Object.freeze({
 
 /**
  * Called when the pointer moves
- * @param {PointerEvent} ev 
+ * @param {PointerEvent} event 
  */
-const onPointerMove = (ev) => {
+const onPointerMove = (event) => {
   const { pointers, twoFingerDistance } = state;
 
-  ev.preventDefault();
+  event.preventDefault();
 
-  pointers.seen(ev.pointerId.toString(), { x: ev.x, y: ev.y });
+  pointers.seen(event.pointerId.toString(), { x: event.x, y: event.y });
 
   const byAge = [ ...pointers.valuesByAge() ];
 
@@ -43,7 +43,7 @@ const onPointerMove = (ev) => {
   if (byAge.length >= 2) {
 
     // Calculate distance between first two touches
-    let distanceAbs = NaN;
+    let distanceAbs = Number.NaN;
     if (byAge[0] && byAge[1]) distanceAbs = Points.distance(byAge[0], byAge[1]);
 
     // Pop it into a numberTracker, because what we really
@@ -84,14 +84,14 @@ const useState = () => {
 
 /**
  * Called when the touches end or runs out of the bounds of the viewport
- * @param {PointerEvent} ev 
+ * @param {PointerEvent} event 
  */
-const onLostPointer = (ev) => {
+const onLostPointer = (event) => {
   const { pointers } = state;
-  ev.preventDefault();
+  event.preventDefault();
 
   // Delete the pointer
-  pointers.delete(ev.pointerId.toString());
+  pointers.delete(event.pointerId.toString());
 };
 
 const setup = () => {
@@ -99,8 +99,8 @@ const setup = () => {
   document.addEventListener(`pointerup`, onLostPointer);
   document.addEventListener(`pointerleave`, onLostPointer);
 
-  document.addEventListener(`wheel`, evt => {
-    evt.preventDefault();
+  document.addEventListener(`wheel`, event => {
+    event.preventDefault();
   }, { passive:false });
 };
 setup();

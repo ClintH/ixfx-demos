@@ -25,16 +25,16 @@ let state = Object.freeze({
 
 /**
  * Fills the drawing context with a graadient fill
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{width:number, height:number, center: {x:number, y:number}}} bounds 
  */
-const drawGradient = (ctx, bounds) => {
+const drawGradient = (context, bounds) => {
   const { outerColour, innerColour } = settings;
   const c = bounds.center;
 
   // Make a gradient
   //  See: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
-  const g = ctx.createRadialGradient(
+  const g = context.createRadialGradient(
     c.x,
     c.y,
     10,
@@ -45,8 +45,8 @@ const drawGradient = (ctx, bounds) => {
   g.addColorStop(1, outerColour);  // Outer circle
 
   // Use gradient to fill whole canvas
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, bounds.width, bounds.height);
+  context.fillStyle = g;
+  context.fillRect(0, 0, bounds.width, bounds.height);
 };
 
 // Update state of world
@@ -76,25 +76,25 @@ const update = () => {
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   const { progression, arc } = state;
   const { piPi } = settings;
-  ctx.fillStyle = `black`;
+  context.fillStyle = `black`;
 
   // Draw arcs
-  ctx.strokeStyle = `white`;
-  ctx.lineWidth = 5;
+  context.strokeStyle = `white`;
+  context.lineWidth = 5;
 
   // Draw a series of arcs. 
   // Start at max radius, count down by 10 down to a min of 10
   const radiusRange = Generators.numericRange(-10, arc.radius, 10);
   for (const radius of radiusRange) {
-    ctx.beginPath();
+    context.beginPath();
     // Arc end angle is determined by the ping-pong progression
-    ctx.arc(arc.x, arc.y, radius, 0, piPi * progression);
-    ctx.stroke();
+    context.arc(arc.x, arc.y, radius, 0, piPi * progression);
+    context.stroke();
   }
 };
 
@@ -105,21 +105,21 @@ const draw = (ctx) => {
 const setup = () => {
   // Automatically keeps canvas full size, 
   // drawing gradient background whenver it change
-  Dom.fullSizeCanvas(`#backdrop`, args => {
-    drawGradient(args.ctx, args.bounds);
+  Dom.fullSizeCanvas(`#backdrop`, arguments_ => {
+    drawGradient(arguments_.ctx, arguments_.bounds);
   });
 
   // Keep our primary canvas full size too
-  const canvasEl = /** @type {HTMLCanvasElement} */(Dom.resolveEl(`#canvas`));
-  Dom.fullSizeCanvas(canvasEl, args => {
+  const canvasElement = /** @type {HTMLCanvasElement} */(Dom.resolveEl(`#canvas`));
+  Dom.fullSizeCanvas(canvasElement, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 
   // Backdrop is automatically assigned -100, we want this one to be above that.
-  canvasEl.style.zIndex = `0`; 
+  canvasElement.style.zIndex = `0`; 
   
   const loop = () => {
     update();
@@ -132,21 +132,21 @@ setup();
 
 const useState = () => {
   const { canvasEl } = settings;
-  const ctx = canvasEl.getContext(`2d`);
+  const context = canvasEl.getContext(`2d`);
 
-  if (ctx === null) return;
+  if (context === null) return;
 
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  draw(ctx);
+  context.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  draw(context);
 };
 
 /**
- * @param {HTMLCanvasElement} el 
+ * @param {HTMLCanvasElement} element
  * @returns Bounds of element 
  */
-const bounds = (el) => {
-  const w = el.width;
-  const h = el.height;
+const bounds = (element) => {
+  const w = element.width;
+  const h = element.height;
   return {
     center: { x: w / 2, y: h / 2 },
     width: w,

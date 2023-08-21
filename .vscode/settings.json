@@ -1,21 +1,38 @@
 {
+  "editor.formatOnPaste": false,
+  "editor.formatOnType": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "eslint.format.enable": true,
+  "eslint.alwaysShowStatus": true,
+  "html.format.enable": true,
   "js/ts.implicitProjectConfig.checkJs": true,
   "search.exclude": {
     "**/node_modules": true,
     "**/ixfx": true,
+    "docs/**": true,
     "**/*.code-search": true
   },
-  "eslint.format.enable": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
   "files.eol": "\n",
-  "spellright.language": [
-    "en"
-  ],
-  "spellright.documentTypes": [
-    "markdown",
-    "latex",
-    "plaintext"
-  ]
+  "editor.inlayHints.enabled": "on",
+  "editor.inlayHints.padding": true,
+  "javascript.inlayHints.enumMemberValues.enabled": false,
+  "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
+  "javascript.inlayHints.parameterNames.enabled": "all",
+  "javascript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
+  "javascript.inlayHints.parameterTypes.enabled": false,
+  "javascript.inlayHints.propertyDeclarationTypes.enabled": false,
+  "javascript.inlayHints.variableTypes.enabled": false,
+  "typescript.inlayHints.enumMemberValues.enabled": false,
+  "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": false,
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "typescript.inlayHints.parameterTypes.enabled": true,
+  "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
+  "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
+  "typescript.inlayHints.variableTypes.enabled": false,
+  "typescript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true
 }

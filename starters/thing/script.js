@@ -11,9 +11,7 @@ import { clamp, scale } from '../../ixfx/data.js';
  */
 
 // Settings for sketch
-const settings = Object.freeze({
-
-});
+const settings = Object.freeze({});
 
 // State
 let state = Object.freeze({
@@ -30,14 +28,14 @@ const useThing = (thing) => {
   const { position, elementId, surprise } = thing;
   
   // Resolve element
-  const el = document.getElementById(elementId);
-  if (!el) return;
+  const element = /** @type HTMLElement */(document.querySelector(`#${elementId}`));
+  if (!element) return;
 
   // Change opacity based on 'surprise'
-  el.style.opacity = surprise.toString();
+  element.style.opacity = surprise.toString();
 
   // Position
-  positionFromMiddle(el, position);
+  positionFromMiddle(element, position);
 };
 
 /**
@@ -76,11 +74,11 @@ const loop = () => {
   const { thing } = state;
 
   // Compute new thing based on current state
-  const newThing = updateThingFromState(thing);
+  const thingUpdated = updateThingFromState(thing);
 
   // Save new thing into state
   updateState({ 
-    thing: newThing
+    thing: thingUpdated
   });
 
   // Use new state
@@ -122,16 +120,16 @@ function updateState (s) {
 
 /**
  * Position an element from its middle
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element 
  * @param {Points.Point} relativePos 
  */
-function positionFromMiddle(el, relativePos) {
+function positionFromMiddle(element, relativePos) {
   // Convert relative to absolute units
   const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
   
-  const thingRect = el.getBoundingClientRect();
+  const thingRect = element.getBoundingClientRect();
   const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
 
   // Apply via CSS
-  el.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
+  element.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
 }

@@ -54,33 +54,33 @@ const onTick = () => {
 
 const useState = () => {
   const { location, reference, distance, angleDeg } = state;
-  const thingEl = document.getElementById(`thing`);
-  const referenceEl = document.getElementById(`reference`);
-  const distanceEl = document.getElementById(`lblDistance`);
-  const angleDegEl = document.getElementById(`lblAngleDeg`);
+  const thingElement = document.querySelector(`#thing`);
+  const referenceElement = document.querySelector(`#reference`);
+  const distanceElement = document.querySelector(`#lblDistance`);
+  const angleDegElement = document.querySelector(`#lblAngleDeg`);
 
-  if (!thingEl) return;
-  if (!referenceEl) return;
-  if (!distanceEl || !angleDegEl) return;
+  if (!thingElement) return;
+  if (!referenceElement) return;
+  if (!distanceElement || !angleDegElement) return;
   
   // Position element that tracks pointer
-  positionElementByRelative(thingEl, location);
+  positionElementByRelative(thingElement, location);
 
   // Position 'reference' element
-  positionElementByRelative(referenceEl, reference);
+  positionElementByRelative(referenceElement, reference);
 
   // Update labels
-  distanceEl.innerText = distance.toPrecision(2);
-  angleDegEl.innerText = Math.round(angleDeg).toString();
+  distanceElement.textContent = distance.toPrecision(2);
+  angleDegElement.textContent = Math.round(angleDeg).toString();
 };
 
 /**
  * Handle pointerdown and pointermove
- * @param {PointerEvent} e 
+ * @param {PointerEvent} event 
  */
-const onPointerMoveOrDown = (e) => {
-  const x = e.clientX;
-  const y = e.clientY;
+const onPointerMoveOrDown = (event) => {
+  const x = event.clientX;
+  const y = event.clientY;
   updateState({
     // Make pointer position relative (on 0..1 scale)
     pointer: Points.divide(x, y, window.innerWidth, window.innerHeight)
@@ -119,10 +119,10 @@ function updateState (s) {
  * @param el {HTMLElement}
  * @param pos {{x:number, y:number}}
  */
-function positionElementByRelative(el, pos) {
+function positionElementByRelative(element, pos) {
   pos = Points.multiply(pos, window.innerWidth, window.innerHeight);
 
-  const b = el.getBoundingClientRect();
+  const b = element.getBoundingClientRect();
   const p = Points.subtract(pos, b.width / 2, b.height / 2);
-  el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+  element.style.transform = `translate(${p.x}px, ${p.y}px)`;
 }

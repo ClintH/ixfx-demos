@@ -15,7 +15,7 @@ const onTick = () => {
 
   const v = osc.next().value; // Sample oscillator
   updateState ({
-    oscValue: v ?? NaN
+    oscValue: v ?? Number.NaN
   });
 };
 
@@ -25,11 +25,11 @@ const useState = () => {
   // Use oscValue somehow... here's two examples:
 
   // 1. Display value
-  const oscVal = document.getElementById(`oscValue`);
-  if (oscVal) oscVal.innerText = oscValue.toFixed(2);
+  const oscValueElement = /** @type  HTMLElement */(document.querySelector(`#oscValue`));
+  if (oscValueElement) oscValueElement.textContent = oscValue.toFixed(2);
 
   // 2. Use it to offset an element
-  const thing = document.getElementById(`thing`);
+  const thing = /** @type HTMLElement */(document.querySelector(`#thing`));
   if (thing) thing.style.transform = `translate(${oscValue*300}px, 0px)`;
 };
 

@@ -17,7 +17,7 @@ let state = Object.freeze({
     center: { x: 0, y: 0 }
   },
   thing: {
-    position: { x: 1.0 , y: 0.5 },
+    position: { x: 1 , y: 0.5 },
     mass: settings.mass
   },
   /** @type boolean */
@@ -47,40 +47,40 @@ const useState = () => {
   const { thing, bounds } = state;
   
   /** @type {CanvasRenderingContext2D|null|undefined} */
-  const ctx = canvas?.getContext(`2d`);
-  if (!ctx) return;
+  const context = canvas?.getContext(`2d`);
+  if (!context) return;
 
   // Get absolute position from relative
   const thingPos = Points.multiply(thing.position, bounds);
   const pinPos = Points.multiply(settings.pinnedAt, bounds);
 
   // Fill rect
-  ctx.fillStyle = `SkyBlue`;
-  ctx.fillRect(0, 0, bounds.width, bounds.height);
+  context.fillStyle = `SkyBlue`;
+  context.fillRect(0, 0, bounds.width, bounds.height);
   
   // Line
-  ctx.moveTo(thingPos.x, thingPos.y);
-  ctx.strokeStyle = `SlateGray`;
-  ctx.lineWidth = lineWidth;
-  ctx.lineTo(pinPos.x, pinPos.y);
-  ctx.stroke();
+  context.moveTo(thingPos.x, thingPos.y);
+  context.strokeStyle = `SlateGray`;
+  context.lineWidth = lineWidth;
+  context.lineTo(pinPos.x, pinPos.y);
+  context.stroke();
   
   // Thing
-  ctx.fillStyle = `MidnightBlue`;
-  ctx.beginPath();
-  ctx.ellipse(thingPos.x, thingPos.y, thingRadius, thingRadius, 0, 0, Math.PI * 2);
-  ctx.fill();
+  context.fillStyle = `MidnightBlue`;
+  context.beginPath();
+  context.ellipse(thingPos.x, thingPos.y, thingRadius, thingRadius, 0, 0, Math.PI * 2);
+  context.fill();
 
   // Pin
-  ctx.fillStyle = `SlateGrey`;
-  ctx.beginPath();
-  ctx.ellipse(pinPos.x, pinPos.y, pinRadius, pinRadius, 0, 0, Math.PI * 2);
+  context.fillStyle = `SlateGrey`;
+  context.beginPath();
+  context.ellipse(pinPos.x, pinPos.y, pinRadius, pinRadius, 0, 0, Math.PI * 2);
 };
 
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {
@@ -92,15 +92,15 @@ const setup = () => {
 
   /**
    * 
-   * @param {PointerEvent} evt 
+   * @param {PointerEvent} event 
    * @returns 
    */
-  const onPointer = (evt) => {
-    if (evt.buttons === 0) return;
+  const onPointer = (event) => {
+    if (event.buttons === 0) return;
     const t = {
       position: {
-        x: evt.x / window.innerWidth,
-        y: evt.y / window.innerHeight
+        x: event.x / window.innerWidth,
+        y: event.y / window.innerHeight
       },
       velocity: { x: 0, y: 0 },
       mass: settings.mass
@@ -110,8 +110,8 @@ const setup = () => {
   document.addEventListener(`pointermove`, onPointer);
   
 
-  document.addEventListener(`pointerdown`, (evt) => {
-    onPointer(evt);
+  document.addEventListener(`pointerdown`, (event) => {
+    onPointer(event);
     updateState({ pause:true });
   });
 

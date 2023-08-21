@@ -23,7 +23,7 @@ let state = Object.freeze({
 
 
 const useState = () => {
-  state.things.forEach( t => {
+  for (const t of state.things) {
     const { el, position, agitation } = t;
 
     // Calculate top-left pos from relative center position
@@ -35,13 +35,13 @@ const useState = () => {
     // Apply via CSS
     el.style.transform = `translate(${pos.x}px, ${pos.y}px) rotate(${rot}deg)`;
 
-  });
+  }
 };
 
 const loop =() => {
   const { agitationDecay } = settings;
 
-  state.things.forEach( t=> {
+  for (const t of state.things) {
     let agitation = t.agitation;
     if (t.dragging) {
       // Expand agitation
@@ -51,7 +51,7 @@ const loop =() => {
       agitation *= agitationDecay;
     }
     t.agitation = clamp(agitation, 0.0001, 1);
-  });
+  }
   useState();
   window.requestAnimationFrame(loop);
 };
@@ -59,21 +59,21 @@ const loop =() => {
 /**
  * Triggered on 'pointerdown' on a 'thing' HTML element
  * @param {Draggable} t 
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} event 
  */
-const onDragStart = (t, evt) => {
+const onDragStart = (t, event) => {
   const { el } = t;
 
   el.classList.add(`dragging`);
   t.dragging = true;
 
-  const startedAt = pointToRelative(evt);
+  const startedAt = pointToRelative(event);
   const thingStartPosition = { ...t.position };
   
-  const pointerMove = (evt) => {
+  const pointerMove = (event) => {
     // Compare relative pointer position to where we started
     // This yields the x,y offset from where dragging started
-    const offset = Points.subtract(pointToRelative(evt), startedAt);
+    const offset = Points.subtract(pointToRelative(event), startedAt);
 
     // Add this offset to the thing's original 
     // position to get the new position.
@@ -85,7 +85,7 @@ const onDragStart = (t, evt) => {
   document.addEventListener(`pointermove`, pointerMove);
 
   // Dragging done
-  document.addEventListener(`pointerup`, evt => {  
+  document.addEventListener(`pointerup`, event => {  
     el.classList.remove(`dragging`);
     document.removeEventListener(`pointermove`, pointerMove);
     t.dragging = false;
@@ -100,9 +100,9 @@ const onDragStart = (t, evt) => {
 const setupThing = (t) => {
   const { el } = t;
 
-  el.addEventListener(`pointerdown`, evt => {
-    evt.preventDefault();
-    onDragStart(t, evt);
+  el.addEventListener(`pointerdown`, event => {
+    event.preventDefault();
+    onDragStart(t, event);
   });
 };
 
@@ -111,8 +111,9 @@ const setup = () => {
   updateState({ things: [ generateRandomThing(), generateRandomThing(), generateRandomThing() ] });
 
   // Set up things
-  state.things.forEach(setupThing);
-
+  for (const t of state.things) {
+    setupThing(t);
+  }
   loop();
 };
 setup();
@@ -123,21 +124,21 @@ setup();
  * @returns {Thing}
  */
 function generateRandomThing () {
-  const el = document.createElement(`div`);
-  el.classList.add(`thing`);
-  document.body.append(el);
+  const element = document.createElement(`div`);
+  element.classList.add(`thing`);
+  document.body.append(element);
 
   const mass = Math.random();
   const size = mass * 100 + 100;
-  el.style.width = `${size}px`;
-  el.style.height = `${size}px`;
+  element.style.width = `${size}px`;
+  element.style.height = `${size}px`;
   
   return {
     dragging: false,
     mass,
     agitation: 0,
     position: { x: Math.random(), y: Math.random() },
-    el
+    el: element
   };
 }
 
@@ -154,14 +155,14 @@ function updateState (s) {
 
 /**
  * Return position for element
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element 
  * @param {Points.Point} relativePos 
  */
-function calcPositionByMiddle(el, relativePos) {
+function calcPositionByMiddle(element, relativePos) {
   // Convert relative to absolute units
   const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
   
-  const thingRect = el.getBoundingClientRect();
+  const thingRect = element.getBoundingClientRect();
   const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
 
   return offsetPos;

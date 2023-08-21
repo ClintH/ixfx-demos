@@ -2,7 +2,7 @@ import { Easings } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   // thing we'll move
-  thingEl: document.getElementById(`thing`),
+  thingEl: /** @type HTMLElement */(document.querySelector(`#thing`)),
   // setup easing
   easing: Easings.tick(`sineIn`, 100)
 });
@@ -14,8 +14,8 @@ let state = Object.freeze({
   isDone: false
 });
 
-const onPointerOrKeyUp = (ev) => {
-  ev.preventDefault();
+const onPointerOrKeyUp = (event) => {
+  event.preventDefault();
   const { easing } = settings;
   updateState({
     amt: easing.compute(), // Progresses easing by one tick
@@ -45,29 +45,29 @@ const useState = () => {
   }
 
   // Available width is width of viewport minus size of circle
-  const thingElBounds = thingEl.getBoundingClientRect();
-  const width = document.body.clientWidth - thingElBounds.width;
+  const thingElementBounds = thingEl.getBoundingClientRect();
+  const width = document.body.clientWidth - thingElementBounds.width;
 
   console.log(amt);
-  thingEl.innerText = percentage(amt);
+  thingEl.textContent = percentage(amt);
 
   // Move element
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
 };
 
-const reset = (ev) => {
+const reset = (event) => {
   const { thingEl, easing } = settings;
 
   if (!thingEl) return;
 
   // Don't reset if circle is clicked 
-  if (ev.target === thingEl) return;
+  if (event.target === thingEl) return;
 
   // Reset
   easing.reset();
   thingEl.classList.remove(`isDone`);
   thingEl.style.transform = ``;
-  thingEl.innerText = ``;
+  thingEl.textContent = ``;
 };
 
 const setup = () => {

@@ -36,27 +36,27 @@ const onTick = () => {
 
 const useState = () => {
   /** @type {HTMLCanvasElement|null}} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
     
   // Clear
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
   
   // Draw state
-  draw(ctx);
+  draw(context);
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   const { slow, fast, bounds } = state;
   const c = bounds.center;
   const steps = settings.steps;
-  ctx.lineWidth = settings.lineWidth;
-  ctx.strokeStyle = settings.colour;
+  context.lineWidth = settings.lineWidth;
+  context.strokeStyle = settings.colour;
 
   // Use fast ping pong value, scaling from 0.1 -> 1
   const smoothness = scalePercent(fast, 0.1, 1);
@@ -68,14 +68,14 @@ const draw = (ctx) => {
   const spiral = Polar.spiral(smoothness, zoom);
 
   // Make a path of all the lines
-  ctx.beginPath();
-  ctx.moveTo(c.x, c.y); // Start in middle
+  context.beginPath();
+  context.moveTo(c.x, c.y); // Start in middle
   for (const coord of spiral) {
     let pt = Polar.toCartesian(coord, c);
-    ctx.lineTo(pt.x, pt.y);
+    context.lineTo(pt.x, pt.y);
     if (coord.step >= steps) break;
   }
-  ctx.stroke(); // Draw line
+  context.stroke(); // Draw line
 };
 
 /**
@@ -83,10 +83,10 @@ const draw = (ctx) => {
  */
 const setup = () => {
   // Keep our primary canvas full size too
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 

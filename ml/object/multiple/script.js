@@ -10,7 +10,7 @@ const settings = Object.freeze({
   // If true, x values are flipped
   horizontalMirror: false,
   labelFont: `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace`,
-  classHues: new Map()
+  hues: new Map()
 });
 
 let state = Object.freeze({
@@ -39,10 +39,10 @@ const onPredictions = (predictions) => {
 /**
  * Draw a prediction
  * @param {ObjectPrediction} p 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const drawPrediction = (p, ctx) => {
-  const { horizontalMirror, classHues } = settings;
+const drawPrediction = (p, context) => {
+  const { horizontalMirror, hues } = settings;
   const { bounds } = state;
 
   // Position of detected object comes in relative terms,
@@ -60,17 +60,17 @@ const drawPrediction = (p, ctx) => {
   };
 
   // Get or create a random hue for each seen class
-  if (!classHues.has(p.class)) classHues.set(p.class, Math.random() * 360);
+  if (!hues.has(p.class)) hues.set(p.class, Math.random() * 360);
 
-  const hue = classHues.get(p.class);
+  const hue = hues.get(p.class);
 
-  ctx.fillStyle = ctx.strokeStyle = `hsl(${hue}, 80%, 40%)`;
+  context.fillStyle = context.strokeStyle = `hsl(${hue}, 80%, 40%)`;
 
   // Rectangle for object
-  ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+  context.strokeRect(rect.x, rect.y, rect.width, rect.height);
 
   // Label
-  ctx.fillText(
+  context.fillText(
     `${p.class} (${Math.round(p.score*100)}%)`, 
     rect.x+4, 
     rect.y+4);
@@ -81,19 +81,19 @@ const useState = () => {
   const { predictions } = state;
   const { width, height } = state.bounds;
 
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Clear canvas
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
   
   // Draw predictions
-  ctx.font = `14pt ${labelFont}`;
-  ctx.textBaseline = `top`;
-  ctx.lineWidth = 3;
+  context.font = `14pt ${labelFont}`;
+  context.textBaseline = `top`;
+  context.lineWidth = 3;
 
-  predictions.forEach(p => drawPrediction(p, ctx));
+  for (const p of predictions) drawPrediction(p, context);
 };
 
 const setup = async () => {
@@ -110,14 +110,14 @@ const setup = async () => {
   };
 
   // Keep CANVAS filling the screen
-  Dom.fullSizeCanvas(`#canvas`, args => {
-    saveState({ bounds: args.bounds });
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
+    saveState({ bounds: arguments_.bounds });
   });
 
   // If the floating source window is there, respond to clicking on the header
-  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#sourceSection`)?.addEventListener(`click`, event => {
     
-    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+    const hdr = /** @type HTMLElement */(document.querySelector(`#sourceSection`));
     Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
   });
 

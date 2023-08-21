@@ -46,9 +46,9 @@ const update = () => {
 
 /**
  * Draw state of world
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   const { bounds, scaleFactor, points, pointer } = state;
   const { sphere,  dotRadius } = settings;
   
@@ -59,17 +59,17 @@ const draw = (ctx) => {
   const radius = sphere.radius * scaleFactor;
   const dotRadiusScaled = dotRadius*scaleFactor;
   let hue = settings.dotHue;
-  ctx.clearRect(0, 0, bounds.width, bounds.height);
+  context.clearRect(0, 0, bounds.width, bounds.height);
 
-  ctx.save();
-  ctx.translate(bounds.center.x - radius/2, bounds.center.y - radius/2);
-  points.forEach((pt,index) => {
+  context.save();
+  context.translate(bounds.center.x - radius/2, bounds.center.y - radius/2);
+  for (const [index, pt] of points.entries()) {
     // Calc a % distance of pointer to this point
     const distance = 1-clamp(Points.distance(pointer, pt) / 0.7);
 
     // Draw a point, scaling it by the
     // absolute radius in pixels
-    drawPoint(ctx, {
+    drawPoint(context, {
       x: pt.x * radius,
       y: pt.y * radius,
       // Invert z for the opacity effect we want
@@ -79,16 +79,16 @@ const draw = (ctx) => {
     dotRadiusScaled*distance, 
     hue);
     hue += hueIncrease;
-  });
-  ctx.restore();
+  }
+  context.restore();
 };
 
-document.addEventListener(`pointermove`, evt => {
+document.addEventListener(`pointermove`, event => {
   const { bounds } = state;
   saveState({
     pointer: { 
-      x: evt.x / bounds.width, 
-      y: evt.y / bounds.height
+      x: event.x / bounds.width, 
+      y: event.y / bounds.height
     }
   });
 });
@@ -100,20 +100,20 @@ document.addEventListener(`pointermove`, evt => {
  */
 const init = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     saveState({
-      bounds: args.bounds,
-      scaleFactor: Math.min(args.bounds.width, args.bounds.height)
+      bounds: arguments_.bounds,
+      scaleFactor: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
   });
 
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
-  const ctx =/** @type {CanvasRenderingContext2D} */(canvasEl?.getContext(`2d`));
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const context =/** @type {CanvasRenderingContext2D} */(canvasElement?.getContext(`2d`));
 
   const loop = () => {
     update();
-    draw(ctx);  
+    draw(context);  
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -122,27 +122,27 @@ init();
 
 /**
  * Draws a point
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Points.Point3d} pt 
  * @param {number} radius
  * @param {number} hue
  */
-function drawPoint(ctx, pt, radius = 5, hue = 200) {
+function drawPoint(context, pt, radius = 5, hue = 200) {
   
   // Translate so point is 0,0
-  ctx.save();
-  ctx.translate(pt.x, pt.y);
+  context.save();
+  context.translate(pt.x, pt.y);
   
   // Make a colour with opacity determined by Z of point
-  ctx.fillStyle = `hsla(${hue},100%,50%,${pt.z})`;
+  context.fillStyle = `hsla(${hue},100%,50%,${pt.z})`;
 
   // Draw a circle
-  ctx.beginPath();
-  ctx.arc(0,0,radius,0,piPi);
-  ctx.closePath();
-  ctx.fill();
+  context.beginPath();
+  context.arc(0,0,radius,0,piPi);
+  context.closePath();
+  context.fill();
   
-  ctx.restore();
+  context.restore();
 }
 
 /**

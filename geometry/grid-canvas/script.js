@@ -32,7 +32,7 @@ const keyForCell = (cell) => cell.x + `-` + cell.y;
 // Update state of world
 const update = () => {
   const { pointer, grid } = state;
-  const modValues = new Map();
+  const moduleValues = new Map();
 
   // Get larger of either row or col count
   const gridMax = Math.max(grid.cols, grid.rows);
@@ -42,38 +42,38 @@ const update = () => {
 
   // Update each cell
   for (const cell of Grids.cells(grid)) {
-    updateCell(cell, pointerCell, gridMax, modValues);
+    updateCell(cell, pointerCell, gridMax, moduleValues);
   }
 
   // Update state with calculated modulations
   updateState({
-    modValues
+    modValues: moduleValues
   });
 };
 
 const useState = () => {
   const { grid, modValues } = state;
 
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
 
-  const ctx = /** @type {HTMLCanvasElement} */(canvasEl).getContext(`2d`);
-  if (ctx === null || ctx === undefined || canvasEl === null) return;
+  const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
+  if (context === null || context === undefined || canvasElement === null) return;
 
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
   
-  ctx.strokeStyle = `white`;
+  context.strokeStyle = `white`;
   for (const cell of Grids.cells(grid)) {
     // Get bounds for cell, as well as current mod value
     const rect = Grids.rectangleForCell(grid, cell);
     const cellKey = keyForCell(cell);
-    const modValue = modValues.get(cellKey);
+    const moduleValue = modValues.get(cellKey);
 
     // ...pass on over to drawCell
-    drawCell(modValue, rect, ctx);
+    drawCell(moduleValue, rect, context);
   }
 };
 
-const updateCell = (cell, pointerCell, gridMax, modValues) => {
+const updateCell = (cell, pointerCell, gridMax, moduleValues) => {
   const { modulators } = settings;
 
   // Get the string key for this cell `x-y`
@@ -81,10 +81,10 @@ const updateCell = (cell, pointerCell, gridMax, modValues) => {
 
   // Calc distance from cell to cell where pointer is.
   // If pointer is outside grid, distance will be set to -1
-  let dist = 0;
+  let distribution = 0;
   if (pointerCell !== undefined) {
     // Compute a relative distance based on size of grid
-    dist = 1 - Math.min(1, Points.distance(pointerCell, cell) / gridMax);
+    distribution = 1 - Math.min(1, Points.distance(pointerCell, cell) / gridMax);
     // dist will be 1 when cursor is on this cell, 0 when its furtherest away
   }
 
@@ -99,10 +99,10 @@ const updateCell = (cell, pointerCell, gridMax, modValues) => {
   let v = w.next().value;
 
   // Dampen value from oscillator based on distance from cursor
-  v = scalePercent(v, 0.1, dist);
+  v = scalePercent(v, 0.1, distribution);
 
   // Save value for use in drawing later
-  modValues.set(key, v);
+  moduleValues.set(key, v);
 };
 
 const initCellModulator = () => {
@@ -123,30 +123,30 @@ const initCellModulator = () => {
 /** 
  * Draws a cell
  * @param {{x:number, y:number, width:number, height:number}} rect 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context
  */
-const drawCell = (modValue, rect, ctx) => {
+const drawCell = (moduleValue, rect, context) => {
   const { piPi, colour } = settings;
 
-  let radius = rect.height / 2 * modValue;
+  let radius = rect.height / 2 * moduleValue;
   const c = { x: rect.x + rect.height / 2, y: rect.y + rect.height / 2 };
 
   // Debug: Draw edges of cells
   //ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
 
   // Translate canvas so cell middle is 0,0
-  ctx.save();
-  ctx.translate(c.x, c.y);
+  context.save();
+  context.translate(c.x, c.y);
 
-  ctx.fillStyle = colour;
+  context.fillStyle = colour;
 
   // Fill circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, piPi);
-  ctx.fill();
+  context.beginPath();
+  context.arc(0, 0, radius, 0, piPi);
+  context.fill();
 
   // Undo translate
-  ctx.restore();
+  context.restore();
 };
 
 /**
@@ -155,10 +155,10 @@ const drawCell = (modValue, rect, ctx) => {
 const setup = () => {
 
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Set grid cell size to be proportional to size of viewport
-    const minDimension = Math.min(args.bounds.width, args.bounds.height);
-    const maxDimension = Math.max(args.bounds.width, args.bounds.height);
+    const minDimension = Math.min(arguments_.bounds.width, arguments_.bounds.height);
+    const maxDimension = Math.max(arguments_.bounds.width, arguments_.bounds.height);
 
     // We'd use minDimension if it was important
     // to not lose cells off the viewport
@@ -171,23 +171,23 @@ const setup = () => {
   });
 
   // Pointer down
-  window.addEventListener(`pointerdown`, evt => {
-    evt.preventDefault();
+  window.addEventListener(`pointerdown`, event => {
+    event.preventDefault();
     updateState({
-      pointer: { x: evt.clientX, y: evt.clientY }
+      pointer: { x: event.clientX, y: event.clientY }
     });
   });
   
   // Pointer moving
-  window.addEventListener(`pointermove`, evt => {
-    evt.preventDefault();
+  window.addEventListener(`pointermove`, event => {
+    event.preventDefault();
     updateState({
-      pointer: { x: evt.clientX, y: evt.clientY }
+      pointer: { x: event.clientX, y: event.clientY }
     });
   });
 
   // Pointer left the building
-  window.addEventListener(`pointerout`, evt => {
+  window.addEventListener(`pointerout`, event => {
     updateState({
       pointer: { x: -1, y: -1 }
     });

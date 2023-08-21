@@ -68,12 +68,12 @@ const drawState = () => {
   const { scaleBy, bounds } = state;
 
   /** @type HTMLCanvasElement|null */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
 
   // Make background transparent
-  ctx.clearRect(0, 0, bounds.width, bounds.height);
+  context.clearRect(0, 0, bounds.width, bounds.height);
 
   // Get absolutely-positioned circle
   const absCircle = { 
@@ -87,7 +87,7 @@ const drawState = () => {
 
   const size = pointSize * scaleBy; 
   for (const pt of pts) {
-    drawPoint(ctx, pt, pointColour, size);
+    drawPoint(context, pt, pointColour, size);
   }
 };
 
@@ -96,10 +96,10 @@ const drawState = () => {
  * Setup and run main loop 
  */
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     updateState({ 
-      bounds: args.bounds,
-      scaleBy: Math.min(args.bounds.width, args.bounds.height)
+      bounds: arguments_.bounds,
+      scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
     drawState();
   });
@@ -119,12 +119,12 @@ function updateState (s) {
 
 /**
  * Draws a point (in pixel coordinates)
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Points.Point} position 
  */
-function drawPoint(ctx, position, fillStyle = `black`, size = 1)  {
-  ctx.fillStyle = fillStyle;
-  ctx.beginPath();
-  ctx.arc(position.x, position.y, size, 0, settings.piPi);
-  ctx.fill();
+function drawPoint(context, position, fillStyle = `black`, size = 1)  {
+  context.fillStyle = fillStyle;
+  context.beginPath();
+  context.arc(position.x, position.y, size, 0, settings.piPi);
+  context.fill();
 }

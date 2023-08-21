@@ -96,9 +96,9 @@ const grayscale = (values) => (values[0] + values[1] + values[2]) / 3;
 
 const setup = () => {
   // Process message from script.js
-  self.addEventListener(`message`, evt => {
+  self.addEventListener(`message`, listener => {
     // It sends us the pixel data and dimensions of frame
-    const { pixels, width, height } = evt.data;
+    const { pixels, width, height } = listener.data;
     const frame = new ImageData(new Uint8ClampedArray(pixels),
       width, height);
 

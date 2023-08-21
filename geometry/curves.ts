@@ -12,47 +12,47 @@ import * as Palette from '../../src/colour/Palette';
 // Drawing properties
 const colours = new Palette.Palette();
 const bgColour = colours.get(`background-color`);
-const lineDrawOpts = {strokeStyle: colours.get(`muted-color`)};
-const dotDrawOpts = {radius: 3, fillStyle: colours.get(`primary`)};
+const lineDrawOptions = {strokeStyle: colours.get(`muted-color`)};
+const dotDrawOptions = {radius: 3, fillStyle: colours.get(`primary`)};
 
 const pingPongInterval = 0.01;
 
-const setup = (idPrefix: string, size:Rects.Rect): [CanvasRenderingContext2D, Svg|undefined] => {
-  const canvasEl = document.getElementById(idPrefix + `Canvas`) as HTMLCanvasElement;
-  if (canvasEl === undefined) throw Error(`canvasEl is undefined`);  
-  canvasEl.width = size.width;
-  canvasEl.height = size.height;
+const setup = (idPrefix: string, size: Rects.Rect): [CanvasRenderingContext2D, Svg | undefined] => {
+  const canvasElement = document.getElementById(idPrefix + `Canvas`) as HTMLCanvasElement;
+  if (canvasElement === undefined) throw new Error(`canvasEl is undefined`);
+  canvasElement.width = size.width;
+  canvasElement.height = size.height;
 
-  const ctx = canvasEl.getContext(`2d`);          // get drawing context
+  const context = canvasElement.getContext(`2d`);          // get drawing context
 
   // Setup SVG
-  const svgEl = document.getElementById(idPrefix + `Svg`);
-  let svg:Svg|undefined;
-  if (svgEl !== null) svg = SVG().addTo(svgEl).size(size.width, size.height);
-  return [ctx, svg];
+  const svgElement = document.getElementById(idPrefix + `Svg`);
+  let svg: Svg | undefined;
+  if (svgElement !== null) svg = SVG().addTo(svgElement).size(size.width, size.height);
+  return [context, svg];
 };
 
-const clear = (ctx: CanvasRenderingContext2D, bounds:Rects.Rect) => {
-  ctx.save();
-  ctx.resetTransform();
-  ctx.fillStyle = bgColour;
+const clear = (context: CanvasRenderingContext2D, bounds: Rects.Rect) => {
+  context.save();
+  context.resetTransform();
+  context.fillStyle = bgColour;
 
-  ctx.fillRect(0, 0, bounds.width, bounds.height);
-  ctx.restore(); // Restore padding
+  context.fillRect(0, 0, bounds.width, bounds.height);
+  context.restore(); // Restore padding
 };
 
 // --- Cubic
 const testCubic = () => {
-  const bounds = {width:350, height:120};
-  const [ctx, svg] = setup(`cubic`, bounds);  // get lineCanvas and lineSvg elements
-  const drawHelper = Drawing.makeHelper(ctx);// make a helper
-  ctx.translate(5, 5); // Shift drawing in a little to avoid being cut off
+  const bounds = {width: 350, height: 120};
+  const [context, svg] = setup(`cubic`, bounds);  // get lineCanvas and lineSvg elements
+  const drawHelper = Drawing.makeHelper(context);// make a helper
+  context.translate(5, 5); // Shift drawing in a little to avoid being cut off
 
   // Define bezier's start (A), end (B) and handle (C) points:
   const bezier = Beziers.cubic(
-    {x: 5, y: 5}, 
-    {x: 200, y: 100}, 
-    {x: 140, y: 20}, 
+    {x: 5, y: 5},
+    {x: 200, y: 100},
+    {x: 140, y: 20},
     {x: 50, y: 70}
   );
   const path = Beziers.toPath(bezier);
@@ -65,14 +65,14 @@ const testCubic = () => {
   let amt = 0;
 
   const redraw = () => {
-    clear(ctx, bounds); // Clear canvas
+    clear(context, bounds); // Clear canvas
 
     // Draw the line
-    drawHelper.bezier(bezier, {...lineDrawOpts, debug:true});
+    drawHelper.bezier(bezier, {...lineDrawOptions, debug: true});
 
     // Calc x,y along long at a given amt and draw a dot there
     const dotPos = path.compute(amt);
-    drawHelper.dot(dotPos, dotDrawOpts);
+    drawHelper.dot(dotPos, dotDrawOptions);
 
     // Move SVG dot, need to adjust so it's positioned by its center
     //dotSvg.move(dotPos.x - dotDrawOpts.radius, dotPos.y - dotDrawOpts.radius);
@@ -86,18 +86,18 @@ const testCubic = () => {
 
 // --- Quadratic
 const testQuadratic = () => {
-  const bounds = {width:350, height:120};
+  const bounds = {width: 350, height: 120};
 
-  const [ctx, svg] = setup(`quadratic`, bounds);  // get lineCanvas and lineSvg elements
-  const drawHelper = Drawing.makeHelper(ctx); // make a helper
-  ctx.translate(5, 5); // Shift drawing in a little to avoid being cut off
+  const [context, svg] = setup(`quadratic`, bounds);  // get lineCanvas and lineSvg elements
+  const drawHelper = Drawing.makeHelper(context); // make a helper
+  context.translate(5, 5); // Shift drawing in a little to avoid being cut off
 
   // Define bezier's start (A), end (B) and handle (C) points:
   const bezier = Beziers.quadratic({x: 5, y: 10}, {x: 330, y: 100}, {x: 170, y: 20});
   const path = Beziers.toPath(bezier);
 
   // Use Svg.js to make SVG for the line
-  svg.path(path.toSvgString()).attr({fill: `transparent`, stroke: lineDrawOpts.strokeStyle});
+  svg.path(path.toSvgString()).attr({fill: `transparent`, stroke: lineDrawOptions.strokeStyle});
   //const dotSvg = svg.circle(dotDrawOpts.radius * 2).attr({fill: dotDrawOpts.fillStyle});
 
   // Loop back and forth between 0 and 1
@@ -105,14 +105,14 @@ const testQuadratic = () => {
   let amt = 0;
 
   const redraw = () => {
-    clear(ctx, bounds);
+    clear(context, bounds);
 
     // Draw bezier
-    drawHelper.bezier(bezier, {...lineDrawOpts, debug:true});
+    drawHelper.bezier(bezier, {...lineDrawOptions, debug: true});
 
     // Calc x,y along long at a given amt and draw a dot there
     const dotPos = path.compute(amt);
-    drawHelper.dot(dotPos, dotDrawOpts);
+    drawHelper.dot(dotPos, dotDrawOptions);
 
     // Move SVG dot. Since position is from top-left corner, we need to adjust
     //dotSvg.move(dotPos.x - dotDrawOpts.radius, dotPos.y - dotDrawOpts.radius);
@@ -126,11 +126,11 @@ const testQuadratic = () => {
 
 // --- Path made up of multiple lines & beziers
 const testMultiPath = () => {
-  const bounds = {width:400, height:120};
+  const bounds = {width: 400, height: 120};
 
-  const [ctx, svg] = setup(`multiPath`, bounds); // get lineCanvas and lineSvg elements
-  const drawHelper = Drawing.makeHelper(ctx); // Make a helper
-  ctx.translate(5, 5); // Shift drawing in a little to avoid being cut off
+  const [context, svg] = setup(`multiPath`, bounds); // get lineCanvas and lineSvg elements
+  const drawHelper = Drawing.makeHelper(context); // Make a helper
+  context.translate(5, 5); // Shift drawing in a little to avoid being cut off
 
   // Define two lines by their start & end points
   const l3 = Lines.fromPointsToPath({x: 0, y: 0}, {x: 100, y: 100});
@@ -145,24 +145,24 @@ const testMultiPath = () => {
   const multiPath = Compound.fromPaths(l3, l4, Beziers.toPath(b1), Beziers.toPath(b2));
 
   // Use Svg.js to make SVG for the line
-  svg.path(multiPath.toSvgString()).attr({fill: `transparent`, margin: `10px`, stroke: lineDrawOpts.strokeStyle});
-  const dotSvg = svg.circle(dotDrawOpts.radius * 2).attr({fill: dotDrawOpts.fillStyle});
+  svg.path(multiPath.toSvgString()).attr({fill: `transparent`, margin: `10px`, stroke: lineDrawOptions.strokeStyle});
+  const dotSvg = svg.circle(dotDrawOptions.radius * 2).attr({fill: dotDrawOptions.fillStyle});
 
   // Loop back and forth between 0 and 1
   const progression = pingPongPercent(pingPongInterval);
   let amt = 0;
 
   const redraw = () => {
-    clear(ctx, bounds);
+    clear(context, bounds);
 
-    drawHelper.paths(multiPath.segments, lineDrawOpts);
+    drawHelper.paths(multiPath.segments, lineDrawOptions);
 
     // Calc x,y along long at a given amt and draw a dot there
     const dotPos = multiPath.compute(amt);
-    drawHelper.dot(dotPos, dotDrawOpts);
+    drawHelper.dot(dotPos, dotDrawOptions);
 
     // Move SVG dot. Since position is from top-left corner, we need to adjust
-    dotSvg.move(dotPos.x - dotDrawOpts.radius, dotPos.y - dotDrawOpts.radius);
+    dotSvg.move(dotPos.x - dotDrawOptions.radius, dotPos.y - dotDrawOptions.radius);
   };
 
   const update = () => {
@@ -175,8 +175,8 @@ const testMultiPath = () => {
 const tests = [testCubic(), testQuadratic(), testMultiPath()];
 
 const loop = function () {
-  tests.forEach(d => d.redraw());
-  tests.forEach(d => d.update());
+  for (const d of tests) d.redraw();
+  for (const d of tests) d.update();
   window.requestAnimationFrame(loop);
 };
 window.requestAnimationFrame(loop);

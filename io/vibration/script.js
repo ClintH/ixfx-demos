@@ -3,7 +3,7 @@
  * See README.md
  */
 import { defaultErrorHandler } from '../../ixfx/dom.js';
-import { adsrIterable, defaultAdsrOpts } from '../../ixfx/modulation.js';
+import { adsrIterable, defaultAdsrOpts as defaultAdsrOptions } from '../../ixfx/modulation.js';
 import { IterableAsync } from '../../ixfx/util.js';
 import { interval, repeat } from '../../ixfx/flow.js';
 import { interleave } from '../../ixfx/arrays.js';
@@ -11,7 +11,7 @@ import { interleave } from '../../ixfx/arrays.js';
 const settings = Object.freeze({
   // Set up envelope
   envOpts: {
-    ...defaultAdsrOpts(),
+    ...defaultAdsrOptions(),
     attackDuration: 2000,
     releaseDuration: 5000,
     sustainLevel: 1,
@@ -25,7 +25,7 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  env: null,
+  env: undefined,
   // Array to sample envelope into
   /** @type {readonly number[]} */
   envData: []
@@ -33,10 +33,10 @@ let state = Object.freeze({
 
 /**
  * Handle a pointer down
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} event 
  */
-const onPointerDown = evt => {
-  const t = /** @type {HTMLElement} */(evt.target);
+const onPointerDown = event => {
+  const t = /** @type {HTMLElement} */(event.target);
 
   // Only care about BUTTONs with `vibrate` class
   if (t.nodeName !== `BUTTON`) return;
@@ -49,7 +49,7 @@ const onPointerDown = evt => {
   // Break up pattern into an array
   const patternArray = pattern
     .split(`, `)
-    .map(str => parseFloat(str));
+    .map(string_ => Number.parseFloat(string_));
   
   console.log(`Pattern:`);
   console.log(patternArray);
@@ -66,30 +66,30 @@ const setup = async () => {
   defaultErrorHandler();
 
   // We get vales from 0...1
-  const btnEnv = document.getElementById(`btnEnv`);
-  const lblEnvEl = document.getElementById(`lblEnv`);
-  if (lblEnvEl) lblEnvEl.innerText = `Sampling envelope...`;
+  const buttonEnvelope = document.querySelector(`#btnEnv`);
+  const labelEnvelope = document.querySelector(`#lblEnv`);
+  if (labelEnvelope) labelEnvelope.textContent = `Sampling envelope...`;
 
   // Get envelope as an iterable
   const iter = await adsrIterable({ env: settings.envOpts, sampleRateMs: settings.sampleRateMs });
-  let env = await IterableAsync.toArray(iter);
+  let envelope = await IterableAsync.toArray(iter);
 
   // Map them to milliseconds, based on scaling setting
-  env = env.map(v => Math.round(v * settings.envScale));
+  envelope = envelope.map(v => Math.round(v * settings.envScale));
 
   // Generate an off pulse for each of the envelope's on pauses
-  const pauses = [ ...repeat(env.length, () => settings.restMs) ];
+  const pauses = [ ...repeat(envelope.length, () => settings.restMs) ];
 
   // Combine them together with ixfx's interleave function
-  updateState({ envData: interleave(env, pauses) });
+  updateState({ envData: interleave(envelope, pauses) });
 
-  if (btnEnv) /** @type {HTMLButtonElement} */(btnEnv).disabled = false;
-  if (lblEnvEl) lblEnvEl.innerText = `Envelope sampled.`;
+  if (buttonEnvelope) /** @type {HTMLButtonElement} */(buttonEnvelope).disabled = false;
+  if (labelEnvelope) labelEnvelope.textContent = `Envelope sampled.`;
 
 
   document.addEventListener(`pointerdown`, onPointerDown);
 
-  btnEnv?.addEventListener(`click`, () => {
+  buttonEnvelope?.addEventListener(`click`, () => {
     console.log(`Running:`);
     console.log(state.envData);
     navigator.vibrate(state.envData);

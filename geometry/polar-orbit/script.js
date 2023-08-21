@@ -40,29 +40,28 @@ let state = Object.freeze({
 // Update state of world
 const onTick = () => {
   const { distanceGen, maxRadiansPerCycle } = settings;
-  const { angle, orbitSpeedFactor } = state;
 
   // Calculate new angle
-  const newAngle = angle + (maxRadiansPerCycle * orbitSpeedFactor);
+  const angle = state.angle + (maxRadiansPerCycle * state.orbitSpeedFactor);
 
   // Calculate distance - relative value 0..1
-  const newDistance = distanceGen.next().value;
+  const distance = distanceGen.next().value;
 
   // Update state
   updateState({
     ...state,
-    angle: newAngle,
-    distance: newDistance,
+    angle,
+    distance,
   });
 };
 
 const useState = () => {
   const { bounds, minDimension, distance, angle } = state;
   const c = bounds.center;
-  const thingEl = document.getElementById(`thing`);
-  if (!thingEl) return;
+  const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
+  if (!thingElement) return;
 
-  const thingSize = thingEl.getBoundingClientRect();
+  const thingSize = thingElement.getBoundingClientRect();
 
   // Make distance absolute, using the dimension of viewport
   const smallestDimension = minDimension / 2; // Halve because we we're setting a radius, not diameter
@@ -75,7 +74,7 @@ const useState = () => {
     { x: thingSize.width / 2, y: thingSize.height / 2 }
   );
 
-  thingEl.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
+  thingElement.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
 };
 
 /**
@@ -107,11 +106,11 @@ const setup = () => {
   };
   loop();
 
-  document.getElementById(`rangeSpeed`)?.addEventListener(`input`, evt => {
-    const el = /** @type {HTMLInputElement}*/(evt.target);
+  document.querySelector(`#rangeSpeed`)?.addEventListener(`input`, event => {
+    const element = /** @type {HTMLInputElement}*/(event.target);
     
     // Range slider is 0-500, normalise to 0..1
-    updateState({ orbitSpeedFactor: parseInt(el.value) / 500 });
+    updateState({ orbitSpeedFactor: Number.parseInt(element.value) / 500 });
   });
 };
 setup();

@@ -1,10 +1,10 @@
 import * as Flow from '../../ixfx/flow.js';
-import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
+import { adsr, defaultAdsrOpts as defaultAdsrOptions } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   // Set up envelope
   env: adsr({
-    ...defaultAdsrOpts(),
+    ...defaultAdsrOptions(),
     attackDuration: 2000,
     releaseDuration: 5000,
     sustainLevel: 1,
@@ -58,28 +58,28 @@ const useState = () => {
   console.log(`scaled: ${scaled.toPrecision(2)}\traw: ${raw.toPrecision(2)}\tstage: ${stage}`);
 
   // Update left side
-  const withoutEl = document.getElementById(`without`);
-  if (withoutEl) {
-    withoutEl.style.backgroundColor = triggered ? hsl(1) : hsl(0);
-    const trigEl = document.getElementById(`trigState`);
-    if (trigEl) trigEl.innerText = triggered ?
+  const withoutElement = /** @type HTMLElement */(document.querySelector(`#without`));
+  if (withoutElement) {
+    withoutElement.style.backgroundColor = triggered ? hsl(1) : hsl(0);
+    const trigElement = document.querySelector(`#trigState`);
+    if (trigElement) trigElement.textContent = triggered ?
       `triggered` : ``;
   }
 
   // Update right side
-  const withEl = document.getElementById(`with`);
-  if (withEl) {
-    withEl.style.backgroundColor = isComplete ? hsl(0) : hsl(scaled);
-    const stageEl = document.getElementById(`envStage`);
-    if (stageEl) stageEl.innerText = isComplete ? `` :  `${stage} ${percentage(raw)}`;
+  const withElement = /** @type HTMLElement */(document.querySelector(`#with`));
+  if (withElement) {
+    withElement.style.backgroundColor = isComplete ? hsl(0) : hsl(scaled);
+    const stageElement = document.querySelector(`#envStage`);
+    if (stageElement) stageElement.textContent = isComplete ? `` :  `${stage} ${percentage(raw)}`;
   }
 };
 
 // Called on pointerdown or keydown. Triggers the envelope and
 // starts the run loop if it's not running
-const trigger = (ev) => {
+const trigger = (event) => {
   const { env, run } = settings;
-  ev.preventDefault();
+  event.preventDefault();
 
   // Returns if already triggered. 
   // This avoids problem of repeated keydown events while key is held
@@ -94,9 +94,9 @@ const trigger = (ev) => {
 
 // Called on pointerup or keyup. Releases envelope and 
 // makes sure run loop is still running to animate result
-const release = (ev) => {
+const release = (event) => {
   const { env, run } = settings;
-  ev.preventDefault();
+  event.preventDefault();
   updateState({
     triggered: false // Mark not triggered
   });
@@ -106,7 +106,7 @@ const release = (ev) => {
 
 const setup = () => {
   // Prevent context menu popping up on touch screens when there is a long touch
-  document.addEventListener(`contextmenu`, (ev) => ev.preventDefault());
+  document.addEventListener(`contextmenu`, (event) => event.preventDefault());
 
   // Trigger envelope
   document.addEventListener(`pointerdown`, trigger);

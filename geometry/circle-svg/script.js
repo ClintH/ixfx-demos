@@ -82,27 +82,27 @@ const setup = () => {
     });
   });
 
-  window.addEventListener(`pointerdown`, ev => {
+  window.addEventListener(`pointerdown`, event => {
     updateState({
-      pointer: { x: ev.offsetX, y: ev.offsetY }
+      pointer: { x: event.offsetX, y: event.offsetY }
     });
   });
 
-  window.addEventListener(`pointermove`, ev => {
+  window.addEventListener(`pointermove`, event => {
     updateState({
-      pointer: { x: ev.offsetX, y: ev.offsetY }
+      pointer: { x: event.offsetX, y: event.offsetY }
     });
   });
 
   // Create SVG `path` element for circle
-  const opts = {
+  const options = {
     fillStyle: `none`,
     strokeStyle: settings.strokeStyle,
     strokeWidth: settings.strokeWidthMax
   };
 
   updateState({
-    circleEl: Svg.Elements.circle({ radius: 10, x: 10, y: 10 }, svg, opts) });
+    circleEl: Svg.Elements.circle({ radius: 10, x: 10, y: 10 }, svg, options) });
 
   const loop = () => {
     update();

@@ -7,7 +7,7 @@ const settings = Object.freeze({
   rows: 15,
   cols: 15,
   colours: [ `bisque`, `cadetblue`,`cornflowerblue`, `coral` ],
-  tooltipEl: /** @type HTMLElement */(document.getElementById(`tooltip`))
+  tooltipEl: /** @type HTMLElement */(document.querySelector(`#tooltip`))
 });
 
 /**
@@ -31,27 +31,26 @@ function useState() {
   const { tooltipEl } = settings;
   const { grid, highlightedCell, gridData } = state;
 
-  const canvasEl = /** @type {HTMLCanvasElement} */(document.getElementById(`canvas`));
-  const ctx = /** @type {HTMLCanvasElement} */(canvasEl).getContext(`2d`);
-  if (ctx === null) return;
+  const canvasElement = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
+  const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
+  if (context === null) return;
 
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-  for (const cell of Grids.cells(grid)) drawCell(cell, ctx);
+  for (const cell of Grids.cells(grid)) drawCell(cell, context);
 
   if (highlightedCell) {
     const cellData = gridData.get(keyForCell(highlightedCell));
-    if (cellData) tooltipEl.innerText = `Karma: ${cellData.karma.toString()}`;
-    else tooltipEl.innerText = `?`;
+    tooltipEl.textContent = cellData ? `Karma: ${cellData.karma.toString()}` : `?`;
   }
 }
 
 /** 
  * Draws a cell
  * @param {Grids.Cell} cell 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-function drawCell(cell, ctx) {
+function drawCell(cell, context) {
   const { grid, highlightedCell } = state;
 
   const isHiglighted = Grids.cellEquals(highlightedCell, cell);
@@ -64,28 +63,28 @@ function drawCell(cell, ctx) {
   const rect = Grids.rectangleForCell(grid, cell);
   
   // Translate so 0,0 is the top-left of cell
-  ctx.save();
-  ctx.translate(rect.x, rect.y);
+  context.save();
+  context.translate(rect.x, rect.y);
 
   // Fill with cell's colour
-  ctx.fillStyle = data.colour;
-  ctx.fillRect(0,0,rect.width,rect.height);
+  context.fillStyle = data.colour;
+  context.fillRect(0,0,rect.width,rect.height);
 
   if (isHiglighted) {
-    ctx.lineWidth = 4;
+    context.lineWidth = 4;
     //ctx.strokeRect(4, 0, rect.width, rect.height);
-    ctx.beginPath();
-    ctx.moveTo(0,2);
-    ctx.lineTo(rect.width, 2);
-    ctx.closePath();
-    ctx.stroke();
+    context.beginPath();
+    context.moveTo(0,2);
+    context.lineTo(rect.width, 2);
+    context.closePath();
+    context.stroke();
   }
 
-  ctx.fillStyle = `black`;
-  ctx.fillText(data.karma.toString(), 15, 15);
+  context.fillStyle = `black`;
+  context.fillText(data.karma.toString(), 15, 15);
   
   // Undo translate
-  ctx.restore();
+  context.restore();
 }
 
 /**
@@ -96,10 +95,10 @@ function setup()  {
   const { grid } = state;
 
   // Keep our primary canvas full size
-  fullSizeCanvas(`#canvas`, args => {
+  fullSizeCanvas(`#canvas`, arguments_ => {
     // Set grid cell size to be proportional to size of viewport
-    const minDimension = Math.min(args.bounds.width, args.bounds.height);
-    const maxDimension = Math.max(args.bounds.width, args.bounds.height);
+    const minDimension = Math.min(arguments_.bounds.width, arguments_.bounds.height);
+    const maxDimension = Math.max(arguments_.bounds.width, arguments_.bounds.height);
   
     // We'd use minDimension if it was important
     // to not lose cells off the viewport
@@ -112,9 +111,9 @@ function setup()  {
     useState(); // repaint
   });
 
-  window.addEventListener(`pointermove`, evt => {
-    evt.preventDefault();
-    const cell = Grids.cellAtPoint(state.grid, { x: evt.clientX, y: evt.clientY });
+  window.addEventListener(`pointermove`, event => {
+    event.preventDefault();
+    const cell = Grids.cellAtPoint(state.grid, { x: event.clientX, y: event.clientY });
     updateState({
       highlightedCell: cell
     });

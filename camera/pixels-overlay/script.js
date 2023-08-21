@@ -48,9 +48,9 @@ const useState = () => {
   const { fps, differences } = state;
   const { lblFps, lblDifferences } = settings;
 
-  if (lblFps) lblFps.innerText = `FPS: ${fps}`;
+  if (lblFps) lblFps.textContent = `FPS: ${fps}`;
   if (lblDifferences) 
-    lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
+    lblDifferences.textContent = `Differences: ${Math.round(differences * 100)}%`;
 };
 
 /**
@@ -59,9 +59,9 @@ const useState = () => {
  * frame-on-frame.
  * 
  * @param {ImageData} frame 
- * @param {CanvasRenderingContext2D} ctx
+ * @param {CanvasRenderingContext2D} context
  */
-const update = (frame, ctx) => {
+const update = (frame, context) => {
   const { data } = frame;
   const { lastFrame } = state;
   const { threshold, frameIntervalTracker, visualise } = settings;
@@ -77,7 +77,7 @@ const update = (frame, ctx) => {
 
     const w = frame.width;
     const h = frame.height;
-    ctx.fillStyle = `magenta`;
+    context.fillStyle = `magenta`;
 
     // Loop left to right of frame
     for (let x = 0; x < w; x++) {
@@ -97,7 +97,7 @@ const update = (frame, ctx) => {
         if (diff > threshold) {
           differences++;
           // ...and if we should, colour that pixel
-          if (visualise) ctx.fillRect(x, y, 1, 1);
+          if (visualise) context.fillRect(x, y, 1, 1);
         }
       }
     }
@@ -164,8 +164,8 @@ const startVideo = async () => {
   );
 
   // Get drawing context if possible
-  const ctx = canvasEl?.getContext(`2d`);
-  if (canvasEl === null || ctx === null || ctx === undefined) return;
+  const context = canvasEl?.getContext(`2d`);
+  if (canvasEl === null || context === null || context === undefined) return;
 
   canvasEl.width = videoEl.videoWidth;
   canvasEl.height = videoEl.videoHeight;
@@ -176,15 +176,16 @@ const startVideo = async () => {
   try {
     // Video.frames generator loops forever, 
     // returning ImageData from video stream
-    for await (const frame of Video.frames(videoEl, { canvasEl })) {
+    const frames = Video.frames(videoEl, { canvasEl });
+    for await (const frame of frames) {
       // Update calculations
-      update(frame, ctx);
+      update(frame, context);
 
       // Update labels
       useState();
     }
-  } catch (ex) {
-    console.error(ex);
+  } catch (error) {
+    console.error(error);
 
     // Clean up camera
     dispose();

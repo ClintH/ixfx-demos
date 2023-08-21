@@ -9,7 +9,7 @@ const settings = Object.freeze({
   endAngle: 180,
   radiusProportion: 0.3,
   startAngle: 0,
-  movedEl: document.getElementById(`moved`)
+  movedEl: /** @type HTMLElement */(document.querySelector(`#moved`))
 });
 
 let state = Object.freeze({
@@ -54,32 +54,34 @@ const useState = () => {
   movedEl.style.transform = `translate(${coord.x}px, ${coord.y}px)`;
 };
 
+// Update state when viewport size changes
+const sizeChange = () => {
+  // Center of viewport
+  const width = document.body.clientWidth;
+  const height = document.body.clientHeight;
+  const center = { x: width / 2, y: height / 2 };
+
+  // Update state
+  updateState({
+    bounds: { width, height, center },
+  });
+};
+
 const setup = () => {
   const { movedEl } = settings;
  
-  // Update state when viewport size changes
-  const sizeChange = () => {
-    // Center of viewport
-    const width = document.body.clientWidth;
-    const height = document.body.clientHeight;
-    const center = { x: width / 2, y: height / 2 };
 
-    // Update state
-    updateState({
-      bounds: { width, height, center },
-    });
-  };
   window.addEventListener(`resize`, sizeChange);
   sizeChange(); // Trigger to use current size
 
   // After 2 seconds, reset button text
   const clickedTimeout = timeout(() => {
-    if (movedEl) movedEl.innerText = `Click me!`;
+    if (movedEl) movedEl.textContent = `Click me!`;
   }, 2000);
 
   // If button is clicked, change text and start reset timeout
   movedEl?.addEventListener(`click`, () => {
-    if (movedEl) movedEl.innerText = `Bravo!`;
+    if (movedEl) movedEl.textContent = `Bravo!`;
     clickedTimeout.start();
   });
 

@@ -66,37 +66,37 @@ const update = () => {
 
 /**
  * Draw state of world
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   const { bounds, pointsAbs, pointerAbs } = state;
   const { dots } = settings;
 
   const dotRadiusScaled = dots.radius*bounds.min;
 
-  ctx.clearRect(0, 0, bounds.width, bounds.height);
-  ctx.save();
-  ctx.translate(0,0);
-  pointsAbs.forEach((ptAbs,index) => {
+  context.clearRect(0, 0, bounds.width, bounds.height);
+  context.save();
+  context.translate(0,0);
+  for (const [index, ptAbs] of pointsAbs.entries()) {
     // Calc a % distance of pointer to this point
     const distance =  1-clamp(Points.distance(pointerAbs, ptAbs) / bounds.min);
 
     drawPoint(
-      ctx, 
+      context, 
       ptAbs, 
       dotRadiusScaled, 
       // Scale hue based on the distance to cursor
       dots.hue*distance
     );
-  });
-  ctx.restore();
+  }
+  context.restore();
 };
 
-document.addEventListener(`pointermove`, evt => {
+document.addEventListener(`pointermove`, event => {
   saveState({
     pointerAbs: { 
-      x: evt.x, 
-      y: evt.y
+      x: event.x, 
+      y: event.y
     }
   });
 });
@@ -108,23 +108,23 @@ document.addEventListener(`pointermove`, evt => {
  */
 const init = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     saveState({
-      bounds: args.bounds,
+      bounds: arguments_.bounds,
       circleAbs: {
-        radius: settings.circle.radius * args.bounds.min,
-        ...args.bounds.center
+        radius: settings.circle.radius * arguments_.bounds.min,
+        ...arguments_.bounds.center
       }
     });
   });
 
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
-  const ctx =/** @type {CanvasRenderingContext2D} */(canvasEl?.getContext(`2d`));
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const context =/** @type {CanvasRenderingContext2D} */(canvasElement?.getContext(`2d`));
 
   const loop = () => {
     update();
-    draw(ctx);  
+    draw(context);  
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -133,25 +133,25 @@ init();
 
 /**
  * Draws a point
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Points.Point} pt 
  * @param {number} radius
  * @param {number} hue
  */
-function drawPoint(ctx, pt, radius = 5, hue = 200) {
+function drawPoint(context, pt, radius = 5, hue = 200) {
   // Translate so point is 0,0
-  ctx.save();
-  ctx.translate(pt.x, pt.y);
+  context.save();
+  context.translate(pt.x, pt.y);
   
-  ctx.fillStyle = `hsl(${hue},100%,50%)`;
+  context.fillStyle = `hsl(${hue},100%,50%)`;
 
   // Draw a circle
-  ctx.beginPath();
-  ctx.arc(0,0,radius,0,piPi);
-  ctx.closePath();
-  ctx.fill();
+  context.beginPath();
+  context.arc(0,0,radius,0,piPi);
+  context.closePath();
+  context.fill();
   
-  ctx.restore();
+  context.restore();
 }
 
 /**

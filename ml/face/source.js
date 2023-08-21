@@ -15,7 +15,7 @@ import { Remote } from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
 import * as CommonSource from '../common-vision-source.js';
 import { shortGuid } from '../../ixfx/random.js';
 
-const searchParams = new URLSearchParams(window.location.search);
+const searchParameters = new URLSearchParams(window.location.search);
 
 const detectorSettings = Object.freeze({
   runtime: `mediapipe`,
@@ -37,9 +37,9 @@ const settings = Object.freeze({
   remote: new Remote({
     // allowRemote: false, // Uncomment to allow network connections
     // Use id specified in URL, otherwise something random
-    peerId: searchParams.get(`id`) ?? shortGuid()
+    peerId: searchParameters.get(`id`) ?? shortGuid()
   }),
-  view: searchParams.get(`view`),
+  view: searchParameters.get(`view`),
   playbackRateMs: 50,
   // Visual settings
   lineWidth: 5,
@@ -140,17 +140,17 @@ async function createDetector() {
 /**
  * Called after a frame is captured from the video source.
  * This allows us to draw on top of the frame after it has been analysed.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} width 
  * @param {number} height 
  */
-function postCaptureDraw(ctx, width, height) {
+function postCaptureDraw(context, width, height) {
   const { faces } = state;
 
-  ctx.font = `12pt ${settings.labelFont}`;
+  context.font = `12pt ${settings.labelFont}`;
 
   // Draw each pose
-  faces.forEach((face, index) => {
+  for (const [index, face] of faces.entries()) {
     // Generate distinctive hue for each pose
     const poseHue = getHue(index);
 
@@ -158,14 +158,14 @@ function postCaptureDraw(ctx, width, height) {
     const map = new Map();
 
     // Draw each key point as a labelled dot
-    face.keypoints.forEach(kp => {
+    for (const kp of face.keypoints) {
       map.set(kp.name, kp);
-      ctx.fillStyle = ctx.strokeStyle = `hsl(${poseHue},100%,30%)`;
+      context.fillStyle = context.strokeStyle = `hsl(${poseHue},100%,30%)`;
       
       // Draw a dot for each key point
-      CommonSource.drawAbsDot(ctx, kp, settings.pointRadius, true, false);
-    });
-  });
+      CommonSource.drawAbsDot(context, kp, settings.pointRadius, true, false);
+    }
+  }
 }
 
 /**
@@ -178,7 +178,7 @@ const selectCamera = async (find) => {
   const devices = await navigator.mediaDevices.enumerateDevices();
   for (const d of devices) {
     if (d.kind !== `videoinput`) continue;
-    if (d.label.toLocaleLowerCase().indexOf(find) >= 0) {
+    if (d.label.toLocaleLowerCase().includes(find)) {
       settings.frameProcessorOpts.cameraConstraints.deviceId = d.deviceId;
       return true;
     }
@@ -197,18 +197,18 @@ const setup = async () => {
   try {
     saveState({ detector:await createDetector() });
     CommonSource.setReady(true);
-  } catch (e) {
-    CommonSource.status(`Could not load detector: ` + e);
-    console.error(e);
+  } catch (error) {
+    CommonSource.status(`Could not load detector: ` + error);
+    console.error(error);
     CommonSource.setReady(false);
     return;
   }
 
-  document.getElementById(`btnToggleUi`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnToggleUi`)?.addEventListener(`click`, event => {
     const enabled = CommonSource.toggleUi();
-    const el = evt.target;
-    if (el === null) return;
-    /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
+    const element = event.target;
+    if (element === null) return;
+    /** @type {HTMLButtonElement} */(element).textContent = enabled ? `🔼` : `🔽`;
   });
 
   // If running in 'min' view mode, hide header
@@ -224,10 +224,10 @@ setup();
  * @param {number} defaultValue 
  * @returns 
  */
-function getNumberParam(name, defaultValue) {
-  const v = searchParams.get(name);
+function getNumberParameter(name, defaultValue) {
+  const v = searchParameters.get(name);
   if (v === null) return defaultValue;
-  return parseInt(v);
+  return Number.parseInt(v);
 }
 
 /**

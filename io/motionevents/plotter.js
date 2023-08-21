@@ -3,9 +3,9 @@ import { Plot2 } from "../../ixfx/visual.js";
 import { parentSize } from "../../ixfx/dom.js";
 
 const settings = Object.freeze({
-  accelPlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.getElementById(`accelPlot`))),
-  accelGravPlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.getElementById(`accelGravPlot`))),
-  rotRatePlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.getElementById(`rotRatePlot`))),    
+  accelPlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.querySelector(`#accelPlot`))),
+  accelGravPlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.querySelector(`#accelGravPlot`))),
+  rotRatePlot: new Plot2.Plot(/** @type HTMLCanvasElement */(document.querySelector(`#rotRatePlot`))),    
 });
 
 const r = new Remote({
@@ -14,16 +14,16 @@ const r = new Remote({
   defaultLog: `verbose`
 });
 
-r.onData = (msg) => {
+r.onData = (message) => {
   const { accelPlot, accelGravPlot, rotRatePlot } = settings;
   
-  accelPlot.plot(msg.accel);
+  accelPlot.plot(message.accel);
   accelPlot.update();
   
-  accelGravPlot.plot(msg.accelGrav);
+  accelGravPlot.plot(message.accelGrav);
   accelGravPlot.update();
   
-  rotRatePlot.plot(msg.rotRate);
+  rotRatePlot.plot(message.rotRate);
   rotRatePlot.update();
 };
 

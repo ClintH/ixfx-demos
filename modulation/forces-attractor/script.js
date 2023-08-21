@@ -57,51 +57,51 @@ const onTick = () => {
 /**
  * Draws a circle
  * @param {{position:Points.Point, mass:number}} a 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Rects.Rect} bounds 
  * @param {number} radius 
  * @param {string} fillStyle 
  */
-const circle = (a, ctx, bounds, radius = 10, fillStyle = `black`) => {
+const circle = (a, context, bounds, radius = 10, fillStyle = `black`) => {
   if (a === undefined) throw new Error(`a is undefined`);
   const pt = Points.multiply(a.position, bounds);
   radius = 5 + (radius * (a.mass ?? 1));
-  ctx.save();
-  ctx.translate(pt.x, pt.y);
-  ctx.fillStyle = fillStyle;
-  ctx.beginPath();
-  ctx.ellipse(-radius / 2, -radius / 2, radius, radius, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  context.save();
+  context.translate(pt.x, pt.y);
+  context.fillStyle = fillStyle;
+  context.beginPath();
+  context.ellipse(-radius / 2, -radius / 2, radius, radius, 0, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
 };
 
 /**
  * Draws an arrow
  * @param {{position:Points.Point, angle:number}} a 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Rects.Rect} bounds 
  */
-const arrow = (a, ctx, bounds) => {
+const arrow = (a, context, bounds) => {
   const pt = Points.multiply(a.position, bounds);
 
   // Translate so 0,0 is the point of the attractee
-  ctx.save();
-  ctx.translate(pt.x, pt.y);
+  context.save();
+  context.translate(pt.x, pt.y);
 
   // Drawing options for this arrow
-  const opts = {
+  const options = {
     angleRadian: a.angle,
     ...settings.arrowOpts
   };
 
   // Shapes.arrow returns a set of points...
-  const arrow = Shapes.arrow({ x: 0, y: 0 }, `middle`, opts);
+  const arrow = Shapes.arrow({ x: 0, y: 0 }, `middle`, options);
 
   // Helper function that draws a path, connecting points
-  Drawing.connectedPoints(ctx, arrow, { strokeStyle: `firebrick`, loop: true });
+  Drawing.connectedPoints(context, arrow, { strokeStyle: `firebrick`, loop: true });
 
   // Restore translation
-  ctx.restore();
+  context.restore();
 };
 
 const useState = () => {
@@ -110,27 +110,27 @@ const useState = () => {
   const { attractor, attractees, bounds } = state;
   
   /** @type {CanvasRenderingContext2D|null|undefined} */
-  const ctx = canvas?.getContext(`2d`);
-  if (!ctx) return;
+  const context = canvas?.getContext(`2d`);
+  if (!context) return;
 
   // Gold background
-  ctx.fillStyle = `gold`;
-  ctx.fillRect(0, 0, bounds.width, bounds.height);
+  context.fillStyle = `gold`;
+  context.fillRect(0, 0, bounds.width, bounds.height);
   
   // Draw attractees as arrows
-  attractees.forEach(a => {
+  for (const a of attractees) {
     // @ts-ignore
-    arrow(a, ctx, bounds);
-  });
+    arrow(a, context, bounds);
+  }
 
   // Draw main attraction
-  circle(attractor, ctx, bounds, attractorRadius, `LightGoldenrodYellow`);
+  circle(attractor, context, bounds, attractorRadius, `LightGoldenrodYellow`);
 };
 
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {
@@ -140,12 +140,12 @@ const setup = () => {
   };
   loop();
 
-  document.addEventListener(`pointermove`, evt => {
+  document.addEventListener(`pointermove`, event => {
     // If there's no click/touch, not interested
-    if (evt.buttons === 0) return;
+    if (event.buttons === 0) return;
 
     // Compute relative pointer position
-    const position = Points.divide({ x: evt.x, y: evt.y }, state.bounds);
+    const position = Points.divide({ x: event.x, y: event.y }, state.bounds);
 
     // Move attractor to relative pointer position
     updateState({

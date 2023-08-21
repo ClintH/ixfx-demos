@@ -13,9 +13,9 @@ import { continuously } from "../../ixfx/flow.js";
 // Define settings
 const settings = Object.freeze({
   // How often to fetch data
-  fetchIntervalMs: 30 * 1000,
-  dataEl: document.getElementById(`data`),
-  statusEl: document.getElementById(`status`)
+  fetchIntervalMs: 10 * 1000,
+  dataEl: document.querySelector(`#data`),
+  statusEl: document.querySelector(`#status`)
 });
 
 // Initialises state. It will keep the last data fetched
@@ -34,13 +34,12 @@ continuously(async () => {
     updateState({
       response: await resp.json()
     });
-
     // For demo purposes, we'll print it to the screen, but normally
     // you would use state.response elsewhere as needed, outside of
     // this callback
-    if (dataEl) dataEl.innerText = JSON.stringify(state.response);
+    if (dataEl) dataEl.textContent = JSON.stringify(state.response);
     status(`Fetched.`);
-  } catch (ex) {
+  } catch (error) {
     // Uh-oh, an error happened!
     // You might want to leave the last response in the
     // state. But we will clear it:
@@ -48,15 +47,15 @@ continuously(async () => {
       response: {}
     });
 
-    status(ex.message);
-    console.error(ex);
+    status(error.message);
+    console.error(error);
   }
 }, settings.fetchIntervalMs).start();
 
 // Puts a timestamped message in the #status element
 const status = (m) => {
   const { statusEl } = settings;
-  if (statusEl) statusEl.innerText = new Date().toLocaleTimeString() + ` ` + m;
+  if (statusEl) statusEl.textContent = new Date().toLocaleTimeString() + ` ` + m;
 };
 
 /**

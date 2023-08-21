@@ -20,16 +20,16 @@ let state = Object.freeze({
  * Returns a cell based on an HTML element that has data-x and data-y attributes set.
  * 
  * Returns -1 for x/y if attribute is not found.
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element
  * @returns 
  */
-const getCellFromElement = (el) => ({
-  x: parseInt(el.getAttribute(`data-x`) ?? `-1`),
-  y: parseInt(el.getAttribute(`data-y`) ?? `-1`)
+const getCellFromElement = (element) => ({
+  x: Number.parseInt(element.getAttribute(`data-x`) ?? `-1`),
+  y: Number.parseInt(element.getAttribute(`data-y`) ?? `-1`)
 });
 
-const onCellClick = (ev) => {
-  const cell = getCellFromElement(ev.target);
+const onCellClick = (event) => {
+  const cell = getCellFromElement(event.target);
   updateState({
     lastClicked: cell
   });
@@ -38,8 +38,8 @@ const onCellClick = (ev) => {
 
 const useState = () => {
   const { lastClicked } = state;
-  const feedbackEl = document.getElementById(`feedback`);
-  if (feedbackEl) feedbackEl.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
+  const feedbackElement = document.querySelector(`#feedback`);
+  if (feedbackElement) feedbackElement.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
 };
 
 /**
@@ -48,9 +48,9 @@ const useState = () => {
 const setup = () => {
   const { grid } = settings;
 
-  const gridEl = document.getElementById(`grid`);
+  const gridElement = document.querySelector(`#grid`);
 
-  if (gridEl === null) return;
+  if (gridElement === null) return;
 
   for (const row of Grids.rows(grid)) {
     // Make HTML for each cell. This produces an array of strings
@@ -61,10 +61,10 @@ const setup = () => {
     const rowHtml = `<div class="row"> ${cellsHtml.join(` `)}</div>`;
 
     // Add it to the parent element
-    gridEl.insertAdjacentHTML(`beforeend`, rowHtml);
+    gridElement.insertAdjacentHTML(`beforeend`, rowHtml);
   }
 
-  gridEl.addEventListener(`click`, onCellClick);
+  gridElement.addEventListener(`click`, onCellClick);
 };
 
 setup();

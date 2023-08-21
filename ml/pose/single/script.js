@@ -67,12 +67,12 @@ const tick = () => {
 const drawState = () => {
   const { processedPose, bounds } = state;
 
-  const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null}*/(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
   
   // If there is no smoothed pose, exit out
   if (processedPose === undefined) return;
@@ -81,20 +81,20 @@ const drawState = () => {
   const abs = CommonPose.absPose(processedPose, bounds, settings.horizontalMirror);
 
   // Use `debugDrawPose`, defined in common-pose.js
-  CommonPose.debugDrawPose(ctx, abs, { 
+  CommonPose.debugDrawPose(context, abs, { 
     pointRadius: 5
   });
 };
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-function clear(ctx) {
+function clear(context) {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
   //ctx.fillStyle = `orange`;
@@ -119,8 +119,8 @@ const setup = async () => {
   };
 
   // Keep CANVAS filling the screen
-  Dom.fullSizeCanvas(`#canvas`, args => {
-    saveState({ bounds: args.bounds });
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
+    saveState({ bounds: arguments_.bounds });
   });
 
   const drawLoop = () => {

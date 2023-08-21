@@ -3,7 +3,7 @@ import { Easings } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   // thing to move
-  thingEl: document.getElementById(`thing`),
+  thingEl: /** @type HTMLElement */(document.querySelector(`#thing`)),
   // setup easing
   easing: Easings.time(`sineIn`, 1000)
 });
@@ -46,11 +46,11 @@ const useState = () => {
   }
 
   // Available width is width of viewport minus size of circle
-  const thingElBounds = thingEl.getBoundingClientRect();
-  const width = document.body.clientWidth - thingElBounds.width;
+  const thingElementBounds = thingEl.getBoundingClientRect();
+  const width = document.body.clientWidth - thingElementBounds.width;
 
   console.log(amt);
-  thingEl.innerText = percentage(amt);
+  thingEl.textContent = percentage(amt);
 
   // Move element
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
@@ -69,7 +69,7 @@ const setup = () => {
     run.start();
     thingEl.classList.remove(`isDone`);
     thingEl.style.transform = ``;
-    thingEl.innerText = ``;
+    thingEl.textContent = ``;
   };
 
   // Wire up events

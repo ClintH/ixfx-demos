@@ -7,8 +7,8 @@ const settings = Object.freeze({
 
 // Keep track of Espruino instance
 let state = Object.freeze({
-  /** @type {Espruino.EspruinoSerialDevice|null} */
-  espruino: null
+  /** @type {Espruino.EspruinoSerialDevice|undefined} */
+  espruino: undefined
 });
 
 /**
@@ -35,8 +35,8 @@ const trigger = (triggerWhat) => {
 /**
  * Received data from Espruino.
  */
-const onEspruinoData = (evt) => {
-  const { data } = evt;
+const onEspruinoData = (event) => {
+  const { data } = event;
   if (typeof data === `undefined`) return;
   console.log(data);
 };
@@ -58,21 +58,21 @@ const connect = async () => {
 
     // Keep track of Espruino instance
     updateState({ espruino: p });
-  } catch (ex) {
-    console.error(ex);
+  } catch (error) {
+    console.error(error);
     onEspruinoConnected(false);
   }
 };
 
 const setup = () => {
   // Connect when button is clicked
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
 
   // When pointer enters the container #things, trigger an effect
-  document.getElementById(`things`)?.addEventListener(`pointerenter`, (evt) => {
+  document.querySelector(`#things`)?.addEventListener(`pointerenter`, (event) => {
     // Get the data-trigger attribute from the HTML element
     // to find out _which_ effect to trigger based
-    const triggerWhat = /** @type {HTMLElement} */(evt.target).getAttribute(`data-trigger`);
+    const triggerWhat = /** @type {HTMLElement} */(event.target).getAttribute(`data-trigger`);
     if (triggerWhat === null) {
       //console.warn(`data-trigger attribute missing on element`);
     } else {
@@ -87,11 +87,11 @@ setup();
 
 /**
  * Espruino has changed state
- * @param {{priorState:string, newState:string}} evt 
+ * @param {{priorState:string, newState:string}} event
  */
-function onEspruinoStateChange(evt) {
-  console.log(`${evt.priorState} -> ${evt.newState}`);
-  onEspruinoConnected(evt.newState === `connected`);
+function onEspruinoStateChange(event) {
+  console.log(`${event.priorState} -> ${event.newState}`);
+  onEspruinoConnected(event.newState === `connected`);
 }
 
 /**
@@ -122,12 +122,12 @@ function updateState (s) {
  * based on `value`.
  * @param {string} query 
  * @param {boolean} value 
- * @param {string} className 
+ * @param {string} cssClass 
  * @returns 
  */
-function setClass(value, query, className) {
-  document.querySelectorAll(query).forEach(el => {
-    if (value) el.classList.add(className);
-    else el.classList.remove(className);
-  });
+function setClass(value, query, cssClass) {
+  for (const element of document.querySelectorAll(query)) {
+    if (value) element.classList.add(cssClass);
+    else element.classList.remove(cssClass);
+  }
 }

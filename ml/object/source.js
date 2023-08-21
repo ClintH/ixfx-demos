@@ -25,16 +25,16 @@ import { Remote } from 'https://unpkg.com/@clinth/remote@latest/dist/index.mjs';
 import { Rects } from '../../ixfx/geometry.js';
 import * as CommonSource from '../common-vision-source.js';
 
-const searchParams = new URLSearchParams(window.location.search);
+const searchParameters = new URLSearchParams(window.location.search);
 
 const cocoSsdSettings = Object.freeze({
   // lite_mobilenet_v2: fastest and smallest download
   // mobilenet_v2: most accurate
-  base: searchParams.get(`base`) ?? `lite_mobilenet_v2`,
+  base: searchParameters.get(`base`) ?? `lite_mobilenet_v2`,
   // Maximum number of objects
-  maxNumBoxes: getNumberParam(`maxNumBoxes`, 20),
+  maxNumBoxes: getNumberParameter(`maxNumBoxes`, 20),
   // Minimum score (0..1)
-  minScore:getNumberParam(`minScore`, 0.5)
+  minScore:getNumberParameter(`minScore`, 0.5)
 });
 
 const settings = Object.freeze({
@@ -49,7 +49,7 @@ const settings = Object.freeze({
       facingMode: `user`
     },
   },
-  view: searchParams.get(`view`),
+  view: searchParameters.get(`view`),
   remote: new Remote(),
   playbackRateMs: 50,
   // Visual settings
@@ -69,20 +69,20 @@ let state = Object.freeze({
   normalised: [],
   sourceReadMs: 10,
   greatestNumberOfPredictions: 0,
-  classHues: new Map()
+  hues: new Map()
 });
 
 /**
  * Gets a hue for a given class.
- * @param {string} className 
+ * @param {string} cssClass 
  */
-const getClassHue = (className) => {
-  const { classHues } = state;
-  let c = classHues.get(className);
+const getClassHue = (cssClass) => {
+  const { hues } = state;
+  let c = hues.get(cssClass);
   if (c === undefined) {
     // Generate a random hue based on the total number of seen objects
-    c = Math.round(([ ...classHues.keys() ].length) * 137.508);
-    classHues.set(className, c);
+    c = Math.round(([ ...hues.keys() ].length) * 137.508);
+    hues.set(cssClass, c);
   }
   return c;
 };
@@ -173,30 +173,30 @@ async function createDetector() {
 /**
  * Called after a frame is captured from the video source.
  * This allows us to draw on top of the frame after it has been analysed.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} width 
  * @param {number} height 
  */
-function postCaptureDraw(ctx, width, height) {
+function postCaptureDraw(context, width, height) {
   const { predictions } = state;
-  ctx.font = `12pt ${settings.labelFont}`;
-  ctx.lineWidth = 3;
+  context.font = `12pt ${settings.labelFont}`;
+  context.lineWidth = 3;
 
   // Draw each prediction bounding box
-  predictions.forEach(p => {
-    if (p.score < settings.displayThreshold) return;
+  for (const p of predictions) {
+    if (p.score < settings.displayThreshold) continue;
     // Use colour we've associated with the prediction class
     const hue = getClassHue(p.class);
-    ctx.fillStyle = ctx.strokeStyle = `hsla(${hue}, 100%, 40%, 0.8)`;
+    context.fillStyle = context.strokeStyle = `hsla(${hue}, 100%, 40%, 0.8)`;
 
     let x = p.bbox[0];
     let y = p.bbox[1];
     let w = p.bbox[2];
     let h = p.bbox[3];
-    ctx.strokeRect(x, y, w, h);
-    ctx.textBaseline = `top`;
-    ctx.fillText(`${p.class} (${Math.round(p.score*100)}%)`, x + 4, y + 4);
-  });
+    context.strokeRect(x, y, w, h);
+    context.textBaseline = `top`;
+    context.fillText(`${p.class} (${Math.round(p.score*100)}%)`, x + 4, y + 4);
+  }
 }
 
 /**
@@ -210,7 +210,7 @@ const selectCamera = async (find) => {
   for (const d of devices) {
     if (d.kind !== `videoinput`) continue;
     console.log(d.label);
-    if (d.label.toLocaleLowerCase().indexOf(find) >= 0) {
+    if (d.label.toLocaleLowerCase().includes(find)) {
       delete settings.frameProcessorOpts.cameraConstraints.facingMode;
       settings.frameProcessorOpts.cameraConstraints.deviceId = d.deviceId;
       return true;
@@ -229,18 +229,18 @@ const setup = async () => {
   try {
     updateState({ detector:await createDetector() });
     CommonSource.setReady(true);
-  } catch (e) {
-    CommonSource.status(`Could not load detector: ` + e);
-    console.error(e);
+  } catch (error) {
+    CommonSource.status(`Could not load detector: ` + error);
+    console.error(error);
     CommonSource.setReady(false);
     return;
   }
 
-  document.getElementById(`btnToggleUi`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnToggleUi`)?.addEventListener(`click`, event => {
     const enabled = CommonSource.toggleUi();
-    const el = evt.target;
-    if (el === null) return;
-    /** @type {HTMLButtonElement} */(el).innerText = enabled ? `🔼` : `🔽`;
+    const element = event.target;
+    if (element === null) return;
+    /** @type {HTMLButtonElement} */(element).textContent = enabled ? `🔼` : `🔽`;
   });
 
   // If running in 'min' view mode, hide header
@@ -256,10 +256,10 @@ setup();
  * @param {number} defaultValue 
  * @returns 
  */
-function getNumberParam(name, defaultValue) {
-  const v = searchParams.get(name);
+function getNumberParameter(name, defaultValue) {
+  const v = searchParameters.get(name);
   if (v === null) return defaultValue;
-  return parseInt(v);
+  return Number.parseInt(v);
 }
 
 /**

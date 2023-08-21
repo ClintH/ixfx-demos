@@ -15,23 +15,23 @@ const connect = async () => {
   const { serial } = settings;
   try {
     // Listen for events
-    serial.addEventListener(`change`, evt => {
-      console.log(`${evt.priorState} -> ${evt.newState}`);
-      if (evt.newState === `connected`) onConnected(true);
+    serial.addEventListener(`change`, event => {
+      console.log(`${event.priorState} -> ${event.newState}`);
+      if (event.newState === `connected`) onConnected(true);
       else onConnected(false);
     });
 
     // Connect
     await serial.connect();
-  } catch (ex) {
-    console.error(ex);
+  } catch (error) {
+    console.error(error);
   }
 };
 
 const setCssDisplay = (id, value) => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
 };
 
 // Called when port is disconnected/connected
@@ -50,12 +50,12 @@ const useState = () => {
 };
 
 const setup = () => {
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
-  document.getElementById(`inputLevel`)?.addEventListener(`input`, evt => {
-    const el = /** @type {HTMLInputElement}*/(evt.target);
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
+  document.querySelector(`#inputLevel`)?.addEventListener(`input`, event => {
+    const element = /** @type {HTMLInputElement}*/(event.target);
 
     // On scale of 0-100. 
-    const value = parseInt(el.value);
+    const value = Number.parseInt(element.value);
 
     // Convert to 0-1
     updateState({

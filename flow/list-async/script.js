@@ -56,7 +56,7 @@ const process = (item) => {
 
 const setup = () => {
   // Adds three items to backlog
-  document.getElementById(`btnAddItems`)?.addEventListener(`click`, () => {
+  document.querySelector(`#btnAddItems`)?.addEventListener(`click`, () => {
     const n = performance.now(); // Get a timestamp
     process(`${n} - 1`);    // Add a string, but it could be an object
     process(`${n} - 2`);

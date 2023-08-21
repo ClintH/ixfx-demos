@@ -42,18 +42,18 @@ const useState = () => {
   const { fps, differences, visFrame } = state;
   const { visualise, lblFps, lblDifferences, canvasEl } = settings;
 
-  if (lblFps) lblFps.innerText = `FPS: ${fps}`;
+  if (lblFps) lblFps.textContent = `FPS: ${fps}`;
   if (lblDifferences) 
-    lblDifferences.innerText = `Differences: ${Math.round(differences * 100)}%`;
+    lblDifferences.textContent = `Differences: ${Math.round(differences * 100)}%`;
 
   // Get drawing context if possible
-  const ctx = canvasEl?.getContext(`2d`);
-  if (canvasEl === null || !ctx) return;
+  const context = canvasEl?.getContext(`2d`);
+  if (canvasEl === null || !context) return;
 
   // Write pixels to canvas. Pixels that were different are unchanged, 
   // so they come through in original colour but pixels deemed same 
   // as last frame were changed to grayscale and translucent
-  if (visualise) ctx.putImageData(visFrame, 0, 0);
+  if (visualise) context.putImageData(visFrame, 0, 0);
 
 };
 
@@ -179,8 +179,8 @@ const startVideo = async () => {
   });
 
   // Get drawing context if possible
-  const ctx = canvasEl?.getContext(`2d`);
-  if (canvasEl === null || !ctx) return;
+  const context = canvasEl?.getContext(`2d`);
+  if (canvasEl === null || !context) return;
 
   canvasEl.width = videoEl.videoWidth;
   canvasEl.height = videoEl.videoHeight;
@@ -196,9 +196,9 @@ const startVideo = async () => {
       update(frame);
       useState();
     }
-  } catch (ex) {
+  } catch (error) {
     dispose();
-    throw ex;
+    throw error;
   }
 };
 

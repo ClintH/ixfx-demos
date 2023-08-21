@@ -38,7 +38,7 @@ let state = Object.freeze({
 // Update state of world
 const onTick = () => {
   // Update all the things
-  updateState({ things: state.things.map(updateThing) });
+  updateState({ things: state.things.map(t => updateThing(t)) });
 };
 
 /**
@@ -67,30 +67,30 @@ const updateThing = (t) => {
  * Position thing based on state
  */
 const useState = () => {
-  state.things.forEach((t) => {
+  for (const t of state.things) {
     // Get element for thing
-    const thingEl = getOrCreateElementForThing(t);
-    if (thingEl === null) return;
+    const thingElement = getOrCreateElementForThing(t);
+    if (thingElement === null) continue;
 
     // Move the element
-    moveElement(thingEl, t.position);
-  });
+    moveElement(thingElement, t.position);
+  }
 };
 
-const moveElement = (el, relativePosition) => {
+const moveElement = (element, relativePosition) => {
   const { window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(relativePosition, window.width, window.height);
 
   // Get size of element to move
-  const size = el.getBoundingClientRect();
+  const size = element.getBoundingClientRect();
 
   // Point to move to is given point, minus half width & height -- ie the top-left corner
   const pt = Points.subtract(absPos, size.width / 2, size.height / 2);
 
-  el.style.left = `${pt.x}px`;
-  el.style.top = `${pt.y}px`;
+  element.style.left = `${pt.x}px`;
+  element.style.top = `${pt.y}px`;
 };
 
 /**
@@ -120,19 +120,19 @@ const getOrCreateElementForThing = (t) => {
   const { thingSizeMax } = settings;
 
   const id = `thing-${t.id}`;
-  let el = document.getElementById(id);
-  if (el === null) {
-    el = document.createElement(`input`);
-    el.setAttribute(`type`, `checkbox`);
-    el.setAttribute(`checked`, `true`);
-    el.classList.add(`thing`);
-    el.id = id;
-    el.style.width = Math.round(t.mass * thingSizeMax) + `px`;
-    el.style.height = Math.round(t.mass * thingSizeMax) + `px`;
+  let element = /** @type HTMLElement|null */(document.querySelector(`#${id}`));
+  if (element === null) {
+    element = document.createElement(`input`);
+    element.setAttribute(`type`, `checkbox`);
+    element.setAttribute(`checked`, `true`);
+    element.classList.add(`thing`);
+    element.id = id;
+    element.style.width = Math.round(t.mass * thingSizeMax) + `px`;
+    element.style.height = Math.round(t.mass * thingSizeMax) + `px`;
     
-    document.body.append(el);
+    document.body.append(element);
   }
-  return el;
+  return element;
 };
 
 const setup = () => {
@@ -152,7 +152,7 @@ const setup = () => {
   });
 
   // On pointerup, assign a new velocity based on accumulated movement
-  window.addEventListener(`pointerup`, (ev) => {
+  window.addEventListener(`pointerup`, (event) => {
     const { pointerMovement } = state;
 
     // Get the last data from the pointTracker
@@ -164,8 +164,8 @@ const setup = () => {
       const avg = Points.divide(Points.normalise(nfo.fromInitial.average), 500);
 
       // For debug purposes, show velocity x,y on screen
-      const labelEl = document.getElementById(`velocity`);
-      if (labelEl) labelEl.innerText = Points.toString(avg, 2);
+      const labelElement = document.querySelector(`#velocity`);
+      if (labelElement) labelElement.innerHTML = `accel x: ${avg.x}<br />accel y: ${avg.y}`;
 
       // Apply pointer movement as acceleration to all things
       const things = /** @type Thing[] */(state.things.map(t => Forces.apply(t, Forces.accelerationForce(avg, `dampen`))
@@ -177,18 +177,18 @@ const setup = () => {
     pointerMovement.reset();
   });
 
-  window.addEventListener(`pointermove`, (ev) => {
+  window.addEventListener(`pointermove`, (event) => {
     const { pointerMovement } = state;
 
     // Exit if no there's no press
-    if (ev.buttons === 0) return;
+    if (event.buttons === 0) return;
 
     // Track the movement amount
-    pointerMovement.seen({ x: ev.movementX, y: ev.movementY });
+    pointerMovement.seen({ x: event.movementX, y: event.movementY });
   });
 
   // Create things
-  for (let i = 0; i < settings.thingsCount; i++) createThing();
+  for (let index = 0; index < settings.thingsCount; index++) createThing();
 };
 setup();
 

@@ -7,8 +7,8 @@ let state = Object.freeze({
 const useState = () => {
   const { freq } = state;
 
-  const outputEl = document.getElementById(`output`);
-  if (!outputEl) return;
+  const outputElement = document.querySelector(`#output`);
+  if (!outputElement) return;
 
   // Sort with most frequent at position 0 of the array
   const sorted = freq.entriesSorted(`valueReverse`);
@@ -28,24 +28,24 @@ const useState = () => {
   
   const asList = topFive.map(t => `<li><code>${t[0]}</code> ${percent(t)}%`);
 
-  txt += `<p>Top five ranking: <ol>${asList.join()}</ol></p>`;
-  outputEl.innerHTML = txt;
+  txt += `<p>Top five ranking: <ol>${asList.join(`,`)}</ol></p>`;
+  outputElement.innerHTML = txt;
 };
 
 const update = () => {
   // Get input element
-  const el = /** @type HTMLInputElement|null */(document.getElementById(`letters`));
-  if (!el) return;
+  const element = /** @type HTMLInputElement|null */(document.querySelector(`#letters`));
+  if (!element) return;
 
   // Upper case what was typed in
-  const text = el.value.toLocaleUpperCase();
+  const text = element.value.toLocaleUpperCase();
 
   // Create a new frequency tracker
   const f = frequencyMutable();
 
   // Add all letters except spaces
-  for (let i=0;i<text.length;i++) {
-    const char = text.charAt(i);
+  for (let index=0;index<text.length;index++) {
+    const char = text.charAt(index);
     if (char === ` `) continue; // Skip spaces
     f.add(char);
   }
@@ -57,7 +57,7 @@ const update = () => {
 
 
 const setup = () => {
-  document.getElementById(`letters`)?.addEventListener(`input`, evt => {
+  document.querySelector(`#letters`)?.addEventListener(`input`, event => {
     update();
   });
   update();

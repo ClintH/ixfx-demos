@@ -41,9 +41,9 @@ const useState = () => {
   const { lblFps, lblDifferences, lblDiffVu } = settings;
 
   // Update HTML labels
-  if (lblFps) lblFps.innerText = `FPS: ${fps}`;
+  if (lblFps) lblFps.textContent = `FPS: ${fps}`;
   if (lblDifferences) 
-    lblDifferences.innerText = `Differences: ${percentage(differences)}`;
+    lblDifferences.textContent = `Differences: ${percentage(differences)}`;
   if (lblDiffVu) lblDiffVu.innerHTML = diffVu;
 };
 
@@ -71,8 +71,8 @@ const startVideo = async () => {
         fps: Math.round(1000 / frameIntervalTracker.avg)
       });
     }
-  } catch (ex) {
-    console.error(ex);
+  } catch (error) {
+    console.error(error);
 
     // Clean up camera
     dispose();
@@ -96,8 +96,8 @@ const setup = () => {
   });
 
   // Listen for results from the worker
-  worker.addEventListener(`message`, evt => {
-    const d = evt.data;
+  worker.addEventListener(`message`, event => {
+    const d = event.data;
     const { diffTracker } = settings;
 
     diffTracker.seen(d.differences);

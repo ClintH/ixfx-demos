@@ -4,10 +4,10 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  /** @type string|null */
-  gamepadId: null,
-  /** @type Gamepad|null */
-  gamepad: null,
+  /** @type string|undefined */
+  gamepadId: undefined,
+  /** @type Gamepad|undefined */
+  gamepad: undefined,
   /** @type boolean */
   button: false
 });
@@ -15,20 +15,21 @@ let state = Object.freeze({
 const useState = () => {
   const { button } = state;
  
-  const el = document.getElementById(`vis`);
-  if (!el) return;
+  const element = document.querySelector(`#vis`);
+  if (!element) return;
 
   if (button) {
-    el.classList.add(`pressed`);
+    element.classList.add(`pressed`);
   } else {
-    el.classList.remove(`pressed`);
+    element.classList.remove(`pressed`);
   }
 };
 
 const getGamepad = () => {
   const gamepads = /** @type Gamepad[] */(navigator.getGamepads 
     ? navigator.getGamepads() 
-    : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []));
+    // @ts-ignore
+    : (navigator.webkitGetGamepads ??  []));
 
   gamepads.some(gm => {
     if (gm === null) return;
@@ -58,15 +59,15 @@ const setup = () => {
   };
   loop();  
 
-  window.addEventListener(`gamepadconnected`, evt => {
+  window.addEventListener(`gamepadconnected`, event => {
     console.log(`Gamepad connected`);
-    console.log(evt);
-    updateState({ gamepad: evt.gamepad, gamepadId: evt.gamepad.id });
+    console.log(event);
+    updateState({ gamepad: event.gamepad, gamepadId: event.gamepad.id });
   });
 
-  window.addEventListener(`gamepaddisconnected`, evt => {
+  window.addEventListener(`gamepaddisconnected`, event => {
     console.log(`Gamepad disconnected`);
-    updateState({ gamepad:null });
+    updateState({ gamepad: undefined });
   });
 };
 setup();

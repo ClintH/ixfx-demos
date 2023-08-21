@@ -126,18 +126,18 @@ const onData = (poses) => {
   });
 
   // Make sure there are gradient stops for each pose
-  alignedPoses.forEach((pose,index) => {
+  for (const [index, pose] of alignedPoses.entries()) {
     const stop = settings.gradientStops.useValue(index.toString());
     stop.index = index;
 
     // Calculate new gradient stop position
-    const newPos = scale(pose.centroid.x,  gradientRect.x, gradientRect.x + gradientRect.width);
+    const poseScaled = scale(pose.centroid.x,  gradientRect.x, gradientRect.x + gradientRect.width);
 
     // Only set stop position if it seems legit
-    if (newPos >= 0 && newPos <= 1) {
-      stop.position = interpolate(interpolateAmt, stop.position, newPos); 
+    if (poseScaled >= 0 && poseScaled <= 1) {
+      stop.position = interpolate(interpolateAmt, stop.position, poseScaled); 
     }
-  });
+  }
 
   saveState({ poses: alignedPoses });
 };
@@ -148,15 +148,15 @@ const drawState = () => {
 
   const gradRect = /** @type {Rects.RectPositioned} */(Rects.multiply(settings.gradientRect, state.bounds));
 
-  const canvasEl = /** @type {HTMLCanvasElement|null}*/(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null}*/(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Transparent background
-  ctx.clearRect(0, 0, bounds.width, bounds.height);
+  context.clearRect(0, 0, bounds.width, bounds.height);
   
   // Draw each pose
-  poses.forEach((pose, index) => {
+  for (const [index, pose] of poses.entries()) {
     // Get associated gradient stop
     const stop = gradientStops.useValue(index.toString());
 
@@ -164,36 +164,36 @@ const drawState = () => {
     const x = stop.position * gradRect.width + gradRect.x;
 
     // Draw mini-pose
-    ctx.save();
-    ctx.translate(x, gradRect.y - (pose.height*gradRect.height));
-    drawPose(ctx, pose);
-    ctx.restore();
-  });
+    context.save();
+    context.translate(x, gradRect.y - (pose.height*gradRect.height));
+    drawPose(context, pose);
+    context.restore();
+  }
 
-  drawGradient(ctx, gradRect);
+  drawGradient(context, gradRect);
 };
 
 /**
  * Draws gradient preview
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Rects.RectPositioned} gradRect 
  */
-const drawGradient = (ctx, gradRect) => {
+const drawGradient = (context, gradRect) => {
   const { lineWidth, chipSize, gradientStops } = settings;
   const chipOuter = chipSize + lineWidth;
   const chipY = gradRect.y + gradRect.height + chipOuter;
 
   // Draw black outline for gradient
-  ctx.strokeStyle =`black`;
-  ctx.lineWidth = lineWidth;
-  ctx.strokeRect(
+  context.strokeStyle =`black`;
+  context.lineWidth = lineWidth;
+  context.strokeRect(
     gradRect.x - lineWidth/2, 
     gradRect.y - lineWidth/2, 
     gradRect.width+lineWidth, 
     gradRect.height+lineWidth);
 
   // Init gradient
-  const gradient = ctx.createLinearGradient(gradRect.x, gradRect.y, gradRect.x + gradRect.width, gradRect.y );
+  const gradient = context.createLinearGradient(gradRect.x, gradRect.y, gradRect.x + gradRect.width, gradRect.y );
   
   // Draw stops
   for (const stop of gradientStops.values()) {
@@ -204,29 +204,29 @@ const drawGradient = (ctx, gradRect) => {
     if (stop.position > 0 && stop.position <= 1)
       gradient.addColorStop(stop.position, colour);
 
-    ctx.save();
-    ctx.translate(x, chipY);
+    context.save();
+    context.translate(x, chipY);
    
     // Black inner
-    ctx.strokeStyle = `black`;
-    ctx.lineWidth = lineWidth;
-    ctx.strokeRect(-chipOuter/2, 0, chipOuter, chipOuter);
+    context.strokeStyle = `black`;
+    context.lineWidth = lineWidth;
+    context.strokeRect(-chipOuter/2, 0, chipOuter, chipOuter);
 
     // Chip colour
-    ctx.fillStyle = colour;
-    ctx.fillRect(-chipSize/2, lineWidth/2, chipSize, chipSize);
+    context.fillStyle = colour;
+    context.fillRect(-chipSize/2, lineWidth/2, chipSize, chipSize);
 
     // Triangle
     const t = Triangles.Right.fromC({ adjacent:chipOuter-lineWidth, opposite: chipOuter-lineWidth }, { x: 0, y:-chipOuter/2 - lineWidth });
-    ctx.lineWidth = lineWidth/3;
-    drawTriangle(ctx, t);
+    context.lineWidth = lineWidth/3;
+    drawTriangle(context, t);
 
-    ctx.restore();
+    context.restore();
   }
 
   // Draw gradient
-  ctx.fillStyle = gradient;
-  ctx.fillRect(gradRect.x, gradRect.y, gradRect.width, gradRect.height);
+  context.fillStyle = gradient;
+  context.fillRect(gradRect.x, gradRect.y, gradRect.width, gradRect.height);
 };
 
 const setup = async () => {
@@ -246,12 +246,12 @@ const setup = async () => {
   };
 
   // Resize canvas to fill screen
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     saveState({ 
-      bounds: args.bounds, 
+      bounds: arguments_.bounds, 
       scaleBy: {
-        width: Math.max(args.bounds.width, args.bounds.height),
-        height: Math.max(args.bounds.width, args.bounds.height)
+        width: Math.max(arguments_.bounds.width, arguments_.bounds.height),
+        height: Math.max(arguments_.bounds.width, arguments_.bounds.height)
       }
     });
   });
@@ -270,10 +270,10 @@ setup();
 // #region Toolbox
 /**
  * Draw pose
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {import("../common-pose.js").Pose} pose
  */
-function drawPose(ctx, pose)  {
+function drawPose(context, pose)  {
   if (pose === undefined) throw new Error(`pose is undefined`);
   // Get pose in absolute coordinates (absPoint is defined in common-pose.js)
   const abs = CommonPose.absPose(pose, state.scaleBy, settings.horizontalMirror);
@@ -282,7 +282,7 @@ function drawPose(ctx, pose)  {
   const stroke = state.bounds.width/200;
 
   // Draw pose (debugDrawPose is defined in common-pose.js)
-  CommonPose.debugDrawPose(ctx, abs, {
+  CommonPose.debugDrawPose(context, abs, {
     colour,
     labelKeypoints: false,
     connectKeypoints: true,
@@ -314,19 +314,19 @@ function saveState (s) {
 
 /**
  * Draws a triangle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Triangles.Triangle} t 
  */
-function drawTriangle(ctx, t) {
+function drawTriangle(context, t) {
   const tEdges = Triangles.corners(t);
-  ctx.beginPath();
-  ctx.moveTo(tEdges[0].x, tEdges[0].y);
-  ctx.lineTo(tEdges[1].x, tEdges[1].y);
-  ctx.lineTo(tEdges[2].x, tEdges[2].y);
-  ctx.lineTo(tEdges[0].x, tEdges[0].y);
-  ctx.fillStyle = `black`;
-  ctx.fill();
-  ctx.stroke();
+  context.beginPath();
+  context.moveTo(tEdges[0].x, tEdges[0].y);
+  context.lineTo(tEdges[1].x, tEdges[1].y);
+  context.lineTo(tEdges[2].x, tEdges[2].y);
+  context.lineTo(tEdges[0].x, tEdges[0].y);
+  context.fillStyle = `black`;
+  context.fill();
+  context.stroke();
 }
 // #endregion
 

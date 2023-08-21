@@ -1,11 +1,11 @@
-import { pressureOrForce } from "./pressureOrForce.js";
+import { pressureOrForce } from "./pressure-or-force.js";
 
 const settings = Object.freeze({
   // Maximum blur, in pixels
   maxBlur: 100
 });
 
-/** @type {import("./pressureOrForce.js").PressureForceState} */
+/** @type {import("./pressure-or-force.js").PressureForceState} */
 let state = Object.freeze({
   webkitForce: 0,
   normalised: 0,
@@ -23,9 +23,9 @@ const setBlur = (relativeAmount) => {
   const { maxBlur } = settings;
   
   // See: https://developer.mozilla.org/en-US/docs/Web/CSS/filter
-  const el = document.getElementById(`content`);
-  if (!el) return;
-  el.style.filter = `blur(${Math.round(relativeAmount*maxBlur)}px)`;
+  const element = /** @type HTMLElement */(document.querySelector(`#content`));
+  if (!element) return;
+  element.style.filter = `blur(${Math.round(relativeAmount*maxBlur)}px)`;
 };
 
 const setup = () => {

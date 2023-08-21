@@ -1,13 +1,13 @@
 import { continuously } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
-import { adsr, defaultAdsrOpts } from '../../../ixfx/modulation.js';
+import { adsr, defaultAdsrOpts as defaultAdsrOptions } from '../../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   // Filter device list...
   device: ``, // Put in the name of your device here, eg `Puck.js a123`
   pwmLed:`LED2`,
   updateRateMs: 30,
-  env: adsr(defaultAdsrOpts())
+  env: adsr(defaultAdsrOptions())
 });
 
 let state = Object.freeze({
@@ -54,17 +54,17 @@ const loop = () => {
   const { env, updateRateMs } = settings;
   const v = env.value;
 
-  if (!Number.isNaN(v)) {
+  if (Number.isNaN(v)) {
+    // Turn off
+    setLedPwm(settings.pwmLed, 0);
+    updateState({ running: false });
+  } else {
     updateState({ pwm: v, running: true });
     console.log(v);  
     setLedPwm(settings.pwmLed, state.pwm);
   
     // Queue to loop again
     setTimeout(loop, updateRateMs);
-  } else {
-    // Turn off
-    setLedPwm(settings.pwmLed, 0);
-    updateState({ running: false });
   }
 };
 
@@ -80,28 +80,28 @@ const setup = () => {
   const connect = async () => {
     try {
       // Filter by name, if defined in settings
-      const opts = settings.device.length > 0 ? { name: settings.device } : {};
+      const options = settings.device.length > 0 ? { name: settings.device } : {};
 
       // Connect to Puck
-      const p = await Espruino.puck(opts);
+      const p = await Espruino.puck(options);
       console.log(`Connected`);
       
       // Listen for events
-      p.addEventListener(`change`, evt => {
-        console.log(`${evt.priorState} -> ${evt.newState}`);
+      p.addEventListener(`change`, event => {
+        console.log(`${event.priorState} -> ${event.newState}`);
       });
 
       onConnected(true);
       updateState({ puck: p });
-    } catch (ex) {
-      console.error(ex);
+    } catch (error) {
+      console.error(error);
       onConnected(false);
     }
   };
 
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
   
-  document.addEventListener(`keypress`, evt => {
+  document.addEventListener(`keypress`, event => {
     console.log(`Trigger`);
     settings.env.trigger();
     if (!state.running) loop();
@@ -109,12 +109,17 @@ const setup = () => {
 };
 setup();
 
-
-function setCssDisplay(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
-}
+/**
+ * Sets style.display for element
+ * @param {string} id Id of element
+ * @param {string} value Value of style.display to set
+ * @returns 
+ */
+const setCssDisplay = (id, value) => {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
+};
 
 /**
  * Update state

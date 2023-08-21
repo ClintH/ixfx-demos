@@ -30,50 +30,50 @@ const useState = () => {
   const { hue, saturation, circle } = settings;
 
   /** @type HTMLCanvasElement|null */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
 
-  ctx.fillStyle = `hsl(${hue}, ${saturation*100}%, ${Math.ceil(distance*100)}%)`;
-  ctx.fillRect(0, 0, bounds.width, bounds.height);
+  context.fillStyle = `hsl(${hue}, ${saturation*100}%, ${Math.ceil(distance*100)}%)`;
+  context.fillRect(0, 0, bounds.width, bounds.height);
 
-  drawCircle(ctx, circle);
+  drawCircle(context, circle);
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Circles.CirclePositioned} circle
  */
-const drawCircle = (ctx, circle) => {
+const drawCircle = (context, circle) => {
   
   // Get absolute point
   const circlePos = toAbsolutePoint(circle);
 
   // Translate to middle of circle
-  ctx.save();
-  ctx.translate(circlePos.x, circlePos.y);
+  context.save();
+  context.translate(circlePos.x, circlePos.y);
 
   // Fill a circle
-  ctx.arc(0, 0, circle.radius*window.innerWidth, 0, Math.PI * 2);
-  ctx.fillStyle = `black`;
-  ctx.fill();
+  context.arc(0, 0, circle.radius*window.innerWidth, 0, Math.PI * 2);
+  context.fillStyle = `black`;
+  context.fill();
 
   // Unwind translation
-  ctx.restore();
+  context.restore();
 };
 
-const onPointerMove = (evt) => {
+const onPointerMove = (event) => {
   const { circle } = settings;
 
   // Compute relative point on a 0..1 scale
-  const rel = {
-    x: clamp(evt.x / window.innerWidth),
-    y: clamp(evt.y / window.innerHeight)
+  const pointer = {
+    x: clamp(event.x / window.innerWidth),
+    y: clamp(event.y / window.innerHeight)
   };
 
   // Distance to circle
-  const distance = Circles.distanceFromExterior(circle, rel);
+  const distance = Circles.distanceFromExterior(circle, pointer);
   console.log(distance);
   updateState({ distance });
 };
@@ -82,9 +82,9 @@ const onPointerMove = (evt) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: args.bounds });
+    updateState({ bounds: arguments_.bounds });
   });
 
   document.addEventListener(`pointermove`, onPointerMove);

@@ -44,29 +44,29 @@ const onTick = () => {
 const useState = () => {
   const { isDone, currentPos } = state;
 
-  const thingEl = document.getElementById(`thing`);
-  if (!thingEl) return;
+  const thingElement = document.querySelector(`#thing`);
+  if (!thingElement) return;
 
   if (isDone) {
-    thingEl.classList.add(`isDone`);
+    thingElement.classList.add(`isDone`);
     return;
   } else {
-    thingEl.classList.remove(`isDone`);
+    thingElement.classList.remove(`isDone`);
   }
 
-  positionEl(thingEl, currentPos);
+  positionElement(thingElement, currentPos);
 
 };
 
-const positionEl = (el, pos) => {
+const positionElement = (element, pos) => {
   const { bounds } = state;
-  if (!el) return;
+  if (!element) return;
 
-  const halfSize = el.getBoundingClientRect().width / 2;
+  const halfSize = element.getBoundingClientRect().width / 2;
   
   // Move element
-  el.style.left = (pos.x * bounds.width) - halfSize+ `px`;
-  el.style.top = (pos.y * bounds.height) - halfSize + `px`;
+  element.style.left = (pos.x * bounds.width) - halfSize+ `px`;
+  element.style.top = (pos.y * bounds.height) - halfSize + `px`;
 };
 
 const setup = () => {
@@ -86,12 +86,12 @@ const setup = () => {
   document.addEventListener(`resize`, updateResize);
   updateResize();
   
-  document.addEventListener(`pointerup`, evt => {
+  document.addEventListener(`pointerup`, event => {
     const { bounds } = state;
     updateState({ 
       to: { 
-        x: evt.x / bounds.width, 
-        y: evt.y / bounds.height 
+        x: event.x / bounds.width, 
+        y: event.y / bounds.height 
       },
       from: state.currentPos 
     });
@@ -99,7 +99,7 @@ const setup = () => {
     run.start();
   });
 
-  positionEl(document.getElementById(`thing`), state.currentPos);
+  positionElement(document.querySelector(`#thing`), state.currentPos);
 };
 setup();
 
@@ -114,7 +114,7 @@ function updateState (s) {
   });
 }
 
-function yieldNumber(generator, defaultValue = undefined) {
+function yieldNumber(generator, defaultValue) {
   return () => {
     const v = generator.next().value;
     if (v === undefined) return defaultValue;

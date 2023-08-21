@@ -36,52 +36,55 @@ const update = () => {
 const useState = () => {
   const { location, bounds } = state;
 
-  const thingEl = document.getElementById(`thing`);
+  const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
 
-  if (!thingEl) return;
+  if (!thingElement) return;
 
   // Convert relative point to an absolute one
   let loc = Points.multiply(location, bounds.width, bounds.height);
 
   // Positioning happens from top-left corner, so use the size of the
   // element to position from middle instead
-  const b = thingEl.getBoundingClientRect();
+  const b = thingElement.getBoundingClientRect();
   loc = Points.subtract(loc, b.width / 2, b.height / 2);
 
   // Apply final computed position to element
-  thingEl.style.transform = `translate(${loc.x}px, ${loc.y}px)`;
+  thingElement.style.transform = `translate(${loc.x}px, ${loc.y}px)`;
 };
 
+// Keep track of screen size whenever it resizes
+const onResize = () => {
+  updateState ({
+    bounds: {
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
+  });
+};
+  
+
+/**
+ * Handle pointerdown and pointermove
+ * @param {PointerEvent} event 
+ */
+const onPointer = (event) => {
+  const { bounds } = state;
+  const x = event.clientX;
+  const y = event.clientY;
+  updateState({
+    // Make pointer position relative (on 0..1 scale)
+    pointer: Points.divide(x, y, bounds.width, bounds.height)
+  });
+};
 /**
  * Setup and run main loop 
  */
 const setup = () => {
 
-  // Keep track of screen size whenever it resizes
-  const onResize = () => {
-    updateState ({
-      bounds: {
-        width: window.innerWidth,
-        height: window.innerHeight
-      }
-    });
-  };
+
   document.addEventListener(`resize`, onResize);
   onResize();
 
-  /**
-   * Handle pointerdown and pointermove
-   * @param {PointerEvent} e 
-   */
-  const onPointer = (e) => {
-    const { bounds } = state;
-    const x = e.clientX;
-    const y = e.clientY;
-    updateState({
-      // Make pointer position relative (on 0..1 scale)
-      pointer: Points.divide(x, y, bounds.width, bounds.height)
-    });
-  };
 
   document.addEventListener(`pointermove`, onPointer);
   document.addEventListener(`pointerdown`, onPointer);

@@ -26,7 +26,7 @@ const getAbg = (d) => ({
   g: d.gamma
 });
 
-const onMotion = (evt) => {
+const onMotion = (event) => {
   const { lastDataEl } = settings;
   const { paused } = state;
   if (paused) return;
@@ -35,9 +35,9 @@ const onMotion = (evt) => {
   
   // Grab some values
   const d = {
-    accel: getXyz(evt.acceleration),
-    accelGrav: getXyz(evt.accelerationIncludingGravity),
-    rotRate: getAbg(evt.rotationRate)
+    accel: getXyz(event.acceleration),
+    accelGrav: getXyz(event.accelerationIncludingGravity),
+    rotRate: getAbg(event.rotationRate)
   };
   
   // Send it
@@ -68,7 +68,9 @@ const onMotion = (evt) => {
 };
 
 const startEvents = async () => {
+  // @ts-ignore
   if (typeof DeviceMotionEvent.requestPermission === `function`) {
+  // @ts-ignore
     const p = await DeviceMotionEvent.requestPermission();
     if (p === `granted`) {
       window.addEventListener(`devicemotion`, onMotion);
@@ -78,14 +80,14 @@ const startEvents = async () => {
   } else {
     window.addEventListener(`devicemotion`, onMotion);
   }
-  document.getElementById(`btnStart`)?.remove();
+  document.querySelector(`#btnStart`)?.remove();
 };
 
 const setup = () => {
-  /** @type HTMLInputElement */(document.getElementById(`txtPeerId`)).value = r.id;
+  /** @type HTMLInputElement */(document.querySelector(`#txtPeerId`)).value = r.id;
   
-  document.getElementById(`btnStart`)?.addEventListener(`click`, startEvents);
-  document.getElementById(`btnPause`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#btnStart`)?.addEventListener(`click`, startEvents);
+  document.querySelector(`#btnPause`)?.addEventListener(`click`, event => {
     state = {
       ...state,
       paused: !state.paused

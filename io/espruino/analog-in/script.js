@@ -26,28 +26,28 @@ const settings = Object.freeze({
 let state = Object.freeze({
   /** @type number[] */
   data: [],
-  /** @type {Espruino.EspruinoSerialDevice|null} */
-  espruino: null
+  /** @type {Espruino.EspruinoSerialDevice|undefined} */
+  espruino: undefined
 });
 
 const useState = () => {
   const { data } = state;
   
-  const dataEl = /** @type HTMLElement */(document.getElementById(`data`));
-  if (!dataEl) return;
+  const dataElement = /** @type HTMLElement */(document.querySelector(`#data`));
+  if (!dataElement) return;
 
-  const dataStr = data.map((v,i) => `<div>${i}. ${v}</div>`);
-  dataEl.innerHTML = dataStr.join(`\n`);
+  const dataString = data.map((v,index) => `<div>${index}. ${v}</div>`);
+  dataElement.innerHTML = dataString.join(`\n`);
 };
 
 /**
  * Called when string data is received from Pico
- * @param {*} evt 
+ * @param {*} event 
  * @returns 
  */
-const onData = (evt) => {
+const onData = (event) => {
   // Remove line breaks etc
-  const data = evt.data.trim(); 
+  const data = event.data.trim(); 
 
   // Don't even try to parse if it doesn't
   // look like JSON
@@ -60,8 +60,8 @@ const onData = (evt) => {
     // Assuming its an array of numbers
     updateState({ data: d });
     useState();
-  } catch (ex) {
-    console.warn(ex);
+  } catch (error) {
+    console.warn(error);
   }
 };
 
@@ -87,8 +87,8 @@ const connect = async () => {
     console.log(`Connected`);
 
     // Listen for events
-    p.addEventListener(`change`, evt => {
-      console.log(`${evt.priorState} -> ${evt.newState}`);
+    p.addEventListener(`change`, event => {
+      console.log(`${event.priorState} -> ${event.newState}`);
     });
 
     // Send init script after a moment
@@ -103,27 +103,26 @@ const connect = async () => {
       // Listen for data from the Pico
       p.addEventListener(`data`, onData);
     }, 1000);
-  } catch (ex) {
-    console.error(ex);
+  } catch (error) {
+    console.error(error);
   }
 };
 
 const setup = () => {
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
 
-  document.getElementById(`btnRequest`)?.addEventListener(`click`, () => {
+  document.querySelector(`#btnRequest`)?.addEventListener(`click`, () => {
     const { espruino } = state;
     espruino?.write(`sampleData()\n`);
   });
 };
 setup();
 
-
-function setCssDisplay(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
-}
+const setCssDisplay = (id, value) => {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
+};
 
 /**
  * Update state

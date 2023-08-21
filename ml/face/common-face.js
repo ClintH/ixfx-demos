@@ -5,36 +5,35 @@ const labelFont = `"Cascadia Code", Consolas, "Andale Mono WT", "Andale Mono", "
 const keypointNames = [ `nose_tip` ,`right_eye`, `left_eye`, `mouth_center`, `right_ear_tragion`, `left_ear_tragion` ];
 
 export function setup() {
-  document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
-    document.getElementById(`sourceSection`)?.remove();
-    const el = evt.target;
-    if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
+  document.querySelector(`#btnCloseFrame`)?.addEventListener(`click`, event => {
+    document.querySelector(`#sourceSection`)?.remove();
+    const element = event.target;
+    if (element) /** @type {HTMLElement} */(element).remove(); // Remove button too
   });
 
   // If the floating source window is there, respond to clicking on the header
-  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
+  document.querySelector(`#sourceSection`)?.addEventListener(`click`, event => {
   
-    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+    const hdr = /** @type HTMLElement */(document.querySelector(`#sourceSection`));
     Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
   });
 }
 
 /**
  * Draw text centered by taking into account its drawn size
- * @param {string|undefined} msg 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {string|undefined} message 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} offsetX 
  * @param {number} offsetY 
  * @returns 
  */
-export const drawCenteredText = (ctx, msg, offsetX, offsetY) => {
-  if (!msg) return;
-  const x = offsetX ?? 0;
-  const y = offsetY ?? 0;
-  const txt = ctx.measureText(msg);
-  ctx.fillText(msg,
-    -(txt.width / 2) + x,
-    -((txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent) / 2) + y);
+export const drawCenteredText = (context, message, offsetX = 0, offsetY = 0) => {
+  if (!message) return;
+
+  const txt = context.measureText(message);
+  context.fillText(message,
+    -(txt.width / 2) + offsetX,
+    -((txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent) / 2) + offsetY);
   return txt;
 };
 
@@ -77,13 +76,13 @@ export const smooth = (amt, a, b) => {
   if (a === undefined && b === undefined) return;
   if (a === undefined) return b;
 
-  const ret = {
+  const returnValue = {
     ...b
   };
-  keypointNames.forEach(name => {
-    ret[name] = smoothKeypoint(amt, a[name], b[name]);
-  });
-  return ret;
+  for (const name of keypointNames) {
+    returnValue[name] = smoothKeypoint(amt, a[name], b[name]);
+  }
+  return returnValue;
 };
 
 /**
@@ -149,11 +148,11 @@ export const absFace = (f, bounds, horizontalMirror = false) => {
 
   if (`keypoints` in f) {
     // @ts-ignore
-    abs.keypoints = f.keypoints.map(absPoint);
+    abs.keypoints = f.keypoints.map((value) => absPoint(value));
   } else {
-    keypointNames.forEach(name => {
+    for (const name of keypointNames) {
       abs[name] = absPoint(f[name], bounds, horizontalMirror);
-    });
+    }
   }
   // @ts-ignore
   return abs;
@@ -163,41 +162,41 @@ export const absFace = (f, bounds, horizontalMirror = false) => {
 /**
  * Draw a face
  * @param {FaceByKeypoint|Face} face
- * @param {CanvasRenderingContext2D} ctx 
- * @param {FaceDrawOpts} opts
+ * @param {CanvasRenderingContext2D} context 
+ * @param {FaceDrawOpts} options
  */
-export function debugDrawFace(ctx, face, opts) {
-  const radius = opts.pointRadius ?? 10;
+export function debugDrawFace(context, face, options) {
+  const radius = options.pointRadius ?? 10;
   const textOffsetY = radius * 3;
-  const colour = opts.colour ?? `black`;
-  ctx.fillStyle = colour;
-  ctx.strokeStyle = colour;
-  ctx.textBaseline = `top`;
-  ctx.font = `12pt ${labelFont}`;
+  const colour = options.colour ?? `black`;
+  context.fillStyle = colour;
+  context.strokeStyle = colour;
+  context.textBaseline = `top`;
+  context.font = `12pt ${labelFont}`;
 
   const drawKp = (kp) => {
     // Translate canvas to be centered on predicted object
-    ctx.save();
-    ctx.translate(kp.x, kp.y);
+    context.save();
+    context.translate(kp.x, kp.y);
 
     // Draw a circle
-    ctx.beginPath();
-    ctx.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
-    ctx.fill();
+    context.beginPath();
+    context.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
+    context.fill();
 
     // Draw label for key point
-    drawCenteredText(ctx, kp.name, 0, textOffsetY);
+    drawCenteredText(context, kp.name, 0, textOffsetY);
 
     // Undo translate transform
-    ctx.restore();
+    context.restore();
   };
 
   if (`keypoints` in face) {
-    face.keypoints.forEach(kp => drawKp(kp));
+    for (const kp of face.keypoints) drawKp(kp);
   } else {
-    keypointNames.forEach(name => {
+    for (const name of keypointNames) {
       drawKp(face[name]);
-    });
+    }
   }
 }
 

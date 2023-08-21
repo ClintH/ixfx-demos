@@ -4,9 +4,9 @@ import { StateMachine, continuously } from '../../ixfx/flow.js';
 // States
 const settings = Object.freeze({
   updateSpeed: 2000,
-  labelStateEmoji: /** @type HTMLElement */(document.getElementById(`labelStateEmoji`)),
-  labelState: /** @type HTMLElement */(document.getElementById(`labelState`)),
-  labelEnergy:/** @type HTMLElement */(document.getElementById(`labelEnergy`)),
+  labelStateEmoji: /** @type HTMLElement */(document.querySelector(`#labelStateEmoji`)),
+  labelState: /** @type HTMLElement */(document.querySelector(`#labelState`)),
+  labelEnergy:/** @type HTMLElement */(document.querySelector(`#labelEnergy`)),
   stateMachine: {
     sleeping: `waking`,
     waking: [ `resting`, `sleeping` ],
@@ -88,9 +88,9 @@ let state = {
 const updateUi = () => {
   const { current, energy } = state;
   const { labelStateEmoji, labelState, labelEnergy } = settings;
-  labelStateEmoji.innerText = stateToEmoji(current);
+  labelStateEmoji.textContent = stateToEmoji(current);
   labelState.innerHTML = `<p>${current}</p>`;
-  labelEnergy.innerText = `${Math.floor(energy * 100)}%`;
+  labelEnergy.textContent = `${Math.floor(energy * 100)}%`;
 };
 
 // Set up driver
@@ -119,16 +119,21 @@ function updateEnergy(amt) {
 
 function stateToEmoji(state) {
   switch (state) {
-  case `sleeping`:
+  case `sleeping`: {
     return `😴`;
-  case `waking`:
+  }
+  case `waking`: {
     return `😵‍💫`;
-  case `resting`:
+  }
+  case `resting`: {
     return `😌`;
-  case `walking`:
+  }
+  case `walking`: {
     return `🚶🏻‍♀️`;
-  case `running`:
+  }
+  case `running`: {
     return `🏃🏻‍♀️`;
+  }
   }
   return `?`;
 }

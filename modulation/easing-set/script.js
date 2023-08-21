@@ -17,10 +17,10 @@ let state = Object.freeze({
 // Fill slider with current value
 const useState = () => {
   const { value } = state;
-  const fillEl = /** @type HTMLElement */(document.querySelector(`#slider>.fill`));
-  if (!fillEl) return;
+  const fillElement = /** @type HTMLElement */(document.querySelector(`#slider>.fill`));
+  if (!fillElement) return;
 
-  fillEl.style.width = `${value*100}%`;
+  fillElement.style.width = `${value*100}%`;
 };
 
 // Loop that runs via settings.envSample, reading
@@ -53,16 +53,16 @@ function sampleEnvelope() {
 
 /**
  * 
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} event 
  */
-const onPointerUp = (evt) => {
+const onPointerUp = (event) => {
   const { easing, easingSample } = settings;
 
-  const slider = document.getElementById(`slider`);
+  const slider = /** @type HTMLElement */(document.querySelector(`#slider`));
   if (!slider) return;
   
   // Get relative pos based on click within element
-  const pos = relativePosition(slider, evt);
+  const pos = relativePosition(slider, event);
 
   // Update target
   updateState({
@@ -75,7 +75,7 @@ const onPointerUp = (evt) => {
 };
 
 const setup = () => {
-  const slider = document.getElementById(`slider`);
+  const slider = /** @type HTMLElement */(document.querySelector(`#slider`));
   if (!slider) return;
 
   slider.addEventListener(`pointerup`, onPointerUp);
@@ -97,15 +97,15 @@ function updateState (s) {
 
 /**
  * Returns a position relative to size of element
- * @param {PointerEvent} evt 
- * @param {HTMLElement} el 
+ * @param {PointerEvent} event 
+ * @param {HTMLElement} element 
  */
-function relativePosition(el, evt)  {
-  const bounds = el.getBoundingClientRect();
-  const s = getComputedStyle(el);
-  const padding = parseFloat(s.padding) * 2;
+function relativePosition(element, event)  {
+  const bounds = element.getBoundingClientRect();
+  const s = getComputedStyle(element);
+  const padding = Number.parseFloat(s.padding) * 2;
   return {
-    x: clamp(evt.offsetX / (bounds.width - padding)),
-    y: clamp(evt.offsetY / (bounds.height - padding))
+    x: clamp(event.offsetX / (bounds.width - padding)),
+    y: clamp(event.offsetY / (bounds.height - padding))
   };
 }

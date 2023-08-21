@@ -9,17 +9,17 @@ const settings = Object.freeze({
     fullPolicy: `evictOldestUser`,
     // Generate a new resource (in this example, a HTML element)
     generate: () => {
-      const el = document.createElement(`DIV`);
-      el.classList.add(`pool-item`);
-      document.getElementById(`items`)?.append(el);
-      return el;
+      const element = document.createElement(`DIV`);
+      element.classList.add(`pool-item`);
+      document.querySelector(`#items`)?.append(element);
+      return element;
     }, 
     /**
      * Delete the HTML element when resource is freed
-     * @param {HTMLElement} el 
+     * @param {HTMLElement} element
      */
-    free:(el) => {
-      el.remove();
+    free:(element) => {
+      element.remove();
     }
   })
 });
@@ -35,35 +35,35 @@ const useState = () => {
 
   for (const key of keysDown) {
     // Allocate a HTML element for each key held down
-    const el = pool.useValue(key);
+    const element = pool.useValue(key);
 
     // Set the text of the element to be the key
-    el.innerText = key;
+    element.textContent = key;
   }
 };
 
 /**
  * Key is down 
- * @param {KeyboardEvent} evt 
+ * @param {KeyboardEvent} event 
  */
-const onKeyDown = (evt) => {
+const onKeyDown = (event) => {
   const { keysDown } = state;
   saveState({
     // Add key to list of keys down, if it's not already there
-    keysDown: Arrays.unique([ ...keysDown,  evt.key  ])
+    keysDown: Arrays.unique([ ...keysDown,  event.key  ])
   });
   useState();
 };
 
 /**
  * Key is released
- * @param {KeyboardEvent} evt 
+ * @param {KeyboardEvent} event 
  */
-const onKeyUp = (evt) => {
+const onKeyUp = (event) => {
   const { keysDown } = state;
   saveState({
     // Remove key from array
-    keysDown: Arrays.without(keysDown, evt.key)
+    keysDown: Arrays.without(keysDown, event.key)
   });
   useState();
 };

@@ -67,27 +67,27 @@ const useState = () => {
   const { particles } = state;
 
   /** @type {HTMLCanvasElement|null}} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
-  ctx.globalCompositeOperation = `lighter`;
+  context.globalCompositeOperation = `lighter`;
 
   // Draw particles  
-  particles.forEach(p => {
-    drawPoint(ctx, p);
-  });
+  for (const p of particles) {
+    drawPoint(context, p);
+  }
 };
 
 /**
  * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Particle} pt 
  */
-const drawPoint = (ctx, pt) => {
+const drawPoint = (context, pt) => {
   const { radiusMax, radiusMin, dotHue } = settings;
   const { width, height } = state.bounds;
 
@@ -99,24 +99,24 @@ const drawPoint = (ctx, pt) => {
   const fillStyle = `hsla(${dotHue}, 60%, ${Math.floor(pt.intensity*100)}%, ${pt.age})`;
 
   // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(pt.x*width, pt.y*height);
+  context.save();
+  context.translate(pt.x*width, pt.y*height);
 
   // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = fillStyle;
-  ctx.fill();
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fillStyle = fillStyle;
+  context.fill();
 
   // Unwind translation
-  ctx.restore();
+  context.restore();
 };
 
 /**
  * Clears the canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
   const { bgHue } = settings;
 
@@ -127,9 +127,16 @@ const clear = (ctx) => {
 
   // Use the composite operation to leave some
   // traces behind
-  ctx.fillStyle = `hsla(${bgHue}, 100%, 50%, 0.5)`;
-  ctx.globalCompositeOperation = `luminosity`;
-  ctx.fillRect(0, 0, width, height);
+  context.fillStyle = `hsla(${bgHue}, 100%, 50%, 0.5)`;
+  context.globalCompositeOperation = `luminosity`;
+  context.fillRect(0, 0, width, height);
+};
+
+const defaultPosition = () => {
+  updateState({ pointer: {
+    x: 0.5, //window.innerWidth / 2,
+    y: 0.5, //window.innerHeight / 2
+  } });
 };
 
 /**
@@ -137,10 +144,10 @@ const clear = (ctx) => {
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 
@@ -152,37 +159,32 @@ const setup = () => {
   };
   loop();
 
-  const defaultPosition = () => {
-    updateState({ pointer: {
-      x: 0.5, //window.innerWidth / 2,
-      y: 0.5, //window.innerHeight / 2
-    } });
-  };
+
   defaultPosition();
   
   // Keep track of pointer moving
-  document.addEventListener(`pointermove`, evt => {
-    evt.preventDefault();
+  document.addEventListener(`pointermove`, event => {
+    event.preventDefault();
     updateState({ 
       pointer: {
-        x: evt.x/window.innerWidth,
-        y: evt.y/window.innerHeight
+        x: event.x/window.innerWidth,
+        y: event.y/window.innerHeight
       }
     });
   });
 
   // Keep track of pointer up/down status
-  document.addEventListener(`pointerdown`, evt => {
-    evt.preventDefault();
+  document.addEventListener(`pointerdown`, event => {
+    event.preventDefault();
     updateState({ pointerDown: true });
   });
 
-  document.addEventListener(`pointerup`, evt => {
-    evt.preventDefault();
+  document.addEventListener(`pointerup`, event => {
+    event.preventDefault();
     updateState({ pointerDown: false });
   });
 
-  document.addEventListener(`pointerleave`, evt => {
+  document.addEventListener(`pointerleave`, event => {
     defaultPosition();
   });
 };

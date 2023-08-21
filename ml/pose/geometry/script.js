@@ -62,10 +62,10 @@ const tick = () => {
 
   let noseSpeed = 0;
   if (nose) {
-    const rel = noseTracker.seen(nose);
-    const speed = rel.fromInitial.speed;
+    const noseRelative = noseTracker.seen(nose);
+    const speed = noseRelative.fromInitial.speed;
     if (Number.isFinite(speed) && !Number.isNaN(speed)) {
-      noseSpeed = rel.fromInitial.speed * 200;
+      noseSpeed = noseRelative.fromInitial.speed * 200;
 
     }
   }
@@ -118,7 +118,7 @@ const onData = (poses) => {
   
   // Try to get the pose with same ID as before.
   /** @type {PoseByKeypoint|undefined} */
-  let targetPose = undefined;
+  let targetPose;
   if (processor.id) {
     const found = poses.find(p=> p.id === processor.id());
     if (found) targetPose = CommonPose.poseByKeypoint(found);
@@ -150,15 +150,15 @@ const onData = (poses) => {
 const drawState = () => {
   const { kneeAnkleAngle, wristDistance, headRotation, handToHip, noseSpeed } = state;
 
-  CommonPose.setText(`data`,
-    `
-  Knee-ankle angle deg: ${formatRadian(kneeAnkleAngle)}
-  Wrist distance: ${format(wristDistance)}
-  Head rotation: ${format(headRotation)}
-  Hand-to-hip: ${format(handToHip)}
-  Nose speed: ${format(noseSpeed)}
-`
-  );
+  const data = [
+    `Knee-ankle angle deg: ${formatRadian(kneeAnkleAngle)}`,
+    `Wrist distance: ${format(wristDistance)}`,
+    `Head rotation: ${format(headRotation)}`,
+    `Hand-to-hip: ${format(handToHip)}`,
+    `Nose speed: ${format(noseSpeed)}`
+  ];
+  const dataAsDivs = data.map(d => `<div>${d}</div>`);
+  CommonPose.setHtml(`data`,dataAsDivs.join(``));
   
 };
 

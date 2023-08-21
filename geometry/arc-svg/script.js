@@ -39,15 +39,15 @@ const update = () => {
   updateState({
     // Get new values from generators
     pingPong: genPingPong.next().value,
-    loop: genLoopV ? genLoopV : 0
+    loop: genLoopV ?? 0
   });
 };
 
 /**
  * Update path
- * @param {SVGPathElement} arcEl 
+ * @param {SVGPathElement} arcElement
  */
-const updateSvg = (arcEl) => {
+const updateSvg = (arcElement) => {
   const { radiusProportion } = settings;
   const { bounds, pingPong, loop } = state;
 
@@ -69,10 +69,10 @@ const updateSvg = (arcEl) => {
     bounds.center);
 
   // Apply stroke width
-  Svg.applyStrokeOpts(arcEl, { strokeWidth: width });
+  Svg.applyStrokeOpts(arcElement, { strokeWidth: width });
 
   // Update existing SVG element with new details
-  arcEl.setAttribute(`d`, Arcs.toSvg(arc).join(` `));
+  arcElement.setAttribute(`d`, Arcs.toSvg(arc).join(` `));
 };
 
 /**
@@ -83,14 +83,14 @@ const setup = () => {
   if (svg === null) return;
 
   // Resize SVG element to match viewport
-  Dom.parentSize(svg, args => {
+  Dom.parentSize(svg, arguments_ => {
     updateState({
       bounds: windowBounds()
     });
   });
 
   // Create SVG `path` element for arc
-  const arcEl = Svg.Elements.path(``, svg, {
+  const arcElement = Svg.Elements.path(``, svg, {
     fillStyle: `none`,
     strokeStyle: settings.strokeStyle,
     strokeWidth: settings.strokeWidthMax
@@ -98,7 +98,7 @@ const setup = () => {
 
   const loop = () => {
     update();
-    updateSvg(arcEl);
+    updateSvg(arcElement);
     window.requestAnimationFrame(loop);
   };
   loop();

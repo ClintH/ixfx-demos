@@ -33,18 +33,18 @@ let state = Object.freeze({
 const useState = () => {
   const { points } = state;
   
-  const canvasEl = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
+  const canvasElement = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
 
-  if (!ctx) return;
+  if (!context) return;
     
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
-  ctx.globalCompositeOperation = `lighter`; // color-dodge also good
+  context.globalCompositeOperation = `lighter`; // color-dodge also good
 
   // Draw each point
-  points.forEach(p => drawPoint(ctx, p));
+  for (const p of points) drawPoint(context, p);
 };
 
 // Update state of world
@@ -56,12 +56,12 @@ const update = () => {
   const movedPoints = points.map(pt => {
     // Add a little to the Y. Amount depends on radius & gravity
     // Larger radius will move faster
-    let newY = pt.y + (pt.radius * gravity);
+    let y = pt.y + (pt.radius * gravity);
     // If we go past 1, wrap around to 0
-    if (pt.y > 1) newY = 0;
+    if (pt.y > 1) y = 0;
     return {
       ...pt,
-      y: newY
+      y
     };
   });
 
@@ -73,10 +73,10 @@ const update = () => {
 
 /**
  * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number,radius:number}} pt 
  */
-const drawPoint = (ctx, pt) => {
+const drawPoint = (context, pt) => {
   const { radiusMax, dotColour } = settings;
   const { width, height } = state.bounds;
 
@@ -88,24 +88,24 @@ const drawPoint = (ctx, pt) => {
   const radius = radiusMax * pt.radius;
 
   // Translate so 0,0 is the middle
-  ctx.save();
-  ctx.translate(x, y);
+  context.save();
+  context.translate(x, y);
 
   // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = dotColour;
-  ctx.fill();
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fillStyle = dotColour;
+  context.fill();
 
   // Unwind translation
-  ctx.restore();
+  context.restore();
 };
 
 /**
  * Clear
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
@@ -116,9 +116,9 @@ const clear = (ctx) => {
   //ctx.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  ctx.globalCompositeOperation = `source-over`;
-  ctx.fillStyle = `hsla(${Colour.getCssVariable(`hue`, `100`)}, 100%, 1%, 0.1)`;
-  ctx.fillRect(0, 0, width, height);
+  context.globalCompositeOperation = `source-over`;
+  context.fillStyle = `hsla(${Colour.getCssVariable(`hue`, `100`)}, 100%, 1%, 0.1)`;
+  context.fillRect(0, 0, width, height);
 };
 
 /**
@@ -126,10 +126,10 @@ const clear = (ctx) => {
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 

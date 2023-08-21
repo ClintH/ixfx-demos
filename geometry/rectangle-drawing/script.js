@@ -25,50 +25,48 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const onTick = () => {
-
-};
+const onTick = () => {};
 
 const useState = () => {
   /** @type {HTMLCanvasElement|null}} */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
   // Draw new things
-  draw(ctx);
+  draw(context);
 };
 /**
  * Draws a rectangle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number,y:number,width:number,height:number}} r 
  */
-const drawRect = (ctx, r, strokeStyle) => {
-  ctx.strokeStyle = strokeStyle;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(r.x, r.y, r.width, r.height);
+const drawRect = (context, r, strokeStyle) => {
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = 2;
+  context.strokeRect(r.x, r.y, r.width, r.height);
 };
 
 /**
  * Demonstrates drawing a rectangle line by line.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number,y:number,width:number,height:number}} r 
  */
-const drawRectManual = (ctx, r, strokeStyle) => {
+const drawRectManual = (context, r, strokeStyle) => {
   // Compute corner coordinates for a rect
   const pts = Rects.corners(r);
-  ctx.strokeStyle = strokeStyle;
+  context.strokeStyle = strokeStyle;
 
   // Draw circles for each corner
-  pts.forEach(p => {
+  for (const p of pts) {
     // Draw a circle
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-    ctx.stroke();
-  });
+    context.beginPath();
+    context.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    context.stroke();
+  }
 
   // Compute the lines for a rectangle
   const lines = Rects.edges(r);
@@ -76,23 +74,23 @@ const drawRectManual = (ctx, r, strokeStyle) => {
   const points = Lines.asPoints(lines);
   let started = false;
 
-  ctx.beginPath();
+  context.beginPath();
   for (const pt of points) {
     if (started) {
-      ctx.lineTo(pt.x, pt.y);
+      context.lineTo(pt.x, pt.y);
     } else {
-      ctx.moveTo(pt.x, pt.y);
+      context.moveTo(pt.x, pt.y);
       started = true;
     }
   }
-  ctx.stroke();
+  context.stroke();
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const draw = (ctx) => {
+const draw = (context) => {
   const { pointer } = state;
   const { centerColour, cornerColour } = settings;
 
@@ -101,22 +99,22 @@ const draw = (ctx) => {
   const r = Rects.fromCenter(pointer, 200, 100);
 
   // Draw a rectangle using the in-built `strokeRect`
-  drawRect(ctx, r, centerColour);
+  drawRect(context, r, centerColour);
 
   // Draw rectangle 'manually'.
   const r2 = Rects.fromTopLeft(pointer, 100, 200);
-  drawRectManual(ctx, r2, cornerColour);
+  drawRectManual(context, r2, cornerColour);
 };
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
   //ctx.fillStyle = `orange`;
@@ -132,20 +130,20 @@ const clear = (ctx) => {
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds
+      bounds: arguments_.bounds
     });
   });
 
   /**
    * Handle pointerdown and pointermove
-   * @param {PointerEvent} e 
+   * @param {PointerEvent} event 
    */
-  const onPointer = (e) => {
-    const x = e.clientX;
-    const y = e.clientY;
+  const onPointer = (event) => {
+    const x = event.clientX;
+    const y = event.clientY;
   
     updateState({
       pointer: { x, y }

@@ -19,11 +19,11 @@ const keypointNames = [ `left_ankle`,`right_ankle`,`left_shoulder`,`right_should
  * @param {Pose|PoseByKeypoint} pose 
  * @returns {Pose|PoseByKeypoint}
  */
-export const sanityCheck = (pose, opts = {}) => {
-  const shouldersBelowFace = opts.shouldersBelowFace ?? true;
-  const hipBelowShoulders = opts.hipBelowShoulders ?? true;
-  const kneesBelowHip = opts.kneesBelowHip ?? true;
-  const anklesBelowKnees = opts.anklesBelowKnees ?? true;
+export const sanityCheck = (pose, options = {}) => {
+  const shouldersBelowFace = options.shouldersBelowFace ?? true;
+  const hipBelowShoulders = options.hipBelowShoulders ?? true;
+  const kneesBelowHip = options.kneesBelowHip ?? true;
+  const anklesBelowKnees = options.anklesBelowKnees ?? true;
   
   const isRaw = `keypoints` in pose;
  
@@ -33,11 +33,7 @@ export const sanityCheck = (pose, opts = {}) => {
    * @returns {Keypoint|undefined}
    */
   const getKp = (name) => {
-    if (isRaw) {
-      return pose.keypoints.find(kp => kp.name === name);
-    } else {
-      return pose[name];
-    }
+    return isRaw ? pose.keypoints.find(kp => kp.name === name) : pose[name];
   };
 
   // Reduce keypoint score by 90% if one of the checks fails
@@ -102,10 +98,10 @@ export const sanityCheck = (pose, opts = {}) => {
     //};
   } else {
     const pp = { ...pose };
-    keypointNames.forEach(name => {
+    for (const name of keypointNames) {
       //const kp = pp[name];
       //if (kp.score < scoreThreshold) delete pp[name];
-    });
+    }
     return pp;
   }
 
@@ -119,19 +115,19 @@ export const sanityCheck = (pose, opts = {}) => {
  */
 /**
  * Returns a function that processes a pose
- * @param {PoseProcessorOpts} opts
+ * @param {PoseProcessorOpts} options
  * @returns {PoseProcessor}
  */
-export const poseProcessor = (opts = {}) => {
-  const smoothingAmt = opts.smoothingAmt ?? 0.5;
-  const autoReset = opts.autoReset ?? false;
-  const sanityCheckOpts = opts.sanityChecks;
+export const poseProcessor = (options = {}) => {
+  const smoothingAmt = options.smoothingAmt ?? 0.5;
+  const autoReset = options.autoReset ?? false;
+  const sanityCheckOptions = options.sanityChecks;
   
   /** @type {Pose|PoseByKeypoint|undefined} */
-  let processed  = undefined;
+  let processed;
   
   /** @type {string|undefined} */
-  let poseId = undefined;
+  let poseId;
 
   /**
    * Process a pose
@@ -153,7 +149,7 @@ export const poseProcessor = (opts = {}) => {
     }
 
     // Sanity check pose & remove points below threshold
-    const p = sanityCheck(pose, sanityCheckOpts);
+    const p = sanityCheck(pose, sanityCheckOptions);
 
     // Smooth the first pose
     processed = smoothPose(smoothingAmt, processed, p);
@@ -174,15 +170,11 @@ export const poseProcessor = (opts = {}) => {
    * @returns Keypoint|undefined
    */
 export const getKeypoint = (pose, name, threshold = 0) => {
-  if (!pose) return undefined;
+  if (!pose) return;
   /** @type {Keypoint|undefined} */
   let kp;
-  if (`keypoints` in pose) {
-    kp = pose.keypoints.find(kp => kp.name === name);
-  } else {
-    kp = pose[name];
-  }
-  if (!kp) return undefined;
+  kp = `keypoints` in pose ? pose.keypoints.find(kp => kp.name === name) : pose[name];
+  if (!kp) return;
   if (kp && kp.score >= threshold) return kp;
 };
 
@@ -236,17 +228,17 @@ export const smoothPose = (amt, a, b) => {
   if (a === undefined && b === undefined) return;
   if (a === undefined) return b;
 
-  const keyFn = (kp) => kp.name ?? ``;
-  const reconcileFn = (kpA, kpB) => smoothKeypoint(amt, kpA, kpB);
+  const keyFunction = (kp) => kp.name ?? ``;
+  const reconcileFunction = (kpA, kpB) => smoothKeypoint(amt, kpA, kpB);
   
   // At startup might not have existing keypoints to compare against...
   let existingKeypoints = getKeypointList(a);
-  let newKeypoints = getKeypointList(b);
+  let keypointsInB = getKeypointList(b);
 
   // debugger;
   // Smooth, by merging old and new data with the reconcile function
   // which in this case does the averaging
-  const smoothed = /** @type {Keypoint[]} */(Arrays.mergeByKey(keyFn, reconcileFn, existingKeypoints, newKeypoints));
+  const smoothed = /** @type {Keypoint[]} */(Arrays.mergeByKey(keyFunction, reconcileFunction, existingKeypoints, keypointsInB));
 
   // Return a new pose with mutated keypoints
   if (`keypoints` in b) {
@@ -255,13 +247,13 @@ export const smoothPose = (amt, a, b) => {
       keypoints: smoothed
     };    
   } else {
-    let temp = {
+    let temporary = {
       ...b,
     };
     for (const kp of smoothed) {
-      if (kp.name) temp[kp.name] = kp;
+      if (kp.name) temporary[kp.name] = kp;
     } 
-    return temp;
+    return temporary;
   }
 
 };
@@ -307,10 +299,10 @@ export const absPoint = (point, bounds, horizontalMirror = false) => ({
 export const getLeftmost = (...points) => {
   let min = Number.MAX_SAFE_INTEGER;
   let minPoint;
-  for (let i=0;i<points.length;i++) {
-    if (points[i].x < min) {
-      min = points[i].x;
-      minPoint = points[i];
+  for (const point of points) {
+    if (point.x < min) {
+      min = point.x;
+      minPoint = point;
     }
   }
   return minPoint;
@@ -324,10 +316,10 @@ export const getLeftmost = (...points) => {
 export const getRightmost = (...points) => {
   let max = Number.MIN_SAFE_INTEGER;
   let maxPoint;
-  for (let i=0;i<points.length;i++) {
-    if (points[i].x > max) {
-      max = points[i].x;
-      maxPoint = points[i];
+  for (const point of points) {
+    if (point.x > max) {
+      max = point.x;
+      maxPoint = point;
     }
   }
   return maxPoint;
@@ -341,11 +333,7 @@ export const getRightmost = (...points) => {
  */
 export const getKeypointList = (pose) => {
   if (!pose) return [];
-  if (`keypoints` in pose) {
-    return pose.keypoints;
-  } else {
-    return keypointNames.map(name => pose[name]);
-  }
+  return `keypoints` in pose ? pose.keypoints : keypointNames.map(name => pose[name]);
 };
 
 /**
@@ -420,11 +408,11 @@ export const absPose = (p, bounds, horizontalMirror = false) => {
 
   if (`keypoints` in p) {
     // @ts-ignore
-    abs.keypoints = p.keypoints.map(absPoint);
+    abs.keypoints = p.keypoints.map(m => absPoint(m));
   } else {
-    keypointNames.forEach(name => {
+    for (const name of keypointNames) {
       abs[name] = absPoint(p[name]);
-    });
+    }
   }
   // @ts-ignore
   return abs;
@@ -433,131 +421,127 @@ export const absPose = (p, bounds, horizontalMirror = false) => {
 /**
  * Draw an absolutely-positioned pose
  * @param {Pose|PoseByKeypoint} p 
- * @param {CanvasRenderingContext2D} ctx 
- * @param {PoseDrawOpts} opts
+ * @param {CanvasRenderingContext2D} context 
+ * @param {PoseDrawOpts} options
  */
-export const debugDrawPose = (ctx, p, opts = {}) => {
-  const radius = opts.pointRadius ?? 10;
-  const threshold = opts.threshold ?? 0;
-  const fillStyle = opts.colour ?? `black`;
-  const lineWidth = opts.lineWidth ?? radius;
-  const labelKeypoints = opts.labelKeypoints ?? true;
+export const debugDrawPose = (context, p, options = {}) => {
+  const radius = options.pointRadius ?? 10;
+  const threshold = options.threshold ?? 0;
+  const fillStyle = options.colour ?? `black`;
+  const lineWidth = options.lineWidth ?? radius;
+  const labelKeypoints = options.labelKeypoints ?? true;
 
-  ctx.fillStyle = fillStyle;
-  ctx.textBaseline = `top`;
-  ctx.font = `12pt ${labelFont}`;
+  context.fillStyle = fillStyle;
+  context.textBaseline = `top`;
+  context.font = `12pt ${labelFont}`;
 
   // Draw each keypoint
   const keypoints = (`keypoints` in p) ? p.keypoints : keypointNames.map(n => /** @type {Keypoint} */(p[n]));
 
-  keypoints.forEach(kp => {
-    if (!kp) return;
-    if (kp.score === undefined || kp.score < threshold) return;
-    const pointOpts =  {
+  for (const kp of keypoints) {
+    if (!kp) continue;
+    if (kp.score === undefined || kp.score < threshold) continue;
+    const pointOptions =  {
       title: labelKeypoints ? kp.name : undefined,
       subTitle: Math.floor(kp.score * 100) + `%`,
       radius,
       lineWidth
     };
-    drawAbsPoint(ctx, kp, pointOpts);
-  });
+    drawAbsPoint(context, kp, pointOptions);
+  }
 
-  if (opts.connectKeypoints) {
+  if (options.connectKeypoints) {
     const m = `keypoints` in p ? poseByKeypoint(p) : p;
-    drawAbsKeypointLine(ctx, m, `right_hip`, `right_knee`, opts);
-    drawAbsKeypointLine(ctx, m, `left_hip`, `left_knee`, opts);
-    drawAbsKeypointLine(ctx, m, `right_elbow`, `right_wrist`, opts);
-    drawAbsKeypointLine(ctx, m, `left_elbow`, `left_wrist`, opts);
-    drawAbsKeypointLine(ctx, m, `left_knee`, `left_ankle`, opts);
-    drawAbsKeypointLine(ctx, m, `right_knee`, `right_ankle`, opts);
-    drawAbsKeypointLine(ctx, m, `right_shoulder`, `right_hip`, opts);
-    drawAbsKeypointLine(ctx, m, `left_shoulder`, `left_hip`, opts);
-    drawAbsKeypointLine(ctx, m, `left_shoulder`, `right_shoulder`, opts);
-    drawAbsKeypointLine(ctx, m, `right_shoulder`, `right_elbow`, opts);
-    drawAbsKeypointLine(ctx, m, `left_shoulder`, `left_elbow`, opts);
-    drawAbsKeypointLine(ctx, m, `left_hip`, `right_hip`, opts);
-    drawAbsKeypointLine(ctx, m, `left_eye`, `nose`, opts);
-    drawAbsKeypointLine(ctx, m, `right_eye`, `nose`, opts);
+    drawAbsKeypointLine(context, m, `right_hip`, `right_knee`, options);
+    drawAbsKeypointLine(context, m, `left_hip`, `left_knee`, options);
+    drawAbsKeypointLine(context, m, `right_elbow`, `right_wrist`, options);
+    drawAbsKeypointLine(context, m, `left_elbow`, `left_wrist`, options);
+    drawAbsKeypointLine(context, m, `left_knee`, `left_ankle`, options);
+    drawAbsKeypointLine(context, m, `right_knee`, `right_ankle`, options);
+    drawAbsKeypointLine(context, m, `right_shoulder`, `right_hip`, options);
+    drawAbsKeypointLine(context, m, `left_shoulder`, `left_hip`, options);
+    drawAbsKeypointLine(context, m, `left_shoulder`, `right_shoulder`, options);
+    drawAbsKeypointLine(context, m, `right_shoulder`, `right_elbow`, options);
+    drawAbsKeypointLine(context, m, `left_shoulder`, `left_elbow`, options);
+    drawAbsKeypointLine(context, m, `left_hip`, `right_hip`, options);
+    drawAbsKeypointLine(context, m, `left_eye`, `nose`, options);
+    drawAbsKeypointLine(context, m, `right_eye`, `nose`, options);
 
   }
 };
 
 /**
  * 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {PoseByKeypoint} pose 
  * @param {string} a 
  * @param {string} b 
- * @param {PoseDrawOpts} opts 
+ * @param {PoseDrawOpts} options 
  * @returns 
  */
-export const drawAbsKeypointLine = (ctx, pose, a, b, opts) => {
+export const drawAbsKeypointLine = (context, pose, a, b, options) => {
   const kpA = pose[a];
   const kpB = pose[b];
-  const lineWidth = opts.lineWidth ?? 10;
+  const lineWidth = options.lineWidth ?? 10;
 
   if (!kpA || !kpB) return;
-  if (opts.threshold) {
-    if (kpA.score < opts.threshold || kpB.score < opts.threshold) return;
-  }
+  if (options.threshold && (kpA.score < options.threshold || kpB.score < options.threshold)) return;
 
-  ctx.beginPath();
-  if (opts.colour) ctx.strokeStyle = opts.colour;
-  ctx.lineWidth = lineWidth;
-  ctx.moveTo(kpA.x,kpA.y);
-  ctx.lineTo(kpB.x, kpB.y);
-  ctx.stroke();
+  context.beginPath();
+  if (options.colour) context.strokeStyle = options.colour;
+  context.lineWidth = lineWidth;
+  context.moveTo(kpA.x,kpA.y);
+  context.lineTo(kpB.x, kpB.y);
+  context.stroke();
 
 };
 
 /**
  * Draws an absolutely-positioned point
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Points.Point} abs 
- * @param {KeypointDrawOpts} opts
+ * @param {KeypointDrawOpts} options
  */
-export const drawAbsPoint = (ctx, abs, opts = {}) => {
-  const radius = opts.radius ?? 10;
+export const drawAbsPoint = (context, abs, options = {}) => {
+  const radius = options.radius ?? 10;
   const textOffsetY = radius * 3;
 
   // Translate canvas to be centered on predicted object
-  ctx.save();
-  ctx.translate(abs.x, abs.y);
+  context.save();
+  context.translate(abs.x, abs.y);
 
   // Draw a circle
-  ctx.beginPath();
-  ctx.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
-  ctx.fill();
+  context.beginPath();
+  context.ellipse(0, 0, radius, radius, 0, 0, Math.PI * 2);
+  context.fill();
 
-  if (opts.title) {
+  if (options.title) {
   // Draw label for key point
-    const txtSize = drawCenteredText(opts.title, ctx, 0, textOffsetY);
+    const txtSize = drawCenteredText(options.title, context, 0, textOffsetY);
 
-    if (txtSize && opts.subTitle) {
+    if (txtSize && options.subTitle) {
       // Draw score
-      drawCenteredText(opts.subTitle, ctx, 0, textOffsetY + txtSize.fontBoundingBoxAscent + txtSize.fontBoundingBoxDescent);
+      drawCenteredText(options.subTitle, context, 0, textOffsetY + txtSize.fontBoundingBoxAscent + txtSize.fontBoundingBoxDescent);
     }
   
   }
   // Undo translate transform
-  ctx.restore();
+  context.restore();
 };
 /**
  * Draw text centered by taking into account its drawn size
- * @param {string|undefined} msg 
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {string|undefined} message 
+ * @param {CanvasRenderingContext2D} context 
  * @param {number} offsetX 
  * @param {number} offsetY 
  * @returns 
  */
-export const drawCenteredText = (msg, ctx, offsetX, offsetY) => {
-  if (!msg) return;
-  const x = offsetX ?? 0;
-  const y = offsetY ?? 0;
-  const txt = ctx.measureText(msg);
-  ctx.fillText(msg,
-    -(txt.width / 2) + x,
-    -((txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent) / 2) + y);
+export const drawCenteredText = (message, context, offsetX = 0, offsetY = 0) => {
+  if (!message) return;
+  const txt = context.measureText(message);
+  context.fillText(message,
+    -(txt.width / 2) + offsetX,
+    -((txt.fontBoundingBoxDescent + txt.fontBoundingBoxAscent) / 2) + offsetY);
   return txt;
 };
 
@@ -593,30 +577,30 @@ export const pointBalanceX = (a, b, c) => {
   // If we're missing any point, return undefined
   if (a === undefined || b === undefined || c === undefined) return;
 
-  const distToA = Points.distance(a, b);
+  const distributionToA = Points.distance(a, b);
 
   if (b.x < a.x) return 0;
   if (b.x > c.x) return 1;
 
   const total = Points.distance(a, c);
-  return distToA / total;
+  return distributionToA / total;
 };
 
 export const setup = () => {
   // If the floating source window is there, respond to clicking on the header
-  document.getElementById(`sourceSection`)?.addEventListener(`click`, evt => {
-    const hdr = /** @type HTMLElement */(document.getElementById(`sourceSection`));
+  document.querySelector(`#sourceSection`)?.addEventListener(`click`, event => {
+    const hdr = /** @type HTMLElement */(document.querySelector(`#sourceSection`));
     Dom.cycleCssClass(hdr, [ `s`, `m`, `l` ]);
   });
   
-  document.getElementById(`btnCloseFrame`)?.addEventListener(`click`, evt => {
-    document.getElementById(`sourceSection`)?.remove();
-    const el = evt.target;
-    if (el) /** @type {HTMLElement} */(el).remove(); // Remove button too
+  document.querySelector(`#btnCloseFrame`)?.addEventListener(`click`, event => {
+    document.querySelector(`#sourceSection`)?.remove();
+    const element = event.target;
+    if (element) /** @type {HTMLElement} */(element).remove(); // Remove button too
   });
 
-  document.getElementById(`lnkNewWindow`)?.addEventListener(`click`, evt => {
-    document.getElementById(`sourceSection`)?.remove();
+  document.querySelector(`#lnkNewWindow`)?.addEventListener(`click`, event => {
+    document.querySelector(`#sourceSection`)?.remove();
   });
 };
 
@@ -627,7 +611,7 @@ export const setup = () => {
  */
 export const mapKeypoints = (pose) => {
   const m = new Map();
-  pose.keypoints.forEach(kp => m.set(kp.name, kp));
+  for (const kp of pose.keypoints) m.set(kp.name, kp);
   return m;
 };
 
@@ -671,15 +655,30 @@ export const poseByKeypoint = (pose) => {
   };
 };
 
-export function setText(id, msg) {
-  const el = document.getElementById(id);
-  if (el) {
-    if (el.innerText !== msg) {
-      el.innerText = msg;
-    }
+/**
+ * Set .textContent of an element
+ * @param {string} id 
+ * @param {string} message 
+ */
+export function setText(id, message) {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element && element.textContent !== message) {
+    element.textContent = message;
   }
 }
 
+
+/**
+ * Set .innerHTML of an element
+ * @param {*} id 
+ * @param {*} message 
+ */
+export function setHtml(id, message) {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element && element.innerHTML !== message) {
+    element.innerHTML = message;
+  }
+}
 
 /**
  * @typedef { import("../common-vision-source").Keypoint } Keypoint

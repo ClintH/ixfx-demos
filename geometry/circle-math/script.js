@@ -33,52 +33,52 @@ const tick = () => {
 
 /**
  * Draw a circle
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Circles.CirclePositioned} circle ö
  * @param {string} strokeStyle
  * @param {number} lineWidth
  */
-const drawCircle = (ctx, circle, strokeStyle = `white`, lineWidth = 20, fillStyle = ``) => {
+const drawCircle = (context, circle, strokeStyle = `white`, lineWidth = 20, fillStyle = ``) => {
   const absPos = Points.multiply(circle, state.scaleBy, state.scaleBy);
   const radius = circle.radius * state.scaleBy;
 
-  ctx.save();
-  ctx.translate(absPos.x, absPos.y);
+  context.save();
+  context.translate(absPos.x, absPos.y);
 
-  ctx.beginPath();
-  ctx.strokeStyle = strokeStyle;
-  ctx.lineWidth = lineWidth;
-  ctx.arc(0, 0, radius, 0, Math.PI*2);
-  ctx.stroke();
+  context.beginPath();
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = lineWidth;
+  context.arc(0, 0, radius, 0, Math.PI*2);
+  context.stroke();
 
   if (fillStyle.length > 0) {
-    ctx.fillStyle = fillStyle;
-    ctx.fill();
+    context.fillStyle = fillStyle;
+    context.fill();
   }
-  ctx.closePath();
+  context.closePath();
 
-  ctx.restore();
+  context.restore();
 };
 
 const drawState = () => {
   const { nearest } = state;
 
-  const canvasEl = /** @type {HTMLCanvasElement|null} */(document.getElementById(`canvas`));
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
 
   // Clear
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
   
   // Draw circle
-  drawCircle(ctx, settings.circle);
+  drawCircle(context, settings.circle);
 
   // Draw pointer
-  drawCircle(ctx, { ...state.pointer, radius: 0.01 }, `yellow`, 5, `yellow`);
+  drawCircle(context, { ...state.pointer, radius: 0.01 }, `yellow`, 5, `yellow`);
 
   // Draw nearest
   if (nearest) {
-    drawCircle(ctx, { ...nearest, radius: 0.01 }, `black`, 3, `black`);
+    drawCircle(context, { ...nearest, radius: 0.01 }, `black`, 3, `black`);
   }
 };
 
@@ -87,11 +87,11 @@ const drawState = () => {
  */
 const setup = () => {
   // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({
-      bounds: args.bounds,
-      scaleBy: Math.min(args.bounds.width, args.bounds.height)
+      bounds: arguments_.bounds,
+      scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
   });
 
@@ -102,10 +102,10 @@ const setup = () => {
   };
   loop();
 
-  document.addEventListener(`pointermove`, evt => {
-    const rel = Points.divide(evt, state.scaleBy, state.scaleBy);
+  document.addEventListener(`pointermove`, event => {
+    const pointer = Points.divide(event, state.scaleBy, state.scaleBy);
     updateState({
-      pointer: rel
+      pointer: pointer
     });
   });
 };

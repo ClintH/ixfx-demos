@@ -15,9 +15,9 @@ const setup = () => {
 };
 setup();
 
-function setText(id, text) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (el.innerText === text) return;
-  el.innerText = text;
+function setText(id, message) {
+  const element =  /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (element && element.textContent !== message) {
+    element.textContent = message;
+  }
 }

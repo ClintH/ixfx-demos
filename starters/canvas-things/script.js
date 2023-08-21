@@ -20,7 +20,7 @@ const settings = Object.freeze({
   addIntervalMs: 1000,
   // How much to let thing fall off edge before resetting it
   // This is needed or things can be reset too early
-  edgeMax: 1.10,
+  edgeMax: 1.1,
   // Value to reset thing to if it goes past max
   edgeMin: -0.1,
   xSpeed: 0.01,
@@ -107,34 +107,34 @@ const updateThing = (t) => {
 
 /**
  * Draws a single thing
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {Thing} t 
  */
-const drawThing = (ctx, t) => {
+const drawThing = (context, t) => {
   const { bounds } = state;
 
   // Save state of drawing context before we translate
-  ctx.save();
+  context.save();
 
   // Translate, using absolute version of thing's x & y to be the origin
-  ctx.translate(t.x * bounds.width, t.y * bounds.height);
+  context.translate(t.x * bounds.width, t.y * bounds.height);
 
   // This flips drawing operations so our emoji are pointing the right way
-  ctx.scale(-1, 1);
+  context.scale(-1, 1);
 
   // Draw the 'msg' property of thing
-  ctx.fillStyle = `black`;
-  ctx.font = `${t.scale * 12}em Futura,Helvetica,Segoe,Arial`;
-  ctx.textAlign = `center`;
-  ctx.textBaseline = `top`;
-  ctx.shadowBlur = 1;
-  ctx.shadowColor = `gray`;
-  ctx.shadowOffsetX = 5;
-  ctx.shadowOffsetY = 5;
-  ctx.fillText(t.msg, 0, 0);
+  context.fillStyle = `black`;
+  context.font = `${t.scale * 12}em Futura,Helvetica,Segoe,Arial`;
+  context.textAlign = `center`;
+  context.textBaseline = `top`;
+  context.shadowBlur = 1;
+  context.shadowColor = `gray`;
+  context.shadowOffsetX = 5;
+  context.shadowOffsetY = 5;
+  context.fillText(t.msg, 0, 0);
 
   // Undo the translation
-  ctx.restore();
+  context.restore();
 };
 
 // Update state of world
@@ -155,26 +155,26 @@ const useState = () => {
   const { things } = state;
 
   // Get drawing context, or exit if element is missing
-  const ctx = canvasEl?.getContext(`2d`);
-  if (ctx === undefined || ctx === null) return;
+  const context = canvasEl?.getContext(`2d`);
+  if (context === undefined || context === null) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
   // Draw things
-  things.forEach(t => drawThing(ctx, t));
+  for (const t of things) drawThing(context, t);
 
 };
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
   //ctx.fillStyle = `orange`;
@@ -193,9 +193,9 @@ const setup = () => {
 
   // Keep our primary canvas full size
   if (canvasEl) {
-    Dom.fullSizeCanvas(canvasEl, args => {
+    Dom.fullSizeCanvas(canvasEl, arguments_ => {
       updateState({
-        bounds: args.bounds
+        bounds: arguments_.bounds
       });
     });
   }

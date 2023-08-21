@@ -36,35 +36,35 @@ const addAverage = (absX, absY) => {
 };
 
 const useState = () => {
-  const thingEl = document.getElementById(`thing`);
-  moveEl(thingEl);
+  const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
+  moveElement(thingElement);
 };
 /**
  * Updates position of element based on
  * computed average
- * @param {HTMLElement|null} thingEl;
+ * @param {HTMLElement|null} thingElement;
  */
-const moveEl = (thingEl) => {
-  if (!thingEl) return;
+const moveElement = (thingElement) => {
+  if (!thingElement) return;
   const { avg } = state;
 
   // Map x,y to absolute pos
   const abs = Points.multiply(avg, window.innerWidth, window.innerHeight);
 
   // We want to position by its middle, not the top-left
-  const thingSize = thingEl.getBoundingClientRect();
+  const thingSize = thingElement.getBoundingClientRect();
   const pt = Points.subtract(abs, thingSize.width / 2, thingSize.height / 2);
 
   // Move thing
-  thingEl.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
+  thingElement.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
 };
 
 const setup = () => {
-  document.addEventListener(`pointermove`, evt => {
+  document.addEventListener(`pointermove`, event => {
     updateState({
       pointer: {
-        x: evt.clientX,
-        y: evt.clientY
+        x: event.clientX,
+        y: event.clientY
       }
     });
   });

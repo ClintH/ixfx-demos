@@ -33,11 +33,10 @@ const useState = () => {
 };
 
 const setHtml = (id, value) => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = value;
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  element.innerHTML = value;
 };
-
 
 const setup = () => {
   const { script } = settings;
@@ -49,15 +48,15 @@ const setup = () => {
   const connect = async () => {
     try {
       // Filter by name, if defined in settings
-      const opts = settings.device.length > 0 ? { name: settings.device } : {};
+      const options = settings.device.length > 0 ? { name: settings.device } : {};
 
       // Connect to Puck
-      const p = await Espruino.puck(opts);
+      const p = await Espruino.puck(options);
       console.log(`Connected`);
-      const onData = (evt) => {
+      const onData = (event) => {
         // Don't even try to parse if it doesn't
         // look like JSON
-        const data = evt.data.trim(); // Remove line breaks etc
+        const data = event.data.trim(); // Remove line breaks etc
         if (!data.startsWith(`{`)) return;
         if (!data.endsWith(`}`)) return;
 
@@ -69,13 +68,13 @@ const setup = () => {
             gyro: d.gyro
           });
           useState();
-        } catch (ex) {
-          console.warn(ex);
+        } catch (error) {
+          console.warn(error);
         }
       };
       // Listen for events
-      p.addEventListener(`change`, evt => {
-        console.log(`${evt.priorState} -> ${evt.newState}`);
+      p.addEventListener(`change`, event => {
+        console.log(`${event.priorState} -> ${event.newState}`);
       });
 
 
@@ -86,21 +85,21 @@ const setup = () => {
         p.addEventListener(`data`, onData);
       },  1000);
 
-    } catch (ex) {
-      console.error(ex);
+    } catch (error) {
+      console.error(error);
     }
   };
 
-  document.getElementById(`btnConnect`)?.addEventListener(`click`, connect);
+  document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
 };
 setup();
 
 
-function setCssDisplay(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = value;
-}
+const setCssDisplay = (id, value) => {
+  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
+  if (!element) return;
+  element.style.display = value;
+};
 
 /**
  * Update state

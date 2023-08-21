@@ -1,18 +1,18 @@
 import { clamp } from '../../ixfx/data.js';
 import { continuously } from '../../ixfx/flow.js';
 import { IterableAsync } from  '../../ixfx/util.js';
-import { adsr, defaultAdsrOpts, adsrIterable } from '../../ixfx/modulation.js';
+import { adsr, defaultAdsrOpts as defaultAdsrOptions, adsrIterable } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
   envOpts: {
-    ...defaultAdsrOpts(),
+    ...defaultAdsrOptions(),
     attackBend: 1,
     attackDuration: 1500,
     releaseLevel: 0,
     sustainLevel: 1
   },
-  sliderEl: /** @type {HTMLElement} */(document.getElementById(`slider`))
+  sliderEl: /** @type {HTMLElement} */(document.querySelector(`#slider`))
 });
 
 let state = Object.freeze({
@@ -29,29 +29,29 @@ const useState = () => {
   const { value } = state;
 
   // Get HTML elements
-  const fillEl = /** @type HTMLElement */(document.querySelector(`#slider>.fill`));
-  if (!fillEl) return;
+  const fillElement = /** @type HTMLElement */(document.querySelector(`#slider>.fill`));
+  if (!fillElement) return;
 
   // Set height
-  fillEl.style.height = `10px`;
+  fillElement.style.height = `10px`;
 
   // Get size of level, slider & computed style of slider
-  const fillBounds = fillEl.getBoundingClientRect();
+  const fillBounds = fillElement.getBoundingClientRect();
   const sliderBounds = sliderEl.getBoundingClientRect();
   const sliderStyle = getComputedStyle(sliderEl);
 
   // Usable height is slider minus padding and size of level
-  const usableHeight = sliderBounds.height - fillBounds.height - (parseFloat(sliderStyle.padding) * 3);
+  const usableHeight = sliderBounds.height - fillBounds.height - (Number.parseFloat(sliderStyle.padding) * 3);
 
   // Position by center of level indicator and current value
-  fillEl.style.top = parseFloat(sliderStyle.padding) + ((usableHeight*value) - fillBounds.height/2) + `px`;
+  fillElement.style.top = Number.parseFloat(sliderStyle.padding) + ((usableHeight*value) - fillBounds.height/2) + `px`;
 };
 
 /**
  * Handles 'pointerup' event on #slider
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} event 
  */
-const onPointerUp = async (evt) => {
+const onPointerUp = async (event) => {
   const { envOpts,  sliderEl, sampleRateMs } = settings;
   const { abortController } = state;
 
@@ -59,7 +59,7 @@ const onPointerUp = async (evt) => {
   abortController.abort(`onPointerUp`);
   
   // Get relative position based on click within element
-  const target = relativePosition(sliderEl, evt).y;
+  const target = relativePosition(sliderEl, event).y;
 
   // Update target based on relative y
   updateState({
@@ -68,7 +68,7 @@ const onPointerUp = async (evt) => {
   });
 
   // Options for adsrIterable
-  const opts = {
+  const options = {
     env: envOpts, 
     sampleRateMs, 
     signal: state.abortController.signal
@@ -76,7 +76,7 @@ const onPointerUp = async (evt) => {
 
   try {
     // Async loop through values of envelope over time
-    for await (const v of adsrIterable(opts)) {
+    for await (const v of adsrIterable(options)) {
       // Modulate
       const vv = v * target;
 
@@ -88,7 +88,7 @@ const onPointerUp = async (evt) => {
       // Visual refresh
       useState();
     }
-  } catch (ex) {
+  } catch {
     // Ignore errors - this can happen when we abort
   }
 };
@@ -112,15 +112,15 @@ function updateState (s) {
 
 /**
  * Returns a position relative to size of element
- * @param {PointerEvent} evt 
- * @param {HTMLElement} el 
+ * @param {PointerEvent} event 
+ * @param {HTMLElement} element 
  */
-function relativePosition(el, evt)  {
-  const bounds = el.getBoundingClientRect();
-  const s = getComputedStyle(el);
-  const padding = parseFloat(s.padding) * 2;
+function relativePosition(element, event)  {
+  const bounds = element.getBoundingClientRect();
+  const s = getComputedStyle(element);
+  const padding = Number.parseFloat(s.padding) * 2;
   return {
-    x: clamp(evt.offsetX / (bounds.width - padding)),
-    y: clamp(evt.offsetY / (bounds.height - padding))
+    x: clamp(event.offsetX / (bounds.width - padding)),
+    y: clamp(event.offsetY / (bounds.height - padding))
   };
 }

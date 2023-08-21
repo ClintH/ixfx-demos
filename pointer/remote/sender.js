@@ -7,18 +7,18 @@ const settings = Object.freeze({
 });
 
 // Called when there is a pointermove event
-const onPointerMove = (evt) => {
-  evt.preventDefault();
+const onPointerMove = (event) => {
+  event.preventDefault();
 
   const { remote } = settings;
   // Data to broadcast
   const d = {
-    x: evt.x / window.innerWidth,
-    y: evt.y / window.innerHeight,
-    pointerId: evt.pointerId,
-    movementX: evt.movementX / window.innerWidth,
-    movementY: evt.movementY /  window.innerHeight,
-    pressure: evt.pressure
+    x: event.x / window.innerWidth,
+    y: event.y / window.innerHeight,
+    pointerId: event.pointerId,
+    movementX: event.movementX / window.innerWidth,
+    movementY: event.movementY /  window.innerHeight,
+    pressure: event.pressure
   };
   remote.broadcast(d);
 };
@@ -28,8 +28,8 @@ const setup = () => {
   document.addEventListener(`pointermove`, onPointerMove);
   
   // Prevent zoom gestures
-  document.addEventListener(`wheel`, evt => {
-    evt.preventDefault();
+  document.addEventListener(`wheel`, event => {
+    event.preventDefault();
   }, { passive:false });
 
 };

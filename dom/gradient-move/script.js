@@ -44,7 +44,7 @@ const setGradient = () => {
   // Convert input gradient settings
   // eg from [1, `blue`] to `blue 100%`
   const hues = gradient.map(g => {
-    const stop = g[0] * 100.0;
+    const stop = g[0] * 100;
     const colour = g[1];
     return `${colour} ${stop.toString()}%`;
   });
@@ -68,18 +68,18 @@ const setGradient = () => {
 
 // Setup
 const setup = () => {
-  document.addEventListener(`pointermove`, evt => {
+  document.addEventListener(`pointermove`, event => {
     // Transform screen coordinate to relative coordinate
-    const relPointer = Points.normaliseByRect(
-      { x: evt.clientX, y: evt.clientY },
+    const pointerRelative = Points.normaliseByRect(
+      { x: event.clientX, y: event.clientY },
       window.innerWidth,
       window.innerHeight);
 
     // Calculate angle from center
-    const angleRadians = Points.angle(relPointer, { x: 0.5, y: 0.5 });
+    const angleRadians = Points.angle(pointerRelative, { x: 0.5, y: 0.5 });
 
     updateState({
-      pointer: relPointer,
+      pointer: pointerRelative,
       angleRadians
     });
 

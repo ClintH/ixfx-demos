@@ -8,10 +8,10 @@ import { pointerVisualise } from '../../ixfx/dom.js';
 pointerVisualise(document.body);
 
 const setup = () => {
-  document.addEventListener(`pointermove`, ev => {
-    const pt = { x: ev.x, y: ev.y };
+  document.addEventListener(`pointermove`, event => {
+    const pt = { x: event.x, y: event.y };
     // Do something with point...
-    ev.preventDefault();
+    event.preventDefault();
   });
 };
 setup();

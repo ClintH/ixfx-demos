@@ -10,7 +10,7 @@ const settings = Object.freeze({
 let state = Object.freeze({
   /** 
    * Polar points
-   * @type {{angleRadian:number, distance:number}[]}
+   * @type {Polar.Coord[]}
    * */
   points: []
 });
@@ -23,13 +23,13 @@ const useState = () => {
     y: window.innerHeight/2
   };
 
-  points.forEach((pt,index) => {
-    const el = document.getElementById(`pt-${index}`);
-    if (el === null) return;
+  for (const [index,pt] of points.entries()) {
+    const element = document.querySelector(`#pt-${index}`);
+    if (element === null) continue;
     const absPolar = Polar.multiply(pt, scaleBy());
     const absPt = Polar.toCartesian(absPolar, origin);
-    positionElementByAbs(el, absPt);
-  });
+    positionElementByAbs(element, absPt);
+  }
 };
 
 const setup = () => {
@@ -40,7 +40,7 @@ const setup = () => {
   const points = [];
   let angle = 0;
 
-  for (let i=0;i<totalPoints;i++) {
+  for (let index=0;index<totalPoints;index++) {
     // Create polar coordinate for this point
     points.push({
       distance: 0.3,
@@ -49,10 +49,10 @@ const setup = () => {
     angle += angleSteps;
 
     // Create HTML element for this # point
-    const el = document.createElement(`DIV`);
-    el.id = `pt-${i}`;
-    el.classList.add(`pt`);
-    document.body.append(el);
+    const element = document.createElement(`DIV`);
+    element.id = `pt-${index}`;
+    element.classList.add(`pt`);
+    document.body.append(element);
   }
   saveState({ points });
 };
@@ -86,8 +86,8 @@ function scaleBy() {
  * @param el {HTMLElement}
  * @param pos {{x:number, y:number}}
  */
-function positionElementByAbs(el, pos) {
-  const b = el.getBoundingClientRect();
+function positionElementByAbs(element, pos) {
+  const b = element.getBoundingClientRect();
   pos = Points.subtract(pos, b.width / 2, b.height / 2);
-  el.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+  element.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
 }

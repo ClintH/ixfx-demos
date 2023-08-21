@@ -23,92 +23,102 @@ let state = Object.freeze({
 
 /**
  * Key is bring pressed
- * @param {KeyboardEvent} evt 
+ * @param {KeyboardEvent} event 
  * @returns 
  */
-const onKeydown = (evt) => {
-  const hintEl = document.getElementById(`hint`);
-  if (!hintEl) return;
+const onKeydown = (event) => {
+  const hintElement = document.querySelector(`#hint`);
+  if (!hintElement) return;
 
   // Hide hint box after a key event
-  hintEl.classList.add(`hidden`);
+  hintElement.classList.add(`hidden`);
 
-  switch (evt.code) {
-  case `ArrowUp`:
+  switch (event.code) {
+  case `ArrowUp`: {
     updateState({ up:true });
     break;
-  case `ArrowDown`:
+  }
+  case `ArrowDown`: {
     updateState({ down:true });
     break;
-  case `ArrowLeft`:
+  }
+  case `ArrowLeft`: {
     updateState({ left:true });
     break;
-  case `ArrowRight`:
+  }
+  case `ArrowRight`: {
     updateState({ right:true });
     break;
-  default:
-    logKeyEvent(evt, `keydown`);
+  }
+  default: {
+    logKeyEvent(event, `keydown`);
     return;
+  }
   }
   useState();
 };
 
 const useState = () => {
-  const thingEl = document.getElementById(`thing`);
-  if (!thingEl) return;
+  const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
+  if (!thingElement) return;
 
   // 1 for right, -1 for left, otherwise 0
   let x = state.right ? 1 :
-    state.left ? -1 : 0;
+    (state.left ? -1 : 0);
 
   // 1 for down, -1 for up, otherwise 0
   let y = state.down ? 1 :
-    state.up ? -1 : 0;
+    (state.up ? -1 : 0);
 
-  moveEl(thingEl, { x, y });
+  moveElement(thingElement, { x, y });
 };
 /**
  * Move element by a given x & y
- * @param {HTMLElement} el 
+ * @param {HTMLElement} element
  * @param {{x:number,y:number}} vector 
  */
-const moveEl = (el, vector) => {
+const moveElement = (element, vector) => {
   const { pixelSteps } = settings;
   const xPx = vector.x * pixelSteps;
   const yPx = vector.y * pixelSteps;
 
-  const trans = getTranslation(el);
-  const newTrans = Points.sum(trans, xPx, yPx);
+  const trans = getTranslation(element);
+  const transResult = Points.sum(trans, xPx, yPx);
 
-  el.style.transform = `translate(${newTrans.x}px, ${newTrans.y}px)`;
+  element.style.transform = `translate(${transResult.x}px, ${transResult.y}px)`;
 };
 
 /**
  * Key is released
- * @param {KeyboardEvent} evt 
+ * @param {KeyboardEvent} event 
  */
-const onKeyup = (evt) => {
-  switch (evt.code) {
-  case `ArrowUp`:
+const onKeyup = (event) => {
+  switch (event.code) {
+  case `ArrowUp`: {
     updateState({ up:false });
     break;
-  case `ArrowDown`:
+  }
+  case `ArrowDown`: {
     updateState({ down:false });
     break;
-  case `ArrowLeft`:
+  }
+  case `ArrowLeft`: {
     updateState({ left:false });
     break;
-  case `ArrowRight`:
+  }
+  case `ArrowRight`: {
     updateState({ right:false });
     break;
-  default:
-    logKeyEvent(evt, `keydown`);
+  }
+  default: {
+    logKeyEvent(event, `keydown`);
+  }
   }
   useState();
 };
 
 // Display key event info to console
-const logKeyEvent = (evt, prefix = `key`) => console.log(`${prefix} code: ${evt.code} key: ${evt.key} alt: ${evt.altKey} ctrl: ${evt.ctrlKey} meta: ${evt.metaKey} shift: ${evt.shiftKey}`);
+const logKeyEvent = (event, prefix = `key`) => console.log(`${prefix} code: ${event.code} key: ${event.key} alt: ${event.altKey} ctrl: ${event.ctrlKey} meta: ${event.metaKey} shift: ${event.shiftKey}`);
 
 const setup = () => {
   // Listen for keydown/keyup

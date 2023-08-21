@@ -72,15 +72,15 @@ const drawState = () => {
   const { circle, ticks } = state;
 
   /** @type HTMLCanvasElement|null */
-  const canvasEl = document.querySelector(`#canvas`);
-  const ctx = canvasEl?.getContext(`2d`);
-  if (!ctx || !canvasEl) return;
+  const canvasElement = document.querySelector(`#canvas`);
+  const context = canvasElement?.getContext(`2d`);
+  if (!context || !canvasElement) return;
 
   // Clear canvas
-  clear(ctx);
+  clear(context);
 
   // Draw
-  drawLabelledCircle(ctx, 
+  drawLabelledCircle(context, 
     circle, 
     circleColour, 
     ticks.toString(),
@@ -89,21 +89,21 @@ const drawState = () => {
 
 /**
  * Clears canvas
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  */
-const clear = (ctx) => {
+const clear = (context) => {
   const { width, height } = state.bounds;
 
   // Make background transparent
-  ctx.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   // Clear with a colour
-  //ctx.fillStyle = `orange`;
-  //ctx.fillRect(0, 0, width, height);
+  //context.fillStyle = `orange`;
+  //context.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //ctx.fillRect(0, 0, width, height);
+  //context.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
+  //context.fillRect(0, 0, width, height);
 };
 
 /**
@@ -112,11 +112,11 @@ const clear = (ctx) => {
 const setup = () => {
   const { tickLoopMs } = settings;
 
-  Dom.fullSizeCanvas(`#canvas`, args => {
+  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
     updateState({ 
-      bounds: args.bounds,
-      scaleBy: Math.min(args.bounds.width, args.bounds.height)
+      bounds: arguments_.bounds,
+      scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
   });
 
@@ -150,10 +150,10 @@ function updateState (s) {
 
 /**
  * Draws a circle with optional text
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number, radius:number}} circle 
  */
-function drawLabelledCircle(ctx, circle, fillStyle = `black`, msg = ``, textFillStyle = `white`)  {
+function drawLabelledCircle(context, circle, fillStyle = `black`, message = ``, textFillStyle = `white`)  {
   const { scaleBy } = state;
 
   // Convert relative radius to absolute
@@ -163,19 +163,19 @@ function drawLabelledCircle(ctx, circle, fillStyle = `black`, msg = ``, textFill
   const abs = Points.multiply(circle, state.bounds);
 
   // Translate so 0,0 is the center of circle
-  ctx.save();
-  ctx.translate(abs.x, abs.y);
+  context.save();
+  context.translate(abs.x, abs.y);
   
   // Fill a circle
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fillStyle = fillStyle;
-  ctx.fill();
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fillStyle = fillStyle;
+  context.fill();
 
-  if (msg.length) {
-    ctx.fillStyle = textFillStyle;
-    ctx.textAlign = `center`;
-    ctx.fillText(msg, 0, 0);
+  if (message.length > 0) {
+    context.fillStyle = textFillStyle;
+    context.textAlign = `center`;
+    context.fillText(message, 0, 0);
   }
-  ctx.restore();
+  context.restore();
 }
