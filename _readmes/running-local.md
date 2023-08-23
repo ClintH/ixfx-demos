@@ -20,8 +20,8 @@ Each sketch is contained in its own folder. Once you're ready to modify, duplica
 
 _Note:_ 'Five-Server (Live-Server)' is a fork of 'Live-Server', don't install 'Live-Server'.
 
-1. Open up the provided VS Code workspace (`ixfx-demos.code-workspace`)
-2. If you have the [Five-Server](https://marketplace.visualstudio.com/items?itemName=yandeu.five-server) extension installed, start it (via the `Go Live` button in the VS Code toolbar, for example)
+1. Install the [Five-Server](https://marketplace.visualstudio.com/items?itemName=yandeu.five-server) extension
+2. Start it via the `Go Live` button in the VS Code toolbar
 3. Test that the demos work from your local copy
 
 ## Paths

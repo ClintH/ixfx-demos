@@ -1,17 +1,18 @@
-# Accessing remotely
+# Accessing remotely via ngrok
 
 You may want to develop your sketches on a laptop, and have your Five Server running there, but _run_ the sketches in a browser on a different device, most obviously your phone.
 
 In this guide, we'll use [ngrok](https://ngrok.com) to help us 1. access sketches over the internet and 2. load sketches over HTTPS.
 
-As an alternative, you can host and edit your code online. [Read more](./WEBSOCKETS.md).
+As an alternative, you can host and edit your code online. [Read more](./websockets.md).
 
 Contents
-* [URLs and addressing](#urls-and-addressing)
-* [HTTPS](#https)
-* [Tunnelling service](#tunneling-service-ngrok)
-* [Setting up ngrok](#setting-up-ngrok)
-* [Using](#using-ngrok)
+- [Accessing remotely via ngrok](#accessing-remotely-via-ngrok)
+- [URLs and addressing](#urls-and-addressing)
+- [HTTPS](#https)
+- [Tunneling service: Ngrok](#tunneling-service-ngrok)
+- [Setting up ngrok](#setting-up-ngrok)
+- [Using ngrok](#using-ngrok)
 
 # URLs and addressing
 
@@ -53,13 +54,13 @@ Ngrok is a server that runs on your computer and connects to whatever service yo
 
 Once booted up, ngrok allows your server to be accessed on the internet. So a browser connects to ngrok which in turn forwards the request to your local Five Server.
 
-Although it sounds complicated, once it is setup, it's just a matter of starting/stopping ngrok when needed and everything else happens magically.
-
 # Setting up ngrok
 
 1. Go to [ngrok.com](https://ngrok.com) and create an account or sign in with an existing account (eg using GitHub)
-2. Install [ngrok for VSCode](https://marketplace.visualstudio.com/items?itemName=philnash.ngrok-for-vscode) extension
-3. Open the VSC command palette (shift+cmd+p) and type 'ngrok edit', and choose 'ngrok edit ngrok settings'. A new, blank file ('ngrok.yml') will be opened. Paste in the following:
+2. Install [ngrok following the instructions](https://dashboard.ngrok.com/get-started/setup)
+3. Make a note of the 'authtoken' that is listed in step 2 of the instructions (eg: '12PMWdaefa3234...')
+4. Install [ngrok for VSCode](https://marketplace.visualstudio.com/items?itemName=philnash.ngrok-for-vscode) extension
+5. Edit `ngrok.yml` which is in the same directory as this file, and paste in your token. When done, it should look something like this:
 
 ```yaml
 authtoken: 12SYCNNGx6KpoAtafEHE_1xKUN52C6ZrmJP5RZoMZK
@@ -69,26 +70,22 @@ tunnels:
     addr: 5555
 ```
 
-4. Back in your [ngrok setup page](https://dashboard.ngrok.com/get-started/setup), under _2. Connect your account_, you'll see something about an _auth token_. Copy the auth token and replace the example given above. Make sure when you copy and paste you remove the 'ngrok config add-authtoken' instructions. At the end, your 'ngrok.yml' file should look roughly like the above example, but with your auth token
-5. Save this file and close it
+(...but obviously with your authtoken)
 
 Now ngrok should be ready to use.
 
 # Using ngrok
 
-When starting ngrok, you have the option to open a QR code, which is handy for quickly getting opening the URL on a mobile device. Otherwise, you'll need to copy the generated URL and get it to your device with some other means.
+To start ngrok, open a terminal (via VS Code you can go _View > Terminal_) and run:
+```
+ngrok start --all --config ./ngrok.yml
+```
 
-Remember, to access your sketches remotely, you have to access them via the generated ngrok URL, eg 'https://abfe-4-186-119-23.ngrok.io'. The URL you are used to using when running code on the same machine won't properly work because it won't be loaded over HTTPS.
+Tip: if you have Node.js installed, you can also use `npm run ngrok` 
 
-It's a good idea to stop ngrok when you are not using it, because it does expose your Five Server to the world (although someone would have to guess the URL to find it)
+When it starts, should see _Account_ with your account name. You'll also see a _Forwarding_ URL.
 
-## Starting
+Remember, to access your sketches remotely, you have to access them via the generated ngrok URL, eg 'https://abfe-4-186-119-23.ngrok-free.app'.
 
-1. Start Five Server (via the 'Go Live' toolbar button) if you haven't already
-2. Open the command palette (shift+cmd+p), and type 'ngrok start'. If you just hit enter, it will use the 'ixfx' preset we made in the ngrok settings file. This assumes your server is running on port 5555.
+It's a good idea to stop ngrok when you are not using it, because it does expose your Five Server to the world (although someone would have to guess the URL to find it). To stop it, click in the terminal, and press CMD (or CTRL) and C.
 
-## Stopping
-
-1. Open the command palette (shift+cmd+p), type 'ngrok stop' and hit ENTER
-2. Stop Five Server if you want as well (click the URL in your VSC toolbar)
-Ngrok should also close when VS Code exits.

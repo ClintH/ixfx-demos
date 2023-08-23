@@ -253,7 +253,7 @@ state =  { ...state, clicks: state.clicks + 1 };
 
 In this line, we copy existing properties of `state`, and overwrite with a new value for `clicks`.
 
-You'll also note a [type annotation](./TYPING.md) for `magicNumber`. This tells your editor that this property should be a number type. Without this annotation, your editor will believe that `magicNumber` can only ever be 0.
+You'll also note a [type annotation](./_readmes/typing.md) for `magicNumber`. This tells your editor that this property should be a number type. Without this annotation, your editor will believe that `magicNumber` can only ever be 0.
 
 
 ## `updateState()`
@@ -374,4 +374,4 @@ function updateState (s) {
 
 You'll note the use of [type annotations](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) throughout the sketches. This is a lightweight way to give hints to your code editor so it in turn can give helpful warnings and better inline documentation. These comments can be deleted, and they have no role during the running of code.
 
-See [TYPING.md](./TYPING.md) to read more.
+See [typing.md](./_readmes/typing.md) to read more.

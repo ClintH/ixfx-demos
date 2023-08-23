@@ -10,7 +10,7 @@ import cpy from 'cpy';
 import replace from 'replace-in-file';
 import { deleteSync } from 'del';
 
-const dest = `../ixfx-demos-light/`;
+const destination = `../ixfx-demos-light/`;
 
 // Delete previous
 deleteSync([ `../ixfx-demos-light/*`, `!.git` ], { force: true });
@@ -22,7 +22,7 @@ await cpy([
   `!.git/**`,
   `!ixfx/**`,
   `!make-light.js`
-], dest);
+], destination);
 
 // Re-write imports
 const replaceOptions = {

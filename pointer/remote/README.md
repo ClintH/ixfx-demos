@@ -6,7 +6,7 @@ To use, open the 'sender' sketch on the device to send pointer event, and 'recei
 
 It's also possible to test by opening the sketches in different tabs.
 
-To access across different devices, see [WEBSOCKETS](../../WEBSOCKETS.md) for more info.
+To access across different devices, see [_readmes/websockets.md](../../_readmes/websockets.md) for more info.
 
 Read more
 * [remote](https://github.com/clinth/remote) - a library for simplifying cross-device interaction

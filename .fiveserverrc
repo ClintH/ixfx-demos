@@ -1,6 +1,8 @@
 {
   "port": 5555,
   "open": "index.html",
-  "watch": ["**/*"],
+  "watch": [
+    "**/*"
+  ],
   "navigate": false
 }

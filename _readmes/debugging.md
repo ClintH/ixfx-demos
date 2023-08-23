@@ -1,6 +1,6 @@
 # Debugging
 
-First, you probably want to make sure you're up and running with [accessing your sketches remotely](./ACCESSING-REMOTELY.md).
+First, you probably want to make sure you're up and running with [accessing your sketches remotely](./ngrok.md).
 
 # Android
 

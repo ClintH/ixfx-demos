@@ -1,0 +1,6 @@
+authtoken: 89SYBNNGx6KpoAtHDUwHE_5xKUN25C6ZrmJP5RZoMZK
+tunnels:
+    ixfx:
+        proto: http
+        addr: 5555
+version: "2"
