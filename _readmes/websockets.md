@@ -48,7 +48,7 @@ remote: new Remote({
 })
 ```
 
-While this provides a web socket server, it doesn't solve the problem of accessing your sketches from another device. To do this, you'll need to look at the guide to [accessing remotely](./ACCESSING-REMOTELY.md).
+While this provides a web socket server, it doesn't solve the problem of accessing your sketches from another device. To do this, you'll need to look at the guide to [accessing remotely](./ngrok.md).
 
 ## Run on your own machine
 

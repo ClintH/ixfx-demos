@@ -75,7 +75,7 @@ localStorage.setItem(`recordings`, JSON.stringify(recordings));
 
 # Remote data
 
-To configure for sending data via WebRTC/websockets, first read [WEBSOCKETs](../WEBSOCKETS.md) and make sure the simple pointer remote works.
+To configure for sending data via WebRTC/websockets, first read [_readmes/websockets](../_readmes/websockets.md) and make sure the simple pointer remote works.
 
 In the `source.js` file and the sketch you are using, look for where `new Remote()` is called when creating `settings`. Add `allowNetwork: true`. For example:
 
