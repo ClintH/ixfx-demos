@@ -1,4 +1,4 @@
-When running on Glitch you can host a websocket server to 
+When running on Glitch you can host a websocket server.
 
 # Running demos with Glitch
 

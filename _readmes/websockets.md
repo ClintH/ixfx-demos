@@ -31,38 +31,13 @@ The server URL shown in the preview panel is what you need to open on a mobile d
 
 ## Run on Glitch
 
-* Create an account on [Glitch](https://glitch.com), for example using an existing Github account.
-* 'Remix' [ixfx-demos on Glitch](https://glitch.com/edit/#!/ixfx-demos), to make your own copy.
-* Click the 'Preview' button at the bottom toolbar, choosing 'Preview in a new window' from the pop-up options. This preview URL should work from any device.
-
-When you're viewing the preview, Glitch will automatically start the provided web socket server.
-
-You can test it works by opening the [pointer-remote sketch](./pointer/remote/)
-
-It's possible to have a sketch served by a local server (eg Five Server) use a Glitch-hosted web socket server, such as a [fork of this one](https://glitch.com/edit/#!/ch-remote-test). To do so, you want to initialise the Remote instance as so:
-
-```js
-remote: new Remote({
-  allowNetwork: true,
-  websocket: `wss://YOUR-GLITCH-PROJECT.glitch.me/ws`,
-})
-```
-
-While this provides a web socket server, it doesn't solve the problem of accessing your sketches from another device. To do this, you'll need to look at the guide to [accessing remotely](./ngrok.md).
+* [Follow the instructions on the Glitch-hosted demos](https://glitch.com/edit/#!/ixfx-demos?path=package.json%3A1%3A0)
 
 ## Run on your own machine
 
 ### Step 1. Install Node.js
 
-You can test if you have Node.js installed by opening a terminal and running `node -v`. If you get an error like command not found, you do not have Node.js installed.
-
-Although Node.js offers installers for Windows and Mac, these aren't recommended.
-
-For Windows:
-1. Install [NVM for Windows](https://github.com/coreybutler/nvm-windows)
-2. At a command line, run `nvm install latest` and then `nvm use latest`
-
-For Mac, [follow the instructions here](https://twm.me/best-practice-for-installing-node-js-for-developers-on-mac-os/) for installing via NVM and Homebrew
+[Instructions](./install-nodejs.md)
 
 ### Step 2. Install packages
 

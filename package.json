@@ -9,7 +9,9 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "make-light": "node make-light.js",
+    "clone:light": "node copy-for-light.js",
+    "clone:glitch": "node copy-for-glitch.js",
+    "clone": "concurrently npm:clone:*",
     "serve:ws": "node ws-server.js",
     "serve:http": "five-server",
     "serve:express": "node express-ws-server.js",
