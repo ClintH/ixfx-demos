@@ -16,12 +16,13 @@ About ixfx:
 
 ## Getting started
 
+There are a few versions of the demo repository.
+
+* You are here: [ixfx-demos](https://github.com/clinth/ixfx-demos) includes a copy of ixfx. This is useful for working offline and the recommended approach.
+* [ixfx-demos-npm](https://github.com/clinth/ixfx-demos-npm) is meant for running in a hosted environment or using a Node.js build process (also allowing you to use Typescript)
+* [ixfx-demos-light](https://github.com/clinth/ixfx-demos-light) is a lightweight version. It uses URL imports for code and is simple to host. This is essentially how the [Glitch version](https://glitch.com/edit/#!/ixfx-demos) runs.
+
 ### Editing and running locally (recommended)
-
-There are two versions of the demo repository.
-
-* _ixfx-demos_ includes a copy of ixfx. This is useful for working offline and the recommended approach. 
-* _ixfx-demos-light_ is a mirror of this, without the ixfx build and with all sketches using a online, hosted version of ixfx. This is useful when using a web-based IDE.
 
 Read more:
 * [Running locally with ixfx-demos](./_readmes/running-local.md)
@@ -32,9 +33,7 @@ Read more:
 
 Gitpod is the recommended online editor and hosting environment.
 
-* [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos-light) ([more instructions](https://github.com/ClintH/ixfx-demos-light/blob/main/remote-machine.md#gitpod))
-* [CodesSandbox](https://githubbox.com/clinth/ixfx-demos-light) ([more instructions](https://github.com/ClintH/ixfx-demos-light/blob/main/remote-machine.md#codesandbox))
+* [Gitpod](https://gitpod.io/#https://github.com/ClintH/ixfx-demos-npm) ([more instructions](https://github.com/ClintH/ixfx-demos-npm/blob/main/remote-machine.md#gitpod))
+* [CodesSandbox](https://githubbox.com/clinth/ixfx-demos-npm) ([more instructions](https://github.com/ClintH/ixfx-demos-npm/blob/main/remote-machine.md#codesandbox))
 * [Glitch](https://glitch.com/edit/#!/ixfx-demos)
-* [Stackblitz](http://stackblitz.com/fork/github/clinth/ixfx-demos-light) ([more instructions](https://github.com/ClintH/ixfx-demos-light/blob/main/remote-machine.md#stackblitz))
-
-[Read more](./_readmes/websockets.md) on using these online environments for enabling web sockets.
+* [Stackblitz](http://stackblitz.com/fork/github/clinth/ixfx-demos-npm) ([more instructions](https://github.com/ClintH/ixfx-demos-npm/blob/main/remote-machine.md#stackblitz))
