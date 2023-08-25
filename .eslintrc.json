@@ -16,6 +16,9 @@
       "error",
       "backtick"
     ],
+    "semi": [
+      "error"
+    ],
     "unicorn/consistent-destructuring": "off",
     "unicorn/no-thenable": "off",
     "unicorn/consistent-function-scoping": "off",

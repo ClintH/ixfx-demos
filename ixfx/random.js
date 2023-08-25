@@ -1,48 +1,48 @@
 import {
   defaultRandom,
   float,
-  floatFn,
+  floatSource,
   gaussian,
-  gaussianFn,
+  gaussianSource,
   integer,
-  integerFn,
+  integerSource,
   integerUniqueGen,
   minutesMs,
-  minutesMsFn,
+  minutesMsSource,
   randomElement,
   randomHue,
   randomIndex,
   secondsMs,
-  secondsMsFn,
+  secondsMsSource,
   shortGuid,
   string,
   weighted,
-  weightedFn,
   weightedInteger,
-  weightedIntegerFn
-} from "./chunk-XLMUH3F2.js";
+  weightedIntegerSource,
+  weightedSource
+} from "./chunk-2WXBM2JT.js";
 import "./chunk-4DC2CRSB.js";
 export {
   randomElement as arrayElement,
   randomIndex as arrayIndex,
   defaultRandom,
   float,
-  floatFn,
+  floatSource,
   gaussian,
-  gaussianFn,
+  gaussianSource,
   randomHue as hue,
   integer,
-  integerFn,
+  integerSource,
   integerUniqueGen,
   minutesMs,
-  minutesMsFn,
+  minutesMsSource,
   secondsMs,
-  secondsMsFn,
+  secondsMsSource,
   shortGuid,
   string,
   weighted,
-  weightedFn,
   weightedInteger,
-  weightedIntegerFn
+  weightedIntegerSource,
+  weightedSource
 };
 //# sourceMappingURL=random.js.map

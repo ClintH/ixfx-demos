@@ -34,5 +34,10 @@
   "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
   "typescript.inlayHints.propertyDeclarationTypes.enabled": false,
   "typescript.inlayHints.variableTypes.enabled": false,
-  "typescript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true
+  "typescript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
+  "cSpell.words": [
+    "mathinsight",
+    "pointermove",
+    "stackblitz"
+  ]
 }

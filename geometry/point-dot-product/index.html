@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <title>point-dot-product</title>
+</head>
+
+<body>
+  <style>
+    :root {
+      --hue: 310;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 91%, 91%);
+      --fg: hsl(var(--hue), 92%, 15%);
+      --thing: 5em;
+    }
+
+    html {
+      box-sizing: border-box;
+    }
+
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+      touch-action: none;
+      pointer-events: none;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--fg);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    #thing {
+      width: var(--thing);
+      height: var(--thing);
+      margin-left: -calc(var(--thing)/2);
+      margin-top: -calc(var(--thing)/2);
+      font-size: var(--thing);
+      left: 50%;
+      top: 50%;
+      position: absolute;
+    }
+  </style>
+  <section>
+    <h1>point-dot-product</h1>
+    <p>Calculates similarity between direction of pointer movement to another vector (in this case, an upwards vector).</p>
+    <p>Click and drag.</p>
+    <div>Pointer vector: <span id="vector"></span></div> 
+    <div id="thing">⬆</div>
+    <div>Dot product: <span id="dot-product"></span></div>
+  </section>
+
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
