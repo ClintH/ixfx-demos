@@ -1,6 +1,6 @@
-import { a as RandomSource, E as Easing } from './Arrays-8c718ee9.js';
-import { a as Point, f as Rect } from './Point-0627cfaa.js';
-import { T as Timer } from './index-c1693724.js';
+import { a as RandomSource, E as Easing } from './Arrays-b81be29f.js';
+import { a as Point, f as Rect } from './Point-957f7427.js';
+import { T as Timer } from './index-579e3cc2.js';
 import { p as pingPong, a as pingPongPercent } from './PingPong-8ac9a1c4.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 
@@ -713,6 +713,41 @@ type JitterFn = (value: number) => number;
 declare const jitter: (opts?: JitterOpts) => JitterFn;
 
 /**
+ * Returns a proportion of `amount` depending on elapsed time.
+ * ```js
+ * const x = perSecond(0.1);
+ * x();
+ * ```
+ *
+ * The faster `x()` is called, the smaller the chunks of `amount` are returned.
+ *
+ * @example Usage example
+ * ```js
+ * const settings = {
+ *  ageMod: perSecond(0.1);
+ * }
+ * let state = {
+ *  age: 1
+ * }
+ *
+ * // Update
+ * setInterval(() => {
+ *  let { age } = state;
+ *  // Add 0.1 per second, regardless of
+ *  // loop speed
+ *  age += settings.ageMod();
+ *  state = {
+ *    ...state,
+ *    age
+ *  }
+ * });
+ * ```
+ * @param amount
+ * @returns
+ */
+declare const perSecond: (amount: number) => () => number;
+
+/**
  * @returns Returns a full set of default ADSR options
  */
 declare const defaultAdsrOpts: () => EnvelopeOpts;
@@ -982,6 +1017,7 @@ declare const index_adsr: typeof adsr;
 declare const index_adsrIterable: typeof adsrIterable;
 declare const index_defaultAdsrOpts: typeof defaultAdsrOpts;
 declare const index_jitter: typeof jitter;
+declare const index_perSecond: typeof perSecond;
 declare const index_pingPong: typeof pingPong;
 declare const index_pingPongPercent: typeof pingPongPercent;
 declare namespace index {
@@ -1003,9 +1039,10 @@ declare namespace index {
     index_adsrIterable as adsrIterable,
     index_defaultAdsrOpts as defaultAdsrOpts,
     index_jitter as jitter,
+    index_perSecond as perSecond,
     index_pingPong as pingPong,
     index_pingPongPercent as pingPongPercent,
   };
 }
 
-export { AdsrOpts as A, CompleteEvent as C, EnvelopeOpts as E, Forces as F, JitterFn as J, Oscillator as O, StateChangeEvent as S, JitterOpts as a, AdsrTimingOpts as b, Events as c, defaultAdsrOpts as d, Adsr as e, adsr as f, adsrIterable as g, AdsrIterableOpts as h, index as i, jitter as j };
+export { AdsrOpts as A, CompleteEvent as C, EnvelopeOpts as E, Forces as F, JitterFn as J, Oscillator as O, StateChangeEvent as S, JitterOpts as a, AdsrTimingOpts as b, Events as c, defaultAdsrOpts as d, Adsr as e, adsr as f, adsrIterable as g, AdsrIterableOpts as h, index as i, jitter as j, perSecond as p };

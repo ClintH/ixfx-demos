@@ -1,12 +1,12 @@
-export { E as Easings } from './Arrays-8c718ee9.js';
-export { e as Adsr, h as AdsrIterableOpts, A as AdsrOpts, b as AdsrTimingOpts, C as CompleteEvent, E as EnvelopeOpts, c as Events, F as Forces, J as JitterFn, a as JitterOpts, O as Oscillators, S as StateChangeEvent, f as adsr, g as adsrIterable, d as defaultAdsrOpts, j as jitter } from './index-5ede4b67.js';
+export { E as Easings } from './Arrays-b81be29f.js';
+export { e as Adsr, h as AdsrIterableOpts, A as AdsrOpts, b as AdsrTimingOpts, C as CompleteEvent, E as EnvelopeOpts, c as Events, F as Forces, J as JitterFn, a as JitterOpts, O as Oscillators, S as StateChangeEvent, f as adsr, g as adsrIterable, d as defaultAdsrOpts, j as jitter, p as perSecond } from './index-e95a37c4.js';
 export { p as pingPong, a as pingPongPercent } from './PingPong-8ac9a1c4.js';
-import './index-c1693724.js';
+import './index-579e3cc2.js';
 import './StateMachine-754f37bb.js';
 import './Events-f066e560.js';
 import './Debug-e1629850.js';
 import './Util-2364cb64.js';
 import './MinMaxAvg-bf5430b4.js';
 import 'd3-color';
-import './Point-0627cfaa.js';
+import './Point-957f7427.js';
 import './index-c451827f.js';

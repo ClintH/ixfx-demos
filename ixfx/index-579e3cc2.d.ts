@@ -12,7 +12,7 @@ type Timer = {
     reset(): void;
     get elapsed(): number;
 };
-type ModTimer = Timer & {
+type ModulationTimer = Timer & {
     mod(amt: number): void;
 };
 type TimerOpts = {
@@ -29,6 +29,7 @@ type RelativeTimerOpts = TimerOpts & {
      * If true, returned value will be clamped to 0..1. False by default
      */
     readonly clampValue?: boolean;
+    readonly wrapValue?: boolean;
 };
 /**
  * Returns a function that returns true if timer is complete
@@ -72,7 +73,7 @@ declare const frequencyTimerSource: (frequency: number) => TimerSource;
  * @param opts Options
  * @returns Timer
  */
-declare const relativeTimer: (total: number, opts?: RelativeTimerOpts) => ModTimer & HasCompletion;
+declare const relativeTimer: (total: number, opts?: RelativeTimerOpts) => ModulationTimer & HasCompletion;
 /**
  * A timer based on frequency: cycles per unit of time. These timers return a number from
  * 0..1 indicating position with a cycle.
@@ -103,7 +104,7 @@ declare const relativeTimer: (total: number, opts?: RelativeTimerOpts) => ModTim
  * @param timer
  * @returns
  */
-declare const frequencyTimer: (frequency: number, opts?: TimerOpts) => ModTimer;
+declare const frequencyTimer: (frequency: number, opts?: TimerOpts) => ModulationTimer;
 /**
  * A timer that uses clock time. Start time is from the point of invocation.
  *
@@ -879,7 +880,7 @@ type RetryOpts<V> = {
  */
 declare const retry: <V>(cb: () => Promise<V | undefined>, opts: RetryOpts<V>) => Promise<RetryResult<V>>;
 
-type SinceFn = () => number;
+type Since = () => number;
 /**
  * Returns elapsed time since initial call.
  * ```js
@@ -906,7 +907,7 @@ type SinceFn = () => number;
  * Use {@link once} if you want to measure a single period, and stop it.
  * @returns
  */
-declare const since: () => SinceFn;
+declare const since: () => Since;
 /**
  * Returns elapsed time since initial call, however
  * timer stops when first invoked.
@@ -922,7 +923,7 @@ declare const since: () => SinceFn;
  * Use {@link since} to not have this stopping behaviour.
  * @returns
  */
-declare const once: () => SinceFn;
+declare const once: () => Since;
 /**
  * Returns a function that reports an 'infinite' elapsed time.
  * this can be useful as an initialiser for `elapsedSince`.
@@ -938,7 +939,7 @@ declare const once: () => SinceFn;
  * ```
  * @returns
  */
-declare const infinity: () => SinceFn;
+declare const infinity: () => Since;
 /**
  * Returns a function that returns the percentage of timer completion.
  * Starts timing immediately.
@@ -963,10 +964,11 @@ declare const infinity: () => SinceFn;
  */
 declare function progress(duration: Interval, opts?: {
     readonly clampValue?: boolean;
+    readonly wrapValue?: boolean;
 }): () => number;
-declare const toString: (millisOrFn: number | SinceFn | Interval) => string;
+declare const toString: (millisOrFunction: number | Since | Interval) => string;
 
-type Elapsed_SinceFn = SinceFn;
+type Elapsed_Since = Since;
 declare const Elapsed_infinity: typeof infinity;
 declare const Elapsed_once: typeof once;
 declare const Elapsed_progress: typeof progress;
@@ -974,7 +976,7 @@ declare const Elapsed_since: typeof since;
 declare const Elapsed_toString: typeof toString;
 declare namespace Elapsed {
   export {
-    Elapsed_SinceFn as SinceFn,
+    Elapsed_Since as Since,
     Elapsed_infinity as infinity,
     Elapsed_once as once,
     Elapsed_progress as progress,
@@ -1131,7 +1133,7 @@ declare const index_Elapsed: typeof Elapsed;
 type index_HasCompletion = HasCompletion;
 type index_Interval = Interval;
 type index_IntervalOpts = IntervalOpts;
-type index_ModTimer = ModTimer;
+type index_ModulationTimer = ModulationTimer;
 type index_OnStartCalled = OnStartCalled;
 type index_RelativeTimerOpts = RelativeTimerOpts;
 type index_RepeatPredicate = RepeatPredicate;
@@ -1186,7 +1188,7 @@ declare namespace index {
     index_HasCompletion as HasCompletion,
     index_Interval as Interval,
     index_IntervalOpts as IntervalOpts,
-    index_ModTimer as ModTimer,
+    index_ModulationTimer as ModulationTimer,
     index_OnStartCalled as OnStartCalled,
     index_RelativeTimerOpts as RelativeTimerOpts,
     index_RepeatPredicate as RepeatPredicate,
@@ -1230,4 +1232,4 @@ declare namespace index {
   };
 }
 
-export { AsyncPromiseOrGenerator as A, ContinuouslyAsyncCallback as B, Continuously as C, DelayOpts as D, Elapsed as E, ContinuouslyOpts as F, continuously as G, HasCompletion as H, Interval as I, debounce as J, DebouncedFunction as K, throttle as L, ModTimer as M, sleep as N, OnStartCalled as O, waitFor as P, delay as Q, RepeatPredicate as R, SleepOpts as S, Timer as T, UpdateFailPolicy as U, everyNth as V, runOnce as W, RetryResult as X, RetryOpts as Y, retry as Z, interval as a, forEachAsync as b, repeatReduce as c, delayLoop as d, TaskQueue as e, forEach as f, TimerSource as g, TimerOpts as h, index as i, RelativeTimerOpts as j, hasElapsedMs as k, frequencyTimerSource as l, relativeTimer as m, frequencyTimer as n, msElapsedTimer as o, intervalToMs as p, isInterval as q, repeat as r, IntervalOpts as s, ticksElapsedTimer as t, TimeoutSyncCallback as u, TimeoutAsyncCallback as v, Timeout as w, timeout as x, updateOutdated as y, ContinuouslySyncCallback as z };
+export { AsyncPromiseOrGenerator as A, ContinuouslyAsyncCallback as B, Continuously as C, DelayOpts as D, Elapsed as E, ContinuouslyOpts as F, continuously as G, HasCompletion as H, Interval as I, debounce as J, DebouncedFunction as K, throttle as L, ModulationTimer as M, sleep as N, OnStartCalled as O, waitFor as P, delay as Q, RepeatPredicate as R, SleepOpts as S, Timer as T, UpdateFailPolicy as U, everyNth as V, runOnce as W, RetryResult as X, RetryOpts as Y, retry as Z, interval as a, forEachAsync as b, repeatReduce as c, delayLoop as d, TaskQueue as e, forEach as f, TimerSource as g, TimerOpts as h, index as i, RelativeTimerOpts as j, hasElapsedMs as k, frequencyTimerSource as l, relativeTimer as m, frequencyTimer as n, msElapsedTimer as o, intervalToMs as p, isInterval as q, repeat as r, IntervalOpts as s, ticksElapsedTimer as t, TimeoutSyncCallback as u, TimeoutAsyncCallback as v, Timeout as w, timeout as x, updateOutdated as y, ContinuouslySyncCallback as z };

@@ -9314,11 +9314,14 @@ var frequencyTimerSource = (frequency) => () => frequencyTimer(frequency, { time
 var relativeTimer = (total3, opts = {}) => {
   const timer = opts.timer ?? msElapsedTimer();
   const clampValue = opts.clampValue ?? false;
+  const wrapValue = opts.wrapValue ?? false;
+  if (clampValue && wrapValue)
+    throw new Error(`clampValue and wrapValue cannot both be enabled`);
   let done2 = false;
-  let modAmt = 1;
+  let modulationAmount = 1;
   return {
     mod(amt) {
-      modAmt = amt;
+      modulationAmount = amt;
     },
     get isDone() {
       return done2;
@@ -9328,11 +9331,16 @@ var relativeTimer = (total3, opts = {}) => {
       timer.reset();
     },
     get elapsed() {
-      let v = timer.elapsed / (total3 * modAmt);
+      let v = timer.elapsed / (total3 * modulationAmount);
       if (clampValue)
         v = clamp(v);
-      if (v >= 1)
-        done2 = true;
+      else if (wrapValue) {
+        if (v >= 1)
+          v = v % 1;
+      } else {
+        if (v >= 1)
+          done2 = true;
+      }
       return v;
     }
   };
@@ -9340,16 +9348,16 @@ var relativeTimer = (total3, opts = {}) => {
 var frequencyTimer = (frequency, opts = {}) => {
   const timer = opts.timer ?? msElapsedTimer();
   const cyclesPerSecond = frequency / 1e3;
-  let modAmt = 1;
+  let modulationAmount = 1;
   return {
     mod: (amt) => {
-      modAmt = amt;
+      modulationAmount = amt;
     },
     reset: () => {
       timer.reset();
     },
     get elapsed() {
-      const v = timer.elapsed * (cyclesPerSecond * modAmt);
+      const v = timer.elapsed * (cyclesPerSecond * modulationAmount);
       const f = v - Math.floor(v);
       if (f < 0) {
         throw new Error(
@@ -9841,22 +9849,19 @@ function progress(duration, opts = {}) {
   const t4 = relativeTimer(totalMs, timerOpts);
   return () => t4.elapsed;
 }
-var toString = (millisOrFn) => {
+var toString = (millisOrFunction) => {
   let interval2 = 0;
-  if (typeof millisOrFn === `function`) {
-    const intervalResult = millisOrFn();
-    if (typeof intervalResult === `object`)
-      interval2 = intervalToMs(interval2);
-    else
-      interval2 = intervalResult;
-  } else if (typeof millisOrFn === `number`) {
-    interval2 = millisOrFn;
-  } else if (typeof millisOrFn === `object`) {
+  if (typeof millisOrFunction === `function`) {
+    const intervalResult = millisOrFunction();
+    interval2 = typeof intervalResult === `object` ? intervalToMs(interval2) : intervalResult;
+  } else if (typeof millisOrFunction === `number`) {
+    interval2 = millisOrFunction;
+  } else if (typeof millisOrFunction === `object`) {
     interval2 = intervalToMs(interval2);
   }
   let ms = intervalToMs(interval2);
-  if (typeof ms === "undefined")
-    return "(undefined)";
+  if (typeof ms === `undefined`)
+    return `(undefined)`;
   if (ms < 1e3)
     return `${ms}ms`;
   ms /= 1e3;
@@ -10403,6 +10408,7 @@ __export(modulation_exports, {
   adsrIterable: () => adsrIterable,
   defaultAdsrOpts: () => defaultAdsrOpts,
   jitter: () => jitter,
+  perSecond: () => perSecond,
   pingPong: () => pingPong,
   pingPongPercent: () => pingPongPercent
 });
@@ -13478,6 +13484,17 @@ var jitter = (opts = {}) => {
     return v;
   };
   return compute;
+};
+
+// src/modulation/PerSecond.ts
+var perSecond = (amount) => {
+  const perMilli = amount / 1e3;
+  let called = performance.now();
+  return () => {
+    const elapsed = performance.now() - called;
+    called = performance.now();
+    return perMilli * elapsed;
+  };
 };
 
 // src/modulation/PingPong.ts
@@ -29237,6 +29254,7 @@ export {
   Forces_exports,
   Oscillator_exports,
   jitter,
+  perSecond,
   pingPongPercent,
   pingPong,
   modulation_exports,
@@ -29504,4 +29522,4 @@ tslib/tslib.es6.js:
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** *)
 */
-//# sourceMappingURL=chunk-NMBBAPDF.js.map
+//# sourceMappingURL=chunk-Y4HD3VRE.js.map
