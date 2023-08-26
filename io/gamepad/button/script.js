@@ -6,46 +6,37 @@ const settings = Object.freeze({
 let state = Object.freeze({
   /** @type string|undefined */
   gamepadId: undefined,
-  /** @type Gamepad|undefined */
-  gamepad: undefined,
   /** @type boolean */
-  button: false
+  buttonPressed: false
 });
 
 const useState = () => {
-  const { button } = state;
+  const { buttonPressed } = state;
  
+  // Element to visualise button press
   const element = document.querySelector(`#vis`);
   if (!element) return;
 
-  if (button) {
+  // If pressed, add a CSS class, if not, remove.
+  if (buttonPressed) {
     element.classList.add(`pressed`);
   } else {
     element.classList.remove(`pressed`);
   }
 };
 
-const getGamepad = () => {
-  const gamepads = /** @type Gamepad[] */(navigator.getGamepads 
-    ? navigator.getGamepads() 
-    // @ts-ignore
-    : (navigator.webkitGetGamepads ??  []));
-
-  gamepads.some(gm => {
-    if (gm === null) return;
-    if (gm.id === state.gamepadId) {
-      readGamepad(gm);
-    }
-  });
-};
-
 /**
- * Read current state of gamepad
+ * Read the current state of a connected gamepad
  * @param {Gamepad} gamepad 
  */
 const readGamepad = (gamepad) => {
   const { buttonId } = settings;
-  updateState({ button: gamepad.buttons[buttonId].pressed });
+
+  // Get the 'pressed' state of the button we care about
+  const buttonPressed = gamepad.buttons[buttonId].pressed;
+
+  // Update state
+  updateState({ buttonPressed });
 };
 
 /**
@@ -62,12 +53,12 @@ const setup = () => {
   window.addEventListener(`gamepadconnected`, event => {
     console.log(`Gamepad connected`);
     console.log(event);
-    updateState({ gamepad: event.gamepad, gamepadId: event.gamepad.id });
+    updateState({ gamepadId: event.gamepad.id });
   });
 
   window.addEventListener(`gamepaddisconnected`, event => {
     console.log(`Gamepad disconnected`);
-    updateState({ gamepad: undefined });
+    updateState({ gamepadId: undefined });
   });
 };
 setup();
@@ -82,3 +73,21 @@ function updateState (s) {
     ...s
   });
 }
+
+/**
+ * Looks for connected gamepads, trying to find the
+ * same one used previosuly.
+ */
+function getGamepad() {
+  const gamepads = /** @type Gamepad[] */(navigator.getGamepads 
+    ? navigator.getGamepads() 
+    // @ts-ignore
+    : (navigator.webkitGetGamepads ??  []));
+
+  gamepads.some(gm => {
+    if (gm === null) return;
+    if (gm.id === state.gamepadId) {
+      readGamepad(gm);
+    }
+  });
+};

@@ -44,6 +44,11 @@ In `useState`, read back the state of keys you're interested in:
 
 ```js
 // Get state of 'f'
-const s = keys.get(`f`);
+const s = keyStates.get(`f`);
 if (s === undefined) return; // No state for key
 ```
+
+## Things to try
+* Can you make the box a toggle instead? One press turns it on, another turns it off?
+* Can the length of press be used in the expression of the box?
+* Can the interval between presses be used? (for example with an [interval tracker](https://clinth.github.io/ixfx-docs/data/trackers/#intervals))
