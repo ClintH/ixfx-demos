@@ -10,7 +10,7 @@ import {
   makeHelper,
   remove,
   setBounds
-} from "./chunk-2WXBM2JT.js";
+} from "./chunk-NMBBAPDF.js";
 import "./chunk-4DC2CRSB.js";
 export {
   SvgElements_exports as Elements,

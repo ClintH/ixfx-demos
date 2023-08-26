@@ -1,4 +1,5 @@
 import {
+  Bipolar_exports,
   Correlate_exports,
   FrequencyMutable,
   IntervalTracker,
@@ -25,16 +26,17 @@ import {
   pointsTracker,
   scale,
   scaleClamped,
-  scaleFn,
   scalePercent,
-  scalePercentFn,
   scalePercentages,
+  scaler,
+  scalerPercent,
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-2WXBM2JT.js";
+} from "./chunk-NMBBAPDF.js";
 import "./chunk-4DC2CRSB.js";
 export {
+  Bipolar_exports as Bipolar,
   Correlate_exports as Correlate,
   FrequencyMutable,
   IntervalTracker,
@@ -61,10 +63,10 @@ export {
   pointsTracker,
   scale,
   scaleClamped,
-  scaleFn,
   scalePercent,
-  scalePercentFn,
   scalePercentages,
+  scaler,
+  scalerPercent,
   wrap,
   wrapInteger,
   wrapRange

@@ -1,4 +1,5 @@
 import {
+  BipolarView_exports,
   Colour_exports,
   Drawing_exports,
   ImageDataGrid_exports,
@@ -8,9 +9,10 @@ import {
   SceneGraph_exports,
   Svg_exports,
   Video_exports
-} from "./chunk-2WXBM2JT.js";
+} from "./chunk-NMBBAPDF.js";
 import "./chunk-4DC2CRSB.js";
 export {
+  BipolarView_exports as BipolarView,
   Colour_exports as Colour,
   Drawing_exports as Drawing,
   ImageDataGrid_exports as ImageDataGrid,
