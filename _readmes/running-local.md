@@ -1,29 +1,33 @@
 # Running local
 
-You can get up and running from a ZIP file, or cloning the repository. It's recommended to use [Visual Studio Code](https://code.visualstudio.com) to edit code. All the sketches are set for editing and running code offline - it includes a recent build of the ixfx library.
+You can get up by cloning from a Git repository. Use [Visual Studio Code](https://code.visualstudio.com) (VSC) to edit code. All the sketches are set for editing and running code offline - it includes a recent build of the ixfx library.
 
 ## Getting the source
 
 Using Git (recommended):
 
-1. Install the [Github deskop app](https://desktop.github.com) if you don't already have it
+1. Install the [Github desktop app](https://desktop.github.com) if you don't already have it
 2. Clone [this repository](https://github.com/ClintH/ixfx-demos.git) to a folder. This gives you a local copy of the source, and can be easily updated if the repository changes.
+3. You can right-click on the name of the repository and choose 'Open in Visual Studio Code'
 
-As a ZIP:
+OR, download a ZIP file (not recommended):
 
 1. [Download a ZIP of this repository](https://github.com/ClintH/ixfx-demos/archive/refs/heads/main.zip)
 2. Unpack it to a place where you can work on the files
+3. Open VS Code and choose 'File -> Open Folder' and then select the folder `ixfx-demos-main`.
 
-## Running
+## Running & editing
+
+When you open the folder for the first time, VSC might prompt you to install recommended extensions. Choose 'Install' for these.
+
+A key extension to install (if it doesn't happen automatically) is [Five-Server](https://marketplace.visualstudio.com/items?itemName=yandeu.five-server).
 
 Each sketch is contained in its own folder. Once you're ready to modify, duplicate the sketch folder so you always have the original to go back to if you need. Along your way, make new copies of the sketch folder to keep snapshots of your work.
 
-_Note:_ 'Five-Server (Live-Server)' is a fork of 'Live-Server', don't install 'Live-Server'.
+View the output via the `Go Live` button in the VSC toolbar. By default it will start a web server so that your sketches are available at: `http://127.0.0.1:5555`.
 
-1. Install the [Five-Server](https://marketplace.visualstudio.com/items?itemName=yandeu.five-server) extension
-2. Start it via the `Go Live` button in the VS Code toolbar
-3. Test that the demos work from your local copy
-
+Whenever you save a file the browser should automatically refresh.
+ 
 ## Paths
 
 If you move the folder within the directory structure, you may need to modify the HTML and JS files to correct the pathing.
