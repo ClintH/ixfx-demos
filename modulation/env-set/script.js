@@ -1,7 +1,5 @@
 import { clamp } from '../../ixfx/data.js';
-import { continuously } from '../../ixfx/flow.js';
-import { IterableAsync } from  '../../ixfx/util.js';
-import { adsr, defaultAdsrOpts as defaultAdsrOptions, adsrIterable } from '../../ixfx/modulation.js';
+import { defaultAdsrOpts as defaultAdsrOptions, adsrIterable } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,

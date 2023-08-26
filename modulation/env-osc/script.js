@@ -24,9 +24,6 @@ const settings = Object.freeze({
   }
 });
 
-console.log(`Envelope looks like:`);
-console.log(settings.envelope);
-
 let state = Object.freeze({
   // Create a thing, to control HTML element with id 'thing'
   /** @type Thing */
@@ -47,12 +44,12 @@ const useThing = (thing) => {
   positionFromMiddle(element, position);
 };
 
-
 /**
  * Continually loops, updating the thing
  * @param {Thing} thing
+ * @returns {Thing}
  */
-const onTickThing = (thing) => {
+const updateThing = (thing) => {
   // Get latest value from this thing's envelope
   let envelopeValue = thing.envelope.value;
   
@@ -62,17 +59,18 @@ const onTickThing = (thing) => {
   // Get the latest vaue from this thing's oscillator
   const oscValue = thing.oscillator.next().value;
 
-  // Combine oscillator value and envelope value
-  const v = oscValue * envelopeValue;
+  // Fold in oscillator value to envelope value
+  // Try commenting out the next line to see the difference
+  envelopeValue = oscValue * envelopeValue;
   
   // Compute relative position based on value
   const position = {
     x: 0.5,
-    y: v
+    y: envelopeValue
   };
 
   // Apply changes to a new Thing
-  return  Object.freeze({
+  return Object.freeze({
     ...thing,
     position
   });
@@ -86,25 +84,21 @@ const useState = () => {
   useThing(thing);
 };
 
-const onTick = () => {
-
-  // Update thing
-  const thing = onTickThing(state.thing);
-
+const loop = () => {
   // Update state with changed thing
   updateState({ 
-    thing,
+    thing: updateThing(state.thing)
   });
+  
 
-  useState();
-};
-
-const loop = () => {
-  onTick(); 
+  useState(); 
   window.requestAnimationFrame(loop);
 };
 
 const setup = () => {
+  console.log(`Envelope looks like:`);
+  console.log(settings.envelope);
+
   // Trigger and hold envelopes when pointer is down
   window.addEventListener(`pointerdown`, event => {
     const { thing } = state;
@@ -121,8 +115,6 @@ const setup = () => {
   loop();
 };
 setup();
-
-
 
 /**
  * Generates a Thing
