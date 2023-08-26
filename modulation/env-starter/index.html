@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>env-starter</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 230;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 10%);
+      --fg: hsl(var(--hue), 70%, 90%);
+      --radius: 0.3em;
+    }
+
+    body {
+      background-color: var(--bg);
+      padding: 2em;
+      color: var(--fg);
+      font-family: var(--font);
+    }
+  </style>
+  <h1>env-starter</h1>
+  <p>(values are printed to console)</p>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
