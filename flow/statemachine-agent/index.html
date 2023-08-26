@@ -33,14 +33,32 @@
     h1 {
       color: var(--text-accent);
     }
+    .data {
+      padding: 1em;
+      text-transform: uppercase;
+    }
+    #labelState {
+      font-size: 2em; 
+      vertical-align: center;
+    }
+    #labelStateEmoji {
+      font-size:4em;
+    }
+    .container {
+      display: flex; 
+      padding: 1em; 
+      align-items: center;
+      justify-content: space-evenly;
+      flex-wrap: wrap;
+    }
   </style>
-    <div style="display: flex; padding: 2em">
-      <div style="font-size:4em" id="labelStateEmoji">        
+    <div class="container">
+      <div id="labelStateEmoji">        
       </div>
-      <div style="font-size: 2em; vertical-align: center" id="labelState">
+      <div id="labelState">
       </div>
-      <div>
-       Energy:
+      <div class="data">
+       Energy<br />
         <span id="labelEnergy">  </span>
       </div>
     </div>

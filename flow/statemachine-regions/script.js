@@ -5,10 +5,6 @@ import { StateMachine, Elapsed } from '../../ixfx/flow.js';
 import { Circles } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
-  /**
-   * Create a state machine that has states init <-> one <-> two <-> three
-   */
-  sm: StateMachine.bidirectionalFromList(`init`,`one`, `two`, `three`),
   resetMachineAfterMs: 2000,
   // Distance threshold for circles to activate
   distanceThreshold: 0.1,
@@ -35,9 +31,14 @@ let state = Object.freeze({
 });
 
 /**
+* Create a state machine that has states init <-> one <-> two <-> three
+*/
+const stateMachine = StateMachine.bidirectionalFromList(`init`,`one`, `two`, `three`);
+
+/**
 * State machine 'driver'
 */
-const driver = await StateMachine.driver(settings.sm, [
+const driver = await StateMachine.driver(stateMachine, [
   {
     if: `init`,
     then: () => {
@@ -65,7 +66,7 @@ const driver = await StateMachine.driver(settings.sm, [
  * Process state gets called every second
  */
 const processState = async () => {
-  const { sm, resetMachineAfterMs } = settings;
+  const { resetMachineAfterMs } = settings;
   const { current } = state;
   let { elapsed } =state;
   // Get driver to do its thing
