@@ -1,6 +1,7 @@
 import { continuously } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
 import { adsr, defaultAdsrOpts as defaultAdsrOptions } from '../../../ixfx/modulation.js';
+import {setCssDisplay} from './util.js';
 
 const settings = Object.freeze({
   // Filter device list...
@@ -50,25 +51,25 @@ const setLedPwm = (pinName, rate) => {
   puck.write(js);
 };
 
-const loop = () => {
+const update = () => {
   const { env, updateRateMs } = settings;
   const v = env.value;
 
   if (Number.isNaN(v)) {
     // Turn off
     setLedPwm(settings.pwmLed, 0);
-    updateState({ running: false });
+    saveState({ running: false });
   } else {
-    updateState({ pwm: v, running: true });
+    saveState({ pwm: v, running: true });
     console.log(v);  
     setLedPwm(settings.pwmLed, state.pwm);
   
     // Queue to loop again
-    setTimeout(loop, updateRateMs);
+    setTimeout(update, updateRateMs);
   }
 };
 
-const setup = () => {
+function setup() {
   /**
    * Set connected state
    * @param {boolean} connected 
@@ -92,7 +93,7 @@ const setup = () => {
       });
 
       onConnected(true);
-      updateState({ puck: p });
+      saveState({ puck: p });
     } catch (error) {
       console.error(error);
       onConnected(false);
@@ -104,28 +105,16 @@ const setup = () => {
   document.addEventListener(`keypress`, event => {
     console.log(`Trigger`);
     settings.env.trigger();
-    if (!state.running) loop();
+    if (!state.running) update();
   });
 };
 setup();
 
 /**
- * Sets style.display for element
- * @param {string} id Id of element
- * @param {string} value Value of style.display to set
- * @returns 
- */
-const setCssDisplay = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (!element) return;
-  element.style.display = value;
-};
-
-/**
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

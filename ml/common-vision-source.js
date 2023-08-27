@@ -119,7 +119,7 @@ async function read() {
 
     if (frame !== undefined) {
       // If we haven't yet noted the frame size, do so now
-      if (state.frameSize.width === 0) updateState({ frameSize: { width: frame.width, height: frame.height } });
+      if (state.frameSize.width === 0) saveState({ frameSize: { width: frame.width, height: frame.height } });
 
       // Dispatch frame
       if (caller.onFrame) await caller.onFrame(frame, state.frameSize, fp.getTimestamp());
@@ -162,7 +162,7 @@ export const displayListResults = (listFunction, numbered = true) => {
   const element = document.querySelector(`#cs-data`);
   if (element) element.innerHTML = html;
 
-  updateState({ lastListCount: max });
+  saveState({ lastListCount: max });
 };
 
 /**
@@ -334,7 +334,7 @@ export const startRecorderPlayback = async () => {
     return;
   }
 
-  updateState({ currentSource:`recording` });
+  saveState({ currentSource:`recording` });
 
   // Stop camera & video playback
   await setCamera(false);
@@ -354,7 +354,7 @@ export const startRecorderPlayback = async () => {
   const context = getDrawingContext();
   const frameSize = rec.frameSize;
   let index = 0;
-  updateState({ recorder:`playing` });
+  saveState({ recorder:`playing` });
   
   continuously(() => {
     const d = rec.data[index];
@@ -369,7 +369,7 @@ export const startRecorderPlayback = async () => {
         console.log(`Playback done of ${rec.data.length} steps.`);
         recorderStatus(``);
         stopRecorderPlayback();
-        updateState({ currentSource:`none` });
+        saveState({ currentSource:`none` });
         return false; // Stop loop
       }
     }
@@ -377,7 +377,7 @@ export const startRecorderPlayback = async () => {
 };
 
 const stopRecorderPlayback = () => {
-  updateState({ recorder: `` });
+  saveState({ recorder: `` });
   let button = document.querySelector(`#cs-btnPlayback`);
   if (button !== null) button.textContent = `play_arrow`;
 
@@ -409,7 +409,7 @@ export const getDrawingContext = () => {
 
 const stopRecording = async () => {
   if (state.recorder !== `recording`) return;
-  updateState({ recorder: `` });
+  saveState({ recorder: `` });
   /** @type {HTMLButtonElement}*/(document.querySelector(`#cs-btnPlayback`)).disabled = false;
 
   recorderStatus(``);
@@ -426,7 +426,7 @@ const stopRecording = async () => {
 
   localStorage.setItem(`recordings`, JSON.stringify(recordings));
   updateRecordingsUi(recordings);
-  updateState({ currentRecording: undefined });
+  saveState({ currentRecording: undefined });
 };
 
 const startRecording = async () => {
@@ -434,7 +434,7 @@ const startRecording = async () => {
     await stopRecording();
   }
   recorderStatus(`Ready...`);
-  updateState({ currentRecording: {
+  saveState({ currentRecording: {
     name: new Date().toLocaleString(),
     data: [],
     frameSize: { width: 0, height: 0 }
@@ -634,7 +634,7 @@ export const toggleUi = (enabled) => {
   for (const uiElement of uiElements) {
     /** @type {HTMLElement} */(uiElement).style.display = enabled ? `block` : `none`;
   }
-  updateState({ uiVisible:enabled });
+  saveState({ uiVisible:enabled });
   return enabled;
 };
 
@@ -722,20 +722,20 @@ export const setup = async (onFrame, onPlayback, frameProcessorOptions, playback
   status(`Loading...`);
 
   buttonFreeze?.addEventListener(`click`, event => {
-    updateState({ freeze: !state.freeze });
+    saveState({ freeze: !state.freeze });
     const element = event?.target;
     if (element) /** @type {HTMLElement}*/(element).textContent = state.freeze ? `severe_cold` : `ac_unit`;
   });
 
   buttonCameraStartStop?.addEventListener(`click`, async () => {
     const start = settings.loop.isDone;
-    if (state.currentSource !== `camera` && start) updateState({ currentSource: `camera` });
-    else if (!start && state.currentSource === `camera`) updateState({ currentSource:`none` });
+    if (state.currentSource !== `camera` && start) saveState({ currentSource: `camera` });
+    else if (!start && state.currentSource === `camera`) saveState({ currentSource:`none` });
     setCamera(start);
   });
 
   chkSourceShow?.addEventListener(`change`, () => {
-    updateState({ displaySource: !state.displaySource });
+    saveState({ displaySource: !state.displaySource });
 
     // If both are off, hide canvas entirely
     const showCanvas = state.displaySource || state.displayData;
@@ -743,7 +743,7 @@ export const setup = async (onFrame, onPlayback, frameProcessorOptions, playback
   });
 
   chkDataShow?.addEventListener(`change`, () => {
-    updateState({ displayData: /** @type {HTMLInputElement} */(chkDataShow).checked });
+    saveState({ displayData: /** @type {HTMLInputElement} */(chkDataShow).checked });
     if (dataElement) dataElement.style.display = state.displayData ? `block` : `none`;
   });
 
@@ -873,14 +873,14 @@ const setCamera = async (start) => {
  * @param {boolean} v 
  */
 export const enableTextDisplayResults = (v) => {
-  updateState({ enableTextResults: v });
+  saveState({ enableTextResults: v });
 };
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   const source = state.currentSource;
   state = Object.freeze({
     ...state,

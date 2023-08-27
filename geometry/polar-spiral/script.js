@@ -23,18 +23,18 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const onTick = () => {
+const update = () => {
   const { slowPp, fastPp } = settings;
 
   // Update state
-  updateState({
+  saveState({
     // Get a new value from the generator
     slow: slowPp.next().value,
     fast: fastPp.next().value
   });
 };
 
-const useState = () => {
+const use = () => {
   /** @type {HTMLCanvasElement|null}} */
   const canvasElement = document.querySelector(`#canvas`);
   const context = canvasElement?.getContext(`2d`);
@@ -78,21 +78,18 @@ const draw = (context) => {
   context.stroke(); // Draw line
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   // Keep our primary canvas full size too
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -100,10 +97,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

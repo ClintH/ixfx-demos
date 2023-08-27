@@ -19,8 +19,7 @@ const bindElement = (element) => {
   element.addEventListener(`pointermove`, event => {});
 };
 
-// Setup
-const setup = () => {
+function setup() {
   document.querySelectorAll(`.drag-edit`).forEach(bindElement);
 };
 setup();
@@ -29,7 +28,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

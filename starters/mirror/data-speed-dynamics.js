@@ -23,7 +23,7 @@ let state = Object.freeze({
   value: 0
 });
 
-const useState = () => {
+const use = () => {
   const { fullMode } = settings;
   const { value } = state;
 
@@ -45,7 +45,7 @@ const useState = () => {
 };
 
 // Called continuously in a loop
-const tick = () => {
+const update = () => {
   const { value, targetValue, speed } = state;
 
   // Interpolate from value -> targetValue.
@@ -54,7 +54,7 @@ const tick = () => {
   const amount = speed / 100;
   const interpolatedValue = interpolate(amount, value, targetValue);
 
-  updateState({
+  saveState({
     value: interpolatedValue
   });
 };
@@ -81,7 +81,7 @@ const setup = () => {
     // speed to slowly reduce when there is no movement.
     // movingAverageLight (discussed here: https://clinth.github.io/ixfx-docs/data/averaging/) would be useful.
 
-    updateState({
+    saveState({
       lastSliderValue: v,
       speed,
       // Value we want to reach via interpolation
@@ -108,9 +108,9 @@ const setup = () => {
   // Continuous loop
   const loop = () => {
     // Re-calculate value based on interpolation
-    tick();
+    update();
     // Use value to update colour
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -118,10 +118,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

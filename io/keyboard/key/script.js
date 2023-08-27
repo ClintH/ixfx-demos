@@ -1,8 +1,10 @@
+import * as Util from './util.js';
+
 const settings = Object.freeze({
   // Key(s) we want to monitor
   keys: [ `f` ],
   // Function to update HTML element
-  info: innerText(`#info`)
+  info: Util.textContent(`#info`)
 });
 
 /** 
@@ -20,7 +22,7 @@ let state = Object.freeze({});
  * Where we use the state of the keys
  * @returns 
  */
-const useState = () => {
+const use = () => {
   const { info } = settings;
 
   // Get state of 'f'
@@ -73,7 +75,7 @@ const onKeyDown = (event) => {
 
   // Save into state
   keyStates.set(event.key, key);
-  useState();
+  use();
 };
 
 /**
@@ -104,7 +106,7 @@ const onKeyUp = (event) => {
 
   // Save into state
   keyStates.set(event.key, key);
-  useState();
+  use();
 };
 
 /**
@@ -120,7 +122,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -148,22 +150,6 @@ function getOrCreateKey(keyName) {
     keyStates.set(keyName, key);
   }
   return key;
-}
-
-/**
- * Function to set `textContext` for an element
- * @param {*} query 
- * @returns 
- */
-function innerText(query) {
-  const element = document.querySelector(query);
-  return (txt) => {
-    if (element) {
-      element.textContent = txt;
-    } else {
-      console.log(txt);
-    }
-  };
 }
 
 /** 

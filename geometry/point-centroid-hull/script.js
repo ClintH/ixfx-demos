@@ -21,14 +21,14 @@ let state = Object.freeze({
 });
 
 const update = () => {
-  updateState({
+  saveState({
     centroid: Points.centroid(...state.points),
     convexHull: Points.convexHull(...state.points)
   });
-  useState();
+  use();
 };
 
-const useState = () => {
+const use = () => {
   const {  pointSize, lineStyle } = settings;
   const { centroid, convexHull } = state;
 
@@ -69,7 +69,7 @@ const addPoint = (point) => {
   const { pointSize } = settings;
 
   // Add to list of points
-  updateState({
+  saveState({
     points: [ ...state.points, point ]
   });
   
@@ -85,11 +85,7 @@ const addPoint = (point) => {
   update();
 };
 
-
-/**
- * Setup
- */
-const setup = () => {
+function setup() {
   // Add a point when clicking the document
   document.addEventListener(`click`, event => {
     addPoint({ x: event.x, y: event.y });
@@ -101,7 +97,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

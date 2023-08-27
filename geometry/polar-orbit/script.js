@@ -38,7 +38,7 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const onTick = () => {
+const update = () => {
   const { distanceGen, maxRadiansPerCycle } = settings;
 
   // Calculate new angle
@@ -48,14 +48,14 @@ const onTick = () => {
   const distance = distanceGen.next().value;
 
   // Update state
-  updateState({
+  saveState({
     ...state,
     angle,
     distance,
   });
 };
 
-const useState = () => {
+const use = () => {
   const { bounds, minDimension, distance, angle } = state;
   const c = bounds.center;
   const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
@@ -77,10 +77,7 @@ const useState = () => {
   thingElement.style.transform = `translate(${pt.x}px, ${pt.y}px)`;
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   const updateBounds = () => {
     const bounds = {
       width: window.innerWidth,
@@ -91,7 +88,7 @@ const setup = () => {
       }
     };
 
-    updateState({
+    saveState({
       bounds: bounds,
       minDimension: Math.min(bounds.width, bounds.height)
     });
@@ -100,8 +97,8 @@ const setup = () => {
   updateBounds();
 
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -110,7 +107,7 @@ const setup = () => {
     const element = /** @type {HTMLInputElement}*/(event.target);
     
     // Range slider is 0-500, normalise to 0..1
-    updateState({ orbitSpeedFactor: Number.parseInt(element.value) / 500 });
+    saveState({ orbitSpeedFactor: Number.parseInt(element.value) / 500 });
   });
 };
 setup();
@@ -119,7 +116,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

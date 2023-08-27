@@ -17,13 +17,13 @@ let state = Object.freeze({
 const onPointerOrKeyUp = (event) => {
   event.preventDefault();
   const { easing } = settings;
-  updateState({
+  saveState({
     amt: easing.compute(), // Progresses easing by one tick
     isDone: easing.isDone
   });
 
   // Trigger a visual refresh
-  useState();
+  use();
 
   // Return false if envelope is done, stopping animation
   return !easing.isDone;
@@ -33,7 +33,7 @@ const onPointerOrKeyUp = (event) => {
 const percentage = (v) => Math.floor(v * 100) + `%`;
 
 // Update visuals
-const useState = () => {
+const use = () => {
   // Grab relevant fields from settings & state
   const { thingEl } = settings;
   const { amt, isDone } = state;
@@ -70,7 +70,7 @@ const reset = (event) => {
   thingEl.textContent = ``;
 };
 
-const setup = () => {
+function setup() {
   const { thingEl } = settings;
   if (!thingEl) return;
 
@@ -85,7 +85,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

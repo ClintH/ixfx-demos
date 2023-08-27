@@ -57,7 +57,7 @@ const update = () => {
   const distance = Lines.distance(rotatedLine, pointer);
   const nearestPoint = Lines.nearest(rotatedLine, pointer);
 
-  updateState({
+  saveState({
     distance,
     rotatedLine,
     rotation,
@@ -116,7 +116,7 @@ const drawDot = (context, dot, fillStyle = `red`) => {
   context.fill();
 };
 
-const useState = () => {
+const use = () => {
   const { width, height } = state.bounds;
   const { lineStyle, pointerStyle, nearestStyle  } = settings;
   const { pointer, nearestPoint, distance, rotatedLine } = state;
@@ -153,21 +153,18 @@ const useState = () => {
   
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   // Resize canvas to match viewport
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   document.addEventListener(`pointermove`, event => {
     const { bounds } = state;
-    updateState({
+    saveState({
       // Calc relative pointer position (on 0..1 scale)
       pointer: Points.divide(event.clientX, event.clientY, bounds.width, bounds.height)
     });
@@ -175,7 +172,7 @@ const setup = () => {
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -186,7 +183,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

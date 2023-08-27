@@ -12,7 +12,7 @@ let state = Object.freeze({
   pointerPressure: 0
 });
 
-const useState = () => {
+const use = () => {
   const { normalised } = state;
   
   // Higher pressure == less blur
@@ -28,11 +28,11 @@ const setBlur = (relativeAmount) => {
   element.style.filter = `blur(${Math.round(relativeAmount*maxBlur)}px)`;
 };
 
-const setup = () => {
+function setup() {
   // Listen for pressure or force events on body
   pressureOrForce(document.body, state => {
-    updateState(state);
-    useState();
+    saveState(state);
+    use();
   });
 
   // Start off with 100% blur
@@ -41,10 +41,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

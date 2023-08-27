@@ -77,7 +77,7 @@ let state = Object.freeze({
  * Called in a loop at animation speed (see setup())
  * @returns 
  */
-const useState = () => {
+const use = () => {
   drawState();
 };
 
@@ -257,7 +257,7 @@ const setup = async () => {
   });
 
   const drawLoop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(drawLoop);
   };
   window.requestAnimationFrame(drawLoop);

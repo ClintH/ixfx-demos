@@ -1,6 +1,7 @@
 import { Points } from '../../ixfx/geometry.js';
 import { Forces } from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
+import * as Util from './util.js';
 
 // Define settings
 const settings = Object.freeze({
@@ -29,7 +30,7 @@ let state = Object.freeze({
   }
 });
 
-const onTick = () => {
+const update = () => {
   const { target, dragForce } = settings;
   const { targetPos, position, velocity } = state;
 
@@ -46,7 +47,7 @@ const onTick = () => {
   const posAfterWrap = Points.wrap(t.position ?? Points.Empty);
 
   // Set to state
-  updateState({
+  saveState({
     velocity: t.velocity ?? Points.Empty,
     position: posAfterWrap
   });
@@ -55,43 +56,26 @@ const onTick = () => {
 /**
  * Position thing based on state
  */
-const useState = () => {
+const use = () => {
   const { position } = state;
 
   const thingElement =  document.querySelector(`#thing`);
   
   // Move the element
-  moveElement(thingElement, position);
+  Util.moveElement(thingElement, position);
 };
 
-const moveElement = (element, relativePos) => {
-  const { window } = state;
-
-  // Position is given in relative coordinates, need to map to viewport
-  const absPos = Points.multiply(relativePos, window.width, window.height);
-
-  // Get size of element to move
-  const size = element.getBoundingClientRect();
-
-  // Point to move to is given point, minus half width & height -- ie the top-left corner
-  const pt = Points.subtract(absPos, size.width / 2, size.height / 2);
-
-  element.style.left = `${pt.x}px`;
-  element.style.top = `${pt.y}px`;
-};
-
-
-const setup = () => {
+function setup(){ 
   const targetElement = document.querySelector(`#target`);
 
   continuously(() => {
-    onTick();
-    useState();
+    update();
+    use();
   }).start();
 
   // Update our tracking of window size if there's a resize
   window.addEventListener(`resize`, () => {
-    updateState({ window: { width: window.innerWidth, height: window.innerHeight } } );
+    saveState({ window: { width: window.innerWidth, height: window.innerHeight } } );
   });
 
   window.addEventListener(`pointerup`, (event) => {
@@ -101,19 +85,19 @@ const setup = () => {
     const pointerRelative = Points.normaliseByRect(event, window);
 
     // Set new target
-    updateState({ targetPos: pointerRelative });
-    moveElement(targetElement, state.targetPos);
+    saveState({ targetPos: pointerRelative });
+    Util.moveElement(targetElement, state.targetPos);
   });
 
-  moveElement(targetElement, state.targetPos);
+  Util.moveElement(targetElement, state.targetPos);
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

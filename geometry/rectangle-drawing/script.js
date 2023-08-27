@@ -25,9 +25,9 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const onTick = () => {};
+const update = () => {};
 
-const useState = () => {
+const use = () => {
   /** @type {HTMLCanvasElement|null}} */
   const canvasElement = document.querySelector(`#canvas`);
   const context = canvasElement?.getContext(`2d`);
@@ -125,14 +125,11 @@ const clear = (context) => {
   //ctx.fillRect(0, 0, width, height);
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
@@ -145,7 +142,7 @@ const setup = () => {
     const x = event.clientX;
     const y = event.clientY;
   
-    updateState({
+    saveState({
       pointer: { x, y }
     });
   };
@@ -154,8 +151,8 @@ const setup = () => {
   document.addEventListener(`pointermove`, onPointer);
 
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -166,7 +163,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

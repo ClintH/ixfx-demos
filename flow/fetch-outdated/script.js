@@ -21,8 +21,7 @@ const status = (m) => {
   if (statusEl) statusEl.textContent = new Date().toLocaleTimeString() + ` ` + m;
 };
 
-// Setup
-const setup = () => {
+function setup() {
   const { fetcher, dataEl } = settings;
 
   // When button is clicked...

@@ -27,7 +27,7 @@ const addAverage = (absX, absY) => {
   const { x, y } = settings.average;
 
   // Add relative x,y to their respective movingAverage instance
-  updateState ({
+  saveState ({
     avg: {
       x: x.add(absX / window.innerWidth),
       y: y.add(absY / window.innerHeight)
@@ -35,7 +35,7 @@ const addAverage = (absX, absY) => {
   });
 };
 
-const useState = () => {
+const use = () => {
   const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
   moveElement(thingElement);
 };
@@ -61,7 +61,7 @@ const moveElement = (thingElement) => {
 
 const setup = () => {
   document.addEventListener(`pointermove`, event => {
-    updateState({
+    saveState({
       pointer: {
         x: event.clientX,
         y: event.clientY
@@ -71,7 +71,7 @@ const setup = () => {
 
   // If pointer leaves, use center
   document.addEventListener(`pointerout`, () => {
-    updateState({
+    saveState({
       pointer: {
         x: window.innerWidth / 2,
         y: window.innerHeight / 2
@@ -81,7 +81,7 @@ const setup = () => {
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -92,7 +92,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

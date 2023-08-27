@@ -31,12 +31,12 @@ const update = () => {
   const v = genLoop.next().value;
   if (!v) return; // Exit if generator doesn't return a value
 
-  updateState({
+  saveState({
     loop: v
   });
 };
 
-const useState = () => {
+const use = () => {
   const { radiusProportion } = settings;
   const { circleEl, bounds, loop } = state;
   if (!circleEl) return;
@@ -56,17 +56,14 @@ const useState = () => {
   circleEl.setAttribute(`d`, Circles.toSvg(circle, sweep).join(` `));
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   const { text, textStyle } = settings;
   const svg = document.querySelector(`svg`);
   if (svg === null) return;
 
   // Resize SVG element to match viewport
   Dom.parentSize(svg, arguments_ => {
-    updateState({
+    saveState({
       bounds: windowBounds()
     });
   });
@@ -78,7 +75,7 @@ const setup = () => {
     strokeWidth: 1
   });
   circleElement.id = `circlePath`;
-  updateState({ circleEl: circleElement });
+  saveState({ circleEl: circleElement });
 
   // Create text to go on path
   Svg.Elements.textPath(`#circlePath`, text, svg, {
@@ -87,7 +84,7 @@ const setup = () => {
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -107,7 +104,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

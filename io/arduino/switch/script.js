@@ -46,13 +46,13 @@ const onConnected = (connected) => {
 /**
  * Updates UI with current values
  */
-const useState = () => {
+const use = () => {
   const { sw } = state;
 
   setHtml(`lblSwitch`, sw ? `Pressed` : `Not pressed`);
 };
 
-const setup = () => {
+function setup() {
   const { serial } = settings;
   document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
   serial.addEventListener(`data`, event => {
@@ -60,8 +60,8 @@ const setup = () => {
       const o = JSON.parse(event.data.trim());
       const sw = o.sw ?? false;
 
-      updateState({ sw });
-      useState();
+      saveState({ sw });
+      use();
     } catch (error) {
       console.log(error);
       console.log(event.data);
@@ -75,7 +75,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

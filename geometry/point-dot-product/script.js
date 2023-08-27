@@ -13,7 +13,7 @@ let state = Object.freeze({
   dotProduct: 0
 });
 
-const useState = () => {
+const use = () => {
   const { vectorEl, dotProductEl } = settings;
   const { heading, dotProduct } = state;
   
@@ -46,20 +46,20 @@ const onPointerMove = (event) => {
 
   const dotProduct = Points.dotProduct(heading, compareTo);
   
-  updateState({heading, dotProduct});
-  useState();
+  saveState({heading, dotProduct});
+  use();
 };
 
-const setup = () => {
+function setup() {
   document.addEventListener(`pointermove`, onPointerMove);
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

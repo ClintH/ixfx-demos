@@ -41,7 +41,7 @@ const avg = Points.divide(Points.normalise(nfo.fromInitial.average), 500);
 const things = state.things.map((t) =>
   Forces.apply(t, Forces.accelerationForce(avg, `dampen`))
 );
-updateState({ things });
+saveState({ things });
 ```
 
 And then the tracker reset:

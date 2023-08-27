@@ -70,7 +70,7 @@ const processFrame = (frame) => {
     self.postMessage({ differences });
   }
 
-  updateState({
+  saveState({
     lastFrame: frame.data
   });
 };
@@ -112,7 +112,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

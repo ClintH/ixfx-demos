@@ -4,11 +4,11 @@ const settings = Object.freeze({});
 let state = Object.freeze({});
 // #endregion
 
-const useState = () => {};
+const use = () => {};
 
-const setup = () => {
-  // Call useState every half a second
-  setInterval(useState, 500);
+function setup() {
+  // Call every half a second
+  setInterval(use, 500);
 };
 
 // #region Toolbox

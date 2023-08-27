@@ -1,5 +1,6 @@
 import { Points } from '../../ixfx/geometry.js';
 import { movingAverage, scalePercent, scaleClamped } from '../../ixfx/data.js';
+import * as Util from './util.js';
 
 const settings = Object.freeze({
   // Maximum speed for either x/y
@@ -40,7 +41,7 @@ let state = Object.freeze({
   lastUpdate: Date.now()
 });
 
-const tick = () => {
+const update = () => {
   const { avg } = settings;
   const { movement, lastUpdate } = state;
   const now = performance.now();
@@ -51,7 +52,7 @@ const tick = () => {
     y: scale(movement.y / (now - lastUpdate))
   };
 
-  updateState({
+  saveState({
     lastUpdate: now,
     // Reset accumulated movement
     movement: { x:0 , y: 0 },
@@ -65,11 +66,11 @@ const tick = () => {
   });
 };
 
-const useState = () => {
+const use = () => {
   const { speed, speedAvg } = state;
   const { fontWidth, fontWeight } = settings;
   
-  setText(`debug`,
+  Util.textContent(`debug`,
     `
     Speed: ${Points.toString(speed, 2)}
     Speed average: ${Points.toString(speedAvg, 2)}
@@ -109,7 +110,7 @@ const onPointerMove = (event) => {
 
   // Accumulate movement in x,y
   // Use Math.abs because we don't care about the direction
-  updateState({
+  saveState({
     movement: {
       x: movement.x + Math.abs(event.movementX),
       y: movement.y + Math.abs(event.movementY)
@@ -125,26 +126,20 @@ const setup = () => {
 
   // Update speed every 50ms
   setInterval(() => {
-    tick();
-    useState();
+    update();
+    use();
   }, settings.updateRateMs);
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
 
-function setText(id, message) {
-  const element =  /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (element && element.textContent !== message) {
-    element.textContent = message;
-  }
-}

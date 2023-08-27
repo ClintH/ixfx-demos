@@ -48,7 +48,7 @@ const update = () => {
  * Draw state of world
  * @param {CanvasRenderingContext2D} context 
  */
-const draw = (context) => {
+const use = (context) => {
   const { bounds, scaleFactor, points, pointer } = state;
   const { sphere,  dotRadius } = settings;
   
@@ -113,7 +113,7 @@ const init = () => {
 
   const loop = () => {
     update();
-    draw(context);  
+    use(context);  
     window.requestAnimationFrame(loop);
   };
   loop();

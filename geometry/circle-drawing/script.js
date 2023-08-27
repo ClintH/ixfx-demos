@@ -31,7 +31,7 @@ const update = () => {
   const radius = Math.min(bounds.width, bounds.height) * radiusViewProportion;
 
   // Update state
-  updateState({
+  saveState({
     bounds,
     radius,
     // Get a new value from the generator
@@ -69,7 +69,7 @@ const drawGradientCircle = (context, radius) => {
   context.fill();
 };
 
-const useState = () => {
+const use = () => {
   const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
   const context = canvasElement?.getContext(`2d`);
   if (!context || !canvasElement) return;
@@ -103,14 +103,14 @@ const setup = () => {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   const loop = () => {
     update();
-    useState();  
+    use();  
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -146,7 +146,7 @@ function getGradient (context, inner, bounds) {
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

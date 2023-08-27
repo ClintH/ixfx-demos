@@ -36,8 +36,10 @@
   "typescript.inlayHints.variableTypes.enabled": false,
   "typescript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
   "cSpell.words": [
+    "adsr",
     "mathinsight",
     "pointermove",
-    "stackblitz"
+    "stackblitz",
+    "statemachine"
   ]
 }

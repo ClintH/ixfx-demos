@@ -27,7 +27,7 @@ let state = Object.freeze({
 
 const keyForCell = (cell) => cell.x + `-` + cell.y;
 
-function useState() {
+function use() {
   const { tooltipEl } = settings;
   const { grid, highlightedCell, gridData } = state;
 
@@ -87,10 +87,7 @@ function drawCell(cell, context) {
   context.restore();
 }
 
-/**
- * Setup and run main loop 
- */
-function setup()  {
+function setup() {
   const { colours } = settings;
   const { grid } = state;
 
@@ -102,22 +99,22 @@ function setup()  {
   
     // We'd use minDimension if it was important
     // to not lose cells off the viewport
-    updateState({
+    saveState({
       grid: {
         ...state.grid,
-        size: maxDimension / Math.max(grid.rows, grid.cols)
+        size: Math.ceil(maxDimension / Math.max(grid.rows, grid.cols))
       }
     });
-    useState(); // repaint
+    use(); // repaint
   });
 
   window.addEventListener(`pointermove`, event => {
     event.preventDefault();
     const cell = Grids.cellAtPoint(state.grid, { x: event.clientX, y: event.clientY });
-    updateState({
+    saveState({
       highlightedCell: cell
     });
-    useState();
+    use();
   });
     
   let gridData = Maps.immutable();
@@ -130,17 +127,17 @@ function setup()  {
     gridData = gridData.set(keyForCell(cell), data);
   }
   
-  updateState({ gridData });
-  useState();
+  saveState({ gridData });
+  use();
 }
 
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

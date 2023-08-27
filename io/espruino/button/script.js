@@ -1,6 +1,7 @@
 
 import { delay } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
+import {setHtml, setClass, setCssDisplay} from './util.js';
 
 const scripts = Object.freeze({
   // Whenever `BTN` changes, send data
@@ -22,7 +23,7 @@ let state = Object.freeze({
   pressed:false
 });
 
-const useState = () => {
+const use = () => {
   const { time, lastTime, pressed } = state;
   const elapsed = time - (lastTime ?? time);
   setHtml(`pressed`, `Pressed (${elapsed} elapsed)`);
@@ -30,23 +31,7 @@ const useState = () => {
   setClass(`pressed`, pressed, `on`);
 };
 
-const setHtml = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-
-  if (!element) return;
-  element.innerHTML = value;
-};
-
-
-const setClass = (id, value, cssClass) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-
-  if (!element) return;
-  if (value) element.classList.add(cssClass);
-  else element.classList.remove(cssClass);
-};
-
-const setup = () => {
+function setup() {
   const { script } = settings;
   const onConnected = (connected) => {
     setCssDisplay(`preamble`,  connected ? `none` : `block`);
@@ -70,12 +55,12 @@ const setup = () => {
 
         try {
           const d = JSON.parse(data);
-          updateState({
+          saveState({
             pressed: d.state,
             time: d.time,
             lastTime: d.lastTime
           });
-          useState();
+          use();
         } catch (error) {
           console.warn(error);
           console.log(data);
@@ -103,17 +88,12 @@ const setup = () => {
 };
 setup();
 
-const setCssDisplay = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (!element) return;
-  element.style.display = value;
-};
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

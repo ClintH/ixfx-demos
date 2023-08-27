@@ -1,135 +1,99 @@
-import { Points } from '../../ixfx/geometry.js';
-import { clamp, scale } from '../../ixfx/data.js';
-
-// Define our Thing
-// In this demo, things have a position, suprise and elementId
-/** 
- * @typedef Thing
- * @property {Points.Point} position
- * @property {number} surprise
- * @property {string} elementId
- */
+import * as Thing from './thing.js';
+import {clamp } from '../../ixfx/data.js';
 
 // Settings for sketch
-const settings = Object.freeze({});
+const settings = Object.freeze({
+  thingUpdateSpeedMs: 10,
+  thingId: `thing`,
+  hueChange: 0.05,
+  movementDecay: 0.1
+});
 
-// State
+/** 
+ * @typedef {object} State
+ * @property {number} hue
+ * @property {number} movement
+ * @property {Thing.Thing} thing
+ */
+
+/**
+ * @type {State}
+ */
 let state = Object.freeze({
-  // Create a thing when starting
-  thing: generateThing()
+  thing: Thing.create(settings.thingId),
+  hue: 0,
+  movement: 0
 });
 
 /**
- * Make use of data from `thing` somehow...
- * @param {Thing} thing 
- */
-const useThing = (thing) => {
-  // Grab some properties from `thing`
-  const { position, elementId, surprise } = thing;
-  
-  // Resolve element
-  const element = /** @type HTMLElement */(document.querySelector(`#${elementId}`));
-  if (!element) return;
-
-  // Change opacity based on 'surprise'
-  element.style.opacity = surprise.toString();
-
-  // Position
-  positionFromMiddle(element, position);
-};
-
-/**
- * Updates a given thing based on state
- * @param {Thing} thing
- * @returns {Thing}
- */
-const updateThingFromState = (thing) => {
-  // In this function, we probably want the steps:
-  // 1. Alter properties based on external state/settings
-  // 2. Alter properties based on the state of 'thing'
-  // 3. Apply 'intrinsic' logic of thing. Eg. that a variable will
-  //    always decrease a little each loop
-  // 4. Apply sanity checks to properties, making sure they are within proper ranges
-  // 5. Return a new Thing
-  return Object.freeze({
-    ...thing,
-    /** data to update here */
-  });
-};
-
-/**
  * Makes use of the data contained in `state`
- * (including `thing`)
  */
-const useState = () => {
-  const { thing } = state;
+const use = () => {
+  const { hue } = state;
 
-  // 1. Use extra properties in state...
-  
-  // 2. Use properties from thing
-  useThing(thing);
+  // 1. Eg. use the ambient state
+  document.body.style.backgroundColor = `hsl(${hue}, 100%, 90%)`;
 };
 
-const loop = () => {
-  const { thing } = state;
+const update = () => {
+  const { hueChange, movementDecay } = settings;
+  let { hue, movement } = state;
+  // 1. Any other state updates?
+  // eg: cycle hue
+  hue += hueChange;
 
-  // Compute new thing based on current state
-  const thingUpdated = updateThingFromState(thing);
+  // eg. decay movement
+  movement -= movementDecay;
 
-  // Save new thing into state
-  updateState({ 
-    thing: thingUpdated
+  // 2. Sanity check
+  hue = hue%360; // 0..360 scale
+  movement = clamp(movement); // 0..1 scale
+
+  // 3. Save state
+  saveState({ hue, movement });
+
+  // 4. Use state
+  use();
+
+  // 5. Call itself
+  window.requestAnimationFrame(update);
+};
+
+function setup() {
+  const element = /** @type HTMLElement */(document.querySelector(`#${settings.thingId}`));
+  if (!element) throw new Error(`Element with id ${settings.thingId} not found`);
+  element.addEventListener(`pointermove`, (event) => {
+    const relativeMovement = (event.movementX/window.innerWidth + event.movementY/window.innerHeight);
+    let movement = clamp(state.movement + relativeMovement);
+    saveState({ movement });
   });
 
-  // Use new state
-  useState();
+  // Update thing at a fixed rate
+  setInterval(() => {
+    // Save new thing into state
+    saveState({ 
+      thing: Thing.update(state.thing, state)
+    });
 
-  // Loop
-  window.requestAnimationFrame(loop);
+    // Visually update based on new state
+    Thing.use(state.thing);
+  }, settings.thingUpdateSpeedMs);
+
+  // Update state of sketch and use state
+  // at full speed
+  update();
 };
 
-const setup = () => {
-  // Add event listeners which update state
-};
-
-setup(); // Set up events
-loop(); // Set up processing loop
+setup();
 
 /**
- * Generates a Thing
- * @returns {Thing}
+ * Save state
+ * @param {Partial<State>} s 
  */
-function generateThing () {
-  return {
-    position: { x: 0.5, y:0.5 },
-    elementId: `thing`,
-    surprise: 0
-  };
-}
-
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
 
-/**
- * Position an element from its middle
- * @param {HTMLElement} element 
- * @param {Points.Point} relativePos 
- */
-function positionFromMiddle(element, relativePos) {
-  // Convert relative to absolute units
-  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
-  
-  const thingRect = element.getBoundingClientRect();
-  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
-
-  // Apply via CSS
-  element.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
-}

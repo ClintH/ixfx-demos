@@ -66,7 +66,7 @@ const update = () => {
   };
 
   // Update state
-  updateState({
+  saveState({
     bounds,
     arc,
     // Get a new value from the generator
@@ -113,7 +113,7 @@ const setup = () => {
   const canvasElement = /** @type {HTMLCanvasElement} */(Dom.resolveEl(`#canvas`));
   Dom.fullSizeCanvas(canvasElement, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
@@ -123,14 +123,14 @@ const setup = () => {
   
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
 };
 setup();
 
-const useState = () => {
+const use = () => {
   const { canvasEl } = settings;
   const context = canvasEl.getContext(`2d`);
 
@@ -155,10 +155,10 @@ const bounds = (element) => {
 };
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

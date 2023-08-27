@@ -15,7 +15,7 @@ let state = Object.freeze({
   results: undefined,
 });
 
-const useState = () => {
+const use = () => {
   const { results } = state;
   if (!results) return;
 
@@ -30,7 +30,7 @@ const useState = () => {
     `Angle deg: ${Math.round(angleDeg)}`,
     `Average: ${Points.toString(average, 2)}`,
     `Centroid: ${Points.toString(centroid, 2)}`,
-    `Speed: ${speed.toPrecision(2)}`]
+    `Speed: ${speed.toPrecision(2)}`];
   
   // Wrap in DIVs
   const linesWithDivs = lines.map(l => `<DIV>${l}</DIV>`);
@@ -45,7 +45,7 @@ const onPointerDown = event => {
   const pointerRelative = relativePos(event);
  
   // Init new 'relation', and update state
-  updateState({ relationFromPointerDown: Points.relation(pointerRelative) });
+  saveState({ relationFromPointerDown: Points.relation(pointerRelative) });
 
   // Position 'reference' element
   positionIdByRelative(`reference`, pointerRelative);
@@ -65,8 +65,8 @@ const onPointerMove = event => {
   // Position 'reference' element
   positionIdByRelative(`thing`, pointerRelative);
 
-  updateState({ results });
-  useState();
+  saveState({ results });
+  use();
 
   return false;
 };
@@ -75,14 +75,11 @@ const onPointerUp = event => {
   // Hide element offscreen when there's a pointer up
   positionIdByRelative(`reference`, { x: -1, y: -1 });
 
-  updateState({ relationFromPointerDown: undefined });
+  saveState({ relationFromPointerDown: undefined });
   document.body.classList.remove(`moving`);
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   document.addEventListener(`pointerdown`, onPointerDown);
   document.addEventListener(`pointermove`, onPointerMove);
   document.addEventListener(`pointerup`, onPointerUp);
@@ -93,7 +90,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

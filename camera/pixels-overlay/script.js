@@ -44,7 +44,7 @@ let state = Object.freeze({
 /**
  * Uses calculated state to update labels
  */
-const useState = () => {
+const use = () => {
   const { fps, differences } = state;
   const { lblFps, lblDifferences } = settings;
 
@@ -110,7 +110,7 @@ const update = (frame, context) => {
   frameIntervalTracker.mark();
 
   // Update state with latest calculations
-  updateState({
+  saveState({
     fps: Math.round(1000 / frameIntervalTracker.avg),
     lastFrame: data,
     differences
@@ -182,7 +182,7 @@ const startVideo = async () => {
       update(frame, context);
 
       // Update labels
-      useState();
+      use();
     }
   } catch (error) {
     console.error(error);
@@ -192,7 +192,7 @@ const startVideo = async () => {
   }
 };
 
-const setup = () => {
+function setup () {
   // Show unexpected errors on the page to help debugger;
   defaultErrorHandler();
 
@@ -205,10 +205,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

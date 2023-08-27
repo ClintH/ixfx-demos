@@ -14,7 +14,7 @@ let state = Object.freeze({
   speed: 0
 });
 
-const useState = () => {
+const use = () => {
   const { fullMode } = settings;
   const { speed } = state;
 
@@ -35,7 +35,7 @@ const useState = () => {
   }
 };
 
-const setup = () => {
+function setup() {
   const { fullMode, speedMax } = settings;
 
   document.querySelector(`#slider`)?.addEventListener(`input`, event => {
@@ -57,11 +57,11 @@ const setup = () => {
     // speed to slowly reduce when there is no movement.
     // movingAverageLight (discussed here: https://clinth.github.io/ixfx-docs/data/averaging/) would be useful.
 
-    updateState({
+    saveState({
       lastSliderValue: v,
       speed,
     });
-    useState();
+    use();
   });
 
   const buttonFullScreen = /** @type HTMLElement */(document.querySelector(`#btnFullScreen`));
@@ -76,15 +76,15 @@ const setup = () => {
     const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
     if (spotElement) spotElement.style.display = `none`;
   }
-  useState();
+  use();
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

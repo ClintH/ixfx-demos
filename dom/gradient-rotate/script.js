@@ -25,7 +25,7 @@ let state = Object.freeze({
 });
 
 // Assigns gradients to body, based on settings and state
-const useState = () => {
+const use = () => {
   const { opacity, stop } = settings;
   const { offset, hues } = state;
 
@@ -45,22 +45,20 @@ const useState = () => {
 // Calculate a new hue offset
 const update = () => {
   const { offsetRange } = settings;
-  updateState({ 
+  saveState({ 
     offset: offsetRange.next().value || 0 
   });
 };
 
-
-// Setup
-const setup = () => {
+function setup() {
   const { interval } = settings;
 
   // Generate a set of hues
-  updateState({ hues: [ ...Generators.numericRange(interval, 0, 360) ] });
+  saveState({ hues: [ ...Generators.numericRange(interval, 0, 360) ] });
 
   continuously(() => {
     update();
-    useState();
+    use();
   }).start();
 };
 setup();
@@ -69,7 +67,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

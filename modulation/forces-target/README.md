@@ -11,13 +11,13 @@ See also:
 ## Targeting
 
 In `state`, _targetPos_ _position_ and _velocity_ are stored. The latter two are
-updated in `onTick`. _targetPos_ is set based on pointer events.
+updated in `update`. _targetPos_ is set based on pointer events.
 
-ixfx's `Force.targetForce` is used in `onTick()` to compute a new position and
+ixfx's `Force.targetForce` is used in `update()` to compute a new position and
 apply acceleration to velocity.
 
 ```js
-const onTick = () => {
+const update = () => {
   const { target, dragForce } = settings;
   const { targetPos, position, velocity } = state;
 
@@ -35,14 +35,14 @@ const onTick = () => {
   const posAfterWrap = Points.wrap(t.position ?? Points.Empty);
 
   // Set to state
-  updateState({
+  saveState({
     velocity: t.velocity ?? Points.Empty,
     position: posAfterWrap,
   });
 };
 ```
 
-In `useState`, a helper function is used to move the element according to the
+In `use()`, a helper function is used to move the element according to the
 current state.
 
 # Things to try

@@ -63,9 +63,9 @@ const driver = await StateMachine.driver(stateMachine, [
 
 
 /**
- * Process state gets called every second
+ * Gets called every second
  */
-const processState = async () => {
+const update = async () => {
   const { resetMachineAfterMs } = settings;
   const { current } = state;
   let { elapsed } =state;
@@ -89,12 +89,12 @@ const processState = async () => {
 };
 
 /**
- * useState does the visual drawing.
+ * Does the visual drawing.
  * Gets called at animation speed.
  * @param {CanvasRenderingContext2D} context 
  * @returns 
  */
-const useState = (context) => {
+const use = (context) => {
   const { bounds, distances, current } = state;
   const { hue, circles } = settings;
 
@@ -162,7 +162,7 @@ const onPointerMove = (event) => {
   // Compute distances to each circle
   const distances = circles.map(c => Circles.distanceCenter(c, pointer));
 
-  updateState({ distances });
+  saveState({ distances });
 };
 
 const createCircle = (x, y) => {
@@ -172,11 +172,7 @@ const createCircle = (x, y) => {
   };
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
-
+function setup() {
   settings.circles.push(
     createCircle(0.2, 0.5),
     createCircle(0.5, 0.5),
@@ -185,7 +181,7 @@ const setup = () => {
 
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: arguments_.bounds });
+    saveState({ bounds: arguments_.bounds });
   });
 
   document.addEventListener(`pointermove`, onPointerMove);
@@ -195,13 +191,13 @@ const setup = () => {
   const context = canvasElement?.getContext(`2d`);
   
   const loop = () => {
-    if (context) useState(context);
+    if (context) use(context);
     window.setTimeout(loop, 10);
   };
   loop();
   
   const processStateLoop = () => {
-    processState();
+    update();
     window.setTimeout(processStateLoop, 1000);
   };
   processStateLoop();
@@ -210,10 +206,10 @@ setup();
 
 //#region helpers
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

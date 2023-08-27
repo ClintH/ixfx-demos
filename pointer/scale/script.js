@@ -64,8 +64,8 @@ const onPointerMove = (event) => {
     // Halve it to reduce the impact on scaling
     const vv = v * 0.5;
 
-    updateState({ scale:clamp(state.scale + vv, 0.1, 20) });
-    useState();
+    saveState({ scale:clamp(state.scale + vv, 0.1, 20) });
+    use();
   } else {
     // If we don't get at least two touches,
     // reset the tracker, because gesture has been cancelled
@@ -76,7 +76,7 @@ const onPointerMove = (event) => {
 /**
  * Update screen with state
  */
-const useState = () => {
+const use = () => {
   const { thingEl } = settings;
   const { scale } = state;
   if (thingEl) thingEl.style.transform = `scale(${scale})`;
@@ -106,10 +106,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

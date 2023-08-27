@@ -36,7 +36,7 @@ let state = Object.freeze({
   diffVu: ``
 });
 
-const useState = () => {
+const use = () => {
   const { fps, differences, diffVu } = state;
   const { lblFps, lblDifferences, lblDiffVu } = settings;
 
@@ -67,7 +67,7 @@ const startVideo = async () => {
       // Keep track of how long it takes us to process frames
       frameIntervalTracker.mark(); 
 
-      updateState({
+      saveState({
         fps: Math.round(1000 / frameIntervalTracker.avg)
       });
     }
@@ -86,7 +86,7 @@ const startVideo = async () => {
  */
 const percentage = (v) => Math.round(v * 100) + `%`;
 
-const setup = () => {
+function setup () {
   const { worker } = settings;
   defaultErrorHandler();
 
@@ -104,7 +104,7 @@ const setup = () => {
     const mma = diffTracker.getMinMaxAvg();
 
     // Add what the worker sends to the state
-    updateState({
+    saveState({
       ...d,
       diffVu: `
        max: ${percentage(mma.max)}<br />
@@ -112,16 +112,16 @@ const setup = () => {
        min: ${percentage(mma.min)}`
     });
 
-    useState();
+    use();
   });
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

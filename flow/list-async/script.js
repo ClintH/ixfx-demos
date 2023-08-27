@@ -34,7 +34,7 @@ const processor = continuously(() => {
   const item = toProcess.peek;
 
   // Put stack without item back into state
-  updateState({
+  saveState({
     toProcess: toProcess.pop()
   });
 
@@ -46,7 +46,7 @@ const processor = continuously(() => {
 // Adds item to stack
 const process = (item) => {
   const { toProcess } = state;
-  updateState({
+  saveState({
     toProcess: toProcess.push(item)
   });
 
@@ -54,7 +54,7 @@ const process = (item) => {
   processor.start();
 };
 
-const setup = () => {
+function setup() {
   // Adds three items to backlog
   document.querySelector(`#btnAddItems`)?.addEventListener(`click`, () => {
     const n = performance.now(); // Get a timestamp
@@ -69,7 +69,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

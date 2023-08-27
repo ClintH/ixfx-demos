@@ -30,7 +30,7 @@ let state = Object.freeze({
   points: [ ...repeat(100, randomPoint) ]
 });
 
-const useState = () => {
+const use = () => {
   const { points } = state;
   
   const canvasElement = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
@@ -66,7 +66,7 @@ const update = () => {
   });
 
   // Update state with the new points
-  updateState({
+  saveState({
     points: movedPoints
   });
 };
@@ -121,21 +121,18 @@ const clear = (context) => {
   context.fillRect(0, 0, width, height);
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -143,10 +140,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -2,71 +2,81 @@
 
 Demonstrates decoupling of thing state with the sketch state, having its own update logic and visual expression.
 
-It's an empty, skeleton sketch. You can see this pattern used in:
-* [canvas-things](../canvas-things/): render things as particle
-* [modulation/env-osc](../../modulation/env-osc/): moving a thing based on an envelope and oscillator
+There is a `script.js` as usual, but most of the Thing-specific logic is in `thing.js`. There's also a `util.js` for a utility function.
 
-'Thing' is defined as follows:
+## index.html
 
-```ts
+We have an empty DIV that is used to represent the thing:
+
+```html
+<div id="thing"></div>
+```
+
+Some basic styling is used in the HTML file as well.
+
+## script.js
+
+We have settings as usual, where `thingId` matches an id of an element in HTML.
+
+```js
+const settings = Object.freeze({
+  thingUpdateSpeedMs: 10,
+  thingId: `thing`,
+  hueChange: 0.05,
+  movementDecay: 0.1
+});
+```
+
+A State type is defined. In this demo, we have two 'ambient' state things we want to model: the hue of the page and a 'movement' scalar. Movement will be used to gather the intensity of pointer movement. The state also holds the Thing.
+
+```js
+/** 
+ * @typedef {object} State
+ * @property {number} hue
+ * @property {number} movement
+ * @property {Thing.Thing} thing
+ */
+```
+
+State is initialised, creating a new thing via `Thing.create`.
+
+```js
+/** @type {State}*/
+let state = Object.freeze({
+  thing: Thing.create(settings.thingId),
+  hue: 0,
+  movement: 0
+});
+```
+
+In `setup`, we listen for `pointermove` events on the document, accumulating it into `state.movement`. There is a loop that runs that updates the Thing and its visuals.
+
+An `update` function runs continuously, updating `state.hue` and `state.movement`. In this case, hue shifts gradually and the movement value decays to zero over time.
+
+## thing.js
+
+Here we define our Thing. It has a position, a scalar for 'surprise' (which is used to change the opacity of the element), its HTML element id, and its hue.
+
+```js
 /** 
  * @typedef Thing
  * @property {Points.Point} position
  * @property {number} surprise
  * @property {string} elementId
+ * @property {number} hue
  */
 ```
 
-This might look like:
-```js
-const t = {
-  position: { x: 0.5, y: 0.5 },
-  surprise: 100,
-  elementId: `thatHtmlId`
-};
-```
+In thing.js we have `create`, `update` and `use` functions.
 
-`generateThing` creates an instance of Thing:
+`create` returns a new Thing, and is called from script.js during initialisation.
 
-```js
-function generateThing () {
-  return {
-    position: { x: 0.5, y:0.5 },
-    elementId: `thing`,
-    surprise: 0
-  };
-}
-```
+`update` synthesizes a new Thing based on an input Thing and the ambient state from script.js. In this case, we:
+* interpolate the Thing's hue to track the ambient hue (meaning it lag behind a bit behind the page hue)
+* if there's any movement, add that to the 'surprise' value
+* decay the 'surprise' amount
+* sanity check all the values before returning a new Thing
 
-As-written, this will create a Thing with the same properties all the time. If you want to spawn multiple things, this is not useful. Rather, you want to change it to use random values, or to take arguments. For example:
+In script.js, the result of calling `update` is used to set `state.thing`.
 
-```js
-function generateThing (elementId) {
-  return {
-    position: { x: Math.random(), y: Math.random() },
-    elementId,
-    surprise: Math.random()
-  };
-}
-```
-
-The sketch's main loop does these steps:
-1. Create a new thing with modified values of the existing thing (`loopThing`)
-2. Save that thing (`updateState`)
-3. Use state (`useState`), which in turn calls `useThing` to use the data in the updated Thing.
-
-To compute new values of the Thing in `loopThing`, these steps are typically followed:
-
-1. Alter properties based on external state/settings.
-2. Alter properties based on the state of 'thing'
-3. Apply 'intrinsic' logic of thing. Eg, that a variable will always decrease a little each loop
-4. Apply sanity checks to properties, making sure they are within proper ranges
-5. Return a new thing, wrapping up changed properties.
-
-In action, those steps might look like:
-
-1. Apply acceleration to thing based on current 'wind'
-2. Apply acceleration to thing based on its mass
-3. 'Age' thing
-4. Ensure x,y isn't off the screen
-5. Return `{ acceleration, position, age }`
+`use` updates the visuals of the Thing based on its state.

@@ -16,7 +16,7 @@ let state = Object.freeze({
   sm: StateMachine.init(settings.transitions)
 });
 
-const useState = () => {
+const use = () => {
   const { stateEl, possibleStatesEl } =settings;
   const { sm } = state;
   stateEl.textContent = sm.value;
@@ -33,15 +33,14 @@ const updateMachine = (s) => {
     saveState({
       sm: StateMachine.to(sm, s)
     });
-    useState();
+    use();
   } catch (error) {
     console.error(error);
     if (stateEl) stateEl.innerHTML = sm.value + `<br />` + error.message;
   }
 };
 
-// Set up
-const setup = () => {
+function setup() {
   document.addEventListener(`click`, (event) => {
     const element = /** @type HTMLElement */(event.target);
 
@@ -53,7 +52,7 @@ const setup = () => {
     // the state to change to.
     updateMachine(element.textContent?.toLocaleLowerCase());
   });
-  useState();
+  use();
 };
 setup();
 

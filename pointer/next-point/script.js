@@ -4,7 +4,7 @@ import { pointTracker } from '../../ixfx/data.js';
 
 // Define settings - properties that don't change
 const settings = Object.freeze({
-  tickLoopMs: 10,
+  updateRateMs: 10,
   circleHue: 320
 });
 
@@ -30,9 +30,9 @@ let state = Object.freeze({
  * than the animation loop. It's meant for
  * mutating state in some manner
  */
-const tick = () => {
+const update = () => {
   // Do some calculations
-  // and call updateState({ ... })
+  // and call saveState({ ... })
 };
 
 const onPointerMove = (event) => {
@@ -50,7 +50,7 @@ const onPointerMove = (event) => {
   // Apply vector to predict the next point
   const prediction = Points.sum( vector, pointerRelative);
 
-  updateState({ pointer: pointerRelative, prediction });
+  saveState({ pointer: pointerRelative, prediction });
 };
 
 /**
@@ -58,7 +58,7 @@ const onPointerMove = (event) => {
  * should just draw based on whatever is in state
  * @returns 
  */
-const drawState = () => {
+const use = () => {
   const { circleHue } = settings;
 
   /** @type HTMLCanvasElement|null */
@@ -98,26 +98,26 @@ const clear = (context) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  const { tickLoopMs } = settings;
+  const { updateRateMs } = settings;
 
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ 
+    saveState({ 
       bounds: arguments_.bounds,
       scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
   });
 
-  // Call `tick` at a given rate
-  const tickLoop = () => {
-    tick();
-    setTimeout(tickLoop, tickLoopMs);
+  // Call at a given rate
+  const loop = () => {
+    update();
+    setTimeout(loop, updateRateMs);
   };
-  tickLoop();
+  loop();
 
   // Animation loop
   const animationLoop = () => {
-    drawState();
+    use();
     window.requestAnimationFrame(animationLoop);
   };
   animationLoop();
@@ -131,7 +131,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

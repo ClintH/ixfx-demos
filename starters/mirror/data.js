@@ -7,7 +7,7 @@ let state = Object.freeze({
   slider: 0,
 });
 
-const useState = () => {
+const use = () => {
   const { fullMode } = settings;
   const { slider } = state;
 
@@ -35,8 +35,8 @@ const setup = () => {
     const element = /** @type HTMLInputElement|null */(event.target);
     if (!element) return;
     // Slider is on range 0..1000, make into a 0..1 range
-    updateState({ slider: Number.parseInt(element.value) / 1000 });
-    useState();
+    saveState({ slider: Number.parseInt(element.value) / 1000 });
+    use();
   });
 
   const buttonFullScreen = /** @type HTMLElement */(document.querySelector(`#btnFullScreen`));
@@ -50,15 +50,15 @@ const setup = () => {
     const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
     if (spotElement) spotElement.style.display = `none`;
   }
-  useState();
+  use();
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

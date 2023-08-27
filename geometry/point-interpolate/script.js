@@ -27,13 +27,12 @@ const update = () => {
   const p = Points.interpolate(interpolateAmt, location, pointer);
 
   //console.log(`ptr y: ${pointer.y} loc.y: ${location.y}`);
-  updateState({
+  saveState({
     location: p
   });
 };
 
-
-const useState = () => {
+const use = () => {
   const { location, bounds } = state;
 
   const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
@@ -54,7 +53,7 @@ const useState = () => {
 
 // Keep track of screen size whenever it resizes
 const onResize = () => {
-  updateState ({
+  saveState ({
     bounds: {
       width: window.innerWidth,
       height: window.innerHeight
@@ -71,27 +70,21 @@ const onPointer = (event) => {
   const { bounds } = state;
   const x = event.clientX;
   const y = event.clientY;
-  updateState({
+  saveState({
     // Make pointer position relative (on 0..1 scale)
     pointer: Points.divide(x, y, bounds.width, bounds.height)
   });
 };
-/**
- * Setup and run main loop 
- */
-const setup = () => {
 
-
+function setup() {
   document.addEventListener(`resize`, onResize);
   onResize();
-
-
   document.addEventListener(`pointermove`, onPointer);
   document.addEventListener(`pointerdown`, onPointer);
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -102,7 +95,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

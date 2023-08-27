@@ -34,7 +34,7 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const onTick = () => {
+const update = () => {
   const { pointer, reference } = state;
 
   // Demo some calculations
@@ -45,14 +45,14 @@ const onTick = () => {
   const angleDeg = radianToDegree(Points.angle(reference, pointer));
 
   // Update state with calculations...
-  updateState({
+  saveState({
     location: pointer,
     distance,
     angleDeg
   });
 };
 
-const useState = () => {
+const use = () => {
   const { location, reference, distance, angleDeg } = state;
   const thingElement = document.querySelector(`#thing`);
   const referenceElement = document.querySelector(`#reference`);
@@ -81,22 +81,19 @@ const useState = () => {
 const onPointerMoveOrDown = (event) => {
   const x = event.clientX;
   const y = event.clientY;
-  updateState({
+  saveState({
     // Make pointer position relative (on 0..1 scale)
     pointer: Points.divide(x, y, window.innerWidth, window.innerHeight)
   });
 };
   
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   document.addEventListener(`pointerdown`, onPointerMoveOrDown);
   document.addEventListener(`pointermove`, onPointerMoveOrDown);
 
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -107,7 +104,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

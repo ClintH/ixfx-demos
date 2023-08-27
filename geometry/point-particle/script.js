@@ -3,6 +3,7 @@ import { repeat } from '../../ixfx/flow.js';
 import { jitter } from '../../ixfx/modulation.js';
 import { flip } from '../../ixfx/data.js';
 import { gaussian } from '../../ixfx/random.js';
+import * as Particle from './particle.js';
 
 const settings = Object.freeze({
   // How much to age with each loop (% of current age)
@@ -13,22 +14,21 @@ const settings = Object.freeze({
   yMovement: 0.01,
   // Jitter to apply to particle x-axis
   xJitter: jitter({ relative: 0.01, source: gaussian }),
-  // Drawing settings
-  dotHue: `194`,
   bgHue: `194`,
-  radiusMax: 30,
-  radiusMin: 20
 });
 
+/**
+ * @typedef {object} State
+ * @prop {import('./particle.js').Particle[]} particles
+ * @prop {import('./particle.js').Point} pointer
+ * @prop {boolean} pointerDown
+ * @prop {{width:number,height:number,center:import('./particle.js').Point}} bounds
+  */
+
+/** @type {State} */
 let state = Object.freeze({
-  /** @type {Particle[]} */
   particles: [],
-  /** 
-   * Relative pointer position (0,0) -> (1,1) 
-   * @type {Point}
-   * */
   pointer: { x: 0, y: 0 },
-  /** @type {boolean} */
   pointerDown: false,
   bounds: {
     width: 0,
@@ -38,7 +38,7 @@ let state = Object.freeze({
 });
 
 // Runs at animation speed
-const onTick = () => {
+const update = () => {
   const { yMovement, spawnPerLoop, agePerLoop, xJitter } = settings;
   const { particles }  = state;
 
@@ -48,7 +48,7 @@ const onTick = () => {
     .filter(p => p.age > 0.001);
 
   // 2. Spawn new particles
-  const withNew = [ ...aged, ...repeat(spawnPerLoop, createParticle) ];
+  const withNew = [ ...aged, ...repeat(spawnPerLoop, () => Particle.create(state)) ];
 
   // 3. Move particles: some jitter applied to X, and drift upwards
   const moved = withNew.map(p => ({
@@ -58,12 +58,12 @@ const onTick = () => {
   }));
 
   // 3. Update state for later drawing
-  updateState({
+  saveState({
     particles: moved
   });
 };
 
-const useState = () => {
+const use = () => {
   const { particles } = state;
 
   /** @type {HTMLCanvasElement|null}} */
@@ -78,38 +78,8 @@ const useState = () => {
 
   // Draw particles  
   for (const p of particles) {
-    drawPoint(context, p);
+    Particle.draw(context, p, state);
   }
-};
-
-/**
- * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} context 
- * @param {Particle} pt 
- */
-const drawPoint = (context, pt) => {
-  const { radiusMax, radiusMin, dotHue } = settings;
-  const { width, height } = state.bounds;
-
-  // Calculate radius based on relative 
-  // random radius, max radius & age of particle
-  const radius = (radiusMax - radiusMin) * (pt.weight * pt.age) + (radiusMin* pt.age);
-
-  // Calculate colour for dot, with age determining the opacity
-  const fillStyle = `hsla(${dotHue}, 60%, ${Math.floor(pt.intensity*100)}%, ${pt.age})`;
-
-  // Translate so 0,0 is the middle
-  context.save();
-  context.translate(pt.x*width, pt.y*height);
-
-  // Fill a circle
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fillStyle = fillStyle;
-  context.fill();
-
-  // Unwind translation
-  context.restore();
 };
 
 /**
@@ -133,28 +103,25 @@ const clear = (context) => {
 };
 
 const defaultPosition = () => {
-  updateState({ pointer: {
+  saveState({ pointer: {
     x: 0.5, //window.innerWidth / 2,
     y: 0.5, //window.innerHeight / 2
   } });
 };
 
-/**
- * Set up
- */
-const setup = () => {
+function setup() {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   // Animation loop
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -165,7 +132,7 @@ const setup = () => {
   // Keep track of pointer moving
   document.addEventListener(`pointermove`, event => {
     event.preventDefault();
-    updateState({ 
+    saveState({ 
       pointer: {
         x: event.x/window.innerWidth,
         y: event.y/window.innerHeight
@@ -176,12 +143,12 @@ const setup = () => {
   // Keep track of pointer up/down status
   document.addEventListener(`pointerdown`, event => {
     event.preventDefault();
-    updateState({ pointerDown: true });
+    saveState({ pointerDown: true });
   });
 
   document.addEventListener(`pointerup`, event => {
     event.preventDefault();
-    updateState({ pointerDown: false });
+    saveState({ pointerDown: false });
   });
 
   document.addEventListener(`pointerleave`, event => {
@@ -191,43 +158,12 @@ const setup = () => {
 setup();
 
 /**
- * Creates a particle
- * @returns {Particle}
- */
-function createParticle() {
-  const { pointer, pointerDown } = state;
-  return {
-    ...pointer,
-    weight: Math.random(),
-    age: 1,
-    // If pointer is down 50% intensity, otherwise 1%
-    // Would be nicer to use an envelope here so it ramps up and down.
-    intensity: pointerDown ? 0.5 : 0.01
-  };
-}
-
-/**
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
-
-/**
- * @typedef Particle
- * @property {number} x
- * @property {number} y
- * @property {number} age
- * @property {number} weight
- * @property {number} intensity
- */
-
-/**
- * @typedef Point
- * @property {number} x
- * @property {number} y
- */

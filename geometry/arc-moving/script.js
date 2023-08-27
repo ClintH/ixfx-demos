@@ -40,12 +40,12 @@ const update = () => {
   const coord = Arcs.interpolate(pingPong.next().value, arc);
 
   // Update state
-  updateState({
+  saveState({
     coord
   });
 };
 
-const useState = () => {
+const use = () => {
   const { movedEl } = settings;
   const { coord } = state;
   if (movedEl === null) return;
@@ -62,14 +62,13 @@ const sizeChange = () => {
   const center = { x: width / 2, y: height / 2 };
 
   // Update state
-  updateState({
+  saveState({
     bounds: { width, height, center },
   });
 };
 
-const setup = () => {
+function setup() {
   const { movedEl } = settings;
- 
 
   window.addEventListener(`resize`, sizeChange);
   sizeChange(); // Trigger to use current size
@@ -88,7 +87,7 @@ const setup = () => {
   // Keep running at animation speed
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -96,10 +95,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

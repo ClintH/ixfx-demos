@@ -125,7 +125,7 @@ const onKeyup = (event) => {
 
   const avg = flip(clamp(scale(avgMs, 0, 200)));
 
-  updateState({
+  saveState({
     speed: avg
   });
 
@@ -171,7 +171,7 @@ const addLetter = (letter) => {
   return element;
 };
 
-const setup = () => {
+function setup() {
   // Listen for keydown/keyup
   document.addEventListener(`keydown`, onKeydown);
   document.addEventListener(`keyup`, onKeyup);
@@ -179,18 +179,13 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
 
-function setHtml(id, value) {
-  const element = document.querySelector(`#${id}`);
-  if (!element) return;
-  element.innerHTML = value;
-}

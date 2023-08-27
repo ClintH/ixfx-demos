@@ -63,7 +63,7 @@ const randomPoints = (circle, numberOfPoints) => {
  * should just draw based on whatever is in state
  * @returns 
  */
-const drawState = () => {
+const use = () => {
   const { numberOfPoints, pointColour, origin, radius, pointSize } = settings;
   const { scaleBy, bounds } = state;
 
@@ -91,26 +91,22 @@ const drawState = () => {
   }
 };
 
-
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() { 
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    updateState({ 
+    saveState({ 
       bounds: arguments_.bounds,
       scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
-    drawState();
+    use();
   });
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

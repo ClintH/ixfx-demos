@@ -101,7 +101,7 @@ const updateUi = () => {
 };
 
 // Set up driver
-const setup = async () => {
+async function setup() {
   const { updateSpeed } = settings;
   const driver = await StateMachine.driver(stateMachine, stateHandlers);
 

@@ -20,19 +20,19 @@ const randomMessage = () => {
       log.error(error);
     }
   
-  break;
+    break;
   }
   case 8: {
     // Manual error message
     log.error(`This is a string error`);
   
-  break;
+    break;
   }
   case 7: {
     // Random object
     log.log({ name: `Betty`, colour: `blue`, count: 10 });
   
-  break;
+    break;
   }
   case 6: {
     // Make a random number or NaN
@@ -40,7 +40,7 @@ const randomMessage = () => {
     if (ran > 0.9) ran = Number.NaN;
     log.log(ran);
   
-  break;
+    break;
   }
   default: {
     // Make a random string
@@ -49,7 +49,7 @@ const randomMessage = () => {
   }
 };
 
-const setup = () => {
+function setup() {
   // Call `randomMsg` every 2 seconds
   window.setInterval(randomMessage, 2000);
 };

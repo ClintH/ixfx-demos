@@ -72,7 +72,7 @@ const clear = (context) => {
   //ctx.fillRect(0, 0, width, height);
 };
 
-const useState = () => {
+const use = () => {
   const { processedFace, bounds } = state;
   const { pointRadius, horizontalMirror } = settings;
   if (processedFace === undefined) return;
@@ -114,7 +114,7 @@ const setup = async () => {
 
   // Loop
   const loop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);

@@ -45,7 +45,7 @@ const update = () => {
   let { rotation } = state;
 
   rotation += rotationIncrement;
-  updateState({
+  saveState({
     lineMid: Lines.rotate(lineMid, rotation),
     lineStart: Lines.rotate(lineStart, rotation, 0),
     lineEnd: Lines.rotate(lineEnd, rotation, 1),
@@ -97,7 +97,7 @@ const drawDot = (context, dot, fillStyle = `red`) => {
   context.fill();
 };
 
-const useState = () => {
+const use = () => {
   const { lineStyle } = settings;
   const { lineMid, lineStart, lineEnd } = state;
   const { width, height } = state.bounds;
@@ -128,14 +128,14 @@ const setup = () => {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -143,10 +143,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

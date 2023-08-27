@@ -36,7 +36,7 @@ let state = Object.freeze({
 
 Note how the type hints are supplied when declaring _particles_ and _pointerDown_. This helps us to avoid mistakes of assigning the wrong data to them.
 
-There is a main loop, `onTick`, which does the following:
+There is a main loop, `update()`, which does the following:
 
 1. Ages all particles, removing those that are deemed too old
 2. Spawn new particles (based on state of pointer)

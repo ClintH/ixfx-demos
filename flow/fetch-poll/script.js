@@ -31,7 +31,7 @@ continuously(async () => {
     const resp = await fetch(`https://jsonplaceholder.typicode.com/todos/1`);
 
     // Add the JSON to state
-    updateState({
+    saveState({
       response: await resp.json()
     });
     // For demo purposes, we'll print it to the screen, but normally
@@ -43,7 +43,7 @@ continuously(async () => {
     // Uh-oh, an error happened!
     // You might want to leave the last response in the
     // state. But we will clear it:
-    updateState({
+    saveState({
       response: {}
     });
 
@@ -59,10 +59,10 @@ const status = (m) => {
 };
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

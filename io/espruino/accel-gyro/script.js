@@ -1,6 +1,7 @@
 
 import { delay } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
+import {setCssDisplay, setHtml} from './util.js';
 
 const scripts = Object.freeze({
   // Polls data at interval of 1 second
@@ -25,20 +26,14 @@ let state = Object.freeze({
   gyro: { x: 0, y: 0, z: 0 }
 });
 
-const useState = () => {
+const use = () => {
   const { acc, gyro } = state;
   
   setHtml(`lblAcc`,  `acc:   x: ${acc.x} y: ${acc.y} z: ${acc.z}`);
   setHtml(`lblGyro`, `gyro: x: ${gyro.x} y: ${gyro.y} z: ${gyro.z}`);
 };
 
-const setHtml = (id, value) => {
-  const element = document.querySelector(`#${id}`);
-  if (!element) return;
-  element.innerHTML = value;
-};
-
-const setup = () => {
+function setup() {
   const { script } = settings;
   const onConnected = (connected) => {
     setCssDisplay(`preamble`,  connected ? `none` : `block`);
@@ -63,11 +58,11 @@ const setup = () => {
         try {
           const d = JSON.parse(data);
           console.log(d);
-          updateState({
+          saveState({
             acc: d.acc,
             gyro: d.gyro
           });
-          useState();
+          use();
         } catch (error) {
           console.warn(error);
         }
@@ -94,18 +89,11 @@ const setup = () => {
 };
 setup();
 
-
-const setCssDisplay = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (!element) return;
-  element.style.display = value;
-};
-
 /**
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -3,14 +3,13 @@ import { Points } from '../../ixfx/geometry.js';
 
 // Define settings - properties that don't change
 const settings = Object.freeze({
-  tickLoopMs: 10
+  updateRateMs: 10
 });
 
 // Initial state - properties that change as code runs
 let state = Object.freeze({
   bounds: {
-    width: 0,
-    height: 0,
+    width: 0, height: 0,
     center: { x: 0, y: 0 },
   },
   /** @type number */
@@ -22,9 +21,9 @@ let state = Object.freeze({
  * than the animation loop. It's meant for
  * mutating state in some manner
  */
-const tick = () => {
+const update = () => {
   // Do some calculations
-  // and call updateState({ ... })
+  // and call saveState({ ... })
 };
 
 /**
@@ -32,7 +31,7 @@ const tick = () => {
  * should just draw based on whatever is in state
  * @returns 
  */
-const drawState = () => {
+const draw = () => {
   /** @type HTMLCanvasElement|null */
   const canvasElement = document.querySelector(`#canvas`);
   const context = canvasElement?.getContext(`2d`);
@@ -64,31 +63,30 @@ const clear = (context) => {
   //ctx.fillRect(0, 0, width, height);
 };
 
-
 /**
  * Setup and run main loop 
  */
-const setup = () => {
-  const { tickLoopMs } = settings;
+function setup() {
+  const { updateRateMs } = settings;
 
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ 
+    saveState({ 
       bounds: arguments_.bounds,
       scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
   });
 
-  // Call `tick` at a given rate
-  const tickLoop = () => {
-    tick();
-    setTimeout(tickLoop, tickLoopMs);
+
+  const updateLoop = () => {
+    update();
+    setTimeout(updateLoop, updateRateMs);
   };
-  tickLoop();
+  updateLoop();
 
   // Animation loop
   const animationLoop = () => {
-    drawState();
+    draw();
     window.requestAnimationFrame(animationLoop);
   };
   animationLoop();
@@ -100,7 +98,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -38,6 +38,7 @@ const update = () => {
   const gridMax = Math.max(grid.cols, grid.rows);
 
   // Find cell position for pointer
+  console.log(grid);
   const pointerCell = Grids.cellAtPoint( grid, pointer);
 
   // Update each cell
@@ -46,12 +47,12 @@ const update = () => {
   }
 
   // Update state with calculated modulations
-  updateState({
+  saveState({
     modValues: moduleValues
   });
 };
 
-const useState = () => {
+const use = () => {
   const { grid, modValues } = state;
 
   const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
@@ -149,11 +150,7 @@ const drawCell = (moduleValue, rect, context) => {
   context.restore();
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
-
+function setup() {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Set grid cell size to be proportional to size of viewport
@@ -162,18 +159,18 @@ const setup = () => {
 
     // We'd use minDimension if it was important
     // to not lose cells off the viewport
-    updateState({
+    saveState({
       grid: { 
         rows: settings.rows, 
         cols: settings.cols, 
-        size: maxDimension / Math.max(settings.rows, settings.cols) }
+        size: Math.ceil(maxDimension / Math.max(settings.rows, settings.cols)) }
     });
   });
 
   // Pointer down
   window.addEventListener(`pointerdown`, event => {
     event.preventDefault();
-    updateState({
+    saveState({
       pointer: { x: event.clientX, y: event.clientY }
     });
   });
@@ -181,21 +178,21 @@ const setup = () => {
   // Pointer moving
   window.addEventListener(`pointermove`, event => {
     event.preventDefault();
-    updateState({
+    saveState({
       pointer: { x: event.clientX, y: event.clientY }
     });
   });
 
   // Pointer left the building
   window.addEventListener(`pointerout`, event => {
-    updateState({
+    saveState({
       pointer: { x: -1, y: -1 }
     });
   });
 
   const loop = () => {
     update();
-    useState();
+    use();
    
     window.requestAnimationFrame(loop);
   };
@@ -204,10 +201,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -40,7 +40,7 @@ const settings = Object.freeze({
 Add `console.log(evt.key)` in the _keydown_ event handler to find out the key
 code for the key you're interested in.
 
-In `useState`, read back the state of keys you're interested in:
+In `use()`, read back the state of keys you're interested in:
 
 ```js
 // Get state of 'f'

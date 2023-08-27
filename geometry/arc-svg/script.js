@@ -36,7 +36,7 @@ const update = () => {
   // Value could potentially be undefined
   const genLoopV = genLoop.next().value;
 
-  updateState({
+  saveState({
     // Get new values from generators
     pingPong: genPingPong.next().value,
     loop: genLoopV ?? 0
@@ -75,16 +75,13 @@ const updateSvg = (arcElement) => {
   arcElement.setAttribute(`d`, Arcs.toSvg(arc).join(` `));
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   const svg = document.querySelector(`svg`);
   if (svg === null) return;
 
   // Resize SVG element to match viewport
   Dom.parentSize(svg, arguments_ => {
-    updateState({
+    saveState({
       bounds: windowBounds()
     });
   });
@@ -115,10 +112,10 @@ const windowBounds = () => ({
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

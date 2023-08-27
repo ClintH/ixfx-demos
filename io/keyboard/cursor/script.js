@@ -35,19 +35,19 @@ const onKeydown = (event) => {
 
   switch (event.code) {
   case `ArrowUp`: {
-    updateState({ up:true });
+    saveState({ up:true });
     break;
   }
   case `ArrowDown`: {
-    updateState({ down:true });
+    saveState({ down:true });
     break;
   }
   case `ArrowLeft`: {
-    updateState({ left:true });
+    saveState({ left:true });
     break;
   }
   case `ArrowRight`: {
-    updateState({ right:true });
+    saveState({ right:true });
     break;
   }
   default: {
@@ -55,10 +55,10 @@ const onKeydown = (event) => {
     return;
   }
   }
-  useState();
+  use();
 };
 
-const useState = () => {
+const use = () => {
   const thingElement = /** @type HTMLElement */(document.querySelector(`#thing`));
   if (!thingElement) return;
 
@@ -95,32 +95,32 @@ const moveElement = (element, vector) => {
 const onKeyup = (event) => {
   switch (event.code) {
   case `ArrowUp`: {
-    updateState({ up:false });
+    saveState({ up:false });
     break;
   }
   case `ArrowDown`: {
-    updateState({ down:false });
+    saveState({ down:false });
     break;
   }
   case `ArrowLeft`: {
-    updateState({ left:false });
+    saveState({ left:false });
     break;
   }
   case `ArrowRight`: {
-    updateState({ right:false });
+    saveState({ right:false });
     break;
   }
   default: {
     logKeyEvent(event, `keydown`);
   }
   }
-  useState();
+  use();
 };
 
 // Display key event info to console
 const logKeyEvent = (event, prefix = `key`) => console.log(`${prefix} code: ${event.code} key: ${event.key} alt: ${event.altKey} ctrl: ${event.ctrlKey} meta: ${event.metaKey} shift: ${event.shiftKey}`);
 
-const setup = () => {
+function setup() {
   // Listen for keydown/keyup
   document.addEventListener(`keydown`, onKeydown);
   document.addEventListener(`keyup`, onKeyup);
@@ -128,10 +128,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

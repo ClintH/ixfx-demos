@@ -1,7 +1,7 @@
 import * as Flow from '../../ixfx/flow.js';
 import { Oscillators } from '../../ixfx/modulation.js';
 import { Points } from '../../ixfx/geometry.js';
-
+import * as Util from './util.js';
 
 let state = Object.freeze({
   // Default spring
@@ -17,31 +17,31 @@ let state = Object.freeze({
 });
 
 // Update state with value from easing
-const onTick = () => {
+const update = () => {
   const { spring, to, from } = state;
 
   const v = spring();
   if (v === undefined) {
     // Spring is complete
-    updateState({ 
+    saveState({ 
       isDone:true
     });
   } else {
     // Calculate position
     const pos = Points.interpolate(v, from, to, true);
   
-    updateState({
+    saveState({
       amt: v,
       isDone: false,
       currentPos: pos
     });
   }
   // Trigger a visual refresh
-  useState();
+  use();
 };
 
 // Update visuals
-const useState = () => {
+const use = () => {
   const { isDone, currentPos } = state;
 
   const thingElement = document.querySelector(`#thing`);
@@ -54,28 +54,16 @@ const useState = () => {
     thingElement.classList.remove(`isDone`);
   }
 
-  positionElement(thingElement, currentPos);
-
+  Util.moveElement(thingElement, currentPos);
 };
 
-const positionElement = (element, pos) => {
-  const { bounds } = state;
-  if (!element) return;
-
-  const halfSize = element.getBoundingClientRect().width / 2;
-  
-  // Move element
-  element.style.left = (pos.x * bounds.width) - halfSize+ `px`;
-  element.style.top = (pos.y * bounds.height) - halfSize + `px`;
-};
-
-const setup = () => {
-  // Run loop. This will call `onTick` until it returns false
-  const run = Flow.continuously(onTick);
+function setup() {
+  // Run loop. This will call `update` until it returns false
+  const run = Flow.continuously(update);
 
   // Wire up events
   const updateResize = () => {
-    updateState({ 
+    saveState({ 
       bounds: { 
         width: window.innerWidth, 
         height: window.innerHeight 
@@ -88,26 +76,26 @@ const setup = () => {
   
   document.addEventListener(`pointerup`, event => {
     const { bounds } = state;
-    updateState({ 
+    saveState({ 
       to: { 
         x: event.x / bounds.width, 
         y: event.y / bounds.height 
       },
       from: state.currentPos 
     });
-    updateState({ spring: yieldNumber(Oscillators.spring()) });
+    saveState({ spring: yieldNumber(Oscillators.spring()) });
     run.start();
   });
 
-  positionElement(document.querySelector(`#thing`), state.currentPos);
+  Util.moveElement(document.querySelector(`#thing`), state.currentPos);
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

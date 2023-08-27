@@ -1,6 +1,7 @@
 {
   "port": 5555,
   "open": "index.html",
+  "openTerminal": false,
   "watch": [
     "**/*"
   ],

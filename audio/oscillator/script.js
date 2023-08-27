@@ -18,7 +18,7 @@ let state = Object.freeze({
   y: 0.5
 });
 
-const useState = () => {
+const use = () => {
   const { freqRange } = settings;
   const { x, y } = state;
   
@@ -51,7 +51,7 @@ const muteOscillator = () => {
   gain.gain.setValueAtTime(0, ctx.currentTime);
 };
 
-const setup = () => {
+function setup () {
   const freqAreaElement = /** @type HTMLElement */document.querySelector(`#freqArea`);
   if (!freqAreaElement) return;
 
@@ -70,17 +70,17 @@ const setup = () => {
     const y = scaleClamped(pointerEvent.offsetY, 0, bounds.height);
 
     // Set to state and use state
-    updateState({ x, y });
-    useState();
+    saveState({ x, y });
+    use();
   });  
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -105,7 +105,7 @@ function initAudio() {
   // Start oscillator
   ac.osc.start();
 
-  updateState({
+  saveState({
     audio:ac
   });
   return ac;

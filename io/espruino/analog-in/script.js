@@ -1,6 +1,7 @@
 
 import { delay } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
+import {setCssDisplay} from './util.js';
 
 const scripts = Object.freeze({
   // Define a function that sends back data
@@ -30,7 +31,7 @@ let state = Object.freeze({
   espruino: undefined
 });
 
-const useState = () => {
+const use = () => {
   const { data } = state;
   
   const dataElement = /** @type HTMLElement */(document.querySelector(`#data`));
@@ -58,8 +59,8 @@ const onData = (event) => {
     const d = JSON.parse(data);
    
     // Assuming its an array of numbers
-    updateState({ data: d });
-    useState();
+    saveState({ data: d });
+    use();
   } catch (error) {
     console.warn(error);
   }
@@ -98,7 +99,7 @@ const connect = async () => {
       // If we got this far, consider ourselves connected
       onConnected(true);
 
-      updateState({ espruino: p });
+      saveState({ espruino: p });
 
       // Listen for data from the Pico
       p.addEventListener(`data`, onData);
@@ -108,7 +109,7 @@ const connect = async () => {
   }
 };
 
-const setup = () => {
+function setup() {
   document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
 
   document.querySelector(`#btnRequest`)?.addEventListener(`click`, () => {
@@ -118,17 +119,11 @@ const setup = () => {
 };
 setup();
 
-const setCssDisplay = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (!element) return;
-  element.style.display = value;
-};
-
 /**
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

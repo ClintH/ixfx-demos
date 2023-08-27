@@ -30,22 +30,19 @@ const getCellFromElement = (element) => ({
 
 const onCellClick = (event) => {
   const cell = getCellFromElement(event.target);
-  updateState({
+  saveState({
     lastClicked: cell
   });
-  useState();
+  use();
 };
 
-const useState = () => {
+const use = () => {
   const { lastClicked } = state;
   const feedbackElement = document.querySelector(`#feedback`);
   if (feedbackElement) feedbackElement.innerHTML = `Clicked grid cell: ${lastClicked.x}, ${lastClicked.y}`;
 };
 
-/**
- * Setup 
- */
-const setup = () => {
+function setup() {
   const { grid } = settings;
 
   const gridElement = document.querySelector(`#grid`);
@@ -73,7 +70,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

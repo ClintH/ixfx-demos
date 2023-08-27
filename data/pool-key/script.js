@@ -29,7 +29,7 @@ let state = Object.freeze({
   keysDown: []
 });
 
-const useState = () => {
+const use = () => {
   const { pool } = settings;
   const { keysDown } = state;
 
@@ -52,7 +52,7 @@ const onKeyDown = (event) => {
     // Add key to list of keys down, if it's not already there
     keysDown: Arrays.unique([ ...keysDown,  event.key  ])
   });
-  useState();
+  use();
 };
 
 /**
@@ -65,7 +65,7 @@ const onKeyUp = (event) => {
     // Remove key from array
     keysDown: Arrays.without(keysDown, event.key)
   });
-  useState();
+  use();
 };
 
 

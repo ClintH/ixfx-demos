@@ -27,20 +27,20 @@ const update = () => {
   let { envelope } = state;
   
   // Read value from envelope and set it to state
-  updateState({ value: envelope.value});
+  saveState({ value: envelope.value});
 };
 /**
  * Use state properties for something...
  */
-const useState = () => {
+const use = () => {
   const { value } = state;
   console.log(value);
 };
 
-const setup = () => {
+function setup() {
   continuously(() => {
     update();
-    useState();
+    use();
   }).start();
 
   // Trigger envelope
@@ -49,10 +49,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -28,7 +28,7 @@ let state = Object.freeze({
   springForce: Forces.springForce(settings.pinnedAt, 0.2),
 });
 
-const onTick = () => {
+const update = () => {
   const { pause , thing, pendulumForce, springForce } = state;
   if (!pause) {
     let t = Forces.apply(
@@ -36,11 +36,11 @@ const onTick = () => {
       springForce, 
       pendulumForce);
     // @ts-ignore
-    updateState({ thing: t });
+    saveState({ thing: t });
   }
 };
 
-const useState = () => {
+const use = () => {
   const { lineWidth, thingRadius, pinRadius } = settings;
 
   const canvas = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
@@ -77,15 +77,15 @@ const useState = () => {
   context.ellipse(pinPos.x, pinPos.y, pinRadius, pinRadius, 0, 0, Math.PI * 2);
 };
 
-const setup = () => {
+function setup() {
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: arguments_.bounds });
+    saveState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -105,32 +105,32 @@ const setup = () => {
       velocity: { x: 0, y: 0 },
       mass: settings.mass
     };
-    updateState({ thing: t });
+    saveState({ thing: t });
   };
   document.addEventListener(`pointermove`, onPointer);
   
 
   document.addEventListener(`pointerdown`, (event) => {
     onPointer(event);
-    updateState({ pause:true });
+    saveState({ pause:true });
   });
 
   document.addEventListener(`pointerup`, () => {
-    updateState({ pause:false });
+    saveState({ pause:false });
   });
 
   document.addEventListener(`pointerleave`, () => {
-    updateState({ pause:false });
+    saveState({ pause:false });
   });
 
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -27,7 +27,7 @@ let state = Object.freeze({
 // Update state of world
 const update = () => {
   const { ticks } = state;
-  updateState({
+  saveState({
     ticks: ticks + 1
   });
 };
@@ -139,7 +139,7 @@ const plotFunction = (fnc, context, options = {}) => {
   context.stroke();
 };
 
-const useState = () => {
+const use = () => {
   const canvasElement = document.querySelector(`#canvas`);
   const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
   if (!context) return;
@@ -181,18 +181,15 @@ const clear = (context) => {
   context.fillRect(0, 0, width, height);
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() { 
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    updateState({
+    saveState({
       bounds: arguments_.bounds
     });
   });
 
   const loop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -203,7 +200,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

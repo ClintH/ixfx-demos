@@ -65,9 +65,12 @@ const setGradient = () => {
   textEl.style.webkitTextFillColor = `transparent`;
 };
 
-
+const use = () => {
+  // Update gradient now that state has changed
+  setGradient();
+};
 // Setup
-const setup = () => {
+function setup () {
   document.addEventListener(`pointermove`, event => {
     // Transform screen coordinate to relative coordinate
     const pointerRelative = Points.normaliseByRect(
@@ -78,13 +81,12 @@ const setup = () => {
     // Calculate angle from center
     const angleRadians = Points.angle(pointerRelative, { x: 0.5, y: 0.5 });
 
-    updateState({
+    saveState({
       pointer: pointerRelative,
       angleRadians
     });
 
-    // Update gradient now that state has changed
-    setGradient();
+    use();
   });
 
   // Set initial gradient
@@ -96,7 +98,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

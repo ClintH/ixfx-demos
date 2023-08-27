@@ -3,14 +3,19 @@ const settings = Object.freeze({
   buttonId: 0
 });
 
+/**
+ * @typedef {object} State
+ * @prop {string|undefined} gamepadId
+ * @prop {boolean} buttonPressed
+ */
+
+/** @type State */
 let state = Object.freeze({
-  /** @type string|undefined */
   gamepadId: undefined,
-  /** @type boolean */
   buttonPressed: false
 });
 
-const useState = () => {
+const use = () => {
   const { buttonPressed } = state;
  
   // Element to visualise button press
@@ -36,49 +41,14 @@ const readGamepad = (gamepad) => {
   const buttonPressed = gamepad.buttons[buttonId].pressed;
 
   // Update state
-  updateState({ buttonPressed });
+  saveState({ buttonPressed });
 };
-
-/**
- * Setup and run main loop 
- */
-const setup = () => {
-  const loop = () => {
-    getGamepad();
-    useState();
-    window.requestAnimationFrame(loop);
-  };
-  loop();  
-
-  window.addEventListener(`gamepadconnected`, event => {
-    console.log(`Gamepad connected`);
-    console.log(event);
-    updateState({ gamepadId: event.gamepad.id });
-  });
-
-  window.addEventListener(`gamepaddisconnected`, event => {
-    console.log(`Gamepad disconnected`);
-    updateState({ gamepadId: undefined });
-  });
-};
-setup();
-
-/**
- * Update state
- * @param {Partial<state>} s 
- */
-function updateState (s) {
-  state = Object.freeze({
-    ...state,
-    ...s
-  });
-}
 
 /**
  * Looks for connected gamepads, trying to find the
  * same one used previosuly.
  */
-function getGamepad() {
+export function getGamepad() {
   const gamepads = /** @type Gamepad[] */(navigator.getGamepads 
     ? navigator.getGamepads() 
     // @ts-ignore
@@ -91,3 +61,35 @@ function getGamepad() {
     }
   });
 };
+
+function setup() {
+  const loop = () => {
+    getGamepad();
+    use();
+    window.requestAnimationFrame(loop);
+  };
+  loop();  
+
+  window.addEventListener(`gamepadconnected`, event => {
+    console.log(`Gamepad connected`);
+    console.log(event);
+    saveState({ gamepadId: event.gamepad.id });
+  });
+
+  window.addEventListener(`gamepaddisconnected`, event => {
+    console.log(`Gamepad disconnected`);
+    saveState({ gamepadId: undefined });
+  });
+};
+setup();
+
+/**
+ * Save state
+ * @param {Partial<State>} s 
+ */
+function saveState (s) {
+  state = Object.freeze({
+    ...state,
+    ...s
+  });
+}

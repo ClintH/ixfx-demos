@@ -1,4 +1,5 @@
 import { Espruino } from '../../../ixfx/io.js';
+import {setClassAll} from './util.js';
 
 // No settings needed for this sketch
 const settings = Object.freeze({
@@ -57,14 +58,14 @@ const connect = async () => {
     onEspruinoConnected(true);
 
     // Keep track of Espruino instance
-    updateState({ espruino: p });
+    saveState({ espruino: p });
   } catch (error) {
     console.error(error);
     onEspruinoConnected(false);
   }
 };
 
-const setup = () => {
+function setup() {
   // Connect when button is clicked
   document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
 
@@ -100,34 +101,20 @@ function onEspruinoStateChange(event) {
  */
 function onEspruinoConnected(connected) {
   // When connected, remove 'hidden' from everything with 'when-connected' class
-  setClass(!connected, `.when-connected`, `hidden`);
+  setClassAll(!connected, `.when-connected`, `hidden`);
 
   // When connected, add 'hidden' from everything with 'when-disconnected' class
-  setClass(connected, `.when-disconnected`, `hidden`);
+  setClassAll(connected, `.when-disconnected`, `hidden`);
 }
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
 
-/**
- * Adds/removes `className` on everything that matches `query`,
- * based on `value`.
- * @param {string} query 
- * @param {boolean} value 
- * @param {string} cssClass 
- * @returns 
- */
-function setClass(value, query, cssClass) {
-  for (const element of document.querySelectorAll(query)) {
-    if (value) element.classList.add(cssClass);
-    else element.classList.remove(cssClass);
-  }
-}

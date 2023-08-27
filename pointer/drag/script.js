@@ -1,5 +1,6 @@
 import { Points } from '../../ixfx/geometry.js';
 import { clamp } from '../../ixfx/data.js';
+import * as Util from './util.js';
 
 // Define our Thing
 /** 
@@ -22,12 +23,12 @@ let state = Object.freeze({
 });
 
 
-const useState = () => {
+const use = () => {
   for (const t of state.things) {
     const { el, position, agitation } = t;
 
     // Calculate top-left pos from relative center position
-    const pos = calcPositionByMiddle(el,  position);
+    const pos = Util.calcPositionByMiddle(el,  position);
 
     // Calculate rotatation based on 'agitation'
     const rot = t.agitation * 360;
@@ -38,7 +39,7 @@ const useState = () => {
   }
 };
 
-const loop =() => {
+const update =() => {
   const { agitationDecay } = settings;
 
   for (const t of state.things) {
@@ -52,8 +53,8 @@ const loop =() => {
     }
     t.agitation = clamp(agitation, 0.0001, 1);
   }
-  useState();
-  window.requestAnimationFrame(loop);
+  use();
+  window.requestAnimationFrame(update);
 };
 
 /**
@@ -67,13 +68,13 @@ const onDragStart = (t, event) => {
   el.classList.add(`dragging`);
   t.dragging = true;
 
-  const startedAt = pointToRelative(event);
+  const startedAt = Util.pointToRelative(event);
   const thingStartPosition = { ...t.position };
   
   const pointerMove = (event) => {
     // Compare relative pointer position to where we started
     // This yields the x,y offset from where dragging started
-    const offset = Points.subtract(pointToRelative(event), startedAt);
+    const offset = Points.subtract(Util.pointToRelative(event), startedAt);
 
     // Add this offset to the thing's original 
     // position to get the new position.
@@ -108,13 +109,13 @@ const setupThing = (t) => {
 
 const setup = () => {
   // Make three random things
-  updateState({ things: [ generateRandomThing(), generateRandomThing(), generateRandomThing() ] });
+  saveState({ things: [ generateRandomThing(), generateRandomThing(), generateRandomThing() ] });
 
   // Set up things
   for (const t of state.things) {
     setupThing(t);
   }
-  loop();
+  update();
 };
 setup();
 
@@ -146,35 +147,14 @@ function generateRandomThing () {
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
 
-/**
- * Return position for element
- * @param {HTMLElement} element 
- * @param {Points.Point} relativePos 
- */
-function calcPositionByMiddle(element, relativePos) {
-  // Convert relative to absolute units
-  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
-  
-  const thingRect = element.getBoundingClientRect();
-  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
 
-  return offsetPos;
-
-}
-
-function pointToRelative(p) {
-  return {
-    x: p.x / window.innerWidth,
-    y: p.y / window.innerHeight
-  };
-}
 
 /**
  * @typedef Draggable

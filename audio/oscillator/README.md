@@ -2,7 +2,7 @@
 
 Demonstates starting and controlling an oscillator.
 
-Pointer x/y are mapped to relative values and saved into state. In `useState`, these values are used to calculate frequency and gain values. 
+Pointer x/y are mapped to relative values and saved into state. In `use`, these values are used to calculate frequency and gain values. 
 
 If the pointer is released or goes outside of the element, the _gain_ (ie. volume) is set to zero. This is because `OscillatorNode`s are not designed to be stopped and restarted.
 

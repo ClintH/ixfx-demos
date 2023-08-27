@@ -63,7 +63,7 @@ const onConnected = (connected) => {
 /**
  * Updates UI with current values
  */
-const useState = () => {
+const use = () => {
   const { x, y, sw } = state;
 
   // X,y are relative values
@@ -74,7 +74,7 @@ const useState = () => {
   setHtml(`lblSwitch`, sw ? `Pressed` : `Not pressed`);
 };
 
-const setup = () => {
+function setup() {
   const { serial, rangeMax, rangeMin } = settings;
   document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
   serial.addEventListener(`data`, event => {
@@ -86,8 +86,8 @@ const setup = () => {
       const y = scale(o.y, rangeMin.y, rangeMax.y);
       const sw = o.sw ?? false;
 
-      updateState({ x, y, sw });
-      useState();
+      saveState({ x, y, sw });
+      use();
     } catch (error) {
       console.log(error);
       console.log(event.data);
@@ -101,7 +101,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Canvas drawing loop starter</title>
+  <title>things</title>
 </head>
 
 <body>
@@ -28,11 +28,19 @@
       background-color: var(--bg);
       color: var(--fg);
       font-family: var(--font);
+      overflow: hidden;
+    }
+
+    .thing {
+      position: absolute;
+      border: 1em solid black;
+      border-radius: 100%;
+      width: 20vw;
+      height: 20vw;
     }
   </style>
   <section>
-    <h1>Canvas drawing loop starter</h1>
-    <canvas id="canvas"></canvas>
+    <h1>things</h1>
     <script type="module" src="script.js"></script>
   </section>
 </body>

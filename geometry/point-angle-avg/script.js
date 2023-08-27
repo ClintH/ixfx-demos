@@ -21,7 +21,7 @@ let state = Object.freeze({
   })
 });
 
-const useState = () => {
+const use = () => {
   const { angleAvg } = state;
   
   const avgRadians = angleAvg.avg;
@@ -61,13 +61,10 @@ const onPointerMove = (event) => {
   angleAvg.seen(angle);
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   document.addEventListener(`pointermove`, onPointerMove);
   const loop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -78,7 +75,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

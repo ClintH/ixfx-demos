@@ -9,7 +9,7 @@ import * as CommonPose from '../common-pose.js';
 const settings = Object.freeze({
   horizontalMirror: true,
   remote: new Remote(),
-  tickRateMs: 100,
+  updateRateMs: 100,
   /** Processor of pose we're tracking
    * @type {PoseProcessor}
    */
@@ -58,7 +58,7 @@ const onData = (poses) => {
   });
 };
 
-const tick = () => {
+const update = () => {
   // Gets called every 100ms.
   // A good place to slowly influence state
 };
@@ -129,7 +129,7 @@ const setup = async () => {
   };
   window.requestAnimationFrame(drawLoop);
 
-  setInterval(tick, settings.tickRateMs);
+  setInterval(update, settings.updateRateMs);
 
   // Listen for button presses, etc
   CommonPose.setup();

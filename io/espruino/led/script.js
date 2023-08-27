@@ -1,5 +1,6 @@
 import { continuously } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
+import {setCssDisplay} from './util.js';
 
 const settings = Object.freeze({
   // Filter device list...
@@ -75,10 +76,10 @@ function blinkLed() {
   const s = !blinkState;
 
   setLed(blinkLed, s);
-  updateState({ blinkState: s });
+  saveState({ blinkState: s });
 }
 
-const setup = () => {
+function setup() {
   /**
    * Set connected state
    * @param {boolean} connected 
@@ -103,7 +104,7 @@ const setup = () => {
       });
 
       onConnected(true);
-      updateState({ puck: p });
+      saveState({ puck: p });
     } catch (error) {
       console.error(error);
       onConnected(false);
@@ -140,22 +141,10 @@ const setup = () => {
 setup();
 
 /**
- * Sets style.display for element
- * @param {*} id Id of element
- * @param {*} value Value of style.display to set
- * @returns 
- */
-const setCssDisplay = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (!element) return;
-  element.style.display = value;
-};
-
-/**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -43,13 +43,13 @@ const onConnected = (connected) => {
 /**
  * Sends current data to micocontroller
  */
-const useState = () => {
+const use = () => {
   const { serial } = settings;
   const { data } = state;
   serial.write(JSON.stringify(data));
 };
 
-const setup = () => {
+function setup() {
   document.querySelector(`#btnConnect`)?.addEventListener(`click`, connect);
   document.querySelector(`#inputLevel`)?.addEventListener(`input`, event => {
     const element = /** @type {HTMLInputElement}*/(event.target);
@@ -58,21 +58,21 @@ const setup = () => {
     const value = Number.parseInt(element.value);
 
     // Convert to 0-1
-    updateState({
+    saveState({
       data: { brightness: value / 100 }
     });
 
     // Trigger update
-    useState();
+    use();
   });
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

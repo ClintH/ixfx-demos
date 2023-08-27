@@ -2,7 +2,6 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import * as Dom from '../../../ixfx/dom.js';
-import { Correlate } from '../../../ixfx/data.js';
 import { Points } from '../../../ixfx/geometry.js';
 import { Sync as IterableSync } from '../../../ixfx/generators.js';
 import * as CommonPose from '../common-pose.js';
@@ -31,7 +30,7 @@ const settings = Object.freeze({
   horizontalMirror: true,
   remote: new Remote(),
   // How often to do calculations based on pose data
-  tickRateMs: 100
+  updateRateMs: 100
 });
 
 let state = Object.freeze({
@@ -43,12 +42,12 @@ let state = Object.freeze({
 // #endregion
 
 /**
- * Tick is the place to use pose data in state
+ * The place to use pose data in state
  * and derive some new things to stuff into state.
  * 
- * It loops at the interval settings.tickRateMs
+ * It loops at the interval settings.updateRateMs
  */
-const tick = () => {
+const update = () => {
   const { poses } = settings;
   
   const allPoses = [...poses.iteratePoses()];
@@ -91,7 +90,7 @@ const tick = () => {
  * Called in a loop at animation speed (see setup())
  * @returns 
  */
-const useState = () => {
+const use = () => {
   // Show calculated 'density' example
   CommonPose.setText(`debug`, `
   Density: ${state.egDensity}
@@ -203,12 +202,12 @@ const setup = async () => {
   });
 
   const drawLoop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(drawLoop);
   };
   window.requestAnimationFrame(drawLoop);
 
-  setInterval(tick, settings.tickRateMs);
+  setInterval(update, settings.updateRateMs);
 
   // Listen for button presses, etc
   CommonPose.setup();

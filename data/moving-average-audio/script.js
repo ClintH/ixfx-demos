@@ -32,7 +32,7 @@ const toPercentage = (v) => {
 /**
  * Update based on state
  */
-const useState = () => {
+const use = () => {
   const { rawLevel, avgLevel } = state;
 
   // Show numeric values for debugging
@@ -79,18 +79,18 @@ const setText = (id, txt) => {
  */
 const onData = (level) => {
   // Add averaged value to state
-  updateState({
+  saveState({
     rawLevel: level,
     // Adding to averager returns current averag
     avgLevel: settings.averager.add(level)
   });
-  useState();
+  use();
 };
 
 /**
  * Setup sketch
  */
-const setup = () => {
+function setup () {
   // Show unexpected errors on the page to help debugger;
   defaultErrorHandler();
   document.querySelector(`#btnStart`)?.addEventListener(`click`, () => {
@@ -109,7 +109,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

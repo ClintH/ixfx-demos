@@ -38,14 +38,14 @@ const update = () => {
   let v = genLoop.next().value;
   if (!v) v = 0;
 
-  updateState({
+  saveState({
     // Get new values from generators
     pingPong: genPingPong.next().value,
     loop: v
   });
 };
 
-const useState = () => {
+const use = () => {
   const { radiusProportion } = settings;
   const { bounds, pingPong, pointer, circleEl } = state;
 
@@ -77,19 +77,19 @@ const setup = () => {
 
   // Resize SVG element to match viewport
   Dom.parentSize(svg, () => {
-    updateState({
+    saveState({
       bounds: windowBounds()
     });
   });
 
   window.addEventListener(`pointerdown`, event => {
-    updateState({
+    saveState({
       pointer: { x: event.offsetX, y: event.offsetY }
     });
   });
 
   window.addEventListener(`pointermove`, event => {
-    updateState({
+    saveState({
       pointer: { x: event.offsetX, y: event.offsetY }
     });
   });
@@ -101,12 +101,12 @@ const setup = () => {
     strokeWidth: settings.strokeWidthMax
   };
 
-  updateState({
+  saveState({
     circleEl: Svg.Elements.circle({ radius: 10, x: 10, y: 10 }, svg, options) });
 
   const loop = () => {
     update();
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -124,10 +124,10 @@ const windowBounds = () => ({
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

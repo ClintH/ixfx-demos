@@ -24,7 +24,7 @@ let state = Object.freeze({
 const update = () => {
   const { genPingPong } = settings;
 
-  updateState({
+  saveState({
     // Get new values from generators
     pingPong: genPingPong.next().value
   });
@@ -65,13 +65,10 @@ const updateSvg = () => {
   }
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   // Resize SVG element to match viewport
   Dom.parentSize(`svg`, arguments_ => {
-    updateState({
+    saveState({
       bounds: windowBounds()
     });
   });
@@ -83,14 +80,14 @@ const setup = () => {
   window.addEventListener(`pointerdown`, event => {
     const { pointers } = state;
     pointers[event.pointerId] = { x: event.offsetX, y: event.offsetY };
-    updateState({ pointers });
+    saveState({ pointers });
     event.preventDefault();
   });
 
   window.addEventListener(`pointerup`, event => {
     const { pointers } = state;
     delete pointers[event.pointerId];
-    updateState({ pointers });
+    saveState({ pointers });
     event.preventDefault();
   });
 
@@ -100,7 +97,7 @@ const setup = () => {
     const { pointers } = state;
 
     pointers[event.pointerId] = { x: event.offsetX, y: event.offsetY };
-    updateState({ pointers });
+    saveState({ pointers });
   });
 
   const loop = () => {
@@ -126,7 +123,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

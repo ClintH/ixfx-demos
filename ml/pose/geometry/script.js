@@ -10,7 +10,7 @@ import { pointTracker } from "../../../ixfx/data.js";
 const settings = Object.freeze({
   keypointScoreThreshold: 0.4,
   remote: new Remote(),
-  tickRateMs: 100,
+  updateRateMs: 100,
   /**
    * Processor of pose we're tracking
    */
@@ -45,7 +45,7 @@ let state = Object.freeze({
 });
 // #endregion
 
-const tick = () => {
+const update = () => {
   // In here is where we process the most
   // recently received poses and update state
   const { firstPose, noseTracker } = state;
@@ -184,7 +184,7 @@ const setup = async () => {
   };
   window.requestAnimationFrame(drawLoop);
 
-  setInterval(tick, settings.tickRateMs);
+  setInterval(update, settings.updateRateMs);
 };
 setup();
 

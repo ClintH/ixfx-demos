@@ -8,7 +8,7 @@ The script listens for `gamepadconnected` and `gamepaddisconnected` events to ke
 
 The web gamepad API works by polling for the state of controls. Thus we have a loop that runs, continually checking the 'pressed' event of a single button. Each button on the game pad has a number, by default we use whatever button has id 0.
 
-In the `useState` function we use the state to toggle a CSS class.
+In the `use()` function we use the state to toggle a CSS class.
 
 ## Things to try
 

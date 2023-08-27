@@ -146,7 +146,7 @@ const handlePoses = (poses, frameRect) => {
     }))
   }));
 
-  updateState({ normalised, poses });
+  saveState({ normalised, poses });
 
   // Send normalised data via Remote
   if (state.normalised.length > 0) {
@@ -329,7 +329,7 @@ const setup = async () => {
   //   `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`);
 
   try {
-    updateState({ detector: await createDetector() });
+    saveState({ detector: await createDetector() });
     CommonSource.setReady(true);
   } catch (error) {
     CommonSource.status(`Could not load detector: ` + error);
@@ -353,10 +353,10 @@ const setup = async () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

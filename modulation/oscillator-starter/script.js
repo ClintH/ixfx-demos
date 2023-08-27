@@ -10,16 +10,16 @@ let state = Object.freeze({
   oscValue: 0
 });
 
-const onTick = () => {
+const update = () => {
   const { osc } = settings;
 
   const v = osc.next().value; // Sample oscillator
-  updateState ({
+  saveState ({
     oscValue: v ?? Number.NaN
   });
 };
 
-const useState = () => {
+const use = () => {
   const { oscValue } = state;
 
   // Use oscValue somehow... here's two examples:
@@ -33,18 +33,21 @@ const useState = () => {
   if (thing) thing.style.transform = `translate(${oscValue*300}px, 0px)`;
 };
 
-const loop = () => {
-  onTick();
-  useState();
+function setup() {
+  const loop = () => {
+    update();
+    use();
+    window.requestAnimationFrame(loop);
+  };
   window.requestAnimationFrame(loop);
 };
-window.requestAnimationFrame(loop);
+setup();
 
 /**
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

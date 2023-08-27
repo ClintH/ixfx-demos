@@ -15,7 +15,7 @@ let state = Object.freeze({
   points: []
 });
 
-const useState = () => {
+const use = () => {
   const { points } = state;
   
   const origin = {
@@ -32,7 +32,7 @@ const useState = () => {
   }
 };
 
-const setup = () => {
+function setup() {
   const { totalPoints } = settings;
 
   // Evenly distribute angle by number of points
@@ -58,8 +58,8 @@ const setup = () => {
 };
 setup();
 
-// Call `useState` continuously
-continuously(useState).start();
+// Call continuously
+continuously(use).start();
 
 /**
  * Save state

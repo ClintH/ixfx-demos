@@ -8,11 +8,11 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  /** @type Elapsed.SinceFn */
+  /** @type Elapsed.Since */
   completion: Elapsed.infinity()
 });
 
-const useState = () => {
+const use = () => {
   const { completion }  = state;
 
   const indicatorElement = document.querySelector(`#indicator`);
@@ -50,9 +50,10 @@ document.querySelector(`#one`)?.addEventListener(`pointerup`, event => {
 });
 
 // #region Toolbox
-const setup = () => {
-  // Call useState every half a second
-  setInterval(useState, 5);
+function setup() {
+
+  // Call use() every half a second
+  setInterval(use, 5);
 };
 
 /**

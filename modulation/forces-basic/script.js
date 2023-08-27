@@ -47,7 +47,7 @@ let state = Object.freeze({
   pointer: { x: 0.5, y: 0.5 }
 });
 
-const onTick = () => {
+const update = () => {
   const { gravity, friction, bouncer, wind, drag, liquid } = settings;
   const { aging } = settings;
   const { things } = state;
@@ -70,10 +70,10 @@ const onTick = () => {
   // Remove dead things
   const aliveThings = changedThings.filter(t => t.life > 0.001);
 
-  updateState({ things: aliveThings });
+  saveState({ things: aliveThings });
 };
 
-const useState = () => {
+const use = () => {
   const canvas = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
   const { things, bounds } = state;
   const { liquid, maxRadius, hue } = settings;
@@ -117,24 +117,21 @@ const spawn = () => {
   });
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: arguments_.bounds });
+    saveState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {
-    onTick();
-    useState();
+    update();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
 
   document.addEventListener(`pointerup`, event => {
-    updateState({ pointer: {
+    saveState({ pointer: {
       x: event.x / window.innerWidth,
       y: event.y / window.innerHeight
     } });
@@ -146,10 +143,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

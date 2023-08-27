@@ -27,7 +27,7 @@ let state = Object.freeze({
   readingAutoFilter: false
 });
 
-const useState = () => {
+const use = () => {
   const { audioId } = settings;
   const a = state.audio.get(audioId); 
   if (!a) return;
@@ -67,7 +67,7 @@ const stop = () => {
   el.pause();
 };
 
-const setup = () => {
+function setup ()  {
   const { audioId } = settings;
 
   // Set pan to a random value
@@ -79,12 +79,12 @@ const setup = () => {
       return;
     }
 
-    updateState({ readingAutoFilter: false });
+    saveState({ readingAutoFilter: false });
     play();
 
     // Random value of 200Hz - 2kHz
-    updateState({ filterFreq: Random.integer({ min: 200, max: 2000 }) });
-    useState();
+    saveState({ filterFreq: Random.integer({ min: 200, max: 2000 }) });
+    use();
   });
 
   // Stops playback (or rather, pauses it)
@@ -104,38 +104,38 @@ const setup = () => {
     const freq = scaleClamped(pointerEvent.x, 0, bounds.width, 200, 2000);
 
     // But we want -1 to 1 range
-    updateState({ filterFreq: freq });
-    useState();
+    saveState({ filterFreq: freq });
+    use();
   });
 
   document.querySelector(`#btnAutoStart`)?.addEventListener(`click`, async event => {
     const { autoFilterRate: autoPanRate, autoFilterUpdateRateMs: autoPanUpdateRateMs } = settings;
     initAudio();
 
-    updateState({ readingAutoFilter: true });
+    saveState({ readingAutoFilter: true });
     const autoPan = Oscillators.sine(autoPanRate);
     play();
     for await (const v of interval(autoPan, autoPanUpdateRateMs)) {
       // Value from oscillator will be 0..1. We need 200Hz...2kHz
       const freq = scaleClamped(v, 0, 1, 200, 2000);
-      updateState({ filterFreq: freq });
-      useState();
+      saveState({ filterFreq: freq });
+      use();
       if (!state.readingAutoFilter) break;
     }
   });
 
   document.querySelector(`#btnAutoStop`)?.addEventListener(`click`, event => {
-    updateState({ readingAutoFilter:false });
+    saveState({ readingAutoFilter:false });
   });
   
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -150,13 +150,13 @@ function initAudio() {
   // Already initialised
   if (state.initialised) return;
 
-  updateState({ initialised:true });
+  saveState({ initialised:true });
   /** @type Map<string,BasicAudio> */
   const ac = new Map();
   for (const element of document.querySelectorAll(`audio`)) {
     ac.set(element.id, initBasicAudio(element));
   }
-  updateState({ audio:ac });
+  saveState({ audio:ac });
   return ac;
 }
 

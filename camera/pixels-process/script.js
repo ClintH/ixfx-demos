@@ -38,7 +38,7 @@ let state = Object.freeze({
 /**
  * Update labels based on state
  */
-const useState = () => {
+const use = () => {
   const { fps, differences, visFrame } = state;
   const { visualise, lblFps, lblDifferences, canvasEl } = settings;
 
@@ -124,7 +124,7 @@ const update = (frame) => {
   // Keep track of how long it takes us to process frames
   frameIntervalTracker.mark(); 
 
-  updateState({
+  saveState({
     fps: Math.round(1000 / frameIntervalTracker.avg),
     lastFrame: frameDataCopy,
     differences,
@@ -194,7 +194,7 @@ const startVideo = async () => {
     for await (const frame of Video.frames(videoEl)) {
       // Update calculations
       update(frame);
-      useState();
+      use();
     }
   } catch (error) {
     dispose();
@@ -202,7 +202,7 @@ const startVideo = async () => {
   }
 };
 
-const setup = () => {
+function setup () {
   defaultErrorHandler();
   document.querySelector(`#btnStart`)?.addEventListener(`click`, async () => {
     await startVideo();
@@ -211,10 +211,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

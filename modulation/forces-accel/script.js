@@ -2,6 +2,7 @@ import { Points } from '../../ixfx/geometry.js';
 import { Forces } from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
 import { pointTracker } from '../../ixfx/data.js';
+import * as Util from './util.js';
 
 const settings = Object.freeze({
   thingEl: document.querySelector(`#thing`)
@@ -22,7 +23,7 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const onTick = () => {
+const update = () => {
   // Apply velocity to calculate a new position
   let changedThing = Forces.apply(state);
 
@@ -42,37 +43,25 @@ const onTick = () => {
 /**
  * Position thing based on state
  */
-const useState = () => {
+const use = () => {
   const { thingEl } = settings;
   const { position, window } = state;
 
   // Position is given in relative coordinates, need to map to viewport
   const absPos = Points.multiply(position, window.width, window.height);
 
-  // Move the element
-  moveElement(thingEl, absPos);
+  Util.moveElement(thingEl, absPos);
 };
 
-const moveElement = (element, pos) => {
-  // Get size of element to move
-  const size = element.getBoundingClientRect();
-
-  // Point to move to is given point, minus half width & height -- ie the top-left corner
-  const pt = Points.subtract(pos, size.width / 2, size.height / 2);
-
-  element.style.left = `${pt.x}px`;
-  element.style.top = `${pt.y}px`;
-};
-
-const setup = () => {
+function setup() {
   continuously(() => {
-    onTick();
-    useState();
+    update();
+    use();
   }).start();
 
   // Update our tracking of window size if there's a resize
   window.addEventListener(`resize`, () => {
-    updateState({ window: {
+    saveState({ window: {
       width: window.innerWidth,
       height: window.innerHeight
     } });
@@ -96,7 +85,7 @@ const setup = () => {
 
       const { position, velocity } = Forces.apply(state,
         Forces.accelerationForce(avg, `dampen`));
-      updateState({ velocity, position });
+      saveState({ velocity, position });
     }
 
     // Reset pointTracker
@@ -116,10 +105,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

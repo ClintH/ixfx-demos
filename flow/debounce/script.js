@@ -12,7 +12,7 @@ const onMove = (elapsedMs, ...arguments_) => {
   log?.append(`Move!`);
 };
 
-const setup = () => {
+function setup() {
   const moveDebounced = debounce(onMove, 1000);
   document.addEventListener(`pointermove`, moveDebounced);
 };

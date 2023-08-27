@@ -16,15 +16,15 @@ let state = Object.freeze({
 });
 
 // Update state with value from easing
-const onTick = () => {
+const update = () => {
   const { easing } = settings;
-  updateState({
+  saveState({
     amt: easing.compute(),
     isDone: easing.isDone
   });
 
   // Trigger a visual refresh
-  useState();
+  use();
 
   // Return false if envelope is done, stopping animation
   return !easing.isDone;
@@ -34,7 +34,7 @@ const onTick = () => {
 const percentage = (v) => Math.floor(v * 100) + `%`;
 
 // Update visuals
-const useState = () => {
+const use = () => {
   // Grab relevant field from settings & state
   const { thingEl } = settings;
   const { amt, isDone } = state;
@@ -57,8 +57,8 @@ const useState = () => {
 };
 
 const setup = () => {
-  // Run loop. This will call `updateState` until it returns false
-  const run = Flow.continuously(onTick);
+  // Run loop. This will call `saveState` until it returns false
+  const run = Flow.continuously(update);
 
   // Called on pointerup or keyup. 
   // Triggers easing function
@@ -82,7 +82,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

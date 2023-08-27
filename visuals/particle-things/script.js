@@ -1,23 +1,12 @@
 import * as Dom from '../../ixfx/dom.js';
 import { clamp, numberTracker } from '../../ixfx/data.js';
-import { Points, degreeToRadian, radianToDegree } from '../../ixfx/geometry.js';
+import { Points, radianToDegree } from '../../ixfx/geometry.js';
 import { repeat } from '../../ixfx/flow.js';
+import * as Util from './util.js';
+import * as Things from './thing.js';
 
 // Define settings
-const settings = Object.freeze({
-  dotColour: `black`,
-  textColour: `white`,
-  radius: 100,
-});
-
-/**
- * @typedef {{
- *  x: number,
- *  y: number,
- *  scale: number
- *  mass: number
- * }} Thing
- */
+const settings = Object.freeze({});
 
 // Initial state with empty values
 let state = Object.freeze({
@@ -34,13 +23,8 @@ let state = Object.freeze({
     x: 0.8,
     y: 0.5
   },
-  /** @type {readonly Thing[]} */
-  things: [...repeat(40, randomThing)],
-  // thing: {
-  //   x: 0.5,
-  //   y: 0.5,
-  //   scale: 0.5
-  // },
+  /** @type {readonly Things.Thing[]} */
+  things: [...repeat(40, () =>Things.create())],
   /** @type number */
   distance:0,
   distanceAvg: numberTracker({
@@ -52,16 +36,8 @@ let state = Object.freeze({
   distanceDiff: 0
 });
 
-function randomThing() {
-  return {
-    x: Math.random(),
-    y: Math.random(),
-    mass: Math.random(),
-    scale: Math.random() * 0.5
-  };
-}
 
-const computeState = () => {
+const update = () => {
   const { pointA, pointB, distanceAvg } = state;
   const distance = Points.distance(pointA, pointB);
   const angle = Points.angle(pointA, pointB);
@@ -72,13 +48,12 @@ const computeState = () => {
   const averageDistance = distanceAvg.avg;
   const distanceDiff = distance - averageDistance;
 
-  updateState({
+  saveState({
     distance, distanceDiff
   });
 
-
-  const things = state.things.map(t => computeThing(t));
-  updateState({ things });
+  const things = state.things.map(t => updateThing(t));
+  saveState({ things });
 
   setText(`debug`, `
   distance: ${distance}
@@ -91,9 +66,9 @@ const computeState = () => {
 
 /**
  * 
- * @param {Thing} thing 
+ * @param {Things.Thing} thing 
  */
-const computeThing = (thing) => {
+const updateThing = (thing) => {
   const { distanceDiff } = state;
   const { scale, mass } = thing;
 
@@ -116,7 +91,7 @@ function setText(id, text) {
   }
 }
 
-const drawState = () => {
+const use = () => {
   const { pointA, pointB } = state;
   /** @type HTMLCanvasElement|null */
   const canvasElement = document.querySelector(`#canvas`);
@@ -131,18 +106,17 @@ const drawState = () => {
   }
 
   // Draw new things
-  drawCircle(context, pointA, `red`);
-  drawCircle(context, pointB, `blue`);
-
+  Util.drawCircle(context, pointA, `red`);
+  Util.drawCircle(context, pointB, `blue`);
 };
 
 /**
  * Draw a thing
  * @param {CanvasRenderingContext2D} context 
- * @param {Thing} thing
+ * @param {Things.Thing} thing
  */
 const drawThing = (context, thing) => {
-  const posAbs = relativeToAbsolute(thing);
+  const posAbs = Util.relativeToAbsolute(thing);
   const radius = thing.scale * window.innerWidth / 4;
   
   // Translate so 0,0 is the middle
@@ -154,30 +128,6 @@ const drawThing = (context, thing) => {
   context.fillStyle = `hsl(${thing.mass*360}, 100%, 50%)`;
   
   context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fill();
-
-  // Unwind translation
-  context.restore();
-};
-
-/**
- * Draw a circle
- * @param {CanvasRenderingContext2D} context 
- * @param {{x:number, y:number}} circle
- * @param {string} fillStyle
- */
-const drawCircle = (context, circle, fillStyle) => {
-  const circlePosAbs = relativeToAbsolute(circle);
-  const radius = 5;
-
-  // Translate so 0,0 is the middle
-  context.save();
-  context.translate(circlePosAbs.x, circlePosAbs.y);
-
-  // Fill a circle
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fillStyle = fillStyle;
   context.fill();
 
   // Unwind translation
@@ -208,43 +158,27 @@ const clear = (context) => {
  * @param {PointerEvent} event 
  */
 const onPointerMove = (event) => {
-  const pos = absoluteToRelative(event);
-  updateState({
+  const pos = Util.absoluteToRelative(event);
+  saveState({
     pointA: pos
   });
 };
 
-function absoluteToRelative(pos) {
-  return {
-    x: pos.x / window.innerWidth,
-    y: pos.y / window.innerHeight
-  };
-}
 
-function relativeToAbsolute(pos) {
-  return {
-    x: pos.x * window.innerWidth,
-    y: pos.y * window.innerHeight
-  };
-}
-
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() { 
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: arguments_.bounds });
+    saveState({ bounds: arguments_.bounds });
   });
 
   const loop = () => {
-    drawState();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
 
   const updateLoop = () => {
-    computeState();
+    update();
     setTimeout(updateLoop, 10);
   };
   updateLoop();
@@ -253,10 +187,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

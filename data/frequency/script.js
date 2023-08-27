@@ -4,7 +4,7 @@ let state = Object.freeze({
   freq: frequencyMutable()
 });
 
-const useState = () => {
+const use = () => {
   const { freq } = state;
 
   const outputElement = document.querySelector(`#output`);
@@ -51,12 +51,12 @@ const update = () => {
   }
   
   // Update and use state
-  updateState({ freq: f });
-  useState();
+  saveState({ freq: f });
+  use();
 };
 
 
-const setup = () => {
+function setup () {
   document.querySelector(`#letters`)?.addEventListener(`input`, event => {
     update();
   });
@@ -65,10 +65,10 @@ const setup = () => {
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

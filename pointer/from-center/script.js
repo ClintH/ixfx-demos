@@ -25,7 +25,7 @@ let state = Object.freeze({
   distance: 0
 });
 
-const useState = () => {
+const use = () => {
   const { distance, bounds } = state;
   const { hue, saturation, circle } = settings;
 
@@ -75,7 +75,7 @@ const onPointerMove = (event) => {
   // Distance to circle
   const distance = Circles.distanceFromExterior(circle, pointer);
   console.log(distance);
-  updateState({ distance });
+  saveState({ distance });
 };
 
 /**
@@ -84,13 +84,13 @@ const onPointerMove = (event) => {
 const setup = () => {
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({ bounds: arguments_.bounds });
+    saveState({ bounds: arguments_.bounds });
   });
 
   document.addEventListener(`pointermove`, onPointerMove);
 
   const loop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -101,7 +101,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -1,5 +1,6 @@
-import { clamp } from '../../ixfx/data.js';
+
 import { defaultAdsrOpts as defaultAdsrOptions, adsrIterable } from '../../ixfx/modulation.js';
+import * as Util from './util.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
@@ -22,7 +23,7 @@ let state = Object.freeze({
 });
 
 // Move visual slider based on state
-const useState = () => {
+const use = () => {
   const { sliderEl } = settings;
   const { value } = state;
 
@@ -57,10 +58,10 @@ const onPointerUp = async (event) => {
   abortController.abort(`onPointerUp`);
   
   // Get relative position based on click within element
-  const target = relativePosition(sliderEl, event).y;
+  const target = Util.relativePosition(sliderEl, event).y;
 
   // Update target based on relative y
-  updateState({
+  saveState({
     target,
     abortController: new AbortController()
   });
@@ -79,46 +80,32 @@ const onPointerUp = async (event) => {
       const vv = v * target;
 
       // Update state
-      updateState({
+      saveState({
         value: vv
       });
 
       // Visual refresh
-      useState();
+      use();
     }
   } catch {
     // Ignore errors - this can happen when we abort
   }
 };
 
-const setup = () => {
+function setup() {
   const { sliderEl } = settings;
   sliderEl.addEventListener(`pointerup`, onPointerUp);
 };
 setup();
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
 
-/**
- * Returns a position relative to size of element
- * @param {PointerEvent} event 
- * @param {HTMLElement} element 
- */
-function relativePosition(element, event)  {
-  const bounds = element.getBoundingClientRect();
-  const s = getComputedStyle(element);
-  const padding = Number.parseFloat(s.padding) * 2;
-  return {
-    x: clamp(event.offsetX / (bounds.width - padding)),
-    y: clamp(event.offsetY / (bounds.height - padding))
-  };
-}

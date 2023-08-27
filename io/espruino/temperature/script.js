@@ -1,5 +1,6 @@
 import { delay } from '../../../ixfx/flow.js';
 import { Espruino } from '../../../ixfx/io.js';
+import {setCssDisplay} from './util.js';
 
 const scripts = Object.freeze({
   poll: `setInterval(()=>Bluetooth.println(E.getTemperature()), 1000);NRF.on('disconnect',()=>reset());`
@@ -17,7 +18,7 @@ let state = Object.freeze({
   pointer: { x: 0, y: 0 }
 });
 
-const useState = () => {
+const use = () => {
   const { temp, pointer } = state;
   const lblDataElement = /** @type HTMLElement */(document.querySelector(`#lblData`));
   if (!lblDataElement) return;
@@ -41,13 +42,13 @@ const setup = () => {
   };
 
   document.addEventListener(`pointermove`, event => {
-    updateState({
+    saveState({
       pointer: {
         x: event.clientX / window.innerWidth,
         y: event.clientY / window.innerHeight
       }
     });
-    useState();
+    use();
   });
 
   document.querySelector(`#btnConnect`)?.addEventListener(`click`, async () => {
@@ -69,10 +70,10 @@ const setup = () => {
         try {
           const temporary = Number.parseFloat(event.data);
 
-          updateState({
+          saveState({
             temp: temporary
           });
-          useState();
+          use();
         } catch {
           console.warn(`Cannot convert to float: ${event.data}`);
         }
@@ -94,21 +95,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
-
-/**
- * Sets style.display for element
- * @param {string} id Id of element
- * @param {string} value Value of style.display to set
- * @returns 
- */
-const setCssDisplay = (id, value) => {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (!element) return;
-  element.style.display = value;
-};

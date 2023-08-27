@@ -71,14 +71,14 @@ const loopThing = (thing) => {
   return updateThing(thing, { mass });
 };
 
-const useState = () => {
+const use = () => {
   const { thing } = state;
 
   // Use thing
   useThing(thing);
 };
 
-const loop = () => {
+const update = () => {
   const { thing } = state;
   
   // Update freeze ray based on movement
@@ -88,28 +88,28 @@ const loop = () => {
   const thingUpdated = loopThing(thing);
 
   // Update state
-  updateState({ 
+  saveState({ 
     thing: thingUpdated,
     freezeRay: freeze,
     currentMovement: 0
   });
 
-  useState();
-  window.requestAnimationFrame(loop);
+  use();
+  window.requestAnimationFrame(update);
 };
 
 const onPointerMove = (event) => {    
   // Get magnitude of movement
   const magnitude = Points.distance({ x: event.movementX, y: event.movementY });
   // Add to state
-  updateState({ 
+  saveState({ 
     currentMovement: state.currentMovement + magnitude 
   });
 };
 
 const setup = () => {
   window.addEventListener(`pointermove`, onPointerMove);
-  loop();
+  update();
 };
 setup();
 
@@ -130,7 +130,7 @@ function generateThing () {
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

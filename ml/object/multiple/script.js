@@ -76,7 +76,7 @@ const drawPrediction = (p, context) => {
     rect.y+4);
 };
 
-const useState = () => {
+const use = () => {
   const { labelFont } = settings;
   const { predictions } = state;
   const { width, height } = state.bounds;
@@ -122,7 +122,7 @@ const setup = async () => {
   });
 
   const loop = () => {
-    useState();
+    use();
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);

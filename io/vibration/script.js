@@ -81,7 +81,7 @@ const setup = async () => {
   const pauses = [ ...repeat(envelope.length, () => settings.restMs) ];
 
   // Combine them together with ixfx's interleave function
-  updateState({ envData: interleave(envelope, pauses) });
+  saveState({ envData: interleave(envelope, pauses) });
 
   if (buttonEnvelope) /** @type {HTMLButtonElement} */(buttonEnvelope).disabled = false;
   if (labelEnvelope) labelEnvelope.textContent = `Envelope sampled.`;
@@ -97,10 +97,10 @@ const setup = async () => {
 };
 setup();
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

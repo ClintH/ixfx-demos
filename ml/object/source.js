@@ -127,7 +127,7 @@ const handlePredictions = (predictions, frameRect) => {
 
   // Update state
   // @ts-ignore
-  updateState({ predictions, normalised });
+  saveState({ predictions, normalised });
 
   // Send normalised data via Remote
   if (state.normalised.length > 0) {
@@ -227,7 +227,7 @@ const setup = async () => {
   CommonSource.status(`Loading detector...`);
 
   try {
-    updateState({ detector:await createDetector() });
+    saveState({ detector:await createDetector() });
     CommonSource.setReady(true);
   } catch (error) {
     CommonSource.status(`Could not load detector: ` + error);
@@ -263,10 +263,10 @@ function getNumberParameter(name, defaultValue) {
 }
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

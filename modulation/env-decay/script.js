@@ -10,7 +10,7 @@ const settings = Object.freeze({
     sustainLevel: 1,
     retrigger: false /* env continues from where it is */
   }),
-  run: Flow.continuously(onTick)
+  run: Flow.continuously(update)
 });
 
 // Initialise state
@@ -26,19 +26,19 @@ let state = Object.freeze({
 });
 
 // Update state - this is called repeatedly via settings.run
-function onTick() {
+function update() {
   const { env } = settings;
 
   // Get state from envelope
   const [ stage, scaled, raw ] = env.compute();
-  updateState({
+  saveState({
     scaled,
     stage,
     raw
   });
 
   // Trigger a visual refresh
-  useState();
+  use();
 
   // Return false if envelope is done. This will stop the run loop
   return (!Number.isNaN(scaled));
@@ -48,7 +48,7 @@ function onTick() {
 const percentage = (v) => Math.floor(v * 100) + `%`;
 
 // Update visuals
-const useState = () => {
+const use = () => {
   // Grab relevant fields from settings & state
   const { scaled, stage, raw, triggered } = state;
   const isComplete = Number.isNaN(scaled); // Are we done?
@@ -86,7 +86,7 @@ const trigger = (event) => {
   if (state.triggered) return;
 
   env.trigger(true);
-  updateState({
+  saveState({
     triggered: true // Mark triggered
   });
   run.start();
@@ -97,14 +97,14 @@ const trigger = (event) => {
 const release = (event) => {
   const { env, run } = settings;
   event.preventDefault();
-  updateState({
+  saveState({
     triggered: false // Mark not triggered
   });
   env.release();
   run.start();
 };
 
-const setup = () => {
+function setup() {
   // Prevent context menu popping up on touch screens when there is a long touch
   document.addEventListener(`contextmenu`, (event) => event.preventDefault());
 
@@ -122,7 +122,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

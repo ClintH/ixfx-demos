@@ -1,6 +1,6 @@
 # Code style
 
-All the sketches roughly follow a pattern of a HTML and JS file: `index.html` and `script.js`. The JS files are organised into main chunks: `imports`, `settings`, `state`, `useState` and `setup`.
+All the sketches roughly follow a pattern of a HTML and JS file: `index.html` and `script.js`. The JS files are organised into main chunks: `imports`, `settings`, `state`, `use` and `setup`.
 
 Before discussing the structure of the sketches, it's worth first introducing [immutability](#immutability) and [destructuring](#destructuring).
 
@@ -245,7 +245,7 @@ let state = Object.freeze({
 
 Following the principle of [immutability](#immutability), it is frozen, preventing something like `state.magicNumber = 10`.
 
-To change state, [`updateState`](#updatestate) is provided as a helper function. Alternatively, state can be updated with the [spread syntax](#spread-syntax):
+To change state, [`saveState`](#savestate) is provided as a helper function. Alternatively, state can be updated with the [spread syntax](#spread-syntax):
 
 ```js
 state =  { ...state, clicks: state.clicks + 1 };
@@ -256,26 +256,26 @@ In this line, we copy existing properties of `state`, and overwrite with a new v
 You'll also note a [type annotation](./_readmes/typing.md) for `magicNumber`. This tells your editor that this property should be a number type. Without this annotation, your editor will believe that `magicNumber` can only ever be 0.
 
 
-## `updateState()`
+## `saveState()`
 
-`updateState()` applies and validates a change to `state`. Having a central place where `state` is updated means you can do 'sanity checks' to ensure `state` stays how the rest of your code expects.
+`updateSsaveStatetate()` applies and validates a change to `state`. Having a central place where `state` is updated means you can do 'sanity checks' to ensure `state` stays how the rest of your code expects.
 
 Update state takes in whatever properties you want to modify:
 
 ```js
-updateState({ clicks: state.clicks + 1 });
+saveState({ clicks: state.clicks + 1 });
 ```
 
 It makes for readable and safe code.
 
-If you're interested, below is the implementation of `updateState`. Note the use of type annotation and `Object.freeze` for an improved editing experience. But otherwise, it's essentially just the spread syntax described earlier.
+If you're interested, below is the implementation of `saveState`. Note the use of type annotation and `Object.freeze` for an improved editing experience. But otherwise, it's essentially just the spread syntax described earlier.
 
 ```js
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -283,17 +283,17 @@ function updateState (s) {
 }
 ```
 
-## `useState()`
+## `use()`
 
-In the sketches, the convention is that `useState()` makes use of whatever is in the state. It might be to pan audio, draw on the canvas, update the HTML of an element or whatever. In the case of animation, it's typical then for `useState` to be called at a high rate using `window.requestAnimationFrame` or similar. 
+In the sketches, the convention is that `use()` makes use of whatever is in the state. It might be to pan audio, draw on the canvas, update the HTML of an element or whatever. In the case of animation, it's typical then for `use()` to be called at a high rate using `window.requestAnimationFrame` or similar. 
 
 The key here is that updating the state and using the state are two separated. This gives some advantages:
 * Updating/using can be desynchronised. Eg using state at a high rate while animating the canvas, while updating state at the rate that which events happen
 * The flow of the sketch becomes clearer. When & where data is being ingested & processed, and when & where it's used.
 * Where possible, computations are done once and assigned to state rather than being recomputed for each update
-* Testing and debugging is easier because fake data can be put into the state and `useState` won't need to be changed
+* Testing and debugging is easier because fake data can be put into the state and `use()` won't need to be changed
 
-Code within `useState` should ideally:
+Code within `use()` should ideally:
 * Never modify the state
 * Only access `state` and `settings`
 * Avoid computation. Rather, it _consumes_ computed results stored in `state`.
@@ -310,10 +310,10 @@ const setup = () => {
   
   // Assign a new random number every `updateSpeedMs`
   setInterval(() => {
-    updateState({
+    saveState({
       magicNumber: Math.random()
     });
-    useState();
+    use();
   }, updateSpeedMs);
 }
 
@@ -338,7 +338,7 @@ let state = Object.freeze({
   magicNumber: 0
 });
 
-const useState = () => {
+const use = () => {
   const { magicNumber } = state;
 
   // Broadcast magic number
@@ -350,18 +350,18 @@ const setup = () => {
   
   // Assign a new random number every `updateSpeedMs`
   setInterval(() => {
-    updateState({
+    saveState({
       magicNumber: Math.random()
     });
-    useState();
+    use();
   }, updateSpeedMs);
 }
 
 /**
- * Update state
+ * Save state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

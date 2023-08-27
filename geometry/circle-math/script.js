@@ -19,14 +19,14 @@ let state = Object.freeze({
 });
 
 // Update state of world
-const tick = () => {
+const update = () => {
   const { circle } = settings;
   const { pointer } = state;
   if (pointer) {
     const nearest = Circles.nearest(circle, pointer);
     
     if (!Points.isNaN(nearest)) {
-      updateState({ nearest });
+      saveState({ nearest });
     }
   }
 };
@@ -82,21 +82,18 @@ const drawState = () => {
   }
 };
 
-/**
- * Setup and run main loop 
- */
-const setup = () => {
+function setup() {
   // Keep our primary canvas full size
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     // Update state with new size of canvas
-    updateState({
+    saveState({
       bounds: arguments_.bounds,
       scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
     });
   });
 
   const loop = () => {
-    tick();
+    update();
     drawState();  
     window.requestAnimationFrame(loop);
   };
@@ -104,7 +101,7 @@ const setup = () => {
 
   document.addEventListener(`pointermove`, event => {
     const pointer = Points.divide(event, state.scaleBy, state.scaleBy);
-    updateState({
+    saveState({
       pointer: pointer
     });
   });
@@ -115,7 +112,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function updateState (s) {
+function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s

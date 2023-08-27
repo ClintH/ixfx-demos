@@ -18,7 +18,7 @@ const onMove = (elapsedMs, ...arguments_) => {
   log?.append(`!`);
 };
 
-const setup = () => {
+function setup() {
   const { log, raw, resetBtn } = settings;
   const moveThrottled = throttle(onMove, 500);
 
