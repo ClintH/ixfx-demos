@@ -8684,6 +8684,16 @@ __export(flow_exports, {
   waitFor: () => waitFor
 });
 
+// src/flow/Elapsed.ts
+var Elapsed_exports = {};
+__export(Elapsed_exports, {
+  infinity: () => infinity,
+  once: () => once,
+  progress: () => progress,
+  since: () => since,
+  toString: () => toString
+});
+
 // src/flow/Sleep.ts
 var sleep = (optsOrMillis) => {
   const timeoutMs = intervalToMs(optsOrMillis);
@@ -8712,6 +8722,269 @@ var sleep = (optsOrMillis) => {
       }, timeoutMs);
     });
   }
+};
+
+// src/flow/Interval.ts
+function intervalToMs(i, defaultNumber) {
+  if (isInterval(i)) {
+    if (typeof i === "number")
+      return i;
+    let ms = i.millis ?? 0;
+    ms += (i.hours ?? 0) * 60 * 60 * 1e3;
+    ms += (i.mins ?? 0) * 60 * 1e3;
+    ms += (i.secs ?? 0) * 1e3;
+    return ms;
+  } else {
+    if (typeof defaultNumber !== "undefined")
+      return defaultNumber;
+    throw new Error(`Not a valid interval: ${i}`);
+  }
+}
+function isInterval(i) {
+  if (i === void 0)
+    return false;
+  if (i === null)
+    return false;
+  if (typeof i === `number`) {
+    if (Number.isNaN(i))
+      return false;
+    if (!Number.isFinite(i))
+      return false;
+    return true;
+  } else if (typeof i !== "object")
+    return false;
+  const hasMillis = "millis" in i;
+  const hasSecs = "secs" in i;
+  const hasMins = "mins" in i;
+  const hasHours = "hours" in i;
+  if (hasMillis) {
+    if (!numberTest(i.millis)[0])
+      return false;
+  }
+  if (hasSecs) {
+    if (!numberTest(i.secs)[0])
+      return false;
+  }
+  if (hasMins) {
+    if (!numberTest(i.mins)[0])
+      return false;
+  }
+  if (hasHours) {
+    if (!numberTest(i.hours)[0])
+      return false;
+  }
+  if (hasMillis || hasSecs || hasHours || hasMins)
+    return true;
+  return false;
+}
+var interval = async function* (produce, optsOrFixedMs = {}) {
+  let cancelled = false;
+  const opts = typeof optsOrFixedMs === "number" ? { fixed: optsOrFixedMs } : optsOrFixedMs;
+  const signal = opts.signal;
+  const when = opts.delay ?? "before";
+  let sleepMs = intervalToMs(opts.fixed) ?? intervalToMs(opts.minimum, 0);
+  let started = performance.now();
+  const minIntervalMs = opts.minimum ? intervalToMs(opts.minimum) : void 0;
+  const doDelay = async () => {
+    const elapsed = performance.now() - started;
+    if (typeof minIntervalMs !== "undefined") {
+      sleepMs = Math.max(0, minIntervalMs - elapsed);
+    }
+    if (sleepMs) {
+      await sleep({ millis: sleepMs, signal });
+    }
+    started = performance.now();
+    if (signal?.aborted)
+      throw new Error(`Signal aborted ${signal?.reason}`);
+  };
+  if (Array.isArray(produce))
+    produce = produce.values();
+  const isGenerator = typeof produce === `object` && `next` in produce && typeof produce.next === `function`;
+  try {
+    while (!cancelled) {
+      if (when === "before")
+        await doDelay();
+      if (cancelled)
+        return;
+      if (typeof produce === `function`) {
+        const result = await produce();
+        if (typeof result === "undefined")
+          return;
+        yield result;
+      } else if (isGenerator) {
+        const result = await produce.next();
+        if (result.done)
+          return;
+        yield result.value;
+      } else {
+        throw new Error(
+          `produce param does not seem to return a value/Promise and is not a generator?`
+        );
+      }
+      if (when === "after")
+        await doDelay();
+    }
+  } finally {
+    cancelled = true;
+  }
+};
+
+// src/flow/Timer.ts
+var Timer_exports = {};
+__export(Timer_exports, {
+  frequencyTimer: () => frequencyTimer,
+  frequencyTimerSource: () => frequencyTimerSource,
+  hasElapsedMs: () => hasElapsedMs,
+  msElapsedTimer: () => msElapsedTimer,
+  relativeTimer: () => relativeTimer,
+  ticksElapsedTimer: () => ticksElapsedTimer
+});
+function hasElapsedMs(totalMs) {
+  const t4 = relativeTimer(totalMs, { timer: msElapsedTimer() });
+  return () => t4.isDone;
+}
+var frequencyTimerSource = (frequency) => () => frequencyTimer(frequency, { timer: msElapsedTimer() });
+var relativeTimer = (total3, opts = {}) => {
+  const timer = opts.timer ?? msElapsedTimer();
+  const clampValue = opts.clampValue ?? false;
+  const wrapValue = opts.wrapValue ?? false;
+  if (clampValue && wrapValue)
+    throw new Error(`clampValue and wrapValue cannot both be enabled`);
+  let done2 = false;
+  let modulationAmount = 1;
+  return {
+    mod(amt) {
+      modulationAmount = amt;
+    },
+    get isDone() {
+      return done2;
+    },
+    reset: () => {
+      done2 = false;
+      timer.reset();
+    },
+    get elapsed() {
+      let v = timer.elapsed / (total3 * modulationAmount);
+      if (clampValue)
+        v = clamp(v);
+      else if (wrapValue) {
+        if (v >= 1)
+          v = v % 1;
+      } else {
+        if (v >= 1)
+          done2 = true;
+      }
+      return v;
+    }
+  };
+};
+var frequencyTimer = (frequency, opts = {}) => {
+  const timer = opts.timer ?? msElapsedTimer();
+  const cyclesPerSecond = frequency / 1e3;
+  let modulationAmount = 1;
+  return {
+    mod: (amt) => {
+      modulationAmount = amt;
+    },
+    reset: () => {
+      timer.reset();
+    },
+    get elapsed() {
+      const v = timer.elapsed * (cyclesPerSecond * modulationAmount);
+      const f = v - Math.floor(v);
+      if (f < 0) {
+        throw new Error(
+          `Unexpected cycle fraction less than 0. Elapsed: ${v} f: ${f}`
+        );
+      }
+      if (f > 1) {
+        throw new Error(
+          `Unexpected cycle fraction more than 1. Elapsed: ${v} f: ${f}`
+        );
+      }
+      return f;
+    }
+  };
+};
+var msElapsedTimer = () => {
+  let start3 = performance.now();
+  return {
+    reset: () => {
+      start3 = performance.now();
+    },
+    get elapsed() {
+      return performance.now() - start3;
+    }
+  };
+};
+var ticksElapsedTimer = () => {
+  let start3 = 0;
+  return {
+    reset: () => {
+      start3 = 0;
+    },
+    get elapsed() {
+      return ++start3;
+    }
+  };
+};
+
+// src/flow/Elapsed.ts
+var since = () => {
+  const start3 = Date.now();
+  return () => {
+    return Date.now() - start3;
+  };
+};
+var once = () => {
+  const start3 = Date.now();
+  let stoppedAt = 0;
+  return () => {
+    if (stoppedAt === 0) {
+      stoppedAt = Date.now() - start3;
+    }
+    return stoppedAt;
+  };
+};
+var infinity = () => {
+  return () => {
+    return Number.POSITIVE_INFINITY;
+  };
+};
+function progress(duration, opts = {}) {
+  const totalMs = intervalToMs(duration);
+  if (!totalMs)
+    throw new Error(`duration invalid`);
+  const timerOpts = {
+    ...opts,
+    timer: msElapsedTimer()
+  };
+  const t4 = relativeTimer(totalMs, timerOpts);
+  return () => t4.elapsed;
+}
+var toString = (millisOrFunction) => {
+  let interval2 = 0;
+  if (typeof millisOrFunction === `function`) {
+    const intervalResult = millisOrFunction();
+    interval2 = typeof intervalResult === `object` ? intervalToMs(interval2) : intervalResult;
+  } else if (typeof millisOrFunction === `number`) {
+    interval2 = millisOrFunction;
+  } else if (typeof millisOrFunction === `object`) {
+    interval2 = intervalToMs(interval2);
+  }
+  let ms = intervalToMs(interval2);
+  if (typeof ms === `undefined`)
+    return `(undefined)`;
+  if (ms < 1e3)
+    return `${ms}ms`;
+  ms /= 1e3;
+  if (ms < 120)
+    return `${ms.toFixed(1)}secs`;
+  ms /= 60;
+  if (ms < 60)
+    return `${ms.toFixed(2)}mins`;
+  ms /= 60;
+  return `${ms.toFixed(2)}hrs`;
 };
 
 // src/flow/StateMachine.ts
@@ -9296,211 +9569,6 @@ var bidirectionalFromList = (...states) => {
   return t4;
 };
 
-// src/flow/Timer.ts
-var Timer_exports = {};
-__export(Timer_exports, {
-  frequencyTimer: () => frequencyTimer,
-  frequencyTimerSource: () => frequencyTimerSource,
-  hasElapsedMs: () => hasElapsedMs,
-  msElapsedTimer: () => msElapsedTimer,
-  relativeTimer: () => relativeTimer,
-  ticksElapsedTimer: () => ticksElapsedTimer
-});
-function hasElapsedMs(totalMs) {
-  const t4 = relativeTimer(totalMs, { timer: msElapsedTimer() });
-  return () => t4.isDone;
-}
-var frequencyTimerSource = (frequency) => () => frequencyTimer(frequency, { timer: msElapsedTimer() });
-var relativeTimer = (total3, opts = {}) => {
-  const timer = opts.timer ?? msElapsedTimer();
-  const clampValue = opts.clampValue ?? false;
-  const wrapValue = opts.wrapValue ?? false;
-  if (clampValue && wrapValue)
-    throw new Error(`clampValue and wrapValue cannot both be enabled`);
-  let done2 = false;
-  let modulationAmount = 1;
-  return {
-    mod(amt) {
-      modulationAmount = amt;
-    },
-    get isDone() {
-      return done2;
-    },
-    reset: () => {
-      done2 = false;
-      timer.reset();
-    },
-    get elapsed() {
-      let v = timer.elapsed / (total3 * modulationAmount);
-      if (clampValue)
-        v = clamp(v);
-      else if (wrapValue) {
-        if (v >= 1)
-          v = v % 1;
-      } else {
-        if (v >= 1)
-          done2 = true;
-      }
-      return v;
-    }
-  };
-};
-var frequencyTimer = (frequency, opts = {}) => {
-  const timer = opts.timer ?? msElapsedTimer();
-  const cyclesPerSecond = frequency / 1e3;
-  let modulationAmount = 1;
-  return {
-    mod: (amt) => {
-      modulationAmount = amt;
-    },
-    reset: () => {
-      timer.reset();
-    },
-    get elapsed() {
-      const v = timer.elapsed * (cyclesPerSecond * modulationAmount);
-      const f = v - Math.floor(v);
-      if (f < 0) {
-        throw new Error(
-          `Unexpected cycle fraction less than 0. Elapsed: ${v} f: ${f}`
-        );
-      }
-      if (f > 1) {
-        throw new Error(
-          `Unexpected cycle fraction more than 1. Elapsed: ${v} f: ${f}`
-        );
-      }
-      return f;
-    }
-  };
-};
-var msElapsedTimer = () => {
-  let start3 = performance.now();
-  return {
-    reset: () => {
-      start3 = performance.now();
-    },
-    get elapsed() {
-      return performance.now() - start3;
-    }
-  };
-};
-var ticksElapsedTimer = () => {
-  let start3 = 0;
-  return {
-    reset: () => {
-      start3 = 0;
-    },
-    get elapsed() {
-      return ++start3;
-    }
-  };
-};
-
-// src/flow/Interval.ts
-function intervalToMs(i, defaultNumber) {
-  if (isInterval(i)) {
-    if (typeof i === "number")
-      return i;
-    let ms = i.millis ?? 0;
-    ms += (i.hours ?? 0) * 60 * 60 * 1e3;
-    ms += (i.mins ?? 0) * 60 * 1e3;
-    ms += (i.secs ?? 0) * 1e3;
-    return ms;
-  } else {
-    if (typeof defaultNumber !== "undefined")
-      return defaultNumber;
-    throw new Error(`Not a valid interval: ${i}`);
-  }
-}
-function isInterval(i) {
-  if (i === void 0)
-    return false;
-  if (i === null)
-    return false;
-  if (typeof i === `number`) {
-    if (Number.isNaN(i))
-      return false;
-    if (!Number.isFinite(i))
-      return false;
-    return true;
-  } else if (typeof i !== "object")
-    return false;
-  const hasMillis = "millis" in i;
-  const hasSecs = "secs" in i;
-  const hasMins = "mins" in i;
-  const hasHours = "hours" in i;
-  if (hasMillis) {
-    if (!numberTest(i.millis)[0])
-      return false;
-  }
-  if (hasSecs) {
-    if (!numberTest(i.secs)[0])
-      return false;
-  }
-  if (hasMins) {
-    if (!numberTest(i.mins)[0])
-      return false;
-  }
-  if (hasHours) {
-    if (!numberTest(i.hours)[0])
-      return false;
-  }
-  if (hasMillis || hasSecs || hasHours || hasMins)
-    return true;
-  return false;
-}
-var interval = async function* (produce, optsOrFixedMs = {}) {
-  let cancelled = false;
-  const opts = typeof optsOrFixedMs === "number" ? { fixed: optsOrFixedMs } : optsOrFixedMs;
-  const signal = opts.signal;
-  const when = opts.delay ?? "before";
-  let sleepMs = intervalToMs(opts.fixed) ?? intervalToMs(opts.minimum, 0);
-  let started = performance.now();
-  const minIntervalMs = opts.minimum ? intervalToMs(opts.minimum) : void 0;
-  const doDelay = async () => {
-    const elapsed = performance.now() - started;
-    if (typeof minIntervalMs !== "undefined") {
-      sleepMs = Math.max(0, minIntervalMs - elapsed);
-    }
-    if (sleepMs) {
-      await sleep({ millis: sleepMs, signal });
-    }
-    started = performance.now();
-    if (signal?.aborted)
-      throw new Error(`Signal aborted ${signal?.reason}`);
-  };
-  if (Array.isArray(produce))
-    produce = produce.values();
-  const isGenerator = typeof produce === `object` && `next` in produce && typeof produce.next === `function`;
-  try {
-    while (!cancelled) {
-      if (when === "before")
-        await doDelay();
-      if (cancelled)
-        return;
-      if (typeof produce === `function`) {
-        const result = await produce();
-        if (typeof result === "undefined")
-          return;
-        yield result;
-      } else if (isGenerator) {
-        const result = await produce.next();
-        if (result.done)
-          return;
-        yield result.value;
-      } else {
-        throw new Error(
-          `produce param does not seem to return a value/Promise and is not a generator?`
-        );
-      }
-      if (when === "after")
-        await doDelay();
-    }
-  } finally {
-    cancelled = true;
-  }
-};
-
 // src/flow/Timeout.ts
 var timeout = (callback, interval2) => {
   if (callback === void 0) {
@@ -9808,72 +9876,6 @@ var runOnce = (onRun) => {
   };
 };
 
-// src/flow/Elapsed.ts
-var Elapsed_exports = {};
-__export(Elapsed_exports, {
-  infinity: () => infinity,
-  once: () => once,
-  progress: () => progress,
-  since: () => since,
-  toString: () => toString
-});
-var since = () => {
-  const start3 = Date.now();
-  return () => {
-    return Date.now() - start3;
-  };
-};
-var once = () => {
-  const start3 = Date.now();
-  let stoppedAt = 0;
-  return () => {
-    if (stoppedAt === 0) {
-      stoppedAt = Date.now() - start3;
-    }
-    return stoppedAt;
-  };
-};
-var infinity = () => {
-  return () => {
-    return Number.POSITIVE_INFINITY;
-  };
-};
-function progress(duration, opts = {}) {
-  const totalMs = intervalToMs(duration);
-  if (!totalMs)
-    throw new Error(`duration invalid`);
-  const timerOpts = {
-    ...opts,
-    timer: msElapsedTimer()
-  };
-  const t4 = relativeTimer(totalMs, timerOpts);
-  return () => t4.elapsed;
-}
-var toString = (millisOrFunction) => {
-  let interval2 = 0;
-  if (typeof millisOrFunction === `function`) {
-    const intervalResult = millisOrFunction();
-    interval2 = typeof intervalResult === `object` ? intervalToMs(interval2) : intervalResult;
-  } else if (typeof millisOrFunction === `number`) {
-    interval2 = millisOrFunction;
-  } else if (typeof millisOrFunction === `object`) {
-    interval2 = intervalToMs(interval2);
-  }
-  let ms = intervalToMs(interval2);
-  if (typeof ms === `undefined`)
-    return `(undefined)`;
-  if (ms < 1e3)
-    return `${ms}ms`;
-  ms /= 1e3;
-  if (ms < 120)
-    return `${ms.toFixed(1)}secs`;
-  ms /= 60;
-  if (ms < 60)
-    return `${ms.toFixed(2)}mins`;
-  ms /= 60;
-  return `${ms.toFixed(2)}hrs`;
-};
-
 // src/flow/Retry.ts
 var retry = async (cb, opts) => {
   const signal = opts.abort;
@@ -10021,23 +10023,23 @@ function* repeat(countOrPredicate, fn) {
     throwNumberTest(countOrPredicate, `positive`, `countOrPredicate`);
     while (countOrPredicate-- > 0) {
       repeats++;
-      const v = fn();
+      const v = fn(repeats, valuesProduced);
       if (v === void 0)
         continue;
       yield v;
       valuesProduced++;
     }
-  } else if (typeof countOrPredicate === "function") {
+  } else if (typeof countOrPredicate === `function`) {
     while (countOrPredicate(repeats, valuesProduced)) {
       repeats++;
-      const v = fn();
+      const v = fn(repeats, valuesProduced);
       if (v === void 0)
         continue;
       yield v;
       valuesProduced++;
     }
   } else {
-    throw new Error(
+    throw new TypeError(
       `countOrPredicate should be a number or function. Got: ${typeof countOrPredicate}`
     );
   }
@@ -22069,10 +22071,10 @@ var guardCell = (cell, paramName = `Param`, grid2) => {
   if (Number.isNaN(cell.y))
     throw new Error(paramName + `.y is NaN`);
   if (!Number.isInteger(cell.x)) {
-    throw new Error(paramName + `.x is non-integer`);
+    throw new TypeError(paramName + `.x is non-integer`);
   }
   if (!Number.isInteger(cell.y)) {
-    throw new Error(paramName + `.y is non-integer`);
+    throw new TypeError(paramName + `.y is non-integer`);
   }
   if (grid2 !== void 0) {
     if (!inside(grid2, cell)) {
@@ -22091,10 +22093,10 @@ var guardGrid = (grid2, paramName = `Param`) => {
   if (!(`cols` in grid2))
     throw new Error(`${paramName}.cols is undefined`);
   if (!Number.isInteger(grid2.rows)) {
-    throw new Error(`${paramName}.rows is not an integer`);
+    throw new TypeError(`${paramName}.rows is not an integer`);
   }
   if (!Number.isInteger(grid2.cols)) {
-    throw new Error(`${paramName}.cols is not an integer`);
+    throw new TypeError(`${paramName}.cols is not an integer`);
   }
 };
 var inside = (grid2, cell) => {
@@ -22131,7 +22133,7 @@ var toArray4 = (grid2, initialValue) => {
 };
 var cellAtPoint = (grid2, position) => {
   const size = grid2.size;
-  throwIntegerTest(size, "positive", "grid.size");
+  throwNumberTest(size, `positive`, `grid.size`);
   if (position.x < 0 || position.y < 0)
     return;
   const x = Math.floor(position.x / size);
@@ -22223,32 +22225,41 @@ var offsetCardinals = (grid2, start3, steps, bounds = `stop`) => {
 var getVectorFromCardinal = (cardinal2, multiplier = 1) => {
   let v;
   switch (cardinal2) {
-    case `n`:
+    case `n`: {
       v = { x: 0, y: -1 * multiplier };
       break;
-    case `ne`:
+    }
+    case `ne`: {
       v = { x: 1 * multiplier, y: -1 * multiplier };
       break;
-    case `e`:
+    }
+    case `e`: {
       v = { x: 1 * multiplier, y: 0 };
       break;
-    case `se`:
+    }
+    case `se`: {
       v = { x: 1 * multiplier, y: 1 * multiplier };
       break;
-    case `s`:
+    }
+    case `s`: {
       v = { x: 0, y: 1 * multiplier };
       break;
-    case `sw`:
+    }
+    case `sw`: {
       v = { x: -1 * multiplier, y: 1 * multiplier };
       break;
-    case `w`:
+    }
+    case `w`: {
       v = { x: -1 * multiplier, y: 0 };
       break;
-    case `nw`:
+    }
+    case `nw`: {
       v = { x: -1 * multiplier, y: -1 * multiplier };
       break;
-    default:
+    }
+    default: {
       v = { x: 0, y: 0 };
+    }
   }
   return Object.freeze(v);
 };
@@ -22278,7 +22289,7 @@ var offset = function(grid2, start3, vector, bounds = `undefined`) {
   let x = start3.x;
   let y = start3.y;
   switch (bounds) {
-    case `wrap`:
+    case `wrap`: {
       x += vector.x % grid2.cols;
       y += vector.y % grid2.rows;
       if (x < 0)
@@ -22292,13 +22303,15 @@ var offset = function(grid2, start3, vector, bounds = `undefined`) {
         y -= grid2.rows;
       }
       break;
-    case `stop`:
+    }
+    case `stop`: {
       x += vector.x;
       y += vector.y;
       x = clampIndex(x, grid2.cols);
       y = clampIndex(y, grid2.rows);
       break;
-    case `undefined`:
+    }
+    case `undefined`: {
       x += vector.x;
       y += vector.y;
       if (x < 0 || y < 0)
@@ -22306,12 +22319,15 @@ var offset = function(grid2, start3, vector, bounds = `undefined`) {
       if (x >= grid2.cols || y >= grid2.rows)
         return;
       break;
-    case `unbounded`:
+    }
+    case `unbounded`: {
       x += vector.x;
       y += vector.y;
       break;
-    default:
+    }
+    default: {
       throw new Error(`Unknown BoundsLogic case ${bounds}`);
+    }
   }
   return Object.freeze({ x, y });
 };
@@ -22594,58 +22610,74 @@ var indexFromCell = (grid2, cell, wrap3) => {
   guardGrid(grid2, `grid`);
   if (cell.x < 0) {
     switch (wrap3) {
-      case `stop`:
+      case `stop`: {
         cell = { ...cell, x: 0 };
         break;
-      case `unbounded`:
+      }
+      case `unbounded`: {
         throw new Error(`unbounded not supported`);
-      case `undefined`:
+      }
+      case `undefined`: {
         return void 0;
-      case `wrap`:
+      }
+      case `wrap`: {
         cell = offset(grid2, { x: 0, y: cell.y }, { x: cell.x, y: 0 }, `wrap`);
         break;
+      }
     }
   }
   if (cell.y < 0) {
     switch (wrap3) {
-      case `stop`:
+      case `stop`: {
         cell = { ...cell, y: 0 };
         break;
-      case `unbounded`:
+      }
+      case `unbounded`: {
         throw new Error(`unbounded not supported`);
-      case `undefined`:
+      }
+      case `undefined`: {
         return void 0;
-      case `wrap`:
+      }
+      case `wrap`: {
         cell = { ...cell, y: grid2.rows + cell.y };
         break;
+      }
     }
   }
   if (cell.x >= grid2.cols) {
     switch (wrap3) {
-      case `stop`:
+      case `stop`: {
         cell = { ...cell, x: grid2.cols - 1 };
         break;
-      case `unbounded`:
+      }
+      case `unbounded`: {
         throw new Error(`unbounded not supported`);
-      case `undefined`:
+      }
+      case `undefined`: {
         return void 0;
-      case `wrap`:
+      }
+      case `wrap`: {
         cell = { ...cell, x: cell.x % grid2.cols };
         break;
+      }
     }
   }
   if (cell.y >= grid2.rows) {
     switch (wrap3) {
-      case `stop`:
+      case `stop`: {
         cell = { ...cell, y: grid2.rows - 1 };
         break;
-      case `unbounded`:
+      }
+      case `unbounded`: {
         throw new Error(`unbounded not supported`);
-      case `undefined`:
+      }
+      case `undefined`: {
         return void 0;
-      case `wrap`:
+      }
+      case `wrap`: {
         cell = { ...cell, y: cell.y % grid2.rows };
         break;
+      }
     }
   }
   const index = cell.y * grid2.cols + cell.x;
@@ -29189,6 +29221,18 @@ export {
   Path_exports,
   Line_exports,
   sleep,
+  intervalToMs,
+  isInterval,
+  interval,
+  clamp,
+  clampIndex,
+  hasElapsedMs,
+  frequencyTimerSource,
+  relativeTimer,
+  frequencyTimer,
+  msElapsedTimer,
+  ticksElapsedTimer,
+  Elapsed_exports,
   StateMachineWithEvents,
   init2 as init,
   cloneState,
@@ -29206,17 +29250,6 @@ export {
   fromList,
   bidirectionalFromList,
   StateMachine_exports,
-  clamp,
-  clampIndex,
-  hasElapsedMs,
-  frequencyTimerSource,
-  relativeTimer,
-  frequencyTimer,
-  msElapsedTimer,
-  ticksElapsedTimer,
-  intervalToMs,
-  isInterval,
-  interval,
   timeout,
   updateOutdated,
   continuously,
@@ -29227,7 +29260,6 @@ export {
   delayLoop,
   everyNth,
   runOnce,
-  Elapsed_exports,
   retry,
   TaskQueue,
   forEach2 as forEach,
@@ -29522,4 +29554,4 @@ tslib/tslib.es6.js:
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** *)
 */
-//# sourceMappingURL=chunk-Y4HD3VRE.js.map
+//# sourceMappingURL=chunk-35TJPVSI.js.map

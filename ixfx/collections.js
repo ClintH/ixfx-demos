@@ -9,7 +9,7 @@ import {
   circularArray,
   set_exports,
   stack_exports
-} from "./chunk-Y4HD3VRE.js";
+} from "./chunk-35TJPVSI.js";
 import {
   QueueImmutable,
   QueueMutable,

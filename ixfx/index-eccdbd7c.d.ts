@@ -1,6 +1,184 @@
 import { b as StateMachine } from './StateMachine-754f37bb.js';
 
 /**
+ * Interval types allows for more expressive coding, rather than embedding millisecond values.
+ *
+ * eg: { mins: 5} rather than 5*60*1000 or worse, 300000
+ *
+ * Fields are cumulative. { secs: 2, millis: 1 } will equal 2001 milliseconds.
+ *
+ * Use {@link intervalToMs} to resolve an {@link Interval} to milliseconds. Use {@link Elapsed.toString} to get a human-readable version.
+ */
+type Interval = number | {
+    readonly millis?: number;
+    readonly secs?: number;
+    readonly hours?: number;
+    readonly mins?: number;
+};
+declare function intervalToMs(i: Interval | undefined): number | undefined;
+declare function intervalToMs(i: Interval | undefined, defaultNumber: number): number;
+declare function isInterval(i: number | Interval | undefined): i is Interval;
+type IntervalOpts = {
+    /**
+     * Sleep a fixed period of time regardless of how long each invocation of 'produce' takes
+     */
+    readonly fixed?: Interval;
+    /**
+     * Minimum interval. That is, only sleep if there is time left over after 'produce'
+     * is invoked.
+     */
+    readonly minimum?: Interval;
+    /**
+     * Optional signal to abort
+     */
+    readonly signal?: AbortSignal;
+    /**
+     * When to perform delay. Default is before 'produce' is invoked.
+     */
+    readonly delay?: 'before' | 'after';
+};
+/**
+ * Generates values from `produce` with a time delay.
+ * `produce` can be a simple function that returns a value, an async function, or a generator.
+ *
+ * @example Produce a random number every 500ms:
+ * ```
+ * const randomGenerator = interval(() => Math.random(), 500);
+ * for await (const r of randomGenerator) {
+ *  // Random value every 1 second
+ *  // Warning: does not end by itself, a `break` statement is needed
+ * }
+ * ```
+ *
+ * @example Return values from a generator every 500ms:
+ * ```js
+ * import { interval } from 'https://unpkg.com/ixfx/dist/flow.js'
+ * import { count } from 'https://unpkg.com/ixfx/dist/generators.js'
+ * for await (const v of interval(count(10), { fixed: 1000 })) {
+ *  // Do something with `v`
+ * }
+ * ```
+ *
+ * Options allow either fixed interval (wait this long between iterations), or a minimum interval (wait at least this long).
+ * The latter is useful if `produce` takes some time - it will only wait the remaining time or not at all.
+ *
+ * If you just want to loop at a certain speed, consider using {@link continuously} instead.
+ *
+ * If the AbortSignal is triggered, an exception will be thrown, stopping iteration.
+ * @template V Returns value of `produce` function
+ * @param produce Function, generator to use
+ * @param opts Options
+ * @template V Data type
+ * @returns
+ */
+declare const interval: <V>(produce: AsyncPromiseOrGenerator<V> | ArrayLike<V>, optsOrFixedMs?: IntervalOpts | number) => AsyncGenerator<V, any, unknown>;
+
+type Since = () => number;
+/**
+ * Returns elapsed time since initial call.
+ * ```js
+ * // Record start
+ * const elapsed = Elapsed.since();
+ *
+ * // Get elapsed time in millis
+ * elapsed(); // Yields number
+ * ```
+ *
+ * If you want to initialise a elapsed timer, but not yet start it, consider:
+ * ```js
+ * // Init
+ * let state = {
+ *  clicked: Elapsed.infinity()
+ * };
+ *
+ * state.click(); // Returns a giant value
+ *
+ * // Later, when click happens:
+ * state = { click: Elapsed.since() }
+ * ```
+ *
+ * Use {@link once} if you want to measure a single period, and stop it.
+ * @returns
+ */
+declare const since: () => Since;
+/**
+ * Returns elapsed time since initial call, however
+ * timer stops when first invoked.
+ *
+ * ```js
+ * const elapsed = Elapsed.once();
+ * // ...do stuff
+ * elapsed(); // Yields time since Elapsed.once() was called
+ * // ...do more stuff
+ * elapsed(); // Is still the same number as above
+ * ```
+ *
+ * Use {@link since} to not have this stopping behaviour.
+ * @returns
+ */
+declare const once: () => Since;
+/**
+ * Returns a function that reports an 'infinite' elapsed time.
+ * this can be useful as an initialiser for `elapsedSince`.
+ *
+ * ```js
+ * // Init clicked to be an infinite time
+ * let clicked = Elapsed.infinity();
+ *
+ * document.addEventListener('click', () => {
+ *  // Now that click has happened, we can assign it properly
+ *  clicked = Elapsed.since();
+ * });
+ * ```
+ * @returns
+ */
+declare const infinity: () => Since;
+/**
+ * Returns a function that returns the percentage of timer completion.
+ * Starts timing immediately.
+ *
+ * ```js
+ * const timer = Elapsed.progress(1000);
+ * timer(); // Returns 0..1
+ * ```
+ *
+ * Note that timer can exceed 1 (100%). To cap it:
+ * ```js
+ * Elapsed.progress(1000, { clampValue: true });
+ * ```
+ *
+ * Takes an {@link Interval} for more expressive time:
+ * ```js
+ * const timer = Elapsed.progress({ mins: 4 });
+ * ```
+ * See also {@link hasElapsedMs}.
+ * @param totalMs
+ * @returns
+ */
+declare function progress(duration: Interval, opts?: {
+    readonly clampValue?: boolean;
+    readonly wrapValue?: boolean;
+}): () => number;
+declare const toString: (millisOrFunction: number | Since | Interval) => string;
+
+type Elapsed_Since = Since;
+declare const Elapsed_infinity: typeof infinity;
+declare const Elapsed_once: typeof once;
+declare const Elapsed_progress: typeof progress;
+declare const Elapsed_since: typeof since;
+declare const Elapsed_toString: typeof toString;
+declare namespace Elapsed {
+  export {
+    Elapsed_Since as Since,
+    Elapsed_infinity as infinity,
+    Elapsed_once as once,
+    Elapsed_progress as progress,
+    Elapsed_since as since,
+    Elapsed_toString as toString,
+  };
+}
+
+/**
  * Creates a timer
  */
 type TimerSource = () => Timer;
@@ -131,79 +309,6 @@ declare const msElapsedTimer: () => Timer;
  * @see {msElapsedTimer}
  */
 declare const ticksElapsedTimer: () => Timer;
-
-/**
- * Interval types allows for more expressive coding, rather than embedding millisecond values.
- *
- * eg: { mins: 5} rather than 5*60*1000 or worse, 300000
- *
- * Fields are cumulative. { secs: 2, millis: 1 } will equal 2001 milliseconds.
- *
- * Use {@link intervalToMs} to resolve an {@link Interval} to milliseconds. Use {@link Elapsed.toString} to get a human-readable version.
- */
-type Interval = number | {
-    readonly millis?: number;
-    readonly secs?: number;
-    readonly hours?: number;
-    readonly mins?: number;
-};
-declare function intervalToMs(i: Interval | undefined): number | undefined;
-declare function intervalToMs(i: Interval | undefined, defaultNumber: number): number;
-declare function isInterval(i: number | Interval | undefined): i is Interval;
-type IntervalOpts = {
-    /**
-     * Sleep a fixed period of time regardless of how long each invocation of 'produce' takes
-     */
-    readonly fixed?: Interval;
-    /**
-     * Minimum interval. That is, only sleep if there is time left over after 'produce'
-     * is invoked.
-     */
-    readonly minimum?: Interval;
-    /**
-     * Optional signal to abort
-     */
-    readonly signal?: AbortSignal;
-    /**
-     * When to perform delay. Default is before 'produce' is invoked.
-     */
-    readonly delay?: 'before' | 'after';
-};
-/**
- * Generates values from `produce` with a time delay.
- * `produce` can be a simple function that returns a value, an async function, or a generator.
- *
- * @example Produce a random number every 500ms:
- * ```
- * const randomGenerator = interval(() => Math.random(), 500);
- * for await (const r of randomGenerator) {
- *  // Random value every 1 second
- *  // Warning: does not end by itself, a `break` statement is needed
- * }
- * ```
- *
- * @example Return values from a generator every 500ms:
- * ```js
- * import { interval } from 'https://unpkg.com/ixfx/dist/flow.js'
- * import { count } from 'https://unpkg.com/ixfx/dist/generators.js'
- * for await (const v of interval(count(10), { fixed: 1000 })) {
- *  // Do something with `v`
- * }
- * ```
- *
- * Options allow either fixed interval (wait this long between iterations), or a minimum interval (wait at least this long).
- * The latter is useful if `produce` takes some time - it will only wait the remaining time or not at all.
- *
- * If you just want to loop at a certain speed, consider using {@link continuously} instead.
- *
- * If the AbortSignal is triggered, an exception will be thrown, stopping iteration.
- * @template V Returns value of `produce` function
- * @param produce Function, generator to use
- * @param opts Options
- * @template V Data type
- * @returns
- */
-declare const interval: <V>(produce: AsyncPromiseOrGenerator<V> | ArrayLike<V>, optsOrFixedMs?: IntervalOpts | number) => AsyncGenerator<V, any, unknown>;
 
 type TimeoutSyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => void;
 type TimeoutAsyncCallback = (elapsedMs?: number, ...args: readonly unknown[]) => Promise<void>;
@@ -880,111 +985,6 @@ type RetryOpts<V> = {
  */
 declare const retry: <V>(cb: () => Promise<V | undefined>, opts: RetryOpts<V>) => Promise<RetryResult<V>>;
 
-type Since = () => number;
-/**
- * Returns elapsed time since initial call.
- * ```js
- * // Record start
- * const elapsed = Elapsed.since();
- *
- * // Get elapsed time in millis
- * elapsed(); // Yields number
- * ```
- *
- * If you want to initialise a elapsed timer, but not yet start it, consider:
- * ```js
- * // Init
- * let state = {
- *  clicked: Elapsed.infinity()
- * };
- *
- * state.click(); // Returns a giant value
- *
- * // Later, when click happens:
- * state = { click: Elapsed.since() }
- * ```
- *
- * Use {@link once} if you want to measure a single period, and stop it.
- * @returns
- */
-declare const since: () => Since;
-/**
- * Returns elapsed time since initial call, however
- * timer stops when first invoked.
- *
- * ```js
- * const elapsed = Elapsed.once();
- * // ...do stuff
- * elapsed(); // Yields time since Elapsed.once() was called
- * // ...do more stuff
- * elapsed(); // Is still the same number as above
- * ```
- *
- * Use {@link since} to not have this stopping behaviour.
- * @returns
- */
-declare const once: () => Since;
-/**
- * Returns a function that reports an 'infinite' elapsed time.
- * this can be useful as an initialiser for `elapsedSince`.
- *
- * ```js
- * // Init clicked to be an infinite time
- * let clicked = Elapsed.infinity();
- *
- * document.addEventListener('click', () => {
- *  // Now that click has happened, we can assign it properly
- *  clicked = Elapsed.since();
- * });
- * ```
- * @returns
- */
-declare const infinity: () => Since;
-/**
- * Returns a function that returns the percentage of timer completion.
- * Starts timing immediately.
- *
- * ```js
- * const timer = Elapsed.progress(1000);
- * timer(); // Returns 0..1
- * ```
- *
- * Note that timer can exceed 1 (100%). To cap it:
- * ```js
- * Elapsed.progress(1000, { clampValue: true });
- * ```
- *
- * Takes an {@link Interval} for more expressive time:
- * ```js
- * const timer = Elapsed.progress({ mins: 4 });
- * ```
- * See also {@link hasElapsedMs}.
- * @param totalMs
- * @returns
- */
-declare function progress(duration: Interval, opts?: {
-    readonly clampValue?: boolean;
-    readonly wrapValue?: boolean;
-}): () => number;
-declare const toString: (millisOrFunction: number | Since | Interval) => string;
-
-type Elapsed_Since = Since;
-declare const Elapsed_infinity: typeof infinity;
-declare const Elapsed_once: typeof once;
-declare const Elapsed_progress: typeof progress;
-declare const Elapsed_since: typeof since;
-declare const Elapsed_toString: typeof toString;
-declare namespace Elapsed {
-  export {
-    Elapsed_Since as Since,
-    Elapsed_infinity as infinity,
-    Elapsed_once as once,
-    Elapsed_progress as progress,
-    Elapsed_since as since,
-    Elapsed_toString as toString,
-  };
-}
-
 /**
  * Simple task queue. Each task is awaited and run
  * in turn.
@@ -1044,7 +1044,7 @@ type HasCompletion = {
  * @typeParam V Type of iterable
  * @param fn Function to call for each item. If function returns _false_, iteration cancels
  */
-declare const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean | void) => void;
+declare const forEach: <V>(iterator: IterableIterator<V> | readonly V[], fn: (v?: V | undefined) => boolean) => void;
 /**
  * Iterates over an async iterable or array, calling `fn` for each value, with optional
  * interval between each loop. If the async `fn` returns _false_, iterator cancels.
@@ -1102,7 +1102,7 @@ type RepeatPredicate = (repeats: number, valuesProduced: number) => boolean;
  * @param fn Function to run, must return a value to accumulate into array or _undefined_
  * @returns Yields results, one at a time
  */
-declare function repeat<V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined): Generator<V & ({} | null), void, unknown>;
+declare function repeat<V>(countOrPredicate: number | RepeatPredicate, fn: (repeats: number, valuesProduced: number) => V | undefined): Generator<V & ({} | null), void, unknown>;
 /**
  * Repeatedly calls `fn`, reducing via `reduce`.
  *
@@ -1120,7 +1120,7 @@ declare function repeat<V>(countOrPredicate: number | RepeatPredicate, fn: () =>
  * @param reduce
  * @returns
  */
-declare const repeatReduce: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined, initial: V, reduce: (acc: V, value: V) => V) => V;
+declare const repeatReduce: <V>(countOrPredicate: number | RepeatPredicate, fn: () => V | undefined, initial: V, reduce: (accumulator: V, value: V) => V) => V;
 
 type index_AsyncPromiseOrGenerator<V> = AsyncPromiseOrGenerator<V>;
 type index_Continuously = Continuously;
