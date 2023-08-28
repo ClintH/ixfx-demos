@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <title>thing</title>
 </head>
 
@@ -28,6 +28,10 @@
       background-color: var(--bg);
       color: var(--fg);
       font-family: var(--font);
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
     #thing {
