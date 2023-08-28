@@ -76,9 +76,9 @@ function setup() {
     const y = Math.abs(event.movementY) / window.innerHeight;
 
     // Combine movement values, using 0.01 as the lower-bound 
-    const relativeMovement = Math.max(0.01, x + y);
-    log.log(`x: ${x} y: ${y}, relative: ${relativeMovement}`);
-    let movement = clamp(state.movement + relativeMovement);
+    const relativeMovement = Math.max(0.01, 0);//x + y);
+    const movement = clamp(state.movement + relativeMovement);
+    log.log(`r: ${relativeMovement} m: ${movement} s:${state.thing.surprise}`);
     saveState({ movement });
   });
 
@@ -88,7 +88,6 @@ function setup() {
     saveState({ 
       thing: Thing.update(state.thing, state)
     });
-
     // Visually update based on new state
     Thing.use(state.thing);
   }, settings.thingUpdateSpeedMs);
