@@ -1,10 +1,5 @@
 import * as Thing from './thing.js';
 import {clamp } from '../../ixfx/data.js';
-import * as Dom from '../../ixfx/dom.js';
-const log = Dom.log(`#log`, {
-  capacity: 10,
-  timestamp: true
-});
 
 // Settings for sketch
 const settings = Object.freeze({
@@ -65,7 +60,6 @@ const update = () => {
 };
 
 function setup() {
-  log.log(`setup`);
   const element = /** @type HTMLElement */(document.querySelector(`#${settings.thingId}`));
   if (!element) throw new Error(`Element with id ${settings.thingId} not found`);
   element.addEventListener(`pointermove`, (event) => {
@@ -76,9 +70,8 @@ function setup() {
     const y = Math.abs(event.movementY) / window.innerHeight;
 
     // Combine movement values, using 0.01 as the lower-bound 
-    const relativeMovement = Math.max(0.01, 0);//x + y);
+    const relativeMovement = Math.max(0.01, x + y);
     const movement = clamp(state.movement + relativeMovement);
-    log.log(`r: ${relativeMovement} m: ${movement} s:${state.thing.surprise}`);
     saveState({ movement });
   });
 
