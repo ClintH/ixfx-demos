@@ -63,7 +63,7 @@ function setup() {
   const element = /** @type HTMLElement */(document.querySelector(`#${settings.thingId}`));
   if (!element) throw new Error(`Element with id ${settings.thingId} not found`);
   element.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = (event.movementX/window.innerWidth + event.movementY/window.innerHeight);
+    const relativeMovement = Math.min(0.1, (event.movementX/window.innerWidth + event.movementY/window.innerHeight));
     let movement = clamp(state.movement + relativeMovement);
     saveState({ movement });
   });
