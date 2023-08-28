@@ -1,5 +1,10 @@
 import * as Thing from './thing.js';
 import {clamp } from '../../ixfx/data.js';
+import * as Dom from '../../ixfx/dom.js';
+const log = Dom.log(`#log`, {
+  capacity: 10,
+  timestamp: true
+});
 
 // Settings for sketch
 const settings = Object.freeze({
@@ -60,10 +65,19 @@ const update = () => {
 };
 
 function setup() {
+  log.log(`setup`);
   const element = /** @type HTMLElement */(document.querySelector(`#${settings.thingId}`));
   if (!element) throw new Error(`Element with id ${settings.thingId} not found`);
   element.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = Math.max(0.01, (event.movementX/window.innerWidth + event.movementY/window.innerHeight));
+
+    // Since movement can also be negative direction, get absolute
+    // and make relative to size of window
+    const x = Math.abs(event.movementX) / window.innerWidth;
+    const y = Math.abs(event.movementY) / window.innerHeight;
+
+    // Combine movement values, using 0.01 as the lower-bound 
+    const relativeMovement = Math.max(0.01, x + y);
+    log.log(`x: ${x} y: ${y}, relative: ${relativeMovement}`);
     let movement = clamp(state.movement + relativeMovement);
     saveState({ movement });
   });
