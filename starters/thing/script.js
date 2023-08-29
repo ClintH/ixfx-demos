@@ -1,4 +1,6 @@
 import * as Thing from './thing.js';
+import * as Util from './util.js';
+
 import {clamp } from '../../ixfx/data.js';
 
 // Settings for sketch
@@ -64,15 +66,14 @@ function setup() {
   if (!element) throw new Error(`Element with id ${settings.thingId} not found`);
   element.addEventListener(`pointermove`, (event) => {
 
-    // Since movement can also be negative direction, get absolute
-    // and make relative to size of window
-    const x = Math.abs(event.movementX) / window.innerWidth;
-    const y = Math.abs(event.movementY) / window.innerHeight;
+    // Add up all the movement
+    let movement = Util.addUpMovement(event);
 
-    // Combine movement values, using 0.01 as the lower-bound 
-    const relativeMovement = Math.max(0.01, x + y);
-    const movement = clamp(state.movement + relativeMovement);
-    saveState({ movement });
+    // Make sure total is within 0..1 range
+    movement = clamp(state.movement + movement);
+
+    // Save it
+    saveState({ movement:0.2 });
   });
 
   // Update thing at a fixed rate

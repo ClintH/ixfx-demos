@@ -7,14 +7,15 @@ const settings = Object.freeze({
   surpriseDropAmount: 0.001,
 });
 
-/** 
+/**
  * Define our thing
- * @typedef Thing
- * @property {Points.Point} position
- * @property {number} surprise
- * @property {number} hue
- * @property {number} size
- */
+ * @typedef {{
+*  position: Points.Point
+*  surprise: number
+*  hue: number
+*  size: number
+* }} Thing
+*/
 
 /**
  * Make use of data from `thing` somehow...
@@ -70,7 +71,7 @@ export const update = (thing, ambientState) => {
   //    always decrease a little each loop
   //  eg. surprise goes down over time
   surprise = surprise - surpriseDropAmount;
-
+  
   // 4. Apply sanity checks to properties, making sure they are within proper ranges
   surprise = clamp(surprise);
   hue = clamp(hue, 0, 360);

@@ -1,4 +1,5 @@
-import * as Thing from './thing.js';
+import * as Things from './thing.js';
+import * as Util from './util.js';
 
 // Settings for sketch
 const settings = Object.freeze({
@@ -9,9 +10,10 @@ const settings = Object.freeze({
 });
 
 /** 
- * @typedef {object} State
- * @property {number} hue
- * @property {Thing.Thing[]} things
+ * @typedef {{
+ *  hue:number
+ *  things:Things.Thing[]
+ * }} State
  */
 
 /**
@@ -56,22 +58,22 @@ const update = () => {
 function setup() {
   const things = [];
   for (let index=0;index<settings.spawnThings;index++) {
-    things.push(Thing.create(`thing-${index}`));
+    things.push(Things.create(`thing-${index}`));
   }
   saveState({ things });
 
   document.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = (event.movementX/window.innerWidth + event.movementY/window.innerHeight);
-    
-    if (Number.isNaN(relativeMovement)) debugger;
+    // Add up all the movement
+    let movement = Util.addUpMovement(event);
+
     // Get ids of elements under cursor
     const elementIdsUnderCursor = document.elementsFromPoint(event.clientX, event.clientY).map(element=>element.id);
 
     // Get new thing state
     let things = state.things.map(
-      thing => Thing.onMovement(
+      thing => Things.onMovement(
         thing, 
-        relativeMovement,
+        movement,
         elementIdsUnderCursor)
     );
     saveState({ things });
@@ -83,14 +85,14 @@ function setup() {
     let { things } = state;
 
     // Update all the things
-    things = things.map(t => Thing.update(t, state));
+    things = things.map(t => Things.update(t, state));
 
     // Save updated things into state
     saveState({ things });
 
     // Visually update based on new state
     for (const thing of things) {
-      Thing.use(thing);
+      Things.use(thing);
     }
   }, settings.thingUpdateSpeedMs);
 

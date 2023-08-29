@@ -8,16 +8,18 @@ const settings = Object.freeze({
   movementDecayAmt: 0.9
 });
 
-/** 
+/**
  * Define our thing
- * @typedef Thing
- * @property {Points.Point} position
- * @property {number} surprise
- * @property {number} size
- * @property {number} movement
- * @property {string} elementId
- * @property {number} hue
+ * @typedef {{
+ *  position: Points.Point
+ *  surprise: number
+ *  size: number
+ *  movement: number
+ *  elementId: string
+ *  hue:number
+ * }} Thing
  */
+
 
 /**
  * @param {Thing} thing

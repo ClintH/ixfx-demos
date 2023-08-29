@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-
+import * as Util from './util.js';
 const settings = Object.freeze({
   // Upwards vector to compare against
   compareTo: { x: 0, y: -1 },
@@ -32,7 +32,7 @@ const onPointerMove = (event) => {
   // Only process if a button is being pressed
   if (event.buttons === 0) return;
 
-  const movement = {x:event.movementX, y:event.movementY};
+  const movement = Util.addUpMovement(event);
   console.log(movement);
 
   // If there's not much movement, ignore

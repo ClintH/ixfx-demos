@@ -1,11 +1,13 @@
 # Type annotations
 
 Contents:
-* [Annotating a function](#annotating-a-function)
-* [Defining a type](#defining-a-type)
-* [Typed declarations](#typed-declarations)
-* [Type assertions](#type-assertions)
-* [Disable typing](#disabling)
+- [Type annotations](#type-annotations)
+- [Annotating a function](#annotating-a-function)
+- [Defining a type](#defining-a-type)
+- [Typed declarations](#typed-declarations)
+- [Type assertions](#type-assertions)
+- [Disabling](#disabling)
+- [Importing types](#importing-types)
 
 You'll note the use of [type annotations](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) throughout the sketches. This is a lightweight way to give hints to your code editor so it in turn can give helpful warnings and better inline documentation. These comments can be deleted, and they have no role during the running of code.
 
@@ -87,6 +89,16 @@ Now our calling code has no warnings, because even though we may pass in a null,
 
 An example of a type is:
 
+```js
+/**
+ * @typedef {{
+ *  webkitForce?: number
+ *  normalised: number
+ *  pointerPressure?: number
+ * }} PressureForceState
+```
+
+Or alternatively:
 ```js
 /**
  * @typedef PressureForceState

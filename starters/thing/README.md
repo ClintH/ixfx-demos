@@ -29,13 +29,12 @@ const settings = Object.freeze({
 
 A State type is defined. In this demo, we have two 'ambient' state things we want to model: the hue of the page and a 'movement' scalar. Movement will be used to gather the intensity of pointer movement. The state also holds the Thing.
 
+The Thing is defined as:
 ```js
-/** 
- * @typedef {object} State
- * @property {number} hue
- * @property {number} movement
- * @property {Thing.Thing} thing
- */
+position: Points.Point
+surprise: number
+elementId: string
+hue: number
 ```
 
 State is initialised, creating a new thing via `Thing.create`.

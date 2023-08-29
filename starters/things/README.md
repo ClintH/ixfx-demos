@@ -2,6 +2,17 @@
 
 An extension of the `thing` demo, but this time with multiple things.
 
+We define the thing as:
+
+```js
+position: Points.Point
+surprise: number
+size: number
+movement: number
+elementId: string
+hue:number
+```
+
 Note that as we move the cursor around, different Things respond. Each follows the shifting background hue at its own pace.
 
 Key differences: index.html

@@ -1,6 +1,6 @@
 import {fullSizeCanvas} from '../../ixfx/dom.js';
 import {clamp } from '../../ixfx/data.js';
-import * as Thing from './thing.js';
+import * as Things from './thing.js';
 import * as Util from './util.js';
 
 // Settings for sketch
@@ -10,20 +10,20 @@ const settings = Object.freeze({
   movementDecay: 0.1
 });
 
-
 /** 
- * @typedef {object} State
- * @property {number} hue
- * @property {number} movement
- * @property {Thing.Thing} thing
- * @property {import('./util.js').Bounds} bounds
+ * @typedef {{
+ *  hue: number
+ *  movement: number
+ *  thing: Things.Thing
+ *  bounds: import('./util.js').Bounds
+ * }} State
  */
 
 /**
  * @type {State}
  */
 let state = Object.freeze({
-  thing: Thing.create(),
+  thing: Things.create(),
   bounds: {
     width: 0, height: 0,
     min:0, max: 0,
@@ -45,7 +45,7 @@ const use = () => {
   context.fillRect(0,0,bounds.width,bounds.height);
 
   // 2. Get Thing to draw itself
-  Thing.use(thing, context, bounds);
+  Things.use(thing, context, bounds);
 };
 
 const update = () => {
@@ -79,7 +79,7 @@ function setup() {
   });
 
   document.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = (event.movementX/window.innerWidth + event.movementY/window.innerHeight);
+    const relativeMovement = Util.addUpMovement(event);
     let movement = clamp(state.movement + relativeMovement);
     saveState({ movement });
   });
@@ -88,7 +88,7 @@ function setup() {
   setInterval(() => {
     // Save new thing into state
     saveState({ 
-      thing: Thing.update(state.thing, state)
+      thing: Things.update(state.thing, state)
     });
   }, settings.thingUpdateSpeedMs);
 

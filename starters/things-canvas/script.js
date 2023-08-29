@@ -1,6 +1,6 @@
 import {fullSizeCanvas} from '../../ixfx/dom.js';
 import { Points } from '../../ixfx/geometry.js';
-import * as Thing from './thing.js';
+import * as Things from './thing.js';
 import * as Util from './util.js';
 
 // Settings for sketch
@@ -12,10 +12,11 @@ const settings = Object.freeze({
 });
 
 /** 
- * @typedef {object} State
- * @property {number} hue
- * @property {Thing.Thing[]} things
- * @property {import('./util.js').Bounds} bounds
+ * @typedef {{
+ *  hue:number
+ *  things:Things.Thing[]
+ *  bounds: import('./util.js').Bounds
+ * }} State
  */
 
 /**
@@ -46,7 +47,7 @@ const use = () => {
   
   // 2. Use things
   for (const thing of things) {
-    Thing.use(thing, context, bounds);
+    Things.use(thing, context, bounds);
   }
 };
 
@@ -78,17 +79,17 @@ function setup () {
     
   const things = [];
   for (let index=0;index<settings.spawnThings;index++) {
-    things.push(Thing.create(`thing-${index}`));
+    things.push(Things.create(`thing-${index}`));
   }
   saveState({ things });
 
   document.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = (event.movementX/window.innerWidth + event.movementY/window.innerHeight);
+    const relativeMovement = Util.addUpMovement(event);
     const relativePosition = Points.divide({x: event.clientX, y:event.clientY}, state.bounds);
 
     // Get new thing state
     let things = state.things.map(
-      thing => Thing.onMovement(
+      thing => Things.onMovement(
         thing, 
         relativeMovement,
         relativePosition)
@@ -102,7 +103,7 @@ function setup () {
     let { things } = state;
 
     // Update all the things
-    things = things.map(t => Thing.update(t, state));
+    things = things.map(t => Things.update(t, state));
 
     // Save updated things into state
     saveState({ things });

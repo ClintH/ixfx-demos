@@ -7,13 +7,14 @@ const settings = Object.freeze({
   surpriseDropAmount: 0.001
 });
 
-/** 
+/**
  * Define our thing
- * @typedef Thing
- * @property {Points.Point} position
- * @property {number} surprise
- * @property {string} elementId
- * @property {number} hue
+ * @typedef {{
+ *  position: Points.Point
+ *  surprise: number
+ *  elementId: string
+ *  hue: number
+ * }} Thing
  */
 
 /**
