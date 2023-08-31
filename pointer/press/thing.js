@@ -4,17 +4,18 @@ import * as Util from './util.js';
 
 /** 
  * Define our thing
- * @typedef Thing
- * @property {Points.Point} position
- * @property {number} energy
- * @property {string} elementId
- * @property {boolean} clicked
- * @property {number} hue
+ * @typedef {{
+ * position: Points.Point
+ * energy: number
+ * elementId: string
+ * clicked: boolean
+ * hue: number
+ * }}
+ * Thing
  */
 
 /** Settings for Things */
 const settings = Object.freeze({
-  hueInterpolateAmount: 0.01,
   energyGainAmount: 0.01,
   energyLoss: 0.99
 });
@@ -69,13 +70,14 @@ export const use = (thing) => {
 };
 
 /**
- * Updates a given thing based on state
+ * Updates a given thing based on state.
+ * This is called from script.js in a loop
  * @param {Thing} thing
  * @param {import('./script.js').State} ambientState
  * @returns {Thing}
  */
 export const update = (thing, ambientState) => {
-  const { hueInterpolateAmount, energyGainAmount, energyLoss } = settings;
+  const { energyGainAmount, energyLoss } = settings;
   let { energy, clicked } = thing;
   
   // 1. Alter properties based on external state/settings
@@ -107,11 +109,11 @@ export const update = (thing, ambientState) => {
  * @returns {Thing}
  */
 export const create = (elementId) => {
-  return {
+  return Object.freeze({
     position: { x: 0.5, y:0.5 },
     elementId,
     energy: 1,
     clicked: false,
     hue: 0
-  };
+  });
 };

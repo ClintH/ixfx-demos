@@ -2,14 +2,16 @@ import * as Thing from './thing.js';
 
 // Settings for sketch
 const settings = Object.freeze({
+  // How quickly to update the state of the thing
   thingUpdateSpeedMs: 10,
+  // Id of the HTML element
   thingId: `thing`
 });
 
 /** 
- * @typedef {object} State
- * @property {number} movement
- * @property {Thing.Thing} thing
+ * @typedef {{
+ *  thing: Thing.Thing
+ * }} State
  */
 
 /**
@@ -17,8 +19,6 @@ const settings = Object.freeze({
  */
 let state = Object.freeze({
   thing: Thing.create(settings.thingId),
-  hue: 0,
-  movement: 0
 });
 
 /**
@@ -38,12 +38,13 @@ const setup = () => {
   const element = /** @type HTMLElement */(document.querySelector(`#${settings.thingId}`));
   if (!element) throw new Error(`Element with id ${settings.thingId} not found`);
 
-
+  // Listen for pointerdown event on the 'thing' element
   element.addEventListener(`pointerdown`, (event) => {
     const thing = Thing.onPointerEvent(state.thing, event);
     saveState({ thing });
   });
 
+  // Listen for 'pointerup' event that happens on the thing
   element.addEventListener(`pointerup`, (event) => {
     const thing = Thing.onPointerEvent(state.thing, event);
     saveState({ thing });
