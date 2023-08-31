@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, user-scalable=no">
   <title>things-canvas</title>
 </head>
 
@@ -29,6 +29,10 @@
       color: var(--fg);
       font-family: var(--font);
       overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
     }
   </style>
   <section>
