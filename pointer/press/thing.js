@@ -29,17 +29,17 @@ const settings = Object.freeze({
 export const onPointerEvent = (thing, event) => {
   let { clicked } = thing;
   switch (event.type) {
-  case `pointerup`: {
-    clicked = false;
-    break;
-  }
-  case `pointerdown`: {
-    clicked = true;
-    break;
-  }
-  default: {
-    console.log(event);
-  }
+    case `pointerup`: {
+      clicked = false;
+      break;
+    }
+    case `pointerdown`: {
+      clicked = true;
+      break;
+    }
+    default: {
+      console.log(event);
+    }
   }
   return Object.freeze({
     ...thing,

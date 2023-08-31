@@ -1,11 +1,11 @@
 
-import { defaultAdsrOpts as defaultAdsrOptions } from '../../ixfx/modulation.js';
-import * as Thing from './thing.js';
+import * as Modulation from '../../ixfx/modulation.js';
+import * as Things from './thing.js';
 
 const settings = Object.freeze({
   sizeEm: 10,
   envelope: {
-    ...defaultAdsrOptions(),
+    ...Modulation.defaultAdsrOpts(),
     // Override some envelope options...
     // See: https://clinth.github.io/ixfx-docs/modulation/envelope/
     sustainLevel: 1,
@@ -14,21 +14,28 @@ const settings = Object.freeze({
   }
 });
 
+/**
+ * @typedef {{
+*  thing: Things.Thing
+* }} State
+*/
+
+/** @type State */
 let state = Object.freeze({
   /** 
    * Create a thing, to control HTML element with id 'thing'
-   * @type import('./thing.js').Thing */
-  thing: Thing.generate(`thing`, settings.envelope),
+   */
+  thing: Things.generate(`thing`, settings.envelope),
 });
 
 const use = () => {
-  Thing.use(state.thing);
+  Things.use(state.thing);
 };
 
 const update = () => {
   // Update state with changed thing
   saveState({ 
-    thing: Thing.update(state.thing)
+    thing: Things.update(state.thing)
   });
 
   use(); 

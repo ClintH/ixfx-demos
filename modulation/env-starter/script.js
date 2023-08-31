@@ -1,11 +1,11 @@
 
-import { defaultAdsrOpts as defaultAdsrOptions, adsr } from '../../ixfx/modulation.js';
+import * as Modulation from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
   adsrOptions: {
-    ...defaultAdsrOptions(),
+    ...Modulation.defaultAdsrOpts(),
     attackBend: 1,
     attackDuration: 10*1000,
     releaseLevel: 0,
@@ -14,11 +14,19 @@ const settings = Object.freeze({
   }
 });
 
+/**
+ * @typedef {{
+ *  envelope: Modulation.Adsr
+ *  target: number
+ *  value: number
+ *  abortController: AbortController
+ * }} State
+ */
+
+/** @type State */
 let state = Object.freeze({
-  envelope: adsr(settings.adsrOptions),
-  /** @type number */
+  envelope: Modulation.adsr(settings.adsrOptions),
   target: 0,
-  /** @type number */
   value: 0,
   abortController: new AbortController()
 });
@@ -29,6 +37,7 @@ const update = () => {
   // Read value from envelope and set it to state
   saveState({ value: envelope.value});
 };
+
 /**
  * Use state properties for something...
  */
@@ -50,7 +59,7 @@ setup();
 
 /**
  * Save state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({

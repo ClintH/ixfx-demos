@@ -25,7 +25,8 @@
     "unicorn/require-post-message-target-origin": "off",
     "indent": [
       "error",
-      2
+      2,
+      {"SwitchCase": 1}
     ]
   }
 }

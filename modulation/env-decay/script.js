@@ -1,10 +1,10 @@
 import * as Flow from '../../ixfx/flow.js';
-import { adsr, defaultAdsrOpts as defaultAdsrOptions } from '../../ixfx/modulation.js';
+import * as Modulation from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   // Set up envelope
-  env: adsr({
-    ...defaultAdsrOptions(),
+  env: Modulation.adsr({
+    ...Modulation.defaultAdsrOpts(),
     attackDuration: 2000,
     releaseDuration: 5000,
     sustainLevel: 1,
@@ -13,15 +13,23 @@ const settings = Object.freeze({
   run: Flow.continuously(update)
 });
 
-// Initialise state
+/** 
+ * @typedef {{
+ *  scaled: number
+ *  stage: string
+ *  raw: number
+ *  triggered: boolean
+ * }} State 
+ */
+
+/**
+ * Initialise state
+ * @type State
+ */
 let state = Object.freeze({
-  /** @type {number} */
   scaled: 0, 
-  /** @type {string} */
   stage: ``, 
-  /** @type {number} */
   raw: 0,
-  /** @type {boolean} */
   triggered: false
 });
 
@@ -120,7 +128,7 @@ setup();
 
 /**
  * Update state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({

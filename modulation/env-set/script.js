@@ -1,11 +1,11 @@
 
-import { defaultAdsrOpts as defaultAdsrOptions, adsrIterable } from '../../ixfx/modulation.js';
+import * as Modulation from '../../ixfx/modulation.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
   envOpts: {
-    ...defaultAdsrOptions(),
+    ...Modulation.defaultAdsrOpts(),
     attackBend: 1,
     attackDuration: 1500,
     releaseLevel: 0,
@@ -14,10 +14,17 @@ const settings = Object.freeze({
   sliderEl: /** @type {HTMLElement} */(document.querySelector(`#slider`))
 });
 
+/**
+* @typedef {{
+*  target: number
+*  value: number
+*  abortController: AbortController
+* }} State
+*/
+
+/** @type State */
 let state = Object.freeze({
-  /** @type number */
   target: 0,
-  /** @type number */
   value: 0,
   abortController: new AbortController()
 });
@@ -75,7 +82,7 @@ const onPointerUp = async (event) => {
 
   try {
     // Async loop through values of envelope over time
-    for await (const v of adsrIterable(options)) {
+    for await (const v of Modulation.adsrIterable(options)) {
       // Modulate
       const vv = v * target;
 
