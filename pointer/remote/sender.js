@@ -1,11 +1,12 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
+// import { inlineConsole } from "../../ixfx/dom.js";
+// inlineConsole();
 
 const settings = Object.freeze({
   remote: new Remote({
     allowNetwork: true,
-    websocket:`wss://${window.location.host}/ws`
-
+    websocket: `wss://${window.location.host}/ws`
   })
 });
 

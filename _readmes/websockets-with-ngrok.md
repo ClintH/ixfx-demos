@@ -47,7 +47,6 @@ const settings = Object.freeze({
   remote: new Remote({
     allowNetwork: true,
     websocket: `wss://f612-80-208-67-54.ngrok-free.app`
-
   })
 });
 ```
