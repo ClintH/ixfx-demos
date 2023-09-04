@@ -1,52 +1,32 @@
 # key
 
-Demonstrates tracking the state of arbitrary keys.
+Demonstrates tracking the state of a key. Look at the `keys` demo if you want to keep track of several keys.
+
+The settings of the sketch looks like:
+```
+// Key to monitor
+key: `f`,
+
+// Function to update HTML element
+info: Util.textContent(`#info`),
+
+// How often to update visuals based on state
+updateIntervalMs: 100
+```
 
 State is tracked with the following type:
 
 ```js
-/**
- * @typedef KeyState
- * @property {boolean} pressed
- * @property {boolean} repeating
- * @property {number} lastPress
- * @property {number} lastRelease
- * @property {number} startPress
- */
+pressed: boolean
+repeating: boolean
+lastPress: number
+lastRelease: number
+startPress:number
 ```
 
-i.e.:
+`keydown` and `keyup` events are used to update the state. This allows us to track whether a key is being pressed, and when its state was changed.
 
-```js
-const exampleKeyState = {
-  pressed: true,
-  repeating: false,
-  lastPress: performance.now(),
-  lastRelease: 0,
-  startPress: performance.now()
-}
-
-if (exampleKeyState.pressed) ...
-```
-
-Define which keys to track in `settings`. In the example, only 'f' is tracked:
-
-```js
-const settings = Object.freeze({
-  keys: [`f`],
-});
-```
-
-Add `console.log(evt.key)` in the _keydown_ event handler to find out the key
-code for the key you're interested in.
-
-In `use()`, read back the state of keys you're interested in:
-
-```js
-// Get state of 'f'
-const s = keyStates.get(`f`);
-if (s === undefined) return; // No state for key
-```
+A loop runs, calling `use()` to update the visual status based on the current state.
 
 ## Things to try
 * Can you make the box a toggle instead? One press turns it on, another turns it off?

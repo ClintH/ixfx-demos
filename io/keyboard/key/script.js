@@ -1,22 +1,32 @@
 import * as Util from './util.js';
 
 const settings = Object.freeze({
-  // Key(s) we want to monitor
-  keys: [ `f` ],
+  // Key we want to monitor
+  key: `f`,
   // Function to update HTML element
-  info: Util.textContent(`#info`)
+  info: Util.textContent(`#info`),
+  // How often to update visuals based on state
+  updateIntervalMs: 100
 });
 
-/** 
- * State of key(s) we are monitoring
- * @type Map<string,KeyState>
- * */
-const keyStates = new Map();
-
 /**
- * No other state needed at the moment
+ * @typedef {{
+ * pressed: boolean
+*  repeating: boolean
+*  lastPress: number
+*  lastRelease: number
+*  startPress:number
+ * }} State
  */
-let state = Object.freeze({});
+
+/** @type State */
+let state = Object.freeze({
+  pressed: false,
+  repeating: false,
+  lastPress: 0,
+  lastRelease: 0,
+  startPress: 0
+});
 
 /**
  * Where we use the state of the keys
@@ -24,21 +34,18 @@ let state = Object.freeze({});
  */
 const use = () => {
   const { info } = settings;
-
-  // Get state of 'f'
-  const s = keyStates.get(`f`);
-  if (s === undefined) return; // don't know anything about this key
+  const { pressed, startPress } = state;
 
   const element = document.querySelector(`#vis`);
   if (!element) return;
   
-  if (s.pressed) {
+  if (pressed) {
     // Eg: if being held down, for how long
-    const holdTime = Math.round(performance.now() - s.startPress);
+    const holdTime = Math.round(performance.now() - startPress);
     info(`Hold time: ${holdTime}`);
   }
 
-  if (s.pressed) {
+  if (pressed) {
     element.classList.add(`pressed`);
   } else {
     element.classList.remove(`pressed`);
@@ -51,31 +58,33 @@ const use = () => {
  * @returns 
  */
 const onKeyDown = (event) => {
-  // Is it a key we're tracking?
-  if (!settings.keys.includes(event.key)) return;
+  const { key } = settings;
+  let { pressed, startPress } = state;
+
+  console.log(`onKeyDown`);
+
+  // Is it the key we are tracking?
+  if (key !== event.key) {
+    console.log(`Ignoring keydown for key: ${event.key}`);
+    return;
+  }
+
   event.preventDefault();
 
-  // Look up state, or initialise state for this key
-  let key = getOrCreateKey(event.key);
-
   // Wasn't pressed before, now it is - keep track of time
-  if (!key.pressed) key.startPress = performance.now();
+  if (!pressed) startPress = performance.now();
 
-  // Update key
-  key = {
-    ...key,
+  // Update state
+  saveState({
     // We're in keydown, so yes pressed
     pressed: true,
     // This will be true if the keydown is a continuation
     // of the key being held
     repeating: event.repeat,
     // Track the time of this event
-    lastPress: performance.now()
-  };
-
-  // Save into state
-  keyStates.set(event.key, key);
-  use();
+    lastPress: performance.now(),
+    startPress
+  });
 };
 
 /**
@@ -84,16 +93,19 @@ const onKeyDown = (event) => {
  * @returns 
  */
 const onKeyUp = (event) => {
+  const { key } = settings;
+
   // Is it a key we're tracking?
-  if (!settings.keys.includes(event.key)) return;
+  if (key !== event.key) {
+    console.log(`Ignoring keyup for key: ${event.key}`);
+    return;
+  }
+  console.log(`onKeyUp`);
+    
   event.preventDefault();
 
-  // Look up state, or initialise state for this key
-  let key = getOrCreateKey(event.key);
-
   // Update state
-  key = {
-    ...key,
+  saveState({
     // Not pressed
     pressed: false,
     // Not repeating
@@ -102,11 +114,7 @@ const onKeyUp = (event) => {
     startPress: 0,
     // Track when it was released
     lastRelease: performance.now()
-  };
-
-  // Save into state
-  keyStates.set(event.key, key);
-  use();
+  });
 };
 
 /**
@@ -115,6 +123,8 @@ const onKeyUp = (event) => {
 function setup() {
   document.addEventListener(`keydown`, onKeyDown);
   document.addEventListener(`keyup`, onKeyUp);
+
+  setInterval(use, settings.updateIntervalMs);
 };
 setup();
 
@@ -128,36 +138,3 @@ function saveState (s) {
     ...s
   });
 }
-
-/**
- * Gets the state of a key, or
- * creates it if not found
- * @param {string} keyName 
- * @returns KeyState
- */
-function getOrCreateKey(keyName) {
-  let key = keyStates.get(keyName);
-  if (key === undefined) {
-    // Key it not found, so start it from scratch
-    key = {
-      lastRelease: 0,
-      startPress: 0,
-      lastPress: 0,
-      pressed: false,
-      repeating: false
-    };
-    // Save it in the map
-    keyStates.set(keyName, key);
-  }
-  return key;
-}
-
-/** 
- * The data we will track
- * @typedef KeyState 
- * @property {boolean} pressed
- * @property {boolean} repeating
- * @property {number} lastPress
- * @property {number} lastRelease
- * @property {number} startPress
-*/
