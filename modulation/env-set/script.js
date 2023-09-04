@@ -1,11 +1,11 @@
 
-import * as Modulation from '../../ixfx/modulation.js';
+import { Envelopes } from '../../ixfx/modulation.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
   envOpts: {
-    ...Modulation.defaultAdsrOpts(),
+    ...Envelopes.defaultAdsrOpts(),
     attackBend: 1,
     attackDuration: 1500,
     releaseLevel: 0,
@@ -82,7 +82,7 @@ const onPointerUp = async (event) => {
 
   try {
     // Async loop through values of envelope over time
-    for await (const v of Modulation.adsrIterable(options)) {
+    for await (const v of Envelopes.adsrIterable(options)) {
       // Modulate
       const vv = v * target;
 

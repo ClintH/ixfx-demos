@@ -1,7 +1,7 @@
 import { Points } from '../../ixfx/geometry.js';
 
 import { Oscillators } from '../../ixfx/modulation.js';
-import { adsr, defaultAdsrOpts as defaultAdsrOptions } from '../../ixfx/modulation.js';
+import { Envelopes } from '../../ixfx/modulation.js';
 
 import * as Util from './util.js';
 
@@ -75,6 +75,6 @@ export function generate (id, envelope) {
     oscillator: Oscillators.sine(Math.random() + 0.5),
     position: { x: 0.5, y:0.5 },
     // Create an envelope based on settings
-    envelope: adsr(envelope)
+    envelope: Envelopes.adsr(envelope)
   };
 }

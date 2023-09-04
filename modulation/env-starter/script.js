@@ -1,11 +1,11 @@
 
-import * as Modulation from '../../ixfx/modulation.js';
+import { Envelopes } from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
   adsrOptions: {
-    ...Modulation.defaultAdsrOpts(),
+    ...Envelopes.defaultAdsrOpts(),
     attackBend: 1,
     attackDuration: 10*1000,
     releaseLevel: 0,
@@ -16,7 +16,7 @@ const settings = Object.freeze({
 
 /**
  * @typedef {{
- *  envelope: Modulation.Adsr
+ *  envelope: Envelopes.Adsr
  *  target: number
  *  value: number
  *  abortController: AbortController
@@ -25,7 +25,7 @@ const settings = Object.freeze({
 
 /** @type State */
 let state = Object.freeze({
-  envelope: Modulation.adsr(settings.adsrOptions),
+  envelope: Envelopes.adsr(settings.adsrOptions),
   target: 0,
   value: 0,
   abortController: new AbortController()

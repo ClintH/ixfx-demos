@@ -1,11 +1,11 @@
 
-import * as Modulation from '../../ixfx/modulation.js';
+import { Envelopes } from '../../ixfx/modulation.js';
 import * as Things from './thing.js';
 
 const settings = Object.freeze({
   sizeEm: 10,
   envelope: {
-    ...Modulation.defaultAdsrOpts(),
+    ...Envelopes.defaultAdsrOpts(),
     // Override some envelope options...
     // See: https://clinth.github.io/ixfx-docs/modulation/envelope/
     sustainLevel: 1,
