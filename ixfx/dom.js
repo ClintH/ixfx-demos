@@ -15,6 +15,7 @@ import {
   fullSizeCanvas,
   fullSizeElement,
   getTranslation,
+  inlineConsole,
   log,
   parentSize,
   parentSizeCanvas,
@@ -34,7 +35,7 @@ import {
   themeChangeObservable,
   viewportToSpace,
   windowResize
-} from "./chunk-35TJPVSI.js";
+} from "./chunk-XL7M3HI2.js";
 import "./chunk-4DC2CRSB.js";
 export {
   DataTable_exports as DataTable,
@@ -53,6 +54,7 @@ export {
   fullSizeCanvas,
   fullSizeElement,
   getTranslation,
+  inlineConsole,
   log,
   parentSize,
   parentSizeCanvas,

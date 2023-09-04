@@ -1,6 +1,6 @@
-import { a as RandomSource, E as Easing } from './Arrays-c460861e.js';
-import { a as Point, f as Rect } from './Point-ebc02ab1.js';
-import { T as Timer } from './index-eccdbd7c.js';
+import { a as RandomSource, E as Easing } from './Arrays-3bce8efa.js';
+import { a as Point, f as Rect } from './Point-7e80cb86.js';
+import { T as Timer } from './index-14e89d41.js';
 import { p as pingPong, a as pingPongPercent } from './PingPong-8ac9a1c4.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 
@@ -1002,6 +1002,33 @@ type AdsrIterableOpts = {
     readonly env: EnvelopeOpts;
 };
 
+type Envelope_Adsr = Adsr;
+type Envelope_AdsrIterableOpts = AdsrIterableOpts;
+type Envelope_AdsrOpts = AdsrOpts;
+type Envelope_AdsrTimingOpts = AdsrTimingOpts;
+type Envelope_CompleteEvent = CompleteEvent;
+type Envelope_EnvelopeOpts = EnvelopeOpts;
+type Envelope_Events = Events;
+type Envelope_StateChangeEvent = StateChangeEvent;
+declare const Envelope_adsr: typeof adsr;
+declare const Envelope_adsrIterable: typeof adsrIterable;
+declare const Envelope_defaultAdsrOpts: typeof defaultAdsrOpts;
+declare namespace Envelope {
+  export {
+    Envelope_Adsr as Adsr,
+    Envelope_AdsrIterableOpts as AdsrIterableOpts,
+    Envelope_AdsrOpts as AdsrOpts,
+    Envelope_AdsrTimingOpts as AdsrTimingOpts,
+    Envelope_CompleteEvent as CompleteEvent,
+    Envelope_EnvelopeOpts as EnvelopeOpts,
+    Envelope_Events as Events,
+    Envelope_StateChangeEvent as StateChangeEvent,
+    Envelope_adsr as adsr,
+    Envelope_adsrIterable as adsrIterable,
+    Envelope_defaultAdsrOpts as defaultAdsrOpts,
+  };
+}
+
 type index_Adsr = Adsr;
 type index_AdsrIterableOpts = AdsrIterableOpts;
 type index_AdsrOpts = AdsrOpts;
@@ -1029,6 +1056,7 @@ declare namespace index {
     index_CompleteEvent as CompleteEvent,
     Easing as Easings,
     index_EnvelopeOpts as EnvelopeOpts,
+    Envelope as Envelopes,
     index_Events as Events,
     index_Forces as Forces,
     index_JitterFn as JitterFn,
@@ -1045,4 +1073,4 @@ declare namespace index {
   };
 }
 
-export { AdsrOpts as A, CompleteEvent as C, EnvelopeOpts as E, Forces as F, JitterFn as J, Oscillator as O, StateChangeEvent as S, JitterOpts as a, AdsrTimingOpts as b, Events as c, defaultAdsrOpts as d, Adsr as e, adsr as f, adsrIterable as g, AdsrIterableOpts as h, index as i, jitter as j, perSecond as p };
+export { AdsrOpts as A, CompleteEvent as C, Envelope as E, Forces as F, JitterFn as J, Oscillator as O, StateChangeEvent as S, JitterOpts as a, EnvelopeOpts as b, AdsrTimingOpts as c, defaultAdsrOpts as d, Events as e, Adsr as f, adsr as g, adsrIterable as h, index as i, jitter as j, AdsrIterableOpts as k, perSecond as p };

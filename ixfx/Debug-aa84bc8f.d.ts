@@ -1,9 +1,9 @@
 type LogKind = `info` | `debug` | `error` | `warn`;
-interface LogMessage {
+type LogMessage = {
     readonly kind?: LogKind;
     readonly msg: any;
     readonly category?: string;
-}
+};
 type MessageLogger = (message: LogMessage | string) => void;
 /**
  * Either a flag for default console logging, or a simple log function
@@ -46,11 +46,11 @@ declare const logSet: (prefix: string, verbose?: boolean, colourKey?: string) =>
     warn: MessageLogger;
     error: MessageLogger;
 };
-interface LogSet {
+type LogSet = {
     readonly log: MessageLogger;
     readonly warn: MessageLogger;
     readonly error: MessageLogger;
-}
+};
 /**
  * Returns a console logging function which prefixes messages. This is
  * useful for tracing messages from different components. Each prefix

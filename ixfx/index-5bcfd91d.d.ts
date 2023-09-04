@@ -1,7 +1,7 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { a as Point, C as CardinalDirection } from './Point-ebc02ab1.js';
-import { S as ScaleFn } from './Scaler-74df0c7a.js';
+import { a as Point, C as CardinalDirection } from './Point-7e80cb86.js';
+import { S as ScaleFn } from './Scaler-bc0efb62.js';
 import { F as Forms } from './Forms-d8146f9f.js';
 
 type LogOpts = {
@@ -15,8 +15,9 @@ type LogOpts = {
 };
 type Log = {
     clear(): void;
-    error(msgOrError: string | Error | unknown): void;
-    log(msg?: string | object | number): HTMLElement | undefined;
+    error(messageOrError: unknown): void;
+    log(message?: string | object | number): HTMLElement | undefined;
+    warn(message?: string | object | number): HTMLElement | undefined;
     append(el: HTMLElement): void;
     dispose(): void;
     readonly isEmpty: boolean;
@@ -51,7 +52,7 @@ type Log = {
  * @param {LogOpts} opts
  * @returns {Log}
  */
-declare const log: (domQueryOrEl: HTMLElement | string, opts?: LogOpts) => Log;
+declare const log: (domQueryOrElement: HTMLElement | string, opts?: LogOpts) => Log;
 
 type PluckOpts = {
     readonly pluck: string;
@@ -569,6 +570,22 @@ declare namespace DragDrop {
   };
 }
 
+type InlineConsoleOptions = LogOpts;
+/**
+ * Adds an inline console to the page. A DIV is added to display log messages.
+ *
+ * Captures all console.log, console.warn and console.error calls, as well as unhandled exceptions.
+ *
+ * ```js
+ * // Adds the DIV and intercepts console logs
+ * inlineConsole();
+ *
+ * console.log(`Hello`); // message is displayed in the inline console
+ * ```
+ * @param opts
+ */
+declare const inlineConsole: (opts?: InlineConsoleOptions) => void;
+
 type index_CanvasOpts = CanvasOpts;
 type index_CanvasResizeArgs = CanvasResizeArgs;
 type index_CreateUpdateElement<V> = CreateUpdateElement<V>;
@@ -577,6 +594,7 @@ declare const index_DragDrop: typeof DragDrop;
 type index_ElPositionOpts = ElPositionOpts;
 type index_ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = ElementResizeArgs<V>;
 declare const index_Forms: typeof Forms;
+type index_InlineConsoleOptions = InlineConsoleOptions;
 type index_Log = Log;
 type index_LogOpts = LogOpts;
 type index_Opts = Opts;
@@ -597,6 +615,7 @@ declare const index_el: typeof el;
 declare const index_fullSizeCanvas: typeof fullSizeCanvas;
 declare const index_fullSizeElement: typeof fullSizeElement;
 declare const index_getTranslation: typeof getTranslation;
+declare const index_inlineConsole: typeof inlineConsole;
 declare const index_log: typeof log;
 declare const index_parentSize: typeof parentSize;
 declare const index_parentSizeCanvas: typeof parentSizeCanvas;
@@ -627,6 +646,7 @@ declare namespace index {
     index_ElPositionOpts as ElPositionOpts,
     index_ElementResizeArgs as ElementResizeArgs,
     index_Forms as Forms,
+    index_InlineConsoleOptions as InlineConsoleOptions,
     index_Log as Log,
     index_LogOpts as LogOpts,
     index_Opts as Opts,
@@ -647,6 +667,7 @@ declare namespace index {
     index_fullSizeCanvas as fullSizeCanvas,
     index_fullSizeElement as fullSizeElement,
     index_getTranslation as getTranslation,
+    index_inlineConsole as inlineConsole,
     index_log as log,
     index_parentSize as parentSize,
     index_parentSizeCanvas as parentSizeCanvas,
@@ -669,4 +690,4 @@ declare namespace index {
   };
 }
 
-export { clear as A, themeChangeObservable as B, CanvasResizeArgs as C, DataTable$1 as D, ElementResizeArgs as E, resizeObservable as F, copyToClipboard as G, CreateUpdateElement as H, reconcileChildren as I, setCssClass as J, setCssDisplay as K, LogOpts as L, byId as M, setHtml as N, setText as O, PluckOpts as P, el as Q, Rx as R, Opts as S, TransformOpts as T, pointerVisualise as U, defaultErrorHandler as V, DragDrop as a, Log as b, DomRxOpts as c, PointSpaces as d, ElPositionOpts as e, positionFn as f, cardinalPosition as g, positionRelative as h, index as i, positionFromMiddle as j, fullSizeElement as k, log as l, CanvasOpts as m, canvasHelper as n, fullSizeCanvas as o, pointScaler as p, cycleCssClass as q, rx as r, parentSize as s, getTranslation as t, parentSizeCanvas as u, viewportToSpace as v, windowResize as w, resolveEl as x, createAfter as y, createIn as z };
+export { clear as A, themeChangeObservable as B, CanvasResizeArgs as C, DataTable$1 as D, ElementResizeArgs as E, resizeObservable as F, copyToClipboard as G, CreateUpdateElement as H, reconcileChildren as I, setCssClass as J, setCssDisplay as K, LogOpts as L, byId as M, setHtml as N, setText as O, PluckOpts as P, el as Q, Rx as R, Opts as S, TransformOpts as T, pointerVisualise as U, defaultErrorHandler as V, InlineConsoleOptions as W, inlineConsole as X, DragDrop as a, Log as b, DomRxOpts as c, PointSpaces as d, ElPositionOpts as e, positionFn as f, cardinalPosition as g, positionRelative as h, index as i, positionFromMiddle as j, fullSizeElement as k, log as l, CanvasOpts as m, canvasHelper as n, fullSizeCanvas as o, pointScaler as p, cycleCssClass as q, rx as r, parentSize as s, getTranslation as t, parentSizeCanvas as u, viewportToSpace as v, windowResize as w, resolveEl as x, createAfter as y, createIn as z };

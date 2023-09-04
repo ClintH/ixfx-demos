@@ -1,5 +1,5 @@
-import { H as HasCompletion } from './index-eccdbd7c.js';
-import { I as IsEqual, T as ToString } from './Util-2364cb64.js';
+import { H as HasCompletion } from './index-14e89d41.js';
+import { I as IsEqual, T as ToString } from './Util-413291ab.js';
 import { a as MinMaxAvgOpts, M as MinMaxAvgTotal, m as minMaxAvg } from './MinMaxAvg-bf5430b4.js';
 import * as d3Colour from 'd3-color';
 
@@ -16,11 +16,11 @@ type EasingFn = (x: number) => number;
  * t.reset();   // Reset to 0
  * t.isDone;    // _True_ if finished
  * ```
- * @param nameOrFn Name of easing, or an easing function
+ * @param nameOrFunction Name of easing, or an easing function
  * @param durationMs Duration in milliseconds
  * @returns Easing
  */
-declare const time: (nameOrFn: EasingName | EasingFn, durationMs: number) => Easing;
+declare const time: (nameOrFunction: EasingName | EasingFn, durationMs: number) => Easing;
 /**
  * Creates an easing based on ticks
  *
@@ -36,7 +36,7 @@ declare const time: (nameOrFn: EasingName | EasingFn, durationMs: number) => Eas
  * @param durationTicks Duration in ticks
  * @returns Easing
  */
-declare const tick: (nameOrFn: EasingName | EasingFn, durationTicks: number) => Easing;
+declare const tick: (nameOrFunction: EasingName | EasingFn, durationTicks: number) => Easing;
 /**
  * 'Ease' from `0` to `1` over a delicious curve. Commonly used for animation
  * and basic modelling of phyical motion.
@@ -142,11 +142,11 @@ type EasingName = keyof typeof functions;
  */
 declare const get: (easingName: EasingName) => EasingFn | undefined;
 /**
- *
+ * Iterate over available easings.
  * @private
  * @returns Returns list of available easing names
  */
-declare const getEasings: () => readonly string[];
+declare function getEasings(): Iterable<string>;
 /**
  * Returns a roughly gaussian easing function
  * ```js
@@ -156,11 +156,23 @@ declare const getEasings: () => readonly string[];
  *
  * Try different positive and negative values for `stdDev` to pinch
  * or flatten the bell shape.
- * @param stdDev
+ * @param standardDeviation
  * @returns
  */
-declare const gaussian$1: (stdDev?: number) => EasingFn;
+declare const gaussian$1: (standardDeviation?: number) => EasingFn;
+/**
+ * Weighted average
+ *
+ * `slowDownFactor`
+ * @param currentValue
+ * @param targetValue
+ * @param slowDownFactor
+ * @returns
+ */
+declare const weightedAverage: (currentValue: number, targetValue: number, slowDownFactor: number) => number;
 declare const functions: {
+    smoothstep: (x: number) => number;
+    smootherstep: (x: number) => number;
     arch: (x: number) => number;
     bell: EasingFn;
     sineIn: (x: number) => number;
@@ -204,6 +216,7 @@ declare const Easing$1_getEasings: typeof getEasings;
 declare const Easing$1_mix: typeof mix;
 declare const Easing$1_tick: typeof tick;
 declare const Easing$1_time: typeof time;
+declare const Easing$1_weightedAverage: typeof weightedAverage;
 declare namespace Easing$1 {
   export {
     Easing$1_Easing as Easing,
@@ -218,6 +231,7 @@ declare namespace Easing$1 {
     Easing$1_mix as mix,
     Easing$1_tick as tick,
     Easing$1_time as time,
+    Easing$1_weightedAverage as weightedAverage,
   };
 }
 

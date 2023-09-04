@@ -1,5 +1,5 @@
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
-import { a as LogOption } from './Debug-e1629850.js';
+import { a as LogOption } from './Debug-aa84bc8f.js';
 
 type StateChangeEvent<V extends Transitions> = {
     readonly newState: StateNames<V>;

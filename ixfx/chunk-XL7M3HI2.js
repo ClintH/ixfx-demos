@@ -6965,7 +6965,7 @@ var require_dist = __commonJS({
 // src/Text.ts
 var Text_exports = {};
 __export(Text_exports, {
-  afterMatch: () => afterMatch2,
+  afterMatch: () => afterMatch,
   between: () => between,
   betweenChomp: () => betweenChomp,
   countCharsFromStart: () => countCharsFromStart,
@@ -8436,7 +8436,8 @@ __export(Easing_exports, {
   getEasings: () => getEasings,
   mix: () => mix,
   tick: () => tick,
-  time: () => time
+  time: () => time,
+  weightedAverage: () => weightedAverage
 });
 
 // src/data/index.ts
@@ -10404,6 +10405,7 @@ var numberTracker = (opts = {}) => new NumberTracker(opts);
 var modulation_exports = {};
 __export(modulation_exports, {
   Easings: () => Easing_exports,
+  Envelopes: () => Envelope_exports,
   Forces: () => Forces_exports,
   Oscillators: () => Oscillator_exports,
   adsr: () => adsr,
@@ -22950,6 +22952,7 @@ __export(dom_exports, {
   fullSizeCanvas: () => fullSizeCanvas,
   fullSizeElement: () => fullSizeElement,
   getTranslation: () => getTranslation,
+  inlineConsole: () => inlineConsole,
   log: () => log,
   parentSize: () => parentSize,
   parentSizeCanvas: () => parentSizeCanvas,
@@ -22987,7 +22990,7 @@ var addShadowCss = (parentEl, styles) => {
 };
 
 // src/dom/Log.ts
-var log = (domQueryOrEl, opts = {}) => {
+var log = (domQueryOrElement, opts = {}) => {
   const {
     capacity = 0,
     monospaced = true,
@@ -22998,10 +23001,10 @@ var log = (domQueryOrEl, opts = {}) => {
   let added = 0;
   let lastLog;
   let lastLogRepeats = 0;
-  const parentEl = resolveEl(domQueryOrEl);
+  const parentElement = resolveEl(domQueryOrElement);
   const fontFamily = monospaced ? `Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", Monaco, "Courier New", Courier, monospace` : `normal`;
   const shadowRoot = addShadowCss(
-    parentEl,
+    parentElement,
     `
   .log {
     font-family: ${fontFamily};
@@ -23047,19 +23050,15 @@ var log = (domQueryOrEl, opts = {}) => {
   const el2 = document.createElement(`div`);
   el2.className = `log`;
   shadowRoot.append(el2);
-  const error = (msgOrError) => {
+  const error = (messageOrError) => {
     const line3 = document.createElement(`div`);
-    if (typeof msgOrError === `string`) {
-      line3.innerHTML = msgOrError;
-    } else if (msgOrError instanceof Error) {
-      const stack = msgOrError.stack;
-      if (stack === void 0) {
-        line3.innerHTML = msgOrError.toString();
-      } else {
-        line3.innerHTML = stack.toString();
-      }
+    if (typeof messageOrError === `string`) {
+      line3.innerHTML = messageOrError;
+    } else if (messageOrError instanceof Error) {
+      const stack = messageOrError.stack;
+      line3.innerHTML = stack === void 0 ? messageOrError.toString() : stack.toString();
     } else {
-      line3.innerHTML = msgOrError;
+      line3.innerHTML = messageOrError;
     }
     line3.classList.add(`error`);
     append(line3);
@@ -23067,46 +23066,53 @@ var log = (domQueryOrEl, opts = {}) => {
     lastLogRepeats = 0;
   };
   let lastLogTime = 0;
+  const warn = (whatToLog = ``) => {
+    const element = log2(whatToLog);
+    if (!element)
+      return element;
+    element.classList.add(`warning`);
+    return element;
+  };
   const log2 = (whatToLog = ``) => {
-    let msg;
+    let message;
     const interval2 = window.performance.now() - lastLogTime;
     if (opts.minIntervalMs && interval2 < opts.minIntervalMs)
       return;
     lastLogTime = window.performance.now();
     if (typeof whatToLog === `object`) {
-      msg = JSON.stringify(whatToLog);
+      message = JSON.stringify(whatToLog);
     } else if (whatToLog === void 0) {
-      msg = `(undefined)`;
+      message = `(undefined)`;
     } else if (whatToLog === null) {
-      msg = `(null)`;
+      message = `(null)`;
     } else if (typeof whatToLog === `number`) {
-      if (Number.isNaN(msg))
-        msg = `(NaN)`;
-      msg = whatToLog.toString();
+      if (Number.isNaN(message))
+        message = `(NaN)`;
+      message = whatToLog.toString();
     } else {
-      msg = whatToLog;
+      message = whatToLog;
     }
-    if (msg.length === 0) {
+    if (message.length === 0) {
       const rule = document.createElement(`hr`);
       lastLog = void 0;
       append(rule);
-    } else if (msg === lastLog && collapseDuplicates) {
-      const lastEl = el2.firstElementChild;
-      let lastBadge = lastEl.querySelector(`.badge`);
+    } else if (message === lastLog && collapseDuplicates) {
+      const lastElement = el2.firstElementChild;
+      let lastBadge = lastElement.querySelector(`.badge`);
       if (lastBadge === null) {
         lastBadge = document.createElement(`div`);
         lastBadge.className = `badge`;
-        lastEl.insertAdjacentElement(`beforeend`, lastBadge);
+        lastElement.insertAdjacentElement(`beforeend`, lastBadge);
       }
-      if (lastEl !== null) {
+      if (lastElement !== null) {
         lastBadge.textContent = (++lastLogRepeats).toString();
       }
-      return lastEl;
+      return lastElement;
     } else {
       const line3 = document.createElement(`div`);
-      line3.innerText = msg;
+      line3.textContent = message;
       append(line3);
-      lastLog = msg;
+      lastLog = message;
       return line3;
     }
   };
@@ -23115,7 +23121,7 @@ var log = (domQueryOrEl, opts = {}) => {
       const wrapper = document.createElement(`div`);
       const timestamp2 = document.createElement(`div`);
       timestamp2.className = `timestamp`;
-      timestamp2.innerText = (/* @__PURE__ */ new Date()).toLocaleTimeString();
+      timestamp2.textContent = (/* @__PURE__ */ new Date()).toLocaleTimeString();
       wrapper.append(timestamp2, line3);
       line3.classList.add(`msg`);
       wrapper.classList.add(`line`);
@@ -23124,7 +23130,7 @@ var log = (domQueryOrEl, opts = {}) => {
       line3.classList.add(`line`, `msg`);
     }
     if (opts.reverse) {
-      el2.appendChild(line3);
+      el2.append(line3);
     } else {
       el2.insertBefore(line3, el2.firstChild);
     }
@@ -23151,6 +23157,7 @@ var log = (domQueryOrEl, opts = {}) => {
   return {
     error,
     log: log2,
+    warn,
     append,
     clear: clear3,
     dispose,
@@ -23796,58 +23803,54 @@ var defaultErrorHandler2 = () => {
   container.style.left = `1em`;
   container.style.position = `absolute`;
   container.style.fontFamily = `monospace`;
-  const msgEl = document.createElement(`div`);
-  msgEl.style.maxWidth = `50vw`;
-  msgEl.style.maxHeight = `50vh`;
-  msgEl.style.overflowY = `scroll`;
+  const messageElement = document.createElement(`div`);
+  messageElement.style.maxWidth = `50vw`;
+  messageElement.style.maxHeight = `50vh`;
+  messageElement.style.overflowY = `scroll`;
   container.innerHTML = `<h1>Error</h1>`;
-  container.append(msgEl);
+  container.append(messageElement);
   const styleButton = (b) => {
     b.style.padding = `0.3em`;
     b.style.marginTop = `1em`;
   };
-  const btnClose = document.createElement(`button`);
-  btnClose.innerText = `Close`;
-  btnClose.onclick = () => {
+  const buttonClose = document.createElement(`button`);
+  buttonClose.textContent = `Close`;
+  buttonClose.addEventListener(`click`, () => {
     hide();
-  };
-  const btnStop = document.createElement(`button`);
-  btnStop.innerText = `Stop displaying errors`;
-  btnStop.onclick = () => {
+  });
+  const buttonStop = document.createElement(`button`);
+  buttonStop.textContent = `Stop displaying errors`;
+  buttonStop.addEventListener(`click`, () => {
     enabled = false;
     hide();
-  };
-  styleButton(btnClose);
-  styleButton(btnStop);
-  container.append(btnClose);
-  container.append(btnStop);
+  });
+  styleButton(buttonClose);
+  styleButton(buttonStop);
+  container.append(buttonClose);
+  container.append(buttonStop);
   document.body.append(container);
   const show = (ex) => {
     container.style.display = `inline`;
-    if (ex.stack) {
-      msgEl.innerHTML += `<pre>${ex.stack}</pre>`;
-    } else {
-      msgEl.innerHTML += `<p>${ex}</p>`;
-    }
+    messageElement.innerHTML += ex.stack ? `<pre>${ex.stack}</pre>` : `<p>${ex.toString()}</p>`;
   };
   const hide = () => {
     container.style.display = `none`;
   };
-  window.onerror = (msg, url, lineNo, colNo, error) => {
+  window.onerror = (message, url, lineNo, colNo, error) => {
     if (enabled) {
       if (error) {
         console.log(error);
         show(error);
       } else {
-        console.log(msg);
-        show(msg);
+        console.log(message);
+        show(message);
       }
     }
   };
-  window.addEventListener(`unhandledrejection`, (e) => {
-    console.log(e.reason);
+  window.addEventListener(`unhandledrejection`, (event) => {
+    console.log(event.reason);
     if (enabled) {
-      show(e.reason);
+      show(event.reason);
     }
   });
   return { show, hide };
@@ -23951,6 +23954,56 @@ var draggable = (elem, listener) => {
     elem.ownerDocument.addEventListener(`pointercancel`, onDragCancel);
   });
   return dispose;
+};
+
+// src/dom/InlineConsole.ts
+var inlineConsole = (opts = {}) => {
+  const original = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn
+  };
+  const logElement = document.createElement(`DIV`);
+  logElement.id = `ixfx-log`;
+  logElement.style.position = `fixed`;
+  logElement.style.left = `0px`;
+  logElement.style.top = `0px`;
+  logElement.style.pointerEvents = `none`;
+  logElement.style.display = `none`;
+  document.body.prepend(logElement);
+  const logger2 = log(logElement, opts);
+  const visibility = (show) => {
+    logElement.style.display = show ? `block` : `none`;
+  };
+  console.error = (message, ...optionalParameters) => {
+    logger2.error(message);
+    if (optionalParameters.length > 0) {
+      logger2.error(optionalParameters);
+    }
+    original.error(message, ...optionalParameters);
+    visibility(true);
+  };
+  console.warn = (message, ...optionalParameters) => {
+    logger2.warn(message);
+    if (optionalParameters.length > 0) {
+      logger2.warn(optionalParameters);
+    }
+    visibility(true);
+  };
+  console.log = (message, ...optionalParameters) => {
+    logger2.log(message);
+    if (optionalParameters.length > 0) {
+      logger2.log(optionalParameters);
+    }
+    original.log(message, ...optionalParameters);
+    visibility(true);
+  };
+  window.onerror = (event, source, lineno, _colno, error) => {
+    const abbreviatedSource = source === void 0 ? `` : afterMatch(source, `/`, { fromEnd: true });
+    const eventString = typeof event === `string` ? event : event.toString();
+    logger2.error(eventString + ` (${abbreviatedSource}:${lineno})`);
+    visibility(true);
+  };
 };
 
 // src/data/FrequencyMutable.ts
@@ -24887,20 +24940,17 @@ var pow2 = Math.pow;
 var cos3 = Math.cos;
 var pi3 = Math.PI;
 var sin3 = Math.sin;
-var time = function(nameOrFn, durationMs) {
-  return create4(nameOrFn, durationMs, msElapsedTimer);
+var time = function(nameOrFunction, durationMs) {
+  return create4(nameOrFunction, durationMs, msElapsedTimer);
 };
-var tick = function(nameOrFn, durationTicks) {
-  return create4(nameOrFn, durationTicks, ticksElapsedTimer);
+var tick = function(nameOrFunction, durationTicks) {
+  return create4(nameOrFunction, durationTicks, ticksElapsedTimer);
 };
-var create4 = function(nameOrFn, duration, timerSource) {
-  let fn;
-  if (typeof nameOrFn === `function`)
-    fn = nameOrFn;
-  else
-    fn = get(nameOrFn);
+var create4 = function(nameOrFunction, duration, timerSource) {
+  const fn = typeof nameOrFunction === `function` ? nameOrFunction : get(nameOrFunction);
   if (fn === void 0) {
-    throw new Error(`Easing function not found: ${nameOrFn}`);
+    const error = typeof nameOrFunction === `string` ? new Error(`Easing function not found: ${nameOrFunction}`) : new Error(`Easing function not found`);
+    throw error;
   }
   const timer = relativeTimer(duration, {
     timer: timerSource(),
@@ -24941,16 +24991,16 @@ var get = function(easingName) {
     return found;
   return found[1];
 };
-var getEasings = function() {
-  return Array.from(Object.keys(functions));
-};
-var gaussian = (stdDev = 0.4) => {
+function* getEasings() {
+  yield* Object.keys(functions);
+}
+var gaussian = (standardDeviation = 0.4) => {
   const a = 1 / sqrt3(2 * pi3);
   const mean = 0.5;
   return (t4) => {
-    const f = a / stdDev;
+    const f = a / standardDeviation;
     let p = -2.5;
-    let c = (t4 - mean) / stdDev;
+    let c = (t4 - mean) / standardDeviation;
     c *= c;
     p *= c;
     const v = f * pow2(Math.E, p);
@@ -24977,7 +25027,12 @@ var bounceOut = function(x) {
 var quintIn = (x) => x * x * x * x * x;
 var quintOut = (x) => 1 - pow2(1 - x, 5);
 var arch = (x) => x * (1 - x) * 4;
+var weightedAverage = (currentValue, targetValue, slowDownFactor) => {
+  return (currentValue * (slowDownFactor - 1) + targetValue) / slowDownFactor;
+};
 var functions = {
+  smoothstep: (x) => x * x * (3 - 2 * x),
+  smootherstep: (x) => (x * (x * 6 - 15) + 10) * x * x * x,
   arch,
   bell: gaussian(),
   sineIn: (x) => 1 - cos3(x * pi3 / 2),
@@ -29086,7 +29141,9 @@ var untilMatch = (source, match, options = {}) => {
     return source;
   return source.slice(startPos ?? 0, m);
 };
-var afterMatch2 = (source, match, options = {}) => {
+var afterMatch = (source, match, options = {}) => {
+  if (source === void 0)
+    throw new Error(`source is undefined`);
   const startPos = options.startPos ?? void 0;
   const fromEnd = options.fromEnd ?? false;
   const m = fromEnd ? source.lastIndexOf(match, startPos) : source.indexOf(match, startPos);
@@ -29178,7 +29235,7 @@ export {
   omitChars,
   splitByLength,
   untilMatch,
-  afterMatch2 as afterMatch,
+  afterMatch,
   unwrap,
   lineSpan,
   splitRanges,
@@ -29281,6 +29338,7 @@ export {
   defaultAdsrOpts,
   adsr,
   adsrIterable,
+  Envelope_exports,
   Circle_exports,
   Rect_exports,
   Forces_exports,
@@ -29467,6 +29525,7 @@ export {
   pointerVisualise,
   defaultErrorHandler2 as defaultErrorHandler,
   DragDrop_exports,
+  inlineConsole,
   dom_exports,
   FrequencyMutable,
   frequencyMutable,
@@ -29554,4 +29613,4 @@ tslib/tslib.es6.js:
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** *)
 */
-//# sourceMappingURL=chunk-35TJPVSI.js.map
+//# sourceMappingURL=chunk-XL7M3HI2.js.map

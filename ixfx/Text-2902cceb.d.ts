@@ -1,4 +1,4 @@
-import { s as string } from './Arrays-c460861e.js';
+import { s as string } from './Arrays-3bce8efa.js';
 
 /**
  * Returns source text that is between `start` and `end` match strings. Returns _undefined_ if start/end is not found.
@@ -90,6 +90,8 @@ interface MatchOptions {
  * afterMatch(`Hello. There`, `.`); // ' There'
  * afterMatch(`Hello, there', `,`); // 'Hello, there'
  * ```
+ *
+ * If `source` is _undefined_, an error is thrown.
  * @param source
  * @param match
  * @param startPos
