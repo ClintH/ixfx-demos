@@ -10,7 +10,7 @@ import {
   perSecond,
   pingPong,
   pingPongPercent
-} from "./chunk-KDGDXEYT.js";
+} from "./chunk-XLVCNC2H.js";
 export {
   Easing_exports as Easings,
   Envelope_exports as Envelopes,

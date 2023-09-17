@@ -1,5 +1,5 @@
 import { a as RandomSource, E as Easing } from './Arrays-f506115e.js';
-import { a as Point, R as Rect } from './Point-bff7237f.js';
+import { a as Point, R as Rect } from './Point-b43bb217.js';
 import { T as Timer } from './index-c57a52c9.js';
 import { p as pingPong, a as pingPongPercent } from './PingPong-8ac9a1c4.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';

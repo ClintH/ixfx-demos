@@ -15,7 +15,7 @@ import {
   to,
   validateMachine,
   validateTransition
-} from "./chunk-KDGDXEYT.js";
+} from "./chunk-XLVCNC2H.js";
 export {
   StateMachineWithEvents as WithEvents,
   bidirectionalFromList,

@@ -23,7 +23,7 @@ import {
   degreeToRadian,
   radianToDegree,
   radiansFromAxisX
-} from "./chunk-KDGDXEYT.js";
+} from "./chunk-XLVCNC2H.js";
 export {
   Arc_exports as Arcs,
   Bezier_exports as Beziers,

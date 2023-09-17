@@ -2,9 +2,9 @@ import { M as MinMaxAvgTotal } from './MinMaxAvg-bf5430b4.js';
 import { T as ToString } from './Util-42bd6b26.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 import { a as KeyValue, P as Primitive } from './KeyValue-f5a637ea.js';
-import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as TimestampedObject, c as TrackedValueMap, d as NumberTrackerResults, e as Timestamped, n as numberTracker } from './NumberTracker-9b621144.js';
-import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line, R as Rect } from './Point-bff7237f.js';
-import { C as Coord } from './Polar-4226eb56.js';
+import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as TimestampedObject, c as TrackedValueMap, d as NumberTrackerResults, e as Timestamped, n as numberTracker } from './NumberTracker-ca200195.js';
+import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line, R as Rect } from './Point-b43bb217.js';
+import { C as Coord } from './Polar-3e0dedb0.js';
 import { I as Interval } from './index-c57a52c9.js';
 import { I as IMapImmutable } from './index-09f7f675.js';
 import { L as LogSet } from './Debug-aa84bc8f.js';
@@ -388,8 +388,21 @@ declare abstract class ObjectTracker<V extends object, SeenResultType> extends T
  * Information about seen points
  */
 type PointTrack = PointRelationResult & {};
+/**
+ * Results of point tracking
+ */
 type PointTrackerResults = {
+    /**
+     * Relation of last point to previous point
+     */
     readonly fromLast: PointTrack;
+    /**
+     * Relation of last point to initial point.
+     *
+     * When the tracker is reset or resizes (eg. if it reaches its capacity), the
+     * initial point will be the first new point. Thus, the initial point
+     * always maintains some time horizon
+     */
     readonly fromInitial: PointTrack;
     readonly values: ReadonlyArray<Point>;
 };
@@ -429,7 +442,7 @@ declare class PointTracker extends ObjectTracker<Point, PointTrackerResults> {
      *
      * @param p Point
      */
-    computeResults(_p: Array<TimestampedObject<Point>>): PointTrackerResults;
+    computeResults(p: Array<TimestampedObject<Point>>): PointTrackerResults;
     /**
      * Returns a polyline representation of stored points.
      * Returns an empty array if points were not saved, or there's only one.
@@ -493,7 +506,12 @@ declare class TrackedPointMap extends TrackedValueMap<Point, PointTracker, Point
 /**
  * Track several named points over time, eg a TensorFlow body pose point.
  * Call `seen()` to track a point. Mutable. If you want to compare
- * a single coordinate with a reference coordinate, [Geometry.Points.relation](Geometry.Points.relation.html) may be a better choice.
+ * a single coordinate with a reference coordinate,  may be a better choice.
+ *
+ * See also:
+ * * [Geometry.Points.relation](Geometry.Points.relation.html): Compute relation info between two points
+ * * [Data.pointTracker](Data.pointTracker-1.html): Track relation between points over time
+ * * [Guide to Trackers](https://clinth.github.io/ixfx-docs/data/trackers/)
  *
  * Basic usage
  * ```js
@@ -564,6 +582,7 @@ declare const pointsTracker: (opts?: TrackedValueOpts) => TrackedPointMap;
  * See also
  * * [Playground](https://clinth.github.io/ixfx-play/data/point-tracker/index.html)
  * * {@link pointsTracker}: Track several points, useful for multi-touch.
+ * * [Guide to Trackers](https://clinth.github.io/ixfx-docs/data/trackers/)
  *
  * ```js
  * import { pointTracker } from 'https://unpkg.com/ixfx/dist/data.js';
@@ -638,12 +657,12 @@ declare const pointTracker: (opts?: TrackedValueOpts) => PointTracker;
  * For clamping integer ranges, consider {@link clampIndex }
  * For clamping `{ x, y }` points, consider {@link Geometry.Points.clamp | Geometry.Points.clamp}.
  * For clamping bipolar values: {@link Bipolar.clamp}
- * @param v Value to clamp
+ * @param value Value to clamp
  * @param Minimum value (inclusive)
  * @param Maximum value (inclusive)
  * @returns Clamped value
  */
-declare const clamp$1: (v: number, min?: number, max?: number) => number;
+declare const clamp$1: (value: number, min?: number, max?: number) => number;
 /**
  * Clamps integer `v` between 0 (inclusive) and array length or length (exclusive).
  * Returns value then will always be at least zero, and a valid array index.

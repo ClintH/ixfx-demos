@@ -2,7 +2,7 @@ import {
   __decorateClass,
   __publicField,
   getSorter
-} from "./chunk-KDGDXEYT.js";
+} from "./chunk-XLVCNC2H.js";
 
 // src/components/HistogramVis.ts
 import { LitElement, css, html } from "lit";

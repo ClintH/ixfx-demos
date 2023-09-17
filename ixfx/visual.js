@@ -11,7 +11,7 @@ import {
   Svg_exports,
   Video_exports,
   scaleCanvas
-} from "./chunk-KDGDXEYT.js";
+} from "./chunk-XLVCNC2H.js";
 export {
   BipolarView_exports as BipolarView,
   Colour_exports as Colour,

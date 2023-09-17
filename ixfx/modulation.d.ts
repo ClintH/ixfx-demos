@@ -1,5 +1,5 @@
 export { E as Easings } from './Arrays-f506115e.js';
-export { f as Adsr, k as AdsrIterableOpts, A as AdsrOpts, c as AdsrTimingOpts, C as CompleteEvent, b as EnvelopeOpts, E as Envelopes, e as Events, F as Forces, J as JitterFn, a as JitterOpts, O as Oscillators, S as StateChangeEvent, g as adsr, h as adsrIterable, d as defaultAdsrOpts, j as jitter, p as perSecond } from './index-e20417ad.js';
+export { f as Adsr, k as AdsrIterableOpts, A as AdsrOpts, c as AdsrTimingOpts, C as CompleteEvent, b as EnvelopeOpts, E as Envelopes, e as Events, F as Forces, J as JitterFn, a as JitterOpts, O as Oscillators, S as StateChangeEvent, g as adsr, h as adsrIterable, d as defaultAdsrOpts, j as jitter, p as perSecond } from './index-b09d912f.js';
 export { p as pingPong, a as pingPongPercent } from './PingPong-8ac9a1c4.js';
 import './index-c57a52c9.js';
 import './StateMachine-b3e42c5f.js';
@@ -9,5 +9,5 @@ import './Util-42bd6b26.js';
 import './IsEqual-267e4380.js';
 import './MinMaxAvg-bf5430b4.js';
 import 'd3-color';
-import './Point-bff7237f.js';
+import './Point-b43bb217.js';
 import './index-8ecb0968.js';

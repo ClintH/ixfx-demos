@@ -13,7 +13,7 @@ import {
   queue_exports,
   set_exports,
   stack_exports
-} from "./chunk-KDGDXEYT.js";
+} from "./chunk-XLVCNC2H.js";
 export {
   Arrays_exports as Arrays,
   Iterables_exports as Iterables,

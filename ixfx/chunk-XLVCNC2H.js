@@ -7397,18 +7397,18 @@ __export(Normalise_exports, {
 });
 
 // src/data/Clamp.ts
-var clamp = (v, min8 = 0, max8 = 1) => {
-  if (Number.isNaN(v))
-    throw new Error(`v parameter is NaN`);
+var clamp = (value, min8 = 0, max8 = 1) => {
+  if (Number.isNaN(value))
+    throw new Error(`'value' parameter is NaN`);
   if (Number.isNaN(min8))
-    throw new Error(`min parameter is NaN`);
+    throw new Error(`'min' parameter is NaN`);
   if (Number.isNaN(max8))
-    throw new Error(`max parameter is NaN`);
-  if (v < min8)
+    throw new Error(`'max' parameter is NaN`);
+  if (value < min8)
     return min8;
-  if (v > max8)
+  if (value > max8)
     return max8;
-  return v;
+  return value;
 };
 var clampIndex = (v, arrayOrLength) => {
   if (!Number.isInteger(v)) {
@@ -9720,7 +9720,7 @@ var NumberMap = class extends Map {
   }
 };
 
-// src/collections/Map/MapFns.ts
+// src/collections/map/MapFns.ts
 var getClosestIntegerKey = (data, target) => {
   target = Math.round(target);
   if (data.has(target)) {
@@ -24574,8 +24574,7 @@ var TrackerBase2 = class {
   }
   /**
    * Calculate results
-   * 
-   * Calls seenImpl -> onSeen
+   *  
    * @param p 
    * @returns 
    */
@@ -27102,21 +27101,19 @@ var PointTracker = class extends ObjectTracker {
    * 
    * @param p Point
    */
-  computeResults(_p) {
+  computeResults(p) {
     const currentLast = this.last;
-    const lastNewest = this.last;
+    const previousLast = this.values.at(-2);
     if (this.initialRelation === void 0 && this.initial) {
       this.initialRelation = relation(this.initial);
     } else if (this.initialRelation === void 0) {
       throw new Error(`Bug: No initialRelation, and this.inital is undefined?`);
     }
-    const lastRelation = relation(currentLast);
-    const initialRel = {
-      ...this.initialRelation(lastNewest)
-    };
-    const speed = currentLast === void 0 ? 0 : Line_exports.length(currentLast, lastNewest) / (lastNewest.at - currentLast.at);
+    const lastRelation = previousLast === void 0 ? relation(currentLast) : relation(previousLast);
+    const initialRel = this.initialRelation(currentLast);
+    const speed = previousLast === void 0 ? 0 : Line_exports.length(previousLast, currentLast) / (currentLast.at - previousLast.at);
     const lastRel = {
-      ...lastRelation(lastNewest),
+      ...lastRelation(currentLast),
       speed
     };
     const r = {
@@ -32867,4 +32864,4 @@ tslib/tslib.es6.js:
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** *)
 */
-//# sourceMappingURL=chunk-KDGDXEYT.js.map
+//# sourceMappingURL=chunk-XLVCNC2H.js.map
