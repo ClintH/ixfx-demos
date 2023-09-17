@@ -1,10 +1,11 @@
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
-import { a as IStack, b as IStackImmutable, I as ICircularArray, c as circularArray, d as IMapOfMutableExtended, e as IMapOfMutable, M as MapArrayEvents, f as IMapOf } from './IMapOfMutableExtended-5227b614.js';
-import { a as Trees } from './Trees-df82f720.js';
-import { A as Arrays } from './Arrays-3bce8efa.js';
-import { S as SetStringImmutable, a as SetStringMutable, i as index$4 } from './index-d2395cd0.js';
-import { a as QueueImmutable, Q as QueueMutable, i as index$3 } from './index-016f09b1.js';
-import { I as IsEqual, T as ToString } from './Util-413291ab.js';
+import { a as IStack, b as IStackImmutable, I as ICircularArray, c as circularArray, d as IMapOfMutableExtended, e as IMapOfMutable, M as MapArrayEvents, f as IMapOf } from './IMapOfMutableExtended-85b037ca.js';
+import { a as Trees } from './Trees-d82ea9e2.js';
+import { A as Arrays } from './Arrays-f506115e.js';
+import { S as SetStringImmutable, a as SetStringMutable, i as index$4 } from './index-8ecb0968.js';
+import { a as QueueImmutable, Q as QueueMutable, i as index$3 } from './index-2819dd79.js';
+import { T as ToString } from './Util-42bd6b26.js';
+import { I as IsEqual } from './IsEqual-267e4380.js';
 
 /**
  * Expiring map options
@@ -199,6 +200,18 @@ declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, 
     set(key: K, value: V): void;
 }
 
+declare const max: <V>(iterable: Iterable<V>, scorer: (v: V) => number) => V | undefined;
+declare const min: <V>(iterable: Iterable<V>, scorer: (v: V) => number) => V | undefined;
+
+declare const Iterables_max: typeof max;
+declare const Iterables_min: typeof min;
+declare namespace Iterables {
+  export {
+    Iterables_max as max,
+    Iterables_min as min,
+  };
+}
+
 /**
  * Stack (mutable)
  *
@@ -367,6 +380,7 @@ type EitherKey<K, V> = ArrayKeys<K, V> | ObjKeys<K, V>;
 type index$1_ArrayKeys<K, V> = ArrayKeys<K, V>;
 declare const index$1_Arrays: typeof Arrays;
 type index$1_EitherKey<K, V> = EitherKey<K, V>;
+declare const index$1_Iterables: typeof Iterables;
 type index$1_ObjKeys<K, V> = ObjKeys<K, V>;
 declare const index$1_QueueImmutable: typeof QueueImmutable;
 declare const index$1_QueueMutable: typeof QueueMutable;
@@ -384,6 +398,7 @@ declare namespace index$1 {
     index$1_Arrays as Arrays,
     ICircularArray as CircularArray,
     index$1_EitherKey as EitherKey,
+    index$1_Iterables as Iterables,
     index as Maps,
     index$1_ObjKeys as ObjKeys,
     index$1_QueueImmutable as QueueImmutable,
@@ -398,6 +413,42 @@ declare namespace index$1 {
     index$1_Trees as Trees,
     index$1_circularArray as circularArray,
   };
+}
+
+interface IMapBase<K, V> {
+    /**
+     * Gets an item by key
+     * @example
+     * ```js
+     * const item = map.get(`hello`);
+     * ```
+     * @param key
+     */
+    get(key: K): V | undefined;
+    /**
+   * Returns _true_ if map contains key
+   * @example
+   * ```js
+   * if (map.has(`hello`)) ...
+   * ```
+   * @param key
+   */
+    has(key: K): boolean;
+    /**
+  * Returns _true_ if map is empty
+  */
+    isEmpty(): boolean;
+    /**
+     * Iterates over entries (consisting of [key,value])
+     * @example
+     * ```js
+     * for (const [key, value] of map.entries()) {
+     *  // Use key, value...
+     * }
+     * ```
+     */
+    entries(): IterableIterator<readonly [K, V]>;
+    values(): IterableIterator<V>;
 }
 
 /**
@@ -417,7 +468,7 @@ declare namespace index$1 {
  * @template K Type of map keys. Typically `string`
  * @template V Type of stored values
  */
-interface IMapImmutable<K, V> {
+interface IMapImmutable<K, V> extends IMapBase<K, V> {
     /**
      * Adds one or more items, returning the changed map.
      *
@@ -441,45 +492,12 @@ interface IMapImmutable<K, V> {
      */
     clear(): IMapImmutable<K, V>;
     /**
-     * Returns an item by key, or _undefined_ if not found
-     * @example
-     * ```js
-     * const item = map.get(`hello`);
-     * ```
-     * @param key
-     */
-    get(key: K): V | undefined;
-    /**
      * Sets `key` to be `value`, overwriting anything existing.
      * Returns a new map with added key.
      * @param key
      * @param value
      */
     set(key: K, value: V): IMapImmutable<K, V>;
-    /**
-     * Returns _true_ if map contains `key`
-     * @example
-     * ```js
-     * if (map.has(`hello`)) ...
-     * ```
-     * @param key
-     */
-    has(key: K): boolean;
-    /**
-     * Returns _true_ if map is empty
-     */
-    isEmpty(): boolean;
-    /**
-     * Iterates over entries (in the form of [key,value])
-     *
-     * @example
-     * ```js
-     * for (const [key, value] of map.entries()) {
-     *  // Use key, value...
-     * }
-     * ```
-     */
-    entries(): IterableIterator<readonly [K, V]>;
 }
 /**
  * Returns an {@link IMapImmutable}.
@@ -533,7 +551,7 @@ declare const immutable: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V> 
  * @template K Type of map keys. Typically `string`
  * @template V Type of stored values
  */
-interface IMapMutable<K, V> {
+interface IMapMutable<K, V> extends IMapBase<K, V> {
     /**
      * Adds one or more items to map
      *
@@ -563,38 +581,6 @@ interface IMapMutable<K, V> {
      * Clears map
      */
     clear(): void;
-    /**
-     * Gets an item by key
-     * @example
-     * ```js
-     * const item = map.get(`hello`);
-     * ```
-     * @param key
-     */
-    get(key: K): V | undefined;
-    /**
-     * Returns _true_ if map contains key
-     * @example
-     * ```js
-     * if (map.has(`hello`)) ...
-     * ```
-     * @param key
-     */
-    has(key: K): boolean;
-    /**
-     * Returns _true_ if map is empty
-     */
-    isEmpty(): boolean;
-    /**
-     * Iterates over entries (consisting of [key,value])
-     * @example
-     * ```js
-     * for (const [key, value] of map.entries()) {
-     *  // Use key, value...
-     * }
-     * ```
-     */
-    entries(): IterableIterator<readonly [K, V]>;
 }
 /**
  * Returns a {@link IMapMutable} (which just wraps the in-built Map)
@@ -628,7 +614,7 @@ type MapArrayOpts<V> = MapMultiOpts<V> & {
     /**
      * Key function
      */
-    readonly toString?: ToString<V>;
+    readonly convertToString?: ToString<V>;
 };
 /**
  * Returns a {@link IMapOfMutableExtended} to allow storing multiple values under a key, unlike a regular Map.
@@ -641,15 +627,15 @@ type MapArrayOpts<V> = MapMultiOpts<V> & {
  * ```
  *
  * Takes options:
- * * `comparer`: {@link Util.IsEqual}
+ * * `comparer`: {@link IsEqual}
  * * `toString`: {@link Util.ToString}
  *
- * A custom {@link Util.ToString} function can be provided which is used when checking value equality (`has`, `without`)
+ * A custom {@link Util.ToString} function can be provided as the `convertToString` opion. This is then used when checking value equality (`has`, `without`)
  * ```js
- * const map = ofArrayMutable({toString:(v) => v.name}); // Compare values based on their `name` field;
+ * const map = ofArrayMutable({ convertToString:(v) => v.name}); // Compare values based on their `name` field;
  * ```
  *
- * Alternatively, a {@link Util.IsEqual} function can be used:
+ * Alternatively, a {@link IsEqual} function can be used:
  * ```js
  * const map = ofArrayMutable({comparer: (a, b) => a.name === b.name });
  * ```
@@ -819,8 +805,8 @@ declare class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V
     debugString(): string;
     get isEmpty(): boolean;
     clear(): void;
-    addKeyedValues(key: string, ...values: V[]): void;
-    set(key: string, values: V[]): this;
+    addKeyedValues(key: string, ...values: Array<V>): void;
+    set(key: string, values: Array<V>): this;
     addValue(...values: ReadonlyArray<V>): void;
     hasKeyValue(key: string, value: V, eq: IsEqual<V>): boolean;
     has(key: string): boolean;
@@ -846,11 +832,10 @@ declare class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V
     keys(): IterableIterator<string>;
     entriesFlat(): IterableIterator<[key: string, value: V]>;
     valuesFlat(): IterableIterator<V>;
-    entries(): IterableIterator<[key: string, value: V[]]>;
+    entries(): IterableIterator<[key: string, value: Array<V>]>;
     keysAndCounts(): IterableIterator<[string, number]>;
     merge(other: IMapOf<V>): void;
     get size(): number;
-    forEach(fn: (value: readonly V[], key: string, map: Map<string, readonly V[]>) => void, _thisArg?: any): void;
     get [Symbol.toStringTag](): string;
 }
 
@@ -863,7 +848,7 @@ type MultiValue<V, M> = {
     add(destination: M | undefined, values: Iterable<V>): M;
     toArray(source: M): ReadonlyArray<V>;
     iterable(source: M): IterableIterator<V>;
-    find(source: M, predicate: (v: V) => boolean): V | unknown;
+    find(source: M, predicate: (v: V) => boolean): V | undefined;
     filter(source: M, predicate: (v: V) => boolean): Iterable<V>;
     without(source: M, value: V): ReadonlyArray<V>;
     count(source: M): number;
@@ -946,6 +931,53 @@ interface IMappish<K, V> {
 }
 interface IWithEntries<K, V> {
     entries(): IterableIterator<readonly [K, V]>;
+}
+
+/**
+ * Simple map for numbers.
+ *
+ * Keys not present in map return the `defaultValue` given in the constructor
+ * ```js
+ * // All keys default to zero.
+ * const map = new NumberMap();
+ * map.get(`hello`); // 0
+ * ```
+ *
+ * To check if a key is present, use `has`:
+ * ```js
+ * map.has(`hello`); // false
+ * ```
+ *
+ * Math:
+ * ```js
+ * // Adds 1 by default to value of `hello`
+ * map.add(`hello`);         // 1
+ * map.multiply(`hello`, 2); // 2
+ *
+ * // Reset key to default value
+ * map.reset(`hello`); // 0
+ * ```
+ *
+ * Different default value:
+ * ```js
+ * const map = new NumberMap(10);
+ * map.get(`hello`); // 10
+ * ```
+ *
+ * Regular `set` works as well:
+ * ```js
+ * map.set(`hello`, 5);
+ * map.add(`hello`, 2); // 7
+ * ```
+ */
+declare class NumberMap<K> extends Map<K, number> {
+    readonly defaultValue: number;
+    constructor(defaultValue?: number);
+    get(key: K): number;
+    reset(key: K): number;
+    multiply(key: K, amount: number): number;
+    add(key: K, amount?: number): number;
+    subtract(key: K, amount?: number): number;
 }
 
 /**
@@ -1422,6 +1454,8 @@ declare const index_MapOfSimpleMutable: typeof MapOfSimpleMutable;
 type index_MapSetOpts<V> = MapSetOpts<V>;
 type index_MergeReconcile<V> = MergeReconcile<V>;
 type index_MultiValue<V, M> = MultiValue<V, M>;
+type index_NumberMap<K> = NumberMap<K>;
+declare const index_NumberMap: typeof NumberMap;
 declare const index_addKeepingExisting: typeof addKeepingExisting;
 declare const index_addObject: typeof addObject;
 declare const index_deleteByValue: typeof deleteByValue;
@@ -1473,6 +1507,7 @@ declare namespace index {
     index_MapSetOpts as MapSetOpts,
     index_MergeReconcile as MergeReconcile,
     index_MultiValue as MultiValue,
+    index_NumberMap as NumberMap,
     index_addKeepingExisting as addKeepingExisting,
     index_addObject as addObject,
     index_deleteByValue as deleteByValue,
@@ -1506,4 +1541,4 @@ declare namespace index {
   };
 }
 
-export { ArrayKeys as A, EitherKey as E, GetOrGenerate as G, ObjKeys as O, StackMutable as S, index as a, index$2 as b, StackImmutable as c, index$1 as i };
+export { ArrayKeys as A, EitherKey as E, GetOrGenerate as G, IMapImmutable as I, ObjKeys as O, StackMutable as S, index as a, Iterables as b, index$2 as c, StackImmutable as d, index$1 as i };

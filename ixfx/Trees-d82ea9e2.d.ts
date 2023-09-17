@@ -1,4 +1,4 @@
-import { I as IsEqual } from './Util-413291ab.js';
+import { I as IsEqual } from './IsEqual-267e4380.js';
 
 /**
  * Basic tree node implementation
@@ -276,7 +276,7 @@ declare function breadthFirst(root: object): IterableIterator<Entry>;
  * That is, it is any possible sub-child.
  * @param parent Parent tree
  * @param possibleChild Sought child
- * @param eq Equality function, or {@link Util.isEqualDefault} if undefined.
+ * @param eq Equality function, or {@link isEqualDefault} if undefined.
  * @returns
  */
 declare const hasAnyChild: <V extends TreeNode>(parent: V, possibleChild: V, eq?: IsEqual<V>) => boolean;
@@ -295,7 +295,7 @@ declare const hasAnyChild: <V extends TreeNode>(parent: V, possibleChild: V, eq?
  * @param parent Parent tree
  * @param possibleChild Sought child
  * @param maxDepth Maximum depth. 0 for immediate children, Number.MAX_SAFE_INTEGER for boundless
- * @param eq Equality function, or {@link Util.isEqualDefault} if undefined.
+ * @param eq Equality function, or {@link isEqualDefault} if undefined.
  * @returns
  */
 declare const hasChild: <V extends TreeNode>(parent: V, possibleChild: V, maxDepth?: number, eq?: IsEqual<V>) => boolean;
@@ -305,7 +305,7 @@ declare const hasChild: <V extends TreeNode>(parent: V, possibleChild: V, maxDep
  * @param child Child being sought
  * @param possibleParent Possible parent of child
  * @param maxDepth Max depth of traversal. Default of 0 only looks for immediate parent.
- * @param eq Equality comparison function. {@link Util.isEqualDefault} used by default.
+ * @param eq Equality comparison function. {@link isEqualDefault} used by default.
  * @returns
  */
 declare const hasParent: <V extends TreeNode>(child: V, possibleParent: V, maxDepth?: number, eq?: IsEqual<V>) => boolean;
@@ -313,7 +313,7 @@ declare const hasParent: <V extends TreeNode>(child: V, possibleParent: V, maxDe
  * Returns _true_ if `child` is parented at any level (grand-parented etc) by `possibleParent`
  * @param child Child being sought
  * @param possibleParent Possible parent of child
- * @param eq Equality comparison function {@link Util.isEqualDefault} used by default
+ * @param eq Equality comparison function {@link isEqualDefault} used by default
  * @returns
  */
 declare const hasAnyParent: <V extends TreeNode>(child: V, possibleParent: V, eq?: IsEqual<V>) => boolean;

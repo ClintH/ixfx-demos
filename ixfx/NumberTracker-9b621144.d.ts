@@ -1,9 +1,9 @@
-import { G as GetOrGenerate } from './index-3098009a.js';
+import { G as GetOrGenerate } from './index-09f7f675.js';
 
 /**
  * Base tracker class
  */
-declare abstract class TrackerBase<V> {
+declare abstract class TrackerBase<V, SeenResultType> {
     /**
      * @ignore
      */
@@ -26,12 +26,19 @@ declare abstract class TrackerBase<V> {
      * Reset tracker
      */
     reset(): void;
-    seen(...p: V[]): void;
+    /**
+     * Calculate results
+     *
+     * Calls seenImpl -> onSeen
+     * @param p
+     * @returns
+     */
+    seen(...p: Array<V>): SeenResultType;
     /**
      * @ignore
      * @param p
      */
-    abstract seenImpl(p: V[]): V[];
+    abstract filterData(p: Array<V>): Array<Timestamped>;
     abstract get last(): V | undefined;
     /**
      * Returns the initial value, or undefined
@@ -44,7 +51,7 @@ declare abstract class TrackerBase<V> {
     /**
      * @ignore
      */
-    onSeen(_p: V[]): void;
+    abstract computeResults(_p: Array<Timestamped>): SeenResultType;
     /**
      * @ignore
      */
@@ -53,9 +60,10 @@ declare abstract class TrackerBase<V> {
     abstract trimStore(limit: number): number;
 }
 
-type Timestamped<V> = V & {
+type Timestamped = {
     readonly at: number;
 };
+type TimestampedObject<V> = V & Timestamped;
 /**
  * Options
  */
@@ -81,7 +89,7 @@ type TrackedValueOpts = {
     readonly sampleLimit?: number;
 };
 /**
- * Keeps track of keyed values of type `V` (eg Point) It stores occurences in type `T`, which
+ * Keeps track of keyed values of type `V` (eg Point). It stores occurences in type `T`, which
  * must extend from `TrackerBase<V>`, eg `PointTracker`.
  *
  * The `creator` function passed in to the constructor is responsible for instantiating
@@ -102,7 +110,7 @@ type TrackedValueOpts = {
  * ```
  *
  */
-declare class TrackedValueMap<V, T extends TrackerBase<V>> {
+declare class TrackedValueMap<V, T extends TrackerBase<V, TResult>, TResult> {
     store: Map<string, T>;
     gog: GetOrGenerate<string, T, V>;
     constructor(creator: (key: string, start: V | undefined) => T);
@@ -122,14 +130,14 @@ declare class TrackedValueMap<V, T extends TrackerBase<V>> {
      * @param values Values(s)
      * @returns Information about start to last value
      */
-    seen(id: string, ...values: V[]): Promise<any>;
+    seen(id: string, ...values: Array<V>): Promise<TResult>;
     /**
      * Creates or returns a TrackedValue instance for `id`.
      * @param id
      * @param values
      * @returns
      */
-    protected getTrackedValue(id: string, ...values: V[]): Promise<T>;
+    protected getTrackedValue(id: string, ...values: Array<V>): Promise<T>;
     /**
      * Remove a tracked value by id.
      * Use {@link reset} to clear them all.
@@ -179,12 +187,16 @@ declare class TrackedValueMap<V, T extends TrackerBase<V>> {
      * @param id
      * @returns
      */
-    get(id: string): TrackerBase<V> | undefined;
+    get(id: string): TrackerBase<V, TResult> | undefined;
 }
 
-declare class PrimitiveTracker<V extends number | string> extends TrackerBase<V> {
-    values: V[];
-    timestamps: number[];
+type TimestampedPrimitive<V extends number | string> = {
+    at: number;
+    value: V;
+};
+declare abstract class PrimitiveTracker<V extends number | string, TResult> extends TrackerBase<V, TResult> {
+    values: Array<V>;
+    timestamps: Array<number>;
     constructor(opts?: TrackedValueOpts);
     /**
      * Reduces size of value store to `limit`. Returns
@@ -207,10 +219,16 @@ declare class PrimitiveTracker<V extends number | string> extends TrackerBase<V>
     /**
      * Tracks a value
      */
-    seenImpl(p: V[]): V[];
+    filterData(rawValues: Array<V>): Array<TimestampedPrimitive<V>>;
 }
 
-declare class NumberTracker extends PrimitiveTracker<number> {
+type NumberTrackerResults = {
+    readonly total: number;
+    readonly min: number;
+    readonly max: number;
+    readonly avg: number;
+};
+declare class NumberTracker extends PrimitiveTracker<number, NumberTrackerResults> {
     total: number;
     min: number;
     max: number;
@@ -228,7 +246,7 @@ declare class NumberTracker extends PrimitiveTracker<number> {
     relativeDifference(): number | undefined;
     onReset(): void;
     onTrimmed(): void;
-    onSeen(values: Timestamped<number>[]): void;
+    computeResults(values: Array<TimestampedPrimitive<number>>): NumberTrackerResults;
     getMinMaxAvg(): {
         min: number;
         max: number;
@@ -287,4 +305,4 @@ declare class NumberTracker extends PrimitiveTracker<number> {
  */
 declare const numberTracker: (opts?: TrackedValueOpts) => NumberTracker;
 
-export { NumberTracker as N, TrackedValueOpts as T, TrackerBase as a, Timestamped as b, TrackedValueMap as c, numberTracker as n };
+export { NumberTracker as N, TrackedValueOpts as T, TrackerBase as a, TimestampedObject as b, TrackedValueMap as c, NumberTrackerResults as d, Timestamped as e, numberTracker as n };

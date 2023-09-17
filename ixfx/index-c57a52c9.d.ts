@@ -15,9 +15,9 @@ type Interval = number | {
     readonly hours?: number;
     readonly mins?: number;
 };
-declare function intervalToMs(i: Interval | undefined): number | undefined;
-declare function intervalToMs(i: Interval | undefined, defaultNumber: number): number;
-declare function isInterval(i: number | Interval | undefined): i is Interval;
+declare function intervalToMs(interval: Interval | undefined): number | undefined;
+declare function intervalToMs(interval: Interval | undefined, defaultNumber: number): number;
+declare function isInterval(interval: number | Interval | undefined): interval is Interval;
 type IntervalOpts = {
     /**
      * Sleep a fixed period of time regardless of how long each invocation of 'produce' takes
@@ -35,7 +35,7 @@ type IntervalOpts = {
     /**
      * When to perform delay. Default is before 'produce' is invoked.
      */
-    readonly delay?: 'before' | 'after';
+    readonly delay?: `before` | `after`;
 };
 /**
  * Generates values from `produce` with a time delay.
@@ -159,7 +159,7 @@ declare function progress(duration: Interval, opts?: {
     readonly clampValue?: boolean;
     readonly wrapValue?: boolean;
 }): () => number;
-declare const toString: (millisOrFunction: number | Since | Interval) => string;
+declare const toString: (millisOrFunction: number | Since | Interval, rounding?: number) => string;
 
 type Elapsed_Since = Since;
 declare const Elapsed_infinity: typeof infinity;
@@ -267,7 +267,7 @@ declare const relativeTimer: (total: number, opts?: RelativeTimerOpts) => Modula
  *
  * By default it uses elapsed clock time as a basis for frequency. ie., cycles per second.
  *
- * It returns a `ModTimer`, which allows for a modulation amount to be continually applied
+ * It returns a `ModulationTimer`, which allows for a modulation amount to be continually applied
  * to the calculation of the 'position' within a cycle.
  *
  * @example Prints around 0/0.5 each second, as timer is half a cycle per second

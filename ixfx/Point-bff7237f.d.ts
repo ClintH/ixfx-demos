@@ -1,5 +1,5 @@
-import { I as ISetMutable } from './index-d2395cd0.js';
-import { a as RandomSource } from './Arrays-3bce8efa.js';
+import { I as ISetMutable } from './index-8ecb0968.js';
+import { a as RandomSource } from './Arrays-f506115e.js';
 
 type Path = {
     length(): number;
@@ -154,9 +154,9 @@ declare const apply$1: (line: Line, fn: (p: Point) => Point) => Readonly<Line>;
  *
  * Does not validate points
  * @param line
- * @param paramName
+ * @param name
  */
-declare const guard$2: (line: Line, paramName?: string) => void;
+declare const guard$2: (line: Line, name?: string) => void;
 /**
  * Returns the angle in radians of a line, or two points
  * ```js
@@ -307,7 +307,7 @@ declare const midpoint: (aOrLine: Point | Line, pointB?: Point) => Point;
  * @param b
  * @returns
  */
-declare const getPointsParam: (aOrLine: Point | Line, b?: Point) => readonly [Point, Point];
+declare const getPointParameter$1: (aOrLine: Point | Line, b?: Point) => readonly [Point, Point];
 /**
  * Returns the nearest point on `line` closest to `point`.
  *
@@ -321,7 +321,7 @@ declare const getPointsParam: (aOrLine: Point | Line, b?: Point) => readonly [Po
  * @param point
  * @returns Point `{ x, y }`
  */
-declare const nearest$1: (line: Line | readonly Line[], point: Point) => Point;
+declare const nearest$1: (line: Line | ReadonlyArray<Line>, point: Point) => Point;
 /**
  * Calculates [slope](https://en.wikipedia.org/wiki/Slope) of line.
  *
@@ -520,7 +520,7 @@ declare const fromNumbers$2: (x1: number, y1: number, x2: number, y2: number) =>
  * @param {Point} b
  * @returns {number[]}
  */
-declare const toFlatArray: (a: Point | Line, b: Point) => readonly number[];
+declare const toFlatArray: (a: Point | Line, b: Point) => ReadonlyArray<number>;
 /**
  * Yields all the points of all the lines.
  *
@@ -543,7 +543,7 @@ declare function asPoints(lines: Iterable<Line>): Generator<Point, void, unknown
  * @param b
  * @returns
  */
-declare const toSvgString: (a: Point, b: Point) => readonly string[];
+declare const toSvgString: (a: Point, b: Point) => ReadonlyArray<string>;
 /**
  * Returns a line from four numbers [x1,y1,x2,y2].
  *
@@ -554,10 +554,10 @@ declare const toSvgString: (a: Point, b: Point) => readonly string[];
  * const line = Lines.fromFlatArray(...[0, 0, 100, 100]);
  * // line is {a: { x:0, y:0 }, b: { x: 100, y: 100 } }
  * ```
- * @param arr Array in the form [x1,y1,x2,y2]
+ * @param array Array in the form [x1,y1,x2,y2]
  * @returns Line
  */
-declare const fromFlatArray: (arr: readonly number[]) => Line;
+declare const fromFlatArray: (array: ReadonlyArray<number>) => Line;
 /**
  * Returns a line from two points
  *
@@ -585,7 +585,7 @@ declare const fromPoints: (a: Point, b: Point) => Line;
  * @param points
  * @returns
  */
-declare const joinPointsToLines: (...points: readonly Point[]) => PolyLine;
+declare const joinPointsToLines: (...points: ReadonlyArray<Point>) => PolyLine;
 /**
  * Returns a {@link LinePath} from two points
  *
@@ -632,8 +632,8 @@ declare const bbox$2: (line: Line) => RectPositioned;
  */
 declare const toPath$1: (line: Line) => LinePath;
 type LinePath = Line & Path & {
-    toFlatArray(): readonly number[];
-    toPoints(): readonly Point[];
+    toFlatArray(): ReadonlyArray<number>;
+    toPoints(): ReadonlyArray<Point>;
     rotate(amountRadian: number, origin: Point): LinePath;
     sum(point: Point): LinePath;
     divide(point: Point): LinePath;
@@ -684,7 +684,6 @@ declare const Line$1_extendFromA: typeof extendFromA;
 declare const Line$1_fromFlatArray: typeof fromFlatArray;
 declare const Line$1_fromPoints: typeof fromPoints;
 declare const Line$1_fromPointsToPath: typeof fromPointsToPath;
-declare const Line$1_getPointsParam: typeof getPointsParam;
 declare const Line$1_isLine: typeof isLine;
 declare const Line$1_isPolyLine: typeof isPolyLine;
 declare const Line$1_joinPointsToLines: typeof joinPointsToLines;
@@ -715,7 +714,7 @@ declare namespace Line$1 {
     fromNumbers$2 as fromNumbers,
     Line$1_fromPoints as fromPoints,
     Line$1_fromPointsToPath as fromPointsToPath,
-    Line$1_getPointsParam as getPointsParam,
+    getPointParameter$1 as getPointParameter,
     guard$2 as guard,
     interpolate$2 as interpolate,
     isEmpty$2 as isEmpty,
@@ -1684,14 +1683,14 @@ declare const isPositioned: (p: Point | Rect | RectPositioned) => p is Point;
  * @param p
  * @returns
  */
-declare const isRect: (p: number | unknown) => p is Rect;
+declare const isRect: (p: unknown) => p is Rect;
 /**
  * Returns _true_ if `p` is a positioned rectangle
  * Having width, height, x and y properties.
  * @param p
  * @returns
  */
-declare const isRectPositioned: (p: Rect | RectPositioned | any) => p is RectPositioned;
+declare const isRectPositioned: (p: Rect | RectPositioned | PointCalculableShape) => p is RectPositioned;
 /**
  * Initialise a rectangle based on the width and height of a HTML element.
  *
@@ -1963,6 +1962,21 @@ declare const maxFromCorners: (topLeft: Point, topRight: Point, bottomRight: Poi
  */
 declare const guard$1: (rect: Rect, name?: string) => void;
 /**
+ * Clamps `value` so it does not exceed `maximum`
+ * on either dimension. x,y are ignored.
+ *
+ * ```js
+ * clamp({ width:100, height:5 }, { width:10, height:10 }); // { width:10, height:5 }
+ *
+ * clamp({ width:10, height:10 }, { width:10, height:10 }); // { width:10, height:10 }
+ * ```
+ *
+ * Any existing data on `value` is copied to output.
+ * @param value Input rectangle
+ * @param maximum Maximum allowed size
+ */
+declare const clamp$1: (value: Rect, maximum: Rect) => Rect;
+/**
  * Creates a rectangle from its top-left coordinate, a width and height.
  *
  * ```js
@@ -1991,7 +2005,7 @@ declare const fromTopLeft: (origin: Point, width: number, height: number) => Rec
  * @param origin
  * @returns
  */
-declare const corners: (rect: RectPositioned | Rect, origin?: Point) => readonly Point[];
+declare const corners: (rect: RectPositioned | Rect, origin?: Point) => ReadonlyArray<Point>;
 /**
  * Returns a point on cardinal direction, or 'center' for the middle.
  *
@@ -2002,7 +2016,7 @@ declare const corners: (rect: RectPositioned | Rect, origin?: Point) => readonly
  * @param card Cardinal direction or 'center'
  * @returns Point
  */
-declare const cardinal: (rect: RectPositioned, card: CardinalDirection | 'center') => Point;
+declare const cardinal: (rect: RectPositioned, card: CardinalDirection | `center`) => Point;
 /**
  * Returns a point on the edge of rectangle
  * ```js
@@ -2151,7 +2165,7 @@ declare const center: (rect: RectPositioned | Rect, origin?: Point) => Point;
  * @param rect
  * @returns
  */
-declare const lengths: (rect: RectPositioned) => readonly number[];
+declare const lengths: (rect: RectPositioned) => ReadonlyArray<number>;
 /**
  * Returns four lines based on each corner.
  * Lines are given in order: top, right, bottom, left
@@ -2167,7 +2181,7 @@ declare const lengths: (rect: RectPositioned) => readonly number[];
  * @param {Points.Point} [origin]
  * @returns {Lines.Line[]}
  */
-declare const edges: (rect: RectPositioned | Rect, origin?: Point) => readonly Line[];
+declare const edges: (rect: RectPositioned | Rect, origin?: Point) => ReadonlyArray<Line>;
 /**
  * Returns the perimeter of `rect` (ie. sum of all edges)
  *  * ```js
@@ -2277,6 +2291,7 @@ declare namespace Rect$1 {
     Rect$1_area as area,
     Rect$1_cardinal as cardinal,
     Rect$1_center as center,
+    clamp$1 as clamp,
     Rect$1_corners as corners,
     Rect$1_distanceFromCenter as distanceFromCenter,
     Rect$1_distanceFromExterior as distanceFromExterior,
@@ -2334,8 +2349,8 @@ type Point3d = Point & {
  * @param b
  * @returns
  */
-declare function getPointParam(a?: Point | number | number[] | readonly number[], b?: number | boolean, c?: number): Point | Point3d;
-declare const dotProduct: (...pts: readonly Point[]) => number;
+declare function getPointParameter(a?: Point | number | Array<number> | ReadonlyArray<number>, b?: number | boolean, c?: number): Point | Point3d;
+declare const dotProduct: (...pts: ReadonlyArray<Point>) => number;
 /**
  * An empty point of `{ x:0, y:0 }`.
  *
@@ -2394,11 +2409,11 @@ declare const isNaN: (p: Point) => boolean;
  *  return b;
  * }, points);
  * ```
- * @param compareFn Compare function returns the smallest of `a` or `b`
+ * @param comparer Compare function returns the smallest of `a` or `b`
  * @param points
  * @returns
  */
-declare const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points: readonly Point[]) => Point;
+declare const findMinimum: (comparer: (a: Point, b: Point) => Point, ...points: ReadonlyArray<Point>) => Point;
 /**
  * Returns the left-most of the provided points.
  *
@@ -2413,7 +2428,7 @@ declare const findMinimum: (compareFn: (a: Point, b: Point) => Point, ...points:
  * @param points
  * @returns
  */
-declare const leftmost: (...points: readonly Point[]) => Point;
+declare const leftmost: (...points: ReadonlyArray<Point>) => Point;
 /**
  * Returns the right-most of the provided points.
  *
@@ -2428,10 +2443,9 @@ declare const leftmost: (...points: readonly Point[]) => Point;
  * @param points
  * @returns
  */
-declare const rightmost: (...points: readonly Point[]) => Point;
-declare function distance(a: Point, b: Point): number;
+declare const rightmost: (...points: ReadonlyArray<Point>) => Point;
+declare function distance(a: Point, b?: Point): number;
 declare function distance(a: Point, x: number, y: number): number;
-declare function distance(a: Point): number;
 /**
  * Returns the distance from point `a` to the exterior of `shape`.
  *
@@ -2520,13 +2534,13 @@ declare const angle: (a: Point, b?: Point, c?: Point) => number;
  * @param points
  * @returns A single point
  */
-declare const centroid: (...points: readonly (Point | undefined)[]) => Point;
+declare const centroid: (...points: ReadonlyArray<Point | undefined>) => Point;
 /**
  * Returns the minimum rectangle that can enclose all provided points
  * @param points
  * @returns
  */
-declare const bbox: (...points: readonly Point[]) => RectPositioned;
+declare const bbox: (...points: ReadonlyArray<Point>) => RectPositioned;
 /**
  * Returns _true_ if the parameter has x and y fields
  * @param p
@@ -2545,7 +2559,7 @@ declare const isPoint3d: (p: Point | unknown) => p is Point3d;
  * @param p
  * @returns
  */
-declare const toArray: (p: Point) => readonly number[];
+declare const toArray: (p: Point) => ReadonlyArray<number>;
 /**
  * Returns a human-friendly string representation `(x, y)`.
  * If `precision` is supplied, this will be the number of significant digits.
@@ -2566,7 +2580,7 @@ declare function toString(p: Point, digits?: number): string;
  * @param b
  * @returns _True_ if points are equal
  */
-declare const isEqual: (...p: readonly Point[]) => boolean;
+declare const isEqual: (...p: ReadonlyArray<Point>) => boolean;
 /**
  * Returns true if two points are within a specified range on both axes.
  *
@@ -2615,7 +2629,7 @@ declare const interpolate: (amount: number, a: Point, b: Point, allowOverflow?: 
  * @param [y]
  * @returns Point
  */
-declare const from: (xOrArray?: number | readonly number[], y?: number) => Point;
+declare const from: (xOrArray?: number | ReadonlyArray<number>, y?: number) => Point;
 /**
  * Returns an array of points from an array of numbers.
  *
@@ -2631,7 +2645,7 @@ declare const from: (xOrArray?: number | readonly number[], y?: number) => Point
  * @param coords
  * @returns
  */
-declare const fromNumbers: (...coords: readonly ReadonlyArray<number>[] | readonly number[]) => readonly Point[];
+declare const fromNumbers: (...coords: ReadonlyArray<ReadonlyArray<number>> | ReadonlyArray<number>) => ReadonlyArray<Point>;
 /**
  * Returns `a` minus `b`
  *
@@ -2737,7 +2751,7 @@ declare const pipeline: (...pipeline: readonly ((pt: Point) => Point)[]) => (pt:
  * @param initial Initial value, uses `{ x:0, y:0 }` by default
  * @returns
  */
-declare const reduce: (pts: readonly Point[], fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
+declare const reduce: (pts: ReadonlyArray<Point>, fn: (p: Point, accumulated: Point) => Point, initial?: Point) => Point;
 type Sum = {
     /**
      * Adds two sets of coordinates. If y is omitted, the parameter for x is added to both x and y
@@ -2773,22 +2787,7 @@ type Sum = {
  */
 declare const sum: Sum;
 /**
- * Returns `a` multiplied by `b`
- *
- * ie.
- * ```js
- * return {
- *  x: a.x * b.x,
- *   y: a.y * b.y
- * }
- * ```
- * @param a
- * @param b
- * @returns
- */
-declare function multiply(a: Point, b: Point): Point;
-/**
- * Multiply by a width,height:
+ * Multiply by a width,height or x,y
  * ```
  * return {
  *  x: a.x * rect.width,
@@ -2798,7 +2797,7 @@ declare function multiply(a: Point, b: Point): Point;
  * @param a
  * @param rect
  */
-declare function multiply(a: Point, rect: Rect): Point;
+declare function multiply(a: Point, rectOrPoint: Rect | Point): Point;
 /**
  * Returns `a` multipled by some x and/or y scaling factor
  *
@@ -2836,20 +2835,6 @@ declare function multiply(a: Point, x: number, y?: number): Point;
  */
 declare const multiplyScalar: (pt: Point | Point3d, v: number) => Point | Point3d;
 /**
- * Divides a / b:
- * ```js
- * return {
- *  x: a.x / b.x,
- *  y: a.y / b.y
- * }
- * ```
- *
- * Dividing by zero will give Infinity for that dimension.
- * @param a
- * @param b
- */
-declare function divide(a: Point, b: Point): Point;
-/**
  * Divides point a by rectangle:
  * ```js
  * return {
@@ -2858,11 +2843,20 @@ declare function divide(a: Point, b: Point): Point;
  * };
  * ```
  *
+ * Or point:
+ * ```js
+ * return {
+ *  x: a.x / b.x,
+ *  y: a.y / b.y
+ * }
+ * ```
+ *
+ *
  * Dividing by zero will give Infinity for that dimension.
  * @param a
  * @param Rect
  */
-declare function divide(a: Point, rect: Rect): Point;
+declare function divide(a: Point, rectOrPoint: Rect | Point): Point;
 /**
  * Divides a point by x,y.
  * ```js
@@ -2897,15 +2891,15 @@ declare function divide(x1: number, y1: number, x2?: number, y2?: number): Point
 /**
  * Returns a function that divides a point:
  * ```js
- * const f = divideFn(100, 200);
+ * const f = divider(100, 200);
  * f(50,100); // Yields: { x: 0.5, y: 0.5 }
  * ```
  *
  * Input values can be Point, separate x,y and optional z values or an array:
  * ```js
- * const f = divideFn({ x: 100, y: 100 });
- * const f = divideFn( 100, 100 );
- * const f = divideFn([ 100, 100 ]);
+ * const f = divider({ x: 100, y: 100 });
+ * const f = divider( 100, 100 );
+ * const f = divider([ 100, 100 ]);
  * ```
  *
  * Likewise the returned function an take these as inputs:
@@ -2921,7 +2915,7 @@ declare function divide(x1: number, y1: number, x2?: number, y2?: number): Point
  * @param c Divisor z value
  * @returns
  */
-declare function divideFn(a: Point | number | number[], b?: number, c?: number): (aa: Point | number | number[], bb?: number, cc?: number) => Point | Point3d;
+declare function divider(a: Point | number | Array<number>, b?: number, c?: number): (aa: Point | number | Array<number>, bb?: number, cc?: number) => Point | Point3d;
 declare const quantiseEvery: (pt: Point, snap: Point, middleRoundsUp?: boolean) => Readonly<{
     x: number;
     y: number;
@@ -2934,7 +2928,7 @@ declare const quantiseEvery: (pt: Point, snap: Point, middleRoundsUp?: boolean) 
  * @param pts
  * @returns
  */
-declare const convexHull: (...pts: readonly Point[]) => readonly Point[];
+declare const convexHull: (...pts: ReadonlyArray<Point>) => ReadonlyArray<Point>;
 /**
  * Returns -2 if both x & y of a is less than b
  * Returns -1 if either x/y of a is less than b
@@ -2999,7 +2993,7 @@ declare function rotate(pt: Point, amountRadian: number, origin?: Point): Point;
  * @param origin Origin to rotate around. Defaults to 0,0
  */
 declare function rotate(pt: ReadonlyArray<Point>, amountRadian: number, origin?: Point): ReadonlyArray<Point>;
-declare const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadian: number) => number[][];
+declare const rotatePointArray: (v: ReadonlyArray<ReadonlyArray<number>>, amountRadian: number) => Array<Array<number>>;
 /**
  * Normalise point as a unit vector.
  *
@@ -3012,6 +3006,14 @@ declare const rotatePointArray: (v: ReadonlyArray<readonly number[]>, amountRadi
  * @returns
  */
 declare const normalise: (ptOrX: Point | number, y?: number) => Point;
+/**
+ * Round the point's _x_ and _y_ to given number of digits
+ * @param ptOrX
+ * @param yOrDigits
+ * @param digits
+ * @returns
+ */
+declare const round: (ptOrX: Point | number, yOrDigits?: number, digits?: number) => Point;
 /**
  * Normalises a point by a given width and height
  * @param pt Point
@@ -3193,12 +3195,12 @@ declare const Point$1_distance: typeof distance;
 declare const Point$1_distanceToCenter: typeof distanceToCenter;
 declare const Point$1_distanceToExterior: typeof distanceToExterior;
 declare const Point$1_divide: typeof divide;
-declare const Point$1_divideFn: typeof divideFn;
+declare const Point$1_divider: typeof divider;
 declare const Point$1_dotProduct: typeof dotProduct;
 declare const Point$1_findMinimum: typeof findMinimum;
 declare const Point$1_from: typeof from;
 declare const Point$1_fromNumbers: typeof fromNumbers;
-declare const Point$1_getPointParam: typeof getPointParam;
+declare const Point$1_getPointParameter: typeof getPointParameter;
 declare const Point$1_guard: typeof guard;
 declare const Point$1_guardNonZeroPoint: typeof guardNonZeroPoint;
 declare const Point$1_interpolate: typeof interpolate;
@@ -3226,6 +3228,7 @@ declare const Point$1_relation: typeof relation;
 declare const Point$1_rightmost: typeof rightmost;
 declare const Point$1_rotate: typeof rotate;
 declare const Point$1_rotatePointArray: typeof rotatePointArray;
+declare const Point$1_round: typeof round;
 declare const Point$1_subtract: typeof subtract;
 declare const Point$1_sum: typeof sum;
 declare const Point$1_toArray: typeof toArray;
@@ -3256,12 +3259,12 @@ declare namespace Point$1 {
     Point$1_distanceToCenter as distanceToCenter,
     Point$1_distanceToExterior as distanceToExterior,
     Point$1_divide as divide,
-    Point$1_divideFn as divideFn,
+    Point$1_divider as divider,
     Point$1_dotProduct as dotProduct,
     Point$1_findMinimum as findMinimum,
     Point$1_from as from,
     Point$1_fromNumbers as fromNumbers,
-    Point$1_getPointParam as getPointParam,
+    Point$1_getPointParameter as getPointParameter,
     Point$1_guard as guard,
     Point$1_guardNonZeroPoint as guardNonZeroPoint,
     Point$1_interpolate as interpolate,
@@ -3289,6 +3292,7 @@ declare namespace Point$1 {
     Point$1_rightmost as rightmost,
     Point$1_rotate as rotate,
     Point$1_rotatePointArray as rotatePointArray,
+    Point$1_round as round,
     Point$1_subtract as subtract,
     Point$1_sum as sum,
     Point$1_toArray as toArray,
@@ -3299,4 +3303,4 @@ declare namespace Point$1 {
   };
 }
 
-export { CardinalDirection as C, Grid as G, Line as L, PointRelationResult as P, RectPositioned as R, VisitGenerator as V, Point as a, PointRelation as b, PolyLine as c, Path as d, CirclePositioned as e, Rect as f, Circle as g, Point3d as h, Cell as i, CellAccessor as j, Circle$1 as k, Grid$1 as l, Line$1 as m, Path$1 as n, Point$1 as o, Rect$1 as p };
+export { CardinalDirection as C, Grid as G, Line as L, PointRelationResult as P, Rect as R, VisitGenerator as V, Point as a, PointRelation as b, PolyLine as c, Path as d, RectPositioned as e, CirclePositioned as f, Circle as g, Point3d as h, Cell as i, CellAccessor as j, Circle$1 as k, Grid$1 as l, Line$1 as m, Path$1 as n, Point$1 as o, Rect$1 as p };

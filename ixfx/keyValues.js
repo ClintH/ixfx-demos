@@ -1,15 +1,16 @@
 import {
   byValueString,
   getSorter,
+  isPrimitive,
   minMaxAvg2 as minMaxAvg,
   sortByKey,
   sortByValueNumber,
   sortByValueString
-} from "./chunk-XL7M3HI2.js";
-import "./chunk-4DC2CRSB.js";
+} from "./chunk-KDGDXEYT.js";
 export {
   byValueString,
   getSorter,
+  isPrimitive,
   minMaxAvg,
   sortByKey,
   sortByValueNumber,

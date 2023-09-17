@@ -1,5 +1,6 @@
-import { H as HasCompletion } from './index-14e89d41.js';
-import { I as IsEqual, T as ToString } from './Util-413291ab.js';
+import { H as HasCompletion } from './index-c57a52c9.js';
+import { T as ToString } from './Util-42bd6b26.js';
+import { I as IsEqual } from './IsEqual-267e4380.js';
 import { a as MinMaxAvgOpts, M as MinMaxAvgTotal, m as minMaxAvg } from './MinMaxAvg-bf5430b4.js';
 import * as d3Colour from 'd3-color';
 
@@ -1429,6 +1430,7 @@ declare const sortByNumericProperty: <V, K extends keyof V>(data: readonly V[], 
  * @return Copy of array without value.
  */
 declare const without: <V>(data: readonly V[] | V[], value: V, comparer?: IsEqual<V>) => V[];
+declare const withoutUndefined: <V>(data: readonly V[] | V[]) => V[];
 /**
  * Returns all items in `data` for as long as `predicate` returns true.
  *
@@ -1805,6 +1807,7 @@ declare const Arrays_validNumbers: typeof validNumbers;
 declare const Arrays_valuesEqual: typeof valuesEqual;
 declare const Arrays_weight: typeof weight;
 declare const Arrays_without: typeof without;
+declare const Arrays_withoutUndefined: typeof withoutUndefined;
 declare const Arrays_zip: typeof zip;
 declare namespace Arrays {
   export {
@@ -1853,8 +1856,9 @@ declare namespace Arrays {
     Arrays_valuesEqual as valuesEqual,
     Arrays_weight as weight,
     Arrays_without as without,
+    Arrays_withoutUndefined as withoutUndefined,
     Arrays_zip as zip,
   };
 }
 
-export { reducePairwise as $, Arrays as A, guardArray as B, Colour$1 as C, guardIndex as D, Easing$1 as E, valuesEqual as F, GenerateRandomOptions as G, intersection as H, flatten as I, zip as J, interleave as K, ensureLength as L, filterBetween as M, randomPluck as N, shuffle as O, sortByNumericProperty as P, without as Q, Random as R, StringOptions as S, until as T, remove as U, groupBy as V, WeightedOptions as W, sample as X, chunks as Y, MergeReconcile as Z, mergeByKey as _, RandomSource as a, filterAB as a0, unique as a1, containsDuplicateValues as a2, compareValues as a3, compareValuesEqual as a4, contains as a5, additionalValues as a6, averageWeighted as a7, weight as a8, validNumbers as a9, dotProduct as aa, average as ab, min as ac, maxIndex as ad, minIndex as ae, max as af, total as ag, maxFast as ah, totalFast as ai, minFast as aj, Rgb as b, EasingFn as c, RandomOptions as d, defaultRandom as e, weighted as f, WeightedIntegerOptions as g, weightedIntegerSource as h, integerUniqueGen as i, weightedInteger as j, gaussian as k, gaussianSource as l, integerSource as m, integer as n, floatSource as o, float as p, shortGuid as q, minutesMsSource as r, string as s, minutesMs as t, secondsMsSource as u, secondsMs as v, weightedSource as w, randomElement as x, randomHue as y, randomIndex as z };
+export { mergeByKey as $, Arrays as A, guardArray as B, Colour$1 as C, guardIndex as D, Easing$1 as E, valuesEqual as F, GenerateRandomOptions as G, intersection as H, flatten as I, zip as J, interleave as K, ensureLength as L, filterBetween as M, randomPluck as N, shuffle as O, sortByNumericProperty as P, without as Q, Random as R, StringOptions as S, withoutUndefined as T, until as U, remove as V, WeightedOptions as W, groupBy as X, sample as Y, chunks as Z, MergeReconcile as _, RandomSource as a, reducePairwise as a0, filterAB as a1, unique as a2, containsDuplicateValues as a3, compareValues as a4, compareValuesEqual as a5, contains as a6, additionalValues as a7, averageWeighted as a8, weight as a9, validNumbers as aa, dotProduct as ab, average as ac, min as ad, maxIndex as ae, minIndex as af, max as ag, total as ah, maxFast as ai, totalFast as aj, minFast as ak, Rgb as b, EasingFn as c, RandomOptions as d, defaultRandom as e, weighted as f, WeightedIntegerOptions as g, weightedIntegerSource as h, integerUniqueGen as i, weightedInteger as j, gaussian as k, gaussianSource as l, integerSource as m, integer as n, floatSource as o, float as p, shortGuid as q, minutesMsSource as r, string as s, minutesMs as t, secondsMsSource as u, secondsMs as v, weightedSource as w, randomElement as x, randomHue as y, randomIndex as z };

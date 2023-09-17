@@ -12,10 +12,12 @@ import {
   flow_exports,
   geometry_exports,
   io_exports,
+  isEqualDefault,
+  isEqualValueDefault,
   modulation_exports,
+  toStringDefault,
   visual_exports
-} from "./chunk-XL7M3HI2.js";
-import "./chunk-4DC2CRSB.js";
+} from "./chunk-KDGDXEYT.js";
 export {
   collections_exports as Collections,
   data_exports as Data,
@@ -31,6 +33,9 @@ export {
   Random_exports as Random,
   Text_exports as Text,
   Util_exports as Util,
-  visual_exports as Visual
+  visual_exports as Visual,
+  isEqualDefault,
+  isEqualValueDefault,
+  toStringDefault
 };
 //# sourceMappingURL=bundle.js.map

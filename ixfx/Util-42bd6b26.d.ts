@@ -1,5 +1,8 @@
+import { I as IsEqual } from './IsEqual-267e4380.js';
 import { D as Debug } from './Debug-aa84bc8f.js';
 
+declare function fromArray<V>(array: Array<V>): AsyncGenerator<V>;
+declare function fromIterable<V>(iterable: Iterable<V>): AsyncGenerator<V>;
 /**
  * Breaks an iterable into array chunks
  * ```js
@@ -196,7 +199,7 @@ declare function takeWhile<V>(it: AsyncIterable<V>, f: (v: V) => boolean): Async
  * @param count Number of items to return, by default all.
  * @returns
  */
-declare function toArray<V>(it: AsyncIterable<V>, count?: number): Promise<ReadonlyArray<V>>;
+declare function toArray<V>(it: AsyncIterable<V>, count?: number): Promise<Array<V>>;
 /**
  * Returns unique items from iterables, given a particular key function
  * ```js
@@ -227,6 +230,8 @@ declare const IterableAsync_filter: typeof filter;
 declare const IterableAsync_find: typeof find;
 declare const IterableAsync_flatten: typeof flatten;
 declare const IterableAsync_forEach: typeof forEach;
+declare const IterableAsync_fromArray: typeof fromArray;
+declare const IterableAsync_fromIterable: typeof fromIterable;
 declare const IterableAsync_map: typeof map;
 declare const IterableAsync_max: typeof max;
 declare const IterableAsync_min: typeof min;
@@ -250,6 +255,8 @@ declare namespace IterableAsync {
     IterableAsync_find as find,
     IterableAsync_flatten as flatten,
     IterableAsync_forEach as forEach,
+    IterableAsync_fromArray as fromArray,
+    IterableAsync_fromIterable as fromIterable,
     IterableAsync_map as map,
     IterableAsync_max as max,
     IterableAsync_min as min,
@@ -264,6 +271,12 @@ declare namespace IterableAsync {
   };
 }
 
+type ArrayLengthMutationKeys = `splice` | `push` | `pop` | `shift` | `unshift` | number;
+type ArrayItems<T extends Array<any>> = T extends Array<infer TItems> ? TItems : never;
+type FixedLengthArray<T extends Array<any>> = Pick<T, Exclude<keyof T, ArrayLengthMutationKeys>> & {
+    [Symbol.iterator]: () => IterableIterator<ArrayItems<T>>;
+};
+declare const isFunction: (object: unknown) => object is (...args: Array<any>) => any;
 /**
  * Returns `fallback` if `v` is NaN, otherwise returns `v`.
  *
@@ -398,20 +411,8 @@ declare const getFieldPaths: (o: object | null) => ReadonlyArray<string>;
  */
 declare const roundUpToMultiple: (v: number, multiple: number) => number;
 type ToString<V> = (itemToMakeStringFor: V) => string;
-/**
- * Function that returns true if `a` and `b` are considered equal
- */
-type IsEqual<V> = (a: V, b: V) => boolean;
-/**
- * Default comparer function is equiv to checking `a === b`
- */
-declare const isEqualDefault: <V>(a: V, b: V) => boolean;
-/**
- * Comparer returns true if string representation of `a` and `b` are equal.
- * Uses `toStringDefault` to generate a string representation (`JSON.stringify`)
- * @returns True if the contents of `a` and `b` are equal
- */
-declare const isEqualValueDefault: <V>(a: V, b: V) => boolean;
+declare const isMap: (value: unknown) => value is Map<any, any>;
+declare const isSet: (value: unknown) => value is Set<any>;
 /**
  * A default converter to string that uses JSON.stringify if its an object, or the thing itself if it's a string
  */
@@ -474,10 +475,12 @@ declare const comparerInverse: <V>(comparer: Comparer<V>) => Comparer<V>;
  */
 declare const defaultKeyer: <V>(a: V) => string;
 
+type Util_ArrayItems<T extends Array<any>> = ArrayItems<T>;
+type Util_ArrayLengthMutationKeys = ArrayLengthMutationKeys;
 type Util_CompareResult = CompareResult;
 type Util_Comparer<V> = Comparer<V>;
 declare const Util_Debug: typeof Debug;
-type Util_IsEqual<V> = IsEqual<V>;
+type Util_FixedLengthArray<T extends Array<any>> = FixedLengthArray<T>;
 declare const Util_IterableAsync: typeof IterableAsync;
 type Util_RemapObjectPropertyType<OriginalType, PropertyType> = RemapObjectPropertyType<OriginalType, PropertyType>;
 type Util_ToString<V> = ToString<V>;
@@ -487,9 +490,10 @@ declare const Util_defaultKeyer: typeof defaultKeyer;
 declare const Util_getFieldByPath: typeof getFieldByPath;
 declare const Util_getFieldPaths: typeof getFieldPaths;
 declare const Util_ifNaN: typeof ifNaN;
-declare const Util_isEqualDefault: typeof isEqualDefault;
-declare const Util_isEqualValueDefault: typeof isEqualValueDefault;
+declare const Util_isFunction: typeof isFunction;
+declare const Util_isMap: typeof isMap;
 declare const Util_isPowerOfTwo: typeof isPowerOfTwo;
+declare const Util_isSet: typeof isSet;
 declare const Util_jsComparer: typeof jsComparer;
 declare const Util_mapObject: typeof mapObject;
 declare const Util_numericComparer: typeof numericComparer;
@@ -499,10 +503,12 @@ declare const Util_runningiOS: typeof runningiOS;
 declare const Util_toStringDefault: typeof toStringDefault;
 declare namespace Util {
   export {
+    Util_ArrayItems as ArrayItems,
+    Util_ArrayLengthMutationKeys as ArrayLengthMutationKeys,
     Util_CompareResult as CompareResult,
     Util_Comparer as Comparer,
     Util_Debug as Debug,
-    Util_IsEqual as IsEqual,
+    Util_FixedLengthArray as FixedLengthArray,
     Util_IterableAsync as IterableAsync,
     Util_RemapObjectPropertyType as RemapObjectPropertyType,
     Util_ToString as ToString,
@@ -512,9 +518,10 @@ declare namespace Util {
     Util_getFieldByPath as getFieldByPath,
     Util_getFieldPaths as getFieldPaths,
     Util_ifNaN as ifNaN,
-    Util_isEqualDefault as isEqualDefault,
-    Util_isEqualValueDefault as isEqualValueDefault,
+    Util_isFunction as isFunction,
+    Util_isMap as isMap,
     Util_isPowerOfTwo as isPowerOfTwo,
+    Util_isSet as isSet,
     Util_jsComparer as jsComparer,
     Util_mapObject as mapObject,
     Util_numericComparer as numericComparer,
@@ -525,4 +532,4 @@ declare namespace Util {
   };
 }
 
-export { CompareResult as C, IsEqual as I, RemapObjectPropertyType as R, ToString as T, Util as U, IterableAsync as a, isPowerOfTwo as b, getFieldPaths as c, roundUpToMultiple as d, isEqualDefault as e, isEqualValueDefault as f, getFieldByPath as g, runningiOS as h, ifNaN as i, Comparer as j, jsComparer as k, defaultComparer as l, mapObject as m, numericComparer as n, comparerInverse as o, defaultKeyer as p, relativeDifference as r, toStringDefault as t };
+export { ArrayLengthMutationKeys as A, CompareResult as C, FixedLengthArray as F, IterableAsync as I, RemapObjectPropertyType as R, ToString as T, Util as U, ArrayItems as a, ifNaN as b, isPowerOfTwo as c, getFieldPaths as d, roundUpToMultiple as e, isMap as f, getFieldByPath as g, isSet as h, isFunction as i, runningiOS as j, Comparer as k, jsComparer as l, mapObject as m, numericComparer as n, defaultComparer as o, comparerInverse as p, defaultKeyer as q, relativeDifference as r, toStringDefault as t };

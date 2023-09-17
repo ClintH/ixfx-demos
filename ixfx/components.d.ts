@@ -1,7 +1,7 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-bfbc7c64.js';
+import { a as KeyValue } from './KeyValue-f5a637ea.js';
 import './MinMaxAvg-bf5430b4.js';
 import 'fp-ts/lib/Ord.js';
 

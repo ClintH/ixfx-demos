@@ -1,8 +1,7 @@
 import {
   immutable,
-  mutable
-} from "./chunk-XL7M3HI2.js";
-import "./chunk-4DC2CRSB.js";
+  mutable2 as mutable
+} from "./chunk-KDGDXEYT.js";
 export {
   immutable,
   mutable

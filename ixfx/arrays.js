@@ -41,9 +41,9 @@ import {
   valuesEqual,
   weight,
   without,
+  withoutUndefined,
   zip
-} from "./chunk-XL7M3HI2.js";
-import "./chunk-4DC2CRSB.js";
+} from "./chunk-KDGDXEYT.js";
 export {
   additionalValues,
   average,
@@ -87,6 +87,7 @@ export {
   valuesEqual,
   weight,
   without,
+  withoutUndefined,
   zip
 };
 //# sourceMappingURL=arrays.js.map

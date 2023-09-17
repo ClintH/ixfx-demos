@@ -1,5 +1,5 @@
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
-import { I as IsEqual } from './Util-413291ab.js';
+import { I as IsEqual } from './IsEqual-267e4380.js';
 
 interface IMapOf<V> {
     /**

@@ -1,4 +1,5 @@
 import {
+  DataDisplay,
   DataTable_exports,
   DragDrop_exports,
   Forms_exports,
@@ -35,9 +36,9 @@ import {
   themeChangeObservable,
   viewportToSpace,
   windowResize
-} from "./chunk-XL7M3HI2.js";
-import "./chunk-4DC2CRSB.js";
+} from "./chunk-KDGDXEYT.js";
 export {
+  DataDisplay,
   DataTable_exports as DataTable,
   DragDrop_exports as DragDrop,
   Forms_exports as Forms,

@@ -1,1 +1,2 @@
-export { d as IQueueImmutable, I as IQueueMutable, b as QueueDiscardPolicy, c as QueueOpts, e as immutable, m as mutable } from './index-016f09b1.js';
+export { c as IPriorityQueueMutable, b as IQueueImmutable, I as IQueueMutable, f as QueueDiscardPolicy, d as QueueOpts, e as immutable, m as mutable, p as priority } from './index-2819dd79.js';
+import './IsEqual-267e4380.js';

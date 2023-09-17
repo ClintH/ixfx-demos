@@ -1,7 +1,7 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { a as Point, C as CardinalDirection } from './Point-7e80cb86.js';
-import { S as ScaleFn } from './Scaler-bc0efb62.js';
+import { a as Point, C as CardinalDirection } from './Point-bff7237f.js';
+import { S as ScaleFn } from './Scaler-219c12b8.js';
 import { F as Forms } from './Forms-d8146f9f.js';
 
 type LogOpts = {
@@ -433,10 +433,14 @@ declare const el: (selectors: string) => {
     cssClass: (value: boolean, cssClass: string) => void;
 };
 
-type DataTableOpts = {
-    readonly formatter?: DataFormatter;
+type FormattingOptions = {
     readonly precision?: number;
-    readonly roundNumbers?: boolean;
+    readonly roundNumbers?: number;
+};
+type DataTableOpts = FormattingOptions & {
+    readonly formatter?: DataFormatter;
+    readonly objectsAsTables?: boolean;
+    readonly idPrefix?: string;
 };
 type DataTable<V> = {
     update(data: V): void;
@@ -472,11 +476,12 @@ type DataFormatter = (data: object, path: string) => string | undefined;
  * });
  * ```
  */
-declare const fromObject: (parentOrQuery: Readonly<HTMLElement | string>, data?: object, opts?: DataTableOpts) => DataTable<object>;
+declare const fromObject: (parentOrQuery: HTMLElement | string, data?: object, opts?: DataTableOpts) => DataTable<object>;
 
 type DataTable$1_DataFormatter = DataFormatter;
 type DataTable$1_DataTable<V> = DataTable<V>;
 type DataTable$1_DataTableOpts = DataTableOpts;
+type DataTable$1_FormattingOptions = FormattingOptions;
 declare const DataTable$1_fromList: typeof fromList;
 declare const DataTable$1_fromObject: typeof fromObject;
 declare namespace DataTable$1 {
@@ -484,9 +489,31 @@ declare namespace DataTable$1 {
     DataTable$1_DataFormatter as DataFormatter,
     DataTable$1_DataTable as DataTable,
     DataTable$1_DataTableOpts as DataTableOpts,
+    DataTable$1_FormattingOptions as FormattingOptions,
     DataTable$1_fromList as fromList,
     DataTable$1_fromObject as fromObject,
   };
+}
+
+/**
+ * Creates a simple display for data. Designed to show ixfx state data
+ *
+ * ```js
+ * // Create once
+ * const display = new DataDisplay();
+ *
+ * // Call .update to show state
+ * display.update(state);
+ * ```
+ */
+declare class DataDisplay {
+    dataTable: DataTable<object>;
+    /**
+     * Constructor
+     * @param darkMode
+     */
+    constructor(darkMode?: boolean);
+    update(data: object): void;
 }
 
 type Opts = {
@@ -589,6 +616,8 @@ declare const inlineConsole: (opts?: InlineConsoleOptions) => void;
 type index_CanvasOpts = CanvasOpts;
 type index_CanvasResizeArgs = CanvasResizeArgs;
 type index_CreateUpdateElement<V> = CreateUpdateElement<V>;
+type index_DataDisplay = DataDisplay;
+declare const index_DataDisplay: typeof DataDisplay;
 type index_DomRxOpts = DomRxOpts;
 declare const index_DragDrop: typeof DragDrop;
 type index_ElPositionOpts = ElPositionOpts;
@@ -640,6 +669,7 @@ declare namespace index {
     index_CanvasOpts as CanvasOpts,
     index_CanvasResizeArgs as CanvasResizeArgs,
     index_CreateUpdateElement as CreateUpdateElement,
+    index_DataDisplay as DataDisplay,
     DataTable$1 as DataTable,
     index_DomRxOpts as DomRxOpts,
     index_DragDrop as DragDrop,
@@ -690,4 +720,4 @@ declare namespace index {
   };
 }
 
-export { clear as A, themeChangeObservable as B, CanvasResizeArgs as C, DataTable$1 as D, ElementResizeArgs as E, resizeObservable as F, copyToClipboard as G, CreateUpdateElement as H, reconcileChildren as I, setCssClass as J, setCssDisplay as K, LogOpts as L, byId as M, setHtml as N, setText as O, PluckOpts as P, el as Q, Rx as R, Opts as S, TransformOpts as T, pointerVisualise as U, defaultErrorHandler as V, InlineConsoleOptions as W, inlineConsole as X, DragDrop as a, Log as b, DomRxOpts as c, PointSpaces as d, ElPositionOpts as e, positionFn as f, cardinalPosition as g, positionRelative as h, index as i, positionFromMiddle as j, fullSizeElement as k, log as l, CanvasOpts as m, canvasHelper as n, fullSizeCanvas as o, pointScaler as p, cycleCssClass as q, rx as r, parentSize as s, getTranslation as t, parentSizeCanvas as u, viewportToSpace as v, windowResize as w, resolveEl as x, createAfter as y, createIn as z };
+export { createIn as A, clear as B, CanvasResizeArgs as C, DataTable$1 as D, ElementResizeArgs as E, themeChangeObservable as F, resizeObservable as G, copyToClipboard as H, CreateUpdateElement as I, reconcileChildren as J, setCssClass as K, LogOpts as L, setCssDisplay as M, byId as N, setHtml as O, PluckOpts as P, setText as Q, Rx as R, el as S, TransformOpts as T, Opts as U, pointerVisualise as V, defaultErrorHandler as W, InlineConsoleOptions as X, inlineConsole as Y, DataDisplay as a, DragDrop as b, Log as c, DomRxOpts as d, PointSpaces as e, ElPositionOpts as f, positionFn as g, cardinalPosition as h, index as i, positionRelative as j, positionFromMiddle as k, log as l, fullSizeElement as m, CanvasOpts as n, canvasHelper as o, pointScaler as p, fullSizeCanvas as q, rx as r, cycleCssClass as s, parentSize as t, getTranslation as u, viewportToSpace as v, parentSizeCanvas as w, windowResize as x, resolveEl as y, createAfter as z };

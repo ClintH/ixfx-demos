@@ -1,6 +1,6 @@
-import { a as RandomSource, E as Easing } from './Arrays-3bce8efa.js';
-import { a as Point, f as Rect } from './Point-7e80cb86.js';
-import { T as Timer } from './index-14e89d41.js';
+import { a as RandomSource, E as Easing } from './Arrays-f506115e.js';
+import { a as Point, R as Rect } from './Point-bff7237f.js';
+import { T as Timer } from './index-c57a52c9.js';
 import { p as pingPong, a as pingPongPercent } from './PingPong-8ac9a1c4.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 
@@ -574,9 +574,9 @@ declare function spring(opts?: SpringOpts, timerOrFreq?: Timer | number | undefi
  *
  * ```js
  * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
- *
+ * import { frequencyTimer } from "https://unpkg.com/ixfx/dist//flow.js";
  * // Setup
- * const osc = Oscillators.sine(Timers.frequencyTimer(10));
+ * const osc = Oscillators.sine(frequencyTimer(10));
  * const osc = Oscillators.sine(0.1);
  *
  * // Call whenever a value is needed
@@ -618,7 +618,7 @@ declare function triangle(timerOrFreq: Timer | number): Generator<number, void, 
  *
  * ```js
  * import { Oscillators } from "https://unpkg.com/ixfx/dist/modulation.js"
- *
+ * import { frequencyTimer } from "https://unpkg.com/ixfx/dist//flow.js";
  * // Setup
  * const osc = Oscillators.saw(Timers.frequencyTimer(0.1));
  *
@@ -723,12 +723,13 @@ declare const jitter: (opts?: JitterOpts) => JitterFn;
  *
  * @example Usage example
  * ```js
- * const settings = {
+ * const settings = Object.freeze({
  *  ageMod: perSecond(0.1);
- * }
- * let state = {
+* });
+ *
+ * let state = Object.freeze({
  *  age: 1
- * }
+ * });
  *
  * // Update
  * setInterval(() => {
@@ -738,7 +739,7 @@ declare const jitter: (opts?: JitterOpts) => JitterFn;
  *  age += settings.ageMod();
  *  state = {
  *    ...state,
- *    age
+ *    age: clamp(age)
  *  }
  * });
  * ```
@@ -771,19 +772,19 @@ type AdsrOpts = {
     /**
      * Attack bezier 'bend'. Bend from -1 to 1. 0 for a straight line
      */
-    readonly attackBend: number;
+    readonly attackBend?: number;
     /**
      * Decay bezier 'bend'. Bend from -1 to 1. 0 for a straight line
      */
-    readonly decayBend: number;
+    readonly decayBend?: number;
     /**
      * Release bezier 'bend'. Bend from -1 to 1. 0 for a straight line
      */
-    readonly releaseBend: number;
+    readonly releaseBend?: number;
     /**
      * Peak level (maximum of attack stage)
      */
-    readonly peakLevel: number;
+    readonly peakLevel?: number;
     /**
      * Starting level (usually 0)
      */
@@ -791,7 +792,7 @@ type AdsrOpts = {
     /**
      * Sustain level. Only valid if trigger and hold happens
      */
-    readonly sustainLevel: number;
+    readonly sustainLevel?: number;
     /**
      * Release level, when envelope is done (usually 0)
      */
@@ -808,25 +809,25 @@ type AdsrTimingOpts = {
      *
      * @type {boolean}
      */
-    readonly shouldLoop: boolean;
+    readonly shouldLoop?: boolean;
     /**
      * Duration for attack stage
      * Unit depends on timer source
      * @type {number}
      */
-    readonly attackDuration: number;
+    readonly attackDuration?: number;
     /**
      * Duration for decay stage
      * Unit depends on timer source
      * @type {number}
      */
-    readonly decayDuration: number;
+    readonly decayDuration?: number;
     /**
      * Duration for release stage
      * Unit depends on timer source
      * @type {number}
      */
-    readonly releaseDuration: number;
+    readonly releaseDuration?: number;
 };
 /**
  * State change event
@@ -849,14 +850,14 @@ type Events = {
  *
  * @example Setup
  * ```js
- * import {adsr, defaultAdsrOpts} from 'https://unpkg.com/ixfx/dist/modulation.js'
+ * import { Envelopes } from 'https://unpkg.com/ixfx/dist/modulation.js'
  * const opts = {
- *  ...defaultAdsrOpts(),
+ *  ...Envelopes.defaultAdsrOpts(),
  *  attackDuration: 1000,
  *  decayDuration: 200,
  *  sustainDuration: 100
  * }
- * const env = adsr(opts);
+ * const env = Envelopes.adsr(opts);
  * ```
  *
  * [Options for envelope](https://clinth.github.io/ixfx/types/Modulation.EnvelopeOpts.html) are as follows:
@@ -965,11 +966,11 @@ declare const adsr: (opts: EnvelopeOpts) => Adsr;
  *
  * @example Init
  * ```js
- * import { adsrIterable, defaultAdsrOpts } from 'https://unpkg.com/ixfx/dist/modulation.js';
+ * import { Envelopes } from 'https://unpkg.com/ixfx/dist/modulation.js';
  * import { IterableAsync } from  'https://unpkg.com/ixfx/dist/util.js';
  *
  * const opts = {
- *  ...defaultAdsrOpts(),
+ *  ...Envelopes.defaultAdsrOpts(),
  *  attackDuration: 1000,
  *  releaseDuration: 1000,
  *  sustainLevel: 1,
@@ -981,13 +982,13 @@ declare const adsr: (opts: EnvelopeOpts) => Adsr;
  * @example Add data to array
  * ```js
  * // Sample an envelope every 20ms into an array
- * const data = await IterableAsync.toArray(adsrIterable(opts, 20));
+ * const data = await IterableAsync.toArray(Envelopes.adsrIterable(opts, 20));
  * ```
  *
  * @example Iterate with `for await`
  * ```js
  * // Work with values as sampled
- * for await (const v of adsrIterable(opts, 5)) {
+ * for await (const v of Envelopes.adsrIterable(opts, 5)) {
  *  // Work with envelope value `v`...
  * }
  * ```

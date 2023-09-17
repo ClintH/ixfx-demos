@@ -1,3 +1,37 @@
+import { I as IsEqual } from './IsEqual-267e4380.js';
+
+type QueueDiscardPolicy = `older` | `newer` | `additions`;
+/**
+ * Queue options.
+ *
+ * @example Cap size to 5 items, throwing away newest items already in queue.
+ * ```js
+ * const q = Queues.mutable({capacity: 5, discardPolicy: `newer`});
+ * ```
+ */
+type QueueOpts<V> = {
+    readonly eq?: IsEqual<V>;
+    /**
+     * @private
+     */
+    readonly debug?: boolean;
+    /**
+     * Capcity limit
+     */
+    readonly capacity?: number;
+    /**
+     * Default is `additions`, meaning new items are discarded.
+     *
+     * `older`: Removes items front of the queue (ie older items are discarded)
+     *
+     * `newer`: Remove from rear of queue to make space for new items (ie newer items are discarded)
+     *
+     * `additions`: Only adds new items that there are room for (ie. brand new items are discarded)
+     *
+     */
+    readonly discardPolicy?: QueueDiscardPolicy;
+};
+
 /**
  * Queue (mutable). See also {@link IQueueImmutable} for the immutable version.
  *
@@ -48,7 +82,7 @@ interface IQueueMutable<V> {
     /**
      * Data in queue as an array
      */
-    get data(): readonly V[];
+    get data(): ReadonlyArray<V>;
 }
 
 /**
@@ -115,8 +149,19 @@ interface IQueueImmutable<V> {
     get data(): readonly V[];
 }
 
+type PriorityItem<V> = Readonly<{
+    item: V;
+    priority: number;
+}>;
+interface IPriorityQueueMutable<V> extends IQueueMutable<PriorityItem<V>> {
+    dequeueMax(): V | undefined;
+    dequeueMin(): V | undefined;
+    peekMax(): V | undefined;
+    peekMin(): V | undefined;
+}
+
 declare class QueueImmutable<V> implements IQueueImmutable<V> {
-    readonly opts: QueueOpts;
+    readonly opts: QueueOpts<V>;
     readonly data: ReadonlyArray<V>;
     /**
      * Creates an instance of Queue.
@@ -124,7 +169,7 @@ declare class QueueImmutable<V> implements IQueueImmutable<V> {
      * @param {V[]} data Initial data. Index 0 is front of queue
      * @memberof Queue
      */
-    constructor(opts?: QueueOpts, data?: ReadonlyArray<V>);
+    constructor(opts?: QueueOpts<V>, data?: ReadonlyArray<V>);
     forEach(fn: (v: V) => void): void;
     forEachFromFront(fn: (v: V) => void): void;
     enqueue(...toAdd: ReadonlyArray<V>): QueueImmutable<V>;
@@ -155,7 +200,7 @@ declare class QueueImmutable<V> implements IQueueImmutable<V> {
  * @param startingItems Index 0 is the front of the queue
  * @returns A new queue
  */
-declare const immutable: <V>(opts?: QueueOpts, ...startingItems: readonly V[]) => IQueueImmutable<V>;
+declare const immutable: <V>(opts?: QueueOpts<V>, ...startingItems: readonly V[]) => IQueueImmutable<V>;
 
 /**
  * Returns a mutable queue. Queues are useful if you want to treat 'older' or 'newer'
@@ -178,64 +223,46 @@ declare const immutable: <V>(opts?: QueueOpts, ...startingItems: readonly V[]) =
  * @param startingItems Items are added in array order. So first item will be at the front of the queue.
  */
 declare class QueueMutable<V> implements IQueueMutable<V> {
-    readonly opts: QueueOpts;
+    readonly opts: QueueOpts<V>;
     data: ReadonlyArray<V>;
-    constructor(opts?: QueueOpts, data?: ReadonlyArray<V>);
+    eq: IsEqual<V>;
+    constructor(opts?: QueueOpts<V>, data?: ReadonlyArray<V>);
     enqueue(...toAdd: ReadonlyArray<V>): number;
     dequeue(): V | undefined;
+    /**
+     * Remove item from queue, regardless of position.
+     * Returns _true_ if something was removed.
+     * @param v
+     */
+    remove(v: V, comparer?: IsEqual<V>): boolean;
     get isEmpty(): boolean;
     get isFull(): boolean;
     get length(): number;
     get peek(): V | undefined;
 }
-declare function mutable<V>(opts?: QueueOpts, ...startingItems: ReadonlyArray<V>): IQueueMutable<V>;
+declare function mutable<V>(opts?: QueueOpts<V>, ...startingItems: ReadonlyArray<V>): IQueueMutable<V>;
 
-type QueueDiscardPolicy = `older` | `newer` | `additions`;
-/**
- * Queue options.
- *
- * @example Cap size to 5 items, throwing away newest items already in queue.
- * ```js
- * const q = Queues.mutable({capacity: 5, discardPolicy: `newer`});
- * ```
- */
-type QueueOpts = {
-    /**
-     * @private
-     */
-    readonly debug?: boolean;
-    /**
-     * Capcity limit
-     */
-    readonly capacity?: number;
-    /**
-     * Default is `additions`, meaning new items are discarded.
-     *
-     * `older`: Removes items front of the queue (ie older items are discarded)
-     *
-     * `newer`: Remove from rear of queue to make space for new items (ie newer items are discarded)
-     *
-     * `additions`: Only adds new items that there are room for (ie. brand new items are discarded)
-     *
-     */
-    readonly discardPolicy?: QueueDiscardPolicy;
-};
+declare function priority<V>(opts?: QueueOpts<PriorityItem<V>>): IPriorityQueueMutable<V>;
 
+type index_IPriorityQueueMutable<V> = IPriorityQueueMutable<V>;
 type index_IQueueImmutable<V> = IQueueImmutable<V>;
 type index_IQueueMutable<V> = IQueueMutable<V>;
 type index_QueueDiscardPolicy = QueueDiscardPolicy;
-type index_QueueOpts = QueueOpts;
+type index_QueueOpts<V> = QueueOpts<V>;
 declare const index_immutable: typeof immutable;
 declare const index_mutable: typeof mutable;
+declare const index_priority: typeof priority;
 declare namespace index {
   export {
+    index_IPriorityQueueMutable as IPriorityQueueMutable,
     index_IQueueImmutable as IQueueImmutable,
     index_IQueueMutable as IQueueMutable,
     index_QueueDiscardPolicy as QueueDiscardPolicy,
     index_QueueOpts as QueueOpts,
     index_immutable as immutable,
     index_mutable as mutable,
+    index_priority as priority,
   };
 }
 
-export { IQueueMutable as I, QueueMutable as Q, QueueImmutable as a, QueueDiscardPolicy as b, QueueOpts as c, IQueueImmutable as d, immutable as e, index as i, mutable as m };
+export { IQueueMutable as I, QueueMutable as Q, QueueImmutable as a, IQueueImmutable as b, IPriorityQueueMutable as c, QueueOpts as d, immutable as e, QueueDiscardPolicy as f, index as i, mutable as m, priority as p };
