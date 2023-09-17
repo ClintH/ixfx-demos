@@ -92,10 +92,9 @@ function setup() {
   setInterval(update, 500);
 };
 
-// #region Toolbox
 /**
  * Save state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
@@ -104,4 +103,3 @@ function saveState (s) {
   });
 }
 setup();
-// #endregion
