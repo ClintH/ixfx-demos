@@ -1,35 +1,30 @@
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
+import * as Util from './util.js';
 
-// Initial state with empty values
+/**
+ * @typedef {{
+ * reference: Points.Point
+ * location: Points.Point
+ * pointer: Points.Point
+ * angleDeg: number
+ * distance: number
+ * }} State
+ */
+
+/** @type State */
 let state = Object.freeze({
-
-  /**
-   * Point to compare against (in relative coords)
-   */
-  reference: {
-    x: 0.5,
-    y: 0.5
-  },
-  /**
-   * Other point to compare to
-   */
-  location: {
+  // Point to compare against (in relative coords)
+  reference: { x: 0.5, y: 0.5 },
+  // Other point to compare to
+  location: { 
     x: Math.random(),
     y: Math.random()
   },
-  /** 
-   * Calculated angle between reference and location
-   * @type {number} 
-   */
+  // Calculated angle between reference and location
   angleDeg: 0,
-  /** 
-   * Calculated distance between reference and location
-   * @type {number} 
-   */
+  // Calculated distance between reference and location
   distance: 0,
-  /**
-   * Current position of pointer
-   */
+  // Current position of pointer
   pointer: { x: 0, y: 0 }
 });
 
@@ -54,24 +49,16 @@ const update = () => {
 
 const use = () => {
   const { location, reference, distance, angleDeg } = state;
-  const thingElement = document.querySelector(`#thing`);
-  const referenceElement = document.querySelector(`#reference`);
-  const distanceElement = document.querySelector(`#lblDistance`);
-  const angleDegElement = document.querySelector(`#lblAngleDeg`);
-
-  if (!thingElement) return;
-  if (!referenceElement) return;
-  if (!distanceElement || !angleDegElement) return;
   
   // Position element that tracks pointer
-  positionElementByRelative(thingElement, location);
+  Util.positionElementByRelative(`#thing`, location);
 
   // Position 'reference' element
-  positionElementByRelative(referenceElement, reference);
+  Util.positionElementByRelative(`#reference`, reference);
 
   // Update labels
-  distanceElement.textContent = distance.toPrecision(2);
-  angleDegElement.textContent = Math.round(angleDeg).toString();
+  Util.textContent(`#lblDistance`, distance.toPrecision(2));
+  Util.textContent(`#lblAngleDeg`, Math.round(angleDeg).toString());
 };
 
 /**
@@ -79,11 +66,9 @@ const use = () => {
  * @param {PointerEvent} event 
  */
 const onPointerMoveOrDown = (event) => {
-  const x = event.clientX;
-  const y = event.clientY;
   saveState({
     // Make pointer position relative (on 0..1 scale)
-    pointer: Points.divide(x, y, window.innerWidth, window.innerHeight)
+    pointer: Util.relativePoint(event.clientX, event.clientY)
   });
 };
   
@@ -102,7 +87,7 @@ setup();
 
 /**
  * Update state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
@@ -111,15 +96,3 @@ function saveState (s) {
   });
 }
 
-/**
- * Positions an element using relative coordinates
- * @param el {HTMLElement}
- * @param pos {{x:number, y:number}}
- */
-function positionElementByRelative(element, pos) {
-  pos = Points.multiply(pos, window.innerWidth, window.innerHeight);
-
-  const b = element.getBoundingClientRect();
-  const p = Points.subtract(pos, b.width / 2, b.height / 2);
-  element.style.transform = `translate(${p.x}px, ${p.y}px)`;
-}

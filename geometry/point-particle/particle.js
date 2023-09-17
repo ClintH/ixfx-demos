@@ -1,10 +1,11 @@
 /**
- * @typedef Particle
- * @property {number} x
- * @property {number} y
- * @property {number} age
- * @property {number} weight
- * @property {number} intensity
+ * @typedef {{
+ * x: number
+ * y: number
+ * age: number
+ * weight: number
+ * intensity: number
+ * }} Particle
  */
 
 const settings = Object.freeze({
@@ -64,7 +65,8 @@ export const draw = (context, pt, state) => {
 };
 
 /**
- * @typedef Point
- * @property {number} x
- * @property {number} y
+ * @typedef {{
+ * x: number
+ * y: number
+ * }} Point
  */

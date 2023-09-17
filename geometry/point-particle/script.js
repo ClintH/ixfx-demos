@@ -17,13 +17,15 @@ const settings = Object.freeze({
   bgHue: `194`,
 });
 
+
 /**
- * @typedef {object} State
- * @prop {import('./particle.js').Particle[]} particles
- * @prop {import('./particle.js').Point} pointer
- * @prop {boolean} pointerDown
- * @prop {{width:number,height:number,center:import('./particle.js').Point}} bounds
-  */
+ * @typedef {{
+ * particles: Particle[]
+ * pointer: Point
+ * pointerDown: boolean
+ * bounds: {width:number,height:number,center:{x:number,y:number}}
+ * }} State
+ */
 
 /** @type {State} */
 let state = Object.freeze({
@@ -167,3 +169,8 @@ function saveState (s) {
     ...s
   });
 }
+
+/**
+ * @typedef {import('./particle.js').Particle} Particle
+ * @typedef {import('./particle.js').Point} Point
+ */

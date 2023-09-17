@@ -1,24 +1,28 @@
 import { Points } from '../../ixfx/geometry.js';
 import * as Util from './util.js';
+
 const settings = Object.freeze({
   // Upwards vector to compare against
-  compareTo: { x: 0, y: -1 },
-  dotProductEl: /** @type HTMLElement */(document.querySelector(`#dot-product`)),
-  vectorEl: /** @type HTMLElement */(document.querySelector(`#vector`))
+  compareTo: { x: 0, y: -1 }
 });
 
 let state = Object.freeze({
-  heading: {x:0,y:0},
-  /** @type number */
+  // Current heading
+  heading: { x:0, y:0 },
+  /** 
+   * Current dot product
+   * @type number */
   dotProduct: 0
 });
 
 const use = () => {
-  const { vectorEl, dotProductEl } = settings;
   const { heading, dotProduct } = state;
   
-  vectorEl.innerHTML = Points.toString(heading);
-  dotProductEl.innerHTML = dotProduct.toString();
+  // TODO: Do something interesting with dotProduct
+
+  // ...for debug, display data
+  Util.setHtml(`dot-product`, dotProduct.toString());
+  Util.setHtml(`vector`, Points.toString(heading));
 };
 
 /**
@@ -32,8 +36,7 @@ const onPointerMove = (event) => {
   // Only process if a button is being pressed
   if (event.buttons === 0) return;
 
-  const movement = Util.addUpMovement(event);
-  console.log(movement);
+  const movement = Util.addUpSignedMovement(event);
 
   // If there's not much movement, ignore
   if (Points.withinRange(movement, Points.Empty, 2)) return;
@@ -44,9 +47,10 @@ const onPointerMove = (event) => {
   // eg: north-west {x: -1, y: -1}
   const heading = Points.normalise(movement);
 
+  // Calculate dot product of heading and target vector
   const dotProduct = Points.dotProduct(heading, compareTo);
   
-  saveState({heading, dotProduct});
+  saveState({ heading, dotProduct });
   use();
 };
 

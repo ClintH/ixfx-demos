@@ -1,6 +1,7 @@
-import { scalePercent, clamp } from '../../ixfx/data.js';
 import * as Dom from '../../ixfx/dom.js';
+import { scalePercent, clamp } from '../../ixfx/data.js';
 import { Points, Circles } from '../../ixfx/geometry.js';
+import * as Util from './util.js';
 
 // Define settings
 const settings = Object.freeze({
@@ -14,16 +15,24 @@ const settings = Object.freeze({
   saturation: 0.1
 });
 
-// Initial state with empty values
+/** @typedef {{ 
+ * bounds: {width:number, height:number, center: {x: number, y: number }}
+ * distance: number
+ * }} State */
+
+/** @type State */
 let state = Object.freeze({
   bounds: {
     width: 0,
     height: 0,
     center: { x: 0, y: 0 }
   },
-  /** @type number */
   distance: 0
 });
+
+const update = () => {
+  // Do nothing
+};
 
 const use = () => {
   const { distance, bounds } = state;
@@ -48,7 +57,7 @@ const use = () => {
 const drawCircle = (context, circle) => {
   
   // Get absolute point
-  const circlePos = toAbsolutePoint(circle);
+  const circlePos = Util.toAbsolutePoint(circle, state.bounds);
 
   // Translate to middle of circle
   context.save();
@@ -67,14 +76,12 @@ const onPointerMove = (event) => {
   const { circle } = settings;
 
   // Compute relative point on a 0..1 scale
-  const pointer = {
-    x: clamp(event.x / window.innerWidth),
-    y: clamp(event.y / window.innerHeight)
-  };
+  const pointer = Util.toRelativePoint(event.x, event.y);
 
   // Distance to circle
   const distance = Circles.distanceFromExterior(circle, pointer);
   console.log(distance);
+
   saveState({ distance });
 };
 
@@ -90,6 +97,7 @@ const setup = () => {
   document.addEventListener(`pointermove`, onPointerMove);
 
   const loop = () => {
+    update();
     use();
     window.requestAnimationFrame(loop);
   };
@@ -99,7 +107,7 @@ setup();
 
 /**
  * Update state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
@@ -108,9 +116,3 @@ function saveState (s) {
   });
 }
 
-function toAbsolutePoint(p) {
-  return {
-    x: p.x * state.bounds.width,
-    y: p.y * state.bounds.height
-  };
-}

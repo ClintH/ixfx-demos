@@ -92,7 +92,7 @@ function setup() {
     pointerMovement.reset();
   });
 
-  window.addEventListener(`pointermove`, (event) => {
+  document.addEventListener(`pointermove`, (event) => {
     const { pointerMovement } = state;
 
     // Exit if no there's no press

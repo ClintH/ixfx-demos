@@ -1,86 +1,84 @@
 import { Points } from '../../ixfx/geometry.js';
-import { clamp } from '../../ixfx/data.js';
+import * as Things from './thing.js';
 import * as Util from './util.js';
 
-// Define our Thing
+// Settings for sketch
+const settings = Object.freeze({
+  thingUpdateSpeedMs: 10,
+  // How many things to spawn
+  spawnThings: 10,
+  hueChange: 0.1
+});
+
 /** 
- * @typedef Thing
- * @property {boolean} dragging
- * @property {Points.Point} position
- * @property {number} mass
- * @property {number} agitation
- * @property {HTMLElement} el
+ * @typedef {{
+ *  things:Things.Thing[]
+ *  draggingId: number
+ * }} State
  */
 
-
-const settings = Object.freeze({
-  agitationDecay: 0.99
-});
-
+/**
+ * @type {State}
+ */
 let state = Object.freeze({
-  /** @type Thing[] */
-  things: []
+  things: [],
+  // Id of thing being dragged
+  draggingId: 0
 });
 
+/**
+ * Makes use of the data contained in `state`
+ */
+const use = () => {};
 
-const use = () => {
-  for (const t of state.things) {
-    const { el, position, agitation } = t;
-
-    // Calculate top-left pos from relative center position
-    const pos = Util.calcPositionByMiddle(el,  position);
-
-    // Calculate rotatation based on 'agitation'
-    const rot = t.agitation * 360;
-
-    // Apply via CSS
-    el.style.transform = `translate(${pos.x}px, ${pos.y}px) rotate(${rot}deg)`;
-
-  }
-};
-
-const update =() => {
-  const { agitationDecay } = settings;
-
-  for (const t of state.things) {
-    let agitation = t.agitation;
-    if (t.dragging) {
-      // Expand agitation
-      agitation += Math.min(agitation, 0.001) * (1-t.mass);
-    } else {
-      // Decay agitation
-      agitation *= agitationDecay;
-    }
-    t.agitation = clamp(agitation, 0.0001, 1);
-  }
+const update = () => {
+  // 1. Recalcuate state
+  // 2. Save state
+  // saveState({ ... });
+  // 3. Use it
   use();
-  window.requestAnimationFrame(update);
+
+  // Loop!
+  setTimeout(update, 10);
 };
 
 /**
  * Triggered on 'pointerdown' on a 'thing' HTML element
- * @param {Draggable} t 
+ * @param {Things.Thing} thing 
  * @param {PointerEvent} event 
  */
-const onDragStart = (t, event) => {
-  const { el } = t;
+const onDragStart = (thing, event) => {
+  const { el, id } = thing;
+
+  // Track the id of thing being dragged
+  saveState({draggingId: id });
 
   el.classList.add(`dragging`);
-  t.dragging = true;
-
-  const startedAt = Util.pointToRelative(event);
-  const thingStartPosition = { ...t.position };
   
+  // Relative point at which drag was started
+  const startedAt = Util.relativePoint(event.clientX, event.clientY);
+
+  // Current position of thing
+  const thingStartPosition = { ...thing.position };
+  
+  // When a pointer move happens
   const pointerMove = (event) => {
+    const pointerPosition = Util.relativePoint(event.clientX, event.clientY);
     // Compare relative pointer position to where we started
     // This yields the x,y offset from where dragging started
-    const offset = Points.subtract(Util.pointToRelative(event), startedAt);
+    const offset = Points.subtract(pointerPosition, startedAt);
 
     // Add this offset to the thing's original 
     // position to get the new position.
-    t.position = Points.sum(thingStartPosition, offset);
-  };
+    const updatedPosition = Points.sum(thingStartPosition, offset);
 
+    // Update the thing in state.things according to its id
+    const finalThing = updateThingInState(id, { position: updatedPosition });
+    if (finalThing) {
+      // Visually update
+      Things.use(finalThing);
+    }
+  };
 
   // Dragging...
   document.addEventListener(`pointermove`, pointerMove);
@@ -89,63 +87,64 @@ const onDragStart = (t, event) => {
   document.addEventListener(`pointerup`, event => {  
     el.classList.remove(`dragging`);
     document.removeEventListener(`pointermove`, pointerMove);
-    t.dragging = false;
+    if (state.draggingId === id) {
+      saveState({draggingId: 0});
+    }
   }, { once: true });
 };
 
-/**
- * Sets up a thing
- * - listens for pointerdown events on the thing to initiate drag
- * @param {Thing} t 
- */
-const setupThing = (t) => {
-  const { el } = t;
+const onPointerDown = (event) => {
+  const { things } = state;
+  const target = event.target;
+ 
+  // Find thing with pointer down
+  const matching = things.find(thing => thing.el === target);
 
-  el.addEventListener(`pointerdown`, event => {
-    event.preventDefault();
-    onDragStart(t, event);
-  });
+  // pointerdown happened on something other than a Thing
+  if (matching === undefined) return;
+
+  // Was on a Thing!
+  onDragStart(matching, event);
 };
 
-const setup = () => {
-  // Make three random things
-  saveState({ things: [ generateRandomThing(), generateRandomThing(), generateRandomThing() ] });
-
-  // Set up things
-  for (const t of state.things) {
-    setupThing(t);
+function setup() {
+  // Create a bunch of things
+  const things = [];
+  for (let index=1;index<=settings.spawnThings;index++) {
+    things.push(Things.create(index));
   }
+
+  // Save them
+  saveState({ things });
+
+  document.addEventListener(`pointerdown`, onPointerDown);
+
+  // Update things at a fixed rate
+  setInterval(() => {
+    let { things } = state;
+
+    // Update all the things
+    things = things.map(t => Things.update(t, state));
+
+    // Save updated things into state
+    saveState({ things });
+
+    // Visually update based on new state
+    for (const thing of things) {
+      Things.use(thing);
+    }
+  }, settings.thingUpdateSpeedMs);
+
+  // Update state of sketch and use state
+  // at full speed
   update();
 };
+
 setup();
 
-
 /**
- * Generates a Thing
- * @returns {Thing}
- */
-function generateRandomThing () {
-  const element = document.createElement(`div`);
-  element.classList.add(`thing`);
-  document.body.append(element);
-
-  const mass = Math.random();
-  const size = mass * 100 + 100;
-  element.style.width = `${size}px`;
-  element.style.height = `${size}px`;
-  
-  return {
-    dragging: false,
-    mass,
-    agitation: 0,
-    position: { x: Math.random(), y: Math.random() },
-    el: element
-  };
-}
-
-/**
- * Update state
- * @param {Partial<state>} s 
+ * Save state
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
@@ -154,11 +153,29 @@ function saveState (s) {
   });
 }
 
-
-
 /**
- * @typedef Draggable
- * @property {boolean} dragging
- * @property {Points.Point} position
- * @property {HTMLElement} el
+ * Update a given thing by its id. The
+ * updated thing is returned,  or _undefined_
+ * if it wasn't found.
+ * @param {number} thingId 
+ * @param {Partial<Things.Thing>} updatedThing 
+ * @returns {Things.Thing|undefined}
  */
+function updateThingInState(thingId, updatedThing) {
+  let completedThing;
+
+  const things = state.things.map(thing => {
+    // Is it the thing we want to change?
+    if (thing.id !== thingId) return thing; // no
+    // Return mutated thing
+    completedThing = {
+      ...thing,
+      ...updatedThing
+    };
+    return completedThing;
+  });
+
+  // Save changed things
+  saveState({things});
+  return completedThing;
+}

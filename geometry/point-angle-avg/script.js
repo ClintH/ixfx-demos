@@ -1,5 +1,6 @@
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
 import { scale, numberTracker, pointTracker } from '../../ixfx/data.js';
+import * as Util from './util.js';
 
 let state = Object.freeze({
   /**
@@ -35,15 +36,15 @@ const use = () => {
   const avgDegreesCircle = scale(avgDegrees, -180, 180, 0, 359);
   const rawDegreesCircle = scale(rawDegrees, -180, 180, 0, 359);
 
-  setText(`lblAngleRadAvg`, avgRadians.toFixed(2));
-  setText(`lblAngleDegAvg`, avgDegreesCircle.toFixed(2));
+  Util.setText(`lblAngleRadAvg`, avgRadians.toFixed(2));
+  Util.setText(`lblAngleDegAvg`, avgDegreesCircle.toFixed(2));
 
-  setText(`lblAngleRadRaw`, rawRadians.toFixed(2));
-  setText(`lblAngleDegRaw`, rawDegreesCircle.toFixed(2));
+  Util.setText(`lblAngleRadRaw`, rawRadians.toFixed(2));
+  Util.setText(`lblAngleDegRaw`, rawDegreesCircle.toFixed(2));
 
 
-  rotateElementById(`thingAvg`, avgDegreesCircle);
-  rotateElementById(`thingRaw`, rawDegreesCircle);
+  Util.rotateElementById(`thingAvg`, avgDegreesCircle);
+  Util.rotateElementById(`thingRaw`, rawDegreesCircle);
 };
 
 
@@ -51,7 +52,7 @@ const onPointerMove = (event) => {
   const { moveTracker, angleAvg } = state;
   event.preventDefault();
 
-  const pointerRelative = relativePos(event);
+  const pointerRelative = Util.relativePos(event);
   const result = moveTracker.seen(pointerRelative);
 
   // Angle from last movement
@@ -82,33 +83,3 @@ function saveState (s) {
   });
 }
 
-/**
- * Sets the innerText of an element with `id`
- * @param {string} id
- * @param {string} text
- * @returns void
- */
-function setText(id, text)  {
-  const element = document.querySelector(`#${id}`);
-  if (!element) return;
-  element.textContent = text;
-}
-
-/**
- * Returns the relative position from an absolute one
- * @param {Points.Point} pos 
- * @returns {Points.Point}
- */
-function relativePos(pos) {
-  return {
-    x: pos.x / window.innerWidth,
-    y: pos.y / window.innerHeight
-  };
-}
-
-function rotateElementById(id, rotation) {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (element) {
-    element.style.transform = `rotate(${rotation}deg)`;
-  }
-}

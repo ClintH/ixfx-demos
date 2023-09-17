@@ -1,134 +1,105 @@
 import { Points } from '../../ixfx/geometry.js';
-import { clamp } from '../../ixfx/data.js';
+import {clamp } from '../../ixfx/data.js';
+import * as Things from './thing.js';
+import * as Util from './util.js';
 
-// Define our Thing
-/** 
- * @typedef Thing
- * @property {'none'|'dragging'} dragState
- * @property {Points.Point} position
- * @property {number} mass
- */
-
+// Settings for sketch
 const settings = Object.freeze({
-  meltRate: 0.9999,
-  movementMax: 50,
-  sizeEm: 10,
-  massRange: [ 0.1, 4 ]
+  // What constitutes maximum movement
+  movementMax: 0.3,
+  thingUpdateSpeedMs: 10,
+  movementDecay: 0.8,
+  elapsedMax: 5000
 });
 
+/** 
+ * @typedef {{
+* movement: number
+* pressElapsed: number
+* lastPress: number
+* thing: Things.Thing
+* }} State
+*/
+
+/**
+ * @type {State}
+ */
 let state = Object.freeze({
-  /** @type number */
-  freezeRay: 1,
-  /** @type Thing */
-  thing: generateThing(),
-  /** @type number */
-  currentMovement: 0
+  movement: 0,
+  lastPress: 0,
+  pressElapsed: 0,
+  thing: Things.create(`#thing`)
 });
 
 /**
- * Use the data of the Thing somehow...
- * @param {Thing} thing 
+ * Makes use of the data contained in `state`
  */
-const useThing = (thing) => {
-  const { sizeEm } = settings;
-
-  const element = /** @type HTMLElement */(document.querySelector(`#thing`));
-  if (!element) return;
-
-  const { position, mass } = thing;
-
-  // Change opacity based on mass
-  element.style.opacity = mass.toString();
-
-  // Change size based on mass
-  element.style.height = element.style.width = `${sizeEm*mass}em`;
-
-  // Position
-  positionFromMiddle(element, position);
-};
-
-/**
- * Continually loops, updating the thing
- * @param {Thing} thing
- */
-const loopThing = (thing) => {
-  const { meltRate, massRange } = settings;
-  const { freezeRay } = state; // Get thing from state
-
-  let { mass } = thing;
-
-  // Apply relevant state from the world. 0.01 is used to scale it down
-  mass = mass + (mass*freezeRay*0.01);
-
-  // Apply the 'logic' of the thing
-  // - Our thing melts over time
-  mass *= meltRate;
-
-  // Make sure mass doesn't go outside our desired range
-  mass = clamp(mass, massRange[0], massRange[1]);
-
-  // Apply changes to a new Thing
-  return updateThing(thing, { mass });
-};
-
-const use = () => {
-  const { thing } = state;
-
-  // Use thing
-  useThing(thing);
-};
+const use = () => {};
 
 const update = () => {
-  const { thing } = state;
+  const { movementDecay, elapsedMax } = settings;
+  let { movement, pressElapsed, lastPress } = state;
+
+  // Decay movement
+  movement *= movementDecay;
+
+  // Calculate relative time since last press
+  pressElapsed = (performance.now() - lastPress) / elapsedMax;
   
-  // Update freeze ray based on movement
-  const freeze = state.currentMovement / settings.movementMax;
-
-  // Update thing
-  const thingUpdated = loopThing(thing);
-
-  // Update state
   saveState({ 
-    thing: thingUpdated,
-    freezeRay: freeze,
-    currentMovement: 0
+    movement: clamp(movement),
+    pressElapsed: clamp(pressElapsed)
   });
 
   use();
-  window.requestAnimationFrame(update);
+  setTimeout(update);
 };
 
-const onPointerMove = (event) => {    
-  // Get magnitude of movement
-  const magnitude = Points.distance({ x: event.movementX, y: event.movementY });
+const onPointerMove = (event) => {  
+  const { movementMax } = settings;
+
+  // Calculate movement based on pointer event
+  const movement = Util.addUpMovement(event);
+  const scaledMovement = movement / movementMax;
+
   // Add to state
   saveState({ 
-    currentMovement: state.currentMovement + magnitude 
+    movement: clamp(state.movement + scaledMovement)
   });
 };
 
-const setup = () => {
-  window.addEventListener(`pointermove`, onPointerMove);
+const onPointerDown = (event) => {
+  // Keep track of when pointer is pressed
+  saveState({
+    lastPress: performance.now()
+  });
+};
+
+function setup() {
+  document.addEventListener(`pointermove`, onPointerMove);
+  document.addEventListener(`pointerdown`, onPointerDown);
+
+  // Update thing at a fixed rate
+  setInterval(() => {
+    // Calculate new thing and save it into state
+    saveState({ 
+      thing: Things.update(state.thing, state)
+    });
+
+    // Visually update thing based on its state
+    Things.use(state.thing);
+  }, settings.thingUpdateSpeedMs);
+
+  // Update state of sketch and use state
+  // at full speed
   update();
 };
+
 setup();
 
-
 /**
- * Generates a Thing
- * @returns {Thing}
- */
-function generateThing () {
-  return {
-    dragState:  `none`,
-    position: { x: 0.5, y:0.5 },
-    mass: 1
-  };
-}
-
-/**
- * Update state
- * @param {Partial<state>} s 
+ * Save state
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
@@ -137,30 +108,3 @@ function saveState (s) {
   });
 }
 
-/**
- * Updates `thing` with supplied `data`
- * @param {Thing} thing
- * @param {Partial<Thing>} data 
- */
-function updateThing(thing, data) {
-  return Object.freeze({
-    ...thing,
-    ...data
-  });
-}
-
-/**
- * Position an element from its middle
- * @param {HTMLElement} element 
- * @param {Points.Point} relativePos 
- */
-function positionFromMiddle(element, relativePos) {
-  // Convert relative to absolute units
-  const absPosition = Points.multiply(relativePos, window.innerWidth,window.innerHeight);
-  
-  const thingRect = element.getBoundingClientRect();
-  const offsetPos = Points.subtract(absPosition, thingRect.width / 2, thingRect.height / 2);
-
-  // Apply via CSS
-  element.style.transform = `translate(${offsetPos.x}px, ${offsetPos.y}px)`;
-}

@@ -12,10 +12,11 @@ const settings = Object.freeze({
  * Define our thing
  * @typedef {{
  *  position: Points.Point
+ *  id:number
  *  surprise: number
  *  size: number
  *  movement: number
- *  elementId: string
+ *  element: HTMLElement
  *  hue:number
  * }} Thing
  */
@@ -24,14 +25,14 @@ const settings = Object.freeze({
 /**
  * @param {Thing} thing
  * @param {number} amount
- * @param {string[]} ids
+ * @param {Element[]} elements
  * @returns {Thing}
  */
-export const onMovement = (thing, amount, ids) => {
-  let { elementId, movement } = thing;
+export const onMovement = (thing, amount, elements) => {
+  let { element, movement } = thing;
 
   // True if our id is in the list of ids
-  const isHovering = ids.includes(elementId);
+  const isHovering = elements.includes(element);
 
   // Halve the movement amount if pointer movement is not
   // over this thing
@@ -50,11 +51,7 @@ export const onMovement = (thing, amount, ids) => {
  */
 export const use = (thing) => {
   // Grab some properties from `thing`
-  const { position, elementId, surprise, hue } = thing;
-  
-  // Resolve element
-  const element = /** @type HTMLElement */(document.querySelector(`#${elementId}`));
-  if (!element) throw new Error(`Could not resolve element id: ${elementId}`);
+  const { position, element, surprise, hue } = thing;
   
   // Set background
   element.style.backgroundColor = `hsl(${hue}, 50%, 50%)`;
@@ -108,25 +105,27 @@ export const update = (thing, ambientState) => {
 
 /**
  * Creates a new thing
- * @param {string} elementId
+ * @param {number} id
  * @returns {Thing}
  */
-export const create = (elementId) => {
+export const create = (id) => {
+  const size =Math.random();
+
+  const element = document.createElement(`div`);
+  element.id = `thing-${id}`;
+  element.classList.add(`thing`);
+  element.style.width = `${size*30}em`;
+  element.style.height = `${size*30}em`;
+  document.body.append(element);
+
   const t = {
     position: { x: Math.random(), y: Math.random() },
-    elementId,
+    id,
     size: Math.random(),
     surprise: Math.random(),
     hue: Math.random() * 360,
+    element,
     movement: 0
   };
-  
-  const element = document.createElement(`div`);
-  element.id = elementId;
-  element.classList.add(`thing`);
-  element.style.width = `${t.size*30}em`;
-  element.style.height = `${t.size*30}em`;
-  document.body.append(element);
-  
   return t;
 };

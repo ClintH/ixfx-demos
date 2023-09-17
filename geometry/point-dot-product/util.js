@@ -12,11 +12,24 @@ export const relativePoint = (x, y) => {
 };
 
 /**
+ * Sets the innerText of an element with `id`
+ * @param {string} id
+ * @param {string} text
+ * @returns void
+ */
+export function setHtml(id, text)  {
+  const element = document.querySelector(`#${id}`);
+  if (!element) return;
+  if (element.textContent === text) return;
+  element.innerHTML = text;
+}
+
+/**
  * Add up all pointer movement in provided `events`
  * @param {PointerEvent} pointerEvent
  * @returns {{x:number,y:number}}
  */
-export const addUpMovement = (pointerEvent) => {
+export const addUpSignedMovement = (pointerEvent) => {
   let xx = 0;
   let yy = 0;
   const events = `getCoalescedEvents` in pointerEvent ? pointerEvent.getCoalescedEvents() : [pointerEvent];

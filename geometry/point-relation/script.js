@@ -1,26 +1,42 @@
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
+import * as Util from './util.js';
 
+/**
+ * @typedef {{
+ * relationFromPointerDown: Points.PointRelation|undefined
+ * results: Points.PointRelationResult|undefined
+ * }} State
+ */
 
-// Initial state with empty values
+/** @type State */
 let state = Object.freeze({
-  /** 
-   * PointRelation instance that tracks relation between pointerdown
-   * location and current location
-   * @type {Points.PointRelation|undefined} */
+  // Track relation from pointerdown location
   relationFromPointerDown: undefined,
-  /** 
-   * Last result from relationFromPointerDown
-   * @type {Points.PointRelationResult|undefined}
-   */
+  // Last result from the tracker
   results: undefined,
 });
 
 const use = () => {
   const { results } = state;
-  if (!results) return;
+  
+  if (!results) return; // No results, nothing to do 🤷🏼‍♂️
+  
+  // TODO: Do something interesting with data from results
+  const { centroid } = results;
 
-  const { angle, distanceFromLast, distanceFromStart, centroid, average, speed } = results;
+  // ...but we don't do anything interesting with data, just display it
+  displayData(results);
+};
 
+/**
+ * Display PointRelationResult data
+ * @param {Points.PointRelationResult|undefined} result 
+ */
+const displayData = (result) => {
+  if (result === undefined) return;
+  const { angle, distanceFromLast, distanceFromStart, centroid, average, speed } = result;
+
+  // Get angle in a more typical degrees
   const angleDeg = radianToDegree(angle);
   
   // Data to dump
@@ -33,22 +49,23 @@ const use = () => {
     `Speed: ${speed.toPrecision(2)}`];
   
   // Wrap in DIVs
-  const linesWithDivs = lines.map(l => `<DIV>${l}</DIV>`);
-  // Update labels
-  setHtml(`info`, linesWithDivs.join(``));
+  const linesWithDivs = lines.map(line => `<div>${line}</div>`);
+
+  // Update page
+  Util.setHtml(`info`, linesWithDivs.join(``));
 };
 
 const onPointerDown = event => {
   event.preventDefault();
 
   // Convert to relative coordinate
-  const pointerRelative = relativePos(event);
+  const pointerRelative = Util.relativePos(event);
  
   // Init new 'relation', and update state
   saveState({ relationFromPointerDown: Points.relation(pointerRelative) });
 
-  // Position 'reference' element
-  positionIdByRelative(`reference`, pointerRelative);
+  // Position 'reference' element to pointer location
+  Util.positionIdByRelative(`reference`, pointerRelative);
 
   document.body.classList.add(`moving`);
 };
@@ -58,12 +75,12 @@ const onPointerMove = event => {
   if (!relationFromPointerDown) return;
   event.preventDefault();
 
-  const pointerRelative = relativePos(event);
+  const pointerRelative = Util.relativePos(event);
 
   const results = relationFromPointerDown(pointerRelative);
 
   // Position 'reference' element
-  positionIdByRelative(`thing`, pointerRelative);
+  Util.positionIdByRelative(`thing`, pointerRelative);
 
   saveState({ results });
   use();
@@ -73,7 +90,7 @@ const onPointerMove = event => {
 
 const onPointerUp = event => {
   // Hide element offscreen when there's a pointer up
-  positionIdByRelative(`reference`, { x: -1, y: -1 });
+  Util.positionIdByRelative(`reference`, { x: -1, y: -1 });
 
   saveState({ relationFromPointerDown: undefined });
   document.body.classList.remove(`moving`);
@@ -88,51 +105,11 @@ setup();
 
 /**
  * Update state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
     ...state,
     ...s
   });
-}
-
-/**
- * Returns the relative position from an absolute one
- * @param {Points.Point} pos 
- * @returns {Points.Point}
- */
-function relativePos(pos) {
-  return {
-    x: pos.x / window.innerWidth,
-    y: pos.y / window.innerHeight
-  };
-}
-
-/**
- * Sets the innerText of an element with `id`
- * @param {string} id
- * @param {string} text
- * @returns void
- */
-function setHtml(id, text)  {
-  const element = document.querySelector(`#${id}`);
-  if (!element) return;
-  if (element.textContent === text) return;
-  element.innerHTML = text;
-}
-
-/**
- * Positions an element by a relative coordinate
- * @param id {string} Id of element to position
- * @param pos {{x:number, y:number}} Relative coordinate
- */
-function positionIdByRelative(id, pos) {
-  const element = /** @type HTMLElement */(document.querySelector(`#${id}`));  
-  if (!element) return;
-  pos = Points.multiply(pos, window.innerWidth, window.innerHeight);
-
-  const b = element.getBoundingClientRect();
-  const p = Points.subtract(pos, b.width / 2, b.height / 2);
-  element.style.transform = `translate(${p.x}px, ${p.y}px)`;
 }

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>infinite</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 10;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 80%, 80%);
+      --fg: hsl(var(--hue), 10%, 20%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #thing {
+      position: absolute;
+      width: 1em;
+      height: 1em;
+      left: 0;
+      top: 0;
+      background-color: var(--fg);
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+  <section>
+    <h1>infinite</h1>
+    <p>Demonstates the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API">pointer lock API</a>
+      for infinite pointer movement.</p>
+    <button id="btnStart">Start</button>
+    <button class="hidden" id="btnStop">Stop</button>
+    <div id="thing"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

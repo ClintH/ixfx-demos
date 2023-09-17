@@ -1,14 +1,24 @@
 import * as Dom from '../../ixfx/dom.js';
 import { Points, Vectors } from '../../ixfx/geometry.js';
-import { pointTracker } from '../../ixfx/data.js';
+import { PointTracker, pointTracker } from '../../ixfx/data.js';
+import * as Util from './util.js';
 
-// Define settings - properties that don't change
 const settings = Object.freeze({
   updateRateMs: 10,
   circleHue: 320
 });
 
-// Initial state - properties that change as code runs
+/**
+ * @typedef {{
+ * bounds: Bounds
+ * scaleBy: number
+ * tracker: PointTracker
+ * pointer: Points.Point
+ * prediction: Points.Point
+ * }} State
+ */
+
+/** @type State */
 let state = Object.freeze({
   bounds: {
     width: 0,
@@ -76,6 +86,25 @@ const use = () => {
 };
 
 /**
+ * @param {CanvasRenderingContext2D} context
+ * @param {Circle} circle 
+ * @param {string} fillStyle
+ * @param {string} message?
+ * @param {string} textFillStyle?
+ */
+const drawLabelledCircle = (context, circle, fillStyle, message = ``, textFillStyle =  `black`) => {
+  const { scaleBy } = state;
+
+  // Convert relative radius to absolute
+  const radius = (circle.radius ?? 0.1) * (scaleBy / 2);
+
+  // Convert x,y to absolute point
+  const abs = Points.multiply(circle, state.bounds);
+
+  Util.drawLabelledCircle(context, { ...abs, radius }, fillStyle, message, textFillStyle);
+};
+
+/**
  * Clears canvas
  * @param {CanvasRenderingContext2D} context 
  */
@@ -122,14 +151,14 @@ const setup = () => {
   };
   animationLoop();
 
-  window.addEventListener(`pointermove`, onPointerMove);
+  document.addEventListener(`pointermove`, onPointerMove);
 
 };
 setup();
 
 /**
  * Update state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({
@@ -138,42 +167,7 @@ function saveState (s) {
   });
 }
 
-/**
- * Draws a circle with optional text
- * @param {CanvasRenderingContext2D} context 
- * @param {{x:number, y:number, radius?:number}} circle 
+/** 
+ * @typedef {import('./util.js').Circle} Circle 
+ * @typedef {import('./util.js').Bounds} Bounds 
  */
-function drawLabelledCircle(context, circle, fillStyle = `black`, message = ``, textFillStyle = `white`)  {
-  const { scaleBy } = state;
-
-  // Convert relative radius to absolute
-  const radius = (circle.radius ?? 0.1) * (scaleBy / 2);
-
-  // Convert x,y to absolute point
-  const abs = Points.multiply(circle, state.bounds);
-
-  // Translate so 0,0 is the center of circle
-  context.save();
-  context.translate(abs.x, abs.y);
-  
-  // Fill a circle
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fillStyle = fillStyle;
-  context.fill();
-
-  if (message.length > 0) {
-    context.fillStyle = textFillStyle;
-    context.textAlign = `center`;
-    context.fillText(message, 0, 0);
-  }
-  context.restore();
-}
-
-
-function setText(id, message) {
-  const element =  /** @type HTMLElement */(document.querySelector(`#${id}`));
-  if (element && element.textContent !== message) {
-    element.textContent = message;
-  }
-}

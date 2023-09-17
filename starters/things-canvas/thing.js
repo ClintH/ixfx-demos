@@ -5,7 +5,8 @@ import * as Util from './util.js';
 const settings = Object.freeze({
   hueInterpolateAmount: 0.0001,
   surpriseDropAmount: 0.001,
-  movementDecayAmt: 0.9
+  movementDecayAmt: 0.8,
+  distanceScale: 0.1
 });
 
 /**
@@ -16,6 +17,7 @@ const settings = Object.freeze({
 *  size: number
 *  movement: number
 *  hue:number
+*  id:number
 * }} Thing
 */
 
@@ -26,6 +28,7 @@ const settings = Object.freeze({
  * @returns {Thing}
  */
 export const onMovement = (thing, amount, lastPosition) => {
+  const { distanceScale } = settings;
   let { movement } = thing;
 
   // Inverse distance from thing to pointer
@@ -34,7 +37,7 @@ export const onMovement = (thing, amount, lastPosition) => {
 
   // Scale movement movement amount in relation to distance
   //  - makes it have a smaller effect furtherer away it us
-  amount = amount * distance * 0.2;
+  amount = amount * distance * distanceScale;
 
   // Sanity check
   movement = clamp(movement + amount);
@@ -117,13 +120,13 @@ export const update = (thing, ambientState) => {
 
 /**
  * Creates a new thing
- * @param {string} elementId
+ * @param {number} id
  * @returns {Thing}
  */
-export const create = (elementId) => {
+export const create = (id) => {
   return Object.freeze({
     position: { x: Math.random(), y: Math.random() },
-    elementId,
+    id,
     size: Math.random(),
     surprise: Math.random(),
     hue: Math.random() * 360,

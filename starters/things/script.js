@@ -57,8 +57,8 @@ const update = () => {
 
 function setup() {
   const things = [];
-  for (let index=0;index<settings.spawnThings;index++) {
-    things.push(Things.create(`thing-${index}`));
+  for (let index=1;index<=settings.spawnThings;index++) {
+    things.push(Things.create(index));
   }
   saveState({ things });
 
@@ -67,14 +67,14 @@ function setup() {
     let movement = Util.addUpMovement(event);
 
     // Get ids of elements under cursor
-    const elementIdsUnderCursor = document.elementsFromPoint(event.clientX, event.clientY).map(element=>element.id);
+    const elementsUnderCursor = document.elementsFromPoint(event.clientX, event.clientY);
 
     // Get new thing state
     let things = state.things.map(
       thing => Things.onMovement(
         thing, 
         movement,
-        elementIdsUnderCursor)
+        elementsUnderCursor)
     );
     saveState({ things });
     
@@ -114,3 +114,30 @@ function saveState (s) {
   });
 }
 
+/**
+ * Update a given thing by its id. The
+ * updated thing is returned,  or _undefined_
+ * if it wasn't found.
+ * @param {number} thingId 
+ * @param {Partial<Things.Thing>} updatedThing 
+ * @returns {Things.Thing|undefined}
+ */
+function updateThingInState(thingId, updatedThing) {
+  let completedThing;
+
+  const things = state.things.map(thing => {
+    // Is it the thing we want to change?
+    if (thing.id !== thingId) return thing; // nup
+    
+    // Return mutated thing
+    completedThing = {
+      ...thing,
+      ...updatedThing
+    };
+    return completedThing;
+  });
+
+  // Save changed things
+  saveState({things});
+  return completedThing;
+}

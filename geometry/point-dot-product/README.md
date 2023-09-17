@@ -20,5 +20,6 @@ Read more:
 * [Wikipedia](https://en.wikipedia.org/wiki/Dot_product)
 
 APIs
+* [Points.dotProduct](https://clinth.github.io/ixfx/functions/Geometry.Points.dotProduct.html)
 * [Geometry.Points](https://clinth.github.io/ixfx/modules/Geometry.Points.html)
 * [MouseEvent (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent)
