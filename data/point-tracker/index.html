@@ -24,13 +24,19 @@
       --fg: hsl(var(--hue), 100%, 10%);
     }
 
+    html, body {
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+    
+
     body {
       background-color: var(--bg);
       color: var(--fg);
       font-family: var(--font);
       pointer-events: none;
-      user-select: none;
-      -webkit-user-select: none;
     }
   </style>
   <section>

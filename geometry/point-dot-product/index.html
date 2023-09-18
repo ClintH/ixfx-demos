@@ -17,24 +17,27 @@
       --thing: 5em;
     }
 
-    html {
-      box-sizing: border-box;
-    }
 
     *,
     *:before,
     *:after {
-      box-sizing: inherit;
+      box-sizing: border-box;
       touch-action: none;
       pointer-events: none;
+    }
+
+    html, body {
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
+      cursor: none;
     }
 
     body {
       font-family: var(--font);
       background-color: var(--bg);
       color: var(--fg);
-      user-select: none;
-      pointer-events: none;
     }
 
     #thing {

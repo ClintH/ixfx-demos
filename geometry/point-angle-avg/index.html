@@ -16,14 +16,17 @@
       --fg: hsl(var(--hue), 92%, 15%);
     }
 
-    html {
-      box-sizing: border-box;
+    html, body {
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
     }
 
     *,
     *:before,
     *:after {
-      box-sizing: inherit;
+      box-sizing: border-box;
       touch-action: none;
       pointer-events: none;
     }
@@ -32,11 +35,7 @@
       font-family: var(--font);
       background-color: var(--bg);
       color: var(--fg);
-      user-select: none;
-      -webkit-user-select: none;
-      overscroll-behavior: none;
       margin: 0;
-      touch-action: none;
     }
 
     section {

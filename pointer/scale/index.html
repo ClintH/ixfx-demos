@@ -19,15 +19,19 @@
       --fg: hsl(var(--hue), 20%, 80%);
     }
 
+    html, body {
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
+      cursor: none;
+    }
+
     body {
       color: var(--fg);
       background-color: var(--bg);
       font-family: 'League Spartan', sans-serif;
-      touch-action: none;
       overflow: hidden;
-      user-select: none;
-      -webkit-user-select: none;
-      overscroll-behavior: none;
       height: 100vh;
       width: 100vw;
       display: flex;

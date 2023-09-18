@@ -1,9 +1,6 @@
-/**
- * Demonstrates a 'pinch to zoom' style gesture
- */
 import { pointerVisualise } from '../../ixfx/dom.js';
 import { Points } from '../../ixfx/geometry.js';
-import { clamp } from '../../ixfx/data.js';
+import { NumberTracker, PointTracker, TrackedPointMap, clamp } from '../../ixfx/data.js';
 import { numberTracker, pointsTracker } from '../../ixfx/data.js';
 
 // Pointer visualiser. Useful for debugging. It's what adds the red border
@@ -15,14 +12,21 @@ const settings = Object.freeze({
   thingEl: /** @type HTMLElement */(document.querySelector(`#thing`))
 });
 
-// State
+/**
+ * @typedef {{
+ * pointers: TrackedPointMap
+ * twoFingerDistance: NumberTracker
+ * scale: number
+ * }} State
+ */
+
+/** @type State */
 let state = Object.freeze({
   // Track pointer locations
   pointers: pointsTracker(),
   // Track how the distance between two pointers changes
   twoFingerDistance: numberTracker(),
   // Current text scaling value
-  /** @type {number} */
   scale: 1
 });
 
@@ -32,45 +36,58 @@ let state = Object.freeze({
  */
 const onPointerMove = (event) => {
   const { pointers, twoFingerDistance } = state;
+  let { scale } = state;
 
   event.preventDefault();
 
+  // Update tracking of pointers
   pointers.seen(event.pointerId.toString(), { x: event.x, y: event.y });
 
+  // Get list of tracked pointers, in ascending order by age
   const byAge = [ ...pointers.valuesByAge() ];
 
   // We need at least two pointers for gesture
-  if (byAge.length >= 2) {
+  const a = byAge[0];
+  const b = byAge[1];
 
-    // Calculate distance between first two touches
-    let distanceAbs = Number.NaN;
-    if (byAge[0] && byAge[1]) distanceAbs = Points.distance(byAge[0], byAge[1]);
-
-    // Pop it into a numberTracker, because what we really
-    // care about is how much distances changes from its start value
-    twoFingerDistance.seen(distanceAbs);
-
-    // Read back the relative value (0..1 scale)  
-    const relative = twoFingerDistance.relativeDifference();
-
-    // If we don't have all the data, undefined is returned
-    if (relative === undefined) return;
-
-    // -1 so that if there's no change in finger distance, v will be close to 0
-    // If there's a pinch, relative will be less than 1, so we make it negative
-    // If there's a grow gesture, relative will be greater than one, so it will be positive
-    const v = relative - 1;
-
-    // Halve it to reduce the impact on scaling
-    const vv = v * 0.5;
-
-    saveState({ scale:clamp(state.scale + vv, 0.1, 20) });
-    use();
-  } else {
+  if (a === undefined || b === undefined) {
     // If we don't get at least two touches,
     // reset the tracker, because gesture has been cancelled
     twoFingerDistance.reset();
+    return;
   }
+
+  // Calculate distance between first two touches
+  let distanceAbs = Points.distance(a, b);
+
+  // Pop it into a numberTracker, because what we really
+  // care about is how much distances changes from its start value
+  twoFingerDistance.seen(distanceAbs);
+
+  // Read back the relative value (0..1 scale)  
+  const relative = twoFingerDistance.relativeDifference();
+
+  // If we don't have all the data, undefined is returned
+  if (relative === undefined) return;
+
+  // -1 so that if there's no change in finger distance, v will be close to 0
+  // If there's a pinch, relative will be less than 1, so we make it negative
+  // If there's a grow gesture, relative will be greater than one, so it will be positive
+  let v = relative - 1;
+
+  // Halve it to reduce the impact on scaling
+  v = v * 0.5;
+
+  // Add to scale factor, clamping to 0.1 ... 
+  // 20 in practice means 2000%
+  scale = clamp(scale + v, 0.1, 20);
+  
+  // Save & then use
+  saveState({ 
+    scale
+  });
+  use();
+
 };
 
 /**
@@ -79,6 +96,7 @@ const onPointerMove = (event) => {
 const use = () => {
   const { thingEl } = settings;
   const { scale } = state;
+  console.log(scale);
   if (thingEl) thingEl.style.transform = `scale(${scale})`;
 };
 
@@ -107,7 +125,7 @@ setup();
 
 /**
  * Save state
- * @param {Partial<state>} s 
+ * @param {Partial<State>} s 
  */
 function saveState (s) {
   state = Object.freeze({

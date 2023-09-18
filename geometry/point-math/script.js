@@ -66,6 +66,7 @@ const use = () => {
  * @param {PointerEvent} event 
  */
 const onPointerMoveOrDown = (event) => {
+  event.preventDefault();
   saveState({
     // Make pointer position relative (on 0..1 scale)
     pointer: Util.relativePoint(event.clientX, event.clientY)

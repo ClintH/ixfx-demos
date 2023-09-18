@@ -19,29 +19,27 @@
       --fg: hsl(var(--hue1), 92%, 95%);
     }
 
-    html {
+    html, body {
+      user-select: none;
+      -webkit-user-select: none;
       box-sizing: border-box;
       overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      cursor: none;
     }
 
     *,
     *:before,
     *:after {
       box-sizing: inherit;
-      touch-action: none;
-      pointer-events: none;
     }
 
     body {
       font-family: var(--font);
       background-color: var(--bg);
       color: var(--fg);
-      user-select: none;
-      -webkit-user-select: none;
-      overscroll-behavior: none;
       margin: 0;
-      touch-action: none;
-      overflow: hidden;
     }
 
     section {

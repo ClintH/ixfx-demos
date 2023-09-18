@@ -19,13 +19,19 @@
       --fg: hsl(var(--hue1), 92%, 95%);
     }
 
+    html, body {
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      touch-action: none;
+      cursor: none;
+    }
+
     body {
       font-family: var(--font);
       background-color: var(--bg);
       overflow: hidden;
       color: var(--fg);
-      user-select: none;
-      -webkit-user-select: none;
     }
 
     #thing {
@@ -40,9 +46,11 @@
     .ball {
       display: inline-block;
       position: absolute;
+      touch-action: none;
+      pointer-events: none;
       top: 0;
       left: 0;
-      padding: 1em;
+      padding: var(--radius);
       border-radius: var(--radius);
     }
   </style>
