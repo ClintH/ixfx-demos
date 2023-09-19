@@ -1,21 +1,19 @@
 import {fullSizeCanvas} from '../../ixfx/dom.js';
-import { Points } from '../../ixfx/geometry.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
 // Settings for sketch
 const settings = Object.freeze({
+  // How often to update all the things
   thingUpdateSpeedMs: 10,
   // How many things to spawn
-  spawnThings: 100,
-  hueChange: 0.1
+  spawnThings: 100
 });
 
 /** 
  * @typedef {{
- *  hue:number
  *  things:Things.Thing[]
- *  bounds: import('./util.js').Bounds
+ *  bounds: Util.Bounds
  * }} State
  */
 
@@ -24,8 +22,6 @@ const settings = Object.freeze({
  */
 let state = Object.freeze({
   things: [],
-  hue: 0,
-  movement: 0,
   bounds: {
     width: 0, height: 0,
     min:0, max: 0,
@@ -36,14 +32,11 @@ let state = Object.freeze({
 /**
  * Makes use of the data contained in `state`
  */
-const use = () => {
-  const { hue, bounds, things } = state;
-
+const use = () => {  
+  const { things, bounds} = state;
   const context = Util.getDrawingContext();
 
   // 1. Eg. use the ambient state
-  context.fillStyle = `hsl(${hue}, 100%, 90%)`;
-  context.fillRect(0,0,bounds.width,bounds.height);
   
   // 2. Use things
   for (const thing of things) {
@@ -52,18 +45,9 @@ const use = () => {
 };
 
 const update = () => {
-  const { hueChange } = settings;
-  let { hue } = state;
   // 1. Any other state updates?
-  // eg: cycle hue
-  hue += hueChange;
-
   // 2. Sanity check
-  hue = hue%360; // 0..360 scale
-
   // 3. Save state
-  saveState({ hue });
-
   // 4. Use state
   use();
 
@@ -82,7 +66,6 @@ function setup () {
     things.push(Things.create(index));
   }
   saveState({ things });
-
 
   // Update things at a fixed rate
   setInterval(() => {

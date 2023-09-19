@@ -18,14 +18,26 @@ export const getDrawingContext = (query = `#canvas`) => {
 };
 
 /**
- * Make `x` and `y` relative with respect to window dimensions
- * @param {number} x
- * @param {number} y
- * @returns {{x:number,y:number}}  
+ * Convert relative coordinate to absolute,
+ * based on viewport size
+ * @param {Points.Point} point 
+ * @returns 
  */
-export const relativePoint = (x, y) => {
+export const makeAbsolute = (point) => {
   return {
-    x: x / window.innerWidth,
-    y: y / window.innerHeight
+    x: point.x * window.innerWidth,
+    y: point.y * window.innerHeight
+  };
+};
+
+/**
+ * Make point relative with respect to window dimensions
+ * @param {Points.Point} point
+ * @returns Points.Point 
+ */
+export const relativePoint = (point) => {
+  return {
+    x: point.x / window.innerWidth,
+    y: point.y / window.innerHeight
   };
 };

@@ -1,5 +1,4 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({});
@@ -7,9 +6,11 @@ const settings = Object.freeze({});
 /**
  * Define our thing
  * @typedef {{
-*  id:number
-* }} Thing
-*/
+ *  id:number
+ *  position: Points.Point
+ * }} Thing
+ */
+
 
 /**
  * Make use of data from `thing` somehow...
@@ -17,7 +18,22 @@ const settings = Object.freeze({});
  * @param {CanvasRenderingContext2D} context
  * @param {import('./util.js').Bounds} bounds
  */
-export const use = (thing, context, bounds) => {};
+export const use = (thing, context, bounds) => {
+  const { id  } = thing;
+  let { position } = thing;
+  context.fillStyle = `black`;
+
+  const absolutePoint = Util.makeAbsolute(position);
+  
+  // Translate canvas so 0,0 will be the position of Thing
+  context.save();
+  context.translate(absolutePoint.x, absolutePoint.y);
+
+
+  context.fillText(id.toString(), 0, 0);
+
+  context.restore();
+};
 
 /**
  * Updates a given thing based on state
@@ -47,5 +63,9 @@ export const update = (thing, ambientState) => {
 export const create = (id) => {
   return Object.freeze({
     id,
+    position: {
+      x: Math.random(),
+      y: Math.random()
+    }
   });
 };
