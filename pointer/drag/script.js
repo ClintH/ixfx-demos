@@ -2,8 +2,8 @@ import { Points } from '../../ixfx/geometry.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
-// Settings for sketch
 const settings = Object.freeze({
+  // How often to update Things
   thingUpdateSpeedMs: 10,
   // How many things to spawn
   spawnThings: 10,
@@ -17,9 +17,7 @@ const settings = Object.freeze({
  * }} State
  */
 
-/**
- * @type {State}
- */
+/** @type {State} */
 let state = Object.freeze({
   things: [],
   // Id of thing being dragged

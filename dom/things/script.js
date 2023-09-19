@@ -3,14 +3,15 @@ import * as Util from './util.js';
 
 // Settings for sketch
 const settings = Object.freeze({
-  // How often to update the Things
   thingUpdateSpeedMs: 10,
   // How many things to spawn
-  spawnThings: 10
+  spawnThings: 10,
+  hueChange: 0.1
 });
 
 /** 
  * @typedef {{
+ *  hue:number
  *  things:Things.Thing[]
  * }} State
  */
@@ -19,20 +20,34 @@ const settings = Object.freeze({
  * @type {State}
  */
 let state = Object.freeze({
-  things: []
+  things: [],
+  hue: 0,
+  movement: 0
 });
 
 /**
  * Makes use of the data contained in `state`
  */
 const use = () => {
-  // 1. Use the state some how
+  const { hue } = state;
+
+  // 1. Eg. use the ambient state
+  document.body.style.backgroundColor = `hsl(${hue}, 100%, 90%)`;
 };
 
 const update = () => {
+  const { hueChange } = settings;
+  let { hue } = state;
   // 1. Any other state updates?
+  // eg: cycle hue
+  hue += hueChange;
+
   // 2. Sanity check
+  hue = hue%360; // 0..360 scale
+
   // 3. Save state
+  saveState({ hue });
+
   // 4. Use state
   use();
 
@@ -41,14 +56,29 @@ const update = () => {
 };
 
 function setup() {
-  // Create things
   const things = [];
   for (let index=1;index<=settings.spawnThings;index++) {
     things.push(Things.create(index));
   }
-
-  // Save them into state
   saveState({ things });
+
+  document.addEventListener(`pointermove`, (event) => {
+    // Add up all the movement
+    let movement = Util.addUpMovement(event);
+
+    // Get ids of elements under cursor
+    const elementsUnderCursor = document.elementsFromPoint(event.clientX, event.clientY);
+
+    // Get new thing state
+    let things = state.things.map(
+      thing => Things.onMovement(
+        thing, 
+        movement,
+        elementsUnderCursor)
+    );
+    saveState({ things });
+    
+  });
 
   // Update things at a fixed rate
   setInterval(() => {
