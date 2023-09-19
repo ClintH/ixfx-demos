@@ -83,6 +83,20 @@ function setup () {
   }
   saveState({ things });
 
+  document.addEventListener(`pointermove`, (event) => {
+    const relativeMovement = Util.addUpMovement(event);
+    const relativePosition = Points.divide({x: event.clientX, y:event.clientY}, state.bounds);
+
+    // Get new thing state
+    let things = state.things.map(
+      thing => Things.onMovement(
+        thing, 
+        relativeMovement,
+        relativePosition)
+    );
+    saveState({ things });
+    
+  });
 
   // Update things at a fixed rate
   setInterval(() => {

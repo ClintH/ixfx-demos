@@ -1,4 +1,5 @@
 import {fullSizeCanvas} from '../../ixfx/dom.js';
+import { pointTracker } from '../../ixfx/data.js';
 import { Points } from '../../ixfx/geometry.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
@@ -8,7 +9,11 @@ const settings = Object.freeze({
   thingUpdateSpeedMs: 10,
   // How many things to spawn
   spawnThings: 100,
-  hueChange: 0.1
+  hueChange: 0.1,
+  tracker: pointTracker({
+    sampleLimit: 10, 
+    storeIntermediate: true
+  })
 });
 
 /** 
@@ -71,6 +76,20 @@ const update = () => {
   window.requestAnimationFrame(update);
 };
 
+/**
+ * 
+ * @param {PointerEvent} event 
+ */
+const onPointerMove = (event) => {
+  const { tracker } = settings;
+
+  const result = tracker.seen({
+    x: event.x, 
+    y:event.y
+  });
+  console.log(result);
+};
+
 function setup () {
   // Automatically size canvas to viewport
   fullSizeCanvas(`#canvas`, onResized => {
@@ -83,6 +102,7 @@ function setup () {
   }
   saveState({ things });
 
+  document.addEventListener(`pointermove`, onPointerMove);
 
   // Update things at a fixed rate
   setInterval(() => {
