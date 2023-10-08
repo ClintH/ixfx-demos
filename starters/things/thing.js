@@ -6,13 +6,12 @@ const settings = Object.freeze({});
 
 /**
  * Define our thing
- * @typedef {{
+ * @typedef {Readonly<{
  *  position: Points.Point
  *  id:number
  *  element: HTMLElement
- * }} Thing
+ * }>} Thing
  */
-
 
 /**
  * Make use of data from `thing` somehow...

@@ -1,4 +1,4 @@
-import * as Thing from './thing.js';
+import * as Things from './thing.js';
 import * as Util from './util.js';
 
 import {clamp } from '../../ixfx/data.js';
@@ -12,17 +12,16 @@ const settings = Object.freeze({
 });
 
 /** 
- * @typedef {object} State
- * @property {number} hue
- * @property {number} movement
- * @property {Thing.Thing} thing
+ * @typedef {Readonly<{
+ * hue: number
+ * movement: number
+ * thing: Things.Thing
+ * }>} State
  */
 
-/**
- * @type {State}
- */
+/** @type {State} */
 let state = Object.freeze({
-  thing: Thing.create(settings.thingId),
+  thing: Things.create(settings.thingId),
   hue: 0,
   movement: 0
 });
@@ -80,10 +79,10 @@ function setup() {
   setInterval(() => {
     // Save new thing into state
     saveState({ 
-      thing: Thing.update(state.thing, state)
+      thing: Things.update(state.thing, state)
     });
     // Visually update based on new state
-    Thing.use(state.thing);
+    Things.use(state.thing);
   }, settings.thingUpdateSpeedMs);
 
   // Update state of sketch and use state

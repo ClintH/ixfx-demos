@@ -5,10 +5,10 @@ const settings = Object.freeze({});
 
 /**
  * Define our thing
- * @typedef {{
+ * @typedef {Readonly<{
  *  id:number
  *  position: Points.Point
- * }} Thing
+ * }>} Thing
  */
 
 
