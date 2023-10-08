@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pose-sender</title>
+</head>
+
+<body data-server-no-reload>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 90;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 3%);
+      --fg: hsl(var(--hue), 100%, 80%);
+    }
+
+    html {
+      width:100%;
+      height:100%;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      height:100vh;
+      width:100vw;
+      overflow: hidden;
+    }
+
+    .hidden {
+      display:none !important;
+    }
+
+    #container {
+      border: 1px solid black;
+    }
+
+    @media (orientation:landscape) {
+      video,canvas {
+        height: 100%;
+        width: auto;
+      }
+    }
+    @media (orientation:portrait) {
+      video,canvas {
+        width: 100%;
+        height: auto;
+      }
+    }
+    
+  </style>
+
+  <section>
+    <script type="module" src="script.js"></script>
+    <div id="container"></div>
+  </section>
+</body>
+
+</html>

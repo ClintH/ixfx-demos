@@ -19,6 +19,7 @@
   "files.eol": "\n",
   "editor.inlayHints.enabled": "on",
   "editor.inlayHints.padding": true,
+  "editor.foldingImportsByDefault": true,
   "javascript.inlayHints.enumMemberValues.enabled": false,
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
   "javascript.inlayHints.parameterNames.enabled": "all",

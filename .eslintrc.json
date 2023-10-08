@@ -21,6 +21,7 @@
     ],
     "unicorn/consistent-destructuring": "off",
     "unicorn/no-thenable": "off",
+    "unicorn/filename-case":"off",
     "unicorn/consistent-function-scoping": "off",
     "unicorn/require-post-message-target-origin": "off",
     "indent": [

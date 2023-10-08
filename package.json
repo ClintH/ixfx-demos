@@ -13,6 +13,7 @@
     "clone:light": "node copy-for-light.js",
     "clone:glitch": "node copy-for-glitch.js",
     "clone": "concurrently npm:clone:*",
+    "copy:ml": "rimraf ./ml/lib/ && npx copyfiles --up 3 \"../ixfx-ml/dist/**/*\" ./ml/lib",
     "serve:ws": "node ws-server.js",
     "serve:http": "five-server",
     "serve:express": "node express-ws-server.js",
@@ -39,13 +40,15 @@
     "@typescript-eslint/parser": "^6.4.0",
     "body-parser": "^1.20.2",
     "concurrently": "^8.2.0",
+    "copyfiles": "^2.4.1",
     "cpy": "^9.0.1",
     "del": "^7.0.0",
     "eslint": "^8.20.0",
     "eslint-plugin-unicorn": "^48.0.1",
     "express": "^4.18.2",
     "express-ws": "^5.0.2",
-    "replace-in-file": "^6.3.5"
+    "replace-in-file": "^6.3.5",
+    "rimraf": "^5.0.5"
   },
   "stackblitz": {
     "startCommand": "concurrently 'npm:serve:*'"
