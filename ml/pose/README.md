@@ -8,7 +8,7 @@ Acronyms
 
 A _sender_ sketch reads data from a source (webcam, video, or recorded points) and emits it via [Remote](https://github.com/clinth/remote)
 
-This sketch shouldn't need to be modified. In `pose-head`, we show how to embed the source in the page via an `IFRAME`. The downside of this is that with every little change in your code, the sender has to also reload - and this can be cumbersome when we are accessing media.
+This sketch shouldn't need to be modified, but it is how some Tensorflow settings can be tweaked. In `pose/head`, we show how to embed the source in the page via an `IFRAME`. The downside of this is that with every little change in your code, the sender has to also reload - and this can be cumbersome when we are accessing media.
 
 Instead, the idea is to open the sender sketch in a separate window and leave it running. Note that if you minimise or cover it over with another window too much, the browser may suspend Javascript execution (as a battery-saving mechanism).
 
@@ -185,6 +185,35 @@ for (const kp of rawPose.keypoints) {
 # Recording
 
 * Point data is recorded to the browser's local storage. Image data is are not stored.
+
+# Util.js
+
+Import:
+```js
+import * as PoseUtil from '../Util.js';
+```
+
+Sort array of poses horizontally:
+```js
+const sorted = PoseUtil.horizontalSort(poses);
+```
+
+Get centroid of pose (including all keypoints):
+```js
+const centroid = PoseUtil.centroid(pose); // {x,y}
+```
+
+Return a line between two named points. If either of the points is not found, _undefined_ is returned. This is useful for using with ixfx's Line module.
+```js
+const line = PoseUtil.lineBetween(pose, `left_shoulder`, `right_shoulder`);
+// { a: { x, y }, b: { x, y } }
+```
+
+Gets the center based on the torso (between shoulders and hips). If
+any of the needed points is not found, _undefined_ is returned.
+```js
+const c = PoseUtils.roughCenter(pose); // { x, y }
+```
 
 # Troubleshooting
 

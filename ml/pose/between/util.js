@@ -1,8 +1,4 @@
 import { Points } from '../../../ixfx/geometry.js';
-import * as Types from '../../lib/Types.js';
-import * as Coco from '../../lib/Coco.js';
-
-
 
 /**
  * Position an element from its middle

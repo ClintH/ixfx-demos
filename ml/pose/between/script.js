@@ -2,7 +2,8 @@
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import {Arrays} from '../../../ixfx/collections.js';
 import {Points} from '../../../ixfx/geometry.js';
-import { PosesTracker, roughCenter } from "../PosesTracker.js";
+import { PosesTracker } from "../PosesTracker.js";
+import * as PoseUtil from '../Util.js';
 import {PoseTracker} from "../PoseTracker.js";
 import * as Types from '../../lib/Types.js';
 import * as Things from './thing.js';
@@ -38,7 +39,7 @@ const update = () => {
   // Calculate middle of each pose
   const middles = [];
   for (const p of poses.getTrackers()) {
-    const middle = roughCenter(p.last);
+    const middle = PoseUtil.roughCenter(p.last);
     if (middle === undefined) continue;
     middles.push({id:p.guid, position:middle });
   }

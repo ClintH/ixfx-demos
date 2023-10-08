@@ -1,36 +1,12 @@
 import * as PoseDetection from '@tensorflow-models/pose-detection';
 import { IApp } from '../Types';
-export type TrackerConfig = {
-    maxTracks: number;
-    maxAge: number;
-    minSimilarity: number;
-    keypointTrackerParams?: KeypointTrackerConfig;
-    boundingBoxTrackerParams?: BoundingBoxTrackerConfig;
-};
-export type KeypointTrackerConfig = {
-    keypointConfidenceThreshold: number;
-    keypointFalloff: number[];
-    minNumberOfKeypoints: number;
-};
-export type BoundingBoxTrackerConfig = {};
-export type TrackerType = "keypoint" | "boundingBox";
-export type Config = {
-    scoreThreshold: number;
-    maxPoses: number;
-    enableSmoothing: boolean;
-    modelType: `SinglePose.Lightning` | `SinglePose.Thunder` | 'MultiPose.Lightning';
-    minPoseScore?: number;
-    multiPoseMaxDimension?: number;
-    enableTracking: boolean;
-    trackerType: TrackerType;
-    trackerConfig?: TrackerConfig;
-};
+import { MoveNetConfig } from './Types.js';
 export declare class MoveNet {
     detector: PoseDetection.PoseDetector | undefined;
-    config: Config;
+    config: MoveNetConfig;
     debug: boolean;
     readonly name = "MoveNet";
-    constructor(config: Partial<Config>);
+    constructor(config: Partial<MoveNetConfig>);
     run(image?: OffscreenCanvas): Promise<{
         box: {
             xMax: number;

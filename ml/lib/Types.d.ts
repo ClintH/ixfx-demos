@@ -4,6 +4,7 @@ import { Sampler } from "./Sampler.js";
 import { Ui } from "./ui/Ui.js";
 import { VideoSource } from "./sources/VideoSource.js";
 import { RecorderSource } from "./sources/RecorderSource.js";
+import { MoveNetConfig } from "./models/Types.js";
 export interface BoundingBox {
     xMin: number;
     yMin: number;
@@ -42,9 +43,8 @@ export type Mutable<T> = {
 };
 export type Config = Readonly<{
     recordSamplingMs: number;
-    viewData: boolean;
-    viewRaw: boolean;
     debug: boolean;
+    moveNet: MoveNetConfig;
 }>;
 export type Rect = {
     width: number;

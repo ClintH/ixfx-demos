@@ -4,11 +4,10 @@ export { VideoSourceUi };
 export * as Models from './models/index.js';
 export * from './Types.js';
 export * as Coco from './Coco.js';
-export const mount = (elementOrQuery) => {
+export const mount = (elementOrQuery, config = {}) => {
     const params = (new URL(document.location.toString())).searchParams;
     const recRateStr = params.get(`recRate`);
-    let config = {};
-    if (recRateStr !== null) {
+    if (recRateStr !== null && config.recordSamplingMs === undefined) {
         config.recordSamplingMs = Number.parseInt(recRateStr);
     }
     const el = typeof elementOrQuery === `string` ? document.querySelector(elementOrQuery) : elementOrQuery;

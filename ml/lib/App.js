@@ -20,6 +20,7 @@ import { Sampler } from './Sampler.js';
 import * as TensorFlow from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { RecorderSource } from "./sources/RecorderSource.js";
+import { defaultMoveNetConfig } from "./models/Types.js";
 export class App {
     constructor(config = {}) {
         _App_instances.add(this);
@@ -29,8 +30,7 @@ export class App {
         this.config = {
             debug: false,
             recordSamplingMs: 50,
-            viewData: true,
-            viewRaw: true,
+            moveNet: defaultMoveNetConfig(6),
             ...config
         };
         this.debug = this.config.debug;
@@ -40,7 +40,7 @@ export class App {
         this.ui = new Ui(this);
         this.camera = new CameraSource(this);
         this.video = new VideoSource(this);
-        __classPrivateFieldSet(this, _App_activeModel, new MoveNet({}), "f");
+        __classPrivateFieldSet(this, _App_activeModel, new MoveNet(this.config.moveNet), "f");
         this.recorder = new RecorderSource(this);
         const checkReady = async () => {
             if (this.camera.hasReadCameraList) {
