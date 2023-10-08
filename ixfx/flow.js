@@ -13,21 +13,25 @@ import {
   frequencyTimerSource,
   hasElapsedMs,
   interval,
-  intervalToMs,
-  isInterval,
   msElapsedTimer,
   relativeTimer,
   repeat,
   repeatReduce,
   retry,
   runOnce,
-  sleep,
   throttle,
   ticksElapsedTimer,
   timeout,
   updateOutdated,
   waitFor
-} from "./chunk-XLVCNC2H.js";
+} from "./chunk-5DUW2L2T.js";
+import "./chunk-T2KQ46UT.js";
+import "./chunk-OQX5CKGU.js";
+import {
+  sleep
+} from "./chunk-66FSPWS7.js";
+import "./chunk-BIZA3WZ7.js";
+import "./chunk-VE7DK22H.js";
 export {
   Elapsed_exports as Elapsed,
   StateMachine_exports as StateMachine,
@@ -43,8 +47,6 @@ export {
   frequencyTimerSource,
   hasElapsedMs,
   interval,
-  intervalToMs,
-  isInterval,
   msElapsedTimer,
   relativeTimer,
   repeat,

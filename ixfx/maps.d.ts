@@ -1,17 +1,17 @@
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 import { I as IsEqual } from './IsEqual-267e4380.js';
-import { E as EitherKey } from './index-09f7f675.js';
-import { T as ToString } from './Util-42bd6b26.js';
-import { I as ICircularArray } from './IMapOfMutableExtended-85b037ca.js';
+import { E as EitherKey } from './Map-c67bc910.js';
+import { T as ToString } from './Util-6386ef7e.js';
+import { I as ICircularArray } from './IMapOfMutableExtended-16486249.js';
 import './Trees-d82ea9e2.js';
-import './Arrays-f506115e.js';
-import './index-c57a52c9.js';
-import './StateMachine-b3e42c5f.js';
-import './Debug-aa84bc8f.js';
+import './Arrays-37472508.js';
+import './Easing-e712c8ff.js';
+import './Types-bc8c421d.js';
 import './MinMaxAvg-bf5430b4.js';
 import 'd3-color';
-import './index-8ecb0968.js';
-import './index-2819dd79.js';
+import './index-d895b0c6.js';
+import './index-f5de7865.js';
+import './QueueMutable-b6767af6.js';
 
 /**
  * Expiring map options
@@ -1014,25 +1014,6 @@ declare const hasKeyValue: <K, V>(map: ReadonlyMap<K, V>, key: K, value: V, comp
  */
 declare const deleteByValue: <K, V>(map: ReadonlyMap<K, V>, value: V, comparer?: IsEqual<V>) => void;
 /**
- * Returns a function that fetches a value from a map, or generates and sets it if not present.
- * Undefined is never returned, because if `fn` yields that, an error is thrown.
- *
- * See {@link getOrGenerateSync} for a synchronous version.
- *
- * ```
- * const m = getOrGenerate(new Map(), (key) => {
- *  return key.toUppercase();
- * });
- *
- * // Not contained in map, so it will run the uppercase function,
- * // setting the value to the key 'hello'.
- * const v = await m(`hello`);  // Yields 'HELLO'
- * const v1 = await m(`hello`); // Value exists, so it is returned ('HELLO')
- * ```
- *
- */
-declare const getOrGenerate: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
-/**
  * Finds first entry by iterable value. Expects a map with an iterable as values.
  *
  * ```js
@@ -1072,13 +1053,6 @@ declare const firstEntryByIterablePredicate: <K, V>(map: IWithEntries<K, V>, pre
  */
 declare const firstEntryByIterableValue: <K, V>(map: IWithEntries<K, V>, value: V, isEqual?: IsEqual<V>) => readonly [key: K, value: V] | undefined;
 /**
- * @inheritDoc getOrGenerate
- * @param map
- * @param fn
- * @returns
- */
-declare const getOrGenerateSync: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, args?: Z | undefined) => V) => (key: K, args?: Z | undefined) => V;
-/**
  * Adds items to a map only if their key doesn't already exist
  *
  * Uses provided {@link Util.ToString} function to create keys for items. Item is only added if it doesn't already exist.
@@ -1093,11 +1067,11 @@ declare const getOrGenerateSync: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, arg
  * Maps.addKeepingExisting(map, p => p.name, ...peopleArray);
  * ```
  * @param set
- * @param hashFunc
+ * @param hasher
  * @param values
  * @returns
  */
-declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, hashFunc: ToString<V>, ...values: readonly V[]) => Map<any, any>;
+declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, hasher: ToString<V>, ...values: readonly V[]) => Map<any, any>;
 /**
  * Returns a array of entries from a map, sorted by value.
  *
@@ -1115,10 +1089,10 @@ declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, h
  *
  * `sortByValue` takes a comparison function that should return -1, 0 or 1 to indicate order of `a` to `b`. If not provided, {@link Util.defaultComparer} is used.
  * @param map
- * @param compareFn
+ * @param comparer
  * @returns
  */
-declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, compareFn?: ((a: V, b: V) => number) | undefined) => void;
+declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: V) => number) | undefined) => void;
 /**
  * Returns an array of entries from a map, sorted by a property of the value
  *
@@ -1407,6 +1381,4 @@ type MergeReconcile<V> = (a: V, b: V) => V;
  */
 declare const mergeByKey: <K, V>(reconcile: MergeReconcile<V>, ...maps: readonly ReadonlyMap<K, V>[]) => ReadonlyMap<K, V>;
 
-type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
-
-export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts, GetOrGenerate, IMapImmutable, IMapMutable, IMapOf, IMapOfMutable, IMapOfMutableExtended, IMappish, IWithEntries, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, MapSetOpts, MergeReconcile, MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };
+export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts, IMapImmutable, IMapMutable, IMapOf, IMapOfMutable, IMapOfMutableExtended, IMappish, IWithEntries, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, MapSetOpts, MergeReconcile, MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };

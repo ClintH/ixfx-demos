@@ -1,7 +1,7 @@
 import {
   additionalValues,
-  average2 as average,
-  averageWeighted2 as averageWeighted,
+  average,
+  averageWeighted,
   chunks,
   compareValues,
   compareValuesEqual,
@@ -17,15 +17,16 @@ import {
   guardIndex,
   interleave,
   intersection,
-  max2 as max,
+  max,
   maxFast,
   maxIndex,
   mergeByKey2 as mergeByKey,
-  min2 as min,
+  min,
   minFast,
   minIndex,
   minMaxAvg,
   randomElement,
+  randomElementWeightedSource,
   randomIndex,
   randomPluck,
   reducePairwise,
@@ -33,7 +34,7 @@ import {
   sample,
   shuffle,
   sortByNumericProperty,
-  total2 as total,
+  total,
   totalFast,
   unique,
   until,
@@ -43,7 +44,12 @@ import {
   without,
   withoutUndefined,
   zip
-} from "./chunk-XLVCNC2H.js";
+} from "./chunk-5DUW2L2T.js";
+import "./chunk-T2KQ46UT.js";
+import "./chunk-OQX5CKGU.js";
+import "./chunk-66FSPWS7.js";
+import "./chunk-BIZA3WZ7.js";
+import "./chunk-VE7DK22H.js";
 export {
   additionalValues,
   average,
@@ -72,6 +78,7 @@ export {
   minIndex,
   minMaxAvg,
   randomElement,
+  randomElementWeightedSource,
   randomIndex,
   randomPluck,
   reducePairwise,
