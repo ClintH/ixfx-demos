@@ -45,6 +45,18 @@ export type Config = Readonly<{
     recordSamplingMs: number;
     debug: boolean;
     moveNet: MoveNetConfig;
+    /**
+     * Preferred camera size. Defaults to 800x600
+     * Other common sizes:
+     * - 1600x1200
+     * - 1280x720
+     * - 640x480
+     * - 320x240
+     */
+    preferredCameraSize: {
+        width: number;
+        height: number;
+    };
 }>;
 export type Rect = {
     width: number;

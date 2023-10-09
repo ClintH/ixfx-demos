@@ -31,6 +31,10 @@ export class App {
         this.config = {
             debug: false,
             recordSamplingMs: 50,
+            preferredCameraSize: {
+                height: 600,
+                width: 800
+            },
             moveNet: defaultMoveNetConfig(6),
             ...config
         };

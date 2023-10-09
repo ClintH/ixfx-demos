@@ -7,6 +7,10 @@ export declare class View extends BaseUi {
     protected initUi(): HTMLElement;
     toggle(): void;
     getCtx(): CanvasRenderingContext2D | undefined;
+    /**
+     * Called by the sampler
+     * @param bounds
+     */
     setSize(bounds: Rect): void;
     relToAbs(x: number, y: number): {
         x: number;

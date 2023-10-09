@@ -61,6 +61,10 @@ declare class View extends BaseUi {
     protected initUi(): HTMLElement;
     toggle(): void;
     getCtx(): CanvasRenderingContext2D | undefined;
+    /**
+     * Called by the sampler
+     * @param bounds
+     */
     setSize(bounds: Rect): void;
     relToAbs(x: number, y: number): {
         x: number;
@@ -215,6 +219,18 @@ type Config = Readonly<{
     recordSamplingMs: number;
     debug: boolean;
     moveNet: MoveNetConfig;
+    /**
+     * Preferred camera size. Defaults to 800x600
+     * Other common sizes:
+     * - 1600x1200
+     * - 1280x720
+     * - 640x480
+     * - 320x240
+     */
+    preferredCameraSize: {
+        width: number;
+        height: number;
+    };
 }>;
 type Rect = {
     width: number;

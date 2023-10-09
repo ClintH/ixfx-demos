@@ -9,7 +9,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _View_canvasEl, _View_ctx, _View_rect, _View_poseColours, _View_visible;
+var _View_canvasEl, _View_ctx, _View_rect, _View_poseColours, _View_visible, _View_pixelScale;
 import { BaseUi } from "./BaseUi.js";
 const PiPi = Math.PI * 2;
 const DotRadius = 5;
@@ -22,6 +22,7 @@ export class View extends BaseUi {
         _View_rect.set(this, { width: 0, height: 0 });
         _View_poseColours.set(this, new Map());
         _View_visible.set(this, true);
+        _View_pixelScale.set(this, 1);
     }
     initUi() {
         const canvas = document.createElement(`canvas`);
@@ -44,13 +45,20 @@ export class View extends BaseUi {
         }
         return __classPrivateFieldGet(this, _View_ctx, "f");
     }
+    /**
+     * Called by the sampler
+     * @param bounds
+     */
     setSize(bounds) {
         if (__classPrivateFieldGet(this, _View_canvasEl, "f") === undefined)
             throw new Error(`CanvasEl undefined`);
+        if (bounds.width === __classPrivateFieldGet(this, _View_rect, "f").width && bounds.height === __classPrivateFieldGet(this, _View_rect, "f").height)
+            return;
         this.debugLog(`setSize ${bounds.width}x${bounds.height}`);
         __classPrivateFieldGet(this, _View_canvasEl, "f").width = bounds.width;
         __classPrivateFieldGet(this, _View_canvasEl, "f").height = bounds.height;
         __classPrivateFieldSet(this, _View_rect, bounds, "f");
+        __classPrivateFieldSet(this, _View_pixelScale, bounds.width / 800, "f");
     }
     relToAbs(x, y) {
         return {
@@ -58,23 +66,6 @@ export class View extends BaseUi {
             y: y * __classPrivateFieldGet(this, _View_rect, "f").height
         };
     }
-    // update() {
-    //   const ctx = this.getCtx();
-    //   if (!ctx) return;
-    //   const {width, height} = this.#rect;
-    //   ctx.strokeStyle = `red`;
-    //   ctx.beginPath();
-    //   ctx.moveTo(0, 0);
-    //   ctx.lineTo(width, height);
-    //   ctx.lineTo(width, 0);
-    //   ctx.lineTo(0, 0);
-    //   ctx.lineTo(0, height);
-    //   ctx.lineTo(width, height);
-    //   ctx.lineWidth = 2;
-    //   ctx.stroke();
-    //   ctx.fillStyle = `blue`;
-    //   ctx.fillText(`hello`, 100, 100);
-    // }
     drawPoses(poses) {
         const ctx = this.getCtx();
         const { width, height } = __classPrivateFieldGet(this, _View_rect, "f");
@@ -83,7 +74,7 @@ export class View extends BaseUi {
         ctx.clearRect(0, 0, width, height);
         ctx.textAlign = `left`;
         ctx.textBaseline = `bottom`;
-        ctx.font = `14pt monospace`;
+        ctx.font = `${__classPrivateFieldGet(this, _View_pixelScale, "f") * 14}pt monospace`;
         poses.sort((a, b) => a.id - b.id);
         for (let i = 0; i < poses.length; i++) {
             this.drawPose(ctx, poses[i], i);
@@ -111,7 +102,7 @@ export class View extends BaseUi {
         else {
             colour = `white`;
         }
-        ctx.lineWidth = SkeletonLineWidth;
+        ctx.lineWidth = SkeletonLineWidth * __classPrivateFieldGet(this, _View_pixelScale, "f");
         ctx.strokeStyle = colour;
         ctx.fillStyle = colour;
         const score = pose.score ? Math.round(pose.score * 100) : 0;
@@ -122,7 +113,7 @@ export class View extends BaseUi {
         for (const kp of pose.keypoints) {
             const abs = { x: kp.x * width, y: kp.y * height };
             map.set(kp.name ?? ``, abs);
-            this.drawDot(ctx, abs, DotRadius, ``); //, kp.name ?? ``);
+            this.drawDot(ctx, abs, DotRadius * __classPrivateFieldGet(this, _View_pixelScale, "f"), ``); //, kp.name ?? ``);
         }
         ctx.beginPath();
         this.traceLine(ctx, map.get(`left_wrist`), map.get(`left_elbow`), map.get(`left_shoulder`), map.get(`right_shoulder`), map.get(`right_elbow`), map.get(`right_wrist`));
@@ -154,5 +145,5 @@ export class View extends BaseUi {
         ctx.drawImage(buffer, 0, 0);
     }
 }
-_View_canvasEl = new WeakMap(), _View_ctx = new WeakMap(), _View_rect = new WeakMap(), _View_poseColours = new WeakMap(), _View_visible = new WeakMap();
+_View_canvasEl = new WeakMap(), _View_ctx = new WeakMap(), _View_rect = new WeakMap(), _View_poseColours = new WeakMap(), _View_visible = new WeakMap(), _View_pixelScale = new WeakMap();
 //# sourceMappingURL=View.js.map

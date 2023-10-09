@@ -10,11 +10,15 @@ const remote = new Remote({
 
 // Default config for tracking 6 poses
 const moveNetConfig = MoveNet.Models.MoveNetTypes.defaultMoveNetConfig(6);
-/** @type MoveNet.Config */
+/** @type Partial<MoveNet.Config> */
 const config = {
   moveNet: moveNetConfig,
   debug:false,
-  recordSamplingMs:50
+  recordSamplingMs:50,
+  preferredCameraSize: {
+    width: 800,
+    height: 600
+  }
 };
 const ml = MoveNet.mount(`#container`, config);  
 ml.onPoseData =(data) => {

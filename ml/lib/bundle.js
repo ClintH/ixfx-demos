@@ -43,7 +43,7 @@ function __classPrivateFieldSet(receiver, state, value, kind, f) {
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 }
 
-var _CameraElement_instances, _CameraElement_camera, _CameraElement_lastCameraInfo, _CameraElement_debugLog;
+var _CameraElement_instances, _CameraElement_camera, _CameraElement_lastCameraInfo, _CameraElement_preferredCameraSize, _CameraElement_debugLog;
 class CameraElement {
     constructor(camera) {
         _CameraElement_instances.add(this);
@@ -51,8 +51,10 @@ class CameraElement {
         _CameraElement_camera.set(this, void 0);
         _CameraElement_lastCameraInfo.set(this, void 0);
         this.dimensions = { width: 0, height: 0 };
+        _CameraElement_preferredCameraSize.set(this, void 0);
         this.debug = camera.app.debug;
         __classPrivateFieldSet(this, _CameraElement_camera, camera, "f");
+        __classPrivateFieldSet(this, _CameraElement_preferredCameraSize, camera.app.config.preferredCameraSize, "f");
     }
     initUi() {
         const videoEl = document.createElement(`video`);
@@ -74,6 +76,9 @@ class CameraElement {
                 width: videoEl.videoWidth,
                 height: videoEl.videoHeight
             };
+            if (this.dimensions.width !== __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").width || this.dimensions.height !== __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").height) {
+                console.warn(`Actual camera size is ${this.dimensions.width}x${this.dimensions.height}, not the preferred of ${__classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").width}x${__classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").height}`);
+            }
             videoEl.style.aspectRatio = `${this.dimensions.width} / ${this.dimensions.height}`;
         });
         videoEl.addEventListener(`ended`, () => {
@@ -135,7 +140,9 @@ class CameraElement {
         }
         const constraints = {
             video: {
-                deviceId: { exact: camera.deviceId }
+                deviceId: { exact: camera.deviceId },
+                width: __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").width,
+                height: __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").height
             }
         };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -146,7 +153,7 @@ class CameraElement {
         return __classPrivateFieldGet(this, _CameraElement_lastCameraInfo, "f");
     }
 }
-_CameraElement_camera = new WeakMap(), _CameraElement_lastCameraInfo = new WeakMap(), _CameraElement_instances = new WeakSet(), _CameraElement_debugLog = function _CameraElement_debugLog(message) {
+_CameraElement_camera = new WeakMap(), _CameraElement_lastCameraInfo = new WeakMap(), _CameraElement_preferredCameraSize = new WeakMap(), _CameraElement_instances = new WeakSet(), _CameraElement_debugLog = function _CameraElement_debugLog(message) {
     if (!this.debug)
         return;
     console.log(`CameraElement`, message);
@@ -59696,7 +59703,7 @@ _SourceSelect_instances = new WeakSet(), _SourceSelect_updateSelectedItem = func
     }
 };
 
-var _View_canvasEl, _View_ctx, _View_rect, _View_poseColours, _View_visible;
+var _View_canvasEl, _View_ctx, _View_rect, _View_poseColours, _View_visible, _View_pixelScale;
 const PiPi = Math.PI * 2;
 const DotRadius = 5;
 const SkeletonLineWidth = 5;
@@ -59708,6 +59715,7 @@ class View extends BaseUi {
         _View_rect.set(this, { width: 0, height: 0 });
         _View_poseColours.set(this, new Map());
         _View_visible.set(this, true);
+        _View_pixelScale.set(this, 1);
     }
     initUi() {
         const canvas = document.createElement(`canvas`);
@@ -59730,13 +59738,20 @@ class View extends BaseUi {
         }
         return __classPrivateFieldGet(this, _View_ctx, "f");
     }
+    /**
+     * Called by the sampler
+     * @param bounds
+     */
     setSize(bounds) {
         if (__classPrivateFieldGet(this, _View_canvasEl, "f") === undefined)
             throw new Error(`CanvasEl undefined`);
+        if (bounds.width === __classPrivateFieldGet(this, _View_rect, "f").width && bounds.height === __classPrivateFieldGet(this, _View_rect, "f").height)
+            return;
         this.debugLog(`setSize ${bounds.width}x${bounds.height}`);
         __classPrivateFieldGet(this, _View_canvasEl, "f").width = bounds.width;
         __classPrivateFieldGet(this, _View_canvasEl, "f").height = bounds.height;
         __classPrivateFieldSet(this, _View_rect, bounds, "f");
+        __classPrivateFieldSet(this, _View_pixelScale, bounds.width / 800, "f");
     }
     relToAbs(x, y) {
         return {
@@ -59744,23 +59759,6 @@ class View extends BaseUi {
             y: y * __classPrivateFieldGet(this, _View_rect, "f").height
         };
     }
-    // update() {
-    //   const ctx = this.getCtx();
-    //   if (!ctx) return;
-    //   const {width, height} = this.#rect;
-    //   ctx.strokeStyle = `red`;
-    //   ctx.beginPath();
-    //   ctx.moveTo(0, 0);
-    //   ctx.lineTo(width, height);
-    //   ctx.lineTo(width, 0);
-    //   ctx.lineTo(0, 0);
-    //   ctx.lineTo(0, height);
-    //   ctx.lineTo(width, height);
-    //   ctx.lineWidth = 2;
-    //   ctx.stroke();
-    //   ctx.fillStyle = `blue`;
-    //   ctx.fillText(`hello`, 100, 100);
-    // }
     drawPoses(poses) {
         const ctx = this.getCtx();
         const { width, height } = __classPrivateFieldGet(this, _View_rect, "f");
@@ -59769,7 +59767,7 @@ class View extends BaseUi {
         ctx.clearRect(0, 0, width, height);
         ctx.textAlign = `left`;
         ctx.textBaseline = `bottom`;
-        ctx.font = `14pt monospace`;
+        ctx.font = `${__classPrivateFieldGet(this, _View_pixelScale, "f") * 14}pt monospace`;
         poses.sort((a, b) => a.id - b.id);
         for (let i = 0; i < poses.length; i++) {
             this.drawPose(ctx, poses[i], i);
@@ -59797,7 +59795,7 @@ class View extends BaseUi {
         else {
             colour = `white`;
         }
-        ctx.lineWidth = SkeletonLineWidth;
+        ctx.lineWidth = SkeletonLineWidth * __classPrivateFieldGet(this, _View_pixelScale, "f");
         ctx.strokeStyle = colour;
         ctx.fillStyle = colour;
         const score = pose.score ? Math.round(pose.score * 100) : 0;
@@ -59808,7 +59806,7 @@ class View extends BaseUi {
         for (const kp of pose.keypoints) {
             const abs = { x: kp.x * width, y: kp.y * height };
             map.set(kp.name ?? ``, abs);
-            this.drawDot(ctx, abs, DotRadius, ``); //, kp.name ?? ``);
+            this.drawDot(ctx, abs, DotRadius * __classPrivateFieldGet(this, _View_pixelScale, "f"), ``); //, kp.name ?? ``);
         }
         ctx.beginPath();
         this.traceLine(ctx, map.get(`left_wrist`), map.get(`left_elbow`), map.get(`left_shoulder`), map.get(`right_shoulder`), map.get(`right_elbow`), map.get(`right_wrist`));
@@ -59840,7 +59838,7 @@ class View extends BaseUi {
         ctx.drawImage(buffer, 0, 0);
     }
 }
-_View_canvasEl = new WeakMap(), _View_ctx = new WeakMap(), _View_rect = new WeakMap(), _View_poseColours = new WeakMap(), _View_visible = new WeakMap();
+_View_canvasEl = new WeakMap(), _View_ctx = new WeakMap(), _View_rect = new WeakMap(), _View_poseColours = new WeakMap(), _View_visible = new WeakMap(), _View_pixelScale = new WeakMap();
 
 class RecorderSourceUi extends BaseUi {
     constructor(app) {
@@ -88827,6 +88825,10 @@ class App {
         this.config = {
             debug: false,
             recordSamplingMs: 50,
+            preferredCameraSize: {
+                height: 600,
+                width: 800
+            },
             moveNet: defaultMoveNetConfig(6),
             ...config
         };

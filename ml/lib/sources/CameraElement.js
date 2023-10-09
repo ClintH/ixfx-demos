@@ -9,7 +9,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _CameraElement_instances, _CameraElement_camera, _CameraElement_lastCameraInfo, _CameraElement_debugLog;
+var _CameraElement_instances, _CameraElement_camera, _CameraElement_lastCameraInfo, _CameraElement_preferredCameraSize, _CameraElement_debugLog;
 export class CameraElement {
     constructor(camera) {
         _CameraElement_instances.add(this);
@@ -17,8 +17,10 @@ export class CameraElement {
         _CameraElement_camera.set(this, void 0);
         _CameraElement_lastCameraInfo.set(this, void 0);
         this.dimensions = { width: 0, height: 0 };
+        _CameraElement_preferredCameraSize.set(this, void 0);
         this.debug = camera.app.debug;
         __classPrivateFieldSet(this, _CameraElement_camera, camera, "f");
+        __classPrivateFieldSet(this, _CameraElement_preferredCameraSize, camera.app.config.preferredCameraSize, "f");
     }
     initUi() {
         const videoEl = document.createElement(`video`);
@@ -40,6 +42,9 @@ export class CameraElement {
                 width: videoEl.videoWidth,
                 height: videoEl.videoHeight
             };
+            if (this.dimensions.width !== __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").width || this.dimensions.height !== __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").height) {
+                console.warn(`Actual camera size is ${this.dimensions.width}x${this.dimensions.height}, not the preferred of ${__classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").width}x${__classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").height}`);
+            }
             videoEl.style.aspectRatio = `${this.dimensions.width} / ${this.dimensions.height}`;
         });
         videoEl.addEventListener(`ended`, () => {
@@ -101,7 +106,9 @@ export class CameraElement {
         }
         const constraints = {
             video: {
-                deviceId: { exact: camera.deviceId }
+                deviceId: { exact: camera.deviceId },
+                width: __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").width,
+                height: __classPrivateFieldGet(this, _CameraElement_preferredCameraSize, "f").height
             }
         };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -112,7 +119,7 @@ export class CameraElement {
         return __classPrivateFieldGet(this, _CameraElement_lastCameraInfo, "f");
     }
 }
-_CameraElement_camera = new WeakMap(), _CameraElement_lastCameraInfo = new WeakMap(), _CameraElement_instances = new WeakSet(), _CameraElement_debugLog = function _CameraElement_debugLog(message) {
+_CameraElement_camera = new WeakMap(), _CameraElement_lastCameraInfo = new WeakMap(), _CameraElement_preferredCameraSize = new WeakMap(), _CameraElement_instances = new WeakSet(), _CameraElement_debugLog = function _CameraElement_debugLog(message) {
     if (!this.debug)
         return;
     console.log(`CameraElement`, message);
