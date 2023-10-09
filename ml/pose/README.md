@@ -83,8 +83,8 @@ remote.onData = (packet) {
 
 * Get all the poses from a particular sender: `getFromSender(senderId)`
 * Get all sender ids: `getSenderIds`
-* Get all raw pose data regardless of sender: `getValues` (`getValuesByAge` sorts by last updated)
-* Get all trackers, regardless of sender: `getTrackers` (`getTrackersByAge` sorts by last updated)
+* Get all raw pose data regardless of sender: `getRawPoses` (`getRawPosesByAge` sorts by last updated)
+* Get all trackers, regardless of sender: `get` (`getByAge` sorts by last updated)
 
 Example:
 ```js
@@ -93,7 +93,7 @@ for (const tracker of poses.getFromSender(senderId)) {
   // Since we have the tracker, we can do low-level work with keypoints
 }
 
-for (const pose of poses.getValuesByAge()) {
+for (const pose of poses.getRawPosesByAge()) {
   // Process all poses, sorted by age
   // This is the raw, last received pose without any additional history
 }
@@ -103,21 +103,21 @@ for (const pose of poses.getValuesByAge()) {
 
 Since we may have multiple senders which may have overlapping pose ids, to access a pose, we need the sender's id as well as the pose id.
 
-Use `getTrackerByGuid(guid)` to get the tracker, or `getValueByGuid` to get the raw pose data.
+Use `getByGuid(guid)` to get the tracker, or `getRawPoseByGuid` to get the raw pose data.
 ```js
 // Get the corresponding tracker
-const trackerForPose = poses.getTrackerByGuid(`902-42-10`);
+const trackerForPose = poses.getByGuid(`902-42-10`);
 // Get the last raw pose data
-const poseData = poses.getValueByGuid(`902-42-10`);
+const poseData = poses.getRawPoseByGuid(`902-42-10`);
 ```
 
-If we don't have the sender id for some reason, or if you can be sure there's only one sender, you can get a pose by it's id with `getTrackerByPoseId`. This returns a `PoseTracker` instance.
+If we don't have the sender id for some reason, or if you can be sure there's only one sender, you can get a pose by it's id with `getByPoseId`. This returns a `PoseTracker` instance.
 
 ```js
 // Get the corresponding tracker
-const trackerForPose = poses.getTrackerByPoseId(`10`);
+const trackerForPose = poses.getByPoseId(`10`);
 // Get the last raw pose data
-const poseData = poses.getValueByPoseId(`10`);
+const poseData = poses.getRawPoseByPoseId(`10`);
 ```
 
 # PoseTracker
@@ -166,6 +166,13 @@ noseTracker.lastResult // {fromInitial,fromLast,values}
 To get the raw value:
 ```js
 const nosePoint = pose.keypointValue(`nose`); // {x,y}
+```
+
+To get raw keypoints across all poses:
+```js
+for (const kp of poses.getRawKeypoints(`nose`)) {
+  // {x,y,score,name}
+}
 ```
 
 ## Raw poses

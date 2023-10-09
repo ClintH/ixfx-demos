@@ -1,6 +1,6 @@
 import * as Types from '../lib/Types.js';
 import { PoseTracker } from './PoseTracker.js';
-
+import * as Coco from '../lib/Coco.js';
 /**
  * @typedef {Readonly<{
  * maxAgeMs:number
@@ -51,18 +51,22 @@ export class PosesTracker {
     }, 1000);
   }
 
+  
   /**
-   * Enumerates each of the PoseTrackers
+   * Enumerates each of the PoseTrackers, sorted by age
    * (ie. one for each body).
-   * Use getValuesByAge() to enumerate raw pose data
+   * Use getRawPosesByAge() to enumerate raw pose data
    */
-  *getTrackersByAge() {
+  *getByAge() {
     const trackers = [...this.#data.values()];
     trackers.sort((a,b)=>a.elapsed-b.elapsed);
     yield* trackers.values();
   }
 
-  *getTrackers() {
+  /**
+   * Enumerate all PoseTracker instances
+   */
+  *get() {
     const trackers = [...this.#data.values()];
     yield* trackers.values();
   }
@@ -71,17 +75,44 @@ export class PosesTracker {
    * Enumerate the last set of raw pose data for
    * each of the PoseTrackers.
    */
-  *getValuesByAge() {
-    for (const tracker of this.getTrackersByAge()) {
+  *getRawPosesByAge() {
+    for (const tracker of this.getByAge()) {
       yield tracker.last;
     }  
   }
 
-  *getValues() {
+  *getRawPoses() {
     const values = [...this.#data.values()];
     for (const tracker of values) {
       yield tracker.last;
     }  
+  }
+
+  /**
+   * Enumerate raw keypoint data for all tracked poses
+   * @param {string} name 
+   */
+  *getRawKeypoints(name) {
+    const index = Coco.nameToIndex.get(name);
+    if (index === undefined) throw new Error(`Keypoint unknown: '${name}'`);
+    for (const pose of this.getRawPoses()) {
+      const kp = pose.keypoints[index];
+      if (kp !== undefined) yield kp;
+    }
+  }
+
+  /**
+   * Enumerate point trackers for all tracked poses
+   * for a given keypoint name
+   * @param {string} name 
+   */
+  *getPointTrackers(name) {
+    const index = Coco.nameToIndex.get(name);
+    if (index === undefined) throw new Error(`Keypoint unknown: '${name}'`);
+    for (const tracker of this.get()) {
+      yield tracker.keypoint(name);
+
+    }
   }
 
   /**
@@ -121,7 +152,7 @@ export class PosesTracker {
    * @param {string} id 
    * @returns 
    */
-  getTrackerByPoseId(id) {
+  getByPoseId(id) {
     for (const entry of this.#data.values()) {
       if (entry.poseId === id) return entry;
     }
@@ -133,7 +164,7 @@ export class PosesTracker {
    * Prefer using guids.
    * @param {string} id 
    */
-  getValueByPoseId(id) {
+  getRawPoseByPoseId(id) {
     for (const entry of this.#data.values()) {
       if (entry.poseId === id) return entry.last;
     }
@@ -154,11 +185,11 @@ export class PosesTracker {
    * @param {string} id 
    * @returns 
    */
-  getTrackerByGuid(id) {
+  getByGuid(id) {
     return this.#data.get(id);
   }
 
-  getValueByGuid(id) {
+  getRawPoseByGuid(id) {
     return this.#data.get(id)?.last;
   }
 

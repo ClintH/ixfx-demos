@@ -69,7 +69,7 @@ const update = () => {
   // Calculate change in tilt
   let angleTotal = 0;
   let counted = 0;
-  for (const pose of poses.getValues()) {
+  for (const pose of poses.getRawPoses()) {
     let a = computeShoulderAngle(pose); // Note: angle is in radians, not degrees
 
     // Skip cases where we can't compute angle (eg missing keypoints)

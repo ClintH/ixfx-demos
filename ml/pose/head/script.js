@@ -51,7 +51,7 @@ const update = () => {
 
   // Compute a head size for each pose
   const heads = [];
-  for (const pose of poses.getValuesByAge()) {
+  for (const pose of poses.getRawPoses()) {
     const head = computeHead(pose);
     heads.push(head);
   }
@@ -105,7 +105,7 @@ const drawHead = (context, head) => {
 
   const headAbs = Points.multiplyScalar(head,scaleBy);
   const radius = head.radius*scaleBy;
-  const tracker = poses.getTrackerByPoseId(head.poseId);
+  const tracker = poses.getByPoseId(head.poseId);
   if (tracker === undefined) return;
   const hue = tracker.hue;
   

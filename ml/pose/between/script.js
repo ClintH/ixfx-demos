@@ -38,7 +38,7 @@ const update = () => {
 
   // Calculate middle of each pose
   const middles = [];
-  for (const p of poses.getTrackers()) {
+  for (const p of poses.get()) {
     const middle = PoseUtil.roughCenter(p.last);
     if (middle === undefined) continue;
     middles.push({id:p.guid, position:middle });
@@ -107,7 +107,7 @@ function setup() {
     // Update all the things
     things = things.map(t => {
       // Get associated tracker for this thing
-      const tracker = poses.getTrackerByGuid(t.id);
+      const tracker = poses.getByGuid(t.id);
       if (tracker === undefined) return t; // Just in case
 
       // Update the thing
