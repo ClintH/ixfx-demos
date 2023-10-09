@@ -39,7 +39,7 @@ export class CameraSource {
         return __classPrivateFieldGet(this, _CameraSource_el, "f").start();
     }
     notifyPlayingState(value) {
-        //this.debugLog(`notifyPlayingState value: ${value} (prev: ${this.#playing})`);
+        this.debugLog(`notifyPlayingState value: ${value} (prev: ${__classPrivateFieldGet(this, _CameraSource_playing, "f")})`);
         if (value === __classPrivateFieldGet(this, _CameraSource_playing, "f"))
             return;
         __classPrivateFieldSet(this, _CameraSource_playing, value, "f");

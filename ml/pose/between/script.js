@@ -2,10 +2,7 @@
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import {Arrays} from '../../../ixfx/collections.js';
 import {Points} from '../../../ixfx/geometry.js';
-import { PosesTracker } from "../PosesTracker.js";
-import * as PoseUtil from '../Util.js';
-import {PoseTracker} from "../PoseTracker.js";
-import * as Types from '../../lib/Types.js';
+import * as MoveNet from "../Poses.js";
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
@@ -15,7 +12,7 @@ const settings = Object.freeze({
   // How often to update main state
   updateSpeedMs: 200,
   remote: new Remote(),
-  poses: new PosesTracker({maxAgeMs: 1000 }),
+  poses: new MoveNet.PosesTracker({maxAgeMs: 1000 }),
 });
 
 /** 
@@ -39,7 +36,7 @@ const update = () => {
   // Calculate middle of each pose
   const middles = [];
   for (const p of poses.get()) {
-    const middle = PoseUtil.roughCenter(p.last);
+    const middle = MoveNet.roughCenter(p.last);
     if (middle === undefined) continue;
     middles.push({id:p.guid, position:middle });
   }
@@ -51,7 +48,7 @@ const update = () => {
  * @param {*} event 
  */
 const onPoseAdded = (event) => {
-  const poseTracker = /** @type PoseTracker */(event.detail);
+  const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
  
   // Create a thing for this pose
   const x = poseTracker.middle().x;
@@ -68,7 +65,7 @@ const onPoseAdded = (event) => {
 const onPoseExpired = (event) => {
   const { poses } = settings;
   const { things } = state;
-  const poseTracker = /** @type PoseTracker */(event.detail);
+  const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
   const guid = poseTracker.guid;
   
   // Synchronise list of things with current poses
@@ -141,7 +138,7 @@ function setup() {
  */
 function onReceivedPoses (packet) {
   const { _from, data } = packet;
-  const poseData =/** @type Types.Pose[] */(data);
+  const poseData =/** @type MoveNet.Pose[] */(data);
   
   // Pass each pose over to the poses tracker
   for (const pose of poseData) {

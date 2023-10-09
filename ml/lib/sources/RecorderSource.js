@@ -56,14 +56,16 @@ export class RecorderSource {
         this.debugLog(`onStandby`);
     }
     stop() {
+        this.debugLog(`stop. playing: ${__classPrivateFieldGet(this, _RecorderSource_playing, "f")}`);
         if (!__classPrivateFieldGet(this, _RecorderSource_playing, "f"))
             return;
-        this.debugLog(`stop`);
         __classPrivateFieldSet(this, _RecorderSource_playing, false, "f");
         this.events.dispatchEvent(new CustomEvent(SourceEvents.Stopped));
     }
     runLoop() {
         var _a;
+        if (!__classPrivateFieldGet(this, _RecorderSource_playing, "f"))
+            return;
         this.app.handleData(__classPrivateFieldGet(this, _RecorderSource_active, "f")?.data[__classPrivateFieldGet(this, _RecorderSource_playPosition, "f")]);
         __classPrivateFieldSet(this, _RecorderSource_playPosition, (_a = __classPrivateFieldGet(this, _RecorderSource_playPosition, "f"), _a++, _a), "f");
         if (__classPrivateFieldGet(this, _RecorderSource_playPosition, "f") === __classPrivateFieldGet(this, _RecorderSource_active, "f")?.data.length)
@@ -73,6 +75,7 @@ export class RecorderSource {
     async start() {
         if (__classPrivateFieldGet(this, _RecorderSource_playing, "f"))
             return false;
+        __classPrivateFieldSet(this, _RecorderSource_playing, true, "f");
         this.debugLog(`start`);
         this.events.dispatchEvent(new CustomEvent(SourceEvents.Playing));
         setTimeout(() => this.runLoop(), __classPrivateFieldGet(this, _RecorderSource_sampleRate, "f"));

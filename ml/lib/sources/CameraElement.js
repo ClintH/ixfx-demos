@@ -42,13 +42,15 @@ export class CameraElement {
             };
             videoEl.style.aspectRatio = `${this.dimensions.width} / ${this.dimensions.height}`;
         });
-        // videoEl.addEventListener(`ended`, () => {
-        //   console.log(`ended`);
-        // });
+        videoEl.addEventListener(`ended`, () => {
+            __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `videoEl.ended`);
+        });
         videoEl.addEventListener(`pause`, () => {
+            __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `videoEl.pause`);
             __classPrivateFieldGet(this, _CameraElement_camera, "f").notifyPlayingState(false);
         });
         videoEl.addEventListener(`playing`, () => {
+            __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `videoEl.playing`);
             __classPrivateFieldGet(this, _CameraElement_camera, "f").notifyPlayingState(true);
         });
         this.videoEl = videoEl;
@@ -59,6 +61,9 @@ export class CameraElement {
             throw new Error(`Ui not yet initalised`);
         __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `Stop`);
         this.videoEl.pause();
+        // Shouldn't be necessary since we do this via videoEl.addEventListener(`pause`)
+        // but it doesn't seem to always fire?
+        __classPrivateFieldGet(this, _CameraElement_camera, "f").notifyPlayingState(false);
         return true;
     }
     async start() {

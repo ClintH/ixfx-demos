@@ -19,6 +19,7 @@ import { Ui } from "./ui/Ui.js";
 import { Sampler } from './Sampler.js';
 import * as TensorFlow from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-wasm';
 import { RecorderSource } from "./sources/RecorderSource.js";
 import { defaultMoveNetConfig } from "./models/Types.js";
 export class App {
@@ -78,6 +79,7 @@ export class App {
             this.events.dispatchEvent(new CustomEvent(SourceEvents.Playing));
         });
         this.camera.events.addEventListener(SourceEvents.Stopped, () => {
+            __classPrivateFieldGet(this, _App_instances, "m", _App_debugLog).call(this, `Got camera.Stopped`);
             this.events.dispatchEvent(new CustomEvent(SourceEvents.Stopped));
             this.sampler.stop();
         });

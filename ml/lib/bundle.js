@@ -76,13 +76,15 @@ class CameraElement {
             };
             videoEl.style.aspectRatio = `${this.dimensions.width} / ${this.dimensions.height}`;
         });
-        // videoEl.addEventListener(`ended`, () => {
-        //   console.log(`ended`);
-        // });
+        videoEl.addEventListener(`ended`, () => {
+            __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `videoEl.ended`);
+        });
         videoEl.addEventListener(`pause`, () => {
+            __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `videoEl.pause`);
             __classPrivateFieldGet(this, _CameraElement_camera, "f").notifyPlayingState(false);
         });
         videoEl.addEventListener(`playing`, () => {
+            __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `videoEl.playing`);
             __classPrivateFieldGet(this, _CameraElement_camera, "f").notifyPlayingState(true);
         });
         this.videoEl = videoEl;
@@ -93,6 +95,9 @@ class CameraElement {
             throw new Error(`Ui not yet initalised`);
         __classPrivateFieldGet(this, _CameraElement_instances, "m", _CameraElement_debugLog).call(this, `Stop`);
         this.videoEl.pause();
+        // Shouldn't be necessary since we do this via videoEl.addEventListener(`pause`)
+        // but it doesn't seem to always fire?
+        __classPrivateFieldGet(this, _CameraElement_camera, "f").notifyPlayingState(false);
         return true;
     }
     async start() {
@@ -180,7 +185,7 @@ class CameraSource {
         return __classPrivateFieldGet(this, _CameraSource_el, "f").start();
     }
     notifyPlayingState(value) {
-        //this.debugLog(`notifyPlayingState value: ${value} (prev: ${this.#playing})`);
+        this.debugLog(`notifyPlayingState value: ${value} (prev: ${__classPrivateFieldGet(this, _CameraSource_playing, "f")})`);
         if (value === __classPrivateFieldGet(this, _CameraSource_playing, "f"))
             return;
         __classPrivateFieldSet(this, _CameraSource_playing, value, "f");
@@ -702,7 +707,7 @@ function swap(object, left, right) {
     object[left] = object[right];
     object[right] = temp;
 }
-function sum$3(arr) {
+function sum$4(arr) {
     let sum = 0;
     for (let i = 0; i < arr.length; i++) {
         sum += arr[i];
@@ -1361,11 +1366,11 @@ function parseValue(flagName, value) {
  * @doc {heading: 'Environment'}
  */
 function env() {
-    return ENV$4;
+    return ENV$5;
 }
-let ENV$4 = null;
+let ENV$5 = null;
 function setEnvironmentGlobal(environment) {
-    ENV$4 = environment;
+    ENV$5 = environment;
 }
 
 /**
@@ -1524,6 +1529,7 @@ const Log1p = 'Log1p';
 const LogicalAnd = 'LogicalAnd';
 const LogicalNot = 'LogicalNot';
 const LogicalOr = 'LogicalOr';
+const LogicalXor = 'LogicalXor';
 const LRN = 'LRN';
 const LRNGrad = 'LRNGrad';
 const Max = 'Max';
@@ -5487,12 +5493,12 @@ function isBrowser() {
  * limitations under the License.
  * =============================================================================
  */
-const ENV$3 = env();
+const ENV$4 = env();
 /**
  * This file contains environment-related flag registrations.
  */
 /** Whether to enable debug mode. */
-ENV$3.registerFlag('DEBUG', () => false, debugValue => {
+ENV$4.registerFlag('DEBUG', () => false, debugValue => {
     if (debugValue) {
         console.warn('Debugging mode is ON. The output of every math call will ' +
             'be downloaded to CPU and checked for NaNs. ' +
@@ -5500,41 +5506,41 @@ ENV$3.registerFlag('DEBUG', () => false, debugValue => {
     }
 });
 /** Whether we are in a browser (as versus, say, node.js) environment. */
-ENV$3.registerFlag('IS_BROWSER', () => isBrowser());
+ENV$4.registerFlag('IS_BROWSER', () => isBrowser());
 /** Whether we are in a browser (as versus, say, node.js) environment. */
-ENV$3.registerFlag('IS_NODE', () => (typeof process !== 'undefined') &&
+ENV$4.registerFlag('IS_NODE', () => (typeof process !== 'undefined') &&
     (typeof process.versions !== 'undefined') &&
     (typeof process.versions.node !== 'undefined'));
 /** Whether this browser is Chrome. */
-ENV$3.registerFlag('IS_CHROME', () => typeof navigator !== 'undefined' && navigator != null &&
+ENV$4.registerFlag('IS_CHROME', () => typeof navigator !== 'undefined' && navigator != null &&
     navigator.userAgent != null && /Chrome/.test(navigator.userAgent) &&
     /Google Inc/.test(navigator.vendor));
 /** Whether this browser is Safari. */
-ENV$3.registerFlag('IS_SAFARI', () => typeof navigator !== 'undefined' && navigator != null &&
+ENV$4.registerFlag('IS_SAFARI', () => typeof navigator !== 'undefined' && navigator != null &&
     navigator.userAgent != null && /Safari/.test(navigator.userAgent) &&
     /Apple/.test(navigator.vendor));
 /**
  * True when the environment is "production" where we disable safety checks
  * to gain performance.
  */
-ENV$3.registerFlag('PROD', () => false);
+ENV$4.registerFlag('PROD', () => false);
 /**
  * Whether to do sanity checks when inferring a shape from user-provided
  * values, used when creating a new tensor.
  */
-ENV$3.registerFlag('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => ENV$3.getBool('DEBUG'));
+ENV$4.registerFlag('TENSORLIKE_CHECK_SHAPE_CONSISTENCY', () => ENV$4.getBool('DEBUG'));
 /** Whether deprecation warnings are enabled. */
-ENV$3.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
+ENV$4.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
 /** True if running unit tests. */
-ENV$3.registerFlag('IS_TEST', () => false);
+ENV$4.registerFlag('IS_TEST', () => false);
 /** Whether to check computation result for errors. */
-ENV$3.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => ENV$3.getBool('DEBUG'));
+ENV$4.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => ENV$4.getBool('DEBUG'));
 /** Whether the backend needs to wrap input to imageBitmap. */
-ENV$3.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
+ENV$4.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
 /** Whether to enable canvas2d willReadFrequently for GPU backends */
-ENV$3.registerFlag('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', () => false);
+ENV$4.registerFlag('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', () => false);
 /** Whether to use setTimeoutCustom */
-ENV$3.registerFlag('USE_SETTIMEOUTCUSTOM', () => false);
+ENV$4.registerFlag('USE_SETTIMEOUTCUSTOM', () => false);
 
 /**
  * @license
@@ -8012,7 +8018,7 @@ function cast_(x, dtype) {
     const attrs = { dtype };
     return ENGINE.runKernel(Cast, inputs, attrs);
 }
-const cast$2 = /* @__PURE__ */ op({ cast_ });
+const cast$3 = /* @__PURE__ */ op({ cast_ });
 
 /**
  * @license
@@ -8107,7 +8113,7 @@ function print(x, verbose = false) {
 getOrMakeEngine();
 const opHandler = {
     buffer,
-    cast: cast$2,
+    cast: cast$3,
     clone,
     print
 };
@@ -8694,7 +8700,7 @@ function all_(x, axis = null, keepDims = false) {
     const attrs = { axis, keepDims };
     return ENGINE.runKernel(All, inputs, attrs);
 }
-const all$2 = /* @__PURE__ */ op({ all_ });
+const all$3 = /* @__PURE__ */ op({ all_ });
 
 /**
  * @license
@@ -8748,7 +8754,7 @@ function any_(x, axis = null, keepDims = false) {
     return ENGINE.runKernel(Any, inputs, attrs);
 }
 // tslint:disable-next-line:variable-name
-const any$2 = /* @__PURE__ */ op({ any_ });
+const any$3 = /* @__PURE__ */ op({ any_ });
 
 /**
  * @license
@@ -9507,7 +9513,7 @@ function reshape_(x, shape) {
     const attrs = { shape };
     return ENGINE.runKernel(Reshape, inputs, attrs);
 }
-const reshape$2 = /* @__PURE__ */ op({ reshape_ });
+const reshape$3 = /* @__PURE__ */ op({ reshape_ });
 
 /**
  * @license
@@ -9556,7 +9562,7 @@ function avgPool_(x, filterSize, strides, pad, dimRoundingMode) {
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
     checkPadOnDimRoundingMode('avgPool', pad, dimRoundingMode);
@@ -9564,13 +9570,13 @@ function avgPool_(x, filterSize, strides, pad, dimRoundingMode) {
     const attrs = { filterSize, strides, pad, dimRoundingMode };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     let res = ENGINE.runKernel(AvgPool, inputs, attrs);
-    res = cast$2(res, $x.dtype);
+    res = cast$3(res, $x.dtype);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const avgPool$2 = /* @__PURE__ */ op({ avgPool_ });
+const avgPool$3 = /* @__PURE__ */ op({ avgPool_ });
 
 /**
  * @license
@@ -9630,7 +9636,7 @@ function avgPool3d_(x, filterSize, strides, pad, dimRoundingMode, dataFormat = '
     let reshapedTo5D = false;
     if ($x.rank === 4) {
         reshapedTo5D = true;
-        x5D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
+        x5D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
     }
     assert(x5D.rank === 5, () => `Error in avgPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
     assert(dataFormat === 'NDHWC', () => `Error in avgPool3d: Only NDHWC is currently supported, ` +
@@ -9643,9 +9649,9 @@ function avgPool3d_(x, filterSize, strides, pad, dimRoundingMode, dataFormat = '
     const attrs = { filterSize, strides, pad, dimRoundingMode, dataFormat };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     let res = ENGINE.runKernel(AvgPool3D, inputs, attrs);
-    res = cast$2(res, x5D.dtype);
+    res = cast$3(res, x5D.dtype);
     if (reshapedTo5D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -9725,7 +9731,7 @@ function concat_(tensors, axis = 0) {
     const attr = { axis };
     return ENGINE.runKernel(Concat, inputs, attr);
 }
-const concat$2 = /* @__PURE__ */ op({ concat_ });
+const concat$3 = /* @__PURE__ */ op({ concat_ });
 
 /**
  * @license
@@ -9802,7 +9808,7 @@ function sigmoid_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Sigmoid, inputs);
 }
-const sigmoid$2 = /* @__PURE__ */ op({ sigmoid_ });
+const sigmoid$3 = /* @__PURE__ */ op({ sigmoid_ });
 
 /**
  * @license
@@ -9863,7 +9869,7 @@ function slice_(x, begin, size) {
     const attrs = { begin, size };
     return ENGINE.runKernel(Slice, inputs, attrs);
 }
-const slice$2 = /* @__PURE__ */ op({ slice_ });
+const slice$3 = /* @__PURE__ */ op({ slice_ });
 
 /**
  * @license
@@ -9939,19 +9945,19 @@ function basicLSTMCell_(forgetBias, lstmKernel, lstmBias, data, c, h) {
     const $data = convertToTensor(data, 'data', 'basicLSTMCell');
     const $c = convertToTensor(c, 'c', 'basicLSTMCell');
     const $h = convertToTensor(h, 'h', 'basicLSTMCell');
-    const combined = concat$2([$data, $h], 1);
+    const combined = concat$3([$data, $h], 1);
     const weighted = matMul$1(combined, $lstmKernel);
     const res = add(weighted, $lstmBias);
     // i = input_gate, j = new_input, f = forget_gate, o = output_gate
     const batchSize = res.shape[0];
     const sliceCols = res.shape[1] / 4;
     const sliceSize = [batchSize, sliceCols];
-    const i = slice$2(res, [0, 0], sliceSize);
-    const j = slice$2(res, [0, sliceCols], sliceSize);
-    const f = slice$2(res, [0, sliceCols * 2], sliceSize);
-    const o = slice$2(res, [0, sliceCols * 3], sliceSize);
-    const newC = add(mul(sigmoid$2(i), tanh$2(j)), mul($c, sigmoid$2(add($forgetBias, f))));
-    const newH = mul(tanh$2(newC), sigmoid$2(o));
+    const i = slice$3(res, [0, 0], sliceSize);
+    const j = slice$3(res, [0, sliceCols], sliceSize);
+    const f = slice$3(res, [0, sliceCols * 2], sliceSize);
+    const o = slice$3(res, [0, sliceCols * 3], sliceSize);
+    const newC = add(mul(sigmoid$3(i), tanh$2(j)), mul($c, sigmoid$3(add($forgetBias, f))));
+    const newH = mul(tanh$2(newC), sigmoid$3(o));
     return [newC, newH];
 }
 const basicLSTMCell = /* @__PURE__ */ op({ basicLSTMCell_ });
@@ -10031,18 +10037,18 @@ function batchToSpaceND_(x, blockShape, crops) {
     const attrs = { blockShape, crops };
     return ENGINE.runKernel(BatchToSpaceND, inputs, attrs);
 }
-const batchToSpaceND$2 = /* @__PURE__ */ op({ batchToSpaceND_ });
+const batchToSpaceND$3 = /* @__PURE__ */ op({ batchToSpaceND_ });
 
 function xAs4D(x) {
     let x4D;
     if (x.rank === 0 || x.rank === 1) {
-        x4D = reshape$2(x, [1, 1, 1, x.size]);
+        x4D = reshape$3(x, [1, 1, 1, x.size]);
     }
     else if (x.rank === 2) {
-        x4D = reshape$2(x, [1, 1, x.shape[0], x.shape[1]]);
+        x4D = reshape$3(x, [1, 1, x.shape[0], x.shape[1]]);
     }
     else if (x.rank === 3) {
-        x4D = reshape$2(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
+        x4D = reshape$3(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
     }
     else {
         x4D = x;
@@ -10124,7 +10130,7 @@ function batchNorm_(x, mean, variance, offset, scale, varianceEpsilon) {
     const attrs = { varianceEpsilon };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(FusedBatchNorm, inputs, attrs);
-    return reshape$2(res, $x.shape);
+    return reshape$3(res, $x.shape);
 }
 const batchNorm$1 = /* @__PURE__ */ op({ batchNorm_ });
 
@@ -10297,7 +10303,7 @@ function bincount_(x, weights, size) {
     const attrs = { size };
     return ENGINE.runKernel(Bincount, inputs, attrs);
 }
-const bincount$2 = /* @__PURE__ */ op({ bincount_ });
+const bincount$3 = /* @__PURE__ */ op({ bincount_ });
 
 /**
  * @license
@@ -10393,7 +10399,7 @@ function broadcastArgs_(s0, s1) {
     const inputs = { s0: shape1Input, s1: shape2Input };
     return ENGINE.runKernel(BroadcastArgs, inputs);
 }
-const broadcastArgs$2 = /* @__PURE__ */ op({ broadcastArgs_ });
+const broadcastArgs$3 = /* @__PURE__ */ op({ broadcastArgs_ });
 
 /**
  * @license
@@ -10437,7 +10443,7 @@ function broadcastTo_(x, shape) {
         while (newShape.length < shape.length) {
             newShape.unshift(1);
         }
-        input = reshape$2(input, newShape);
+        input = reshape$3(input, newShape);
     }
     const inputShape = input.shape;
     const reps = Array.from(shape);
@@ -10525,7 +10531,7 @@ const ceil$2 = /* @__PURE__ */ op({ ceil_ });
  *
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-function fill$2(shape, value, dtype) {
+function fill$3(shape, value, dtype) {
     assertNonNegativeIntegerDimensions(shape);
     dtype = dtype || inferDtype(value);
     const attrs = { shape, value, dtype };
@@ -10567,7 +10573,7 @@ function clipByValue_(x, clipValueMin, clipValueMax) {
     assert((clipValueMin <= clipValueMax), () => `Error in clip: min (${clipValueMin}) must be ` +
         `less than or equal to max (${clipValueMax}).`);
     if (clipValueMin === clipValueMax) {
-        return fill$2($x.shape, clipValueMin, $x.dtype);
+        return fill$3($x.shape, clipValueMin, $x.dtype);
     }
     const inputs = { x: $x };
     const attrs = { clipValueMin, clipValueMax };
@@ -10587,7 +10593,7 @@ const clipByValue$2 = /* @__PURE__ */ op({ clipByValue_ });
  * @return The concatenated array.
  */
 function concat1d_(tensors) {
-    return concat$2(tensors, 0 /* axis */);
+    return concat$3(tensors, 0 /* axis */);
 }
 const concat1d = /* @__PURE__ */ op({ concat1d_ });
 
@@ -10619,7 +10625,7 @@ const concat1d = /* @__PURE__ */ op({ concat1d_ });
  * @return The concatenated array.
  */
 function concat2d_(tensors, axis) {
-    return concat$2(tensors, axis);
+    return concat$3(tensors, axis);
 }
 const concat2d = /* @__PURE__ */ op({ concat2d_ });
 
@@ -10655,7 +10661,7 @@ const concat2d = /* @__PURE__ */ op({ concat2d_ });
  * @return The concatenated array.
  */
 function concat3d_(tensors, axis) {
-    return concat$2(tensors, axis);
+    return concat$3(tensors, axis);
 }
 const concat3d = /* @__PURE__ */ op({ concat3d_ });
 
@@ -10668,7 +10674,7 @@ const concat3d = /* @__PURE__ */ op({ concat3d_ });
  * @return The concatenated array.
  */
 function concat4d_(tensors, axis) {
-    return concat$2(tensors, axis);
+    return concat$3(tensors, axis);
 }
 const concat4d = /* @__PURE__ */ op({ concat4d_ });
 
@@ -10727,7 +10733,7 @@ function conv2d_(x, filter, strides, pad, dataFormat = 'NHWC', dilations = [1, 1
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
     assert($filter.rank === 4, () => `Error in conv2d: filter must be rank 4, but got rank ` +
@@ -10745,11 +10751,11 @@ function conv2d_(x, filter, strides, pad, dataFormat = 'NHWC', dilations = [1, 1
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(Conv2D, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const conv2d$3 = /* @__PURE__ */ op({ conv2d_ });
+const conv2d$4 = /* @__PURE__ */ op({ conv2d_ });
 
 /**
  * Computes a 1D convolution over the input x.
@@ -10786,7 +10792,7 @@ function conv1d_(x, filter, stride, pad, dataFormat = 'NWC', dilation = 1, dimRo
     let reshapedTo3D = false;
     if ($x.rank === 2) {
         reshapedTo3D = true;
-        x3D = reshape$2($x, [1, $x.shape[0], $x.shape[1]]);
+        x3D = reshape$3($x, [1, $x.shape[0], $x.shape[1]]);
     }
     assert(x3D.rank === 3, () => `Error in conv1d: input must be rank 3, but got rank ${x3D.rank}.`);
     assert($filter.rank === 3, () => `Error in conv1d: filter must be rank 3, but got rank ` +
@@ -10799,16 +10805,16 @@ function conv1d_(x, filter, stride, pad, dataFormat = 'NWC', dilation = 1, dimRo
     assert(stridesOrDilationsArePositive(dilation), () => 'Error in conv1D: Dilated rates should be larger than 0.');
     assert(stridesOrDilationsArePositive(stride), () => 'Error in conv1D: Stride should be larger than 0.');
     assert(dataFormat === 'NWC', () => `Error in conv1d: got dataFormat of ${dataFormat} but only NWC is currently supported.`);
-    const filter4D = reshape$2($filter, [1, $filter.shape[0], $filter.shape[1], $filter.shape[2]]);
-    const input4D = reshape$2(x3D, [x3D.shape[0], 1, x3D.shape[1], x3D.shape[2]]);
+    const filter4D = reshape$3($filter, [1, $filter.shape[0], $filter.shape[1], $filter.shape[2]]);
+    const input4D = reshape$3(x3D, [x3D.shape[0], 1, x3D.shape[1], x3D.shape[2]]);
     const strides = [1, stride];
     const dilations = [1, dilation];
     const conv2dDataFormat = 'NHWC';
-    const res = conv2d$3(input4D, filter4D, strides, pad, conv2dDataFormat, dilations, dimRoundingMode);
+    const res = conv2d$4(input4D, filter4D, strides, pad, conv2dDataFormat, dilations, dimRoundingMode);
     if (reshapedTo3D) {
-        return reshape$2(res, [res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[2], res.shape[3]]);
     }
-    return reshape$2(res, [res.shape[0], res.shape[2], res.shape[3]]);
+    return reshape$3(res, [res.shape[0], res.shape[2], res.shape[3]]);
 }
 const conv1d = /* @__PURE__ */ op({ conv1d_ });
 
@@ -10860,7 +10866,7 @@ function conv2DBackpropInput_(xShape, dy, filter, strides, pad, dataFormat = 'NH
     let reshapedTo4D = false;
     if (dy.rank === 3) {
         reshapedTo4D = true;
-        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$3(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
         xShape4D = [1, xShape[0], xShape[1], xShape[2]];
     }
     assert(xShape4D.length === 4, () => `Error in conv2dDerInput: inShape must be length 4, but got length ` +
@@ -10881,11 +10887,11 @@ function conv2DBackpropInput_(xShape, dy, filter, strides, pad, dataFormat = 'NH
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(Conv2DBackpropInput, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const conv2DBackpropInput$2 = /* @__PURE__ */ op({ conv2DBackpropInput_ });
+const conv2DBackpropInput$3 = /* @__PURE__ */ op({ conv2DBackpropInput_ });
 
 /**
  * Computes the transposed 2D convolution of an image, also known as a
@@ -10910,7 +10916,7 @@ const conv2DBackpropInput$2 = /* @__PURE__ */ op({ conv2DBackpropInput_ });
 function conv2dTranspose_(x, filter, outputShape, strides, pad, dimRoundingMode) {
     const $x = convertToTensor(x, 'x', 'conv2dTranspose');
     const $filter = convertToTensor(filter, 'filter', 'conv2dTranspose');
-    return conv2DBackpropInput$2(outputShape, $x, $filter, strides, pad, 'NHWC', dimRoundingMode);
+    return conv2DBackpropInput$3(outputShape, $x, $filter, strides, pad, 'NHWC', dimRoundingMode);
 }
 const conv2dTranspose = /* @__PURE__ */ op({ conv2dTranspose_ });
 
@@ -10969,7 +10975,7 @@ function conv3d_(x, filter, strides, pad, dataFormat = 'NDHWC', dilations = [1, 
     let reshapedTo5D = false;
     if ($x.rank === 4) {
         reshapedTo5D = true;
-        x5D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
+        x5D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
     }
     assert(x5D.rank === 5, () => `Error in conv3d: input must be rank 5, but got rank ${x5D.rank}.`);
     assert($filter.rank === 5, () => `Error in conv3d: filter must be rank 5, but got rank ` +
@@ -10986,7 +10992,7 @@ function conv3d_(x, filter, strides, pad, dataFormat = 'NDHWC', dilations = [1, 
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(Conv3D, inputs, attrs);
     if (reshapedTo5D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -11034,7 +11040,7 @@ function conv3DBackpropInput_(xShape, dy, filter, strides, pad) {
     let reshapedTo5D = false;
     if (dy.rank === 4) {
         reshapedTo5D = true;
-        dy5D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
+        dy5D = reshape$3(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
         xShape5D = [1, xShape[0], xShape[1], xShape[2], xShape[3]];
     }
     const inDepth = xShape5D[4];
@@ -11054,7 +11060,7 @@ function conv3DBackpropInput_(xShape, dy, filter, strides, pad) {
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(Conv3DBackpropInputV2, inputs, attrs);
     if (reshapedTo5D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -11201,7 +11207,7 @@ function cumprod_(x, axis = 0, exclusive = false, reverse = false) {
     const attrs = { axis, exclusive, reverse };
     return ENGINE.runKernel(Cumprod, inputs, attrs);
 }
-const cumprod$2 = /* @__PURE__ */ op({ cumprod_ });
+const cumprod$3 = /* @__PURE__ */ op({ cumprod_ });
 
 /**
  * @license
@@ -11248,7 +11254,7 @@ function cumsum_(x, axis = 0, exclusive = false, reverse = false) {
     const attrs = { axis, exclusive, reverse };
     return ENGINE.runKernel(Cumsum, inputs, attrs);
 }
-const cumsum$2 = /* @__PURE__ */ op({ cumsum_ });
+const cumsum$3 = /* @__PURE__ */ op({ cumsum_ });
 
 /**
  * @license
@@ -11300,7 +11306,7 @@ function denseBincount_(x, weights, size, binaryOutput = false) {
     const attrs = { size, binaryOutput };
     return ENGINE.runKernel(DenseBincount, inputs, attrs);
 }
-const denseBincount$2 = /* @__PURE__ */ op({ denseBincount_ });
+const denseBincount$3 = /* @__PURE__ */ op({ denseBincount_ });
 
 /**
  * @license
@@ -11372,7 +11378,7 @@ function depthToSpace_(x, blockSize, dataFormat = 'NHWC') {
     const attrs = { blockSize, dataFormat };
     return ENGINE.runKernel(DepthToSpace, inputs, attrs);
 }
-const depthToSpace$2 = /* @__PURE__ */ op({ depthToSpace_ });
+const depthToSpace$3 = /* @__PURE__ */ op({ depthToSpace_ });
 
 /**
  * @license
@@ -11442,7 +11448,7 @@ function depthwiseConv2d_(x, filter, strides, pad, dataFormat = 'NHWC', dilation
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in depthwiseConv2d: input must be rank 4, but got ` +
         `rank ${x4D.rank}.`);
@@ -11458,11 +11464,11 @@ function depthwiseConv2d_(x, filter, strides, pad, dataFormat = 'NHWC', dilation
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(DepthwiseConv2dNative, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const depthwiseConv2d$1 = /* @__PURE__ */ op({ depthwiseConv2d_ });
+const depthwiseConv2d$2 = /* @__PURE__ */ op({ depthwiseConv2d_ });
 
 /**
  * @license
@@ -11508,7 +11514,7 @@ function diag_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Diag, inputs);
 }
-const diag$2 = /* @__PURE__ */ op({ diag_ });
+const diag$3 = /* @__PURE__ */ op({ diag_ });
 
 /**
  * @license
@@ -11569,7 +11575,7 @@ function dilation2d_(x, filter, strides, pad, dilations = [1, 1], dataFormat = '
     let x4D = $x;
     let reshapedTo4D = false;
     if ($x.rank === 3) {
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
         reshapedTo4D = true;
     }
     assert(x4D.shape[3] === $filter.shape[2], () => `Error in dilation2d:  input and filter must have the same depth: ${x4D.shape[3]} vs ${$filter.shape[2]}`);
@@ -11578,7 +11584,7 @@ function dilation2d_(x, filter, strides, pad, dilations = [1, 1], dataFormat = '
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(Dilation2D, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
@@ -11802,7 +11808,7 @@ function zerosLike_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(ZerosLike, inputs);
 }
-const zerosLike$2 = /* @__PURE__ */ op({ zerosLike_ });
+const zerosLike$3 = /* @__PURE__ */ op({ zerosLike_ });
 
 /**
  * @license
@@ -11856,7 +11862,7 @@ function divNoNan_(a, b) {
     let $b = convertToTensor(b, 'b', 'div');
     [$a, $b] = makeTypesMatch($a, $b);
     const divResult = div($a, $b);
-    const zeros = zerosLike$2(divResult);
+    const zeros = zerosLike$3(divResult);
     const bEqualsZero = equal$2($b, zeros);
     return where(bEqualsZero, zeros, divResult);
 }
@@ -11905,24 +11911,24 @@ function dot_(t1, t2) {
     assert(t1Inner === t2Inner, () => `Error in dot: inner dimensions of inputs must match, but got ` +
         `${t1Inner} and ${t2Inner}.`);
     if ($t1.rank === 1 && $t2.rank === 1) {
-        const t12D = reshape$2($t1, [1, -1]);
-        const t22D = reshape$2($t2, [-1, 1]);
+        const t12D = reshape$3($t1, [1, -1]);
+        const t22D = reshape$3($t2, [-1, 1]);
         const t1t2 = matMul$1(t12D, t22D);
-        return reshape$2(t1t2, []);
+        return reshape$3(t1t2, []);
     }
     else if ($t1.rank === 1 && $t2.rank === 2) {
-        const t12D = reshape$2($t1, [1, -1]);
-        const t22D = reshape$2($t2, [$t2.shape[0], $t2.shape[1]]);
+        const t12D = reshape$3($t1, [1, -1]);
+        const t22D = reshape$3($t2, [$t2.shape[0], $t2.shape[1]]);
         const t1t2 = matMul$1(t12D, t22D);
-        return reshape$2(t1t2, [t1t2.size]);
+        return reshape$3(t1t2, [t1t2.size]);
     }
     else if ($t1.rank === 2 && $t2.rank === 1) {
-        const t22D = reshape$2($t2, [-1, 1]);
+        const t22D = reshape$3($t2, [-1, 1]);
         const t1t2 = matMul$1($t1, t22D);
-        return reshape$2(t1t2, [t1t2.size]);
+        return reshape$3(t1t2, [t1t2.size]);
     }
     else {
-        const t22D = reshape$2($t2, [$t2.shape[0], $t2.shape[1]]);
+        const t22D = reshape$3($t2, [$t2.shape[0], $t2.shape[1]]);
         const t1t2 = matMul$1($t1, t22D);
         return t1t2;
     }
@@ -12146,7 +12152,7 @@ function erf_(x) {
     let $x = convertToTensor(x, 'x', 'erf');
     assert($x.dtype === 'int32' || $x.dtype === 'float32', () => 'Input dtype must be `int32` or `float32`.');
     if ($x.dtype === 'int32') {
-        $x = cast$2($x, 'float32');
+        $x = cast$3($x, 'float32');
     }
     const inputs = { x: $x };
     return ENGINE.runKernel(Erf, inputs);
@@ -12298,7 +12304,7 @@ function max_(x, axis = null, keepDims = false) {
     const attrs = { reductionIndices: axis, keepDims };
     return ENGINE.runKernel(Max, inputs, attrs);
 }
-const max$2 = /* @__PURE__ */ op({ max_ });
+const max$3 = /* @__PURE__ */ op({ max_ });
 
 /**
  * @license
@@ -12352,7 +12358,7 @@ function min_(x, axis = null, keepDims = false) {
     // tslint:disable-next-line: no-unnecessary-type-assertion
     return ENGINE.runKernel(Min, inputs, attrs);
 }
-const min$2 = /* @__PURE__ */ op({ min_ });
+const min$3 = /* @__PURE__ */ op({ min_ });
 
 /**
  * @license
@@ -12573,13 +12579,13 @@ const square$1 = /* @__PURE__ */ op({ square_ });
 function sum_(x, axis = null, keepDims = false) {
     let $x = convertToTensor(x, 'x', 'sum');
     if ($x.dtype === 'bool') {
-        $x = cast$2($x, 'int32');
+        $x = cast$3($x, 'int32');
     }
     const inputs = { x: $x };
     const attrs = { axis, keepDims };
     return ENGINE.runKernel(Sum, inputs, attrs);
 }
-const sum$2 = /* @__PURE__ */ op({ sum_ });
+const sum$3 = /* @__PURE__ */ op({ sum_ });
 
 /**
  * @license
@@ -12643,7 +12649,7 @@ function norm_(x, ord = 'euclidean', axis = null, keepDims = false) {
         const axes = parseAxisParam(axis, x.shape);
         keepDimsShape = expandShapeToKeepDim(norm.shape, axes);
     }
-    return reshape$2(norm, keepDimsShape);
+    return reshape$3(norm, keepDimsShape);
 }
 function normImpl(x, p, axis = null) {
     if (x.rank === 0) {
@@ -12651,40 +12657,40 @@ function normImpl(x, p, axis = null) {
     }
     // consider vector when no axis is specified
     if (x.rank !== 1 && axis === null) {
-        return normImpl(reshape$2(x, [-1]), p, axis);
+        return normImpl(reshape$3(x, [-1]), p, axis);
     }
     // vector
     if (x.rank === 1 || typeof axis === 'number' ||
         Array.isArray(axis) && axis.length === 1) {
         if (p === 1) {
-            return sum$2(abs$2(x), axis);
+            return sum$3(abs$2(x), axis);
         }
         if (p === Infinity) {
-            return max$2(abs$2(x), axis);
+            return max$3(abs$2(x), axis);
         }
         if (p === -Infinity) {
-            return min$2(abs$2(x), axis);
+            return min$3(abs$2(x), axis);
         }
         if (p === 'euclidean' || p === 2) {
             // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-            return sqrt$2(sum$2(pow$2(abs$2(x), scalar(2, 'int32')), axis));
+            return sqrt$2(sum$3(pow$2(abs$2(x), scalar(2, 'int32')), axis));
         }
         throw new Error(`Error in norm: invalid ord value: ${p}`);
     }
     // matrix (assumption axis[0] < axis[1])
     if (Array.isArray(axis) && axis.length === 2) {
         if (p === 1) {
-            return max$2(sum$2(abs$2(x), axis[0]), axis[1] - 1);
+            return max$3(sum$3(abs$2(x), axis[0]), axis[1] - 1);
         }
         if (p === Infinity) {
-            return max$2(sum$2(abs$2(x), axis[1]), axis[0]);
+            return max$3(sum$3(abs$2(x), axis[1]), axis[0]);
         }
         if (p === -Infinity) {
-            return min$2(sum$2(abs$2(x), axis[1]), axis[0]);
+            return min$3(sum$3(abs$2(x), axis[1]), axis[0]);
         }
         if (p === 'fro' || p === 'euclidean') {
             // norm(x) = sqrt(sum(pow(x, 2)))
-            return sqrt$2(sum$2(square$1(x), axis));
+            return sqrt$2(sum$3(square$1(x), axis));
         }
         throw new Error(`Error in norm: invalid ord value: ${p}`);
     }
@@ -12810,7 +12816,7 @@ function expandDims_(x, axis = 0) {
     const attrs = { dim: axis };
     return ENGINE.runKernel(ExpandDims, inputs, attrs);
 }
-const expandDims$2 = /* @__PURE__ */ op({ expandDims_ });
+const expandDims$3 = /* @__PURE__ */ op({ expandDims_ });
 
 /**
  * @license
@@ -12897,7 +12903,7 @@ function tile_(x, reps) {
     const attrs = { reps };
     return ENGINE.runKernel(Tile, inputs, attrs);
 }
-const tile$2 = /* @__PURE__ */ op({ tile_ });
+const tile$3 = /* @__PURE__ */ op({ tile_ });
 
 /**
  * @license
@@ -12938,21 +12944,21 @@ function eye_(numRows, numColumns, batchShape, dtype = 'float32') {
     for (let i = 0; i < n; ++i) {
         buff.set(1, i, i);
     }
-    const out = reshape$2(buff.toTensor(), [numRows, numColumns]);
+    const out = reshape$3(buff.toTensor(), [numRows, numColumns]);
     if (batchShape == null) {
         return out;
     }
     else {
         if (batchShape.length === 1) {
-            return tile$2(expandDims$2(out, 0), [batchShape[0], 1, 1]);
+            return tile$3(expandDims$3(out, 0), [batchShape[0], 1, 1]);
         }
         else if (batchShape.length === 2) {
             // tslint:disable-next-line:no-unnecessary-type-assertion
-            return tile$2(expandDims$2(expandDims$2(out, 0), 0), [batchShape[0], batchShape[1], 1, 1]);
+            return tile$3(expandDims$3(expandDims$3(out, 0), 0), [batchShape[0], batchShape[1], 1, 1]);
         }
         else if (batchShape.length === 3) {
             // tslint:disable-next-line:no-unnecessary-type-assertion
-            return tile$2(expandDims$2(expandDims$2(expandDims$2(out, 0), 0), 0), [
+            return tile$3(expandDims$3(expandDims$3(expandDims$3(out, 0), 0), 0), [
                 batchShape[0], batchShape[1], batchShape[2], 1, 1
             ]);
         }
@@ -13314,7 +13320,7 @@ function leakyRelu_(x, alpha = 0.2) {
     const attrs = { alpha };
     return ENGINE.runKernel(LeakyRelu, inputs, attrs);
 }
-const leakyRelu$2 = /* @__PURE__ */ op({ leakyRelu_ });
+const leakyRelu$3 = /* @__PURE__ */ op({ leakyRelu_ });
 
 /**
  * @license
@@ -13474,14 +13480,14 @@ function localResponseNormalization_(x, depthRadius = 5, bias = 1, alpha = 1, be
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     const inputs = { x: x4D };
     const attrs = { depthRadius, bias, alpha, beta };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(LRN, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     else {
         return res;
@@ -13801,7 +13807,7 @@ function logSigmoid_(x) {
         // engine runKernel(..., Sotfplus, ...) directly.
         const value = neg$2(softplus$2(neg$2(x)));
         const gradFunc = (dy) => {
-            const derX = mul(dy, sigmoid$2(neg$2(x)));
+            const derX = mul(dy, sigmoid$3(neg$2(x)));
             return derX;
         };
         return { value, gradFunc };
@@ -13917,15 +13923,15 @@ function logSoftmax_(logits, axis = -1) {
     // Use a custom gradient for numerical stability.
     const customOp = customGrad((logits, save) => {
         const keepDims = true;
-        const xMax = max$2(logits, axis, true);
+        const xMax = max$3(logits, axis, true);
         const shifted = sub$2(logits, xMax);
-        const value = sub$2(cast$2(shifted, 'float32'), log$2(sum$2(exp$2(shifted), axis, keepDims)));
+        const value = sub$2(cast$3(shifted, 'float32'), log$2(sum$3(exp$2(shifted), axis, keepDims)));
         save([value]);
         const gradFunc = (dy, saved) => {
             const [value] = saved;
             const keepDims = true;
             const softmax = exp$2(value);
-            return sub$2(dy, mul(sum$2(dy, axis, keepDims), softmax));
+            return sub$2(dy, mul(sum$3(dy, axis, keepDims), softmax));
         };
         return { value, gradFunc };
     });
@@ -13987,15 +13993,15 @@ const logSoftmax = /* @__PURE__ */ op({ logSoftmax_ });
 function logSumExp_(x, axis = null, keepDims = false) {
     const $x = convertToTensor(x, 'x', 'logSumExp');
     const axes = parseAxisParam(axis, $x.shape);
-    const xMax = max$2($x, axes, true /* keepDims */);
+    const xMax = max$3($x, axes, true /* keepDims */);
     const a = sub$2($x, xMax);
     const b = exp$2(a);
-    const c = sum$2(b, axes);
+    const c = sum$3(b, axes);
     const d = log$2(c);
-    const res = add(reshape$2(xMax, d.shape), d);
+    const res = add(reshape$3(xMax, d.shape), d);
     if (keepDims) {
         const newShape = expandShapeToKeepDim(res.shape, axes);
-        return reshape$2(res, newShape);
+        return reshape$3(res, newShape);
     }
     return res;
 }
@@ -14230,8 +14236,8 @@ function searchSorted_(sortedSequence, values, side = 'left') {
     const $values = convertToTensor(values, 'values', 'searchSorted');
     const sequenceSize = $sortedSequence.shape[$sortedSequence.shape.length - 1];
     const valuesSize = $values.shape[$values.shape.length - 1];
-    const $sortedSequence2D = reshape$2($sortedSequence, [-1, sequenceSize]);
-    const $values2D = reshape$2($values, [-1, valuesSize]);
+    const $sortedSequence2D = reshape$3($sortedSequence, [-1, sequenceSize]);
+    const $values2D = reshape$3($values, [-1, valuesSize]);
     if ($sortedSequence2D.rank < 2) {
         throw new Error(`Sorted input argument must be at least 2-dimensional`);
     }
@@ -14251,7 +14257,7 @@ function searchSorted_(sortedSequence, values, side = 'left') {
     const attrs = { side };
     return ENGINE.runKernel(SearchSorted, inputs, attrs);
 }
-const searchSorted$2 = /* @__PURE__ */ op({ searchSorted_ });
+const searchSorted$3 = /* @__PURE__ */ op({ searchSorted_ });
 
 /**
  * @license
@@ -14317,7 +14323,7 @@ const searchSorted$2 = /* @__PURE__ */ op({ searchSorted_ });
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
 function lowerBound(sortedSequence, values) {
-    return searchSorted$2(sortedSequence, values, 'left');
+    return searchSorted$3(sortedSequence, values, 'left');
 }
 
 /**
@@ -14368,7 +14374,7 @@ function maxPool_(x, filterSize, strides, pad, dimRoundingMode) {
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in maxPool: input must be rank 4 but got rank ${x4D.rank}.`);
     assert(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in maxPool: Either strides or dilations must be 1. ' +
@@ -14379,11 +14385,11 @@ function maxPool_(x, filterSize, strides, pad, dimRoundingMode) {
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(MaxPool, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const maxPool$2 = /* @__PURE__ */ op({ maxPool_ });
+const maxPool$3 = /* @__PURE__ */ op({ maxPool_ });
 
 /**
  * @license
@@ -14442,7 +14448,7 @@ function maxPool3d_(x, filterSize = [1, 1, 1], strides, pad, dimRoundingMode, da
     let reshapedTo5D = false;
     if ($x.rank === 4) {
         reshapedTo5D = true;
-        x5D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
+        x5D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]);
     }
     assert(x5D.rank === 5, () => `Error in maxPool3d: x must be rank 5 but got rank ${x5D.rank}.`);
     assert(dataFormat === 'NDHWC', () => `Error in maxPool3d: Only NDHWC is currently supported, ` +
@@ -14453,7 +14459,7 @@ function maxPool3d_(x, filterSize = [1, 1, 1], strides, pad, dimRoundingMode, da
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(MaxPool3D, inputs, attrs);
     if (reshapedTo5D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -14516,7 +14522,7 @@ function maxPoolWithArgmax_(x, filterSize, strides, pad, includeBatchInIndex = f
     const result = ENGINE.runKernel(MaxPoolWithArgmax, inputs, attrs);
     return { result: result[0], indexes: result[1] };
 }
-const maxPoolWithArgmax$1 = /* @__PURE__ */ op({ maxPoolWithArgmax_ });
+const maxPoolWithArgmax$2 = /* @__PURE__ */ op({ maxPoolWithArgmax_ });
 
 /**
  * @license
@@ -14566,8 +14572,8 @@ function maximum_(a, b) {
     let $b = convertToTensor(b, 'b', 'maximum');
     [$a, $b] = makeTypesMatch($a, $b);
     if ($a.dtype === 'bool') {
-        $a = cast$2($a, 'int32');
-        $b = cast$2($b, 'int32');
+        $a = cast$3($a, 'int32');
+        $b = cast$3($b, 'int32');
     }
     assertAndGetBroadcastShape($a.shape, $b.shape);
     const inputs = { a: $a, b: $b };
@@ -14626,7 +14632,7 @@ function mean_(x, axis = null, keepDims = false) {
     const attrs = { axis, keepDims };
     return ENGINE.runKernel(Mean, inputs, attrs);
 }
-const mean$1 = /* @__PURE__ */ op({ mean_ });
+const mean$2 = /* @__PURE__ */ op({ mean_ });
 
 /**
  * @license
@@ -14770,15 +14776,15 @@ function meshgrid(x, y, { indexing = 'xy' } = {}) {
     const w = sizeFromShape($x.shape);
     const h = sizeFromShape($y.shape);
     if (indexing === 'xy') {
-        $x = reshape$2($x, [1, -1]);
-        $y = reshape$2($y, [-1, 1]);
+        $x = reshape$3($x, [1, -1]);
+        $y = reshape$3($y, [-1, 1]);
         return [
             matMul$1(ones([h, 1], $x.dtype), $x),
             matMul$1($y, ones([1, w], $y.dtype)),
         ];
     }
-    $x = reshape$2($x, [-1, 1]);
-    $y = reshape$2($y, [1, -1]);
+    $x = reshape$3($x, [-1, 1]);
+    $y = reshape$3($y, [1, -1]);
     return [
         matMul$1($x, ones([1, h], $x.dtype)),
         matMul$1(ones([w, 1], $y.dtype), $y),
@@ -14833,8 +14839,8 @@ function minimum_(a, b) {
     let $b = convertToTensor(b, 'b', 'minimum');
     [$a, $b] = makeTypesMatch($a, $b);
     if ($a.dtype === 'bool') {
-        $a = cast$2($a, 'int32');
-        $b = cast$2($b, 'int32');
+        $a = cast$3($a, 'int32');
+        $b = cast$3($b, 'int32');
     }
     assertAndGetBroadcastShape($a.shape, $b.shape);
     const inputs = { a: $a, b: $b };
@@ -14905,7 +14911,7 @@ function mirrorPad_(x, paddings, mode) {
     const inputs = { x: $x };
     return ENGINE.runKernel(MirrorPad, inputs, attrs);
 }
-const mirrorPad = /* @__PURE__ */ op({ mirrorPad_ });
+const mirrorPad$1 = /* @__PURE__ */ op({ mirrorPad_ });
 
 /**
  * @license
@@ -14993,13 +14999,13 @@ const mod$2 = /* @__PURE__ */ op({ mod_ });
 function moments_(x, axis = null, keepDims = false) {
     x = convertToTensor(x, 'x', 'moments');
     const axes = parseAxisParam(axis, x.shape);
-    const xMean = mean$1(x, axes, keepDims);
+    const xMean = mean$2(x, axes, keepDims);
     let keepDimsShape = xMean.shape;
     if (!keepDims) {
         keepDimsShape = expandShapeToKeepDim(xMean.shape, axes);
     }
-    const devSquared = square$1(sub$2(cast$2(x, 'float32'), reshape$2(xMean, keepDimsShape)));
-    const variance = mean$1(devSquared, axes, keepDims);
+    const devSquared = square$1(sub$2(cast$3(x, 'float32'), reshape$3(xMean, keepDimsShape)));
+    const variance = mean$2(devSquared, axes, keepDims);
     return { mean: xMean, variance };
 }
 const moments = /* @__PURE__ */ op({ moments_ });
@@ -15093,15 +15099,15 @@ function multinomial_(logits, numSamples, seed, normalized = false) {
     // setting see to 0.
     seed = seed || Math.random();
     // The kernel only accepts (and returns) rank 2 tensors.
-    const logits2D = origRank === 1 ? reshape$2($logits, [1, -1]) : $logits;
+    const logits2D = origRank === 1 ? reshape$3($logits, [1, -1]) : $logits;
     const inputs = { logits: logits2D };
     const attrs = { numSamples, seed, normalized };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(Multinomial, inputs, attrs);
     // tslint:disable-next-line:no-unnecessary-type-assertion
-    return origRank === 1 ? reshape$2(res, [res.size]) : res;
+    return origRank === 1 ? reshape$3(res, [res.size]) : res;
 }
-const multinomial$2 = /* @__PURE__ */ op({ multinomial_ });
+const multinomial$3 = /* @__PURE__ */ op({ multinomial_ });
 
 /**
  * @license
@@ -15192,7 +15198,7 @@ function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = 'int32') {
     const attrs = { dtype, depth, onValue, offValue };
     return ENGINE.runKernel(OneHot, inputs, attrs);
 }
-const oneHot$2 = /* @__PURE__ */ op({ oneHot_ });
+const oneHot$3 = /* @__PURE__ */ op({ oneHot_ });
 
 /**
  * @license
@@ -15227,7 +15233,7 @@ function onesLike_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(OnesLike, inputs);
 }
-const onesLike$2 = /* @__PURE__ */ op({ onesLike_ });
+const onesLike$3 = /* @__PURE__ */ op({ onesLike_ });
 
 /**
  * Computes the outer product of two vectors, `v1` and `v2`.
@@ -15248,8 +15254,8 @@ function outerProduct_(v1, v2) {
     const $v2 = convertToTensor(v2, 'v2', 'outerProduct');
     assert($v1.rank === 1 && $v2.rank === 1, () => `Error in outerProduct: inputs must be rank 1, but got ranks ` +
         `${$v1.rank} and ${$v2.rank}.`);
-    const v12D = reshape$2($v1, [-1, 1]);
-    const v22D = reshape$2($v2, [1, -1]);
+    const v12D = reshape$3($v1, [-1, 1]);
+    const v22D = reshape$3($v2, [1, -1]);
     return matMul$1(v12D, v22D);
 }
 const outerProduct = /* @__PURE__ */ op({ outerProduct_ });
@@ -15304,14 +15310,14 @@ function pad_(x, paddings, constantValue = 0) {
     const inputs = { x: $x };
     return ENGINE.runKernel(PadV2, inputs, attrs);
 }
-const pad = /* @__PURE__ */ op({ pad_ });
+const pad$1 = /* @__PURE__ */ op({ pad_ });
 
 /**
  * Pads a `tf.Tensor1D` with a given value and paddings. See `pad` for details.
  */
 function pad1d_(x, paddings, constantValue = 0) {
     assert(paddings.length === 2, () => 'Invalid number of paddings. Must be length of 2.');
-    return pad(x, [paddings], constantValue);
+    return pad$1(x, [paddings], constantValue);
 }
 const pad1d = /* @__PURE__ */ op({ pad1d_ });
 
@@ -15321,7 +15327,7 @@ const pad1d = /* @__PURE__ */ op({ pad1d_ });
 function pad2d_(x, paddings, constantValue = 0) {
     assert(paddings.length === 2 && paddings[0].length === 2 &&
         paddings[1].length === 2, () => 'Invalid number of paddings. Must be length of 2 each.');
-    return pad(x, paddings, constantValue);
+    return pad$1(x, paddings, constantValue);
 }
 const pad2d = /* @__PURE__ */ op({ pad2d_ });
 
@@ -15331,7 +15337,7 @@ const pad2d = /* @__PURE__ */ op({ pad2d_ });
 function pad3d_(x, paddings, constantValue = 0) {
     assert(paddings.length === 3 && paddings[0].length === 2 &&
         paddings[1].length === 2 && paddings[2].length === 2, () => 'Invalid number of paddings. Must be length of 2 each.');
-    return pad(x, paddings, constantValue);
+    return pad$1(x, paddings, constantValue);
 }
 const pad3d = /* @__PURE__ */ op({ pad3d_ });
 
@@ -15342,7 +15348,7 @@ function pad4d_(x, paddings, constantValue = 0) {
     assert(paddings.length === 4 && paddings[0].length === 2 &&
         paddings[1].length === 2 && paddings[2].length === 2 &&
         paddings[3].length === 2, () => 'Invalid number of paddings. Must be length of 2 each.');
-    return pad(x, paddings, constantValue);
+    return pad$1(x, paddings, constantValue);
 }
 const pad4d = /* @__PURE__ */ op({ pad4d_ });
 
@@ -15427,7 +15433,7 @@ function spaceToBatchND_(x, blockShape, paddings) {
     const attrs = { blockShape, paddings };
     return ENGINE.runKernel(SpaceToBatchND, inputs, attrs);
 }
-const spaceToBatchND$2 = /* @__PURE__ */ op({ spaceToBatchND_ });
+const spaceToBatchND$3 = /* @__PURE__ */ op({ spaceToBatchND_ });
 
 /**
  * @license
@@ -15488,7 +15494,7 @@ function pool_(input, windowShape, poolingType, pad, dilations, strides, dimRoun
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in pool: Either strides or dilations must be 1. ' +
         `Got strides ${strides} and dilations '${dilations}'`);
@@ -15508,14 +15514,14 @@ function pool_(input, windowShape, poolingType, pad, dilations, strides, dimRoun
     const isDilationOne = dilation[0] === 1 && dilation[1] === 1;
     const [adjustedPadding, adjustedCrops] = requiredSpaceToBatchPaddings([convInfo.inHeight, convInfo.inWidth], dilation, basePadding);
     const convertedPad = isDilationOne ? pad : 'valid';
-    const convertedX = isDilationOne ? x4D : spaceToBatchND$2(x4D, dilation, adjustedPadding);
+    const convertedX = isDilationOne ? x4D : spaceToBatchND$3(x4D, dilation, adjustedPadding);
     const forwardOp = poolingType === 'avg' ?
-        () => avgPool$2(convertedX, windowShape, strides, convertedPad, dimRoundingMode) :
-        () => maxPool$2(convertedX, windowShape, strides, convertedPad, dimRoundingMode);
+        () => avgPool$3(convertedX, windowShape, strides, convertedPad, dimRoundingMode) :
+        () => maxPool$3(convertedX, windowShape, strides, convertedPad, dimRoundingMode);
     const y = forwardOp();
-    const res = isDilationOne ? y : batchToSpaceND$2(y, dilation, adjustedCrops);
+    const res = isDilationOne ? y : batchToSpaceND$3(y, dilation, adjustedCrops);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
@@ -15590,7 +15596,7 @@ function prelu_(x, alpha) {
     const inputs = { x: $x, alpha: $alpha };
     return ENGINE.runKernel(Prelu, inputs);
 }
-const prelu$2 = /* @__PURE__ */ op({ prelu_ });
+const prelu$3 = /* @__PURE__ */ op({ prelu_ });
 
 /**
  * @license
@@ -15642,13 +15648,13 @@ function prod_(x, axis = null, keepDims = false) {
     let $x = convertToTensor(x, 'x', 'prod');
     if ($x.dtype === 'bool') {
         // bool is not an allowed type for the underlying kernel.
-        $x = cast$2($x, 'int32');
+        $x = cast$3($x, 'int32');
     }
     const inputs = { x: $x };
     const attrs = { axis, keepDims };
     return ENGINE.runKernel(Prod, inputs, attrs);
 }
-const prod$2 = /* @__PURE__ */ op({ prod_ });
+const prod$3 = /* @__PURE__ */ op({ prod_ });
 
 /**
  * @license
@@ -16545,7 +16551,7 @@ var _nodeResolve_empty$1 = /*#__PURE__*/Object.freeze({
     default: _nodeResolve_empty
 });
 
-var require$$0 = /*@__PURE__*/getAugmentedNamespace(_nodeResolve_empty$1);
+var require$$1 = /*@__PURE__*/getAugmentedNamespace(_nodeResolve_empty$1);
 
 /*
 Copyright 2019 David Bau.
@@ -16782,7 +16788,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	  module.exports = seedrandom;
 	  // When in node.js, try using crypto package for autoseeding.
 	  try {
-	    nodecrypto = require$$0;
+	    nodecrypto = require$$1;
 	  } catch (ex) {}
 	} else {
 	  // When included as a plain script, set up Math.seedrandom global.
@@ -17275,7 +17281,7 @@ const randomUniformInt = /* @__PURE__ */ op({ randomUniformInt_ });
  *
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-function range$2(start, stop, step = 1, dtype = 'float32') {
+function range$3(start, stop, step = 1, dtype = 'float32') {
     if (step === 0) {
         throw new Error('Cannot have a step of zero');
     }
@@ -17481,7 +17487,7 @@ function reverse_(x, axis) {
     const attrs = { dims: axis };
     return ENGINE.runKernel(Reverse, inputs, attrs);
 }
-const reverse$2 = /* @__PURE__ */ op({ reverse_ });
+const reverse$3 = /* @__PURE__ */ op({ reverse_ });
 
 /**
  * @license
@@ -17507,7 +17513,7 @@ const reverse$2 = /* @__PURE__ */ op({ reverse_ });
 function reverse1d_(x) {
     const $x = convertToTensor(x, 'x', 'reverse');
     assert($x.rank === 1, () => `Error in reverse1D: x must be rank 1 but got rank ${$x.rank}.`);
-    return reverse$2($x, 0);
+    return reverse$3($x, 0);
 }
 const reverse1d = /* @__PURE__ */ op({ reverse1d_ });
 
@@ -17537,7 +17543,7 @@ const reverse1d = /* @__PURE__ */ op({ reverse1d_ });
 function reverse2d_(x, axis) {
     const $x = convertToTensor(x, 'x', 'reverse');
     assert($x.rank === 2, () => `Error in reverse2D: x must be rank 2 but got rank ${$x.rank}.`);
-    return reverse$2($x, axis);
+    return reverse$3($x, axis);
 }
 const reverse2d = /* @__PURE__ */ op({ reverse2d_ });
 
@@ -17567,7 +17573,7 @@ const reverse2d = /* @__PURE__ */ op({ reverse2d_ });
 function reverse3d_(x, axis) {
     const $x = convertToTensor(x, 'x', 'reverse');
     assert($x.rank === 3, () => `Error in reverse3D: x must be rank 3 but got rank ${$x.rank}.`);
-    return reverse$2($x, axis);
+    return reverse$3($x, axis);
 }
 const reverse3d = /* @__PURE__ */ op({ reverse3d_ });
 
@@ -17597,7 +17603,7 @@ const reverse3d = /* @__PURE__ */ op({ reverse3d_ });
 function reverse4d_(x, axis) {
     const $x = convertToTensor(x, 'x', 'reverse');
     assert($x.rank === 4, () => `Error in reverse4D: x must be rank 4 but got rank ${$x.rank}.`);
-    return reverse$2($x, axis);
+    return reverse$3($x, axis);
 }
 const reverse4d = /* @__PURE__ */ op({ reverse4d_ });
 
@@ -17763,7 +17769,7 @@ function separableConv2d_(x, depthwiseFilter, pointwiseFilter, strides, pad, dil
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     if (dataFormat === 'NCHW') {
         throw new Error('separableConv2d currently does not support dataFormat NCHW; only ' +
@@ -17784,11 +17790,11 @@ function separableConv2d_(x, depthwiseFilter, pointwiseFilter, strides, pad, dil
     assert($pointwiseFilter.shape[2] === inChannels * channelMultiplier, () => `Error in separableConv2d: the third dimension of pointwise filter ` +
         `must be ${inChannels * channelMultiplier}, ` +
         `but got ${$pointwiseFilter.shape[2]}.`);
-    const depthwise = depthwiseConv2d$1(x4D, $depthwiseFilter, strides, pad, dataFormat, dilation);
+    const depthwise = depthwiseConv2d$2(x4D, $depthwiseFilter, strides, pad, dataFormat, dilation);
     const pointwiseStride = 1;
-    const res = conv2d$3(depthwise, $pointwiseFilter, pointwiseStride, 'valid', dataFormat);
+    const res = conv2d$4(depthwise, $pointwiseFilter, pointwiseStride, 'valid', dataFormat);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
@@ -17995,7 +18001,7 @@ const sinh$2 = /* @__PURE__ */ op({ sinh_ });
 function slice1d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice1d');
     assert($x.rank === 1, () => `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$2($x, [begin], [size]);
+    return slice$3($x, [begin], [size]);
 }
 const slice1d = /* @__PURE__ */ op({ slice1d_ });
 
@@ -18022,9 +18028,9 @@ const slice1d = /* @__PURE__ */ op({ slice1d_ });
 function slice2d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice2d');
     assert($x.rank === 2, () => `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$2($x, begin, size);
+    return slice$3($x, begin, size);
 }
-const slice2d = /* @__PURE__ */ op({ slice2d_ });
+const slice2d$1 = /* @__PURE__ */ op({ slice2d_ });
 
 /**
  * @license
@@ -18049,9 +18055,9 @@ const slice2d = /* @__PURE__ */ op({ slice2d_ });
 function slice3d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice3d');
     assert($x.rank === 3, () => `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$2($x, begin, size);
+    return slice$3($x, begin, size);
 }
-const slice3d = /* @__PURE__ */ op({ slice3d_ });
+const slice3d$1 = /* @__PURE__ */ op({ slice3d_ });
 
 /**
  * @license
@@ -18076,9 +18082,9 @@ const slice3d = /* @__PURE__ */ op({ slice3d_ });
 function slice4d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice4d');
     assert($x.rank === 4, () => `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$2($x, begin, size);
+    return slice$3($x, begin, size);
 }
-const slice4d = /* @__PURE__ */ op({ slice4d_ });
+const slice4d$1 = /* @__PURE__ */ op({ slice4d_ });
 
 /**
  * @license
@@ -18130,7 +18136,7 @@ function softmax_(logits, dim = -1) {
     const attrs = { dim };
     return ENGINE.runKernel(Softmax, inputs, attrs);
 }
-const softmax$2 = /* @__PURE__ */ op({ softmax_ });
+const softmax$3 = /* @__PURE__ */ op({ softmax_ });
 
 /**
  * @license
@@ -18252,20 +18258,20 @@ function irfft_(input) {
     const batch = input.size / innerDimensionSize;
     let ret;
     if (innerDimensionSize <= 2) {
-        const complexInput = reshape$2(input, [batch, innerDimensionSize]);
+        const complexInput = reshape$3(input, [batch, innerDimensionSize]);
         ret = ifft$2(complexInput);
     }
     else {
         // The length of unique components of the DFT of a real-valued signal
         // is 2 * (input_len - 1)
         const outputShape = [batch, 2 * (innerDimensionSize - 1)];
-        const realInput = reshape$2(real$2(input), [batch, innerDimensionSize]);
-        const imagInput = reshape$2(imag$2(input), [batch, innerDimensionSize]);
-        const realConjugate = reverse$2(slice$2(realInput, [0, 1], [batch, innerDimensionSize - 2]), 1);
-        const imagConjugate = mul(reverse$2(slice$2(imagInput, [0, 1], [batch, innerDimensionSize - 2]), 1), scalar(-1));
-        const r = concat$2([realInput, realConjugate], 1);
-        const i = concat$2([imagInput, imagConjugate], 1);
-        const complexInput = reshape$2(complex$2(r, i), [outputShape[0], outputShape[1]]);
+        const realInput = reshape$3(real$2(input), [batch, innerDimensionSize]);
+        const imagInput = reshape$3(imag$2(input), [batch, innerDimensionSize]);
+        const realConjugate = reverse$3(slice$3(realInput, [0, 1], [batch, innerDimensionSize - 2]), 1);
+        const imagConjugate = mul(reverse$3(slice$3(imagInput, [0, 1], [batch, innerDimensionSize - 2]), 1), scalar(-1));
+        const r = concat$3([realInput, realConjugate], 1);
+        const i = concat$3([imagInput, imagConjugate], 1);
+        const complexInput = reshape$3(complex$2(r, i), [outputShape[0], outputShape[1]]);
         ret = ifft$2(complexInput);
     }
     ret = real$2(ret);
@@ -18273,7 +18279,7 @@ function irfft_(input) {
     if (input.rank === 3 && input.shape[0] !== 0) {
         const temp = ret;
         const batch = input.shape[0];
-        ret = reshape$2(ret, [batch, ret.shape[0] / batch, ret.shape[1]]);
+        ret = reshape$3(ret, [batch, ret.shape[0] / batch, ret.shape[1]]);
         temp.dispose();
     }
     return ret;
@@ -18380,22 +18386,22 @@ function rfft_(input, fftLength) {
         const begin = input.shape.map(v => 0);
         const size = input.shape.map(v => v);
         size[input.shape.length - 1] = fftLength;
-        adjustedInput = slice$2(input, begin, size);
+        adjustedInput = slice$3(input, begin, size);
         innerDimensionSize = fftLength;
     }
     else if (fftLength != null && fftLength > innerDimensionSize) {
         // Need to pad with zeros
         const zerosShape = input.shape.map(v => v);
         zerosShape[input.shape.length - 1] = fftLength - innerDimensionSize;
-        adjustedInput = concat$2([input, zeros(zerosShape)], input.shape.length - 1);
+        adjustedInput = concat$3([input, zeros(zerosShape)], input.shape.length - 1);
         innerDimensionSize = fftLength;
     }
     else {
         adjustedInput = input;
     }
     // Complement the input with zero imaginary numbers.
-    const zerosInput = zerosLike$2(adjustedInput);
-    const complexInput = reshape$2(complex$2(adjustedInput, zerosInput), [batch, innerDimensionSize]);
+    const zerosInput = zerosLike$3(adjustedInput);
+    const complexInput = reshape$3(complex$2(adjustedInput, zerosInput), [batch, innerDimensionSize]);
     const ret = fft$2(complexInput);
     // Exclude complex conjugations. These conjugations are put symmetrically.
     const half = Math.floor(innerDimensionSize / 2) + 1;
@@ -18405,7 +18411,7 @@ function rfft_(input, fftLength) {
     const imagComplexConjugate = split$2(imagValues, [half, innerDimensionSize - half], imagValues.shape.length - 1);
     const outputShape = adjustedInput.shape.slice();
     outputShape[adjustedInput.shape.length - 1] = half;
-    return reshape$2(complex$2(realComplexConjugate[0], imagComplexConjugate[0]), outputShape);
+    return reshape$3(complex$2(realComplexConjugate[0], imagComplexConjugate[0]), outputShape);
 }
 const rfft = /* @__PURE__ */ op({ rfft_ });
 
@@ -18493,7 +18499,7 @@ const squaredDifference$2 = /* @__PURE__ */ op({ squaredDifference_ });
  */
 function squeeze_(x, axis) {
     const $x = convertToTensor(x, 'x', 'squeeze', 'string_or_numeric');
-    return reshape$2($x, squeezeShape($x.shape, axis).newShape);
+    return reshape$3($x, squeezeShape($x.shape, axis).newShape);
 }
 const squeeze = /* @__PURE__ */ op({ squeeze_ });
 
@@ -18575,7 +18581,7 @@ function step_(x, alpha = 0.0) {
     const attrs = { alpha };
     return ENGINE.runKernel(Step, inputs, attrs);
 }
-const step$2 = /* @__PURE__ */ op({ step_ });
+const step$3 = /* @__PURE__ */ op({ step_ });
 
 /**
  * @license
@@ -18641,7 +18647,7 @@ function stridedSlice_(x, begin, end, strides, beginMask = 0, endMask = 0, ellip
     };
     return ENGINE.runKernel(StridedSlice, inputs, attrs);
 }
-const stridedSlice$2 = /* @__PURE__ */ op({ stridedSlice_ });
+const stridedSlice$3 = /* @__PURE__ */ op({ stridedSlice_ });
 
 /**
  * @license
@@ -19159,7 +19165,7 @@ function tensorScatterUpdate_(tensor, indices, updates) {
     // tslint:disable-next-line: no-unnecessary-type-assertion
     return ENGINE.runKernel(TensorScatterUpdate, inputs, attrs);
 }
-const tensorScatterUpdate$2 = op({ tensorScatterUpdate_ });
+const tensorScatterUpdate$3 = op({ tensorScatterUpdate_ });
 
 /**
  * @license
@@ -19219,7 +19225,7 @@ function topk_(x, k = 1, sorted = true) {
     const [values, indices] = ENGINE.runKernel(TopK, inputs, attrs);
     return { values, indices };
 }
-const topk = /* @__PURE__ */ op({ topk_ });
+const topk$1 = /* @__PURE__ */ op({ topk_ });
 
 /**
  * @license
@@ -19344,7 +19350,7 @@ function unique_(x, axis = 0) {
     const [values, indices] = ENGINE.runKernel(Unique, inputs, attrs);
     return { values, indices };
 }
-const unique$1 = /* @__PURE__ */ op({ unique_ });
+const unique$2 = /* @__PURE__ */ op({ unique_ });
 
 /**
  * @license
@@ -19480,7 +19486,7 @@ const unstack = /* @__PURE__ */ op({ unstack_ });
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
 function upperBound(sortedSequence, values) {
-    return searchSorted$2(sortedSequence, values, 'right');
+    return searchSorted$3(sortedSequence, values, 'right');
 }
 
 /**
@@ -19648,8 +19654,8 @@ async function booleanMaskAsync_(tensor, mask, axis) {
     }
     const targetTensorShape = tensorShape.slice(0, axisFrom)
         .concat([leadingSize], tensorShape.slice(axisFrom + maskDim));
-    const reshapedTensor = reshape$2($tensor, targetTensorShape);
-    const reshapedMask = reshape$2($mask, [-1]);
+    const reshapedTensor = reshape$3($tensor, targetTensorShape);
+    const reshapedMask = reshape$3($mask, [-1]);
     const positivePositions = await whereAsync(reshapedMask);
     const indices = squeeze(positivePositions, [1]);
     const res = gather(reshapedTensor, indices, axisFrom);
@@ -19734,7 +19740,7 @@ function transpose_(x, perm, conjugate) {
     }
     return ENGINE.runKernel(Transpose, inputs, attrs);
 }
-const transpose$2 = /* @__PURE__ */ op({ transpose_ });
+const transpose$3 = /* @__PURE__ */ op({ transpose_ });
 
 /**
  * @license
@@ -19952,7 +19958,7 @@ function sparseToDense_(sparseIndices, sparseValues, outputShape, defaultValue =
     const attrs = { outputShape };
     return ENGINE.runKernel(SparseToDense, inputs, attrs);
 }
-const sparseToDense$2 = /* @__PURE__ */ op({ sparseToDense_ });
+const sparseToDense$3 = /* @__PURE__ */ op({ sparseToDense_ });
 
 /**
  * @license
@@ -20263,11 +20269,11 @@ const inTopKAsync = inTopKAsync_;
 function conv2DBackpropFilter_(x, dy, filterShape, strides, pad, dataFormat = 'NHWC', dimRoundingMode) {
     let x4D = x;
     if (x.rank === 3) {
-        x4D = reshape$2(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
+        x4D = reshape$3(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
     }
     let dy4D = dy;
     if (dy4D.rank === 3) {
-        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$3(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in conv2dDerFilter: input must be rank 4, but got shape ` +
         `${x4D.shape}.`);
@@ -20311,7 +20317,7 @@ function getFusedDyActivation(dy, y, activation) {
         return dy;
     }
     if (activation === 'relu') {
-        return mul(dy, step$2(y));
+        return mul(dy, step$3(y));
     }
     throw new Error(`Cannot compute gradient for fused activation ${activation}.`);
 }
@@ -20320,9 +20326,9 @@ function getFusedBiasGradient(bias, dyActivation) {
     let res = dyActivation;
     const reduceAxes = getReductionAxes(bias.shape, dyActivation.shape);
     if (reduceAxes.length > 0) {
-        res = sum$2(res, reduceAxes);
+        res = sum$3(res, reduceAxes);
     }
-    return reshape$2(res, bias.shape);
+    return reshape$3(res, bias.shape);
 }
 function applyActivation(x, activation, preluActivationWeights, leakyreluAlpha) {
     if (activation === 'linear') {
@@ -20338,13 +20344,13 @@ function applyActivation(x, activation, preluActivationWeights, leakyreluAlpha) 
         return relu6$2(x);
     }
     else if (activation === 'prelu') {
-        return prelu$2(x, preluActivationWeights);
+        return prelu$3(x, preluActivationWeights);
     }
     else if (activation === 'leakyrelu') {
-        return leakyRelu$2(x, leakyreluAlpha);
+        return leakyRelu$3(x, leakyreluAlpha);
     }
     else if (activation === 'sigmoid') {
-        return sigmoid$2(x);
+        return sigmoid$3(x);
     }
     throw new Error(`Unknown fused activation ${activation}.`);
 }
@@ -20435,7 +20441,7 @@ function fusedConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', dilations 
         assert(dataFormat === 'NHWC', () => `Error in fused conv2d: got dataFormat of ${dataFormat} but ` +
             `only NHWC is currently supported for the case of gradient depth ` +
             `is 0 and the activation is not linear.`);
-        let result = conv2d$3(x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+        let result = conv2d$4(x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
         if (bias != null) {
             result = add(result, bias);
         }
@@ -20447,7 +20453,7 @@ function fusedConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', dilations 
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in fused conv2d: input must be rank 4, but got rank ` +
         `${x4D.rank}.`);
@@ -20521,7 +20527,7 @@ function fusedConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', dilations 
         assert(tupleValuesAreOne(dilations), () => 'Error in gradient of fused conv2D: ' +
             `dilation rates greater than 1 ` +
             `are not yet supported in gradients. Got dilations '${dilations}'`);
-        const xDer = conv2DBackpropInput$2(x4D.shape, dyActivation, $filter, strides, pad);
+        const xDer = conv2DBackpropInput$3(x4D.shape, dyActivation, $filter, strides, pad);
         const filterDer = conv2DBackpropFilter$2(x4D, dyActivation, $filter.shape, strides, pad);
         const der = [xDer, filterDer];
         if ($bias != null) {
@@ -20555,7 +20561,7 @@ function fusedConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', dilations 
             save([filter, x4D, res]);
             if (reshapedTo4D) {
                 // tslint:disable-next-line: no-unnecessary-type-assertion
-                res = reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+                res = reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
             }
             return { value: res, gradFunc: grad };
         });
@@ -20567,14 +20573,14 @@ function fusedConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', dilations 
             save([filter, x4D, res, bias]);
             if (reshapedTo4D) {
                 // tslint:disable-next-line: no-unnecessary-type-assertion
-                res = reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+                res = reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
             }
             return { value: res, gradFunc: grad };
         });
         return customOpWithBias(x4D, $filter, $bias);
     }
 }
-const conv2d$2 = /* @__PURE__ */ op({ fusedConv2d_ });
+const conv2d$3 = /* @__PURE__ */ op({ fusedConv2d_ });
 
 /**
  * @license
@@ -20595,11 +20601,11 @@ const conv2d$2 = /* @__PURE__ */ op({ fusedConv2d_ });
 function depthwiseConv2dNativeBackpropFilter_(x, dy, filterShape, strides, pad, dilations = [1, 1], dimRoundingMode) {
     let x4D = x;
     if (x.rank === 3) {
-        x4D = reshape$2(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
+        x4D = reshape$3(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
     }
     let dy4D = dy;
     if (dy4D.rank === 3) {
-        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$3(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     }
     const inputs = { x: x4D, dy: dy4D };
     const attrs = { strides, pad, dimRoundingMode, dilations, filterShape };
@@ -20629,7 +20635,7 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad, d
     let reshapedTo4D = false;
     if (dy.rank === 3) {
         reshapedTo4D = true;
-        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$3(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     }
     const inputs = { dy: dy4D, filter };
     const attrs = { strides, pad, dimRoundingMode, dilations, inputShape: xShape };
@@ -20637,7 +20643,7 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad, d
     // tslint:disable-next-line: no-unnecessary-type-assertion
     ENGINE.runKernel(DepthwiseConv2dNativeBackpropInput, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
@@ -20712,7 +20718,7 @@ const depthwiseConv2dNativeBackpropInput$2 = op({ depthwiseConv2dNativeBackpropI
  */
 function fusedDepthwiseConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', dilations = [1, 1], dimRoundingMode, bias, activation = 'linear', preluActivationWeights, leakyreluAlpha }) {
     if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
-        let result = depthwiseConv2d$1(x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
+        let result = depthwiseConv2d$2(x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
         if (bias != null) {
             result = add(result, bias);
         }
@@ -20724,7 +20730,7 @@ function fusedDepthwiseConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', d
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$3($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert(x4D.rank === 4, () => `Error in fused depthwiseConv2d: input must be rank 4, but got ` +
         `rank ${x4D.rank}.`);
@@ -20788,7 +20794,7 @@ function fusedDepthwiseConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', d
             save([filter, x4D, res]);
             if (reshapedTo4D) {
                 // tslint:disable-next-line: no-unnecessary-type-assertion
-                res = reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+                res = reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
             }
             return { value: res, gradFunc: grad };
         });
@@ -20801,14 +20807,14 @@ function fusedDepthwiseConv2d_({ x, filter, strides, pad, dataFormat = 'NHWC', d
             save([filter, x4D, res, bias]);
             if (reshapedTo4D) {
                 // tslint:disable-next-line: no-unnecessary-type-assertion
-                res = reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+                res = reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
             }
             return { value: res, gradFunc: grad };
         });
         return customOpWithBias(x4D, $filter, $bias);
     }
 }
-const depthwiseConv2d = /* @__PURE__ */ op({ fusedDepthwiseConv2d_ });
+const depthwiseConv2d$1 = /* @__PURE__ */ op({ fusedDepthwiseConv2d_ });
 
 /**
  * @license
@@ -20873,11 +20879,11 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
     const outShapeOuterDims = assertAndGetBroadcastShape($a.shape.slice(0, -2), $b.shape.slice(0, -2));
     const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
     const a3D = transposeA ?
-        reshape$2($a, [batchDimA, innerShapeA, outerShapeA]) :
-        reshape$2($a, [batchDimA, outerShapeA, innerShapeA]);
+        reshape$3($a, [batchDimA, innerShapeA, outerShapeA]) :
+        reshape$3($a, [batchDimA, outerShapeA, innerShapeA]);
     const b3D = transposeB ?
-        reshape$2($b, [batchDimB, outerShapeB, innerShapeB]) :
-        reshape$2($b, [batchDimB, innerShapeB, outerShapeB]);
+        reshape$3($b, [batchDimB, outerShapeB, innerShapeB]) :
+        reshape$3($b, [batchDimB, innerShapeB, outerShapeB]);
     let $bias;
     if (bias != null) {
         $bias = convertToTensor(bias, 'bias', 'fused matMul');
@@ -20893,7 +20899,7 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
         // we reshape dy because the result of the forward is not
         // necessarily going to be a 3d tensor due to a reshape done at the end of
         // the customOp.
-        const dyActivation = getFusedDyActivation(reshape$2(dy, y.shape), y, activation);
+        const dyActivation = getFusedDyActivation(reshape$3(dy, y.shape), y, activation);
         let aDer;
         let bDer;
         if (!transposeA && !transposeB) {
@@ -20935,7 +20941,7 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
             // tslint:disable-next-line: no-unnecessary-type-assertion
             ENGINE.runKernel(_FusedMatMul, inputs, attrs);
             save([a3D, b3D, res]);
-            return { value: reshape$2(res, outShape), gradFunc: grad };
+            return { value: reshape$3(res, outShape), gradFunc: grad };
         });
         return customOp(a3D, b3D);
     }
@@ -20945,7 +20951,7 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
             // tslint:disable-next-line: no-unnecessary-type-assertion
             ENGINE.runKernel(_FusedMatMul, inputs, attrs);
             save([a3D, b3D, res, $bias]);
-            return { value: reshape$2(res, outShape), gradFunc: grad };
+            return { value: reshape$3(res, outShape), gradFunc: grad };
         });
         return customOpWithBias(a3D, b3D, $bias);
     }
@@ -20971,8 +20977,8 @@ const matMul = /* @__PURE__ */ op({ fusedMatMul_ });
 
 var fused_ops = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    conv2d: conv2d$2,
-    depthwiseConv2d: depthwiseConv2d,
+    conv2d: conv2d$3,
+    depthwiseConv2d: depthwiseConv2d$1,
     matMul: matMul
 });
 
@@ -21078,14 +21084,14 @@ function frame_(signal, frameLength, frameStep, padEnd = false, padValue = 0) {
     let start = 0;
     const output = [];
     while (start + frameLength <= signal.size) {
-        output.push(slice$2(signal, start, frameLength));
+        output.push(slice$3(signal, start, frameLength));
         start += frameStep;
     }
     if (padEnd) {
         while (start < signal.size) {
             const padLen = (start + frameLength) - signal.size;
-            const pad = concat$2([
-                slice$2(signal, start, frameLength - padLen), fill$2([padLen], padValue)
+            const pad = concat$3([
+                slice$3(signal, start, frameLength - padLen), fill$3([padLen], padValue)
             ]);
             output.push(pad);
             start += frameStep;
@@ -21094,7 +21100,7 @@ function frame_(signal, frameLength, frameStep, padEnd = false, padValue = 0) {
     if (output.length === 0) {
         return tensor2d([], [0, frameLength]);
     }
-    return reshape$2(concat$2(output), [output.length, frameLength]);
+    return reshape$3(concat$3(output), [output.length, frameLength]);
 }
 const frame = /* @__PURE__ */ op({ frame_ });
 
@@ -21199,7 +21205,7 @@ function cropAndResize_(image, boxes, boxInd, cropSize, method = 'bilinear', ext
     const res = ENGINE.runKernel(CropAndResize, inputs, attrs);
     return res;
 }
-const cropAndResize$2 = /* @__PURE__ */ op({ cropAndResize_ });
+const cropAndResize$3 = /* @__PURE__ */ op({ cropAndResize_ });
 
 /**
  * @license
@@ -21232,7 +21238,7 @@ function flipLeftRight_(image) {
     const res = ENGINE.runKernel(FlipLeftRight, inputs, {});
     return res;
 }
-const flipLeftRight = /* @__PURE__ */ op({ flipLeftRight_ });
+const flipLeftRight$1 = /* @__PURE__ */ op({ flipLeftRight_ });
 
 /**
  * @license
@@ -21269,7 +21275,7 @@ function grayscaleToRGB_(image) {
     const reps = new Array($image.rank);
     reps.fill(1, 0, lastDimsIdx);
     reps[lastDimsIdx] = 3;
-    return tile$2($image, reps);
+    return tile$3($image, reps);
 }
 const grayscaleToRGB = /* @__PURE__ */ op({ grayscaleToRGB_ });
 
@@ -21307,7 +21313,7 @@ function rgbToGrayscale_(image) {
         `should be size 3, but got size ${lastDims}.`);
     // Remember original dtype so we can convert back if needed
     const origDtype = $image.dtype;
-    const fltImage = cast$2($image, 'float32');
+    const fltImage = cast$3($image, 'float32');
     const rgbWeights = tensor1d([0.2989, 0.5870, 0.1140]);
     let grayFloat;
     switch ($image.rank) {
@@ -21329,8 +21335,8 @@ function rgbToGrayscale_(image) {
         default:
             throw new Error('Not a valid tensor rank.');
     }
-    grayFloat = expandDims$2(grayFloat, -1);
-    return cast$2(grayFloat, origDtype);
+    grayFloat = expandDims$3(grayFloat, -1);
+    return cast$3(grayFloat, origDtype);
 }
 const rgbToGrayscale = /* @__PURE__ */ op({ rgbToGrayscale_ });
 
@@ -21375,7 +21381,7 @@ function rotateWithOffset_(image, radians, fillValue = 0, center = 0.5) {
     const res = ENGINE.runKernel(RotateWithOffset, inputs, attrs);
     return res;
 }
-const rotateWithOffset = /* @__PURE__ */ op({ rotateWithOffset_ });
+const rotateWithOffset$1 = /* @__PURE__ */ op({ rotateWithOffset_ });
 
 /**
  * @license
@@ -22051,18 +22057,18 @@ function resizeBilinear_(images, size, alignCorners = false, halfPixelCenters = 
     let reshapedTo4D = false;
     if ($images.rank === 3) {
         reshapedTo4D = true;
-        batchImages = reshape$2($images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
+        batchImages = reshape$3($images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
     }
     const inputs = { images: batchImages };
     const attrs = { alignCorners, halfPixelCenters, size };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(ResizeBilinear, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const resizeBilinear$2 = /* @__PURE__ */ op({ resizeBilinear_ });
+const resizeBilinear$3 = /* @__PURE__ */ op({ resizeBilinear_ });
 
 /**
  * @license
@@ -22111,18 +22117,18 @@ function resizeNearestNeighbor_(images, size, alignCorners = false, halfPixelCen
     let reshapedTo4D = false;
     if ($images.rank === 3) {
         reshapedTo4D = true;
-        batchImages = reshape$2($images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
+        batchImages = reshape$3($images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
     }
     const inputs = { images: batchImages };
     const attrs = { alignCorners, halfPixelCenters, size };
     // tslint:disable-next-line: no-unnecessary-type-assertion
     const res = ENGINE.runKernel(ResizeNearestNeighbor, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$3(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const resizeNearestNeighbor$2 = /* @__PURE__ */ op({ resizeNearestNeighbor_ });
+const resizeNearestNeighbor$3 = /* @__PURE__ */ op({ resizeNearestNeighbor_ });
 
 /**
  * @license
@@ -22184,12 +22190,12 @@ function threshold_(image, method = 'binary', inverted = false, threshValue = 0.
         grayscale = image;
     }
     if (method === 'otsu') {
-        const $histogram = bincount$2(cast$2(round$2(grayscale), 'int32'), tensor([]), 256);
+        const $histogram = bincount$3(cast$3(round$2(grayscale), 'int32'), tensor([]), 256);
         $threshold = otsu($histogram, totalPixelsInImage);
     }
     const invCondition = inverted ?
         lessEqual$2(grayscale, $threshold) : greater$2(grayscale, $threshold);
-    const result = cast$2(mul(invCondition, 255), 'int32');
+    const result = cast$3(mul(invCondition, 255), 'int32');
     return result;
 }
 function otsu(histogram, total) {
@@ -22198,16 +22204,16 @@ function otsu(histogram, total) {
     let cInBetVar = tensor1d([0]);
     let classFirst, classSecond, meanFirst, meanSec, weightForeground, weightBack;
     for (let index = 0; index < histogram.size - 1; index++) {
-        classFirst = slice$2(histogram, 0, index + 1);
-        classSecond = slice$2(histogram, index + 1);
-        weightForeground = div(sum$2(classFirst), total);
-        weightBack = div(sum$2(classSecond), total);
-        const meanFirstDivA = sum$2(mul(classFirst, range$2(0, classFirst.size)));
-        meanFirst = div(meanFirstDivA, sum$2(classFirst));
-        const meanSecFill = fill$2(classSecond.shape, classFirst.size);
-        const meanSecAdd = add(range$2(0, classSecond.size), meanSecFill);
+        classFirst = slice$3(histogram, 0, index + 1);
+        classSecond = slice$3(histogram, index + 1);
+        weightForeground = div(sum$3(classFirst), total);
+        weightBack = div(sum$3(classSecond), total);
+        const meanFirstDivA = sum$3(mul(classFirst, range$3(0, classFirst.size)));
+        meanFirst = div(meanFirstDivA, sum$3(classFirst));
+        const meanSecFill = fill$3(classSecond.shape, classFirst.size);
+        const meanSecAdd = add(range$3(0, classSecond.size), meanSecFill);
         const meanSecMul = mul(classSecond, (meanSecAdd));
-        meanSec = div(sum$2(meanSecMul), sum$2(classSecond));
+        meanSec = div(sum$3(meanSecMul), sum$3(classSecond));
         const cInBetVarSubA = sub$2(meanFirst, meanSec);
         const cInBetVarSubB = sub$2(meanFirst, meanSec);
         const cInBetVarMul = mul(weightForeground, weightBack);
@@ -22281,7 +22287,7 @@ function transform_(image, transforms, interpolation = 'nearest', fillMode = 'co
     const attrs = { interpolation, fillMode, fillValue, outputShape };
     return ENGINE.runKernel(Transform, inputs, attrs);
 }
-const transform$2 = /* @__PURE__ */ op({ transform_ });
+const transform$3 = /* @__PURE__ */ op({ transform_ });
 
 /**
  * @license
@@ -22368,12 +22374,12 @@ function bandPart_(a, numLower, numUpper) {
         assert(numUpper.dtype === 'int32', () => `bandPart(): numUpper's dtype must be an int32.`);
         $numUpper = where(less$2(numUpper, 0), N, minimum$2(numUpper, N));
     }
-    const i = reshape$2(range$2(0, M, 1, 'int32'), [-1, 1]);
-    const j = range$2(0, N, 1, 'int32');
+    const i = reshape$3(range$3(0, M, 1, 'int32'), [-1, 1]);
+    const j = range$3(0, N, 1, 'int32');
     const ij = sub$2(i, j);
     const inBand = logicalAnd$2(lessEqual$2(ij, $numLower), greaterEqual$2(ij, neg$2($numUpper)));
     const zero = zeros([M, N], $a.dtype);
-    return reshape$2(stack(unstack(reshape$2($a, [-1, M, N]))
+    return reshape$3(stack(unstack(reshape$3($a, [-1, M, N]))
         .map(mat => where(inBand, mat, zero))), shape);
 }
 const bandPart = /* @__PURE__ */ op({ bandPart_ });
@@ -22447,7 +22453,7 @@ function gramSchmidt_(xs) {
             let x = xs1d[i];
             if (i > 0) {
                 for (let j = 0; j < i; ++j) {
-                    const proj = mul(sum$2(mul(ys[j], x)), ys[j]);
+                    const proj = mul(sum$3(mul(ys[j], x)), ys[j]);
                     x = sub$2(x, proj);
                 }
             }
@@ -22534,7 +22540,7 @@ function qr_(x, fullMatrices = false) {
         //   together. We should explore whether this can be parallelized.
         const outerDimsProd = x.shape.slice(0, x.shape.length - 2)
             .reduce((value, prev) => value * prev);
-        const x2ds = unstack(reshape$2(x, [
+        const x2ds = unstack(reshape$3(x, [
             outerDimsProd, x.shape[x.shape.length - 2],
             x.shape[x.shape.length - 1]
         ]), 0);
@@ -22545,8 +22551,8 @@ function qr_(x, fullMatrices = false) {
             q2ds.push(q2d);
             r2ds.push(r2d);
         });
-        const q = reshape$2(stack(q2ds, 0), x.shape);
-        const r = reshape$2(stack(r2ds, 0), x.shape);
+        const q = reshape$3(stack(q2ds, 0), x.shape);
+        const r = reshape$3(stack(r2ds, 0), x.shape);
         return [q, r];
     }
 }
@@ -22568,9 +22574,9 @@ function qr2d(x, fullMatrices = false) {
             const qTemp = q;
             [w, r, q] = ENGINE.tidy(() => {
                 // Find H = I - tau * w * w', to put zeros below R(j, j).
-                const rjEnd1 = slice$2(r, [j, j], [m - j, 1]);
+                const rjEnd1 = slice$3(r, [j, j], [m - j, 1]);
                 const normX = norm(rjEnd1);
-                const rjj = slice$2(r, [j, j], [1, 1]);
+                const rjj = slice$3(r, [j, j], [1, 1]);
                 // The sign() function returns 0 on 0, which causes division by zero.
                 const s = where(greater$2(rjj, 0), tensor2d([[-1]]), tensor2d([[1]]));
                 const u1 = sub$2(rjj, mul(s, normX));
@@ -22579,39 +22585,39 @@ function qr2d(x, fullMatrices = false) {
                     w = clone(one2D);
                 }
                 else {
-                    w = concat$2([
+                    w = concat$3([
                         one2D,
-                        slice$2(wPre, [1, 0], [wPre.shape[0] - 1, wPre.shape[1]])
+                        slice$3(wPre, [1, 0], [wPre.shape[0] - 1, wPre.shape[1]])
                     ], 0);
                 }
                 const tau = neg$2(div(matMul$1(s, u1), normX));
                 // -- R := HR, Q := QH.
-                const rjEndAll = slice$2(r, [j, 0], [m - j, n]);
+                const rjEndAll = slice$3(r, [j, 0], [m - j, n]);
                 const tauTimesW = mul(tau, w);
-                const wT = transpose$2(w);
+                const wT = transpose$3(w);
                 if (j === 0) {
                     r = sub$2(rjEndAll, matMul$1(tauTimesW, matMul$1(wT, rjEndAll)));
                 }
                 else {
                     const rTimesTau = sub$2(rjEndAll, matMul$1(tauTimesW, matMul$1(wT, rjEndAll)));
-                    r = concat$2([slice$2(r, [0, 0], [j, n]), rTimesTau], 0);
+                    r = concat$3([slice$3(r, [0, 0], [j, n]), rTimesTau], 0);
                 }
-                const tawTimesWT = transpose$2(tauTimesW);
-                const qAllJEnd = slice$2(q, [0, j], [m, q.shape[1] - j]);
+                const tawTimesWT = transpose$3(tauTimesW);
+                const qAllJEnd = slice$3(q, [0, j], [m, q.shape[1] - j]);
                 if (j === 0) {
                     q = sub$2(qAllJEnd, matMul$1(matMul$1(qAllJEnd, w), tawTimesWT));
                 }
                 else {
                     const qTimesTau = sub$2(qAllJEnd, matMul$1(matMul$1(qAllJEnd, w), tawTimesWT));
-                    q = concat$2([slice$2(q, [0, 0], [m, j]), qTimesTau], 1);
+                    q = concat$3([slice$3(q, [0, 0], [m, j]), qTimesTau], 1);
                 }
                 return [w, r, q];
             });
             dispose([rTemp, wTemp, qTemp]);
         }
         if (!fullMatrices && m > n) {
-            q = slice$2(q, [0, 0], [m, n]);
-            r = slice$2(r, [0, 0], [n, n]);
+            q = slice$3(q, [0, 0], [m, n]);
+            r = slice$3(r, [0, 0], [n, n]);
         }
         return [q, r];
     });
@@ -22664,27 +22670,27 @@ function computeWeightedLoss_(losses, weights, reduction = Reduction.SUM_BY_NONZ
         return weightedLoss;
     }
     if (reduction === Reduction.SUM) {
-        return sum$2(weightedLoss);
+        return sum$3(weightedLoss);
     }
     if (reduction === Reduction.MEAN) {
         if ($weights == null) {
-            return mean$1(weightedLoss);
+            return mean$2(weightedLoss);
         }
         else {
             const broadcastFactor = $losses.size / $weights.size;
-            const result = div(sum$2(weightedLoss), sum$2($weights));
+            const result = div(sum$3(weightedLoss), sum$3($weights));
             return broadcastFactor > 1 ? div(result, scalar(broadcastFactor)) :
                 result;
         }
     }
     if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
         if ($weights == null) {
-            return div(sum$2(weightedLoss), scalar($losses.size));
+            return div(sum$3(weightedLoss), scalar($losses.size));
         }
         else {
             const broadcastedWeights = mul($weights, ones($losses.shape));
-            const numNonZeros = cast$2(sum$2(notEqual$2(broadcastedWeights, scalar(0))), 'float32');
-            return div(sum$2(weightedLoss), numNonZeros);
+            const numNonZeros = cast$3(sum$3(notEqual$2(broadcastedWeights, scalar(0))), 'float32');
+            return div(sum$3(weightedLoss), numNonZeros);
         }
     }
     throw Error(`Unknown reduction: ${reduction}`);
@@ -22760,7 +22766,7 @@ function cosineDistance_(labels, predictions, axis, weights, reduction = Reducti
     }
     assertShapesMatch($labels.shape, $predictions.shape, 'Error in cosineDistance: ');
     const one = scalar(1);
-    const losses = sub$2(one, sum$2(mul($labels, $predictions), axis, true));
+    const losses = sub$2(one, sum$3(mul($labels, $predictions), axis, true));
     return computeWeightedLoss(losses, $weights, reduction);
 }
 const cosineDistance = /* @__PURE__ */ op({ cosineDistance_ });
@@ -23080,16 +23086,16 @@ function softmaxCrossEntropyWithLogits_(labels, logits, dim = -1) {
         //   2. https://blog.feedly.com/tricks-of-the-trade-logsumexp/
         const keepDims = true;
         const lse = logSumExp(logits, [dim], keepDims);
-        const logResult = sub$2(cast$2(logits, 'float32'), lse);
+        const logResult = sub$2(cast$3(logits, 'float32'), lse);
         save([labels, logResult]);
         const costVector = neg$2(mul(logResult, labels));
-        const value = sum$2(costVector, [dim]);
+        const value = sum$3(costVector, [dim]);
         const gradFunc = (dy, saved) => {
             const [labels, logResult] = saved;
             const dyShape = expandShapeToKeepDim(dy.shape, [dim]);
             return [
-                mul(reshape$2(dy, dyShape), sub$2(cast$2(labels, 'float32'), exp$2(logResult))),
-                mul(reshape$2(dy, dyShape), sub$2(exp$2(logResult), cast$2(labels, 'float32'))),
+                mul(reshape$3(dy, dyShape), sub$2(cast$3(labels, 'float32'), exp$2(logResult))),
+                mul(reshape$3(dy, dyShape), sub$2(exp$2(logResult), cast$3(labels, 'float32'))),
             ];
         };
         return { value, gradFunc };
@@ -23239,7 +23245,7 @@ function sparseFillEmptyRows_(indices, values, denseShape, defaultValue) {
         reverseIndexMap: result[3]
     };
 }
-const sparseFillEmptyRows$1 = /* @__PURE__ */ op({ sparseFillEmptyRows_ });
+const sparseFillEmptyRows$2 = /* @__PURE__ */ op({ sparseFillEmptyRows_ });
 
 /**
  * @license
@@ -23313,7 +23319,7 @@ function sparseReshape_(inputIndices, inputShape, newShape) {
     const result = ENGINE.runKernel(SparseReshape, inputs);
     return { outputIndices: result[0], outputShape: result[1] };
 }
-const sparseReshape$1 = /* @__PURE__ */ op({ sparseReshape_ });
+const sparseReshape$2 = /* @__PURE__ */ op({ sparseReshape_ });
 
 /**
  * @license
@@ -23387,7 +23393,7 @@ function sparseSegmentMean_(data, indices, segmentIds) {
     };
     return ENGINE.runKernel(SparseSegmentMean, inputs);
 }
-const sparseSegmentMean$2 = /* @__PURE__ */ op({ sparseSegmentMean_ });
+const sparseSegmentMean$3 = /* @__PURE__ */ op({ sparseSegmentMean_ });
 
 /**
  * @license
@@ -23461,7 +23467,7 @@ function sparseSegmentSum_(data, indices, segmentIds) {
     };
     return ENGINE.runKernel(SparseSegmentSum, inputs);
 }
-const sparseSegmentSum$2 = /* @__PURE__ */ op({ sparseSegmentSum_ });
+const sparseSegmentSum$3 = /* @__PURE__ */ op({ sparseSegmentSum_ });
 
 /**
  * @license
@@ -23544,7 +23550,7 @@ function stringNGrams_(data, dataSplits, separator, nGramWidths, leftPad, rightP
     const result = ENGINE.runKernel(StringNGrams, inputs, attrs);
     return { nGrams: result[0], nGramsSplits: result[1] };
 }
-const stringNGrams$2 = /* @__PURE__ */ op({ stringNGrams_ });
+const stringNGrams$3 = /* @__PURE__ */ op({ stringNGrams_ });
 
 /**
  * @license
@@ -23608,7 +23614,7 @@ function stringSplit_(input, delimiter, skipEmpty = true) {
     const result = ENGINE.runKernel(StringSplit, inputs, attrs);
     return { indices: result[0], values: result[1], shape: result[2] };
 }
-const stringSplit$1 = /* @__PURE__ */ op({ stringSplit_ });
+const stringSplit$2 = /* @__PURE__ */ op({ stringSplit_ });
 
 /**
  * @license
@@ -23656,7 +23662,7 @@ function stringToHashBucketFast_(input, numBuckets) {
     const inputs = { input: $input };
     return ENGINE.runKernel(StringToHashBucketFast, inputs, attrs);
 }
-const stringToHashBucketFast$1 = /* @__PURE__ */ op({ stringToHashBucketFast_ });
+const stringToHashBucketFast$2 = /* @__PURE__ */ op({ stringToHashBucketFast_ });
 
 /**
  * @license
@@ -23730,13 +23736,13 @@ const signal = {
     stft,
 };
 const image$1 = {
-    flipLeftRight,
+    flipLeftRight: flipLeftRight$1,
     grayscaleToRGB,
-    resizeNearestNeighbor: resizeNearestNeighbor$2,
-    resizeBilinear: resizeBilinear$2,
+    resizeNearestNeighbor: resizeNearestNeighbor$3,
+    resizeBilinear: resizeBilinear$3,
     rgbToGrayscale,
-    rotateWithOffset,
-    cropAndResize: cropAndResize$2,
+    rotateWithOffset: rotateWithOffset$1,
+    cropAndResize: cropAndResize$3,
     nonMaxSuppression,
     nonMaxSuppressionAsync,
     nonMaxSuppressionWithScore,
@@ -23744,7 +23750,7 @@ const image$1 = {
     nonMaxSuppressionPadded,
     nonMaxSuppressionPaddedAsync,
     threshold,
-    transform: transform$2
+    transform: transform$3
 };
 const linalg = {
     bandPart,
@@ -23763,16 +23769,16 @@ const losses = {
     softmaxCrossEntropy
 };
 const sparse$1 = {
-    sparseFillEmptyRows: sparseFillEmptyRows$1,
-    sparseReshape: sparseReshape$1,
-    sparseSegmentMean: sparseSegmentMean$2,
-    sparseSegmentSum: sparseSegmentSum$2
+    sparseFillEmptyRows: sparseFillEmptyRows$2,
+    sparseReshape: sparseReshape$2,
+    sparseSegmentMean: sparseSegmentMean$3,
+    sparseSegmentSum: sparseSegmentSum$3
 };
 // tslint:disable-next-line:variable-name
 const string$1 = {
-    stringNGrams: stringNGrams$2,
-    stringSplit: stringSplit$1,
-    stringToHashBucketFast: stringToHashBucketFast$1,
+    stringNGrams: stringNGrams$3,
+    stringSplit: stringSplit$2,
+    stringToHashBucketFast: stringToHashBucketFast$2,
     staticRegexReplace: staticRegexReplace$1,
 };
 
@@ -24138,13 +24144,13 @@ class AdadeltaOptimizer extends Optimizer {
             if (this.accumulatedGrads[i] == null) {
                 this.accumulatedGrads[i] = {
                     originalName: `${name}/accum_grad`,
-                    variable: tidy(() => zerosLike$2(value).variable(trainable))
+                    variable: tidy(() => zerosLike$3(value).variable(trainable))
                 };
             }
             if (this.accumulatedUpdates[i] == null) {
                 this.accumulatedUpdates[i] = {
                     originalName: `${name}/accum_var`,
-                    variable: tidy(() => zerosLike$2(value).variable(trainable))
+                    variable: tidy(() => zerosLike$3(value).variable(trainable))
                 };
             }
             const gradient = Array.isArray(variableGradients) ?
@@ -24248,7 +24254,7 @@ class AdagradOptimizer extends Optimizer {
                 const trainable = false;
                 this.accumulatedGrads[i] = {
                     originalName: `${name}/accumulator`,
-                    variable: tidy(() => fill$2(value.shape, this.initialAccumulatorValue)
+                    variable: tidy(() => fill$3(value.shape, this.initialAccumulatorValue)
                         .variable(trainable))
                 };
             }
@@ -24348,13 +24354,13 @@ class AdamOptimizer extends Optimizer {
                 if (this.accumulatedFirstMoment[i] == null) {
                     this.accumulatedFirstMoment[i] = {
                         originalName: `${name}/m`,
-                        variable: tidy(() => zerosLike$2(value).variable(trainable))
+                        variable: tidy(() => zerosLike$3(value).variable(trainable))
                     };
                 }
                 if (this.accumulatedSecondMoment[i] == null) {
                     this.accumulatedSecondMoment[i] = {
                         originalName: `${name}/v`,
-                        variable: tidy(() => zerosLike$2(value).variable(trainable))
+                        variable: tidy(() => zerosLike$3(value).variable(trainable))
                     };
                 }
                 const gradient = Array.isArray(variableGradients) ?
@@ -24482,13 +24488,13 @@ class AdamaxOptimizer extends Optimizer {
                 if (this.accumulatedFirstMoment[i] == null) {
                     this.accumulatedFirstMoment[i] = {
                         originalName: `${name}/m`,
-                        variable: zerosLike$2(value).variable(trainable)
+                        variable: zerosLike$3(value).variable(trainable)
                     };
                 }
                 if (this.accumulatedWeightedInfNorm[i] == null) {
                     this.accumulatedWeightedInfNorm[i] = {
                         originalName: `${name}/v`,
-                        variable: zerosLike$2(value).variable(trainable)
+                        variable: zerosLike$3(value).variable(trainable)
                     };
                 }
                 const gradient = Array.isArray(variableGradients) ?
@@ -24668,7 +24674,7 @@ class MomentumOptimizer extends SGDOptimizer {
                 const trainable = false;
                 this.accumulations[i] = {
                     originalName: `${name}/momentum`,
-                    variable: tidy(() => zerosLike$2(value).variable(trainable))
+                    variable: tidy(() => zerosLike$3(value).variable(trainable))
                 };
             }
             const accumulation = this.accumulations[i].variable;
@@ -24781,19 +24787,19 @@ class RMSPropOptimizer extends Optimizer {
             if (this.accumulatedMeanSquares[i] == null) {
                 this.accumulatedMeanSquares[i] = {
                     originalName: `${name}/rms`,
-                    variable: tidy(() => zerosLike$2(value).variable(trainable))
+                    variable: tidy(() => zerosLike$3(value).variable(trainable))
                 };
             }
             if (this.accumulatedMoments[i] == null) {
                 this.accumulatedMoments[i] = {
                     originalName: `${name}/momentum`,
-                    variable: tidy(() => zerosLike$2(value).variable(trainable))
+                    variable: tidy(() => zerosLike$3(value).variable(trainable))
                 };
             }
             if (this.accumulatedMeanGrads[i] == null && this.centered) {
                 this.accumulatedMeanGrads[i] = {
                     originalName: `${name}/mg`,
-                    variable: tidy(() => zerosLike$2(value).variable(trainable))
+                    variable: tidy(() => zerosLike$3(value).variable(trainable))
                 };
             }
             const gradient = Array.isArray(variableGradients) ?
@@ -26116,7 +26122,7 @@ async function toPixels(img, canvas) {
     if (!(img instanceof Tensor)) {
         // Assume int32 if user passed a native array.
         const originalImgTensor = $img;
-        $img = cast$2(originalImgTensor, 'int32');
+        $img = cast$3(originalImgTensor, 'int32');
         originalImgTensor.dispose();
     }
     validateImgTensor($img);
@@ -26273,7 +26279,7 @@ function maskToAxes(mask) {
     return axes;
 }
 /** Computes the output shape given the strided slice params. */
-function computeOutShape$2(begin, end, strides) {
+function computeOutShape$3(begin, end, strides) {
     const size = [];
     for (let axis = 0; axis < begin.length; axis++) {
         size[axis] = Math.ceil((end[axis] - begin[axis]) / strides[axis]);
@@ -26805,7 +26811,7 @@ var slice_util = /*#__PURE__*/Object.freeze({
     __proto__: null,
     assertParamsValid: assertParamsValid,
     computeFlatOffset: computeFlatOffset,
-    computeOutShape: computeOutShape$2,
+    computeOutShape: computeOutShape$3,
     getNormalizedAxes: getNormalizedAxes,
     isSliceContinous: isSliceContinous,
     maskToAxes: maskToAxes,
@@ -26890,7 +26896,7 @@ function assertParamsConsistent(shapes, axis) {
         }
     });
 }
-function computeOutShape$1(shapes, axis) {
+function computeOutShape$2(shapes, axis) {
     const outputShape = shapes[0].slice();
     for (let i = 1; i < shapes.length; i++) {
         outputShape[axis] += shapes[i][axis];
@@ -27805,7 +27811,7 @@ function segOpComputeOptimalWindowSize(inSize, numSegments) {
     }
     return res;
 }
-function computeOutShape(aShape, axis, numSegments) {
+function computeOutShape$1(aShape, axis, numSegments) {
     const outShape = [];
     const rank = aShape.length;
     for (let dim = 0; dim < rank; dim++) {
@@ -27867,7 +27873,7 @@ function collectGatherOpShapeInfo(x, indices, axis, batchDims) {
 var segment_util = /*#__PURE__*/Object.freeze({
     __proto__: null,
     collectGatherOpShapeInfo: collectGatherOpShapeInfo,
-    computeOutShape: computeOutShape,
+    computeOutShape: computeOutShape$1,
     segOpComputeOptimalWindowSize: segOpComputeOptimalWindowSize
 });
 
@@ -27931,7 +27937,7 @@ var backend_util = /*#__PURE__*/Object.freeze({
     computeDilation2DInfo: computeDilation2DInfo,
     computeOptimalWindowSize: computeOptimalWindowSize,
     computeOutAndReduceShapes: computeOutAndReduceShapes,
-    computeOutShape: computeOutShape$1,
+    computeOutShape: computeOutShape$2,
     computePool2DInfo: computePool2DInfo,
     computePool3DInfo: computePool3DInfo,
     convertConv2DDataFormat: convertConv2DDataFormat,
@@ -28025,9 +28031,9 @@ registerOptimizers();
  * limitations under the License.
  * =============================================================================
  */
-const ENV$2 = env();
+const ENV$3 = env();
 /** Whether to keep intermediate tensors. */
-ENV$2.registerFlag('KEEP_INTERMEDIATE_TENSORS', () => false, debugValue => {
+ENV$3.registerFlag('KEEP_INTERMEDIATE_TENSORS', () => false, debugValue => {
     if (debugValue) {
         console.warn('Keep intermediate tensors is ON. This will print the values of all ' +
             'intermediate tensors during model inference. Not all models ' +
@@ -35418,8 +35424,8 @@ var tfOps = /*#__PURE__*/Object.freeze({
     acosh: acosh$2,
     add: add,
     addN: addN$2,
-    all: all$2,
-    any: any$2,
+    all: all$3,
+    any: any$3,
     argMax: argMax$2,
     argMin: argMin$2,
     asin: asin$2,
@@ -35427,44 +35433,44 @@ var tfOps = /*#__PURE__*/Object.freeze({
     atan: atan$2,
     atan2: atan2$2,
     atanh: atanh$2,
-    avgPool: avgPool$2,
+    avgPool: avgPool$3,
     avgPool3d: avgPool3d,
     basicLSTMCell: basicLSTMCell,
     batchNorm: batchNorm$1,
     batchNorm2d: batchNorm2d,
     batchNorm3d: batchNorm3d,
     batchNorm4d: batchNorm4d,
-    batchToSpaceND: batchToSpaceND$2,
-    bincount: bincount$2,
+    batchToSpaceND: batchToSpaceND$3,
+    bincount: bincount$3,
     bitwiseAnd: bitwiseAnd$1,
     booleanMaskAsync: booleanMaskAsync,
-    broadcastArgs: broadcastArgs$2,
+    broadcastArgs: broadcastArgs$3,
     broadcastTo: broadcastTo,
     buffer: buffer,
-    cast: cast$2,
+    cast: cast$3,
     ceil: ceil$2,
     clipByValue: clipByValue$2,
     clone: clone,
     complex: complex$2,
-    concat: concat$2,
+    concat: concat$3,
     concat1d: concat1d,
     concat2d: concat2d,
     concat3d: concat3d,
     concat4d: concat4d,
     conv1d: conv1d,
-    conv2d: conv2d$3,
+    conv2d: conv2d$4,
     conv2dTranspose: conv2dTranspose,
     conv3d: conv3d,
     conv3dTranspose: conv3dTranspose,
     cos: cos$2,
     cosh: cosh$2,
     cosineWindow: cosineWindow,
-    cumprod: cumprod$2,
-    cumsum: cumsum$2,
-    denseBincount: denseBincount$2,
-    depthToSpace: depthToSpace$2,
-    depthwiseConv2d: depthwiseConv2d$1,
-    diag: diag$2,
+    cumprod: cumprod$3,
+    cumsum: cumsum$3,
+    denseBincount: denseBincount$3,
+    depthToSpace: depthToSpace$3,
+    depthwiseConv2d: depthwiseConv2d$2,
+    diag: diag$3,
     dilation2d: dilation2d,
     div: div,
     divNoNan: divNoNan,
@@ -35478,11 +35484,11 @@ var tfOps = /*#__PURE__*/Object.freeze({
     erf: erf$2,
     euclideanNorm: euclideanNorm,
     exp: exp$2,
-    expandDims: expandDims$2,
+    expandDims: expandDims$3,
     expm1: expm1$2,
     eye: eye,
     fft: fft$2,
-    fill: fill$2,
+    fill: fill$3,
     floor: floor$2,
     floorDiv: floorDiv$2,
     fused: fused_ops,
@@ -35498,7 +35504,7 @@ var tfOps = /*#__PURE__*/Object.freeze({
     isFinite: isFinite$3,
     isInf: isInf$2,
     isNaN: isNaN$3,
-    leakyRelu: leakyRelu$2,
+    leakyRelu: leakyRelu$3,
     less: less$2,
     lessEqual: lessEqual$2,
     linalg: linalg,
@@ -35516,40 +35522,40 @@ var tfOps = /*#__PURE__*/Object.freeze({
     losses: losses,
     lowerBound: lowerBound,
     matMul: matMul$1,
-    max: max$2,
-    maxPool: maxPool$2,
+    max: max$3,
+    maxPool: maxPool$3,
     maxPool3d: maxPool3d$2,
-    maxPoolWithArgmax: maxPoolWithArgmax$1,
+    maxPoolWithArgmax: maxPoolWithArgmax$2,
     maximum: maximum$2,
-    mean: mean$1,
+    mean: mean$2,
     meshgrid: meshgrid,
-    min: min$2,
+    min: min$3,
     minimum: minimum$2,
-    mirrorPad: mirrorPad,
+    mirrorPad: mirrorPad$1,
     mod: mod$2,
     moments: moments,
     movingAverage: movingAverage,
     mul: mul,
     multiRNNCell: multiRNNCell,
-    multinomial: multinomial$2,
+    multinomial: multinomial$3,
     neg: neg$2,
     norm: norm,
     notEqual: notEqual$2,
-    oneHot: oneHot$2,
+    oneHot: oneHot$3,
     ones: ones,
-    onesLike: onesLike$2,
+    onesLike: onesLike$3,
     op: op,
     outerProduct: outerProduct,
-    pad: pad,
+    pad: pad$1,
     pad1d: pad1d,
     pad2d: pad2d,
     pad3d: pad3d,
     pad4d: pad4d,
     pool: pool,
     pow: pow$2,
-    prelu: prelu$2,
+    prelu: prelu$3,
     print: print,
-    prod: prod$2,
+    prod: prod$3,
     raggedGather: raggedGather$1,
     raggedRange: raggedRange$1,
     raggedTensorToTensor: raggedTensorToTensor$1,
@@ -35559,13 +35565,13 @@ var tfOps = /*#__PURE__*/Object.freeze({
     randomStandardNormal: randomStandardNormal,
     randomUniform: randomUniform,
     randomUniformInt: randomUniformInt,
-    range: range$2,
+    range: range$3,
     real: real$2,
     reciprocal: reciprocal$2,
     relu: relu$2,
     relu6: relu6$2,
-    reshape: reshape$2,
-    reverse: reverse$2,
+    reshape: reshape$3,
+    reverse: reverse$3,
     reverse1d: reverse1d,
     reverse2d: reverse2d,
     reverse3d: reverse3d,
@@ -35575,25 +35581,25 @@ var tfOps = /*#__PURE__*/Object.freeze({
     rsqrt: rsqrt$2,
     scalar: scalar,
     scatterND: scatterND,
-    searchSorted: searchSorted$2,
+    searchSorted: searchSorted$3,
     selu: selu$2,
     separableConv2d: separableConv2d,
     setdiff1dAsync: setdiff1dAsync,
-    sigmoid: sigmoid$2,
+    sigmoid: sigmoid$3,
     sign: sign$2,
     signal: signal,
     sin: sin$2,
     sinh: sinh$2,
-    slice: slice$2,
+    slice: slice$3,
     slice1d: slice1d,
-    slice2d: slice2d,
-    slice3d: slice3d,
-    slice4d: slice4d,
-    softmax: softmax$2,
+    slice2d: slice2d$1,
+    slice3d: slice3d$1,
+    slice4d: slice4d$1,
+    softmax: softmax$3,
     softplus: softplus$2,
-    spaceToBatchND: spaceToBatchND$2,
+    spaceToBatchND: spaceToBatchND$3,
     sparse: sparse$1,
-    sparseToDense: sparseToDense$2,
+    sparseToDense: sparseToDense$3,
     spectral: spectral$1,
     split: split$2,
     sqrt: sqrt$2,
@@ -35601,11 +35607,11 @@ var tfOps = /*#__PURE__*/Object.freeze({
     squaredDifference: squaredDifference$2,
     squeeze: squeeze,
     stack: stack,
-    step: step$2,
-    stridedSlice: stridedSlice$2,
+    step: step$3,
+    stridedSlice: stridedSlice$3,
     string: string$1,
     sub: sub$2,
-    sum: sum$2,
+    sum: sum$3,
     tan: tan$2,
     tanh: tanh$2,
     tensor: tensor,
@@ -35615,12 +35621,12 @@ var tfOps = /*#__PURE__*/Object.freeze({
     tensor4d: tensor4d,
     tensor5d: tensor5d,
     tensor6d: tensor6d,
-    tensorScatterUpdate: tensorScatterUpdate$2,
-    tile: tile$2,
-    topk: topk,
-    transpose: transpose$2,
+    tensorScatterUpdate: tensorScatterUpdate$3,
+    tile: tile$3,
+    topk: topk$1,
+    transpose: transpose$3,
     truncatedNormal: truncatedNormal,
-    unique: unique$1,
+    unique: unique$2,
     unsortedSegmentSum: unsortedSegmentSum$2,
     unstack: unstack,
     upperBound: upperBound,
@@ -35628,7 +35634,7 @@ var tfOps = /*#__PURE__*/Object.freeze({
     where: where,
     whereAsync: whereAsync,
     zeros: zeros,
-    zerosLike: zerosLike$2
+    zerosLike: zerosLike$3
 });
 
 /**
@@ -36081,7 +36087,7 @@ class TensorArray {
         // Collect all the tensors from the tensors array.
         const tensors = this.readMany(indices);
         assertShapesMatchAllowUndefinedSize(this.elementShape, tensors[0].shape, `TensorArray shape mismatch: tensor array shape (${this.elementShape}) vs first tensor shape (${tensors[0].shape})`);
-        return concat$2(tensors, 0);
+        return concat$3(tensors, 0);
     }
     /**
      * Scatter the values of a Tensor in specific indices of a TensorArray.
@@ -36129,12 +36135,12 @@ class TensorArray {
         const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
         const tensors = [];
         tidy(() => {
-            tensor = reshape$2(tensor, [1, totalLength, elementPerRow]);
+            tensor = reshape$3(tensor, [1, totalLength, elementPerRow]);
             for (let i = 0; i < length.length; ++i) {
                 const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
                 const indices = [0, previousLength, 0];
                 const sizes = [1, length[i], elementPerRow];
-                tensors[i] = reshape$2(slice$2(tensor, indices, sizes), this.elementShape);
+                tensors[i] = reshape$3(slice$3(tensor, indices, sizes), this.elementShape);
             }
             return tensors;
         });
@@ -36247,7 +36253,7 @@ class TensorList {
         assertShapesMatchAllowUndefinedSize(elementShape, this.elementShape, 'TensorList shape mismatch: ');
         const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
         return tidy(() => {
-            const reshapedTensors = this.tensors.map(tensor => reshape$2(tensor, outputElementShape));
+            const reshapedTensors = this.tensors.map(tensor => reshape$3(tensor, outputElementShape));
             return stack(reshapedTensors, 0);
         });
     }
@@ -36267,7 +36273,7 @@ class TensorList {
         const tensor = this.tensors.pop();
         tensor.kept = false;
         assertShapesMatchAllowUndefinedSize(tensor.shape, elementShape, 'TensorList shape mismatch: ');
-        return reshape$2(tensor, outputElementShape);
+        return reshape$3(tensor, outputElementShape);
     }
     /**
      * Push a tensor to the end of the list.
@@ -36320,7 +36326,7 @@ class TensorList {
         }
         assertShapesMatchAllowUndefinedSize(this.tensors[elementIndex].shape, elementShape, 'TensorList shape mismatch: ');
         const outputElementShape = inferElementShape(this.elementShape, this.tensors, elementShape);
-        return reshape$2(this.tensors[elementIndex], outputElementShape);
+        return reshape$3(this.tensors[elementIndex], outputElementShape);
     }
     /**
      * Set the tensor at the index
@@ -36363,7 +36369,7 @@ class TensorList {
             return tensor([], [0].concat(outputElementShape));
         }
         return tidy(() => {
-            const tensors = indices.map(i => reshape$2(this.tensors[i], outputElementShape));
+            const tensors = indices.map(i => reshape$3(this.tensors[i], outputElementShape));
             return stack(tensors, 0);
         });
     }
@@ -36382,8 +36388,8 @@ class TensorList {
             return tensor([], [0].concat(outputElementShape));
         }
         return tidy(() => {
-            const tensors = this.tensors.map(t => reshape$2(t, outputElementShape));
-            return concat$2(tensors, 0);
+            const tensors = this.tensors.map(t => reshape$3(t, outputElementShape));
+            return concat$3(tensors, 0);
         });
     }
 }
@@ -36460,12 +36466,12 @@ function split$1(tensor, length, elementShape) {
     const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
     const tensors = tidy(() => {
         const tensors = [];
-        tensor = reshape$2(tensor, [1, totalLength, elementPerRow]);
+        tensor = reshape$3(tensor, [1, totalLength, elementPerRow]);
         for (let i = 0; i < length.length; ++i) {
             const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
             const indices = [0, previousLength, 0];
             const sizes = [1, length[i], elementPerRow];
-            tensors[i] = reshape$2(slice$2(tensor, indices, sizes), outputElementShape);
+            tensors[i] = reshape$3(slice$3(tensor, indices, sizes), outputElementShape);
         }
         tensor.dispose();
         return tensors;
@@ -39808,68 +39814,68 @@ function getTFHubUrl(modelUrl) {
  * limitations under the License.
  * =============================================================================
  */
-const ENV$1 = env();
+const ENV$2 = env();
 /** The batched dispatching calls size in the device queue. */
-ENV$1.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
+ENV$2.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 /**
  * Whether we forward execution to the CPU backend if tensors are small and
  * reside on the CPU.
  */
-ENV$1.registerFlag('WEBGPU_CPU_FORWARD', () => true);
+ENV$2.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 /**
  * This flag is used to test different types of matmul programs.
  *
  * See MatMulProgramType in webgpu_util.ts for a list of available values.
  */
-ENV$1.registerFlag('WEBGPU_MATMUL_PROGRAM_TYPE', () => -1);
+ENV$2.registerFlag('WEBGPU_MATMUL_PROGRAM_TYPE', () => -1);
 /**
  * Whether to use conv2dTranspose_naive which directly implement the
  * conv2dTranspose logic rather than using a matmul to simulate.
  */
-ENV$1.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => true);
+ENV$2.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => true);
 /**
  * Whether we use low power GPU. Otherwise, a high performance GPU will be
  * requested.
  */
-ENV$1.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
+ENV$2.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
 /**
  * Threshold for input tensor size that determines whether WebGPU backend will
  * delegate computation to CPU.
  *
  * Default value is 1000.
  */
-ENV$1.registerFlag('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD', () => 1000);
+ENV$2.registerFlag('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD', () => 1000);
 /**
  * Whether to use a dummy canvas to make profiling tools like PIX work with
  * TFJS webgpu backend.
  */
-ENV$1.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
+ENV$2.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
 /**
  * Whether to use import API.
  */
-ENV$1.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
+ENV$2.registerFlag('WEBGPU_IMPORT_EXTERNAL_TEXTURE', () => true);
 /**
  * Whether to use conv2dNaive for debugging.
  */
-ENV$1.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
+ENV$2.registerFlag('WEBGPU_USE_NAIVE_CONV2D_DEBUG', () => false);
 /**
  * Threshold to increase dispatched workgroups for matmul. If too few workgroups
  * are dispatched, it means the hardware may be in low occupancy.
  * -1 means it's not set by the user. A default strategy will be applied.
  */
-ENV$1.registerFlag('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => -1);
+ENV$2.registerFlag('WEBGPU_THRESHOLD_TO_INCREASE_WORKGROUPS_FOR_MATMUL', () => -1);
 /**
  * Whether we will run im2col as a separate shader for convolution.
  */
-ENV$1.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
+ENV$2.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
 /**
  * A string used to match shader key. If any matches, print the related shader.
  * Seperated by comma. 'all' to print all. 'binary' to print binary(add, mul,
  * etc.). 'unary,conv2d' to print both unary and conv2d.
  */
-ENV$1.registerFlag('WEBGPU_PRINT_SHADER', () => '');
+ENV$2.registerFlag('WEBGPU_PRINT_SHADER', () => '');
 /** Experimental flag, whether enter compile only phase. */
-ENV$1.registerFlag('WEBGPU_ENGINE_COMPILE_ONLY', () => false);
+ENV$2.registerFlag('WEBGPU_ENGINE_COMPILE_ONLY', () => false);
 
 /**
  * @license
@@ -41541,7 +41547,7 @@ class WebGPUBackend extends KernelBackend {
             wallMs: null
         };
         const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-        res['kernelMs'] = sum$3(kernelMs);
+        res['kernelMs'] = sum$4(kernelMs);
         res['getExtraProfileInfo'] = () => kernelMs.map((d, i) => ({ name: flattenedActiveTimerNames[i], ms: d }))
             .map(d => `${d.name}: ${d.ms}`)
             .join(', ');
@@ -43379,7 +43385,7 @@ let FillProgram$1 = class FillProgram {
  * limitations under the License.
  * =============================================================================
  */
-function fill$1(args) {
+function fill$2(args) {
     const { backend, attrs } = args;
     const { shape, value } = attrs;
     let { dtype } = attrs;
@@ -43396,10 +43402,10 @@ function fill$1(args) {
         return backend.runWebGPUProgram(program, [], dtype, uniformData);
     }
 }
-const fillConfig$1 = {
+const fillConfig$2 = {
     kernelName: Fill,
     backendName: 'webgpu',
-    kernelFunc: fill$1
+    kernelFunc: fill$2
 };
 
 /**
@@ -43418,7 +43424,7 @@ const fillConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function reshape$1(args) {
+function reshape$2(args) {
     const { inputs, attrs } = args;
     const { x } = inputs;
     const { shape } = attrs;
@@ -43432,10 +43438,10 @@ function reshape$1(args) {
     args.backend.incRef(x.dataId);
     return { dataId: x.dataId, shape: $shape, dtype: x.dtype };
 }
-const reshapeConfig$1 = {
+const reshapeConfig$2 = {
     kernelName: Reshape,
     backendName: 'webgpu',
-    kernelFunc: reshape$1
+    kernelFunc: reshape$2
 };
 
 /**
@@ -43478,8 +43484,8 @@ function batchMatMulImpl$1({ a, b, transposeA, transposeB, backend, bias = null,
         [batchDimB, outerShapeB, innerShapeB] :
         [batchDimB, innerShapeB, outerShapeB];
     // The rest of the implementation is designed to operate on rank-3 tensors
-    const a3d = reshape$1({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
-    const b3d = reshape$1({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
+    const a3d = reshape$2({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
+    const b3d = reshape$2({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
     const intermediates = [a3d, b3d];
     const batchDim = Math.max(batchDimA, batchDimB);
     const inputs = [a3d, b3d];
@@ -43532,7 +43538,7 @@ function batchMatMulImpl$1({ a, b, transposeA, transposeB, backend, bias = null,
         case MatMulProgramType.MatMulSplitKProgram: {
             // The output buffer must be initailzed to zero before using since we
             // use atomicAdd in MatMulSplitKProgram.
-            out = fill$1({ backend, attrs: { shape: outputShape, value: 0, dtype: a.dtype } });
+            out = fill$2({ backend, attrs: { shape: outputShape, value: 0, dtype: a.dtype } });
             program = new MatMulSplitKProgram(outputShape, innerShapeB, transposeA, transposeB);
             if (bias || activation) {
                 out =
@@ -43552,7 +43558,7 @@ function batchMatMulImpl$1({ a, b, transposeA, transposeB, backend, bias = null,
                 }
                 const outActivated = backend.runWebGPUProgram(biasActivationProgram, activationInputs, out.dtype, uniformData);
                 intermediates.push(out);
-                const outReshaped = reshape$1({ inputs: { x: outActivated }, backend, attrs: { shape: outShape } });
+                const outReshaped = reshape$2({ inputs: { x: outActivated }, backend, attrs: { shape: outShape } });
                 intermediates.push(outActivated);
                 for (const i of intermediates) {
                     backend.disposeData(i.dataId);
@@ -43584,7 +43590,7 @@ function batchMatMulImpl$1({ a, b, transposeA, transposeB, backend, bias = null,
         program.uniforms += ' alpha : f32,';
     }
     out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
-    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: outShape } });
+    const outReshaped = reshape$2({ inputs: { x: out }, backend, attrs: { shape: outShape } });
     intermediates.push(out);
     for (const i of intermediates) {
         backend.disposeData(i.dataId);
@@ -43624,7 +43630,7 @@ function _fusedMatMul$1(args) {
         activation
     });
 }
-const _fusedMatMulConfig$1 = {
+const _fusedMatMulConfig$2 = {
     kernelName: _FusedMatMul,
     backendName: 'webgpu',
     kernelFunc: _fusedMatMul$1,
@@ -43814,16 +43820,16 @@ let BinaryOpProgram$1 = class BinaryOpProgram {
  * limitations under the License.
  * =============================================================================
  */
-function identity$1(args) {
+function identity$2(args) {
     const { inputs } = args;
     const { x } = inputs;
     args.backend.incRef(x.dataId);
     return { dataId: x.dataId, shape: x.shape, dtype: x.dtype };
 }
-const identityConfig$1 = {
+const identityConfig$2 = {
     kernelName: Identity,
     backendName: 'webgpu',
-    kernelFunc: identity$1
+    kernelFunc: identity$2
 };
 
 /**
@@ -43855,8 +43861,8 @@ function complex$1(args) {
     const { real, imag } = inputs;
     const complexInfo = backend.makeTensorInfo(real.shape, 'complex64');
     const complex = backend.tensorMap.get(complexInfo.dataId);
-    const realTensorInfo = identity$1({ inputs: { x: real }, backend });
-    const imagTensorInfo = identity$1({ inputs: { x: imag }, backend });
+    const realTensorInfo = identity$2({ inputs: { x: real }, backend });
+    const imagTensorInfo = identity$2({ inputs: { x: imag }, backend });
     complex.complexTensorInfos = { real: realTensorInfo, imag: imagTensorInfo };
     return complexInfo;
 }
@@ -45382,7 +45388,7 @@ class RaggedTensorToTensorOp {
         if (defaultValue.length !== valueElementSize && defaultValue.length !== 1) {
             const srcShape = this.defaultValueShape;
             tidy(() => {
-                const defaultValueTensor = reshape$2(defaultValue, srcShape);
+                const defaultValueTensor = reshape$3(defaultValue, srcShape);
                 const bCastDefault = broadcastTo(defaultValueTensor, elementShape);
                 defaultValue = bCastDefault.dataSync();
             });
@@ -46435,7 +46441,7 @@ const comparePair = (a, b) => {
  * @param k: Desired index value, where array[k] is the (k+1)th smallest element
  *           when left = 0
  */
-function select$2(array, k, left = 0, right = array.length - 1) {
+function select$3(array, k, left = 0, right = array.length - 1) {
     while (right > left) {
         // Use select recursively to sample a smaller set of size s
         // the arbitrary constants 600 and 0.5 are used in the original
@@ -46448,7 +46454,7 @@ function select$2(array, k, left = 0, right = array.length - 1) {
             const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * Math.sign(i - n / 2);
             const newLeft = Math.max(left, Math.floor(k - i * s / n + sd));
             const newRight = Math.min(right, Math.floor(k + (n - i) * s / n + sd));
-            select$2(array, k, newLeft, newRight);
+            select$3(array, k, newLeft, newRight);
         }
         // partition the elements between left and right around t
         const t = array[k];
@@ -46498,7 +46504,7 @@ function topKImpl(x, xShape, xDtype, k, sorted) {
         let valAndInd = new Array(vals.length);
         vals.forEach((value, index) => valAndInd[index] = { value, index });
         if (k < valAndInd.length) {
-            select$2(valAndInd, k);
+            select$3(valAndInd, k);
             valAndInd = valAndInd.slice(0, k);
         }
         if (sorted) {
@@ -46779,7 +46785,7 @@ const { addImpl: addImplCPU$1, castImpl: castImplCPU$1, ceilImpl: ceilImplCPU$1,
  * =============================================================================
  */
 const abs$1 = unaryKernelFunc$1({ opType: UnaryOpType.ABS, cpuKernelImpl: simpleAbsImplCPU$1 });
-const absConfig$1 = {
+const absConfig$2 = {
     kernelName: Abs,
     backendName: 'webgpu',
     kernelFunc: abs$1
@@ -46802,7 +46808,7 @@ const absConfig$1 = {
  * =============================================================================
  */
 const acos$1 = unaryKernelFunc$1({ opType: UnaryOpType.ACOS });
-const acosConfig$1 = {
+const acosConfig$2 = {
     kernelName: Acos,
     backendName: 'webgpu',
     kernelFunc: acos$1
@@ -46825,7 +46831,7 @@ const acosConfig$1 = {
  * =============================================================================
  */
 const acosh$1 = unaryKernelFunc$1({ opType: UnaryOpType.ACOSH });
-const acoshConfig$1 = {
+const acoshConfig$2 = {
     kernelName: Acosh,
     backendName: 'webgpu',
     kernelFunc: acosh$1
@@ -46848,7 +46854,7 @@ const acoshConfig$1 = {
  * =============================================================================
  */
 const addKernelFunc$1 = binaryKernelFunc$1({ opType: BinaryOpType.ADD, cpuKernelImpl: addImplCPU$1, supportsComplex: true });
-const addConfig$1 = {
+const addConfig$2 = {
     kernelName: Add,
     backendName: 'webgpu',
     kernelFunc: addKernelFunc$1
@@ -46929,14 +46935,14 @@ function addN$1(args) {
     const { inputs, backend } = args;
     const tensors = inputs;
     if (tensors.length === 1) {
-        return identity$1({ inputs: { x: tensors[0] }, backend });
+        return identity$2({ inputs: { x: tensors[0] }, backend });
     }
     const dtype = tensors.map(t => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
     const shapes = tensors.map(t => t.shape);
     const program = new AddNPackedProgram$1(shapes);
     return backend.runWebGPUProgram(program, tensors, dtype);
 }
-const addNConfig$1 = {
+const addNConfig$2 = {
     kernelName: AddN,
     backendName: 'webgpu',
     kernelFunc: addN$1
@@ -47077,7 +47083,7 @@ function getSwitchedCoords$1(newDim) {
  * limitations under the License.
  * =============================================================================
  */
-function transpose$1(args) {
+function transpose$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { perm } = attrs;
@@ -47100,10 +47106,10 @@ function transpose$1(args) {
     const program = new TransposeProgram$1(x.shape, perm);
     return webgpuBackend.runWebGPUProgram(program, [x], x.dtype);
 }
-const transposeConfig$1 = {
+const transposeConfig$2 = {
     kernelName: Transpose,
     backendName: 'webgpu',
-    kernelFunc: transpose$1
+    kernelFunc: transpose$2
 };
 
 /**
@@ -47263,7 +47269,7 @@ function reduce$1(x, axis, keepDims, reduceType, backend) {
     const permutedAxes = getAxesPermutation(axes, xRank);
     let input = x;
     if (permutedAxes != null) {
-        input = transpose$1({ inputs: { x }, attrs: { perm: permutedAxes }, backend });
+        input = transpose$2({ inputs: { x }, attrs: { perm: permutedAxes }, backend });
         axes = getInnerMostAxes(axes.length, xRank);
         toDispose.push(input);
     }
@@ -47303,7 +47309,7 @@ function reduce$1(x, axis, keepDims, reduceType, backend) {
         const program = new ReduceProgram$1(reduceInfo, reduceType, backend.device.limits.maxComputeWorkgroupSizeX);
         const reduced = backend.runWebGPUProgram(program, [input], dtype, uniformData);
         toDispose.push(reduced);
-        res = reshape$1({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend });
+        res = reshape$2({ inputs: { x: reduced }, attrs: { shape: resOutShape }, backend });
     }
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return res;
@@ -47325,16 +47331,16 @@ function reduce$1(x, axis, keepDims, reduceType, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function all$1(args) {
+function all$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { keepDims, axis } = attrs;
     return reduce$1(x, axis, keepDims, 'all', backend);
 }
-const allConfig$1 = {
+const allConfig$2 = {
     kernelName: All,
     backendName: 'webgpu',
-    kernelFunc: all$1
+    kernelFunc: all$2
 };
 
 /**
@@ -47353,16 +47359,16 @@ const allConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function any$1(args) {
+function any$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { keepDims, axis } = attrs;
     return reduce$1(x, axis, keepDims, 'any', backend);
 }
-const anyConfig$1 = {
+const anyConfig$2 = {
     kernelName: Any,
     backendName: 'webgpu',
-    kernelFunc: any$1
+    kernelFunc: any$2
 };
 
 /**
@@ -47539,7 +47545,7 @@ function argMax$1(args) {
     let $x = x;
     const intermediateTensorInfos = [];
     if (permutedAxes != null) {
-        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        $x = transpose$2({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         intermediateTensorInfos.push($x);
         axes = getInnerMostAxes(axes.length, $x.shape.length);
     }
@@ -47550,7 +47556,7 @@ function argMax$1(args) {
     intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
     return out;
 }
-const argMaxConfig$1 = {
+const argMaxConfig$2 = {
     kernelName: ArgMax,
     backendName: 'webgpu',
     kernelFunc: argMax$1
@@ -47581,7 +47587,7 @@ function argMin$1(args) {
     let $x = x;
     const intermediateTensorInfos = [];
     if (permutedAxes != null) {
-        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        $x = transpose$2({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         intermediateTensorInfos.push($x);
         axes = getInnerMostAxes(axes.length, $x.shape.length);
     }
@@ -47592,7 +47598,7 @@ function argMin$1(args) {
     intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
     return out;
 }
-const argMinConfig$1 = {
+const argMinConfig$2 = {
     kernelName: ArgMin,
     backendName: 'webgpu',
     kernelFunc: argMin$1
@@ -47615,7 +47621,7 @@ const argMinConfig$1 = {
  * =============================================================================
  */
 const asin$1 = unaryKernelFunc$1({ opType: UnaryOpType.ASIN });
-const asinConfig$1 = {
+const asinConfig$2 = {
     kernelName: Asin,
     backendName: 'webgpu',
     kernelFunc: asin$1
@@ -47638,7 +47644,7 @@ const asinConfig$1 = {
  * =============================================================================
  */
 const asinh$1 = unaryKernelFunc$1({ opType: UnaryOpType.ASINH });
-const asinhConfig$1 = {
+const asinhConfig$2 = {
     kernelName: Asinh,
     backendName: 'webgpu',
     kernelFunc: asinh$1
@@ -47661,7 +47667,7 @@ const asinhConfig$1 = {
  * =============================================================================
  */
 const atan$1 = unaryKernelFunc$1({ opType: UnaryOpType.ATAN });
-const atanConfig$1 = {
+const atanConfig$2 = {
     kernelName: Atan,
     backendName: 'webgpu',
     kernelFunc: atan$1
@@ -47684,7 +47690,7 @@ const atanConfig$1 = {
  * =============================================================================
  */
 const atan2$1 = binaryKernelFunc$1({ opType: BinaryOpType.ATAN2 });
-const atan2Config$1 = {
+const atan2Config$2 = {
     kernelName: Atan2,
     backendName: 'webgpu',
     kernelFunc: atan2$1
@@ -47707,7 +47713,7 @@ const atan2Config$1 = {
  * =============================================================================
  */
 const atanh$1 = unaryKernelFunc$1({ opType: UnaryOpType.ATANH });
-const atanhConfig$1 = {
+const atanhConfig$2 = {
     kernelName: Atanh,
     backendName: 'webgpu',
     kernelFunc: atanh$1
@@ -47976,16 +47982,16 @@ let Pool3DProgram$1 = class Pool3DProgram {
  * limitations under the License.
  * =============================================================================
  */
-function max$1(args) {
+function max$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { reductionIndices, keepDims } = attrs;
     return reduce$1(x, reductionIndices, keepDims, 'max', backend);
 }
-const maxConfig$1 = {
+const maxConfig$2 = {
     kernelName: Max,
     backendName: 'webgpu',
-    kernelFunc: max$1
+    kernelFunc: max$2
 };
 
 /**
@@ -48004,16 +48010,16 @@ const maxConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function mean(args) {
+function mean$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { keepDims, axis } = attrs;
     return reduce$1(x, axis, keepDims, 'mean', backend);
 }
-const meanConfig$1 = {
+const meanConfig$2 = {
     kernelName: Mean,
     backendName: 'webgpu',
-    kernelFunc: mean
+    kernelFunc: mean$1
 };
 
 /**
@@ -48035,13 +48041,13 @@ const meanConfig$1 = {
 function poolImpl(x, convInfo, poolType, backend) {
     if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
         arraysEqual(convInfo.inShape, convInfo.outShape)) {
-        return identity$1({ inputs: { x }, backend });
+        return identity$2({ inputs: { x }, backend });
     }
     if (convInfo.filterWidth === convInfo.inWidth &&
         convInfo.filterHeight === convInfo.inHeight && convInfo.batchSize === 1 &&
         convInfo.padInfo.type === 'VALID') {
         const length = x.shape.length;
-        const reshapeX = reshape$1({
+        const reshapeX = reshape$2({
             inputs: { x },
             backend,
             attrs: {
@@ -48053,17 +48059,17 @@ function poolImpl(x, convInfo, poolType, backend) {
         });
         let reduceX;
         if (poolType === 'avg') {
-            reduceX = mean({ inputs: { x: reshapeX }, backend, attrs: { axis: 0, keepDims: false } });
+            reduceX = mean$1({ inputs: { x: reshapeX }, backend, attrs: { axis: 0, keepDims: false } });
         }
         else {
             assert(poolType === 'max', () => `Invalid pool type ${poolType}`);
-            reduceX = max$1({
+            reduceX = max$2({
                 inputs: { x: reshapeX },
                 backend,
                 attrs: { reductionIndices: 0, keepDims: false }
             });
         }
-        const result = reshape$1({ inputs: { x: reduceX }, backend, attrs: { shape: convInfo.outShape } });
+        const result = reshape$2({ inputs: { x: reduceX }, backend, attrs: { shape: convInfo.outShape } });
         backend.disposeData(reshapeX.dataId);
         backend.disposeData(reduceX.dataId);
         return result;
@@ -48108,7 +48114,7 @@ function poolImpl(x, convInfo, poolType, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function avgPool$1(args) {
+function avgPool$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { filterSize, strides, pad, dimRoundingMode } = attrs;
@@ -48116,10 +48122,10 @@ function avgPool$1(args) {
     const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad, dimRoundingMode);
     return poolImpl(x, convInfo, 'avg', backend);
 }
-const avgPoolConfig$1 = {
+const avgPoolConfig$2 = {
     kernelName: AvgPool,
     backendName: 'webgpu',
-    kernelFunc: avgPool$1
+    kernelFunc: avgPool$2
 };
 
 /**
@@ -48138,7 +48144,7 @@ const avgPoolConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function avgPool3D$1(args) {
+function avgPool3D$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { filterSize, strides, pad, dataFormat, dimRoundingMode } = attrs;
@@ -48168,10 +48174,10 @@ function avgPool3D$1(args) {
     ];
     return backend.runWebGPUProgram(avgPoolProgram, [x], x.dtype, dimensions);
 }
-const avgPool3DConfig$1 = {
+const avgPool3DConfig$2 = {
     kernelName: AvgPool3D,
     backendName: 'webgpu',
-    kernelFunc: avgPool3D$1
+    kernelFunc: avgPool3D$2
 };
 
 /**
@@ -48327,7 +48333,7 @@ let AvgPool3DBackpropProgram$1 = class AvgPool3DBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function avgPool3DGrad$1(args) {
+function avgPool3DGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -48362,10 +48368,10 @@ function avgPool3DGrad$1(args) {
     ];
     return backend.runWebGPUProgram(program, [dy], x.dtype, uniformData);
 }
-const avgPool3DGradConfig$1 = {
+const avgPool3DGradConfig$2 = {
     kernelName: AvgPool3DGrad,
     backendName: 'webgpu',
-    kernelFunc: avgPool3DGrad$1
+    kernelFunc: avgPool3DGrad$2
 };
 
 /**
@@ -48384,7 +48390,7 @@ const avgPool3DGradConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function avgPoolGrad$1(args) {
+function avgPoolGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -48411,10 +48417,10 @@ function avgPoolGrad$1(args) {
     ];
     return backend.runWebGPUProgram(program, [dy], x.dtype, uniformData);
 }
-const avgPoolGradConfig$1 = {
+const avgPoolGradConfig$2 = {
     kernelName: AvgPoolGrad,
     backendName: 'webgpu',
-    kernelFunc: avgPoolGrad$1
+    kernelFunc: avgPoolGrad$2
 };
 
 /**
@@ -48433,16 +48439,16 @@ const avgPoolGradConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function batchMatMul$1(args) {
+function batchMatMul$2(args) {
     const { inputs, backend, attrs } = args;
     const { a, b } = inputs;
     const { transposeA, transposeB } = attrs;
     return batchMatMulImpl$1({ a, b, transposeA, transposeB, backend });
 }
-const batchMatMulConfig$1 = {
+const batchMatMulConfig$2 = {
     kernelName: BatchMatMul,
     backendName: 'webgpu',
-    kernelFunc: batchMatMul$1,
+    kernelFunc: batchMatMul$2,
 };
 
 /**
@@ -48531,7 +48537,7 @@ function getCoords$3(rank) {
  * limitations under the License.
  * =============================================================================
  */
-function slice$1(args) {
+function slice$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { begin, size } = attrs;
@@ -48550,10 +48556,10 @@ function slice$1(args) {
     const uniformData = [{ type: 'int32', data: $begin }];
     return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
-const sliceConfig$1 = {
+const sliceConfig$2 = {
     kernelName: Slice,
     backendName: 'webgpu',
-    kernelFunc: slice$1
+    kernelFunc: slice$2
 };
 
 /**
@@ -48572,7 +48578,7 @@ const sliceConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-const batchToSpaceND$1 = (args) => {
+const batchToSpaceND$2 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockShape, crops } = attrs;
@@ -48585,14 +48591,14 @@ const batchToSpaceND$1 = (args) => {
     const sliceBeginCoords = getSliceBeginCoords(crops, blockShape.length);
     const sliceSize = getSliceSize(reshapedPermuted, crops, blockShape.length);
     const toDispose = [];
-    const reshapedIntermediate = reshape$1({ inputs: { x }, backend, attrs: { shape: reshaped } });
-    const transposedIntermediate = transpose$1({ inputs: { x: reshapedIntermediate }, backend, attrs: { perm: permuted } });
-    const reshapedIntermediate2 = reshape$1({
+    const reshapedIntermediate = reshape$2({ inputs: { x }, backend, attrs: { shape: reshaped } });
+    const transposedIntermediate = transpose$2({ inputs: { x: reshapedIntermediate }, backend, attrs: { perm: permuted } });
+    const reshapedIntermediate2 = reshape$2({
         inputs: { x: transposedIntermediate },
         backend,
         attrs: { shape: reshapedPermuted }
     });
-    const sliced = slice$1({
+    const sliced = slice$2({
         inputs: { x: reshapedIntermediate2 },
         backend,
         attrs: { begin: sliceBeginCoords, size: sliceSize }
@@ -48603,10 +48609,10 @@ const batchToSpaceND$1 = (args) => {
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return sliced;
 };
-const batchToSpaceNDConfig$1 = {
+const batchToSpaceNDConfig$2 = {
     kernelName: BatchToSpaceND,
     backendName: 'webgpu',
-    kernelFunc: batchToSpaceND$1
+    kernelFunc: batchToSpaceND$2
 };
 
 /**
@@ -48704,7 +48710,7 @@ class BincountProgram {
  * limitations under the License.
  * =============================================================================
  */
-function bincount$1(args) {
+function bincount$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, weights } = inputs;
     const { size } = attrs;
@@ -48713,17 +48719,17 @@ function bincount$1(args) {
     const hasWeights = weightsSize > 0;
     const outputSize = [size];
     const dtype = weights.dtype;
-    const output = fill$1({ backend, attrs: { shape: outputSize, value: 0, dtype } });
+    const output = fill$2({ backend, attrs: { shape: outputSize, value: 0, dtype } });
     const program = new BincountProgram([xSize], hasWeights);
     const uniformData = [{ type: 'int32', data: [size] }];
     const bincountInputs = hasWeights ? [x, weights] : [x];
     const res = backend.runWebGPUProgram(program, bincountInputs, dtype, uniformData, output);
     return res;
 }
-const bincountConfig$1 = {
+const bincountConfig$2 = {
     kernelName: Bincount,
     backendName: 'webgpu',
-    kernelFunc: bincount$1
+    kernelFunc: bincount$2
 };
 
 /**
@@ -48801,7 +48807,7 @@ class BroadcastArgsProgram {
  * limitations under the License.
  * =============================================================================
  */
-function broadcastArgs$1(args) {
+function broadcastArgs$2(args) {
     const { inputs, backend } = args;
     const { s0, s1 } = inputs;
     if (backend.shouldExecuteOnCPU([s0, s1])) {
@@ -48819,10 +48825,10 @@ function broadcastArgs$1(args) {
     const uniformData = [{ type: 'int32', data: [s0Size] }, { type: 'int32', data: [s1Size] }];
     return backend.runWebGPUProgram(program, [s0, s1], 'int32', uniformData);
 }
-const broadcastArgsConfig$1 = {
+const broadcastArgsConfig$2 = {
     kernelName: BroadcastArgs,
     backendName: 'webgpu',
-    kernelFunc: broadcastArgs$1
+    kernelFunc: broadcastArgs$2
 };
 
 /**
@@ -48846,7 +48852,7 @@ const notEqual$1 = binaryKernelFunc$1({
     dtype: 'bool',
     cpuKernelImpl: notEqualImplCPU$1
 });
-const notEqualConfig$1 = {
+const notEqualConfig$2 = {
     kernelName: NotEqual,
     backendName: 'webgpu',
     kernelFunc: notEqual$1
@@ -48872,7 +48878,7 @@ function real$1(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
     const inputData = backend.tensorMap.get(input.dataId);
-    return identity$1({ inputs: { x: inputData.complexTensorInfos.real }, backend });
+    return identity$2({ inputs: { x: inputData.complexTensorInfos.real }, backend });
 }
 const realConfig$1 = {
     kernelName: Real,
@@ -48918,18 +48924,18 @@ function int$1(input, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function cast$1(args) {
+function cast$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { dtype } = attrs;
     // Casting to complex64.
     if (dtype === 'complex64') {
         if (x.dtype === 'complex64') {
-            return identity$1({ inputs: { x }, backend });
+            return identity$2({ inputs: { x }, backend });
         }
         // TODO: Import kernel function once zeros is modularized.
         const zerosTensor = zeros(x.shape);
-        const floatX = cast$1({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
+        const floatX = cast$2({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
         const result = complex$1({ inputs: { real: floatX, imag: zerosTensor }, backend });
         zerosTensor.dispose();
         backend.disposeData(floatX.dataId);
@@ -48938,14 +48944,14 @@ function cast$1(args) {
     // Casting from complex64
     if (x.dtype === 'complex64') {
         const realPart = real$1({ inputs: { input: x }, backend });
-        const result = cast$1({ inputs: { x: realPart }, backend, attrs: { dtype } });
+        const result = cast$2({ inputs: { x: realPart }, backend, attrs: { dtype } });
         backend.disposeData(realPart.dataId);
         return result;
     }
     if (!hasEncodingLoss(x.dtype, dtype)) {
         // We don't change the underlying data, since we cast to higher
         // precision.
-        const result = identity$1({ inputs: { x }, backend });
+        const result = identity$2({ inputs: { x }, backend });
         return { dataId: result.dataId, shape: result.shape, dtype };
     }
     if (backend.shouldExecuteOnCPU([x])) {
@@ -48965,10 +48971,10 @@ function cast$1(args) {
     }
     throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
 }
-const castConfig$1 = {
+const castConfig$2 = {
     kernelName: Cast,
     backendName: 'webgpu',
-    kernelFunc: cast$1
+    kernelFunc: cast$2
 };
 
 /**
@@ -48988,7 +48994,7 @@ const castConfig$1 = {
  * =============================================================================
  */
 const ceil$1 = unaryKernelFunc$1({ opType: UnaryOpType.CEIL, cpuKernelImpl: ceilImplCPU$1 });
-const ceilConfig$1 = {
+const ceilConfig$2 = {
     kernelName: Ceil,
     backendName: 'webgpu',
     kernelFunc: ceil$1
@@ -49116,7 +49122,7 @@ function clipByValue$1(args) {
     }
     return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
-const clipByValueConfig$1 = {
+const clipByValueConfig$2 = {
     kernelName: ClipByValue,
     backendName: 'webgpu',
     kernelFunc: clipByValue$1
@@ -49233,7 +49239,7 @@ let ConcatProgram$1 = class ConcatProgram {
         this.workgroupSize = [64, 1, 1];
         this.size = true;
         this.outputShape =
-            computeOutShape$1(shapes, 1 /* axis */);
+            computeOutShape$2(shapes, 1 /* axis */);
         this.variableNames = shapes.map((_, i) => `T${i}`);
         this.dispatchLayout = flatDispatchLayout(this.outputShape);
         this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape, this.workgroupSize, [this.workPerThread, 1, 1]);
@@ -49296,7 +49302,7 @@ function imag$1(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
     const inputData = backend.tensorMap.get(input.dataId);
-    return identity$1({ inputs: { x: inputData.complexTensorInfos.imag }, backend });
+    return identity$2({ inputs: { x: inputData.complexTensorInfos.imag }, backend });
 }
 const imagConfig$1 = {
     kernelName: Imag,
@@ -49355,16 +49361,16 @@ function concatImpl$1(inputs, axis, backend) {
         const tensors2D = inputs.map(t => {
             const innerSize = sizeFromShape(t.shape.slice(axis));
             const shape = [-1, innerSize];
-            return reshape$1({ inputs: { x: t }, backend, attrs: { shape } });
+            return reshape$2({ inputs: { x: t }, backend, attrs: { shape } });
         });
         const inputsValShapes = tensors2D.map(t => {
             return { vals: backend.readSync(t.dataId), shape: t.shape };
         });
         // Concats 2d tensors along axis=1.
-        const outShape = computeOutShape$1(tensors2D.map(t => t.shape), 1 /* axis */);
+        const outShape = computeOutShape$2(tensors2D.map(t => t.shape), 1 /* axis */);
         const simplyConcat = tensors2D[0].shape[0] === 1;
         const outVals = concatImplCPU$1(inputsValShapes, outShape, dtype, simplyConcat);
-        const finalOutShape = computeOutShape$1(inputs.map(t => t.shape), axis);
+        const finalOutShape = computeOutShape$2(inputs.map(t => t.shape), axis);
         const outInfo = backend.makeTensorInfo(finalOutShape, dtype, outVals);
         tensors2D.forEach(t => backend.disposeData(t.dataId));
         return outInfo;
@@ -49399,13 +49405,13 @@ function concatImpl$1(inputs, axis, backend) {
     }
     const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype, uniformData);
     tensors2D.forEach(r => backend.disposeData(r.dataId));
-    const reshapedResult = reshape$1({ inputs: { x: res }, backend, attrs: { shape: outShape } });
+    const reshapedResult = reshape$2({ inputs: { x: res }, backend, attrs: { shape: outShape } });
     backend.disposeData(res.dataId);
     return reshapedResult;
 }
 function computeTensors2D$1(inputs, axis, backend) {
-    const outShape = computeOutShape$1(inputs.map(t => t.shape), axis);
-    const tensors2D = inputs.map(t => reshape$1({
+    const outShape = computeOutShape$2(inputs.map(t => t.shape), axis);
+    const tensors2D = inputs.map(t => reshape$2({
         inputs: { x: t },
         backend,
         attrs: {
@@ -49434,27 +49440,27 @@ function computeTensors2D$1(inputs, axis, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function concat$1(args) {
+function concat$2(args) {
     const { inputs, backend, attrs } = args;
     const { axis } = attrs;
     const $axis = parseAxisParam(axis, inputs[0].shape)[0];
     const shapes = inputs.map(t => t.shape);
     assertParamsConsistent(shapes, $axis);
-    const outShape = computeOutShape$1(inputs.map(t => t.shape), $axis);
+    const outShape = computeOutShape$2(inputs.map(t => t.shape), $axis);
     if (sizeFromShape(outShape) === 0) {
         return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
     }
     // Keep only non-empty tensors (ignore tensors with 0 in their shape).
     const $inputs = inputs.filter(t => sizeFromShape(t.shape) > 0);
     if ($inputs.length === 1) {
-        return identity$1({ inputs: { x: $inputs[0] }, backend });
+        return identity$2({ inputs: { x: $inputs[0] }, backend });
     }
     return concatImpl$1($inputs, $axis, backend);
 }
-const concatConfig$1 = {
+const concatConfig$2 = {
     kernelName: Concat,
     backendName: 'webgpu',
-    kernelFunc: concat$1
+    kernelFunc: concat$2
 };
 
 /**
@@ -49866,19 +49872,19 @@ function conv2dByMatMul$1({ x, filter, convInfo, backend, bias = null, preluActi
     let filterReshaped;
     if (sameSize) {
         const sharedDim = convInfo.inHeight * convInfo.inWidth * convInfo.inChannels;
-        xReshaped = reshape$1({
+        xReshaped = reshape$2({
             inputs: { x },
             backend,
             attrs: { shape: [1, convInfo.batchSize, sharedDim] }
         });
-        filterReshaped = reshape$1({
+        filterReshaped = reshape$2({
             inputs: { x: filter },
             backend,
             attrs: { shape: [1, sharedDim, convInfo.outChannels] }
         });
     }
     else {
-        xReshaped = reshape$1({
+        xReshaped = reshape$2({
             inputs: { x },
             backend,
             attrs: {
@@ -49893,7 +49899,7 @@ function conv2dByMatMul$1({ x, filter, convInfo, backend, bias = null, preluActi
                     ]
             }
         });
-        filterReshaped = reshape$1({
+        filterReshaped = reshape$2({
             inputs: { x: filter },
             backend,
             attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
@@ -49904,7 +49910,7 @@ function conv2dByMatMul$1({ x, filter, convInfo, backend, bias = null, preluActi
     if (preluActivationWeights != null) {
         const targetShape = getShapeForBatchMatMul$1(preluActivationWeights.shape, isChannelsLast);
         if (targetShape != null) {
-            preluActivationWeights = reshape$1({
+            preluActivationWeights = reshape$2({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: targetShape }
@@ -49915,7 +49921,7 @@ function conv2dByMatMul$1({ x, filter, convInfo, backend, bias = null, preluActi
     if (bias != null) {
         const targetShape = getShapeForBatchMatMul$1(bias.shape, isChannelsLast);
         if (targetShape != null) {
-            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+            bias = reshape$2({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
             intermediates.push(bias);
         }
     }
@@ -49930,7 +49936,7 @@ function conv2dByMatMul$1({ x, filter, convInfo, backend, bias = null, preluActi
         preluActivationWeights,
         leakyreluAlpha
     });
-    const out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
+    const out = reshape$2({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
     intermediates.push(result);
     for (const i of intermediates) {
         backend.disposeData(i.dataId);
@@ -49964,12 +49970,12 @@ function conv2dWithIm2Col({ x, filter, convInfo, backend, bias = null, preluActi
     const x2Col = backend.runWebGPUProgram(im2ColProgram, [x], x.dtype, dimensions);
     const intermediates = [];
     intermediates.push(x2Col);
-    const filterReshaped = reshape$1({ inputs: { x: filter }, backend, attrs: { shape: [1, sharedDim, -1] } });
+    const filterReshaped = reshape$2({ inputs: { x: filter }, backend, attrs: { shape: [1, sharedDim, -1] } });
     intermediates.push(filterReshaped);
     if (preluActivationWeights != null) {
         const targetShape = getShapeForBatchMatMul$1(preluActivationWeights.shape, isChannelsLast);
         if (targetShape != null) {
-            preluActivationWeights = reshape$1({
+            preluActivationWeights = reshape$2({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: targetShape }
@@ -49980,7 +49986,7 @@ function conv2dWithIm2Col({ x, filter, convInfo, backend, bias = null, preluActi
     if (bias != null) {
         const targetShape = getShapeForBatchMatMul$1(bias.shape, isChannelsLast);
         if (targetShape != null) {
-            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+            bias = reshape$2({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
             intermediates.push(bias);
         }
     }
@@ -49997,7 +50003,7 @@ function conv2dWithIm2Col({ x, filter, convInfo, backend, bias = null, preluActi
         preluActivationWeights,
         leakyreluAlpha
     });
-    const out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
+    const out = reshape$2({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
     intermediates.push(result);
     for (const i of intermediates) {
         backend.disposeData(i.dataId);
@@ -50077,14 +50083,14 @@ function conv2DImpl({ x, filter, convInfo, backend, bias = null, preluActivation
     const inputVar = [x, filter];
     if (hasBias) {
         if (!isChannelsLast && bias.shape.length === 1) {
-            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: [bias.shape[0], 1, 1] } });
+            bias = reshape$2({ inputs: { x: bias }, backend, attrs: { shape: [bias.shape[0], 1, 1] } });
             intermediates.push(bias);
         }
         inputVar.push(bias);
     }
     if (hasPreluActivationWeights) {
         if (!isChannelsLast && preluActivationWeights.shape.length === 1) {
-            preluActivationWeights = reshape$1({
+            preluActivationWeights = reshape$2({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: [preluActivationWeights.shape[0], 1, 1] }
@@ -50120,7 +50126,7 @@ function conv2DImpl({ x, filter, convInfo, backend, bias = null, preluActivation
  * limitations under the License.
  * =============================================================================
  */
-function conv2d$1(args) {
+function conv2d$2(args) {
     const { inputs, attrs, backend } = args;
     const { x, filter } = inputs;
     const { strides, pad, dataFormat, dilations, dimRoundingMode } = attrs;
@@ -50128,10 +50134,10 @@ function conv2d$1(args) {
     const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode, false /* depthwise */, $dataFormat);
     return conv2DImpl({ x, filter, convInfo, backend });
 }
-const conv2DConfig$1 = {
+const conv2DConfig$2 = {
     kernelName: Conv2D,
     backendName: 'webgpu',
-    kernelFunc: conv2d$1
+    kernelFunc: conv2d$2
 };
 
 /**
@@ -50695,7 +50701,7 @@ class Conv2DDerInputMMProgram {
  * limitations under the License.
  * =============================================================================
  */
-function conv2DBackpropInput$1(args) {
+function conv2DBackpropInput$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, filter } = inputs;
     const { inputShape, strides, pad, dataFormat, dimRoundingMode } = attrs;
@@ -50734,10 +50740,10 @@ function conv2DBackpropInput$1(args) {
     }
     return backend.runWebGPUProgram(program, [dy, filter], 'float32', dimensions);
 }
-const conv2DBackpropInputConfig$1 = {
+const conv2DBackpropInputConfig$2 = {
     kernelName: Conv2DBackpropInput,
     backendName: 'webgpu',
-    kernelFunc: conv2DBackpropInput$1,
+    kernelFunc: conv2DBackpropInput$2,
 };
 
 /**
@@ -50871,7 +50877,7 @@ class Conv3DNaiveProgram {
  * limitations under the License.
  * =============================================================================
  */
-function conv3D$1(args) {
+function conv3D$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -50897,10 +50903,10 @@ function conv3D$1(args) {
     const dtype = upcastType(x.dtype, filter.dtype);
     return backend.runWebGPUProgram(program, [x, filter], dtype, dimensions);
 }
-const conv3DConfig$1 = {
+const conv3DConfig$2 = {
     kernelName: Conv3D,
     backendName: 'webgpu',
-    kernelFunc: conv3D$1,
+    kernelFunc: conv3D$2,
 };
 
 /**
@@ -50919,7 +50925,7 @@ const conv3DConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function conv3DBackpropFilterV2$1(args) {
+function conv3DBackpropFilterV2$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, dy } = inputs;
     const { strides, pad, filterShape } = attrs;
@@ -50944,10 +50950,10 @@ function conv3DBackpropFilterV2$1(args) {
     ];
     return backend.runWebGPUProgram(program, [x, dy], dy.dtype, uniformData);
 }
-const conv3DBackpropFilterV2Config$1 = {
+const conv3DBackpropFilterV2Config$2 = {
     kernelName: Conv3DBackpropFilterV2,
     backendName: 'webgpu',
-    kernelFunc: conv3DBackpropFilterV2$1
+    kernelFunc: conv3DBackpropFilterV2$2
 };
 
 /**
@@ -50966,7 +50972,7 @@ const conv3DBackpropFilterV2Config$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function conv3DBackpropInputV2(args) {
+function conv3DBackpropInputV2$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, filter } = inputs;
     const { strides, pad, inputShape } = attrs;
@@ -50996,10 +51002,10 @@ function conv3DBackpropInputV2(args) {
     ];
     return backend.runWebGPUProgram(program, [dy, filter], dy.dtype, uniformData);
 }
-const conv3DBackpropInputV2Config = {
+const conv3DBackpropInputV2Config$1 = {
     kernelName: Conv3DBackpropInputV2,
     backendName: 'webgpu',
-    kernelFunc: conv3DBackpropInputV2,
+    kernelFunc: conv3DBackpropInputV2$1,
 };
 
 /**
@@ -51019,7 +51025,7 @@ const conv3DBackpropInputV2Config = {
  * =============================================================================
  */
 const cos$1 = unaryKernelFunc$1({ opType: UnaryOpType.COS });
-const cosConfig$1 = {
+const cosConfig$2 = {
     kernelName: Cos,
     backendName: 'webgpu',
     kernelFunc: cos$1
@@ -51042,7 +51048,7 @@ const cosConfig$1 = {
  * =============================================================================
  */
 const cosh$1 = unaryKernelFunc$1({ opType: UnaryOpType.COSH });
-const coshConfig$1 = {
+const coshConfig$2 = {
     kernelName: Cosh,
     backendName: 'webgpu',
     kernelFunc: cosh$1
@@ -51183,7 +51189,7 @@ let CropAndResizeProgram$1 = class CropAndResizeProgram {
  * limitations under the License.
  * =============================================================================
  */
-const cropAndResize$1 = (args) => {
+const cropAndResize$2 = (args) => {
     const { inputs, backend, attrs } = args;
     const { image, boxes, boxInd } = inputs;
     const { cropSize, method, extrapolationValue } = attrs;
@@ -51191,10 +51197,10 @@ const cropAndResize$1 = (args) => {
     const uniformData = [{ type: 'float32', data: [extrapolationValue] }];
     return backend.runWebGPUProgram(program, [image, boxes, boxInd], 'float32', uniformData);
 };
-const cropAndResizeConfig$1 = {
+const cropAndResizeConfig$2 = {
     kernelName: CropAndResize,
     backendName: 'webgpu',
-    kernelFunc: cropAndResize$1
+    kernelFunc: cropAndResize$2
 };
 
 /**
@@ -51327,7 +51333,7 @@ function cumImpl$1(op, x, backend, axis, exclusive, reverse) {
     const permutation = getAxesPermutation([axis], xRank);
     let permutedX = x;
     if (permutation != null) {
-        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
+        permutedX = transpose$2({ inputs: { x }, backend, attrs: { perm: permutation } });
     }
     const permutedAxis = getInnerMostAxes(1, xRank)[0];
     if (permutedAxis !== xRank - 1) {
@@ -51335,7 +51341,7 @@ function cumImpl$1(op, x, backend, axis, exclusive, reverse) {
             `but got axis=${axis}`);
     }
     const size = permutedX.shape[permutedAxis];
-    let result = identity$1({ inputs: { x: permutedX }, backend });
+    let result = identity$2({ inputs: { x: permutedX }, backend });
     // Use cum parallel algorithm, inspired by:
     // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
     // Note: although the algorithm is called sum, it works for any associtative
@@ -51360,7 +51366,7 @@ function cumImpl$1(op, x, backend, axis, exclusive, reverse) {
     }
     if (permutation != null) {
         const reversePermutation = getUndoAxesPermutation(permutation);
-        const reverseTransposedResult = transpose$1({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
+        const reverseTransposedResult = transpose$2({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
         backend.disposeData(result.dataId);
         backend.disposeData(permutedX.dataId);
         return reverseTransposedResult;
@@ -51384,16 +51390,16 @@ function cumImpl$1(op, x, backend, axis, exclusive, reverse) {
  * limitations under the License.
  * =============================================================================
  */
-function cumprod$1(args) {
+function cumprod$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, exclusive, reverse } = attrs;
     return cumImpl$1(CumOpType$1.Prod, x, backend, axis, exclusive, reverse);
 }
-const cumprodConfig$1 = {
+const cumprodConfig$2 = {
     kernelName: Cumprod,
     backendName: 'webgpu',
-    kernelFunc: cumprod$1
+    kernelFunc: cumprod$2
 };
 
 /**
@@ -51412,16 +51418,16 @@ const cumprodConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function cumsum$1(args) {
+function cumsum$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, exclusive, reverse } = attrs;
     return cumImpl$1(CumOpType$1.Sum, x, backend, axis, exclusive, reverse);
 }
-const cumsumConfig$1 = {
+const cumsumConfig$2 = {
     kernelName: Cumsum,
     backendName: 'webgpu',
-    kernelFunc: cumsum$1
+    kernelFunc: cumsum$2
 };
 
 /**
@@ -51440,7 +51446,7 @@ const cumsumConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function denseBincount$1(args) {
+function denseBincount$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, weights } = inputs;
     const { size, binaryOutput } = attrs;
@@ -51450,17 +51456,17 @@ function denseBincount$1(args) {
     const dtype = weights.dtype;
     const xSize = xRankOne ? [x.shape[0]] : [x.shape[0], x.shape[1]];
     const outputSize = xRankOne ? [size] : [x.shape[0], size];
-    const output = fill$1({ backend, attrs: { shape: outputSize, value: 0, dtype } });
+    const output = fill$2({ backend, attrs: { shape: outputSize, value: 0, dtype } });
     const program = new BincountProgram(xSize, hasWeights, binaryOutput);
     const uniformData = [{ type: 'int32', data: [size] }];
     const bincountInputs = hasWeights ? [x, weights] : [x];
     const res = backend.runWebGPUProgram(program, bincountInputs, dtype, uniformData, output);
     return res;
 }
-const denseBincountConfig$1 = {
+const denseBincountConfig$2 = {
     kernelName: DenseBincount,
     backendName: 'webgpu',
-    kernelFunc: denseBincount$1
+    kernelFunc: denseBincount$2
 };
 
 /**
@@ -51573,7 +51579,7 @@ let DepthToSpaceProgram$1 = class DepthToSpaceProgram {
  * limitations under the License.
  * =============================================================================
  */
-function depthToSpace$1(args) {
+function depthToSpace$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockSize, dataFormat } = attrs;
@@ -51593,10 +51599,10 @@ function depthToSpace$1(args) {
     const program = new DepthToSpaceProgram$1(outputShape, dataFormat);
     return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
-const depthToSpaceConfig$1 = {
+const depthToSpaceConfig$2 = {
     kernelName: DepthToSpace,
     backendName: 'webgpu',
-    kernelFunc: depthToSpace$1
+    kernelFunc: depthToSpace$2
 };
 
 /**
@@ -51990,7 +51996,7 @@ function depthwiseConv2dNative$1(args) {
     }
     return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
 }
-const depthwiseConv2dNativeConfig$1 = {
+const depthwiseConv2dNativeConfig$2 = {
     kernelName: DepthwiseConv2dNative,
     backendName: 'webgpu',
     kernelFunc: depthwiseConv2dNative$1,
@@ -52264,23 +52270,23 @@ let DiagProgram$1 = class DiagProgram {
  * limitations under the License.
  * =============================================================================
  */
-function diag$1(args) {
+function diag$2(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     const outShape = [...x.shape, ...x.shape];
     const xSize = sizeFromShape(x.shape);
-    const flat = reshape$1({ inputs: { x }, backend, attrs: { shape: [xSize] } });
+    const flat = reshape$2({ inputs: { x }, backend, attrs: { shape: [xSize] } });
     const program = new DiagProgram$1(xSize);
     const res = backend.runWebGPUProgram(program, [flat], flat.dtype);
-    const out = reshape$1({ inputs: { x: res }, backend, attrs: { shape: outShape } });
+    const out = reshape$2({ inputs: { x: res }, backend, attrs: { shape: outShape } });
     backend.disposeData(flat.dataId);
     backend.disposeData(res.dataId);
     return out;
 }
-const diagConfig$1 = {
+const diagConfig$2 = {
     kernelName: Diag,
     backendName: 'webgpu',
-    kernelFunc: diag$1
+    kernelFunc: diag$2
 };
 
 /**
@@ -52364,7 +52370,7 @@ let Dilation2DProgram$1 = class Dilation2DProgram {
  * limitations under the License.
  * =============================================================================
  */
-function dilation2D$1(args) {
+function dilation2D$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -52380,10 +52386,10 @@ function dilation2D$1(args) {
     const out = backend.runWebGPUProgram(program, [x, filter], x.dtype, uniformData);
     return out;
 }
-const dilation2DConfig$1 = {
+const dilation2DConfig$2 = {
     kernelName: Dilation2D,
     backendName: 'webgpu',
-    kernelFunc: dilation2D$1
+    kernelFunc: dilation2D$2
 };
 
 /**
@@ -52550,7 +52556,7 @@ class Dilation2DBackpropFilterProgram {
  * limitations under the License.
  * =============================================================================
  */
-function dilation2DBackpropFilter(args) {
+function dilation2DBackpropFilter$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter, dy } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -52564,13 +52570,13 @@ function dilation2DBackpropFilter(args) {
         { type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth] },
         { type: 'int32', data: [sizeFromShape(convInfo.outShape)] }
     ];
-    const output = fill$1({ backend, attrs: { shape: filter.shape, value: 0, dtype } });
+    const output = fill$2({ backend, attrs: { shape: filter.shape, value: 0, dtype } });
     return backend.runWebGPUProgram(program, [x, filter, dy], dtype, uniformData, output);
 }
-const dilation2DBackpropFilterConfig = {
+const dilation2DBackpropFilterConfig$1 = {
     kernelName: Dilation2DBackpropFilter,
     backendName: 'webgpu',
-    kernelFunc: dilation2DBackpropFilter
+    kernelFunc: dilation2DBackpropFilter$1
 };
 
 /**
@@ -52589,7 +52595,7 @@ const dilation2DBackpropFilterConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function dilation2DBackpropInput(args) {
+function dilation2DBackpropInput$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter, dy } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -52603,13 +52609,13 @@ function dilation2DBackpropInput(args) {
         { type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth] },
         { type: 'int32', data: [sizeFromShape(convInfo.outShape)] }
     ];
-    const output = fill$1({ backend, attrs: { shape: convInfo.inShape, value: 0, dtype } });
+    const output = fill$2({ backend, attrs: { shape: convInfo.inShape, value: 0, dtype } });
     return backend.runWebGPUProgram(program, [x, filter, dy], dtype, uniformData, output);
 }
-const dilation2DBackpropInputConfig = {
+const dilation2DBackpropInputConfig$1 = {
     kernelName: Dilation2DBackpropInput,
     backendName: 'webgpu',
-    kernelFunc: dilation2DBackpropInput
+    kernelFunc: dilation2DBackpropInput$1
 };
 
 /**
@@ -52765,7 +52771,7 @@ const multiplyKernelFunc = binaryKernelFunc$1({
     cpuKernelImpl: multiplyImplCPU$1,
     supportsComplex: true
 });
-const multiplyConfig$1 = {
+const multiplyConfig$2 = {
     kernelName: Multiply,
     backendName: 'webgpu',
     kernelFunc: multiplyKernelFunc
@@ -52787,16 +52793,16 @@ const multiplyConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function sum$1(args) {
+function sum$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
     return reduce$1(x, axis, keepDims, 'sum', backend);
 }
-const sumConfig$1 = {
+const sumConfig$2 = {
     kernelName: Sum,
     backendName: 'webgpu',
-    kernelFunc: sum$1
+    kernelFunc: sum$2
 };
 
 /**
@@ -52834,7 +52840,7 @@ function einsum$1(args) {
                 x = tensors[idTerm];
             }
             else {
-                x = transpose$1({ inputs: { x: tensors[idTerm] }, backend, attrs: { perm } });
+                x = transpose$2({ inputs: { x: tensors[idTerm] }, backend, attrs: { perm } });
                 tensorsToDispose.push(x);
             }
             const targetShape = x.shape.slice();
@@ -52842,7 +52848,7 @@ function einsum$1(args) {
                 targetShape.splice(dimsToExpand[k], 0, 1);
             }
             if (!arraysEqual(x.shape, targetShape)) {
-                x = reshape$1({ inputs: { x }, backend, attrs: { shape: targetShape } });
+                x = reshape$2({ inputs: { x }, backend, attrs: { shape: targetShape } });
                 tensorsToDispose.push(x);
             }
             if (out === null) {
@@ -52857,7 +52863,7 @@ function einsum$1(args) {
         }
         if (i < nSteps - 1) {
             if (path[i] >= 0) {
-                out = sum$1({
+                out = sum$2({
                     inputs: { x: out },
                     backend,
                     attrs: {
@@ -52902,7 +52908,7 @@ const einsumConfig$1 = {
  * =============================================================================
  */
 const elu$1 = unaryKernelFunc$1({ opType: UnaryOpType.ELU });
-const eluConfig$1 = {
+const eluConfig$2 = {
     kernelName: Elu,
     backendName: 'webgpu',
     kernelFunc: elu$1
@@ -52924,16 +52930,16 @@ const eluConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-const eluGrad$1 = (args) => {
+const eluGrad$2 = (args) => {
     const { inputs, backend } = args;
     const { dy, y } = inputs;
     const program = new BinaryOpProgram$1(BinaryOpType.ELU_DER, dy.shape, y.shape);
     return backend.runWebGPUProgram(program, [dy, y], dy.dtype);
 };
-const eluGradConfig$1 = {
+const eluGradConfig$2 = {
     kernelName: EluGrad,
     backendName: 'webgpu',
-    kernelFunc: eluGrad$1
+    kernelFunc: eluGrad$2
 };
 
 /**
@@ -52953,7 +52959,7 @@ const eluGradConfig$1 = {
  * =============================================================================
  */
 const equal$1 = binaryKernelFunc$1({ opType: BinaryOpType.EQUAL, dtype: 'bool', cpuKernelImpl: equalImplCPU$1 });
-const equalConfig$1 = {
+const equalConfig$2 = {
     kernelName: Equal,
     backendName: 'webgpu',
     kernelFunc: equal$1
@@ -52976,7 +52982,7 @@ const equalConfig$1 = {
  * =============================================================================
  */
 const erf$1 = unaryKernelFunc$1({ opType: UnaryOpType.ERF });
-const erfConfig$1 = {
+const erfConfig$2 = {
     kernelName: Erf,
     backendName: 'webgpu',
     kernelFunc: erf$1
@@ -53003,7 +53009,7 @@ const exp$1 = unaryKernelFunc$1({
     cpuKernelImpl: expImplCPU$1,
     dtype: 'float32',
 });
-const expConfig$1 = {
+const expConfig$2 = {
     kernelName: Exp,
     backendName: 'webgpu',
     kernelFunc: exp$1
@@ -53025,7 +53031,7 @@ const expConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function expandDims$1(args) {
+function expandDims$2(args) {
     const { inputs, attrs, backend } = args;
     const { dim } = attrs;
     const { input } = inputs;
@@ -53038,12 +53044,12 @@ function expandDims$1(args) {
         $dim = inputRank + dim + 1;
     }
     newShape.splice($dim, 0, 1);
-    return reshape$1({ inputs: { x: input }, backend, attrs: { shape: newShape } });
+    return reshape$2({ inputs: { x: input }, backend, attrs: { shape: newShape } });
 }
-const expandDimsConfig$1 = {
+const expandDimsConfig$2 = {
     kernelName: ExpandDims,
     backendName: 'webgpu',
-    kernelFunc: expandDims$1,
+    kernelFunc: expandDims$2,
 };
 
 /**
@@ -53063,7 +53069,7 @@ const expandDimsConfig$1 = {
  * =============================================================================
  */
 const expm1$1 = unaryKernelFunc$1({ opType: UnaryOpType.EXPM1, cpuKernelImpl: expm1ImplCPU$1 });
-const expm1Config$1 = {
+const expm1Config$2 = {
     kernelName: Expm1,
     backendName: 'webgpu',
     kernelFunc: expm1$1
@@ -53163,7 +53169,7 @@ function fftImpl$1(x, inverse, backend) {
     const innerDimensionSize = x.shape[x.shape.length - 1];
     const batch = inputSize / innerDimensionSize;
     const toDispose = [];
-    const input2D = reshape$1({ inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } });
+    const input2D = reshape$2({ inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } });
     toDispose.push(input2D);
     const xShape = input2D.shape;
     const realProgram = new FFTProgram$1('real', xShape);
@@ -53192,7 +53198,7 @@ function fftImpl$1(x, inverse, backend) {
     toDispose.push(imagPart);
     const complexOutput = complex$1({ inputs: { real: realPart, imag: imagPart }, backend });
     toDispose.push(complexOutput);
-    const complexOutputReshaped = reshape$1({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
+    const complexOutputReshaped = reshape$2({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return complexOutputReshaped;
 }
@@ -53282,7 +53288,7 @@ let FlipLeftRightProgram$1 = class FlipLeftRightProgram {
  * limitations under the License.
  * =============================================================================
  */
-const flipLeftRightConfig$1 = {
+const flipLeftRightConfig$2 = {
     kernelName: FlipLeftRight,
     backendName: 'webgpu',
     kernelFunc: ({ inputs, backend }) => {
@@ -53311,7 +53317,7 @@ const flipLeftRightConfig$1 = {
  * =============================================================================
  */
 const floor$1 = unaryKernelFunc$1({ opType: UnaryOpType.FLOOR, cpuKernelImpl: floorImplCPU$1 });
-const floorConfig$1 = {
+const floorConfig$2 = {
     kernelName: Floor,
     backendName: 'webgpu',
     kernelFunc: floor$1
@@ -53338,7 +53344,7 @@ const floorDiv$1 = binaryKernelFunc$1({
     cpuKernelImpl: floorDivImplCPU,
     dtype: 'int32'
 });
-const floorDivConfig$1 = {
+const floorDivConfig$2 = {
     kernelName: FloorDiv,
     backendName: 'webgpu',
     kernelFunc: floorDiv$1
@@ -53581,7 +53587,7 @@ let BatchNormProgram$1 = class BatchNormProgram {
  * limitations under the License.
  * =============================================================================
  */
-const fusedBatchNormConfig = {
+const fusedBatchNormConfig$1 = {
     kernelName: FusedBatchNorm,
     backendName: 'webgpu',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -53621,7 +53627,7 @@ const fusedBatchNormConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function fusedConv2d$1(args) {
+function fusedConv2d$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter, bias, preluActivationWeights } = inputs;
     const { strides, pad, dataFormat, dilations, dimRoundingMode, activation, leakyreluAlpha } = attrs;
@@ -53638,10 +53644,10 @@ function fusedConv2d$1(args) {
         activation
     });
 }
-const fusedConv2DConfig$1 = {
+const fusedConv2DConfig$2 = {
     kernelName: FusedConv2D,
     backendName: 'webgpu',
-    kernelFunc: fusedConv2d$1,
+    kernelFunc: fusedConv2d$2,
 };
 
 /**
@@ -53707,7 +53713,7 @@ function fusedDepthwiseConv2D$1(args) {
     const result = backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
     return result;
 }
-const fusedDepthwiseConv2DConfig$1 = {
+const fusedDepthwiseConv2DConfig$2 = {
     kernelName: FusedDepthwiseConv2D,
     backendName: 'webgpu',
     kernelFunc: fusedDepthwiseConv2D$1,
@@ -53784,15 +53790,15 @@ let GatherNDProgram$1 = class GatherNDProgram {
  * limitations under the License.
  * =============================================================================
  */
-function gatherNd$1(args) {
+function gatherNd$2(args) {
     const { inputs, backend } = args;
     const { params, indices } = inputs;
     const indicesShape = indices.shape;
     const sliceRank = indicesShape[indicesShape.length - 1];
     const paramsSize = sizeFromShape(params.shape);
     const [resultShape, numSlices, sliceSize, strides] = prepareAndValidate(params, indices);
-    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numSlices, sliceRank] } });
-    const flattenX = reshape$1({
+    const flattenIndices = reshape$2({ inputs: { x: indices }, backend, attrs: { shape: [numSlices, sliceRank] } });
+    const flattenX = reshape$2({
         inputs: { x: params },
         backend,
         attrs: { shape: [(sizeFromShape(params.shape) / sliceSize), sliceSize] }
@@ -53807,16 +53813,16 @@ function gatherNd$1(args) {
     const program = new GatherNDProgram$1(sliceRank, [numSlices, sliceSize]);
     const uniformData = [{ type: 'int32', data: [sliceRank] }, { type: 'int32', data: strides }];
     const res = backend.runWebGPUProgram(program, [flattenX, flattenIndices], flattenX.dtype, uniformData);
-    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
+    const reshaped = reshape$2({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
     backend.disposeData(flattenIndices.dataId);
     backend.disposeData(flattenX.dataId);
     backend.disposeData(res.dataId);
     return reshaped;
 }
-const gatherNdConfig$1 = {
+const gatherNdConfig$2 = {
     kernelName: GatherNd,
     backendName: 'webgpu',
-    kernelFunc: gatherNd$1
+    kernelFunc: gatherNd$2
 };
 
 /**
@@ -53893,7 +53899,7 @@ function getSourceCoords$4(aShape) {
  * limitations under the License.
  * =============================================================================
  */
-function gatherV2$1(args) {
+function gatherV2$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, indices } = inputs;
     const { axis, batchDims } = attrs;
@@ -53903,7 +53909,7 @@ function gatherV2$1(args) {
     const shapeInfo = collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
     const indicesSize = sizeFromShape(indices.shape);
     const toDispose = [];
-    const flattenX = reshape$1({
+    const flattenX = reshape$2({
         inputs: { x },
         backend,
         attrs: {
@@ -53913,7 +53919,7 @@ function gatherV2$1(args) {
             ]
         }
     });
-    const flattenIndex = reshape$1({
+    const flattenIndex = reshape$2({
         inputs: { x: indices },
         backend,
         attrs: { shape: [shapeInfo.batchSize, indicesSize / shapeInfo.batchSize] }
@@ -53938,14 +53944,14 @@ function gatherV2$1(args) {
     const program = new GatherProgram$1(flattenX.shape, flattenOutputShape);
     const res = backend.runWebGPUProgram(program, [flattenX, flattenIndex], flattenX.dtype);
     toDispose.push(res);
-    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: shapeInfo.outputShape } });
+    const reshaped = reshape$2({ inputs: { x: res }, backend, attrs: { shape: shapeInfo.outputShape } });
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return reshaped;
 }
-const gatherV2Config$1 = {
+const gatherV2Config$2 = {
     kernelName: GatherV2,
     backendName: 'webgpu',
-    kernelFunc: gatherV2$1
+    kernelFunc: gatherV2$2
 };
 
 /**
@@ -53969,7 +53975,7 @@ const greater$1 = binaryKernelFunc$1({
     cpuKernelImpl: greaterImplCPU$1,
     dtype: 'bool',
 });
-const greaterConfig$1 = {
+const greaterConfig$2 = {
     kernelName: Greater,
     backendName: 'webgpu',
     kernelFunc: greater$1
@@ -53996,7 +54002,7 @@ const greaterEqual$1 = binaryKernelFunc$1({
     dtype: 'bool',
     cpuKernelImpl: greaterEqualImplCPU$1
 });
-const greaterEqualConfig$1 = {
+const greaterEqualConfig$2 = {
     kernelName: GreaterEqual,
     backendName: 'webgpu',
     kernelFunc: greaterEqual$1
@@ -54046,7 +54052,7 @@ const ifftConfig$1 = {
  * =============================================================================
  */
 const isFinite$2 = unaryKernelFunc$1({ opType: UnaryOpType.IS_FINITE, dtype: 'bool' });
-const isFiniteConfig$1 = {
+const isFiniteConfig$2 = {
     kernelName: IsFinite,
     backendName: 'webgpu',
     kernelFunc: isFinite$2
@@ -54069,7 +54075,7 @@ const isFiniteConfig$1 = {
  * =============================================================================
  */
 const isInf$1 = unaryKernelFunc$1({ opType: UnaryOpType.IS_INF, dtype: 'bool' });
-const isInfConfig$1 = {
+const isInfConfig$2 = {
     kernelName: IsInf,
     backendName: 'webgpu',
     kernelFunc: isInf$1
@@ -54092,7 +54098,7 @@ const isInfConfig$1 = {
  * =============================================================================
  */
 const isNaN$2 = unaryKernelFunc$1({ opType: UnaryOpType.IS_NAN, dtype: 'bool' });
-const isNaNConfig$1 = {
+const isNaNConfig$2 = {
     kernelName: IsNan,
     backendName: 'webgpu',
     kernelFunc: isNaN$2
@@ -54114,7 +54120,7 @@ const isNaNConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function leakyRelu$1(args) {
+function leakyRelu$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { alpha } = attrs;
@@ -54122,10 +54128,10 @@ function leakyRelu$1(args) {
     const program = new UnaryOpProgram$1(x.shape, UnaryOpType.LEAKYRELU, 'alpha : f32,');
     return backend.runWebGPUProgram(program, [x], 'float32', uniformData);
 }
-const leakyReluConfig$1 = {
+const leakyReluConfig$2 = {
     kernelName: LeakyRelu,
     backendName: 'webgpu',
-    kernelFunc: leakyRelu$1
+    kernelFunc: leakyRelu$2
 };
 
 /**
@@ -54145,7 +54151,7 @@ const leakyReluConfig$1 = {
  * =============================================================================
  */
 const less$1 = binaryKernelFunc$1({ opType: BinaryOpType.LESS, dtype: 'bool', cpuKernelImpl: lessImplCPU$1 });
-const lessConfig$1 = {
+const lessConfig$2 = {
     kernelName: Less,
     backendName: 'webgpu',
     kernelFunc: less$1
@@ -54172,7 +54178,7 @@ const lessEqual$1 = binaryKernelFunc$1({
     dtype: 'bool',
     cpuKernelImpl: lessEqualImplCPU$1
 });
-const lessEqualConfig$1 = {
+const lessEqualConfig$2 = {
     kernelName: LessEqual,
     backendName: 'webgpu',
     kernelFunc: lessEqual$1
@@ -54234,7 +54240,7 @@ class LinSpaceProgram {
  * limitations under the License.
  * =============================================================================
  */
-function linSpace$1(args) {
+function linSpace$2(args) {
     const { backend, attrs } = args;
     const { start, stop, num } = attrs;
     const step = (stop - start) / (num - 1);
@@ -54242,10 +54248,10 @@ function linSpace$1(args) {
     const uniformData = [{ type: 'float32', data: [start] }, { type: 'float32', data: [step] }];
     return backend.runWebGPUProgram(program, [], 'float32', uniformData);
 }
-const linSpaceConfig$1 = {
+const linSpaceConfig$2 = {
     kernelName: LinSpace,
     backendName: 'webgpu',
-    kernelFunc: linSpace$1
+    kernelFunc: linSpace$2
 };
 
 /**
@@ -54265,7 +54271,7 @@ const linSpaceConfig$1 = {
  * =============================================================================
  */
 const log$1 = unaryKernelFunc$1({ opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU$1 });
-const logConfig$1 = {
+const logConfig$2 = {
     kernelName: Log,
     backendName: 'webgpu',
     kernelFunc: log$1
@@ -54288,7 +54294,7 @@ const logConfig$1 = {
  * =============================================================================
  */
 const log1p$1 = unaryKernelFunc$1({ opType: UnaryOpType.LOG1P });
-const log1pConfig$1 = {
+const log1pConfig$2 = {
     kernelName: Log1p,
     backendName: 'webgpu',
     kernelFunc: log1p$1
@@ -54311,7 +54317,7 @@ const log1pConfig$1 = {
  * =============================================================================
  */
 const logicalAnd$1 = binaryKernelFunc$1({ opType: BinaryOpType.LOGICAL_AND, dtype: 'bool' });
-const logicalAndConfig$1 = {
+const logicalAndConfig$2 = {
     kernelName: LogicalAnd,
     backendName: 'webgpu',
     kernelFunc: logicalAnd$1
@@ -54334,7 +54340,7 @@ const logicalAndConfig$1 = {
  * =============================================================================
  */
 const logicalNot$1 = unaryKernelFunc$1({ opType: UnaryOpType.LOGICAL_NOT });
-const logicalNotConfig$1 = {
+const logicalNotConfig$2 = {
     kernelName: LogicalNot,
     backendName: 'webgpu',
     kernelFunc: logicalNot$1
@@ -54357,7 +54363,7 @@ const logicalNotConfig$1 = {
  * =============================================================================
  */
 const logicalOr$1 = binaryKernelFunc$1({ opType: BinaryOpType.LOGICAL_OR });
-const logicalOrConfig$1 = {
+const logicalOrConfig$2 = {
     kernelName: LogicalOr,
     backendName: 'webgpu',
     kernelFunc: logicalOr$1
@@ -54503,7 +54509,7 @@ class LRNSharedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function lrn$1(args) {
+function lrn$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { depthRadius, bias, alpha, beta } = attrs;
@@ -54526,10 +54532,10 @@ function lrn$1(args) {
     const res = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
     return res;
 }
-const lrnConfig = {
+const lrnConfig$1 = {
     kernelName: LRN,
     backendName: 'webgpu',
-    kernelFunc: lrn$1
+    kernelFunc: lrn$2
 };
 
 /**
@@ -54632,7 +54638,7 @@ let LRNGradProgram$1 = class LRNGradProgram {
  * limitations under the License.
  * =============================================================================
  */
-function lrnGrad$1(args) {
+function lrnGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { x, y, dy } = inputs;
     const { depthRadius, bias, alpha, beta } = attrs;
@@ -54644,10 +54650,10 @@ function lrnGrad$1(args) {
     const res = backend.runWebGPUProgram(program, [x, y, dy], x.dtype, uniformData);
     return res;
 }
-const lrnGradConfig = {
+const lrnGradConfig$1 = {
     kernelName: LRNGrad,
     backendName: 'webgpu',
-    kernelFunc: lrnGrad$1
+    kernelFunc: lrnGrad$2
 };
 
 /**
@@ -54670,7 +54676,7 @@ const maximum$1 = binaryKernelFunc$1({
     opType: BinaryOpType.MAX,
     cpuKernelImpl: maximumImplCPU$1,
 });
-const maximumConfig$1 = {
+const maximumConfig$2 = {
     kernelName: Maximum,
     backendName: 'webgpu',
     kernelFunc: maximum$1
@@ -54692,7 +54698,7 @@ const maximumConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function maxPool$1(args) {
+function maxPool$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { filterSize, strides, pad, dimRoundingMode } = attrs;
@@ -54700,10 +54706,10 @@ function maxPool$1(args) {
     const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad, dimRoundingMode);
     return poolImpl(x, convInfo, 'max', backend);
 }
-const maxPoolConfig$1 = {
+const maxPoolConfig$2 = {
     kernelName: MaxPool,
     backendName: 'webgpu',
-    kernelFunc: maxPool$1
+    kernelFunc: maxPool$2
 };
 
 /**
@@ -54752,7 +54758,7 @@ function maxPool3d$1(args) {
     ];
     return backend.runWebGPUProgram(maxPoolProgram, [x], x.dtype, dimensions);
 }
-const maxPool3DConfig$1 = {
+const maxPool3DConfig$2 = {
     kernelName: MaxPool3D,
     backendName: 'webgpu',
     kernelFunc: maxPool3d$1
@@ -54926,7 +54932,7 @@ let MaxPool3DBackpropProgram$1 = class MaxPool3DBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function maxPool3DGrad$1(args) {
+function maxPool3DGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -54985,10 +54991,10 @@ function maxPool3DGrad$1(args) {
     backend.disposeData(maxPool3dPositions.dataId);
     return result;
 }
-const maxPool3DGradConfig$1 = {
+const maxPool3DGradConfig$2 = {
     kernelName: MaxPool3DGrad,
     backendName: 'webgpu',
-    kernelFunc: maxPool3DGrad$1
+    kernelFunc: maxPool3DGrad$2
 };
 
 /**
@@ -55007,7 +55013,7 @@ const maxPool3DGradConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function maxPoolGrad$1(args) {
+function maxPoolGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input, output } = inputs;
     const x = input;
@@ -55045,10 +55051,10 @@ function maxPoolGrad$1(args) {
     backend.disposeData(maxPoolPositions.dataId);
     return result;
 }
-const maxPoolGradConfig$1 = {
+const maxPoolGradConfig$2 = {
     kernelName: MaxPoolGrad,
     backendName: 'webgpu',
-    kernelFunc: maxPoolGrad$1
+    kernelFunc: maxPoolGrad$2
 };
 
 /**
@@ -55067,7 +55073,7 @@ const maxPoolGradConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function maxPoolWithArgmax(args) {
+function maxPoolWithArgmax$1(args) {
     const { inputs, backend, attrs } = args;
     const { filterSize, strides, pad, includeBatchInIndex } = attrs;
     const { x } = inputs;
@@ -55091,10 +55097,10 @@ function maxPoolWithArgmax(args) {
     const indexOutput = backend.runWebGPUProgram(program, [x], 'int32', uniformData);
     return [poolOutput, indexOutput];
 }
-const maxPoolWithArgmaxConfig$1 = {
+const maxPoolWithArgmaxConfig$2 = {
     kernelName: MaxPoolWithArgmax,
     backendName: 'webgpu',
-    kernelFunc: maxPoolWithArgmax
+    kernelFunc: maxPoolWithArgmax$1
 };
 
 /**
@@ -55113,16 +55119,16 @@ const maxPoolWithArgmaxConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function min$1(args) {
+function min$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
     return reduce$1(x, axis, keepDims, 'min', backend);
 }
-const minConfig$1 = {
+const minConfig$2 = {
     kernelName: Min,
     backendName: 'webgpu',
-    kernelFunc: min$1
+    kernelFunc: min$2
 };
 
 /**
@@ -55145,7 +55151,7 @@ const minimum$1 = binaryKernelFunc$1({
     opType: BinaryOpType.MIN,
     cpuKernelImpl: minimumImplCPU$1,
 });
-const minimumConfig$1 = {
+const minimumConfig$2 = {
     kernelName: Minimum,
     backendName: 'webgpu',
     kernelFunc: minimum$1
@@ -55234,7 +55240,7 @@ let MirrorPadProgram$1 = class MirrorPadProgram {
  * limitations under the License.
  * =============================================================================
  */
-const mirrorPadConfig$1 = {
+const mirrorPadConfig$2 = {
     kernelName: MirrorPad,
     backendName: 'webgpu',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -55267,7 +55273,7 @@ const mirrorPadConfig$1 = {
  * =============================================================================
  */
 const mod$1 = binaryKernelFunc$1({ opType: BinaryOpType.MOD });
-const modConfig$1 = {
+const modConfig$2 = {
     kernelName: Mod,
     backendName: 'webgpu',
     kernelFunc: mod$1
@@ -55451,11 +55457,11 @@ class SoftmaxProgram {
  * limitations under the License.
  * =============================================================================
  */
-function softmax$1(args) {
+function softmax$2(args) {
     const { inputs, backend, attrs } = args;
     const { logits } = inputs;
     const { dim } = attrs;
-    const logitsReshaped = reshape$1({
+    const logitsReshaped = reshape$2({
         inputs: { x: logits },
         backend,
         attrs: {
@@ -55466,15 +55472,15 @@ function softmax$1(args) {
     });
     const program = new SoftmaxProgram(logitsReshaped.shape);
     const res = backend.runWebGPUProgram(program, [logitsReshaped], logits.dtype);
-    const resReshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: logits.shape } });
+    const resReshaped = reshape$2({ inputs: { x: res }, backend, attrs: { shape: logits.shape } });
     backend.disposeData(logitsReshaped.dataId);
     backend.disposeData(res.dataId);
     return resReshaped;
 }
-const softmaxConfig$1 = {
+const softmaxConfig$2 = {
     kernelName: Softmax,
     backendName: 'webgpu',
-    kernelFunc: softmax$1
+    kernelFunc: softmax$2
 };
 
 /**
@@ -55493,13 +55499,13 @@ const softmaxConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function multinomial$1(args) {
+function multinomial$2(args) {
     const { inputs, backend, attrs } = args;
     const { logits } = inputs;
     const { numSamples, seed, normalized } = attrs;
     const probs = normalized ?
         logits :
-        softmax$1({ inputs: { logits }, backend, attrs: { dim: logits.shape.length - 1 } });
+        softmax$2({ inputs: { logits }, backend, attrs: { dim: logits.shape.length - 1 } });
     const batchSize = probs.shape[0];
     const numOutcomes = probs.shape[1];
     const program = new MultinomialProgram$1(batchSize, numSamples);
@@ -55510,10 +55516,10 @@ function multinomial$1(args) {
     }
     return res;
 }
-const multinomialConfig$1 = {
+const multinomialConfig$2 = {
     kernelName: Multinomial,
     backendName: 'webgpu',
-    kernelFunc: multinomial$1
+    kernelFunc: multinomial$2
 };
 
 /**
@@ -55545,7 +55551,7 @@ function neg$1(args) {
     const program = new UnaryOpProgram$1(x.shape, UnaryOpType.NEG);
     return backend.runWebGPUProgram(program, [x], x.dtype);
 }
-const negConfig$1 = {
+const negConfig$2 = {
     kernelName: Neg,
     backendName: 'webgpu',
     kernelFunc: neg$1
@@ -55578,7 +55584,7 @@ function nonMaxSuppressionV3$1(args) {
     const { selectedIndices } = nonMaxSuppressionV3Impl$1(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
     return backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices));
 }
-const nonMaxSuppressionV3Config$1 = {
+const nonMaxSuppressionV3Config$2 = {
     kernelName: NonMaxSuppressionV3,
     backendName: 'webgpu',
     kernelFunc: nonMaxSuppressionV3$1
@@ -55618,7 +55624,7 @@ function nonMaxSuppressionV5$1(args) {
         backend.makeTensorInfo([selectedScores.length], 'float32', new Float32Array(selectedScores))
     ];
 }
-const nonMaxSuppressionV5Config$1 = {
+const nonMaxSuppressionV5Config$2 = {
     kernelName: NonMaxSuppressionV5,
     backendName: 'webgpu',
     kernelFunc: nonMaxSuppressionV5$1
@@ -55681,25 +55687,25 @@ let OneHotProgram$1 = class OneHotProgram {
  * limitations under the License.
  * =============================================================================
  */
-function oneHot$1(args) {
+function oneHot$2(args) {
     const { inputs, backend, attrs } = args;
     const { indices } = inputs;
     const { dtype, depth, onValue, offValue } = attrs;
     const indicesSize = sizeFromShape(indices.shape);
     const program = new OneHotProgram$1(indicesSize, depth);
-    const reshaped = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
+    const reshaped = reshape$2({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
     const uniformData = [{ type: 'float32', data: [onValue] }, { type: 'float32', data: [offValue] }];
     const result = backend.runWebGPUProgram(program, [reshaped], dtype, uniformData);
     backend.disposeData(reshaped.dataId);
     const outShape = [...indices.shape, depth];
-    const out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: outShape } });
+    const out = reshape$2({ inputs: { x: result }, backend, attrs: { shape: outShape } });
     backend.disposeData(result.dataId);
     return out;
 }
-const oneHotConfig$1 = {
+const oneHotConfig$2 = {
     kernelName: OneHot,
     backendName: 'webgpu',
-    kernelFunc: oneHot$1
+    kernelFunc: oneHot$2
 };
 
 /**
@@ -55718,14 +55724,14 @@ const oneHotConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function zerosLike$1(args) {
+function zerosLike$2(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     if (x.dtype === 'complex64') {
         const realPart = real$1({ inputs: { input: x }, backend });
-        const r = zerosLike$1({ inputs: { x: realPart }, backend });
+        const r = zerosLike$2({ inputs: { x: realPart }, backend });
         const imagPart = imag$1({ inputs: { input: x }, backend });
-        const i = zerosLike$1({ inputs: { x: imagPart }, backend });
+        const i = zerosLike$2({ inputs: { x: imagPart }, backend });
         const result = complex$1({ inputs: { real: r, imag: i }, backend });
         backend.disposeData(realPart.dataId);
         backend.disposeData(r.dataId);
@@ -55734,7 +55740,7 @@ function zerosLike$1(args) {
         return result;
     }
     else {
-        return fill$1({
+        return fill$2({
             attrs: {
                 shape: x.shape,
                 dtype: x.dtype,
@@ -55744,10 +55750,10 @@ function zerosLike$1(args) {
         });
     }
 }
-const zerosLikeConfig$1 = {
+const zerosLikeConfig$2 = {
     kernelName: ZerosLike,
     backendName: 'webgpu',
-    kernelFunc: zerosLike$1
+    kernelFunc: zerosLike$2
 };
 
 /**
@@ -55766,7 +55772,7 @@ const zerosLikeConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function onesLike$1(args) {
+function onesLike$2(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     if (x.dtype === 'string') {
@@ -55774,9 +55780,9 @@ function onesLike$1(args) {
     }
     else if (x.dtype === 'complex64') {
         const realPart = real$1({ inputs: { input: x }, backend });
-        const r = onesLike$1({ inputs: { x: realPart }, backend });
+        const r = onesLike$2({ inputs: { x: realPart }, backend });
         const imagPart = imag$1({ inputs: { input: x }, backend });
-        const i = zerosLike$1({ inputs: { x: imagPart }, backend });
+        const i = zerosLike$2({ inputs: { x: imagPart }, backend });
         const result = complex$1({ inputs: { real: r, imag: i }, backend });
         backend.disposeData(realPart.dataId);
         backend.disposeData(r.dataId);
@@ -55785,13 +55791,13 @@ function onesLike$1(args) {
         return result;
     }
     else {
-        return fill$1({ attrs: { shape: x.shape, dtype: x.dtype, value: 1 }, backend });
+        return fill$2({ attrs: { shape: x.shape, dtype: x.dtype, value: 1 }, backend });
     }
 }
-const onesLikeConfig$1 = {
+const onesLikeConfig$2 = {
     kernelName: OnesLike,
     backendName: 'webgpu',
-    kernelFunc: onesLike$1
+    kernelFunc: onesLike$2
 };
 
 /**
@@ -55810,11 +55816,11 @@ const onesLikeConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function pack$1(args) {
+function pack$2(args) {
     const { inputs, backend, attrs } = args;
     const { axis } = attrs;
     if (inputs.length === 1) {
-        return expandDims$1({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
+        return expandDims$2({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
     }
     const shape = inputs[0].shape;
     const dtype = inputs[0].dtype;
@@ -55824,18 +55830,18 @@ function pack$1(args) {
     });
     const intermediateTensorInfos = [];
     const expandedTensors = inputs.map(t => {
-        const expandedT = expandDims$1({ inputs: { input: t }, backend, attrs: { dim: axis } });
+        const expandedT = expandDims$2({ inputs: { input: t }, backend, attrs: { dim: axis } });
         intermediateTensorInfos.push(expandedT);
         return expandedT;
     });
-    const result = concat$1({ inputs: expandedTensors, backend, attrs: { axis } });
+    const result = concat$2({ inputs: expandedTensors, backend, attrs: { axis } });
     intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
     return result;
 }
-const packConfig$1 = {
+const packConfig$2 = {
     kernelName: Pack,
     backendName: 'webgpu',
-    kernelFunc: pack$1
+    kernelFunc: pack$2
 };
 
 /**
@@ -55928,13 +55934,13 @@ const padV2$1 = (args) => {
     const { x } = inputs;
     const { paddings, constantValue } = attrs;
     if (paddings.every(p => arraysEqual(p, [0, 0]))) {
-        return identity$1({ inputs: { x }, backend });
+        return identity$2({ inputs: { x }, backend });
     }
     if (sizeFromShape(x.shape) === 0) {
         // Short-circuit the computation, since x doesn't have value, only
         // the shape is used to compute output shape to pad.
         const outputShape = paddings.map((p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
-        return fill$1({
+        return fill$2({
             backend,
             attrs: { shape: outputShape, value: constantValue, dtype: x.dtype }
         });
@@ -55944,7 +55950,7 @@ const padV2$1 = (args) => {
     const program = new PadProgram$1(x.shape, paddings);
     return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 };
-const padV2Config$1 = {
+const padV2Config$2 = {
     kernelName: PadV2,
     backendName: 'webgpu',
     kernelFunc: padV2$1
@@ -55969,7 +55975,7 @@ const padV2Config$1 = {
 const pow$1 = binaryKernelFunc$1({
     opType: BinaryOpType.POW,
 });
-const powConfig$1 = {
+const powConfig$2 = {
     kernelName: Pow,
     backendName: 'webgpu',
     kernelFunc: pow$1
@@ -55991,16 +55997,16 @@ const powConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function prelu$1(args) {
+function prelu$2(args) {
     const { inputs, backend } = args;
     const { x, alpha } = inputs;
     const program = new BinaryOpProgram$1(BinaryOpType.PRELU, x.shape, alpha.shape);
     return backend.runWebGPUProgram(program, [x, alpha], 'float32');
 }
-const preluConfig$1 = {
+const preluConfig$2 = {
     kernelName: Prelu,
     backendName: 'webgpu',
-    kernelFunc: prelu$1
+    kernelFunc: prelu$2
 };
 
 /**
@@ -56019,16 +56025,16 @@ const preluConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function prod$1(args) {
+function prod$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
     return reduce$1(x, axis, keepDims, 'prod', backend);
 }
-const prodConfig$1 = {
+const prodConfig$2 = {
     kernelName: Prod,
     backendName: 'webgpu',
-    kernelFunc: prod$1
+    kernelFunc: prod$2
 };
 
 /**
@@ -56047,16 +56053,16 @@ const prodConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-const range$1 = (args) => {
+const range$2 = (args) => {
     const { backend, attrs } = args;
     const { start, stop, step, dtype } = attrs;
     const values = rangeImplCPU$1(start, stop, step, dtype);
     return backend.makeTensorInfo([values.length], dtype, values);
 };
-const rangeConfig$1 = {
+const rangeConfig$2 = {
     kernelName: Range,
     backendName: 'webgpu',
-    kernelFunc: range$1
+    kernelFunc: range$2
 };
 
 /**
@@ -56076,7 +56082,7 @@ const rangeConfig$1 = {
  * =============================================================================
  */
 const realDiv$1 = binaryKernelFunc$1({ opType: BinaryOpType.DIV });
-const realDivConfig$1 = {
+const realDivConfig$2 = {
     kernelName: RealDiv,
     backendName: 'webgpu',
     kernelFunc: realDiv$1
@@ -56099,7 +56105,7 @@ const realDivConfig$1 = {
  * =============================================================================
  */
 const reciprocal$1 = unaryKernelFunc$1({ opType: UnaryOpType.RECIPROCAL });
-const reciprocalConfig$1 = {
+const reciprocalConfig$2 = {
     kernelName: Reciprocal,
     backendName: 'webgpu',
     kernelFunc: reciprocal$1
@@ -56122,7 +56128,7 @@ const reciprocalConfig$1 = {
  * =============================================================================
  */
 const relu$1 = unaryKernelFunc$1({ opType: UnaryOpType.RELU });
-const reluConfig$1 = {
+const reluConfig$2 = {
     kernelName: Relu,
     backendName: 'webgpu',
     kernelFunc: relu$1
@@ -56145,7 +56151,7 @@ const reluConfig$1 = {
  * =============================================================================
  */
 const relu6$1 = unaryKernelFunc$1({ opType: UnaryOpType.RELU6 });
-const relu6Config$1 = {
+const relu6Config$2 = {
     kernelName: Relu6,
     backendName: 'webgpu',
     kernelFunc: relu6$1
@@ -56243,7 +56249,7 @@ let ResizeBilinearProgram$1 = class ResizeBilinearProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeBilinear$1(args) {
+function resizeBilinear$2(args) {
     const { inputs, backend, attrs } = args;
     const { images } = inputs;
     const { alignCorners, size, halfPixelCenters } = attrs;
@@ -56258,10 +56264,10 @@ function resizeBilinear$1(args) {
     const program = new ResizeBilinearProgram$1(images.shape, newHeight, newWidth);
     return backend.runWebGPUProgram(program, [images], 'float32', uniformData);
 }
-const resizeBilinearConfig$1 = {
+const resizeBilinearConfig$2 = {
     kernelName: ResizeBilinear,
     backendName: 'webgpu',
-    kernelFunc: resizeBilinear$1
+    kernelFunc: resizeBilinear$2
 };
 
 /**
@@ -56389,7 +56395,7 @@ let ResizeBilinearBackpropProgram$1 = class ResizeBilinearBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeBilinearGrad$1(args) {
+function resizeBilinearGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { images, dy } = inputs;
     const { alignCorners } = attrs;
@@ -56423,10 +56429,10 @@ function resizeBilinearGrad$1(args) {
     ];
     return backend.runWebGPUProgram(program, [dy], dy.dtype, uniformData);
 }
-const resizeBilinearGradConfig$1 = {
+const resizeBilinearGradConfig$2 = {
     kernelName: ResizeBilinearGrad,
     backendName: 'webgpu',
-    kernelFunc: resizeBilinearGrad$1
+    kernelFunc: resizeBilinearGrad$2
 };
 
 /**
@@ -56519,7 +56525,7 @@ let ResizeNearestNeighborProgram$1 = class ResizeNearestNeighborProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeNearestNeighbor$1(args) {
+function resizeNearestNeighbor$2(args) {
     const { inputs, backend, attrs } = args;
     const { images } = inputs;
     const { alignCorners, halfPixelCenters, size } = attrs;
@@ -56535,10 +56541,10 @@ function resizeNearestNeighbor$1(args) {
     const program = new ResizeNearestNeighborProgram$1(images.shape, newHeight, newWidth, halfPixelCenters);
     return backend.runWebGPUProgram(program, [images], images.dtype, uniformData);
 }
-const resizeNearestNeighborConfig$1 = {
+const resizeNearestNeighborConfig$2 = {
     kernelName: ResizeNearestNeighbor,
     backendName: 'webgpu',
-    kernelFunc: resizeNearestNeighbor$1
+    kernelFunc: resizeNearestNeighbor$2
 };
 
 /**
@@ -56653,7 +56659,7 @@ let ResizeNearestNeigborBackpropProgram$1 = class ResizeNearestNeigborBackpropPr
  * limitations under the License.
  * =============================================================================
  */
-function resizeNearestNeighborGrad$1(args) {
+function resizeNearestNeighborGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { images, dy } = inputs;
     const { alignCorners } = attrs;
@@ -56685,10 +56691,10 @@ function resizeNearestNeighborGrad$1(args) {
     ];
     return backend.runWebGPUProgram(program, [dy], dy.dtype, uniformData);
 }
-const resizeNearestNeighborGradConfig$1 = {
+const resizeNearestNeighborGradConfig$2 = {
     kernelName: ResizeNearestNeighborGrad,
     backendName: 'webgpu',
-    kernelFunc: resizeNearestNeighborGrad$1
+    kernelFunc: resizeNearestNeighborGrad$2
 };
 
 /**
@@ -56771,13 +56777,13 @@ let ReverseProgram$1 = class ReverseProgram {
  * limitations under the License.
  * =============================================================================
  */
-function reverse$1(args) {
+function reverse$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { dims } = attrs;
     const xRank = x.shape.length;
     if (xRank === 0) {
-        return identity$1({ inputs: { x }, backend });
+        return identity$2({ inputs: { x }, backend });
     }
     const xShape = x.shape;
     const xShape4D = [1, 1, 1, 1];
@@ -56792,18 +56798,18 @@ function reverse$1(args) {
         dims4D[index] = 1;
     });
     const uniformData = [{ type: 'int32', data: dims4D }];
-    const xReshaped = reshape$1({ inputs: { x }, backend, attrs: { shape: xShape4D } });
+    const xReshaped = reshape$2({ inputs: { x }, backend, attrs: { shape: xShape4D } });
     const program = new ReverseProgram$1(xShape4D);
     const values = backend.runWebGPUProgram(program, [xReshaped], xReshaped.dtype, uniformData);
     backend.disposeData(xReshaped.dataId);
-    const result = reshape$1({ inputs: { x: values }, backend, attrs: { shape: xShape } });
+    const result = reshape$2({ inputs: { x: values }, backend, attrs: { shape: xShape } });
     backend.disposeData(values.dataId);
     return result;
 }
-const reverseConfig$1 = {
+const reverseConfig$2 = {
     kernelName: Reverse,
     backendName: 'webgpu',
-    kernelFunc: reverse$1
+    kernelFunc: reverse$2
 };
 
 /**
@@ -56888,7 +56894,7 @@ let RotateProgram$1 = class RotateProgram {
  * limitations under the License.
  * =============================================================================
  */
-const rotateWithOffsetConfig$1 = {
+const rotateWithOffsetConfig$2 = {
     kernelName: RotateWithOffset,
     backendName: 'webgpu',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -56931,7 +56937,7 @@ const rotateWithOffsetConfig$1 = {
  * =============================================================================
  */
 const round$1 = unaryKernelFunc$1({ opType: UnaryOpType.ROUND });
-const roundConfig$1 = {
+const roundConfig$2 = {
     kernelName: Round,
     backendName: 'webgpu',
     kernelFunc: round$1
@@ -56954,7 +56960,7 @@ const roundConfig$1 = {
  * =============================================================================
  */
 const rsqrt$1 = unaryKernelFunc$1({ opType: UnaryOpType.RSQRT, cpuKernelImpl: rsqrtImplCPU$1 });
-const rsqrtConfig$1 = {
+const rsqrtConfig$2 = {
     kernelName: Rsqrt,
     backendName: 'webgpu',
     kernelFunc: rsqrt$1
@@ -57073,7 +57079,7 @@ let ScatterProgram$1 = class ScatterProgram {
  * limitations under the License.
  * =============================================================================
  */
-function scatterNd$1(args) {
+function scatterNd$2(args) {
     const { inputs, backend, attrs } = args;
     const { indices, updates } = inputs;
     const { shape } = attrs;
@@ -57082,10 +57088,10 @@ function scatterNd$1(args) {
     if (outputSize === 0) {
         return backend.makeTensorInfo(shape, indices.dtype);
     }
-    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
-    const flattenX = reshape$1({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
+    const flattenIndices = reshape$2({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
+    const flattenX = reshape$2({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
     const type = flattenX.dtype;
-    const output = fill$1({ backend, attrs: { shape: flattenShape, value: 0, dtype: type } });
+    const output = fill$2({ backend, attrs: { shape: flattenShape, value: 0, dtype: type } });
     const size = sizeFromShape(flattenX.shape);
     const uniformData = [
         { type: 'int32', data: [sliceRank] }, { type: 'int32', data: strides },
@@ -57093,16 +57099,16 @@ function scatterNd$1(args) {
     ];
     const program = new ScatterProgram$1(flattenX.shape, sliceRank, flattenIndices.shape.length, flattenX.shape.length, strides, flattenShape, type);
     const res = backend.runWebGPUProgram(program, [flattenX, flattenIndices], type, uniformData, output);
-    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape } });
+    const reshaped = reshape$2({ inputs: { x: res }, backend, attrs: { shape } });
     backend.disposeData(flattenIndices.dataId);
     backend.disposeData(flattenX.dataId);
     backend.disposeData(res.dataId);
     return reshaped;
 }
-const scatterNdConfig$1 = {
+const scatterNdConfig$2 = {
     kernelName: ScatterNd,
     backendName: 'webgpu',
-    kernelFunc: scatterNd$1
+    kernelFunc: scatterNd$2
 };
 
 /**
@@ -57179,7 +57185,7 @@ let SearchSortedProgram$1 = class SearchSortedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function searchSorted$1(args) {
+function searchSorted$2(args) {
     const { inputs, backend, attrs } = args;
     const { sortedSequence, values } = inputs;
     const { side } = attrs;
@@ -57187,10 +57193,10 @@ function searchSorted$1(args) {
     const uniformData = [{ type: 'int32', data: [sortedSequence.shape[1]] }];
     return backend.runWebGPUProgram(program, [sortedSequence, values], 'int32', uniformData);
 }
-const searchSortedConfig$1 = {
+const searchSortedConfig$2 = {
     kernelName: SearchSorted,
     backendName: 'webgpu',
-    kernelFunc: searchSorted$1,
+    kernelFunc: searchSorted$2,
 };
 
 /**
@@ -57278,16 +57284,16 @@ let SelectProgram$1 = class SelectProgram {
  * limitations under the License.
  * =============================================================================
  */
-function select$1(args) {
+function select$2(args) {
     const { inputs, backend } = args;
     const { condition, t, e } = inputs;
     const program = new SelectProgram$1(condition.shape.length, t.shape, t.shape.length);
     return backend.runWebGPUProgram(program, [condition, t, e], upcastType(t.dtype, e.dtype));
 }
-const selectConfig$1 = {
+const selectConfig$2 = {
     kernelName: Select,
     backendName: 'webgpu',
-    kernelFunc: select$1
+    kernelFunc: select$2
 };
 
 /**
@@ -57307,7 +57313,7 @@ const selectConfig$1 = {
  * =============================================================================
  */
 const selu$1 = unaryKernelFunc$1({ opType: UnaryOpType.SELU });
-const seluConfig$1 = {
+const seluConfig$2 = {
     kernelName: Selu,
     backendName: 'webgpu',
     kernelFunc: selu$1
@@ -57329,11 +57335,11 @@ const seluConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-const sigmoid$1 = unaryKernelFunc$1({ opType: UnaryOpType.SIGMOID });
-const sigmoidConfig$1 = {
+const sigmoid$2 = unaryKernelFunc$1({ opType: UnaryOpType.SIGMOID });
+const sigmoidConfig$2 = {
     kernelName: Sigmoid,
     backendName: 'webgpu',
-    kernelFunc: sigmoid$1,
+    kernelFunc: sigmoid$2,
 };
 
 /**
@@ -57353,7 +57359,7 @@ const sigmoidConfig$1 = {
  * =============================================================================
  */
 const sign$1 = unaryKernelFunc$1({ opType: UnaryOpType.SIGN });
-const signConfig$1 = {
+const signConfig$2 = {
     kernelName: Sign,
     backendName: 'webgpu',
     kernelFunc: sign$1
@@ -57376,7 +57382,7 @@ const signConfig$1 = {
  * =============================================================================
  */
 const sin$1 = unaryKernelFunc$1({ opType: UnaryOpType.SIN });
-const sinConfig$1 = {
+const sinConfig$2 = {
     kernelName: Sin,
     backendName: 'webgpu',
     kernelFunc: sin$1
@@ -57399,7 +57405,7 @@ const sinConfig$1 = {
  * =============================================================================
  */
 const sinh$1 = unaryKernelFunc$1({ opType: UnaryOpType.SINH });
-const sinhConfig$1 = {
+const sinhConfig$2 = {
     kernelName: Sinh,
     backendName: 'webgpu',
     kernelFunc: sinh$1
@@ -57422,7 +57428,7 @@ const sinhConfig$1 = {
  * =============================================================================
  */
 const softplus$1 = unaryKernelFunc$1({ opType: UnaryOpType.SOFTPLUS });
-const softplusConfig$1 = {
+const softplusConfig$2 = {
     kernelName: Softplus,
     backendName: 'webgpu',
     kernelFunc: softplus$1
@@ -57501,7 +57507,7 @@ class SpaceToBatchNDProgram {
  * limitations under the License.
  * =============================================================================
  */
-const spaceToBatchND$1 = (args) => {
+const spaceToBatchND$2 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockShape, paddings } = attrs;
@@ -57525,14 +57531,14 @@ const spaceToBatchND$1 = (args) => {
     ];
     completePaddings.map(p => uniformData.push({ type: 'int32', data: [p[0], p[1]] }));
     const paddedXT = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
-    const result = reshape$1({ inputs: { x: paddedXT }, backend, attrs: { shape: flattenShape } });
+    const result = reshape$2({ inputs: { x: paddedXT }, backend, attrs: { shape: flattenShape } });
     backend.disposeData(paddedXT.dataId);
     return result;
 };
-const spaceToBatchNDConfig$1 = {
+const spaceToBatchNDConfig$2 = {
     kernelName: SpaceToBatchND,
     backendName: 'webgpu',
-    kernelFunc: spaceToBatchND$1
+    kernelFunc: spaceToBatchND$2
 };
 
 /**
@@ -57668,7 +57674,7 @@ function sparseSegmentReduce(input, indices, segmentIds, isSum = false, backend)
     const outputShape = input.shape.slice();
     outputShape[0] = outputRows;
     const sparseSize = numIndices * segmentSize;
-    const sparseSegmentSum = fill$1({ backend, attrs: { shape: outputShape, value: 0, dtype } });
+    const sparseSegmentSum = fill$2({ backend, attrs: { shape: outputShape, value: 0, dtype } });
     program = new SparseSegmentSumProgram(outputShape, sparseSize, dtype);
     let uniformData = [
         { type: 'int32', data: [segmentSize] }, { type: 'int32', data: [sparseSize] }
@@ -57677,10 +57683,10 @@ function sparseSegmentReduce(input, indices, segmentIds, isSum = false, backend)
     if (isSum) {
         return $sparseSegmentSum;
     }
-    const sparseSegmentIdCount = fill$1({ backend, attrs: { shape: [outputRows], value: 0, dtype: 'int32' } });
+    const sparseSegmentIdCount = fill$2({ backend, attrs: { shape: [outputRows], value: 0, dtype: 'int32' } });
     program = new SparseSegmentIdCountProgram(outputRows, segmentIds.shape);
     const $sparseSegmentIdCount = backend.runWebGPUProgram(program, [segmentIds], 'int32', null, sparseSegmentIdCount);
-    const sparseSegmentMean = fill$1({ backend, attrs: { shape: outputShape, value: 0, dtype } });
+    const sparseSegmentMean = fill$2({ backend, attrs: { shape: outputShape, value: 0, dtype } });
     program = new SparseSegmentMeanProgram(outputShape, dtype);
     uniformData = [{ type: 'int32', data: [segmentSize] }];
     const $sparseSegmentMean = backend.runWebGPUProgram(program, [$sparseSegmentSum, $sparseSegmentIdCount], dtype, uniformData, sparseSegmentMean);
@@ -57705,15 +57711,15 @@ function sparseSegmentReduce(input, indices, segmentIds, isSum = false, backend)
  * limitations under the License.
  * =============================================================================
  */
-function sparseSegmentMean$1(args) {
+function sparseSegmentMean$2(args) {
     const { inputs, backend } = args;
     const { data, indices, segmentIds } = inputs;
     return sparseSegmentReduce(data, indices, segmentIds, false, backend);
 }
-const sparseSegmentMeanConfig$1 = {
+const sparseSegmentMeanConfig$2 = {
     kernelName: SparseSegmentMean,
     backendName: 'webgpu',
-    kernelFunc: sparseSegmentMean$1,
+    kernelFunc: sparseSegmentMean$2,
 };
 
 /**
@@ -57732,15 +57738,15 @@ const sparseSegmentMeanConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseSegmentSum$1(args) {
+function sparseSegmentSum$2(args) {
     const { inputs, backend } = args;
     const { data, indices, segmentIds } = inputs;
     return sparseSegmentReduce(data, indices, segmentIds, true, backend);
 }
-const sparseSegmentSumConfig$1 = {
+const sparseSegmentSumConfig$2 = {
     kernelName: SparseSegmentSum,
     backendName: 'webgpu',
-    kernelFunc: sparseSegmentSum$1,
+    kernelFunc: sparseSegmentSum$2,
 };
 
 /**
@@ -57818,7 +57824,7 @@ function getSourceCoords$3(rank, uniformPrefix = '') {
  * limitations under the License.
  * =============================================================================
  */
-function tile$1(params) {
+function tile$2(params) {
     const { inputs, backend, attrs } = params;
     const { x } = inputs;
     const { reps } = attrs;
@@ -57839,10 +57845,10 @@ function tile$1(params) {
     const output = backend.runWebGPUProgram(program, [x], x.dtype);
     return output;
 }
-const tileConfig$1 = {
+const tileConfig$2 = {
     kernelName: Tile,
     backendName: 'webgpu',
-    kernelFunc: tile$1,
+    kernelFunc: tile$2,
 };
 
 /**
@@ -57861,7 +57867,7 @@ const tileConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseToDense$1(args) {
+function sparseToDense$2(args) {
     const { inputs, backend, attrs } = args;
     const { sparseIndices, sparseValues, defaultValue } = inputs;
     const { outputShape } = attrs;
@@ -57875,27 +57881,27 @@ function sparseToDense$1(args) {
         return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
     }
     const flattenShape = [outputSize / sliceSize, sliceSize];
-    const $sparseIndices = reshape$1({
+    const $sparseIndices = reshape$2({
         inputs: { x: sparseIndices },
         backend,
         attrs: { shape: [numUpdates, sliceRank] }
     });
     const $sparseValues = sparseValues.shape.length ?
-        reshape$1({
+        reshape$2({
             inputs: { x: sparseValues },
             backend,
             attrs: { shape: [numUpdates, sliceSize] }
         }) :
-        identity$1({ inputs: { x: sparseValues }, backend });
+        identity$2({ inputs: { x: sparseValues }, backend });
     const type = $sparseValues.dtype;
     const zero = backend.makeTensorInfo([], type, makeZerosTypedArray(1, type));
     // Fill output tensor with the default value.
-    const $defaultValue = reshape$1({
+    const $defaultValue = reshape$2({
         inputs: { x: defaultValue },
         backend,
         attrs: { shape: Array(flattenShape.length).fill(1) }
     });
-    const $denseValues = tile$1({ inputs: { x: $defaultValue }, backend, attrs: { reps: flattenShape } });
+    const $denseValues = tile$2({ inputs: { x: $defaultValue }, backend, attrs: { reps: flattenShape } });
     const size = sizeFromShape([numUpdates, sliceSize]);
     const uniformData = [
         { type: 'int32', data: [sliceRank] },
@@ -57923,7 +57929,7 @@ function sparseToDense$1(args) {
                 backend.runWebGPUProgram(program, [$sparseValues, $sparseIndices], type, uniformData, $denseValues);
             }
     }
-    const denseValues = reshape$1({ inputs: { x: $denseValues }, backend, attrs: { shape: outputShape } });
+    const denseValues = reshape$2({ inputs: { x: $denseValues }, backend, attrs: { shape: outputShape } });
     backend.disposeData($sparseIndices.dataId);
     backend.disposeData($sparseValues.dataId);
     backend.disposeData($defaultValue.dataId);
@@ -57931,10 +57937,10 @@ function sparseToDense$1(args) {
     backend.disposeData($denseValues.dataId);
     return denseValues;
 }
-const sparseToDenseConfig$1 = {
+const sparseToDenseConfig$2 = {
     kernelName: SparseToDense,
     backendName: 'webgpu',
-    kernelFunc: sparseToDense$1
+    kernelFunc: sparseToDense$2
 };
 
 /**
@@ -57953,7 +57959,7 @@ const sparseToDenseConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function splitV$1(args) {
+function splitV$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { numOrSizeSplits, axis } = attrs;
@@ -57965,15 +57971,15 @@ function splitV$1(args) {
     return splitSizes.map(s => {
         const sliceSize = [...size];
         sliceSize[$axis] = s;
-        const sliceT = slice$1({ inputs: { x }, backend, attrs: { begin, size: sliceSize } });
+        const sliceT = slice$2({ inputs: { x }, backend, attrs: { begin, size: sliceSize } });
         begin[$axis] += s;
         return sliceT;
     });
 }
-const splitVConfig$1 = {
+const splitVConfig$2 = {
     kernelName: SplitV,
     backendName: 'webgpu',
-    kernelFunc: splitV$1
+    kernelFunc: splitV$2
 };
 
 /**
@@ -57993,7 +57999,7 @@ const splitVConfig$1 = {
  * =============================================================================
  */
 const sqrt$1 = unaryKernelFunc$1({ opType: UnaryOpType.SQRT });
-const sqrtConfig$1 = {
+const sqrtConfig$2 = {
     kernelName: Sqrt,
     backendName: 'webgpu',
     kernelFunc: sqrt$1
@@ -58015,7 +58021,7 @@ const sqrtConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-const squareConfig$1 = {
+const squareConfig$2 = {
     kernelName: Square,
     backendName: 'webgpu',
     kernelFunc: ({ inputs, backend }) => {
@@ -58045,7 +58051,7 @@ const squareConfig$1 = {
 const squaredDifference$1 = binaryKernelFunc$1({
     opType: BinaryOpType.SQUARED_DIFFERENCE,
 });
-const squaredDifferenceConfig$1 = {
+const squaredDifferenceConfig$2 = {
     kernelName: SquaredDifference,
     backendName: 'webgpu',
     kernelFunc: squaredDifference$1
@@ -58067,16 +58073,16 @@ const squaredDifferenceConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function step$1({ inputs, attrs, backend }) {
+function step$2({ inputs, attrs, backend }) {
     const { x } = inputs;
     const program = new UnaryOpProgram$1(x.shape, UnaryOpType.STEP, 'stepAlpha : f32,');
     const uniformData = [{ type: 'float32', data: [attrs.alpha] }];
     return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
-const stepConfig$1 = {
+const stepConfig$2 = {
     kernelName: Step,
     backendName: 'webgpu',
-    kernelFunc: step$1
+    kernelFunc: step$2
 };
 
 /**
@@ -58155,7 +58161,7 @@ let StridedSliceProgram$1 = class StridedSliceProgram {
  * limitations under the License.
  * =============================================================================
  */
-function stridedSlice$1(args) {
+function stridedSlice$2(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask } = attrs;
@@ -58163,16 +58169,16 @@ function stridedSlice$1(args) {
     let result;
     if (isIdentity) {
         // Optimization #1, slice is a no-op plus reshape
-        result = reshape$1({ inputs: { x }, backend, attrs: { shape: finalShape } });
+        result = reshape$2({ inputs: { x }, backend, attrs: { shape: finalShape } });
     }
     else if (sliceDim0 || isSimpleSlice) {
         // Optimization #2, slice is memory contiguous (only occurs in dim 0)
         assert(x.shape.length >= 1, () => `Input must have rank at least 1, got: ${x.shape.length}`);
-        const size = computeOutShape$2($begin, $end, $strides);
+        const size = computeOutShape$3($begin, $end, $strides);
         // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
-        const sliced = slice$1({ inputs: { x }, backend, attrs: { begin: $begin, size } });
+        const sliced = slice$2({ inputs: { x }, backend, attrs: { begin: $begin, size } });
         result =
-            reshape$1({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
+            reshape$2({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
         backend.disposeData(sliced.dataId);
     }
     else {
@@ -58187,16 +58193,16 @@ function stridedSlice$1(args) {
             const program = new StridedSliceProgram$1(finalShapeSparse);
             const uniformData = [{ type: 'int32', data: $begin }, { type: 'int32', data: $strides }];
             const resultValues = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
-            result = reshape$1({ inputs: { x: resultValues }, backend, attrs: { shape: finalShape } });
+            result = reshape$2({ inputs: { x: resultValues }, backend, attrs: { shape: finalShape } });
             backend.disposeData(resultValues.dataId);
         }
     }
     return result;
 }
-const stridedSliceConfig$1 = {
+const stridedSliceConfig$2 = {
     kernelName: StridedSlice,
     backendName: 'webgpu',
-    kernelFunc: stridedSlice$1
+    kernelFunc: stridedSlice$2
 };
 
 /**
@@ -58215,7 +58221,7 @@ const stridedSliceConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function stringNGrams$1(args) {
+function stringNGrams$2(args) {
     const { inputs, backend, attrs } = args;
     const { separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences } = attrs;
     const { data, dataSplits } = inputs;
@@ -58227,10 +58233,10 @@ function stringNGrams$1(args) {
         backend.makeTensorInfo(dataSplits.shape, 'int32', nGramsSplits),
     ];
 }
-const stringNGramsConfig$1 = {
+const stringNGramsConfig$2 = {
     kernelName: StringNGrams,
     backendName: 'webgpu',
-    kernelFunc: stringNGrams$1,
+    kernelFunc: stringNGrams$2,
 };
 
 /**
@@ -58250,7 +58256,7 @@ const stringNGramsConfig$1 = {
  * =============================================================================
  */
 const sub$1 = binaryKernelFunc$1({ opType: BinaryOpType.SUB, cpuKernelImpl: subImplCPU$1, supportsComplex: true });
-const subConfig$1 = {
+const subConfig$2 = {
     kernelName: Sub,
     backendName: 'webgpu',
     kernelFunc: sub$1
@@ -58273,7 +58279,7 @@ const subConfig$1 = {
  * =============================================================================
  */
 const tan$1 = unaryKernelFunc$1({ opType: UnaryOpType.TAN });
-const tanConfig$1 = {
+const tanConfig$2 = {
     kernelName: Tan,
     backendName: 'webgpu',
     kernelFunc: tan$1
@@ -58296,7 +58302,7 @@ const tanConfig$1 = {
  * =============================================================================
  */
 const tanh$1 = unaryKernelFunc$1({ opType: UnaryOpType.TANH });
-const tanhConfig$1 = {
+const tanhConfig$2 = {
     kernelName: Tanh,
     backendName: 'webgpu',
     kernelFunc: tanh$1
@@ -58318,7 +58324,7 @@ const tanhConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function tensorScatterUpdate$1(args) {
+function tensorScatterUpdate$2(args) {
     const { inputs, backend, attrs } = args;
     const { tensor, indices, updates } = inputs;
     const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, tensor.shape);
@@ -58327,13 +58333,13 @@ function tensorScatterUpdate$1(args) {
         return backend.makeTensorInfo(tensor.shape, indices.dtype);
     }
     const toDispose = [];
-    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
+    const flattenIndices = reshape$2({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
     toDispose.push(flattenIndices);
-    const flattenX = reshape$1({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
+    const flattenX = reshape$2({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
     toDispose.push(flattenX);
-    const flattenTensor = reshape$1({ inputs: { x: tensor }, backend, attrs: { shape: flattenShape } });
+    const flattenTensor = reshape$2({ inputs: { x: tensor }, backend, attrs: { shape: flattenShape } });
     toDispose.push(flattenTensor);
-    const output = tile$1({
+    const output = tile$2({
         inputs: { x: flattenTensor },
         backend,
         attrs: { reps: Array(flattenShape.length).fill(1) }
@@ -58347,14 +58353,14 @@ function tensorScatterUpdate$1(args) {
     ];
     const res = backend.runWebGPUProgram(program, [flattenX, flattenIndices], flattenTensor.dtype, uniformData, output);
     toDispose.push(res);
-    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: tensor.shape } });
+    const reshaped = reshape$2({ inputs: { x: res }, backend, attrs: { shape: tensor.shape } });
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return reshaped;
 }
-const tensorScatterUpdateConfig$1 = {
+const tensorScatterUpdateConfig$2 = {
     kernelName: TensorScatterUpdate,
     backendName: 'webgpu',
-    kernelFunc: tensorScatterUpdate$1
+    kernelFunc: tensorScatterUpdate$2
 };
 
 /**
@@ -58599,13 +58605,13 @@ function topK$1(args) {
     }
     if (lastDim === 1 /* firstPass */) {
         return [
-            x, fill$1({ attrs: { shape: xShape, dtype: 'int32', value: 0 }, backend })
+            x, fill$2({ attrs: { shape: xShape, dtype: 'int32', value: 0 }, backend })
         ];
     }
     // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
     const xSize = sizeFromShape(xShape);
     const batch = xSize / lastDim;
-    const x2D = reshape$1({ inputs: { x }, attrs: { shape: [batch, lastDim] }, backend });
+    const x2D = reshape$2({ inputs: { x }, attrs: { shape: [batch, lastDim] }, backend });
     const kPow2 = roundUpToPow2$1(k);
     const lastDimPow2 = roundUpToPow2$1(lastDim);
     // Only the indices containing the top K are kept at every step to reduce
@@ -58661,24 +58667,24 @@ function topK$1(args) {
     }
     // Keep only the requested top K results instead of kPow2
     let prevIndices = indices;
-    indices = slice$1({ inputs: { x: indices }, backend, attrs: { begin: 0, size: [batch, k] } });
+    indices = slice$2({ inputs: { x: indices }, backend, attrs: { begin: 0, size: [batch, k] } });
     disposeIntermediateTensorInfoOrNull$1(backend, prevIndices);
     // Gather values on last dimension
-    let values = gatherV2$1({ inputs: { x: x2D, indices }, backend, attrs: { axis: 1, batchDims: 1 } });
+    let values = gatherV2$2({ inputs: { x: x2D, indices }, backend, attrs: { axis: 1, batchDims: 1 } });
     disposeIntermediateTensorInfoOrNull$1(backend, x2D);
     // Reshape back to the original input shape, except that the last
     // dimension is k.
     const newShape = xShape.slice(0, -1);
     newShape.push(k);
     prevIndices = indices;
-    indices = reshape$1({ inputs: { x: indices }, attrs: { shape: newShape }, backend });
+    indices = reshape$2({ inputs: { x: indices }, attrs: { shape: newShape }, backend });
     disposeIntermediateTensorInfoOrNull$1(backend, prevIndices);
     const prevValues = values;
-    values = reshape$1({ inputs: { x: values }, attrs: { shape: newShape }, backend });
+    values = reshape$2({ inputs: { x: values }, attrs: { shape: newShape }, backend });
     disposeIntermediateTensorInfoOrNull$1(backend, prevValues);
     return [values, indices];
 }
-const topKConfig$1 = {
+const topKConfig$2 = {
     kernelName: TopK,
     backendName: 'webgpu',
     kernelFunc: topK$1
@@ -58849,7 +58855,7 @@ let TransformProgram$1 = class TransformProgram {
  * limitations under the License.
  * =============================================================================
  */
-function transform$1(args) {
+function transform$2(args) {
     const { inputs, backend, attrs } = args;
     const { image, transforms } = inputs;
     const { interpolation, fillMode, fillValue, outputShape } = attrs;
@@ -58883,10 +58889,10 @@ function transform$1(args) {
     ];
     return backend.runWebGPUProgram(program, [image, transforms], 'float32', uniformData);
 }
-const transformConfig$1 = {
+const transformConfig$2 = {
     kernelName: Transform,
     backendName: 'webgpu',
-    kernelFunc: transform$1
+    kernelFunc: transform$2
 };
 
 /**
@@ -58905,7 +58911,7 @@ const transformConfig$1 = {
  * limitations under the License.
  * =============================================================================
  */
-function unpack$1(args) {
+function unpack$2(args) {
     const { inputs, backend, attrs } = args;
     const { value } = inputs;
     let { axis } = attrs;
@@ -58929,18 +58935,18 @@ function unpack$1(args) {
     const res = new Array(num);
     for (let i = 0; i < res.length; i++) {
         begin[axis] = i;
-        const sliced = slice$1({ inputs: { x }, backend, attrs: { begin, size } });
-        const reshaped = reshape$1({ inputs: { x: sliced }, backend, attrs: { shape: outShape } });
+        const sliced = slice$2({ inputs: { x }, backend, attrs: { begin, size } });
+        const reshaped = reshape$2({ inputs: { x: sliced }, backend, attrs: { shape: outShape } });
         res[i] = reshaped;
         toDispose.push(sliced);
     }
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return res;
 }
-const unpackConfig$1 = {
+const unpackConfig$2 = {
     kernelName: Unpack,
     backendName: 'webgpu',
-    kernelFunc: unpack$1
+    kernelFunc: unpack$2
 };
 
 /**
@@ -59025,30 +59031,30 @@ function unsortedSegmentSum$1(args) {
     const permutation = getAxesPermutation([axis], xRank);
     let permutedX = x;
     if (permutation != null) {
-        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
+        permutedX = transpose$2({ inputs: { x }, backend, attrs: { perm: permutation } });
         toDispose.push(permutedX);
         axis = getInnerMostAxes(1, xRank)[0];
     }
-    const outShape = computeOutShape(permutedX.shape, axis, numSegments);
+    const outShape = computeOutShape$1(permutedX.shape, axis, numSegments);
     const inSize = sizeFromShape([permutedX.shape[axis]]);
-    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$2({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     toDispose.push(a2D);
     const dtype = x.dtype;
     const shape = [a2D.shape[0], numSegments];
-    const output = fill$1({ backend, attrs: { shape, value: 0, dtype } });
+    const output = fill$2({ backend, attrs: { shape, value: 0, dtype } });
     const program = new UnsortedSegmentSumProgram(a2D.shape, shape, dtype);
     const uniformData = [
         { type: 'int32', data: [numSegments] },
         { type: 'int32', data: [sizeFromShape(a2D.shape)] }
     ];
     const segResult = backend.runWebGPUProgram(program, [a2D, segmentIds], dtype, uniformData, output);
-    const reshaped = reshape$1({ inputs: { x: segResult }, backend, attrs: { shape: outShape } });
+    const reshaped = reshape$2({ inputs: { x: segResult }, backend, attrs: { shape: outShape } });
     toDispose.push(segResult);
     let result = reshaped;
     if (permutation != null) {
         toDispose.push(reshaped);
         const perm = getUndoAxesPermutation(permutation);
-        result = transpose$1({ inputs: { x: result }, backend, attrs: { perm } });
+        result = transpose$2({ inputs: { x: result }, backend, attrs: { perm } });
     }
     toDispose.forEach(t => backend.disposeData(t.dataId));
     return result;
@@ -59076,171 +59082,171 @@ const unsortedSegmentSumConfig$1 = {
  * =============================================================================
  */
 // List all kernel configs here
-const kernelConfigs$1 = [
-    _fusedMatMulConfig$1,
-    absConfig$1,
-    acosConfig$1,
-    acoshConfig$1,
-    addConfig$1,
-    addNConfig$1,
-    allConfig$1,
-    anyConfig$1,
-    argMaxConfig$1,
-    argMinConfig$1,
-    asinConfig$1,
-    asinhConfig$1,
-    atanConfig$1,
-    atan2Config$1,
-    atanhConfig$1,
-    avgPoolConfig$1,
-    avgPool3DConfig$1,
-    avgPool3DGradConfig$1,
-    avgPoolGradConfig$1,
-    batchMatMulConfig$1,
-    batchToSpaceNDConfig$1,
-    bincountConfig$1,
-    broadcastArgsConfig$1,
-    castConfig$1,
-    ceilConfig$1,
-    clipByValueConfig$1,
+const kernelConfigs$2 = [
+    _fusedMatMulConfig$2,
+    absConfig$2,
+    acosConfig$2,
+    acoshConfig$2,
+    addConfig$2,
+    addNConfig$2,
+    allConfig$2,
+    anyConfig$2,
+    argMaxConfig$2,
+    argMinConfig$2,
+    asinConfig$2,
+    asinhConfig$2,
+    atanConfig$2,
+    atan2Config$2,
+    atanhConfig$2,
+    avgPoolConfig$2,
+    avgPool3DConfig$2,
+    avgPool3DGradConfig$2,
+    avgPoolGradConfig$2,
+    batchMatMulConfig$2,
+    batchToSpaceNDConfig$2,
+    bincountConfig$2,
+    broadcastArgsConfig$2,
+    castConfig$2,
+    ceilConfig$2,
+    clipByValueConfig$2,
     complexConfig$1,
     complexAbsConfig$1,
-    concatConfig$1,
-    conv2DConfig$1,
+    concatConfig$2,
+    conv2DConfig$2,
     conv2DBackpropFilterConfig$1,
-    conv2DBackpropInputConfig$1,
-    conv3DConfig$1,
-    conv3DBackpropFilterV2Config$1,
-    conv3DBackpropInputV2Config,
-    cosConfig$1,
-    coshConfig$1,
-    cropAndResizeConfig$1,
-    cumprodConfig$1,
-    cumsumConfig$1,
-    denseBincountConfig$1,
-    depthToSpaceConfig$1,
+    conv2DBackpropInputConfig$2,
+    conv3DConfig$2,
+    conv3DBackpropFilterV2Config$2,
+    conv3DBackpropInputV2Config$1,
+    cosConfig$2,
+    coshConfig$2,
+    cropAndResizeConfig$2,
+    cumprodConfig$2,
+    cumsumConfig$2,
+    denseBincountConfig$2,
+    depthToSpaceConfig$2,
     depthwiseConv2dNativeBackpropFilterConfig$1,
     depthwiseConv2dNativeBackpropInputConfig$1,
-    depthwiseConv2dNativeConfig$1,
-    diagConfig$1,
-    dilation2DConfig$1,
-    dilation2DBackpropFilterConfig,
-    dilation2DBackpropInputConfig,
+    depthwiseConv2dNativeConfig$2,
+    diagConfig$2,
+    dilation2DConfig$2,
+    dilation2DBackpropFilterConfig$1,
+    dilation2DBackpropInputConfig$1,
     drawConfig,
     einsumConfig$1,
-    eluConfig$1,
-    eluGradConfig$1,
-    equalConfig$1,
-    erfConfig$1,
-    expConfig$1,
-    expandDimsConfig$1,
-    expm1Config$1,
+    eluConfig$2,
+    eluGradConfig$2,
+    equalConfig$2,
+    erfConfig$2,
+    expConfig$2,
+    expandDimsConfig$2,
+    expm1Config$2,
     fftConfig$1,
-    fillConfig$1,
-    flipLeftRightConfig$1,
+    fillConfig$2,
+    flipLeftRightConfig$2,
     fromPixelsConfig$1,
-    floorConfig$1,
-    floorDivConfig$1,
-    fusedBatchNormConfig,
-    fusedConv2DConfig$1,
-    fusedDepthwiseConv2DConfig$1,
-    gatherNdConfig$1,
-    gatherV2Config$1,
-    greaterConfig$1,
-    greaterEqualConfig$1,
-    identityConfig$1,
+    floorConfig$2,
+    floorDivConfig$2,
+    fusedBatchNormConfig$1,
+    fusedConv2DConfig$2,
+    fusedDepthwiseConv2DConfig$2,
+    gatherNdConfig$2,
+    gatherV2Config$2,
+    greaterConfig$2,
+    greaterEqualConfig$2,
+    identityConfig$2,
     ifftConfig$1,
     imagConfig$1,
-    isFiniteConfig$1,
-    isInfConfig$1,
-    isNaNConfig$1,
-    leakyReluConfig$1,
-    lessConfig$1,
-    lessEqualConfig$1,
-    linSpaceConfig$1,
-    log1pConfig$1,
-    logConfig$1,
-    logicalAndConfig$1,
-    logicalNotConfig$1,
-    logicalOrConfig$1,
-    lrnConfig,
-    lrnGradConfig,
-    maxConfig$1,
-    maximumConfig$1,
-    maxPoolConfig$1,
-    maxPoolGradConfig$1,
-    maxPool3DConfig$1,
-    maxPool3DGradConfig$1,
-    maxPoolWithArgmaxConfig$1,
-    meanConfig$1,
-    minConfig$1,
-    minimumConfig$1,
-    mirrorPadConfig$1,
-    modConfig$1,
-    multinomialConfig$1,
-    multiplyConfig$1,
-    negConfig$1,
-    nonMaxSuppressionV3Config$1,
-    nonMaxSuppressionV5Config$1,
-    notEqualConfig$1,
-    oneHotConfig$1,
-    onesLikeConfig$1,
-    packConfig$1,
-    padV2Config$1,
-    powConfig$1,
-    preluConfig$1,
-    prodConfig$1,
-    rangeConfig$1,
+    isFiniteConfig$2,
+    isInfConfig$2,
+    isNaNConfig$2,
+    leakyReluConfig$2,
+    lessConfig$2,
+    lessEqualConfig$2,
+    linSpaceConfig$2,
+    log1pConfig$2,
+    logConfig$2,
+    logicalAndConfig$2,
+    logicalNotConfig$2,
+    logicalOrConfig$2,
+    lrnConfig$1,
+    lrnGradConfig$1,
+    maxConfig$2,
+    maximumConfig$2,
+    maxPoolConfig$2,
+    maxPoolGradConfig$2,
+    maxPool3DConfig$2,
+    maxPool3DGradConfig$2,
+    maxPoolWithArgmaxConfig$2,
+    meanConfig$2,
+    minConfig$2,
+    minimumConfig$2,
+    mirrorPadConfig$2,
+    modConfig$2,
+    multinomialConfig$2,
+    multiplyConfig$2,
+    negConfig$2,
+    nonMaxSuppressionV3Config$2,
+    nonMaxSuppressionV5Config$2,
+    notEqualConfig$2,
+    oneHotConfig$2,
+    onesLikeConfig$2,
+    packConfig$2,
+    padV2Config$2,
+    powConfig$2,
+    preluConfig$2,
+    prodConfig$2,
+    rangeConfig$2,
     realConfig$1,
-    realDivConfig$1,
-    reciprocalConfig$1,
-    reluConfig$1,
-    relu6Config$1,
-    reshapeConfig$1,
-    resizeBilinearConfig$1,
-    resizeBilinearGradConfig$1,
-    resizeNearestNeighborConfig$1,
-    resizeNearestNeighborGradConfig$1,
-    reverseConfig$1,
-    rotateWithOffsetConfig$1,
-    roundConfig$1,
-    rsqrtConfig$1,
-    scatterNdConfig$1,
-    searchSortedConfig$1,
-    selectConfig$1,
-    seluConfig$1,
-    sigmoidConfig$1,
-    signConfig$1,
-    sinConfig$1,
-    sinhConfig$1,
-    sliceConfig$1,
-    stepConfig$1,
-    stridedSliceConfig$1,
-    stringNGramsConfig$1,
-    softmaxConfig$1,
-    softplusConfig$1,
-    spaceToBatchNDConfig$1,
-    sparseSegmentMeanConfig$1,
-    sparseSegmentSumConfig$1,
-    sparseToDenseConfig$1,
-    splitVConfig$1,
-    sqrtConfig$1,
-    squareConfig$1,
-    squaredDifferenceConfig$1,
-    subConfig$1,
-    sumConfig$1,
-    tanConfig$1,
-    tanhConfig$1,
-    tensorScatterUpdateConfig$1,
-    tileConfig$1,
-    topKConfig$1,
-    transformConfig$1,
-    transposeConfig$1,
-    unpackConfig$1,
+    realDivConfig$2,
+    reciprocalConfig$2,
+    reluConfig$2,
+    relu6Config$2,
+    reshapeConfig$2,
+    resizeBilinearConfig$2,
+    resizeBilinearGradConfig$2,
+    resizeNearestNeighborConfig$2,
+    resizeNearestNeighborGradConfig$2,
+    reverseConfig$2,
+    rotateWithOffsetConfig$2,
+    roundConfig$2,
+    rsqrtConfig$2,
+    scatterNdConfig$2,
+    searchSortedConfig$2,
+    selectConfig$2,
+    seluConfig$2,
+    sigmoidConfig$2,
+    signConfig$2,
+    sinConfig$2,
+    sinhConfig$2,
+    sliceConfig$2,
+    stepConfig$2,
+    stridedSliceConfig$2,
+    stringNGramsConfig$2,
+    softmaxConfig$2,
+    softplusConfig$2,
+    spaceToBatchNDConfig$2,
+    sparseSegmentMeanConfig$2,
+    sparseSegmentSumConfig$2,
+    sparseToDenseConfig$2,
+    splitVConfig$2,
+    sqrtConfig$2,
+    squareConfig$2,
+    squaredDifferenceConfig$2,
+    subConfig$2,
+    sumConfig$2,
+    tanConfig$2,
+    tanhConfig$2,
+    tensorScatterUpdateConfig$2,
+    tileConfig$2,
+    topKConfig$2,
+    transformConfig$2,
+    transposeConfig$2,
+    unpackConfig$2,
     unsortedSegmentSumConfig$1,
-    zerosLikeConfig$1
+    zerosLikeConfig$2
 ];
-for (const kernelConfig of kernelConfigs$1) {
+for (const kernelConfig of kernelConfigs$2) {
     registerKernel(kernelConfig);
 }
 
@@ -59260,7 +59266,7 @@ for (const kernelConfig of kernelConfigs$1) {
     * limitations under the License.
     * =============================================================================
     */
-var L=function(t,e){return (L=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e;}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);})(t,e)};function V(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Class extends value "+String(e)+" is not a constructor or null");function n(){this.constructor=t;}L(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n);}var B=function(){return (B=Object.assign||function(t){for(var e,n=1,i=arguments.length;n<i;n++)for(var r in e=arguments[n])Object.prototype.hasOwnProperty.call(e,r)&&(t[r]=e[r]);return t}).apply(this,arguments)};function N(t,e,n,i){return new(n||(n=Promise))((function(r,o){function a(t){try{u(i.next(t));}catch(t){o(t);}}function s(t){try{u(i.throw(t));}catch(t){o(t);}}function u(t){var e;t.done?r(t.value):(e=t.value,e instanceof n?e:new n((function(t){t(e);}))).then(a,s);}u((i=i.apply(t,e||[])).next());}))}function D(t,e){var n,i,r,o,a={label:0,sent:function(){if(1&r[0])throw r[1];return r[1]},trys:[],ops:[]};return o={next:s(0),throw:s(1),return:s(2)},"function"==typeof Symbol&&(o[Symbol.iterator]=function(){return this}),o;function s(o){return function(s){return function(o){if(n)throw new TypeError("Generator is already executing.");for(;a;)try{if(n=1,i&&(r=2&o[0]?i.return:o[0]?i.throw||((r=i.return)&&r.call(i),0):i.next)&&!(r=r.call(i,o[1])).done)return r;switch(i=0,r&&(o=[2&o[0],r.value]),o[0]){case 0:case 1:r=o;break;case 4:return a.label++,{value:o[1],done:!1};case 5:a.label++,i=o[1],o=[0];continue;case 7:o=a.ops.pop(),a.trys.pop();continue;default:if(!(r=a.trys,(r=r.length>0&&r[r.length-1])||6!==o[0]&&2!==o[0])){a=0;continue}if(3===o[0]&&(!r||o[1]>r[0]&&o[1]<r[3])){a.label=o[1];break}if(6===o[0]&&a.label<r[1]){a.label=r[1],r=o;break}if(r&&a.label<r[2]){a.label=r[2],a.ops.push(o);break}r[2]&&a.ops.pop(),a.trys.pop();continue}o=e.call(t,a);}catch(t){o=[6,t],i=0;}finally{n=r=0;}if(5&o[0])throw o[1];return {value:o[0]?o[1]:void 0,done:!0}}([o,s])}}}function K(t,e,n){if(n||2===arguments.length)for(var i,r=0,o=e.length;r<o;r++)!i&&r in e||(i||(i=Array.prototype.slice.call(e,0,r)),i[r]=e[r]);return t.concat(i||Array.prototype.slice.call(e))}var U=["nose","left_eye","right_eye","left_ear","right_ear","left_shoulder","right_shoulder","left_elbow","right_elbow","left_wrist","right_wrist","left_hip","right_hip","left_knee","right_knee","left_ankle","right_ankle"],j=["nose","left_eye_inner","left_eye","left_eye_outer","right_eye_inner","right_eye","right_eye_outer","left_ear","right_ear","mouth_left","mouth_right","left_shoulder","right_shoulder","left_elbow","right_elbow","left_wrist","right_wrist","left_pinky","right_pinky","left_index","right_index","left_thumb","right_thumb","left_hip","right_hip","left_knee","right_knee","left_ankle","right_ankle","left_heel","right_heel","left_foot_index","right_foot_index"];function W(t){return t instanceof SVGAnimatedLength?t.baseVal.value:t}function G(t){return N(this,void 0,void 0,(function(){var i,r;return D(this,(function(o){switch(o.label){case 0:return i=document.createElement("canvas"),t instanceof Tensor?[4,toPixels(t,i)]:[3,2];case 1:return o.sent(),[3,3];case 2:i.width=W(t.width),i.height=W(t.height),r=i.getContext("2d"),t instanceof ImageData?r.putImageData(t,0,0):r.drawImage(t,0,0),o.label=3;case 3:return [2,i]}}))}))}function Q(t){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u;return D(this,(function(h){switch(h.label){case 0:return t instanceof Tensor?(i=t.shape.slice(0,2),r=i[0],o=i[1],a=ImageData.bind,[4,toPixels(t)]):[3,2];case 1:return [2,new(a.apply(ImageData,[void 0,h.sent(),o,r]))];case 2:return s=document.createElement("canvas"),u=s.getContext("2d"),s.width=W(t.width),s.height=W(t.height),u.drawImage(t,0,0),[2,u.getImageData(0,0,s.width,s.height)]}}))}))}function Z(t){return N(this,void 0,void 0,(function(){var e,i;return D(this,(function(r){switch(r.label){case 0:return t instanceof SVGImageElement||t instanceof OffscreenCanvas?[4,G(t)]:[3,2];case 1:return i=r.sent(),[3,3];case 2:i=t,r.label=3;case 3:return e=i,[2,fromPixels$2(e,4)]}}))}))}function $(t){if(t<0||t>=256)throw new Error("Mask value must be in range [0, 255] but got ".concat(t));if(!Number.isInteger(t))throw new Error("Mask value must be an integer but got ".concat(t))}var J={runtime:"mediapipe",enableSmoothing:!0,enableSegmentation:!1,smoothSegmentation:!0,modelType:"full"};var tt=function(){function t(t){this.mask=t;}return t.prototype.toCanvasImageSource=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,this.mask]}))}))},t.prototype.toImageData=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,Q(this.mask)]}))}))},t.prototype.toTensor=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,Z(this.mask)]}))}))},t.prototype.getUnderlyingType=function(){return "canvasimagesource"},t}();function et(t){return $(t),"person"}var nt=function(){function i(e){var n,i=this;switch(this.width=0,this.height=0,this.selfieMode=!1,this.poseSolution=new pose.Pose({locateFile:function(t,n){if(e.solutionPath){var i=e.solutionPath.replace(/\/+$/,"");return "".concat(i,"/").concat(t)}return "".concat(n,"/").concat(t)}}),e.modelType){case"lite":n=0;break;case"heavy":n=2;break;case"full":default:n=1;}this.poseSolution.setOptions({modelComplexity:n,smoothLandmarks:e.enableSmoothing,enableSegmentation:e.enableSegmentation,smoothSegmentation:e.smoothSegmentation,selfieMode:this.selfieMode}),this.poseSolution.onResults((function(t){if(i.height=t.image.height,i.width=t.image.width,null==t.poseLandmarks)i.poses=[];else {var e=i.translateOutput(t.poseLandmarks,t.poseWorldLandmarks);t.segmentationMask&&(e.segmentation={maskValueToLabel:et,mask:new tt(t.segmentationMask)}),i.poses=[e];}}));}return i.prototype.translateOutput=function(t,e){var n=this,i={keypoints:t.map((function(t,e){return {x:t.x*n.width,y:t.y*n.height,z:t.z,score:t.visibility,name:j[e]}}))};return null!=e&&(i.keypoints3D=e.map((function(t,e){return {x:t.x,y:t.y,z:t.z,score:t.visibility,name:j[e]}}))),i},i.prototype.estimatePoses=function(t,i,r){return N(this,void 0,void 0,(function(){var o,a;return D(this,(function(s){switch(s.label){case 0:return i&&i.flipHorizontal&&i.flipHorizontal!==this.selfieMode&&(this.selfieMode=i.flipHorizontal,this.poseSolution.setOptions({selfieMode:this.selfieMode})),t instanceof Tensor?(a=ImageData.bind,[4,toPixels(t)]):[3,2];case 1:return o=new(a.apply(ImageData,[void 0,s.sent(),t.shape[1],t.shape[0]])),[3,3];case 2:o=t,s.label=3;case 3:return t=o,[4,this.poseSolution.send({image:t},r)];case 4:return s.sent(),[2,this.poses]}}))}))},i.prototype.dispose=function(){this.poseSolution.close();},i.prototype.reset=function(){this.poseSolution.reset();},i.prototype.initialize=function(){return this.poseSolution.initialize()},i}();function it(t){return N(this,void 0,void 0,(function(){var e,n;return D(this,(function(i){switch(i.label){case 0:return e=function(t){if(null==t)return B({},J);var e=B({},t);return e.runtime="mediapipe",null==e.enableSegmentation&&(e.enableSegmentation=J.enableSegmentation),null==e.enableSmoothing&&(e.enableSmoothing=J.enableSmoothing),null==e.smoothSegmentation&&(e.smoothSegmentation=J.smoothSegmentation),null==e.modelType&&(e.modelType=J.modelType),e}(t),[4,(n=new nt(e)).initialize()];case 1:return i.sent(),[2,n]}}))}))}function rt(t){return t instanceof Tensor?{height:t.shape[0],width:t.shape[1]}:{height:t.height,width:t.width}}function ot(t){return t-2*Math.PI*Math.floor((t+Math.PI)/(2*Math.PI))}function at(t){return t instanceof Tensor?t:fromPixels$2(t)}function st(t,e,n){return ut(n,"inputResolution"),[1/n.width*t[0][0]*e.width,1/n.height*t[0][1]*e.width,t[0][3]*e.width,1/n.width*t[1][0]*e.height,1/n.height*t[1][1]*e.height,t[1][3]*e.height,0,0]}function ut(t,e){assert(0!==t.width,(function(){return "".concat(e," width cannot be 0.")})),assert(0!==t.height,(function(){return "".concat(e," height cannot be 0.")}));}function ht(t,e,n){var i=n.rotationVectorStartKeypointIndex,r=n.rotationVectorEndKeypointIndex,o=t.locationData,a=o.relativeKeypoints[i].x*e.width,s=o.relativeKeypoints[i].y*e.height,u=o.relativeKeypoints[r].x*e.width,h=o.relativeKeypoints[r].y*e.height,l=2*Math.sqrt((u-a)*(u-a)+(h-s)*(h-s)),c=function(t,e,n){var i,r=t.locationData,o=n.rotationVectorStartKeypointIndex,a=n.rotationVectorEndKeypointIndex;i=n.rotationVectorTargetAngle?n.rotationVectorTargetAngle:Math.PI*n.rotationVectorTargetAngleDegree/180;var s=r.relativeKeypoints[o].x*e.width,u=r.relativeKeypoints[o].y*e.height,h=r.relativeKeypoints[a].x*e.width,l=r.relativeKeypoints[a].y*e.height;return ot(i-Math.atan2(-(l-u),h-s))}(t,e,n);return {xCenter:a/e.width,yCenter:s/e.height,width:l/e.width,height:l/e.height,rotation:c}}function lt(t){if(16!==t.length)throw new Error("Array length must be 16 but got ".concat(t.length));return [[t[0],t[1],t[2],t[3]],[t[4],t[5],t[6],t[7]],[t[8],t[9],t[10],t[11]],[t[12],t[13],t[14],t[15]]]}function ct(t,e,n,i,r,o,a){return t[e][r]*(t[n][o]*t[i][a]-t[n][a]*t[i][o])}function pt(t,e,n){var i=(e+1)%4,r=(e+2)%4,o=(e+3)%4,a=(n+1)%4,s=(n+2)%4,u=(n+3)%4;return ct(t,i,r,o,a,s,u)+ct(t,r,o,i,a,s,u)+ct(t,o,i,r,a,s,u)}function ft(t,e,n){void 0===n&&(n={ignoreRotation:!1});for(var i=[],r=0,o=t;r<o.length;r++){var a=o[r],s=a.x-.5,u=a.y-.5,h=n.ignoreRotation?0:e.rotation,l=Math.cos(h)*s-Math.sin(h)*u,c=Math.sin(h)*s+Math.cos(h)*u;l=l*e.width+e.xCenter,c=c*e.height+e.yCenter;var p=a.z*e.width,f=B({},a);f.x=l,f.y=c,f.z=p,i.push(f);}return i}function dt(t,e){var n=function(t,e,n,i){var r=e-t,o=i-n;if(0===r)throw new Error("Original min and max are both ".concat(t,", range cannot be 0."));var a=o/r;return {scale:a,offset:n-t*a}}(0,255,e[0],e[1]);return tidy((function(){return add(mul(t,n.scale),n.offset)}))}function mt(t,e,n){var i,o,a,c,p,f,d,m,g,y,v,x,w,k,b=e.outputTensorSize,M=e.keepAspectRatio,S=e.borderMode,T=e.outputTensorFloatRange,P=rt(t),F=function(t,e){return e?{xCenter:e.xCenter*t.width,yCenter:e.yCenter*t.height,width:e.width*t.width,height:e.height*t.height,rotation:e.rotation}:{xCenter:.5*t.width,yCenter:.5*t.height,width:t.width,height:t.height,rotation:0}}(P,n),_=function(t,e,n){if(void 0===n&&(n=!1),!n)return {top:0,left:0,right:0,bottom:0};var i=e.height,r=e.width;ut(e,"targetSize"),ut(t,"roi");var o,a,s=i/r,u=t.height/t.width,h=0,l=0;return s>u?(o=t.width,a=t.width*s,l=(1-u/s)/2):(o=t.height/s,a=t.height,h=(1-s/u)/2),t.width=o,t.height=a,{top:l,left:h,right:h,bottom:l}}(F,b,M),O=(i=F,o=P.width,a=P.height,c=!1,p=i.width,f=i.height,d=c?-1:1,m=Math.cos(i.rotation),g=Math.sin(i.rotation),y=i.xCenter,v=i.yCenter,x=1/o,w=1/a,(k=new Array(16))[0]=p*m*d*x,k[1]=-f*g*x,k[2]=0,k[3]=(-.5*p*m*d+.5*f*g+y)*x,k[4]=p*g*d*w,k[5]=f*m*w,k[6]=0,k[7]=(-.5*f*m-.5*p*g*d+v)*w,k[8]=0,k[9]=0,k[10]=p*x,k[11]=0,k[12]=0,k[13]=0,k[14]=0,k[15]=1,lt(k));return {imageTensor:tidy((function(){var e=at(t),n=tensor2d(st(O,P,b),[1,8]),i="zero"===S?"constant":"nearest",r=image$1.transform(expandDims$2(cast$2(e,"float32")),n,"bilinear",i,0,[b.height,b.width]);return null!=T?dt(r,T):r})),padding:_,transformationMatrix:O}}function gt(t,e,n,i){return 1===i?.5*(t+e):t+(e-t)*n/(i-1)}function yt(t){return tidy((function(){var e=function(t){return tidy((function(){return [slice$2(t,[0,0,0],[1,-1,1]),slice$2(t,[0,0,1],[1,-1,-1])]}))}(t),n=e[0],i=e[1];return {boxes:squeeze(i),logits:squeeze(n)}}))}function vt(t){return null!=t&&null!=t.currentTime}function xt(t){for(var e={locationData:{relativeKeypoints:[]}},n=Number.MAX_SAFE_INTEGER,i=Number.MIN_SAFE_INTEGER,r=Number.MAX_SAFE_INTEGER,o=Number.MIN_SAFE_INTEGER,a=0;a<t.length;++a){var s=t[a];n=Math.min(n,s.x),i=Math.max(i,s.x),r=Math.min(r,s.y),o=Math.max(o,s.y),e.locationData.relativeKeypoints.push({x:s.x,y:s.y});}return e.locationData.relativeBoundingBox={xMin:n,yMin:r,xMax:i,yMax:o,width:i-n,height:o-r},e}function wt(t,e,n,i){return N(this,void 0,void 0,(function(){var i,r,o,a,h;return D(this,(function(l){switch(l.label){case 0:return t.sort((function(t,e){return Math.max.apply(Math,e.score)-Math.max.apply(Math,t.score)})),i=tensor2d(t.map((function(t){return [t.locationData.relativeBoundingBox.yMin,t.locationData.relativeBoundingBox.xMin,t.locationData.relativeBoundingBox.yMax,t.locationData.relativeBoundingBox.xMax]}))),r=tensor1d(t.map((function(t){return t.score[0]}))),[4,image$1.nonMaxSuppressionAsync(i,r,e,n)];case 1:return [4,(o=l.sent()).array()];case 2:return a=l.sent(),h=t.filter((function(t,e){return a.indexOf(e)>-1})),dispose([i,r,o]),[2,h]}}))}))}function kt(t,e){return t.map((function(t){var n=B(B({},t),{x:t.x*e.width,y:t.y*e.height});return null!=t.z&&(n.z=t.z*e.width),n}))}function bt(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u,h,l,c,f,d,m,g,y,v,x,w,k,b,M,S,T,P,F;return D(this,(function(_){switch(_.label){case 0:if(i=squeeze(e,[0]),r=i.shape,o=r[0],a=r[1],s=r[2],t.length!==s)throw new Error("Expected heatmap to have same number of channels as the number of landmarks. But got landmarks length: "+"".concat(t.length,", heatmap length: ").concat(s));return u=[],[4,i.buffer()];case 1:for(h=_.sent(),l=0;l<t.length;l++)if(c=t[l],f=B({},c),u.push(f),d=Math.trunc(f.x*a),m=Math.trunc(f.y*o),!(d<0||d>=a||m<0||d>=o)){for(g=Math.trunc((n.kernelSize-1)/2),y=Math.max(0,d-g),v=Math.min(a,d+g+1),x=Math.max(0,m-g),w=Math.min(o,m+g+1),k=0,b=0,M=0,S=0,T=x;T<w;++T)for(P=y;P<v;++P)F=h.get(T,P,l),k+=F,S=Math.max(S,F),b+=P*F,M+=T*F;S>=n.minConfidenceToRefine&&k>0&&(f.x=b/a/k,f.y=M/o/k);}return i.dispose(),[2,u]}}))}))}function Mt(t,e){var n=e.left,i=e.top,r=e.left+e.right,o=e.top+e.bottom;return t.map((function(t){return B(B({},t),{x:(t.x-n)/(1-r),y:(t.y-i)/(1-o),z:t.z/(1-r)})}))}function St(t,e,n){return "webgl"===getBackend()?function(t,e,n){var i=n.combineWithPreviousRatio.toFixed(2),o={variableNames:["prevMask","newMask"],outputShape:t.shape,userCode:"\n  void main() {\n      ivec2 coords = getOutputCoords();\n      int height = coords[0];\n      int width = coords[1];\n\n      float prevMaskValue = getPrevMask(height, width);\n      float newMaskValue = getNewMask(height, width);\n\n      /*\n      * Assume p := newMaskValue\n      * H(p) := 1 + (p * log(p) + (1-p) * log(1-p)) / log(2)\n      * uncertainty alpha(p) =\n      *   Clamp(1 - (1 - H(p)) * (1 - H(p)), 0, 1) [squaring the\n      * uncertainty]\n      *\n      * The following polynomial approximates uncertainty alpha as a\n      * function of (p + 0.5):\n      */\n      const float c1 = 5.68842;\n      const float c2 = -0.748699;\n      const float c3 = -57.8051;\n      const float c4 = 291.309;\n      const float c5 = -624.717;\n      float t = newMaskValue - 0.5;\n      float x = t * t;\n\n      float uncertainty =\n        1.0 - min(1.0, x * (c1 + x * (c2 + x * (c3 + x * (c4 + x * c5)))));\n\n      float outputValue = newMaskValue + (prevMaskValue - newMaskValue) *\n                             (uncertainty * ".concat(i,");\n\n      setOutput(outputValue);\n    }\n")},a=backend();return tidy((function(){var n=a.compileAndRun(o,[t,e]);return engine().makeTensorFromDataId(n.dataId,n.shape,n.dtype)}))}(t,e,n):tidy((function(){var i=sub$2(e,.5),r=square$1(i),s=sub$2(1,minimum$2(1,mul(r,add(5.68842,mul(r,add(-.748699,mul(r,add(-57.8051,mul(r,add(291.309,mul(r,-624.717)))))))))));return add(e,mul(sub$2(t,e),mul(s,n.combineWithPreviousRatio)))}))}function Tt(t,e,n){return N(this,void 0,void 0,(function(){var i,s,u,h,l;return D(this,(function(d){switch(d.label){case 0:return i=t[0],s=t[1],u=function(t,e,n){return tidy((function(){var i,r,s,u;n.reverseOutputOrder?(r=squeeze(slice$2(t,[0,n.boxCoordOffset+0],[-1,1])),i=squeeze(slice$2(t,[0,n.boxCoordOffset+1],[-1,1])),u=squeeze(slice$2(t,[0,n.boxCoordOffset+2],[-1,1])),s=squeeze(slice$2(t,[0,n.boxCoordOffset+3],[-1,1]))):(i=squeeze(slice$2(t,[0,n.boxCoordOffset+0],[-1,1])),r=squeeze(slice$2(t,[0,n.boxCoordOffset+1],[-1,1])),s=squeeze(slice$2(t,[0,n.boxCoordOffset+2],[-1,1])),u=squeeze(slice$2(t,[0,n.boxCoordOffset+3],[-1,1]))),r=add(mul(div(r,n.xScale),e.w),e.x),i=add(mul(div(i,n.yScale),e.h),e.y),n.applyExponentialOnBoxSize?(s=mul(exp$2(div(s,n.hScale)),e.h),u=mul(exp$2(div(u,n.wScale)),e.w)):(s=mul(div(s,n.hScale),e.h),u=mul(div(u,n.wScale),e.h));var h=sub$2(i,div(s,2)),l=sub$2(r,div(u,2)),f=add(i,div(s,2)),d=add(r,div(u,2)),m=concat$2([reshape$2(h,[n.numBoxes,1]),reshape$2(l,[n.numBoxes,1]),reshape$2(f,[n.numBoxes,1]),reshape$2(d,[n.numBoxes,1])],1);if(n.numKeypoints)for(var g=0;g<n.numKeypoints;++g){var v=n.keypointCoordOffset+g*n.numValuesPerKeypoint,x=void 0,w=void 0;n.reverseOutputOrder?(x=squeeze(slice$2(t,[0,v],[-1,1])),w=squeeze(slice$2(t,[0,v+1],[-1,1]))):(w=squeeze(slice$2(t,[0,v],[-1,1])),x=squeeze(slice$2(t,[0,v+1],[-1,1])));var T=add(mul(div(x,n.xScale),e.w),e.x),P=add(mul(div(w,n.yScale),e.h),e.y);m=concat$2([m,reshape$2(T,[n.numBoxes,1]),reshape$2(P,[n.numBoxes,1])],1);}return m}))}(s,e,n),h=tidy((function(){var t=i;return n.sigmoidScore?(null!=n.scoreClippingThresh&&(t=clipByValue$2(i,-n.scoreClippingThresh,n.scoreClippingThresh)),t=sigmoid$2(t)):t})),[4,Pt(u,h,n)];case 1:return l=d.sent(),dispose([u,h]),[2,l]}}))}))}function Pt(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u,h,l,c,p,f,d;return D(this,(function(m){switch(m.label){case 0:return i=[],[4,t.data()];case 1:return r=m.sent(),[4,e.data()];case 2:for(o=m.sent(),a=0;a<n.numBoxes;++a)if(!(null!=n.minScoreThresh&&o[a]<n.minScoreThresh||(s=a*n.numCoords,u=Ft(r[s+0],r[s+1],r[s+2],r[s+3],o[a],n.flipVertically,a),(h=u.locationData.relativeBoundingBox).width<0||h.height<0))){if(n.numKeypoints>0)for((l=u.locationData).relativeKeypoints=[],c=n.numKeypoints*n.numValuesPerKeypoint,p=0;p<c;p+=n.numValuesPerKeypoint)f=s+n.keypointCoordOffset+p,d={x:r[f+0],y:n.flipVertically?1-r[f+1]:r[f+1]},l.relativeKeypoints.push(d);i.push(u);}return [2,i]}}))}))}function Ft(t,e,n,i,r,o,a){return {score:[r],ind:a,locationData:{relativeBoundingBox:{xMin:e,yMin:o?1-n:t,xMax:i,yMax:o?1-t:n,width:i-e,height:n-t}}}}function _t(t,e){return "none"===t?e:function(t){return 1/(1+Math.exp(-t))}(e)}function Ot(t,e,n,i){return N(this,void 0,void 0,(function(){var r,o,a,s,u,h,l,c;return D(this,(function(p){switch(p.label){case 0:return n=n||e.flipHorizontally||!1,i=i||e.flipVertically||!1,r=t.size,o=r/e.numLandmarks,[4,t.data()];case 1:for(a=p.sent(),s=[],u=0;u<e.numLandmarks;++u)h=u*o,(c={x:0,y:0}).x=n?e.inputImageWidth-a[h]:a[h],o>1&&(c.y=i?e.inputImageHeight-a[h+1]:a[h+1]),o>2&&(c.z=a[h+2]),o>3&&(c.score=_t(e.visibilityActivation,a[h+3])),s.push(c);for(l=0;l<s.length;++l)(c=s[l]).x=c.x/e.inputImageWidth,c.y=c.y/e.inputImageHeight,c.z=c.z/e.inputImageWidth/(e.normalizeZ||1);return [2,s]}}))}))}function It(t,e,n){var i=t.width,r=t.height,o=t.rotation;if(null==n.rotation&&null==n.rotationDegree||(o=function(t,e){null!=e.rotation?t+=e.rotation:null!=e.rotationDegree&&(t+=Math.PI*e.rotationDegree/180);return ot(t)}(o,n)),0===o)t.xCenter=t.xCenter+i*n.shiftX,t.yCenter=t.yCenter+r*n.shiftY;else {var a=(e.width*i*n.shiftX*Math.cos(o)-e.height*r*n.shiftY*Math.sin(o))/e.width,s=(e.width*i*n.shiftX*Math.sin(o)+e.height*r*n.shiftY*Math.cos(o))/e.height;t.xCenter=t.xCenter+a,t.yCenter=t.yCenter+s;}if(n.squareLong){var u=Math.max(i*e.width,r*e.height);i=u/e.width,r=u/e.height;}else if(n.squareShort){var h=Math.min(i*e.width,r*e.height);i=h/e.width,r=h/e.height;}return t.width=i*n.scaleX,t.height=r*n.scaleY,t}function At(t,e){return t.map((function(t){var n=B(B({},t),{x:t.x/e.width,y:t.y/e.height});return null!=t.z&&(t.z=t.z/e.width),n}))}var zt=function(){function t(t){this.alpha=t,this.initialized=!1;}return t.prototype.apply=function(t,e){var n;return this.initialized?n=null==e?this.storedValue+this.alpha*(t-this.storedValue):this.storedValue+this.alpha*e*Math.asinh((t-this.storedValue)/e):(n=t,this.initialized=!0),this.rawValue=t,this.storedValue=n,n},t.prototype.applyWithAlpha=function(t,e,n){return this.alpha=e,this.apply(t,n)},t.prototype.hasLastRawValue=function(){return this.initialized},t.prototype.lastRawValue=function(){return this.rawValue},t.prototype.reset=function(){this.initialized=!1;},t}(),Ct=function(){function t(t){this.frequency=t.frequency,this.minCutOff=t.minCutOff,this.beta=t.beta,this.thresholdCutOff=t.thresholdCutOff,this.thresholdBeta=t.thresholdBeta,this.derivateCutOff=t.derivateCutOff,this.x=new zt(this.getAlpha(this.minCutOff)),this.dx=new zt(this.getAlpha(this.derivateCutOff)),this.lastTimestamp=0;}return t.prototype.apply=function(t,e,n){if(null==t)return t;var i=Math.trunc(e);if(this.lastTimestamp>=i)return t;0!==this.lastTimestamp&&0!==i&&(this.frequency=1/(1e-6*(i-this.lastTimestamp))),this.lastTimestamp=i;var r=this.x.hasLastRawValue()?(t-this.x.lastRawValue())*n*this.frequency:0,o=this.dx.applyWithAlpha(r,this.getAlpha(this.derivateCutOff)),a=this.minCutOff+this.beta*Math.abs(o),s=null!=this.thresholdCutOff?this.thresholdCutOff+this.thresholdBeta*Math.abs(o):null;return this.x.applyWithAlpha(t,this.getAlpha(a),s)},t.prototype.getAlpha=function(t){return 1/(1+this.frequency/(2*Math.PI*t))},t}(),Et=function(){function t(t){this.config=t;}return t.prototype.apply=function(t,e,n){var i=this;if(null==t)return this.reset(),null;this.initializeFiltersIfEmpty(t);var r=1;if(!this.config.disableValueScaling){if(n<this.config.minAllowedObjectScale)return K([],t,!0);r=1/n;}return t.map((function(t,n){var o=B(B({},t),{x:i.xFilters[n].apply(t.x,e,r),y:i.yFilters[n].apply(t.y,e,r)});return null!=t.z&&(o.z=i.zFilters[n].apply(t.z,e,r)),o}))},t.prototype.reset=function(){this.xFilters=null,this.yFilters=null,this.zFilters=null;},t.prototype.initializeFiltersIfEmpty=function(t){var e=this;null!=this.xFilters&&this.xFilters.length===t.length||(this.xFilters=t.map((function(t){return new Ct(e.config)})),this.yFilters=t.map((function(t){return new Ct(e.config)})),this.zFilters=t.map((function(t){return new Ct(e.config)})));},t}(),Rt=function(){function t(t){this.config=t,this.window=[],this.lowPassFilter=new zt(1),this.lastValue=0,this.lastValueScale=1,this.lastTimestamp=-1;}return t.prototype.apply=function(t,e,n){if(null==t)return t;var i,r=Math.trunc(e);if(this.lastTimestamp>=r)return t;if(-1===this.lastTimestamp)i=1;else {for(var o=t*n-this.lastValue*this.lastValueScale,a=r-this.lastTimestamp,s=o,u=a,h=(1+this.window.length)*(1e6/30),l=0,c=this.window;l<c.length;l++){var p=c[l];if(u+p.duration>h)break;s+=p.distance,u+=p.duration;}var f=s/(1e-6*u);i=1-1/(1+this.config.velocityScale*Math.abs(f)),this.window.unshift({distance:o,duration:a}),this.window.length>this.config.windowSize&&this.window.pop();}return this.lastValue=t,this.lastValueScale=n,this.lastTimestamp=r,this.lowPassFilter.applyWithAlpha(t,i)},t}(),Lt=function(){function t(t){this.config=t;}return t.prototype.apply=function(t,e,n){var i=this;if(null==t)return this.reset(),null;var r=1;if(!this.config.disableValueScaling){if(n<this.config.minAllowedObjectScale)return K([],t,!0);r=1/n;}return this.initializeFiltersIfEmpty(t),t.map((function(t,n){var o=B(B({},t),{x:i.xFilters[n].apply(t.x,e,r),y:i.yFilters[n].apply(t.y,e,r)});return null!=t.z&&(o.z=i.zFilters[n].apply(t.z,e,r)),o}))},t.prototype.reset=function(){this.xFilters=null,this.yFilters=null,this.zFilters=null;},t.prototype.initializeFiltersIfEmpty=function(t){var e=this;null!=this.xFilters&&this.xFilters.length===t.length||(this.xFilters=t.map((function(t){return new Rt(e.config)})),this.yFilters=t.map((function(t){return new Rt(e.config)})),this.zFilters=t.map((function(t){return new Rt(e.config)})));},t}(),Vt=function(){function t(t){if(null!=t.velocityFilter)this.keypointsFilter=new Lt(t.velocityFilter);else {if(null==t.oneEuroFilter)throw new Error("Either configure velocityFilter or oneEuroFilter, but got "+"".concat(t,"."));this.keypointsFilter=new Et(t.oneEuroFilter);}}return t.prototype.apply=function(t,e,n,i,r){if(void 0===i&&(i=!1),null==t)return this.keypointsFilter.reset(),null;var o=null!=r?function(t,e){return (t.width*e.width+t.height*e.height)/2}(r,n):1,a=i?kt(t,n):t,s=this.keypointsFilter.apply(a,e,o);return i?At(s,n):s},t}(),Bt=function(){function t(t){this.alpha=t.alpha;}return t.prototype.apply=function(t){var e=this;if(null==t)return this.visibilityFilters=null,null;null!=this.visibilityFilters&&this.visibilityFilters.length===t.length||(this.visibilityFilters=t.map((function(t){return new zt(e.alpha)})));for(var n=[],i=0;i<t.length;++i){var r=t[i],o=B({},r);o.score=this.visibilityFilters[i].apply(r.score),n.push(o);}return n},t}(),Nt={reduceBoxesInLowestlayer:!1,interpolatedScaleAspectRatio:1,featureMapHeight:[],featureMapWidth:[],numLayers:5,minScale:.1484375,maxScale:.75,inputSizeHeight:224,inputSizeWidth:224,anchorOffsetX:.5,anchorOffsetY:.5,strides:[8,16,32,32,32],aspectRatios:[1],fixedAnchorSize:!0},Dt={runtime:"tfjs",modelType:"full",enableSmoothing:!0,enableSegmentation:!1,smoothSegmentation:!0,detectorModelUrl:"https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/detector/1",landmarkModelUrl:"https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/full/2"},Kt={maxPoses:1,flipHorizontal:!1},Ut={applyExponentialOnBoxSize:!1,flipVertically:!1,ignoreClasses:[],numClasses:1,numBoxes:2254,numCoords:12,boxCoordOffset:0,keypointCoordOffset:4,numKeypoints:4,numValuesPerKeypoint:2,sigmoidScore:!0,scoreClippingThresh:100,reverseOutputOrder:!0,xScale:224,yScale:224,hScale:224,wScale:224,minScoreThresh:.5},jt=.3,Ht={shiftX:0,shiftY:0,scaleX:1.25,scaleY:1.25,squareLong:!0},qt={outputTensorSize:{width:224,height:224},keepAspectRatio:!0,outputTensorFloatRange:[-1,1],borderMode:"zero"},Xt={outputTensorSize:{width:256,height:256},keepAspectRatio:!0,outputTensorFloatRange:[0,1],borderMode:"zero"},Yt={numLandmarks:39,inputImageWidth:256,inputImageHeight:256,visibilityActivation:"sigmoid",flipHorizontally:!1,flipVertically:!1},Wt={numLandmarks:39,inputImageWidth:1,inputImageHeight:1,visibilityActivation:"sigmoid",flipHorizontally:!1,flipVertically:!1},Gt={kernelSize:7,minConfidenceToRefine:.5},Qt={alpha:.1},Zt={oneEuroFilter:{frequency:30,minCutOff:.05,beta:80,derivateCutOff:1,minAllowedObjectScale:1e-6}},$t={oneEuroFilter:{frequency:30,minCutOff:.01,beta:10,derivateCutOff:1,minAllowedObjectScale:1e-6}},Jt={oneEuroFilter:{frequency:30,minCutOff:.1,beta:40,derivateCutOff:1,minAllowedObjectScale:1e-6,disableValueScaling:!0}},te={activation:"none"},ee={combineWithPreviousRatio:.7};var ne=function(){function t(t){this.mask=t;}return t.prototype.toCanvasImageSource=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,G(this.mask)]}))}))},t.prototype.toImageData=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,Q(this.mask)]}))}))},t.prototype.toTensor=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,this.mask]}))}))},t.prototype.getUnderlyingType=function(){return "tensor"},t}();function ie(t){return $(t),"person"}var re=function(){function t(t,e,n,i,r,o){this.detectorModel=t,this.landmarkModel=e,this.enableSmoothing=n,this.enableSegmentation=i,this.smoothSegmentation=r,this.modelType=o,this.regionOfInterest=null,this.prevFilteredSegmentationMask=null,this.anchors=function(t){null==t.reduceBoxesInLowestLayer&&(t.reduceBoxesInLowestLayer=!1),null==t.interpolatedScaleAspectRatio&&(t.interpolatedScaleAspectRatio=1),null==t.fixedAnchorSize&&(t.fixedAnchorSize=!1);for(var e=[],n=0;n<t.numLayers;){for(var i=[],r=[],o=[],a=[],s=n;s<t.strides.length&&t.strides[s]===t.strides[n];){var u=gt(t.minScale,t.maxScale,s,t.strides.length);if(0===s&&t.reduceBoxesInLowestLayer)o.push(1),o.push(2),o.push(.5),a.push(.1),a.push(u),a.push(u);else {for(var h=0;h<t.aspectRatios.length;++h)o.push(t.aspectRatios[h]),a.push(u);if(t.interpolatedScaleAspectRatio>0){var l=s===t.strides.length-1?1:gt(t.minScale,t.maxScale,s+1,t.strides.length);a.push(Math.sqrt(u*l)),o.push(t.interpolatedScaleAspectRatio);}}s++;}for(var c=0;c<o.length;++c){var p=Math.sqrt(o[c]);i.push(a[c]/p),r.push(a[c]*p);}var f=0,d=0;if(t.featureMapHeight.length>0)f=t.featureMapHeight[n],d=t.featureMapWidth[n];else {var m=t.strides[n];f=Math.ceil(t.inputSizeHeight/m),d=Math.ceil(t.inputSizeWidth/m);}for(var g=0;g<f;++g)for(var y=0;y<d;++y)for(var v=0;v<i.length;++v){var x={xCenter:(y+t.anchorOffsetX)/d,yCenter:(g+t.anchorOffsetY)/f,width:0,height:0};t.fixedAnchorSize?(x.width=1,x.height=1):(x.width=r[v],x.height=i[v]),e.push(x);}n=s;}return e}(Nt);var a=tensor1d(this.anchors.map((function(t){return t.width}))),u=tensor1d(this.anchors.map((function(t){return t.height}))),h=tensor1d(this.anchors.map((function(t){return t.xCenter}))),l=tensor1d(this.anchors.map((function(t){return t.yCenter})));this.anchorTensor={x:h,y:l,w:a,h:u},this.prevFilteredSegmentationMask=this.enableSegmentation?tensor2d([],[0,0]):null;}return t.prototype.estimatePoses=function(t,e,n){return N(this,void 0,void 0,(function(){var i,o,a,s,u,c,p,d,m,g,y,v,x,w,k,b,M,S,T,P,O,I,A;return D(this,(function(z){switch(z.label){case 0:return i=function(t){var e;if(null==(e=null==t?Kt:B({},t)).maxPoses&&(e.maxPoses=1),e.maxPoses<=0)throw new Error("Invalid maxPoses ".concat(e.maxPoses,". Should be > 0."));if(e.maxPoses>1)throw new Error("Multi-pose detection is not implemented yet. Please set maxPoses to 1.");return e}(e),null==t?(this.reset(),[2,[]]):(this.maxPoses=i.maxPoses,this.timestamp=null!=n?1e3*n:vt(t)?1e6*t.currentTime:null,o=rt(t),a=tidy((function(){return cast$2(at(t),"float32")})),null!=(s=this.regionOfInterest)?[3,2]:[4,this.detectPose(a)]);case 1:if(0===(u=z.sent()).length)return this.reset(),a.dispose(),[2,[]];c=u[0],s=this.poseDetectionToRoi(c,o),z.label=2;case 2:return [4,this.poseLandmarksByRoi(s,a)];case 3:return p=z.sent(),a.dispose(),null==p?(this.reset(),[2,[]]):(d=p.landmarks,m=p.auxiliaryLandmarks,g=p.poseScore,y=p.worldLandmarks,v=p.segmentationMask,x=this.poseLandmarkFiltering(d,m,y,o),w=x.actualLandmarksFiltered,k=x.auxiliaryLandmarksFiltered,b=x.actualWorldLandmarksFiltered,M=this.poseLandmarksToRoi(k,o),this.regionOfInterest=M,S=this.smoothSegmentation&&null!=v?this.poseSegmentationFiltering(v):v,null!=(T=null!=w?kt(w,o):null)&&T.forEach((function(t,e){t.name=j[e];})),null!=(P=b)&&P.forEach((function(t,e){t.name=j[e];})),O={score:g,keypoints:T,keypoints3D:P},null!==S&&(I=tidy((function(){var t=expandDims$2(S,2),e=pad(t,[[0,0],[0,0],[0,1]]);return mirrorPad(e,[[0,0],[0,0],[0,2]],"symmetric")})),this.smoothSegmentation||dispose(S),A={maskValueToLabel:ie,mask:new ne(I)},O.segmentation=A),[2,[O]])}}))}))},t.prototype.poseSegmentationFiltering=function(t){var e=this.prevFilteredSegmentationMask;return 0===e.size?this.prevFilteredSegmentationMask=t:(this.prevFilteredSegmentationMask=St(e,t,ee),dispose(t)),dispose(e),this.prevFilteredSegmentationMask},t.prototype.dispose=function(){this.detectorModel.dispose(),this.landmarkModel.dispose(),dispose([this.anchorTensor.x,this.anchorTensor.y,this.anchorTensor.w,this.anchorTensor.h,this.prevFilteredSegmentationMask]);},t.prototype.reset=function(){this.regionOfInterest=null,this.enableSegmentation&&(dispose(this.prevFilteredSegmentationMask),this.prevFilteredSegmentationMask=tensor2d([],[0,0])),this.visibilitySmoothingFilterActual=null,this.visibilitySmoothingFilterAuxiliary=null,this.landmarksSmoothingFilterActual=null,this.landmarksSmoothingFilterAuxiliary=null;},t.prototype.detectPose=function(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o,a,s,u,h,l;return D(this,(function(c){switch(c.label){case 0:return e=mt(t,qt),n=e.imageTensor,i=e.padding,r=this.detectorModel.predict(n),o=yt(r),a=o.boxes,[4,Tt([s=o.logits,a],this.anchorTensor,Ut)];case 1:return 0===(u=c.sent()).length?(dispose([n,r,s,a]),[2,u]):[4,wt(u,this.maxPoses,jt)];case 2:return h=c.sent(),l=function(t,e){void 0===t&&(t=[]);for(var n=e.left,i=e.top,r=e.left+e.right,o=e.top+e.bottom,a=0;a<t.length;a++){var s=t[a],u=s.locationData.relativeBoundingBox,h=(u.xMin-n)/(1-r),l=(u.yMin-i)/(1-o),c=u.width/(1-r),p=u.height/(1-o);u.xMin=h,u.yMin=l,u.width=c,u.height=p,u.xMax=h+c,u.yMax=l+p;var f=s.locationData.relativeKeypoints;f&&f.forEach((function(t){var e=(t.x-n)/(1-r),a=(t.y-i)/(1-o);t.x=e,t.y=a;}));}return t}(h,i),dispose([n,r,s,a]),[2,l]}}))}))},t.prototype.poseDetectionToRoi=function(t,e){return It(ht(t,e,{rotationVectorEndKeypointIndex:1,rotationVectorStartKeypointIndex:0,rotationVectorTargetAngleDegree:90}),e,Ht)},t.prototype.poseLandmarksByRoi=function(t,e){return N(this,void 0,void 0,(function(){var n,i,r,o,a,s,u,h,l,c,p,d,m,g;return D(this,(function(y){switch(y.label){case 0:if(n=rt(e),i=mt(e,Xt,t),r=i.imageTensor,o=i.padding,a=i.transformationMatrix,"lite"!==this.modelType&&"full"!==this.modelType&&"heavy"!==this.modelType)throw new Error("Model type must be one of lite, full or heavy,"+"but got ".concat(this.modelType));return s=["ld_3d","output_poseflag","activation_heatmap","world_3d"],this.enableSegmentation&&s.push("activation_segmentation"),u=this.landmarkModel.execute(r,s),[4,this.tensorsToPoseLandmarksAndSegmentation(u)];case 1:return null==(h=y.sent())?(dispose(u),dispose(r),[2,null]):(l=h.landmarks,c=h.auxiliaryLandmarks,p=h.poseScore,d=h.worldLandmarks,m=h.segmentationMask,[4,this.poseLandmarksAndSegmentationInverseProjection(n,t,o,a,l,c,d,m)]);case 2:return g=y.sent(),dispose(u),dispose(r),[2,B({poseScore:p},g)]}}))}))},t.prototype.poseLandmarksAndSegmentationInverseProjection=function(t,e,n,i,o,a,h,l){return N(this,void 0,void 0,(function(){var c,d,m,g,y,v;return D(this,(function(x){return c=Mt(o,n),d=Mt(a,n),m=ft(c,e),g=ft(d,e),y=function(t,e){for(var n=[],i=0,r=t;i<r.length;i++){var o=r[i],a=o.x,s=o.y,u=e.rotation,h=Math.cos(u)*a-Math.sin(u)*s,l=Math.sin(u)*a+Math.cos(u)*s,c=B({},o);c.x=h,c.y=l,n.push(c);}return n}(h,e),v=null,this.enableSegmentation&&(v=tidy((function(){var e=l.shape,n=e[0],r=e[1],o=function(t){var e=lt(new Array(16).fill(0));e[0][0]=pt(t,0,0),e[1][0]=-pt(t,0,1),e[2][0]=pt(t,0,2),e[3][0]=-pt(t,0,3),e[0][2]=pt(t,2,0),e[1][2]=-pt(t,2,1),e[2][2]=pt(t,2,2),e[3][2]=-pt(t,2,3),e[0][1]=-pt(t,1,0),e[1][1]=pt(t,1,1),e[2][1]=-pt(t,1,2),e[3][1]=pt(t,1,3),e[0][3]=-pt(t,3,0),e[1][3]=pt(t,3,1),e[2][3]=-pt(t,3,2),e[3][3]=pt(t,3,3);for(var n=t[0][0]*e[0][0]+t[1][0]*e[0][1]+t[2][0]*e[0][2]+t[3][0]*e[0][3],i=0;i<e.length;i++)for(var r=0;r<e.length;r++)e[i][r]/=n;return e}(i),a=tensor2d(st(o,{width:r,height:n},t),[1,8]),h=[1,n,r,1];return squeeze(image$1.transform(reshape$2(l,h),a,"bilinear","constant",0,[t.height,t.width]),[0,3])})),dispose(l)),[2,{landmarks:m,auxiliaryLandmarks:g,worldLandmarks:y,segmentationMask:v}]}))}))},t.prototype.tensorsToPoseLandmarksAndSegmentation=function(t){return N(this,void 0,void 0,(function(){var e,n,i,o,a,s,h,l,c,f,d,m,g;return D(this,(function(y){switch(y.label){case 0:return e=t[0],n=t[1],i=t[2],o=t[3],a=this.enableSegmentation?t[4]:null,[4,n.data()];case 1:return (s=y.sent()[0])<.5?[2,null]:[4,Ot(e,Yt)];case 2:return [4,bt(y.sent(),i,Gt)];case 3:return h=y.sent(),l=h.slice(0,33),c=h.slice(33,35),[4,Ot(o,Wt)];case 4:return f=y.sent(),d=f.slice(0,33),m=function(t,e,n){void 0===n&&(n=!0);for(var i=[],r=0;r<t.length;r++){var o=B({},e[r]);n&&(o.score=t[r].score),i.push(o);}return i}(l,d,!0),g=this.enableSegmentation?function(t,e,n){return tidy((function(){var i=squeeze(t,[0]),r=i.shape[2];if(1===r){var o=i;switch(e.activation){case"none":break;case"sigmoid":o=sigmoid$2(o);break;case"softmax":throw new Error("Softmax activation requires two channels.");default:throw new Error("Activation not supported (".concat(e.activation,")"))}var a=n?image$1.resizeBilinear(o,[n.height,n.width]):o;return squeeze(a,[2])}throw new Error("Unsupported number of tensor channels ".concat(r))}))}(a,te):null,[2,{landmarks:l,auxiliaryLandmarks:c,poseScore:s,worldLandmarks:m,segmentationMask:g}]}}))}))},t.prototype.poseLandmarksToRoi=function(t,e){return It(ht(xt(t),e,{rotationVectorStartKeypointIndex:0,rotationVectorEndKeypointIndex:1,rotationVectorTargetAngleDegree:90}),e,Ht)},t.prototype.poseLandmarkFiltering=function(t,e,n,i){var r,o,a;if(null!=this.timestamp&&this.enableSmoothing){var s=ht(xt(e),i,{rotationVectorEndKeypointIndex:0,rotationVectorStartKeypointIndex:1,rotationVectorTargetAngleDegree:90});null==this.visibilitySmoothingFilterActual&&(this.visibilitySmoothingFilterActual=new Bt(Qt)),r=this.visibilitySmoothingFilterActual.apply(t),null==this.visibilitySmoothingFilterAuxiliary&&(this.visibilitySmoothingFilterAuxiliary=new Bt(Qt)),o=this.visibilitySmoothingFilterAuxiliary.apply(e),a=this.visibilitySmoothingFilterActual.apply(n),null==this.landmarksSmoothingFilterActual&&(this.landmarksSmoothingFilterActual=new Vt(Zt)),r=this.landmarksSmoothingFilterActual.apply(r,this.timestamp,i,!0,s),null==this.landmarksSmoothingFilterAuxiliary&&(this.landmarksSmoothingFilterAuxiliary=new Vt($t)),o=this.landmarksSmoothingFilterAuxiliary.apply(o,this.timestamp,i,!0,s),null==this.worldLandmarksSmoothingFilterActual&&(this.worldLandmarksSmoothingFilterActual=new Vt(Jt)),a=this.worldLandmarksSmoothingFilterActual.apply(n,this.timestamp);}else r=t,o=e,a=n;return {actualLandmarksFiltered:r,auxiliaryLandmarksFiltered:o,actualWorldLandmarksFiltered:a}},t}();function oe(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o,a;return D(this,(function(s){switch(s.label){case 0:return e=function(t){var e=B({},null==t?Dt:t);if(null==e.enableSmoothing&&(e.enableSmoothing=Dt.enableSmoothing),null==e.enableSegmentation&&(e.enableSegmentation=Dt.enableSegmentation),null==e.smoothSegmentation&&(e.smoothSegmentation=Dt.smoothSegmentation),null==e.modelType&&(e.modelType=Dt.modelType),null==e.detectorModelUrl&&(e.detectorModelUrl=Dt.detectorModelUrl),null==e.landmarkModelUrl)switch(e.modelType){case"lite":e.landmarkModelUrl="https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/lite/2";break;case"heavy":e.landmarkModelUrl="https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/heavy/2";break;case"full":default:e.landmarkModelUrl="https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/full/2";}return e}(t),n="string"==typeof e.detectorModelUrl&&e.detectorModelUrl.indexOf("https://tfhub.dev")>-1,i="string"==typeof e.landmarkModelUrl&&e.landmarkModelUrl.indexOf("https://tfhub.dev")>-1,[4,Promise.all([loadGraphModel(e.detectorModelUrl,{fromTFHub:n}),loadGraphModel(e.landmarkModelUrl,{fromTFHub:i})])];case 1:return r=s.sent(),o=r[0],a=r[1],[2,new re(o,a,e.enableSmoothing,e.enableSegmentation,e.smoothSegmentation,e.modelType)]}}))}))}var ae,se,ue=function(){function t(t){!function(t){if(t.maxTracks<1)throw new Error("Must specify 'maxTracks' to be at least 1, but "+"encountered ".concat(t.maxTracks));if(t.maxAge<=0)throw new Error("Must specify 'maxAge' to be positive, but "+"encountered ".concat(t.maxAge));if(void 0!==t.keypointTrackerParams){if(t.keypointTrackerParams.keypointConfidenceThreshold<0||t.keypointTrackerParams.keypointConfidenceThreshold>1)throw new Error("Must specify 'keypointConfidenceThreshold' to be in the range [0, 1], but encountered "+"".concat(t.keypointTrackerParams.keypointConfidenceThreshold));if(t.keypointTrackerParams.minNumberOfKeypoints<1)throw new Error("Must specify 'minNumberOfKeypoints' to be at least 1, but "+"encountered ".concat(t.keypointTrackerParams.minNumberOfKeypoints));for(var e=0,n=t.keypointTrackerParams.keypointFalloff;e<n.length;e++){var i=n[e];if(i<=0)throw new Error("Must specify each keypoint falloff parameterto be positive "+"but encountered ".concat(i))}}}(t),this.tracks=[],this.maxTracks=t.maxTracks,this.maxAge=1e3*t.maxAge,this.minSimilarity=t.minSimilarity,this.nextID=1;}return t.prototype.apply=function(t,e){this.filterOldTracks(e);var n=this.computeSimilarity(t);return this.assignTracks(t,n,e),this.updateTracks(e),t},t.prototype.getTracks=function(){return this.tracks.slice()},t.prototype.getTrackIDs=function(){return new Set(this.tracks.map((function(t){return t.id})))},t.prototype.filterOldTracks=function(t){var e=this;this.tracks=this.tracks.filter((function(n){return t-n.lastTimestamp<=e.maxAge}));},t.prototype.assignTracks=function(t,e,n){for(var i=Array.from(Array(e[0].length).keys()),r=[],o=0,a=Array.from(Array(t.length).keys());o<a.length;o++){var s=a[o];if(0!==i.length){for(var u=-1,h=-1,l=0,c=i;l<c.length;l++){var p=c[l],f=e[s][p];f>=this.minSimilarity&&f>h&&(u=p,h=f);}if(u>=0){var d=this.tracks[u];d=Object.assign(d,this.createTrack(t[s],n,d.id)),t[s].id=d.id;var m=i.indexOf(u);i.splice(m,1);}else r.push(s);}else r.push(s);}for(var g=0,y=r;g<y.length;g++){s=y[g];var v=this.createTrack(t[s],n);this.tracks.push(v),t[s].id=v.id;}},t.prototype.updateTracks=function(t){this.tracks.sort((function(t,e){return e.lastTimestamp-t.lastTimestamp})),this.tracks=this.tracks.slice(0,this.maxTracks);},t.prototype.createTrack=function(t,e,n){var i={id:n||this.nextTrackID(),lastTimestamp:e,keypoints:K([],t.keypoints,!0).map((function(t){return B({},t)}))};return void 0!==t.box&&(i.box=B({},t.box)),i},t.prototype.nextTrackID=function(){var t=this.nextID;return this.nextID+=1,t},t.prototype.remove=function(){for(var t=[],e=0;e<arguments.length;e++)t[e]=arguments[e];this.tracks=this.tracks.filter((function(e){return !t.includes(e.id)}));},t.prototype.reset=function(){this.tracks=[];},t}(),he=function(t){function e(e){return t.call(this,e)||this}return V(e,t),e.prototype.computeSimilarity=function(t){var e=this;return 0===t.length||0===this.tracks.length?[[]]:t.map((function(t){return e.tracks.map((function(n){return e.iou(t,n)}))}))},e.prototype.iou=function(t,e){var n=Math.max(t.box.xMin,e.box.xMin),i=Math.max(t.box.yMin,e.box.yMin),r=Math.min(t.box.xMax,e.box.xMax),o=Math.min(t.box.yMax,e.box.yMax);if(n>=r||i>=o)return 0;var a=(r-n)*(o-i);return a/(t.box.width*t.box.height+e.box.width*e.box.height-a)},e}(ue),le=function(t){function e(e){var n=t.call(this,e)||this;return n.keypointThreshold=e.keypointTrackerParams.keypointConfidenceThreshold,n.keypointFalloff=e.keypointTrackerParams.keypointFalloff,n.minNumKeyoints=e.keypointTrackerParams.minNumberOfKeypoints,n}return V(e,t),e.prototype.computeSimilarity=function(t){if(0===t.length||0===this.tracks.length)return [[]];for(var e=[],n=0,i=t;n<i.length;n++){for(var r=i[n],o=[],a=0,s=this.tracks;a<s.length;a++){var u=s[a];o.push(this.oks(r,u));}e.push(o);}return e},e.prototype.oks=function(t,e){for(var n=this.area(e.keypoints)+1e-6,i=0,r=0,o=0;o<t.keypoints.length;++o){var a=t.keypoints[o],s=e.keypoints[o];if(!(a.score<this.keypointThreshold||s.score<this.keypointThreshold)){r+=1;var u=Math.pow(a.x-s.x,2)+Math.pow(a.y-s.y,2),h=2*this.keypointFalloff[o];i+=Math.exp(-1*u/(2*n*Math.pow(h,2)));}}return r<this.minNumKeyoints?0:i/r},e.prototype.area=function(t){var e=this,n=t.filter((function(t){return t.score>e.keypointThreshold})),i=Math.min.apply(Math,K([1],n.map((function(t){return t.x})),!1)),r=Math.max.apply(Math,K([0],n.map((function(t){return t.x})),!1)),o=Math.min.apply(Math,K([1],n.map((function(t){return t.y})),!1));return (r-i)*(Math.max.apply(Math,K([0],n.map((function(t){return t.y})),!1))-o)},e}(ue);function ce(t){switch(t){case se.BlazePose:return j.reduce((function(t,e,n){return t[e]=n,t}),{});case se.PoseNet:case se.MoveNet:return U.reduce((function(t,e,n){return t[e]=n,t}),{});default:throw new Error("Model ".concat(t," is not supported."))}}!function(t){t.Keypoint="keypoint",t.BoundingBox="boundingBox";}(ae||(ae={})),function(t){t.MoveNet="MoveNet",t.BlazePose="BlazePose",t.PoseNet="PoseNet";}(se||(se={}));var fe=["SinglePose.Lightning","SinglePose.Thunder","MultiPose.Lightning"],de={modelType:"SinglePose.Lightning",enableSmoothing:!0},me={},ge={frequency:30,minCutOff:2.5,beta:300,derivateCutOff:2.5,thresholdCutOff:.5,thresholdBeta:5,disableValueScaling:!0},ye={maxTracks:18,maxAge:1e3,minSimilarity:.2,keypointTrackerParams:{keypointConfidenceThreshold:.3,keypointFalloff:[.026,.025,.025,.035,.035,.079,.079,.072,.072,.062,.062,.107,.107,.087,.087,.089,.089],minNumberOfKeypoints:4}},ve={maxTracks:18,maxAge:1e3,minSimilarity:.15,trackerParams:{}};function xe(t,e,n,i){for(var r={},o=0,a=U;o<a.length;o++){var s=a[o];r[s]=[e[n[s]].y*i.height,e[n[s]].x*i.width];}if(function(t,e){return (t[e.left_hip].score>.2||t[e.right_hip].score>.2)&&(t[e.left_shoulder].score>.2||t[e.right_shoulder].score>.2)}(e,n)){var u=(r.left_hip[0]+r.right_hip[0])/2,h=(r.left_hip[1]+r.right_hip[1])/2,l=function(t,e,n,i,r){for(var o=["left_shoulder","right_shoulder","left_hip","right_hip"],a=0,s=0,u=0;u<o.length;u++){(f=Math.abs(i-n[o[u]][0]))>a&&(a=f),(d=Math.abs(r-n[o[u]][1]))>s&&(s=d);}for(var h=0,l=0,c=0,p=Object.keys(n);c<p.length;c++){var f,d,m=p[c];if(!(t[e[m]].score<.2))(f=Math.abs(i-n[m][0]))>h&&(h=f),(d=Math.abs(r-n[m][1]))>l&&(l=d);}return [a,s,h,l]}(e,n,r,u,h),c=l[0],p=l[1],f=l[2],d=l[3],m=Math.max(1.9*p,1.9*c,1.2*f,1.2*d),g=[u-(m=Math.min(m,Math.max(h,i.width-h,u,i.height-u))),h-m];if(m>Math.max(i.width,i.height)/2)return we(null==t,i);var y=2*m;return {yMin:g[0]/i.height,xMin:g[1]/i.width,yMax:(g[0]+y)/i.height,xMax:(g[1]+y)/i.width,height:(g[0]+y)/i.height-g[0]/i.height,width:(g[1]+y)/i.width-g[1]/i.width}}return we(null==t,i)}function we(t,e){var n,i,r,o;return t?e.width>e.height?(n=1,i=e.height/e.width,r=0,o=(e.width/2-e.height/2)/e.width):(n=e.width/e.height,i=1,r=(e.height/2-e.width/2)/e.height,o=0):e.width>e.height?(n=e.width/e.height,i=1,r=(e.height/2-e.width/2)/e.height,o=0):(n=1,i=e.height/e.width,r=0,o=(e.width/2-e.height/2)/e.width),{yMin:r,xMin:o,yMax:r+n,xMax:o+i,height:n,width:i}}function ke(t){var e,n=null==t?de:B({},t);if(null==n.modelType)n.modelType="SinglePose.Lightning";else if(fe.indexOf(n.modelType)<0)throw new Error("Invalid architecture ".concat(n.modelType,". ")+"Should be one of ".concat(fe));if(null==n.enableSmoothing&&(n.enableSmoothing=!0),null!=n.minPoseScore&&(n.minPoseScore<0||n.minPoseScore>1))throw new Error("minPoseScore should be between 0.0 and 1.0");if(null!=n.multiPoseMaxDimension&&(n.multiPoseMaxDimension%32!=0||n.multiPoseMaxDimension<32))throw new Error("multiPoseMaxDimension must be a multiple of 32 and higher than 0");if("MultiPose.Lightning"===n.modelType&&null==n.enableTracking&&(n.enableTracking=!0),"MultiPose.Lightning"===n.modelType&&!0===n.enableTracking)if(null==n.trackerType&&(n.trackerType=ae.BoundingBox),n.trackerType===ae.Keypoint)null!=n.trackerConfig?n.trackerConfig=function(t){var e=be(ye,t);e.keypointTrackerParams=B({},ye.keypointTrackerParams),null!=t.keypointTrackerParams&&(null!=t.keypointTrackerParams.keypointConfidenceThreshold&&(e.keypointTrackerParams.keypointConfidenceThreshold=t.keypointTrackerParams.keypointConfidenceThreshold),null!=t.keypointTrackerParams.keypointFalloff&&(e.keypointTrackerParams.keypointFalloff=t.keypointTrackerParams.keypointFalloff),null!=t.keypointTrackerParams.minNumberOfKeypoints&&(e.keypointTrackerParams.minNumberOfKeypoints=t.keypointTrackerParams.minNumberOfKeypoints));return e}(n.trackerConfig):n.trackerConfig=ye;else {if(n.trackerType!==ae.BoundingBox)throw new Error("Tracker type not supported by MoveNet");null!=n.trackerConfig?n.trackerConfig=(e=n.trackerConfig,be(ve,e)):n.trackerConfig=ve;}return n}function be(t,e){var n={maxTracks:t.maxTracks,maxAge:t.maxAge,minSimilarity:t.minSimilarity};return null!=e.maxTracks&&(n.maxTracks=e.maxTracks),null!=e.maxAge&&(n.maxAge=e.maxAge),null!=e.minSimilarity&&(n.minSimilarity=e.minSimilarity),n}var Me=function(){function t(t,e){this.moveNetModel=t,this.modelInputResolution={height:0,width:0},this.keypointIndexByName=ce(se.MoveNet),"SinglePose.Lightning"===e.modelType?(this.modelInputResolution.width=192,this.modelInputResolution.height=192):"SinglePose.Thunder"===e.modelType&&(this.modelInputResolution.width=256,this.modelInputResolution.height=256),this.multiPoseModel="MultiPose.Lightning"===e.modelType,this.multiPoseModel||(this.keypointFilter=new Et(ge),this.cropRegionFilterYMin=new zt(.9),this.cropRegionFilterXMin=new zt(.9),this.cropRegionFilterYMax=new zt(.9),this.cropRegionFilterXMax=new zt(.9)),this.enableSmoothing=e.enableSmoothing,e.minPoseScore?this.minPoseScore=e.minPoseScore:this.minPoseScore=.25,e.multiPoseMaxDimension?this.multiPoseMaxDimension=e.multiPoseMaxDimension:this.multiPoseMaxDimension=256,this.enableTracking=e.enableTracking,this.multiPoseModel&&this.enableTracking&&(e.trackerType===ae.Keypoint?this.tracker=new le(e.trackerConfig):e.trackerType===ae.BoundingBox&&(this.tracker=new he(e.trackerConfig)),this.enableSmoothing&&(this.keypointFilterMap=new Map));}return t.prototype.runSinglePersonPoseModel=function(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o;return D(this,(function(a){switch(a.label){case 0:if(4!==(e=this.moveNetModel.execute(t)).shape.length||1!==e.shape[0]||1!==e.shape[1]||17!==e.shape[2]||3!==e.shape[3])throw e.dispose(),new Error("Unexpected output shape from model: [".concat(e.shape,"]"));return "webgpu"===getBackend()?[3,1]:(n=e.dataSync(),[3,3]);case 1:return [4,e.data()];case 2:n=a.sent(),a.label=3;case 3:for(e.dispose(),i={keypoints:[],score:0},r=0,o=0;o<17;++o)i.keypoints[o]={y:n[3*o],x:n[3*o+1],score:n[3*o+2]},i.keypoints[o].score>.2&&(++r,i.score+=i.keypoints[o].score);return r>0&&(i.score/=r),[2,i]}}))}))},t.prototype.runMultiPersonPoseModel=function(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o,a,s,u;return D(this,(function(h){switch(h.label){case 0:if(3!==(e=this.moveNetModel.execute(t)).shape.length||1!==e.shape[0]||56!==e.shape[2])throw e.dispose(),new Error("Unexpected output shape from model: [".concat(e.shape,"]"));return "webgpu"===getBackend()?[3,1]:(n=e.dataSync(),[3,3]);case 1:return [4,e.data()];case 2:n=h.sent(),h.label=3;case 3:for(e.dispose(),i=[],r=n.length/56,o=0;o<r;++o)for(i[o]={keypoints:[]},a=56*o+51,i[o].box={yMin:n[a],xMin:n[a+1],yMax:n[a+2],xMax:n[a+3],width:n[a+3]-n[a+1],height:n[a+2]-n[a]},s=56*o+55,i[o].score=n[s],i[o].keypoints=[],u=0;u<17;++u)i[o].keypoints[u]={y:n[56*o+3*u],x:n[56*o+3*u+1],score:n[56*o+3*u+2]};return [2,i]}}))}))},t.prototype.estimatePoses=function(t,n,i){return void 0===n&&(n=me),N(this,void 0,void 0,(function(){var r,o,a,s,u,l;return D(this,(function(c){switch(c.label){case 0:return n=function(t){return null==t?me:B({},t)}(n),null==t?(this.reset(),[2,[]]):(null==i?vt(t)&&(i=1e6*t.currentTime):i*=1e3,r=at(t),o=rt(r),a=expandDims$2(r,0),t instanceof Tensor||r.dispose(),s=[],this.multiPoseModel?[3,2]:[4,this.estimateSinglePose(a,o,i)]);case 1:return s=c.sent(),[3,4];case 2:return [4,this.estimateMultiplePoses(a,o,i)];case 3:s=c.sent(),c.label=4;case 4:for(u=0;u<s.length;++u)for(l=0;l<s[u].keypoints.length;++l)s[u].keypoints[l].name=U[l],s[u].keypoints[l].y*=o.height,s[u].keypoints[l].x*=o.width;return [2,s]}}))}))},t.prototype.estimateSinglePose=function(t,e,n){return N(this,void 0,void 0,(function(){var i,o,a,h,c=this;return D(this,(function(p){switch(p.label){case 0:return this.cropRegion||(this.cropRegion=we(null==this.cropRegion,e)),i=tidy((function(){var e=tensor2d([[c.cropRegion.yMin,c.cropRegion.xMin,c.cropRegion.yMax,c.cropRegion.xMax]]),n=zeros([1],"int32"),i=[c.modelInputResolution.height,c.modelInputResolution.width];return cast$2(image$1.cropAndResize(t,e,n,i,"bilinear",0),"int32")})),t.dispose(),[4,this.runSinglePersonPoseModel(i)];case 1:if(o=p.sent(),i.dispose(),o.score<this.minPoseScore)return this.reset(),[2,[]];for(a=0;a<o.keypoints.length;++a)o.keypoints[a].y=this.cropRegion.yMin+o.keypoints[a].y*this.cropRegion.height,o.keypoints[a].x=this.cropRegion.xMin+o.keypoints[a].x*this.cropRegion.width;return null!=n&&this.enableSmoothing&&(o.keypoints=this.keypointFilter.apply(o.keypoints,n,1)),h=xe(this.cropRegion,o.keypoints,this.keypointIndexByName,e),this.cropRegion=this.filterCropRegion(h),[2,[o]]}}))}))},t.prototype.estimateMultiplePoses=function(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,h,c,p,f,d,m,g=this;return D(this,(function(y){switch(y.label){case 0:return e.width>e.height?(r=this.multiPoseMaxDimension,o=Math.round(this.multiPoseMaxDimension*e.height/e.width),i=image$1.resizeBilinear(t,[o,r]),s=r,h=32*Math.ceil(o/32),a=pad(i,[[0,0],[0,h-o],[0,0],[0,0]])):(r=Math.round(this.multiPoseMaxDimension*e.width/e.height),o=this.multiPoseMaxDimension,i=image$1.resizeBilinear(t,[o,r]),s=32*Math.ceil(r/32),h=o,a=pad(i,[[0,0],[0,0],[0,s-r],[0,0]])),i.dispose(),t.dispose(),c=cast$2(a,"int32"),a.dispose(),[4,this.runMultiPersonPoseModel(c)];case 1:for(p=y.sent(),c.dispose(),p=p.filter((function(t){return t.score>=g.minPoseScore})),d=0;d<p.length;++d)for(f=0;f<p[d].keypoints.length;++f)p[d].keypoints[f].y*=h/o,p[d].keypoints[f].x*=s/r;if(this.enableTracking&&(this.tracker.apply(p,n),this.enableSmoothing)){for(d=0;d<p.length;++d)this.keypointFilterMap.has(p[d].id)||this.keypointFilterMap.set(p[d].id,new Et(ge)),p[d].keypoints=this.keypointFilterMap.get(p[d].id).apply(p[d].keypoints,n,1);m=this.tracker.getTrackIDs(),this.keypointFilterMap.forEach((function(t,e){m.has(e)||g.keypointFilterMap.delete(e);}));}return [2,p]}}))}))},t.prototype.filterCropRegion=function(t){if(t){var e=this.cropRegionFilterYMin.apply(t.yMin),n=this.cropRegionFilterXMin.apply(t.xMin),i=this.cropRegionFilterYMax.apply(t.yMax),r=this.cropRegionFilterXMax.apply(t.xMax);return {yMin:e,xMin:n,yMax:i,xMax:r,height:i-e,width:r-n}}return this.cropRegionFilterYMin.reset(),this.cropRegionFilterXMin.reset(),this.cropRegionFilterYMax.reset(),this.cropRegionFilterXMax.reset(),null},t.prototype.dispose=function(){this.moveNetModel.dispose();},t.prototype.reset=function(){this.cropRegion=null,this.resetFilters();},t.prototype.resetFilters=function(){this.keypointFilter.reset(),this.cropRegionFilterYMin.reset(),this.cropRegionFilterXMin.reset(),this.cropRegionFilterYMax.reset(),this.cropRegionFilterXMax.reset();},t}();function Se(t){return void 0===t&&(t=de),N(this,void 0,void 0,(function(){var e,n,i,r;return D(this,(function(o){switch(o.label){case 0:return e=ke(t),i=!0,e.modelUrl?(i="string"==typeof e.modelUrl&&e.modelUrl.indexOf("https://tfhub.dev")>-1,[4,loadGraphModel(e.modelUrl,{fromTFHub:i})]):[3,2];case 1:return n=o.sent(),[3,4];case 2:return r=void 0,"SinglePose.Lightning"===e.modelType?r="https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4":"SinglePose.Thunder"===e.modelType?r="https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/4":"MultiPose.Lightning"===e.modelType&&(r="https://tfhub.dev/google/tfjs-model/movenet/multipose/lightning/1"),[4,loadGraphModel(r,{fromTFHub:i})];case 3:n=o.sent(),o.label=4;case 4:return "webgl"===getBackend()&&env().set("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD",0),[2,new Me(n,e)]}}))}))}var Te={architecture:"MobileNetV1",outputStride:16,multiplier:.75,inputResolution:{height:257,width:257}},Pe=["MobileNetV1","ResNet50"],Fe={MobileNetV1:[8,16],ResNet50:[16]},_e=[8,16,32],Oe={MobileNetV1:[.5,.75,1],ResNet50:[1]},Ie=[1,2,4],Ae={maxPoses:1,flipHorizontal:!1},ze={maxPoses:5,flipHorizontal:!1,scoreThreshold:.5,nmsRadius:20},Ce=[-123.15,-115.9,-103.06];function Ee(t){return Math.floor(t/2)}var Re=function(){function t(t,e){this.priorityQueue=new Array(t),this.numberOfElements=-1,this.getElementValue=e;}return t.prototype.enqueue=function(t){this.priorityQueue[++this.numberOfElements]=t,this.swim(this.numberOfElements);},t.prototype.dequeue=function(){var t=this.priorityQueue[0];return this.exchange(0,this.numberOfElements--),this.sink(0),this.priorityQueue[this.numberOfElements+1]=null,t},t.prototype.empty=function(){return -1===this.numberOfElements},t.prototype.size=function(){return this.numberOfElements+1},t.prototype.all=function(){return this.priorityQueue.slice(0,this.numberOfElements+1)},t.prototype.max=function(){return this.priorityQueue[0]},t.prototype.swim=function(t){for(;t>0&&this.less(Ee(t),t);)this.exchange(t,Ee(t)),t=Ee(t);},t.prototype.sink=function(t){for(;2*t<=this.numberOfElements;){var e=2*t;if(e<this.numberOfElements&&this.less(e,e+1)&&e++,!this.less(t,e))break;this.exchange(t,e),t=e;}},t.prototype.getValueAt=function(t){return this.getElementValue(this.priorityQueue[t])},t.prototype.less=function(t,e){return this.getValueAt(t)<this.getValueAt(e)},t.prototype.exchange=function(t,e){var n=this.priorityQueue[t];this.priorityQueue[t]=this.priorityQueue[e],this.priorityQueue[e]=n;},t}();function Le(t,e,n,i,r,o){for(var a=o.shape,s=a[0],u=a[1],h=!0,l=Math.max(n-r,0),c=Math.min(n+r+1,s),p=l;p<c;++p){for(var f=Math.max(i-r,0),d=Math.min(i+r+1,u),m=f;m<d;++m)if(o.get(p,m,t)>e){h=!1;break}if(!h)break}return h}function Ve(t){return N(this,void 0,void 0,(function(){return D(this,(function(e){return [2,Promise.all(t.map((function(t){return t.buffer()})))]}))}))}function Be(t,e,n,i){return {y:i.get(t,e,n),x:i.get(t,e,n+17)}}function Ne(t,e,n){var i=Be(t.heatmapY,t.heatmapX,t.id,n),r=i.y,o=i.x;return {x:t.heatmapX*e+o,y:t.heatmapY*e+r}}function De(t,e,n,i){var r=n.x,o=n.y;return t.some((function(t){var n,a,s,u,h,l,c=t.keypoints;return n=o,a=r,s=c[i].y,u=c[i].x,(h=s-n)*h+(l=u-a)*l<=e}))}var Ke=U.reduce((function(t,e,n){return t[e]=n,t}),{}),Ue=[["nose","left_eye"],["left_eye","left_ear"],["nose","right_eye"],["right_eye","right_ear"],["nose","left_shoulder"],["left_shoulder","left_elbow"],["left_elbow","left_wrist"],["left_shoulder","left_hip"],["left_hip","left_knee"],["left_knee","left_ankle"],["nose","right_shoulder"],["right_shoulder","right_elbow"],["right_elbow","right_wrist"],["right_shoulder","right_hip"],["right_hip","right_knee"],["right_knee","right_ankle"]].map((function(t){var e=t[0],n=t[1];return [Ke[e],Ke[n]]})),je=Ue.map((function(t){return t[1]})),He=Ue.map((function(t){return t[0]}));function qe(t,e,n){return t<e?e:t>n?n:t}function Xe(t,e,n,i){return {y:qe(Math.round(t.y/e),0,n-1),x:qe(Math.round(t.x/e),0,i-1)}}function Ye(t,e){return {x:t.x+e.x,y:t.y+e.y}}function We(t,e,n,i,r,o,a,s){void 0===s&&(s=2);for(var u=i.shape,h=u[0],l=u[1],c={y:e.y,x:e.x},p=Ye(c,function(t,e,n){var i=n.shape[2]/2;return {y:n.get(e.y,e.x,t),x:n.get(e.y,e.x,i+t)}}(t,Xe(c,o,h,l),a)),f=0;f<s;f++){var d=Xe(p,o,h,l),m=Be(d.y,d.x,n,r);p=Ye({x:d.x*o,y:d.y*o},{x:m.x,y:m.y});}var g=Xe(p,o,h,l),y=i.get(g.y,g.x,n);return {y:p.y,x:p.x,name:U[n],score:y}}function Ge(t,e,n,i,r,o){var a=e.shape[2],s=je.length,u=new Array(a),h=t.part,l=t.score,c=Ne(h,i,n);u[h.id]={score:l,name:U[h.id],y:c.y,x:c.x};for(var p=s-1;p>=0;--p){var f=je[p],d=He[p];u[f]&&!u[d]&&(u[d]=We(p,u[f],d,e,n,i,o));}for(p=0;p<s;++p){f=He[p],d=je[p];u[f]&&!u[d]&&(u[d]=We(p,u[f],d,e,n,i,r));}return u}function Qe(t,e,n){return n.reduce((function(n,i,r){var o=i.y,a=i.x,s=i.score;return De(t,e,{y:o,x:a},r)||(n+=s),n}),0)/n.length}function Ze(t,e,n,i,r,o,a,s){return void 0===a&&(a=.5),void 0===s&&(s=20),N(this,void 0,void 0,(function(){var u,h,l,c,p,f,d,m,g,y,v,x;return D(this,(function(w){switch(w.label){case 0:return [4,Ve([t,e,n,i])];case 1:for(u=w.sent(),h=u[0],l=u[1],c=u[2],p=u[3],f=[],d=function(t,e,n){for(var i=n.shape,r=i[0],o=i[1],a=i[2],s=new Re(r*o*a,(function(t){return t.score})),u=0;u<r;++u)for(var h=0;h<o;++h)for(var l=0;l<a;++l){var c=n.get(u,h,l);c<t||Le(l,c,u,h,e,n)&&s.enqueue({score:c,part:{heatmapY:u,heatmapX:h,id:l}});}return s}(a,1,h),m=s*s;f.length<o&&!d.empty();)g=d.dequeue(),y=Ne(g.part,r,l),De(f,m,y,g.part.id)||(v=Ge(g,h,l,r,c,p),x=Qe(f,m,v),f.push({keypoints:v,score:x}));return [2,f]}}))}))}function $e(){for(var t,e=[],n=0;n<arguments.length;n++)e[n]=arguments[n];switch(e.length){case 0:t="fn main() ";break;case 1:t="fn main(".concat(e[0]," : i32)");break;default:throw Error("Unreachable")}return t}var Je=function(){function t(t){this.variableNames=["A","B"],this.size=!0;this.workgroupSize=[32,1,1],this.outputShape=[t[0],1],this.dispatchLayout=flatDispatchLayout(this.outputShape),this.dispatch=computeDispatch(this.dispatchLayout,this.outputShape,this.workgroupSize),this.shaderKey="getpointsConfidenceOp";}return t.prototype.getUserCode=function(){return "\n        ".concat($e("index")," {\n          if (index < uniforms.size) {\n            let y = B[index * 2];\n            let x = B[index * 2 + 1];\n            let outIndex = y * uniforms.aShape.x * uniforms.aShape.z + x * uniforms.aShape.z + index;\n            result[index] = A[outIndex];\n          }\n        }\n        ")},t}();function tn(t,e){if(backend()instanceof WebGPUBackend)return function(t,e){var n=backend(),i=new Je(e.shape),r=n.runWebGPUProgram(i,[t,e],"float32");return engine().makeTensorFromTensorInfo(r)}(t,e);throw new Error("getPointsConfidenceWebGPU is not supported in this backend!")}var en=function(){function t(t){if(this.variableNames=["A","B"],this.size=!0,this.supportedLastDimension=2,2!==t.length||t[1]!==this.supportedLastDimension)throw new Error("GetOffsetVectorsProgram only supports shape of [x, ".concat(this.supportedLastDimension,"], but current shape is ").concat(t));this.workgroupSize=[32,1,1],this.outputShape=t;var e=[t[0],1];this.dispatchLayout=flatDispatchLayout(e),this.dispatch=computeDispatch(this.dispatchLayout,e,this.workgroupSize),this.shaderKey="GetOffsetVectors";}return t.prototype.getUserCode=function(){return "\n    fn getOffsetPoint(y: i32, x: i32, index: i32) -> vec2<i32> {\n      let outIndexY = y * uniforms.bShape.x * uniforms.bShape.y + x * uniforms.bShape.y + index;\n      let outIndexX = outIndexY + uniforms.bShape.z;\n      let outY = i32(B[outIndexY]);\n      let outX = i32(B[outIndexX]);\n      return vec2<i32>(outY, outX);\n    }\n\n    ".concat($e("index")," {\n      if (index < uniforms.size) {\n        let indexY = index * ").concat(this.supportedLastDimension,";\n        let indexX = indexY + 1;\n        let heatmapY = A[indexY];\n        let heatmapX = A[indexX];\n        let out = getOffsetPoint(i32(heatmapY), i32(heatmapX), index);\n        result[indexY] = f32(out[0]);\n        result[indexX] = f32(out[1]);\n      }\n    }\n    ")},t}();function nn(t,e){if(backend()instanceof WebGPUBackend)return function(t,e){var n=backend(),i=new en(t.shape),r=n.runWebGPUProgram(i,[t,e],"float32");return engine().makeTensorFromTensorInfo(r)}(t,e);throw new Error("getOffsetVectorsGPU is not supported in this backend!")}function rn(t){var e=t.shape,n=e[0],i=e[1],o=e[2];return tidy((function(){var e,s,u=reshape$2(t,[n*i,o]),l=argMax$2(u,0),c=expandDims$2(div(l,scalar(i,"int32")),1),p=expandDims$2((e=l,s=i,tidy((function(){var t=div(e,scalar(s,"int32"));return sub$2(e,mul(t,scalar(s,"int32")))}))),1);return concat$2([c,p],1)}))}function on(t,e,n){return tidy((function(){var i=function(t,e){for(var n=[],i=0;i<U.length;i++){var r=t.get(i,0).valueOf(),o=t.get(i,1).valueOf(),a=an(r,o,i,e),u=a.x,h=a.y;n.push(h),n.push(u);}return tensor2d(n,[U.length,2])}(t,n);return add(cast$2(mul(t.toTensor(),scalar(e,"int32")),"float32"),i)}))}function an(t,e,n,i){return {y:i.get(t,e,n),x:i.get(t,e,n+U.length)}}function sn(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u,h,l,c,p;return D(this,(function(f){switch(f.label){case 0:return i=0,r=rn(t),[4,Promise.all([t.buffer(),e.buffer(),r.buffer()])];case 1:return o=f.sent(),a=o[0],s=o[1],u=o[2],[4,(h=on(u,n,s)).buffer()];case 2:return l=f.sent(),c=Array.from(function(t,e){for(var n=e.shape[0],i=new Float32Array(n),r=0;r<n;r++){var o=e.get(r,0),a=e.get(r,1);i[r]=t.get(o,a,r);}return i}(a,u)),p=c.map((function(t,e){return i+=t,{y:l.get(e,0),x:l.get(e,1),score:t,name:U[e]}})),r.dispose(),h.dispose(),[2,{keypoints:p,score:i/p.length}]}}))}))}function un(t,e,n){return N(this,void 0,void 0,(function(){var i,s,u;return D(this,(function(h){return i=rn(t),s=function(t,e,n){return tidy((function(){var i=nn(t,n);return add(cast$2(mul(t,scalar(e,"int32")),"float32"),i)}))}(i,n,e),u=tn(t,i),[2,[s,u]]}))}))}function hn(t,e){return (t-1)%e==0}var ln="https://storage.googleapis.com/tfjs-models/savedmodel/posenet/mobilenet/",cn="https://storage.googleapis.com/tfjs-models/savedmodel/posenet/resnet50/";function pn(t,e){return function(t,e){return (t-1)%e==0}(t,e)?t:Math.floor(t/e)*e+1}var fn=function(){function t(t,e){this.posenetModel=t;var n=this.posenetModel.inputs[0].shape;assert(-1===n[1]&&-1===n[2],(function(){return "Input shape [".concat(n[1],", ").concat(n[2],"] ")+"must both be equal to or -1"}));var r,o,a=(r=e.inputResolution,o=e.outputStride,{height:pn(r.height,o),width:pn(r.width,o)});!function(t){assert(_e.indexOf(t)>=0,(function(){return "outputStride of ".concat(t," is invalid. ")+"It must be either 8 or 16."}));}(e.outputStride),function(t,e){assert(hn(t.height,e),(function(){return "height of ".concat(t.height," is invalid for output stride ")+"".concat(e,".")})),assert(hn(t.width,e),(function(){return "width of ".concat(t.width," is invalid for output stride ")+"".concat(e,".")}));}(a,e.outputStride),this.inputResolution=a,this.outputStride=e.outputStride,this.architecture=e.architecture;}return t.prototype.estimatePoses=function(t,e){return void 0===e&&(e=Ae),N(this,void 0,void 0,(function(){return D(this,(function(n){return [2,this.estimatePosesGPU(t,e,!1)]}))}))},t.prototype.estimatePosesGPU=function(t,e,n){return void 0===e&&(e=Ae),void 0===n&&(n=!1),N(this,void 0,void 0,(function(){var i,r,a,s,u,h,l,c,d,m,g,y,v,x,w,k,b,M;return D(this,(function(S){switch(S.label){case 0:return i=function(t){var e=t;if(null==e.maxPoses&&(e.maxPoses=1),e.maxPoses<=0)throw new Error("Invalid maxPoses ".concat(e.maxPoses,". Should be > 0."));if(e.maxPoses>1){if((e=B(B({},ze),e)).scoreThreshold<0||e.scoreThreshold>1)throw new Error("Invalid scoreThreshold ".concat(e.scoreThreshold,". ")+"Should be in range [0.0, 1.0]");if(e.nmsRadius<=0)throw new Error("Invalid nmsRadius ".concat(e.nmsRadius,"."))}return e}(e),null==t?[2,n?[[],[]]:[]]:(this.maxPoses=i.maxPoses,r=mt(t,{outputTensorSize:this.inputResolution,keepAspectRatio:!0,borderMode:"replicate"}),a=r.imageTensor,s=r.padding,u="ResNet50"===this.architecture?add(a,Ce):dt(a,[-1,1]),h=this.posenetModel.predict(u),"ResNet50"===this.architecture?(l=squeeze(h[2],[0]),c=squeeze(h[3],[0]),d=squeeze(h[0],[0]),m=squeeze(h[1],[0])):(l=squeeze(h[0],[0]),c=squeeze(h[1],[0]),d=squeeze(h[2],[0]),m=squeeze(h[3],[0])),g=sigmoid$2(c),1!==this.maxPoses?[3,5]:n?[4,un(g,l,this.outputStride)]:[3,2]);case 1:return v=S.sent(),w=v[0],x=v[1],y=[w,x],[3,4];case 2:return [4,sn(g,l,this.outputStride)];case 3:w=S.sent(),y=[w],S.label=4;case 4:return [3,7];case 5:if(n)throw new Error("GPU renderer only supports single pose!");return [4,Ze(g,l,d,m,this.outputStride,this.maxPoses,i.scoreThreshold,i.nmsRadius)];case 6:y=S.sent(),S.label=7;case 7:if(n){if(!0===i.flipHorizontal)throw new Error("flipHorizontal is not supported!");k=this.getCanvasInfo(rt(t),this.inputResolution,s);}else M=rt(t),b=function(t,e,n,i){var r=e.height,o=e.width,a=r/(n.height*(1-i.top-i.bottom)),s=o/(n.width*(1-i.left-i.right)),u=-i.top*n.height,h=-i.left*n.width;if(1===s&&1===a&&0===u&&0===h)return t;for(var l=0,c=t;l<c.length;l++)for(var p=0,f=c[l].keypoints;p<f.length;p++){var d=f[p];d.x=(d.x+h)*s,d.y=(d.y+u)*a;}return t}(y,M,this.inputResolution,s),i.flipHorizontal&&(b=function(t,e){for(var n=0,i=t;n<i.length;n++)for(var r=0,o=i[n].keypoints;r<o.length;r++){var a=o[r];a.x=e.width-1-a.x;}return t}(b,M));return a.dispose(),u.dispose(),dispose(h),l.dispose(),c.dispose(),d.dispose(),m.dispose(),g.dispose(),[2,n?[y,k]:b]}}))}))},t.prototype.getCanvasInfo=function(t,e,n){var i=t.height,r=t.width,o=i/(e.height*(1-n.top-n.bottom)),a=r/(e.width*(1-n.left-n.right)),s=-n.top*e.height;return [-n.left*e.width,s,a,o,t.width,t.height]},t.prototype.dispose=function(){this.posenetModel.dispose();},t.prototype.reset=function(){},t}();function dn(t){return void 0===t&&(t=Te),N(this,void 0,void 0,(function(){var e,n,i,r,o;return D(this,(function(a){switch(a.label){case 0:return "ResNet50"!==(e=function(t){var e=t||Te;if(null==e.architecture&&(e.architecture="MobileNetV1"),Pe.indexOf(e.architecture)<0)throw new Error("Invalid architecture ".concat(e.architecture,". ")+"Should be one of ".concat(Pe));if(null==e.inputResolution&&(e.inputResolution={height:257,width:257}),null==e.outputStride&&(e.outputStride=16),Fe[e.architecture].indexOf(e.outputStride)<0)throw new Error("Invalid outputStride ".concat(e.outputStride,". ")+"Should be one of ".concat(Fe[e.architecture]," ")+"for architecture ".concat(e.architecture,"."));if(null==e.multiplier&&(e.multiplier=1),Oe[e.architecture].indexOf(e.multiplier)<0)throw new Error("Invalid multiplier ".concat(e.multiplier,". ")+"Should be one of ".concat(Oe[e.architecture]," ")+"for architecture ".concat(e.architecture,"."));if(null==e.quantBytes&&(e.quantBytes=4),Ie.indexOf(e.quantBytes)<0)throw new Error("Invalid quantBytes ".concat(e.quantBytes,". ")+"Should be one of ".concat(Ie," ")+"for architecture ".concat(e.architecture,"."));if("MobileNetV1"===e.architecture&&32===e.outputStride&&1!==e.multiplier)throw new Error("When using an output stride of 32, you must select 1 as the multiplier.");return e}(t)).architecture?[3,2]:(s=e.outputStride,u=e.quantBytes,h="model-stride".concat(s,".json"),n=4===u?cn+"float/"+h:cn+"quant".concat(u,"/")+h,[4,loadGraphModel(e.modelUrl||n)]);case 1:return i=a.sent(),[2,new fn(i,e)];case 2:return r=function(t,e,n){var i={1:"100",.75:"075",.5:"050"},r="model-stride".concat(t,".json");return 4===n?ln+"float/".concat(i[e],"/")+r:ln+"quant".concat(n,"/").concat(i[e],"/")+r}(e.outputStride,e.multiplier,e.quantBytes),[4,loadGraphModel(e.modelUrl||r)];case 3:return o=a.sent(),[2,new fn(o,e)]}var s,u,h;}))}))}function mn(t,e){return N(this,void 0,void 0,(function(){var n,i;return D(this,(function(r){switch(t){case se.PoseNet:return [2,dn(e)];case se.BlazePose:if(i=void 0,null!=(n=e)){if("tfjs"===n.runtime)return [2,oe(e)];if("mediapipe"===n.runtime)return [2,it(e)];i=n.runtime;}throw new Error("Expect modelConfig.runtime to be either 'tfjs' "+"or 'mediapipe', but got ".concat(i));case se.MoveNet:return [2,Se(e)];default:throw new Error("".concat(t," is not a supported model name."))}}))}))}
+var L=function(t,e){return (L=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e;}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n]);})(t,e)};function V(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Class extends value "+String(e)+" is not a constructor or null");function n(){this.constructor=t;}L(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n);}var B=function(){return (B=Object.assign||function(t){for(var e,n=1,i=arguments.length;n<i;n++)for(var r in e=arguments[n])Object.prototype.hasOwnProperty.call(e,r)&&(t[r]=e[r]);return t}).apply(this,arguments)};function N(t,e,n,i){return new(n||(n=Promise))((function(r,o){function a(t){try{u(i.next(t));}catch(t){o(t);}}function s(t){try{u(i.throw(t));}catch(t){o(t);}}function u(t){var e;t.done?r(t.value):(e=t.value,e instanceof n?e:new n((function(t){t(e);}))).then(a,s);}u((i=i.apply(t,e||[])).next());}))}function D(t,e){var n,i,r,o,a={label:0,sent:function(){if(1&r[0])throw r[1];return r[1]},trys:[],ops:[]};return o={next:s(0),throw:s(1),return:s(2)},"function"==typeof Symbol&&(o[Symbol.iterator]=function(){return this}),o;function s(o){return function(s){return function(o){if(n)throw new TypeError("Generator is already executing.");for(;a;)try{if(n=1,i&&(r=2&o[0]?i.return:o[0]?i.throw||((r=i.return)&&r.call(i),0):i.next)&&!(r=r.call(i,o[1])).done)return r;switch(i=0,r&&(o=[2&o[0],r.value]),o[0]){case 0:case 1:r=o;break;case 4:return a.label++,{value:o[1],done:!1};case 5:a.label++,i=o[1],o=[0];continue;case 7:o=a.ops.pop(),a.trys.pop();continue;default:if(!(r=a.trys,(r=r.length>0&&r[r.length-1])||6!==o[0]&&2!==o[0])){a=0;continue}if(3===o[0]&&(!r||o[1]>r[0]&&o[1]<r[3])){a.label=o[1];break}if(6===o[0]&&a.label<r[1]){a.label=r[1],r=o;break}if(r&&a.label<r[2]){a.label=r[2],a.ops.push(o);break}r[2]&&a.ops.pop(),a.trys.pop();continue}o=e.call(t,a);}catch(t){o=[6,t],i=0;}finally{n=r=0;}if(5&o[0])throw o[1];return {value:o[0]?o[1]:void 0,done:!0}}([o,s])}}}function K(t,e,n){if(n||2===arguments.length)for(var i,r=0,o=e.length;r<o;r++)!i&&r in e||(i||(i=Array.prototype.slice.call(e,0,r)),i[r]=e[r]);return t.concat(i||Array.prototype.slice.call(e))}var U=["nose","left_eye","right_eye","left_ear","right_ear","left_shoulder","right_shoulder","left_elbow","right_elbow","left_wrist","right_wrist","left_hip","right_hip","left_knee","right_knee","left_ankle","right_ankle"],j=["nose","left_eye_inner","left_eye","left_eye_outer","right_eye_inner","right_eye","right_eye_outer","left_ear","right_ear","mouth_left","mouth_right","left_shoulder","right_shoulder","left_elbow","right_elbow","left_wrist","right_wrist","left_pinky","right_pinky","left_index","right_index","left_thumb","right_thumb","left_hip","right_hip","left_knee","right_knee","left_ankle","right_ankle","left_heel","right_heel","left_foot_index","right_foot_index"];function W(t){return t instanceof SVGAnimatedLength?t.baseVal.value:t}function G(t){return N(this,void 0,void 0,(function(){var i,r;return D(this,(function(o){switch(o.label){case 0:return i=document.createElement("canvas"),t instanceof Tensor?[4,toPixels(t,i)]:[3,2];case 1:return o.sent(),[3,3];case 2:i.width=W(t.width),i.height=W(t.height),r=i.getContext("2d"),t instanceof ImageData?r.putImageData(t,0,0):r.drawImage(t,0,0),o.label=3;case 3:return [2,i]}}))}))}function Q(t){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u;return D(this,(function(h){switch(h.label){case 0:return t instanceof Tensor?(i=t.shape.slice(0,2),r=i[0],o=i[1],a=ImageData.bind,[4,toPixels(t)]):[3,2];case 1:return [2,new(a.apply(ImageData,[void 0,h.sent(),o,r]))];case 2:return s=document.createElement("canvas"),u=s.getContext("2d"),s.width=W(t.width),s.height=W(t.height),u.drawImage(t,0,0),[2,u.getImageData(0,0,s.width,s.height)]}}))}))}function Z(t){return N(this,void 0,void 0,(function(){var e,i;return D(this,(function(r){switch(r.label){case 0:return t instanceof SVGImageElement||t instanceof OffscreenCanvas?[4,G(t)]:[3,2];case 1:return i=r.sent(),[3,3];case 2:i=t,r.label=3;case 3:return e=i,[2,fromPixels$2(e,4)]}}))}))}function $(t){if(t<0||t>=256)throw new Error("Mask value must be in range [0, 255] but got ".concat(t));if(!Number.isInteger(t))throw new Error("Mask value must be an integer but got ".concat(t))}var J={runtime:"mediapipe",enableSmoothing:!0,enableSegmentation:!1,smoothSegmentation:!0,modelType:"full"};var tt=function(){function t(t){this.mask=t;}return t.prototype.toCanvasImageSource=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,this.mask]}))}))},t.prototype.toImageData=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,Q(this.mask)]}))}))},t.prototype.toTensor=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,Z(this.mask)]}))}))},t.prototype.getUnderlyingType=function(){return "canvasimagesource"},t}();function et(t){return $(t),"person"}var nt=function(){function i(e){var n,i=this;switch(this.width=0,this.height=0,this.selfieMode=!1,this.poseSolution=new pose.Pose({locateFile:function(t,n){if(e.solutionPath){var i=e.solutionPath.replace(/\/+$/,"");return "".concat(i,"/").concat(t)}return "".concat(n,"/").concat(t)}}),e.modelType){case"lite":n=0;break;case"heavy":n=2;break;case"full":default:n=1;}this.poseSolution.setOptions({modelComplexity:n,smoothLandmarks:e.enableSmoothing,enableSegmentation:e.enableSegmentation,smoothSegmentation:e.smoothSegmentation,selfieMode:this.selfieMode}),this.poseSolution.onResults((function(t){if(i.height=t.image.height,i.width=t.image.width,null==t.poseLandmarks)i.poses=[];else {var e=i.translateOutput(t.poseLandmarks,t.poseWorldLandmarks);t.segmentationMask&&(e.segmentation={maskValueToLabel:et,mask:new tt(t.segmentationMask)}),i.poses=[e];}}));}return i.prototype.translateOutput=function(t,e){var n=this,i={keypoints:t.map((function(t,e){return {x:t.x*n.width,y:t.y*n.height,z:t.z,score:t.visibility,name:j[e]}}))};return null!=e&&(i.keypoints3D=e.map((function(t,e){return {x:t.x,y:t.y,z:t.z,score:t.visibility,name:j[e]}}))),i},i.prototype.estimatePoses=function(t,i,r){return N(this,void 0,void 0,(function(){var o,a;return D(this,(function(s){switch(s.label){case 0:return i&&i.flipHorizontal&&i.flipHorizontal!==this.selfieMode&&(this.selfieMode=i.flipHorizontal,this.poseSolution.setOptions({selfieMode:this.selfieMode})),t instanceof Tensor?(a=ImageData.bind,[4,toPixels(t)]):[3,2];case 1:return o=new(a.apply(ImageData,[void 0,s.sent(),t.shape[1],t.shape[0]])),[3,3];case 2:o=t,s.label=3;case 3:return t=o,[4,this.poseSolution.send({image:t},r)];case 4:return s.sent(),[2,this.poses]}}))}))},i.prototype.dispose=function(){this.poseSolution.close();},i.prototype.reset=function(){this.poseSolution.reset();},i.prototype.initialize=function(){return this.poseSolution.initialize()},i}();function it(t){return N(this,void 0,void 0,(function(){var e,n;return D(this,(function(i){switch(i.label){case 0:return e=function(t){if(null==t)return B({},J);var e=B({},t);return e.runtime="mediapipe",null==e.enableSegmentation&&(e.enableSegmentation=J.enableSegmentation),null==e.enableSmoothing&&(e.enableSmoothing=J.enableSmoothing),null==e.smoothSegmentation&&(e.smoothSegmentation=J.smoothSegmentation),null==e.modelType&&(e.modelType=J.modelType),e}(t),[4,(n=new nt(e)).initialize()];case 1:return i.sent(),[2,n]}}))}))}function rt(t){return t instanceof Tensor?{height:t.shape[0],width:t.shape[1]}:{height:t.height,width:t.width}}function ot(t){return t-2*Math.PI*Math.floor((t+Math.PI)/(2*Math.PI))}function at(t){return t instanceof Tensor?t:fromPixels$2(t)}function st(t,e,n){return ut(n,"inputResolution"),[1/n.width*t[0][0]*e.width,1/n.height*t[0][1]*e.width,t[0][3]*e.width,1/n.width*t[1][0]*e.height,1/n.height*t[1][1]*e.height,t[1][3]*e.height,0,0]}function ut(t,e){assert(0!==t.width,(function(){return "".concat(e," width cannot be 0.")})),assert(0!==t.height,(function(){return "".concat(e," height cannot be 0.")}));}function ht(t,e,n){var i=n.rotationVectorStartKeypointIndex,r=n.rotationVectorEndKeypointIndex,o=t.locationData,a=o.relativeKeypoints[i].x*e.width,s=o.relativeKeypoints[i].y*e.height,u=o.relativeKeypoints[r].x*e.width,h=o.relativeKeypoints[r].y*e.height,l=2*Math.sqrt((u-a)*(u-a)+(h-s)*(h-s)),c=function(t,e,n){var i,r=t.locationData,o=n.rotationVectorStartKeypointIndex,a=n.rotationVectorEndKeypointIndex;i=n.rotationVectorTargetAngle?n.rotationVectorTargetAngle:Math.PI*n.rotationVectorTargetAngleDegree/180;var s=r.relativeKeypoints[o].x*e.width,u=r.relativeKeypoints[o].y*e.height,h=r.relativeKeypoints[a].x*e.width,l=r.relativeKeypoints[a].y*e.height;return ot(i-Math.atan2(-(l-u),h-s))}(t,e,n);return {xCenter:a/e.width,yCenter:s/e.height,width:l/e.width,height:l/e.height,rotation:c}}function lt(t){if(16!==t.length)throw new Error("Array length must be 16 but got ".concat(t.length));return [[t[0],t[1],t[2],t[3]],[t[4],t[5],t[6],t[7]],[t[8],t[9],t[10],t[11]],[t[12],t[13],t[14],t[15]]]}function ct(t,e,n,i,r,o,a){return t[e][r]*(t[n][o]*t[i][a]-t[n][a]*t[i][o])}function pt(t,e,n){var i=(e+1)%4,r=(e+2)%4,o=(e+3)%4,a=(n+1)%4,s=(n+2)%4,u=(n+3)%4;return ct(t,i,r,o,a,s,u)+ct(t,r,o,i,a,s,u)+ct(t,o,i,r,a,s,u)}function ft(t,e,n){void 0===n&&(n={ignoreRotation:!1});for(var i=[],r=0,o=t;r<o.length;r++){var a=o[r],s=a.x-.5,u=a.y-.5,h=n.ignoreRotation?0:e.rotation,l=Math.cos(h)*s-Math.sin(h)*u,c=Math.sin(h)*s+Math.cos(h)*u;l=l*e.width+e.xCenter,c=c*e.height+e.yCenter;var p=a.z*e.width,f=B({},a);f.x=l,f.y=c,f.z=p,i.push(f);}return i}function dt(t,e){var n=function(t,e,n,i){var r=e-t,o=i-n;if(0===r)throw new Error("Original min and max are both ".concat(t,", range cannot be 0."));var a=o/r;return {scale:a,offset:n-t*a}}(0,255,e[0],e[1]);return tidy((function(){return add(mul(t,n.scale),n.offset)}))}function mt(t,e,n){var i,o,a,c,p,f,d,m,g,y,v,x,w,k,b=e.outputTensorSize,M=e.keepAspectRatio,S=e.borderMode,T=e.outputTensorFloatRange,P=rt(t),F=function(t,e){return e?{xCenter:e.xCenter*t.width,yCenter:e.yCenter*t.height,width:e.width*t.width,height:e.height*t.height,rotation:e.rotation}:{xCenter:.5*t.width,yCenter:.5*t.height,width:t.width,height:t.height,rotation:0}}(P,n),_=function(t,e,n){if(void 0===n&&(n=!1),!n)return {top:0,left:0,right:0,bottom:0};var i=e.height,r=e.width;ut(e,"targetSize"),ut(t,"roi");var o,a,s=i/r,u=t.height/t.width,h=0,l=0;return s>u?(o=t.width,a=t.width*s,l=(1-u/s)/2):(o=t.height/s,a=t.height,h=(1-s/u)/2),t.width=o,t.height=a,{top:l,left:h,right:h,bottom:l}}(F,b,M),O=(i=F,o=P.width,a=P.height,c=!1,p=i.width,f=i.height,d=c?-1:1,m=Math.cos(i.rotation),g=Math.sin(i.rotation),y=i.xCenter,v=i.yCenter,x=1/o,w=1/a,(k=new Array(16))[0]=p*m*d*x,k[1]=-f*g*x,k[2]=0,k[3]=(-.5*p*m*d+.5*f*g+y)*x,k[4]=p*g*d*w,k[5]=f*m*w,k[6]=0,k[7]=(-.5*f*m-.5*p*g*d+v)*w,k[8]=0,k[9]=0,k[10]=p*x,k[11]=0,k[12]=0,k[13]=0,k[14]=0,k[15]=1,lt(k));return {imageTensor:tidy((function(){var e=at(t),n=tensor2d(st(O,P,b),[1,8]),i="zero"===S?"constant":"nearest",r=image$1.transform(expandDims$3(cast$3(e,"float32")),n,"bilinear",i,0,[b.height,b.width]);return null!=T?dt(r,T):r})),padding:_,transformationMatrix:O}}function gt(t,e,n,i){return 1===i?.5*(t+e):t+(e-t)*n/(i-1)}function yt(t){return tidy((function(){var e=function(t){return tidy((function(){return [slice$3(t,[0,0,0],[1,-1,1]),slice$3(t,[0,0,1],[1,-1,-1])]}))}(t),n=e[0],i=e[1];return {boxes:squeeze(i),logits:squeeze(n)}}))}function vt(t){return null!=t&&null!=t.currentTime}function xt(t){for(var e={locationData:{relativeKeypoints:[]}},n=Number.MAX_SAFE_INTEGER,i=Number.MIN_SAFE_INTEGER,r=Number.MAX_SAFE_INTEGER,o=Number.MIN_SAFE_INTEGER,a=0;a<t.length;++a){var s=t[a];n=Math.min(n,s.x),i=Math.max(i,s.x),r=Math.min(r,s.y),o=Math.max(o,s.y),e.locationData.relativeKeypoints.push({x:s.x,y:s.y});}return e.locationData.relativeBoundingBox={xMin:n,yMin:r,xMax:i,yMax:o,width:i-n,height:o-r},e}function wt(t,e,n,i){return N(this,void 0,void 0,(function(){var i,r,o,a,h;return D(this,(function(l){switch(l.label){case 0:return t.sort((function(t,e){return Math.max.apply(Math,e.score)-Math.max.apply(Math,t.score)})),i=tensor2d(t.map((function(t){return [t.locationData.relativeBoundingBox.yMin,t.locationData.relativeBoundingBox.xMin,t.locationData.relativeBoundingBox.yMax,t.locationData.relativeBoundingBox.xMax]}))),r=tensor1d(t.map((function(t){return t.score[0]}))),[4,image$1.nonMaxSuppressionAsync(i,r,e,n)];case 1:return [4,(o=l.sent()).array()];case 2:return a=l.sent(),h=t.filter((function(t,e){return a.indexOf(e)>-1})),dispose([i,r,o]),[2,h]}}))}))}function kt(t,e){return t.map((function(t){var n=B(B({},t),{x:t.x*e.width,y:t.y*e.height});return null!=t.z&&(n.z=t.z*e.width),n}))}function bt(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u,h,l,c,f,d,m,g,y,v,x,w,k,b,M,S,T,P,F;return D(this,(function(_){switch(_.label){case 0:if(i=squeeze(e,[0]),r=i.shape,o=r[0],a=r[1],s=r[2],t.length!==s)throw new Error("Expected heatmap to have same number of channels as the number of landmarks. But got landmarks length: "+"".concat(t.length,", heatmap length: ").concat(s));return u=[],[4,i.buffer()];case 1:for(h=_.sent(),l=0;l<t.length;l++)if(c=t[l],f=B({},c),u.push(f),d=Math.trunc(f.x*a),m=Math.trunc(f.y*o),!(d<0||d>=a||m<0||d>=o)){for(g=Math.trunc((n.kernelSize-1)/2),y=Math.max(0,d-g),v=Math.min(a,d+g+1),x=Math.max(0,m-g),w=Math.min(o,m+g+1),k=0,b=0,M=0,S=0,T=x;T<w;++T)for(P=y;P<v;++P)F=h.get(T,P,l),k+=F,S=Math.max(S,F),b+=P*F,M+=T*F;S>=n.minConfidenceToRefine&&k>0&&(f.x=b/a/k,f.y=M/o/k);}return i.dispose(),[2,u]}}))}))}function Mt(t,e){var n=e.left,i=e.top,r=e.left+e.right,o=e.top+e.bottom;return t.map((function(t){return B(B({},t),{x:(t.x-n)/(1-r),y:(t.y-i)/(1-o),z:t.z/(1-r)})}))}function St(t,e,n){return "webgl"===getBackend()?function(t,e,n){var i=n.combineWithPreviousRatio.toFixed(2),o={variableNames:["prevMask","newMask"],outputShape:t.shape,userCode:"\n  void main() {\n      ivec2 coords = getOutputCoords();\n      int height = coords[0];\n      int width = coords[1];\n\n      float prevMaskValue = getPrevMask(height, width);\n      float newMaskValue = getNewMask(height, width);\n\n      /*\n      * Assume p := newMaskValue\n      * H(p) := 1 + (p * log(p) + (1-p) * log(1-p)) / log(2)\n      * uncertainty alpha(p) =\n      *   Clamp(1 - (1 - H(p)) * (1 - H(p)), 0, 1) [squaring the\n      * uncertainty]\n      *\n      * The following polynomial approximates uncertainty alpha as a\n      * function of (p + 0.5):\n      */\n      const float c1 = 5.68842;\n      const float c2 = -0.748699;\n      const float c3 = -57.8051;\n      const float c4 = 291.309;\n      const float c5 = -624.717;\n      float t = newMaskValue - 0.5;\n      float x = t * t;\n\n      float uncertainty =\n        1.0 - min(1.0, x * (c1 + x * (c2 + x * (c3 + x * (c4 + x * c5)))));\n\n      float outputValue = newMaskValue + (prevMaskValue - newMaskValue) *\n                             (uncertainty * ".concat(i,");\n\n      setOutput(outputValue);\n    }\n")},a=backend();return tidy((function(){var n=a.compileAndRun(o,[t,e]);return engine().makeTensorFromDataId(n.dataId,n.shape,n.dtype)}))}(t,e,n):tidy((function(){var i=sub$2(e,.5),r=square$1(i),s=sub$2(1,minimum$2(1,mul(r,add(5.68842,mul(r,add(-.748699,mul(r,add(-57.8051,mul(r,add(291.309,mul(r,-624.717)))))))))));return add(e,mul(sub$2(t,e),mul(s,n.combineWithPreviousRatio)))}))}function Tt(t,e,n){return N(this,void 0,void 0,(function(){var i,s,u,h,l;return D(this,(function(d){switch(d.label){case 0:return i=t[0],s=t[1],u=function(t,e,n){return tidy((function(){var i,r,s,u;n.reverseOutputOrder?(r=squeeze(slice$3(t,[0,n.boxCoordOffset+0],[-1,1])),i=squeeze(slice$3(t,[0,n.boxCoordOffset+1],[-1,1])),u=squeeze(slice$3(t,[0,n.boxCoordOffset+2],[-1,1])),s=squeeze(slice$3(t,[0,n.boxCoordOffset+3],[-1,1]))):(i=squeeze(slice$3(t,[0,n.boxCoordOffset+0],[-1,1])),r=squeeze(slice$3(t,[0,n.boxCoordOffset+1],[-1,1])),s=squeeze(slice$3(t,[0,n.boxCoordOffset+2],[-1,1])),u=squeeze(slice$3(t,[0,n.boxCoordOffset+3],[-1,1]))),r=add(mul(div(r,n.xScale),e.w),e.x),i=add(mul(div(i,n.yScale),e.h),e.y),n.applyExponentialOnBoxSize?(s=mul(exp$2(div(s,n.hScale)),e.h),u=mul(exp$2(div(u,n.wScale)),e.w)):(s=mul(div(s,n.hScale),e.h),u=mul(div(u,n.wScale),e.h));var h=sub$2(i,div(s,2)),l=sub$2(r,div(u,2)),f=add(i,div(s,2)),d=add(r,div(u,2)),m=concat$3([reshape$3(h,[n.numBoxes,1]),reshape$3(l,[n.numBoxes,1]),reshape$3(f,[n.numBoxes,1]),reshape$3(d,[n.numBoxes,1])],1);if(n.numKeypoints)for(var g=0;g<n.numKeypoints;++g){var v=n.keypointCoordOffset+g*n.numValuesPerKeypoint,x=void 0,w=void 0;n.reverseOutputOrder?(x=squeeze(slice$3(t,[0,v],[-1,1])),w=squeeze(slice$3(t,[0,v+1],[-1,1]))):(w=squeeze(slice$3(t,[0,v],[-1,1])),x=squeeze(slice$3(t,[0,v+1],[-1,1])));var T=add(mul(div(x,n.xScale),e.w),e.x),P=add(mul(div(w,n.yScale),e.h),e.y);m=concat$3([m,reshape$3(T,[n.numBoxes,1]),reshape$3(P,[n.numBoxes,1])],1);}return m}))}(s,e,n),h=tidy((function(){var t=i;return n.sigmoidScore?(null!=n.scoreClippingThresh&&(t=clipByValue$2(i,-n.scoreClippingThresh,n.scoreClippingThresh)),t=sigmoid$3(t)):t})),[4,Pt(u,h,n)];case 1:return l=d.sent(),dispose([u,h]),[2,l]}}))}))}function Pt(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u,h,l,c,p,f,d;return D(this,(function(m){switch(m.label){case 0:return i=[],[4,t.data()];case 1:return r=m.sent(),[4,e.data()];case 2:for(o=m.sent(),a=0;a<n.numBoxes;++a)if(!(null!=n.minScoreThresh&&o[a]<n.minScoreThresh||(s=a*n.numCoords,u=Ft(r[s+0],r[s+1],r[s+2],r[s+3],o[a],n.flipVertically,a),(h=u.locationData.relativeBoundingBox).width<0||h.height<0))){if(n.numKeypoints>0)for((l=u.locationData).relativeKeypoints=[],c=n.numKeypoints*n.numValuesPerKeypoint,p=0;p<c;p+=n.numValuesPerKeypoint)f=s+n.keypointCoordOffset+p,d={x:r[f+0],y:n.flipVertically?1-r[f+1]:r[f+1]},l.relativeKeypoints.push(d);i.push(u);}return [2,i]}}))}))}function Ft(t,e,n,i,r,o,a){return {score:[r],ind:a,locationData:{relativeBoundingBox:{xMin:e,yMin:o?1-n:t,xMax:i,yMax:o?1-t:n,width:i-e,height:n-t}}}}function _t(t,e){return "none"===t?e:function(t){return 1/(1+Math.exp(-t))}(e)}function Ot(t,e,n,i){return N(this,void 0,void 0,(function(){var r,o,a,s,u,h,l,c;return D(this,(function(p){switch(p.label){case 0:return n=n||e.flipHorizontally||!1,i=i||e.flipVertically||!1,r=t.size,o=r/e.numLandmarks,[4,t.data()];case 1:for(a=p.sent(),s=[],u=0;u<e.numLandmarks;++u)h=u*o,(c={x:0,y:0}).x=n?e.inputImageWidth-a[h]:a[h],o>1&&(c.y=i?e.inputImageHeight-a[h+1]:a[h+1]),o>2&&(c.z=a[h+2]),o>3&&(c.score=_t(e.visibilityActivation,a[h+3])),s.push(c);for(l=0;l<s.length;++l)(c=s[l]).x=c.x/e.inputImageWidth,c.y=c.y/e.inputImageHeight,c.z=c.z/e.inputImageWidth/(e.normalizeZ||1);return [2,s]}}))}))}function It(t,e,n){var i=t.width,r=t.height,o=t.rotation;if(null==n.rotation&&null==n.rotationDegree||(o=function(t,e){null!=e.rotation?t+=e.rotation:null!=e.rotationDegree&&(t+=Math.PI*e.rotationDegree/180);return ot(t)}(o,n)),0===o)t.xCenter=t.xCenter+i*n.shiftX,t.yCenter=t.yCenter+r*n.shiftY;else {var a=(e.width*i*n.shiftX*Math.cos(o)-e.height*r*n.shiftY*Math.sin(o))/e.width,s=(e.width*i*n.shiftX*Math.sin(o)+e.height*r*n.shiftY*Math.cos(o))/e.height;t.xCenter=t.xCenter+a,t.yCenter=t.yCenter+s;}if(n.squareLong){var u=Math.max(i*e.width,r*e.height);i=u/e.width,r=u/e.height;}else if(n.squareShort){var h=Math.min(i*e.width,r*e.height);i=h/e.width,r=h/e.height;}return t.width=i*n.scaleX,t.height=r*n.scaleY,t}function At(t,e){return t.map((function(t){var n=B(B({},t),{x:t.x/e.width,y:t.y/e.height});return null!=t.z&&(t.z=t.z/e.width),n}))}var zt=function(){function t(t){this.alpha=t,this.initialized=!1;}return t.prototype.apply=function(t,e){var n;return this.initialized?n=null==e?this.storedValue+this.alpha*(t-this.storedValue):this.storedValue+this.alpha*e*Math.asinh((t-this.storedValue)/e):(n=t,this.initialized=!0),this.rawValue=t,this.storedValue=n,n},t.prototype.applyWithAlpha=function(t,e,n){return this.alpha=e,this.apply(t,n)},t.prototype.hasLastRawValue=function(){return this.initialized},t.prototype.lastRawValue=function(){return this.rawValue},t.prototype.reset=function(){this.initialized=!1;},t}(),Ct=function(){function t(t){this.frequency=t.frequency,this.minCutOff=t.minCutOff,this.beta=t.beta,this.thresholdCutOff=t.thresholdCutOff,this.thresholdBeta=t.thresholdBeta,this.derivateCutOff=t.derivateCutOff,this.x=new zt(this.getAlpha(this.minCutOff)),this.dx=new zt(this.getAlpha(this.derivateCutOff)),this.lastTimestamp=0;}return t.prototype.apply=function(t,e,n){if(null==t)return t;var i=Math.trunc(e);if(this.lastTimestamp>=i)return t;0!==this.lastTimestamp&&0!==i&&(this.frequency=1/(1e-6*(i-this.lastTimestamp))),this.lastTimestamp=i;var r=this.x.hasLastRawValue()?(t-this.x.lastRawValue())*n*this.frequency:0,o=this.dx.applyWithAlpha(r,this.getAlpha(this.derivateCutOff)),a=this.minCutOff+this.beta*Math.abs(o),s=null!=this.thresholdCutOff?this.thresholdCutOff+this.thresholdBeta*Math.abs(o):null;return this.x.applyWithAlpha(t,this.getAlpha(a),s)},t.prototype.getAlpha=function(t){return 1/(1+this.frequency/(2*Math.PI*t))},t}(),Et=function(){function t(t){this.config=t;}return t.prototype.apply=function(t,e,n){var i=this;if(null==t)return this.reset(),null;this.initializeFiltersIfEmpty(t);var r=1;if(!this.config.disableValueScaling){if(n<this.config.minAllowedObjectScale)return K([],t,!0);r=1/n;}return t.map((function(t,n){var o=B(B({},t),{x:i.xFilters[n].apply(t.x,e,r),y:i.yFilters[n].apply(t.y,e,r)});return null!=t.z&&(o.z=i.zFilters[n].apply(t.z,e,r)),o}))},t.prototype.reset=function(){this.xFilters=null,this.yFilters=null,this.zFilters=null;},t.prototype.initializeFiltersIfEmpty=function(t){var e=this;null!=this.xFilters&&this.xFilters.length===t.length||(this.xFilters=t.map((function(t){return new Ct(e.config)})),this.yFilters=t.map((function(t){return new Ct(e.config)})),this.zFilters=t.map((function(t){return new Ct(e.config)})));},t}(),Rt=function(){function t(t){this.config=t,this.window=[],this.lowPassFilter=new zt(1),this.lastValue=0,this.lastValueScale=1,this.lastTimestamp=-1;}return t.prototype.apply=function(t,e,n){if(null==t)return t;var i,r=Math.trunc(e);if(this.lastTimestamp>=r)return t;if(-1===this.lastTimestamp)i=1;else {for(var o=t*n-this.lastValue*this.lastValueScale,a=r-this.lastTimestamp,s=o,u=a,h=(1+this.window.length)*(1e6/30),l=0,c=this.window;l<c.length;l++){var p=c[l];if(u+p.duration>h)break;s+=p.distance,u+=p.duration;}var f=s/(1e-6*u);i=1-1/(1+this.config.velocityScale*Math.abs(f)),this.window.unshift({distance:o,duration:a}),this.window.length>this.config.windowSize&&this.window.pop();}return this.lastValue=t,this.lastValueScale=n,this.lastTimestamp=r,this.lowPassFilter.applyWithAlpha(t,i)},t}(),Lt=function(){function t(t){this.config=t;}return t.prototype.apply=function(t,e,n){var i=this;if(null==t)return this.reset(),null;var r=1;if(!this.config.disableValueScaling){if(n<this.config.minAllowedObjectScale)return K([],t,!0);r=1/n;}return this.initializeFiltersIfEmpty(t),t.map((function(t,n){var o=B(B({},t),{x:i.xFilters[n].apply(t.x,e,r),y:i.yFilters[n].apply(t.y,e,r)});return null!=t.z&&(o.z=i.zFilters[n].apply(t.z,e,r)),o}))},t.prototype.reset=function(){this.xFilters=null,this.yFilters=null,this.zFilters=null;},t.prototype.initializeFiltersIfEmpty=function(t){var e=this;null!=this.xFilters&&this.xFilters.length===t.length||(this.xFilters=t.map((function(t){return new Rt(e.config)})),this.yFilters=t.map((function(t){return new Rt(e.config)})),this.zFilters=t.map((function(t){return new Rt(e.config)})));},t}(),Vt=function(){function t(t){if(null!=t.velocityFilter)this.keypointsFilter=new Lt(t.velocityFilter);else {if(null==t.oneEuroFilter)throw new Error("Either configure velocityFilter or oneEuroFilter, but got "+"".concat(t,"."));this.keypointsFilter=new Et(t.oneEuroFilter);}}return t.prototype.apply=function(t,e,n,i,r){if(void 0===i&&(i=!1),null==t)return this.keypointsFilter.reset(),null;var o=null!=r?function(t,e){return (t.width*e.width+t.height*e.height)/2}(r,n):1,a=i?kt(t,n):t,s=this.keypointsFilter.apply(a,e,o);return i?At(s,n):s},t}(),Bt=function(){function t(t){this.alpha=t.alpha;}return t.prototype.apply=function(t){var e=this;if(null==t)return this.visibilityFilters=null,null;null!=this.visibilityFilters&&this.visibilityFilters.length===t.length||(this.visibilityFilters=t.map((function(t){return new zt(e.alpha)})));for(var n=[],i=0;i<t.length;++i){var r=t[i],o=B({},r);o.score=this.visibilityFilters[i].apply(r.score),n.push(o);}return n},t}(),Nt={reduceBoxesInLowestlayer:!1,interpolatedScaleAspectRatio:1,featureMapHeight:[],featureMapWidth:[],numLayers:5,minScale:.1484375,maxScale:.75,inputSizeHeight:224,inputSizeWidth:224,anchorOffsetX:.5,anchorOffsetY:.5,strides:[8,16,32,32,32],aspectRatios:[1],fixedAnchorSize:!0},Dt={runtime:"tfjs",modelType:"full",enableSmoothing:!0,enableSegmentation:!1,smoothSegmentation:!0,detectorModelUrl:"https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/detector/1",landmarkModelUrl:"https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/full/2"},Kt={maxPoses:1,flipHorizontal:!1},Ut={applyExponentialOnBoxSize:!1,flipVertically:!1,ignoreClasses:[],numClasses:1,numBoxes:2254,numCoords:12,boxCoordOffset:0,keypointCoordOffset:4,numKeypoints:4,numValuesPerKeypoint:2,sigmoidScore:!0,scoreClippingThresh:100,reverseOutputOrder:!0,xScale:224,yScale:224,hScale:224,wScale:224,minScoreThresh:.5},jt=.3,Ht={shiftX:0,shiftY:0,scaleX:1.25,scaleY:1.25,squareLong:!0},qt={outputTensorSize:{width:224,height:224},keepAspectRatio:!0,outputTensorFloatRange:[-1,1],borderMode:"zero"},Xt={outputTensorSize:{width:256,height:256},keepAspectRatio:!0,outputTensorFloatRange:[0,1],borderMode:"zero"},Yt={numLandmarks:39,inputImageWidth:256,inputImageHeight:256,visibilityActivation:"sigmoid",flipHorizontally:!1,flipVertically:!1},Wt={numLandmarks:39,inputImageWidth:1,inputImageHeight:1,visibilityActivation:"sigmoid",flipHorizontally:!1,flipVertically:!1},Gt={kernelSize:7,minConfidenceToRefine:.5},Qt={alpha:.1},Zt={oneEuroFilter:{frequency:30,minCutOff:.05,beta:80,derivateCutOff:1,minAllowedObjectScale:1e-6}},$t={oneEuroFilter:{frequency:30,minCutOff:.01,beta:10,derivateCutOff:1,minAllowedObjectScale:1e-6}},Jt={oneEuroFilter:{frequency:30,minCutOff:.1,beta:40,derivateCutOff:1,minAllowedObjectScale:1e-6,disableValueScaling:!0}},te={activation:"none"},ee={combineWithPreviousRatio:.7};var ne=function(){function t(t){this.mask=t;}return t.prototype.toCanvasImageSource=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,G(this.mask)]}))}))},t.prototype.toImageData=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,Q(this.mask)]}))}))},t.prototype.toTensor=function(){return N(this,void 0,void 0,(function(){return D(this,(function(t){return [2,this.mask]}))}))},t.prototype.getUnderlyingType=function(){return "tensor"},t}();function ie(t){return $(t),"person"}var re=function(){function t(t,e,n,i,r,o){this.detectorModel=t,this.landmarkModel=e,this.enableSmoothing=n,this.enableSegmentation=i,this.smoothSegmentation=r,this.modelType=o,this.regionOfInterest=null,this.prevFilteredSegmentationMask=null,this.anchors=function(t){null==t.reduceBoxesInLowestLayer&&(t.reduceBoxesInLowestLayer=!1),null==t.interpolatedScaleAspectRatio&&(t.interpolatedScaleAspectRatio=1),null==t.fixedAnchorSize&&(t.fixedAnchorSize=!1);for(var e=[],n=0;n<t.numLayers;){for(var i=[],r=[],o=[],a=[],s=n;s<t.strides.length&&t.strides[s]===t.strides[n];){var u=gt(t.minScale,t.maxScale,s,t.strides.length);if(0===s&&t.reduceBoxesInLowestLayer)o.push(1),o.push(2),o.push(.5),a.push(.1),a.push(u),a.push(u);else {for(var h=0;h<t.aspectRatios.length;++h)o.push(t.aspectRatios[h]),a.push(u);if(t.interpolatedScaleAspectRatio>0){var l=s===t.strides.length-1?1:gt(t.minScale,t.maxScale,s+1,t.strides.length);a.push(Math.sqrt(u*l)),o.push(t.interpolatedScaleAspectRatio);}}s++;}for(var c=0;c<o.length;++c){var p=Math.sqrt(o[c]);i.push(a[c]/p),r.push(a[c]*p);}var f=0,d=0;if(t.featureMapHeight.length>0)f=t.featureMapHeight[n],d=t.featureMapWidth[n];else {var m=t.strides[n];f=Math.ceil(t.inputSizeHeight/m),d=Math.ceil(t.inputSizeWidth/m);}for(var g=0;g<f;++g)for(var y=0;y<d;++y)for(var v=0;v<i.length;++v){var x={xCenter:(y+t.anchorOffsetX)/d,yCenter:(g+t.anchorOffsetY)/f,width:0,height:0};t.fixedAnchorSize?(x.width=1,x.height=1):(x.width=r[v],x.height=i[v]),e.push(x);}n=s;}return e}(Nt);var a=tensor1d(this.anchors.map((function(t){return t.width}))),u=tensor1d(this.anchors.map((function(t){return t.height}))),h=tensor1d(this.anchors.map((function(t){return t.xCenter}))),l=tensor1d(this.anchors.map((function(t){return t.yCenter})));this.anchorTensor={x:h,y:l,w:a,h:u},this.prevFilteredSegmentationMask=this.enableSegmentation?tensor2d([],[0,0]):null;}return t.prototype.estimatePoses=function(t,e,n){return N(this,void 0,void 0,(function(){var i,o,a,s,u,c,p,d,m,g,y,v,x,w,k,b,M,S,T,P,O,I,A;return D(this,(function(z){switch(z.label){case 0:return i=function(t){var e;if(null==(e=null==t?Kt:B({},t)).maxPoses&&(e.maxPoses=1),e.maxPoses<=0)throw new Error("Invalid maxPoses ".concat(e.maxPoses,". Should be > 0."));if(e.maxPoses>1)throw new Error("Multi-pose detection is not implemented yet. Please set maxPoses to 1.");return e}(e),null==t?(this.reset(),[2,[]]):(this.maxPoses=i.maxPoses,this.timestamp=null!=n?1e3*n:vt(t)?1e6*t.currentTime:null,o=rt(t),a=tidy((function(){return cast$3(at(t),"float32")})),null!=(s=this.regionOfInterest)?[3,2]:[4,this.detectPose(a)]);case 1:if(0===(u=z.sent()).length)return this.reset(),a.dispose(),[2,[]];c=u[0],s=this.poseDetectionToRoi(c,o),z.label=2;case 2:return [4,this.poseLandmarksByRoi(s,a)];case 3:return p=z.sent(),a.dispose(),null==p?(this.reset(),[2,[]]):(d=p.landmarks,m=p.auxiliaryLandmarks,g=p.poseScore,y=p.worldLandmarks,v=p.segmentationMask,x=this.poseLandmarkFiltering(d,m,y,o),w=x.actualLandmarksFiltered,k=x.auxiliaryLandmarksFiltered,b=x.actualWorldLandmarksFiltered,M=this.poseLandmarksToRoi(k,o),this.regionOfInterest=M,S=this.smoothSegmentation&&null!=v?this.poseSegmentationFiltering(v):v,null!=(T=null!=w?kt(w,o):null)&&T.forEach((function(t,e){t.name=j[e];})),null!=(P=b)&&P.forEach((function(t,e){t.name=j[e];})),O={score:g,keypoints:T,keypoints3D:P},null!==S&&(I=tidy((function(){var t=expandDims$3(S,2),e=pad$1(t,[[0,0],[0,0],[0,1]]);return mirrorPad$1(e,[[0,0],[0,0],[0,2]],"symmetric")})),this.smoothSegmentation||dispose(S),A={maskValueToLabel:ie,mask:new ne(I)},O.segmentation=A),[2,[O]])}}))}))},t.prototype.poseSegmentationFiltering=function(t){var e=this.prevFilteredSegmentationMask;return 0===e.size?this.prevFilteredSegmentationMask=t:(this.prevFilteredSegmentationMask=St(e,t,ee),dispose(t)),dispose(e),this.prevFilteredSegmentationMask},t.prototype.dispose=function(){this.detectorModel.dispose(),this.landmarkModel.dispose(),dispose([this.anchorTensor.x,this.anchorTensor.y,this.anchorTensor.w,this.anchorTensor.h,this.prevFilteredSegmentationMask]);},t.prototype.reset=function(){this.regionOfInterest=null,this.enableSegmentation&&(dispose(this.prevFilteredSegmentationMask),this.prevFilteredSegmentationMask=tensor2d([],[0,0])),this.visibilitySmoothingFilterActual=null,this.visibilitySmoothingFilterAuxiliary=null,this.landmarksSmoothingFilterActual=null,this.landmarksSmoothingFilterAuxiliary=null;},t.prototype.detectPose=function(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o,a,s,u,h,l;return D(this,(function(c){switch(c.label){case 0:return e=mt(t,qt),n=e.imageTensor,i=e.padding,r=this.detectorModel.predict(n),o=yt(r),a=o.boxes,[4,Tt([s=o.logits,a],this.anchorTensor,Ut)];case 1:return 0===(u=c.sent()).length?(dispose([n,r,s,a]),[2,u]):[4,wt(u,this.maxPoses,jt)];case 2:return h=c.sent(),l=function(t,e){void 0===t&&(t=[]);for(var n=e.left,i=e.top,r=e.left+e.right,o=e.top+e.bottom,a=0;a<t.length;a++){var s=t[a],u=s.locationData.relativeBoundingBox,h=(u.xMin-n)/(1-r),l=(u.yMin-i)/(1-o),c=u.width/(1-r),p=u.height/(1-o);u.xMin=h,u.yMin=l,u.width=c,u.height=p,u.xMax=h+c,u.yMax=l+p;var f=s.locationData.relativeKeypoints;f&&f.forEach((function(t){var e=(t.x-n)/(1-r),a=(t.y-i)/(1-o);t.x=e,t.y=a;}));}return t}(h,i),dispose([n,r,s,a]),[2,l]}}))}))},t.prototype.poseDetectionToRoi=function(t,e){return It(ht(t,e,{rotationVectorEndKeypointIndex:1,rotationVectorStartKeypointIndex:0,rotationVectorTargetAngleDegree:90}),e,Ht)},t.prototype.poseLandmarksByRoi=function(t,e){return N(this,void 0,void 0,(function(){var n,i,r,o,a,s,u,h,l,c,p,d,m,g;return D(this,(function(y){switch(y.label){case 0:if(n=rt(e),i=mt(e,Xt,t),r=i.imageTensor,o=i.padding,a=i.transformationMatrix,"lite"!==this.modelType&&"full"!==this.modelType&&"heavy"!==this.modelType)throw new Error("Model type must be one of lite, full or heavy,"+"but got ".concat(this.modelType));return s=["ld_3d","output_poseflag","activation_heatmap","world_3d"],this.enableSegmentation&&s.push("activation_segmentation"),u=this.landmarkModel.execute(r,s),[4,this.tensorsToPoseLandmarksAndSegmentation(u)];case 1:return null==(h=y.sent())?(dispose(u),dispose(r),[2,null]):(l=h.landmarks,c=h.auxiliaryLandmarks,p=h.poseScore,d=h.worldLandmarks,m=h.segmentationMask,[4,this.poseLandmarksAndSegmentationInverseProjection(n,t,o,a,l,c,d,m)]);case 2:return g=y.sent(),dispose(u),dispose(r),[2,B({poseScore:p},g)]}}))}))},t.prototype.poseLandmarksAndSegmentationInverseProjection=function(t,e,n,i,o,a,h,l){return N(this,void 0,void 0,(function(){var c,d,m,g,y,v;return D(this,(function(x){return c=Mt(o,n),d=Mt(a,n),m=ft(c,e),g=ft(d,e),y=function(t,e){for(var n=[],i=0,r=t;i<r.length;i++){var o=r[i],a=o.x,s=o.y,u=e.rotation,h=Math.cos(u)*a-Math.sin(u)*s,l=Math.sin(u)*a+Math.cos(u)*s,c=B({},o);c.x=h,c.y=l,n.push(c);}return n}(h,e),v=null,this.enableSegmentation&&(v=tidy((function(){var e=l.shape,n=e[0],r=e[1],o=function(t){var e=lt(new Array(16).fill(0));e[0][0]=pt(t,0,0),e[1][0]=-pt(t,0,1),e[2][0]=pt(t,0,2),e[3][0]=-pt(t,0,3),e[0][2]=pt(t,2,0),e[1][2]=-pt(t,2,1),e[2][2]=pt(t,2,2),e[3][2]=-pt(t,2,3),e[0][1]=-pt(t,1,0),e[1][1]=pt(t,1,1),e[2][1]=-pt(t,1,2),e[3][1]=pt(t,1,3),e[0][3]=-pt(t,3,0),e[1][3]=pt(t,3,1),e[2][3]=-pt(t,3,2),e[3][3]=pt(t,3,3);for(var n=t[0][0]*e[0][0]+t[1][0]*e[0][1]+t[2][0]*e[0][2]+t[3][0]*e[0][3],i=0;i<e.length;i++)for(var r=0;r<e.length;r++)e[i][r]/=n;return e}(i),a=tensor2d(st(o,{width:r,height:n},t),[1,8]),h=[1,n,r,1];return squeeze(image$1.transform(reshape$3(l,h),a,"bilinear","constant",0,[t.height,t.width]),[0,3])})),dispose(l)),[2,{landmarks:m,auxiliaryLandmarks:g,worldLandmarks:y,segmentationMask:v}]}))}))},t.prototype.tensorsToPoseLandmarksAndSegmentation=function(t){return N(this,void 0,void 0,(function(){var e,n,i,o,a,s,h,l,c,f,d,m,g;return D(this,(function(y){switch(y.label){case 0:return e=t[0],n=t[1],i=t[2],o=t[3],a=this.enableSegmentation?t[4]:null,[4,n.data()];case 1:return (s=y.sent()[0])<.5?[2,null]:[4,Ot(e,Yt)];case 2:return [4,bt(y.sent(),i,Gt)];case 3:return h=y.sent(),l=h.slice(0,33),c=h.slice(33,35),[4,Ot(o,Wt)];case 4:return f=y.sent(),d=f.slice(0,33),m=function(t,e,n){void 0===n&&(n=!0);for(var i=[],r=0;r<t.length;r++){var o=B({},e[r]);n&&(o.score=t[r].score),i.push(o);}return i}(l,d,!0),g=this.enableSegmentation?function(t,e,n){return tidy((function(){var i=squeeze(t,[0]),r=i.shape[2];if(1===r){var o=i;switch(e.activation){case"none":break;case"sigmoid":o=sigmoid$3(o);break;case"softmax":throw new Error("Softmax activation requires two channels.");default:throw new Error("Activation not supported (".concat(e.activation,")"))}var a=n?image$1.resizeBilinear(o,[n.height,n.width]):o;return squeeze(a,[2])}throw new Error("Unsupported number of tensor channels ".concat(r))}))}(a,te):null,[2,{landmarks:l,auxiliaryLandmarks:c,poseScore:s,worldLandmarks:m,segmentationMask:g}]}}))}))},t.prototype.poseLandmarksToRoi=function(t,e){return It(ht(xt(t),e,{rotationVectorStartKeypointIndex:0,rotationVectorEndKeypointIndex:1,rotationVectorTargetAngleDegree:90}),e,Ht)},t.prototype.poseLandmarkFiltering=function(t,e,n,i){var r,o,a;if(null!=this.timestamp&&this.enableSmoothing){var s=ht(xt(e),i,{rotationVectorEndKeypointIndex:0,rotationVectorStartKeypointIndex:1,rotationVectorTargetAngleDegree:90});null==this.visibilitySmoothingFilterActual&&(this.visibilitySmoothingFilterActual=new Bt(Qt)),r=this.visibilitySmoothingFilterActual.apply(t),null==this.visibilitySmoothingFilterAuxiliary&&(this.visibilitySmoothingFilterAuxiliary=new Bt(Qt)),o=this.visibilitySmoothingFilterAuxiliary.apply(e),a=this.visibilitySmoothingFilterActual.apply(n),null==this.landmarksSmoothingFilterActual&&(this.landmarksSmoothingFilterActual=new Vt(Zt)),r=this.landmarksSmoothingFilterActual.apply(r,this.timestamp,i,!0,s),null==this.landmarksSmoothingFilterAuxiliary&&(this.landmarksSmoothingFilterAuxiliary=new Vt($t)),o=this.landmarksSmoothingFilterAuxiliary.apply(o,this.timestamp,i,!0,s),null==this.worldLandmarksSmoothingFilterActual&&(this.worldLandmarksSmoothingFilterActual=new Vt(Jt)),a=this.worldLandmarksSmoothingFilterActual.apply(n,this.timestamp);}else r=t,o=e,a=n;return {actualLandmarksFiltered:r,auxiliaryLandmarksFiltered:o,actualWorldLandmarksFiltered:a}},t}();function oe(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o,a;return D(this,(function(s){switch(s.label){case 0:return e=function(t){var e=B({},null==t?Dt:t);if(null==e.enableSmoothing&&(e.enableSmoothing=Dt.enableSmoothing),null==e.enableSegmentation&&(e.enableSegmentation=Dt.enableSegmentation),null==e.smoothSegmentation&&(e.smoothSegmentation=Dt.smoothSegmentation),null==e.modelType&&(e.modelType=Dt.modelType),null==e.detectorModelUrl&&(e.detectorModelUrl=Dt.detectorModelUrl),null==e.landmarkModelUrl)switch(e.modelType){case"lite":e.landmarkModelUrl="https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/lite/2";break;case"heavy":e.landmarkModelUrl="https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/heavy/2";break;case"full":default:e.landmarkModelUrl="https://tfhub.dev/mediapipe/tfjs-model/blazepose_3d/landmark/full/2";}return e}(t),n="string"==typeof e.detectorModelUrl&&e.detectorModelUrl.indexOf("https://tfhub.dev")>-1,i="string"==typeof e.landmarkModelUrl&&e.landmarkModelUrl.indexOf("https://tfhub.dev")>-1,[4,Promise.all([loadGraphModel(e.detectorModelUrl,{fromTFHub:n}),loadGraphModel(e.landmarkModelUrl,{fromTFHub:i})])];case 1:return r=s.sent(),o=r[0],a=r[1],[2,new re(o,a,e.enableSmoothing,e.enableSegmentation,e.smoothSegmentation,e.modelType)]}}))}))}var ae,se,ue=function(){function t(t){!function(t){if(t.maxTracks<1)throw new Error("Must specify 'maxTracks' to be at least 1, but "+"encountered ".concat(t.maxTracks));if(t.maxAge<=0)throw new Error("Must specify 'maxAge' to be positive, but "+"encountered ".concat(t.maxAge));if(void 0!==t.keypointTrackerParams){if(t.keypointTrackerParams.keypointConfidenceThreshold<0||t.keypointTrackerParams.keypointConfidenceThreshold>1)throw new Error("Must specify 'keypointConfidenceThreshold' to be in the range [0, 1], but encountered "+"".concat(t.keypointTrackerParams.keypointConfidenceThreshold));if(t.keypointTrackerParams.minNumberOfKeypoints<1)throw new Error("Must specify 'minNumberOfKeypoints' to be at least 1, but "+"encountered ".concat(t.keypointTrackerParams.minNumberOfKeypoints));for(var e=0,n=t.keypointTrackerParams.keypointFalloff;e<n.length;e++){var i=n[e];if(i<=0)throw new Error("Must specify each keypoint falloff parameterto be positive "+"but encountered ".concat(i))}}}(t),this.tracks=[],this.maxTracks=t.maxTracks,this.maxAge=1e3*t.maxAge,this.minSimilarity=t.minSimilarity,this.nextID=1;}return t.prototype.apply=function(t,e){this.filterOldTracks(e);var n=this.computeSimilarity(t);return this.assignTracks(t,n,e),this.updateTracks(e),t},t.prototype.getTracks=function(){return this.tracks.slice()},t.prototype.getTrackIDs=function(){return new Set(this.tracks.map((function(t){return t.id})))},t.prototype.filterOldTracks=function(t){var e=this;this.tracks=this.tracks.filter((function(n){return t-n.lastTimestamp<=e.maxAge}));},t.prototype.assignTracks=function(t,e,n){for(var i=Array.from(Array(e[0].length).keys()),r=[],o=0,a=Array.from(Array(t.length).keys());o<a.length;o++){var s=a[o];if(0!==i.length){for(var u=-1,h=-1,l=0,c=i;l<c.length;l++){var p=c[l],f=e[s][p];f>=this.minSimilarity&&f>h&&(u=p,h=f);}if(u>=0){var d=this.tracks[u];d=Object.assign(d,this.createTrack(t[s],n,d.id)),t[s].id=d.id;var m=i.indexOf(u);i.splice(m,1);}else r.push(s);}else r.push(s);}for(var g=0,y=r;g<y.length;g++){s=y[g];var v=this.createTrack(t[s],n);this.tracks.push(v),t[s].id=v.id;}},t.prototype.updateTracks=function(t){this.tracks.sort((function(t,e){return e.lastTimestamp-t.lastTimestamp})),this.tracks=this.tracks.slice(0,this.maxTracks);},t.prototype.createTrack=function(t,e,n){var i={id:n||this.nextTrackID(),lastTimestamp:e,keypoints:K([],t.keypoints,!0).map((function(t){return B({},t)}))};return void 0!==t.box&&(i.box=B({},t.box)),i},t.prototype.nextTrackID=function(){var t=this.nextID;return this.nextID+=1,t},t.prototype.remove=function(){for(var t=[],e=0;e<arguments.length;e++)t[e]=arguments[e];this.tracks=this.tracks.filter((function(e){return !t.includes(e.id)}));},t.prototype.reset=function(){this.tracks=[];},t}(),he=function(t){function e(e){return t.call(this,e)||this}return V(e,t),e.prototype.computeSimilarity=function(t){var e=this;return 0===t.length||0===this.tracks.length?[[]]:t.map((function(t){return e.tracks.map((function(n){return e.iou(t,n)}))}))},e.prototype.iou=function(t,e){var n=Math.max(t.box.xMin,e.box.xMin),i=Math.max(t.box.yMin,e.box.yMin),r=Math.min(t.box.xMax,e.box.xMax),o=Math.min(t.box.yMax,e.box.yMax);if(n>=r||i>=o)return 0;var a=(r-n)*(o-i);return a/(t.box.width*t.box.height+e.box.width*e.box.height-a)},e}(ue),le=function(t){function e(e){var n=t.call(this,e)||this;return n.keypointThreshold=e.keypointTrackerParams.keypointConfidenceThreshold,n.keypointFalloff=e.keypointTrackerParams.keypointFalloff,n.minNumKeyoints=e.keypointTrackerParams.minNumberOfKeypoints,n}return V(e,t),e.prototype.computeSimilarity=function(t){if(0===t.length||0===this.tracks.length)return [[]];for(var e=[],n=0,i=t;n<i.length;n++){for(var r=i[n],o=[],a=0,s=this.tracks;a<s.length;a++){var u=s[a];o.push(this.oks(r,u));}e.push(o);}return e},e.prototype.oks=function(t,e){for(var n=this.area(e.keypoints)+1e-6,i=0,r=0,o=0;o<t.keypoints.length;++o){var a=t.keypoints[o],s=e.keypoints[o];if(!(a.score<this.keypointThreshold||s.score<this.keypointThreshold)){r+=1;var u=Math.pow(a.x-s.x,2)+Math.pow(a.y-s.y,2),h=2*this.keypointFalloff[o];i+=Math.exp(-1*u/(2*n*Math.pow(h,2)));}}return r<this.minNumKeyoints?0:i/r},e.prototype.area=function(t){var e=this,n=t.filter((function(t){return t.score>e.keypointThreshold})),i=Math.min.apply(Math,K([1],n.map((function(t){return t.x})),!1)),r=Math.max.apply(Math,K([0],n.map((function(t){return t.x})),!1)),o=Math.min.apply(Math,K([1],n.map((function(t){return t.y})),!1));return (r-i)*(Math.max.apply(Math,K([0],n.map((function(t){return t.y})),!1))-o)},e}(ue);function ce(t){switch(t){case se.BlazePose:return j.reduce((function(t,e,n){return t[e]=n,t}),{});case se.PoseNet:case se.MoveNet:return U.reduce((function(t,e,n){return t[e]=n,t}),{});default:throw new Error("Model ".concat(t," is not supported."))}}!function(t){t.Keypoint="keypoint",t.BoundingBox="boundingBox";}(ae||(ae={})),function(t){t.MoveNet="MoveNet",t.BlazePose="BlazePose",t.PoseNet="PoseNet";}(se||(se={}));var fe=["SinglePose.Lightning","SinglePose.Thunder","MultiPose.Lightning"],de={modelType:"SinglePose.Lightning",enableSmoothing:!0},me={},ge={frequency:30,minCutOff:2.5,beta:300,derivateCutOff:2.5,thresholdCutOff:.5,thresholdBeta:5,disableValueScaling:!0},ye={maxTracks:18,maxAge:1e3,minSimilarity:.2,keypointTrackerParams:{keypointConfidenceThreshold:.3,keypointFalloff:[.026,.025,.025,.035,.035,.079,.079,.072,.072,.062,.062,.107,.107,.087,.087,.089,.089],minNumberOfKeypoints:4}},ve={maxTracks:18,maxAge:1e3,minSimilarity:.15,trackerParams:{}};function xe(t,e,n,i){for(var r={},o=0,a=U;o<a.length;o++){var s=a[o];r[s]=[e[n[s]].y*i.height,e[n[s]].x*i.width];}if(function(t,e){return (t[e.left_hip].score>.2||t[e.right_hip].score>.2)&&(t[e.left_shoulder].score>.2||t[e.right_shoulder].score>.2)}(e,n)){var u=(r.left_hip[0]+r.right_hip[0])/2,h=(r.left_hip[1]+r.right_hip[1])/2,l=function(t,e,n,i,r){for(var o=["left_shoulder","right_shoulder","left_hip","right_hip"],a=0,s=0,u=0;u<o.length;u++){(f=Math.abs(i-n[o[u]][0]))>a&&(a=f),(d=Math.abs(r-n[o[u]][1]))>s&&(s=d);}for(var h=0,l=0,c=0,p=Object.keys(n);c<p.length;c++){var f,d,m=p[c];if(!(t[e[m]].score<.2))(f=Math.abs(i-n[m][0]))>h&&(h=f),(d=Math.abs(r-n[m][1]))>l&&(l=d);}return [a,s,h,l]}(e,n,r,u,h),c=l[0],p=l[1],f=l[2],d=l[3],m=Math.max(1.9*p,1.9*c,1.2*f,1.2*d),g=[u-(m=Math.min(m,Math.max(h,i.width-h,u,i.height-u))),h-m];if(m>Math.max(i.width,i.height)/2)return we(null==t,i);var y=2*m;return {yMin:g[0]/i.height,xMin:g[1]/i.width,yMax:(g[0]+y)/i.height,xMax:(g[1]+y)/i.width,height:(g[0]+y)/i.height-g[0]/i.height,width:(g[1]+y)/i.width-g[1]/i.width}}return we(null==t,i)}function we(t,e){var n,i,r,o;return t?e.width>e.height?(n=1,i=e.height/e.width,r=0,o=(e.width/2-e.height/2)/e.width):(n=e.width/e.height,i=1,r=(e.height/2-e.width/2)/e.height,o=0):e.width>e.height?(n=e.width/e.height,i=1,r=(e.height/2-e.width/2)/e.height,o=0):(n=1,i=e.height/e.width,r=0,o=(e.width/2-e.height/2)/e.width),{yMin:r,xMin:o,yMax:r+n,xMax:o+i,height:n,width:i}}function ke(t){var e,n=null==t?de:B({},t);if(null==n.modelType)n.modelType="SinglePose.Lightning";else if(fe.indexOf(n.modelType)<0)throw new Error("Invalid architecture ".concat(n.modelType,". ")+"Should be one of ".concat(fe));if(null==n.enableSmoothing&&(n.enableSmoothing=!0),null!=n.minPoseScore&&(n.minPoseScore<0||n.minPoseScore>1))throw new Error("minPoseScore should be between 0.0 and 1.0");if(null!=n.multiPoseMaxDimension&&(n.multiPoseMaxDimension%32!=0||n.multiPoseMaxDimension<32))throw new Error("multiPoseMaxDimension must be a multiple of 32 and higher than 0");if("MultiPose.Lightning"===n.modelType&&null==n.enableTracking&&(n.enableTracking=!0),"MultiPose.Lightning"===n.modelType&&!0===n.enableTracking)if(null==n.trackerType&&(n.trackerType=ae.BoundingBox),n.trackerType===ae.Keypoint)null!=n.trackerConfig?n.trackerConfig=function(t){var e=be(ye,t);e.keypointTrackerParams=B({},ye.keypointTrackerParams),null!=t.keypointTrackerParams&&(null!=t.keypointTrackerParams.keypointConfidenceThreshold&&(e.keypointTrackerParams.keypointConfidenceThreshold=t.keypointTrackerParams.keypointConfidenceThreshold),null!=t.keypointTrackerParams.keypointFalloff&&(e.keypointTrackerParams.keypointFalloff=t.keypointTrackerParams.keypointFalloff),null!=t.keypointTrackerParams.minNumberOfKeypoints&&(e.keypointTrackerParams.minNumberOfKeypoints=t.keypointTrackerParams.minNumberOfKeypoints));return e}(n.trackerConfig):n.trackerConfig=ye;else {if(n.trackerType!==ae.BoundingBox)throw new Error("Tracker type not supported by MoveNet");null!=n.trackerConfig?n.trackerConfig=(e=n.trackerConfig,be(ve,e)):n.trackerConfig=ve;}return n}function be(t,e){var n={maxTracks:t.maxTracks,maxAge:t.maxAge,minSimilarity:t.minSimilarity};return null!=e.maxTracks&&(n.maxTracks=e.maxTracks),null!=e.maxAge&&(n.maxAge=e.maxAge),null!=e.minSimilarity&&(n.minSimilarity=e.minSimilarity),n}var Me=function(){function t(t,e){this.moveNetModel=t,this.modelInputResolution={height:0,width:0},this.keypointIndexByName=ce(se.MoveNet),"SinglePose.Lightning"===e.modelType?(this.modelInputResolution.width=192,this.modelInputResolution.height=192):"SinglePose.Thunder"===e.modelType&&(this.modelInputResolution.width=256,this.modelInputResolution.height=256),this.multiPoseModel="MultiPose.Lightning"===e.modelType,this.multiPoseModel||(this.keypointFilter=new Et(ge),this.cropRegionFilterYMin=new zt(.9),this.cropRegionFilterXMin=new zt(.9),this.cropRegionFilterYMax=new zt(.9),this.cropRegionFilterXMax=new zt(.9)),this.enableSmoothing=e.enableSmoothing,e.minPoseScore?this.minPoseScore=e.minPoseScore:this.minPoseScore=.25,e.multiPoseMaxDimension?this.multiPoseMaxDimension=e.multiPoseMaxDimension:this.multiPoseMaxDimension=256,this.enableTracking=e.enableTracking,this.multiPoseModel&&this.enableTracking&&(e.trackerType===ae.Keypoint?this.tracker=new le(e.trackerConfig):e.trackerType===ae.BoundingBox&&(this.tracker=new he(e.trackerConfig)),this.enableSmoothing&&(this.keypointFilterMap=new Map));}return t.prototype.runSinglePersonPoseModel=function(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o;return D(this,(function(a){switch(a.label){case 0:if(4!==(e=this.moveNetModel.execute(t)).shape.length||1!==e.shape[0]||1!==e.shape[1]||17!==e.shape[2]||3!==e.shape[3])throw e.dispose(),new Error("Unexpected output shape from model: [".concat(e.shape,"]"));return "webgpu"===getBackend()?[3,1]:(n=e.dataSync(),[3,3]);case 1:return [4,e.data()];case 2:n=a.sent(),a.label=3;case 3:for(e.dispose(),i={keypoints:[],score:0},r=0,o=0;o<17;++o)i.keypoints[o]={y:n[3*o],x:n[3*o+1],score:n[3*o+2]},i.keypoints[o].score>.2&&(++r,i.score+=i.keypoints[o].score);return r>0&&(i.score/=r),[2,i]}}))}))},t.prototype.runMultiPersonPoseModel=function(t){return N(this,void 0,void 0,(function(){var e,n,i,r,o,a,s,u;return D(this,(function(h){switch(h.label){case 0:if(3!==(e=this.moveNetModel.execute(t)).shape.length||1!==e.shape[0]||56!==e.shape[2])throw e.dispose(),new Error("Unexpected output shape from model: [".concat(e.shape,"]"));return "webgpu"===getBackend()?[3,1]:(n=e.dataSync(),[3,3]);case 1:return [4,e.data()];case 2:n=h.sent(),h.label=3;case 3:for(e.dispose(),i=[],r=n.length/56,o=0;o<r;++o)for(i[o]={keypoints:[]},a=56*o+51,i[o].box={yMin:n[a],xMin:n[a+1],yMax:n[a+2],xMax:n[a+3],width:n[a+3]-n[a+1],height:n[a+2]-n[a]},s=56*o+55,i[o].score=n[s],i[o].keypoints=[],u=0;u<17;++u)i[o].keypoints[u]={y:n[56*o+3*u],x:n[56*o+3*u+1],score:n[56*o+3*u+2]};return [2,i]}}))}))},t.prototype.estimatePoses=function(t,n,i){return void 0===n&&(n=me),N(this,void 0,void 0,(function(){var r,o,a,s,u,l;return D(this,(function(c){switch(c.label){case 0:return n=function(t){return null==t?me:B({},t)}(n),null==t?(this.reset(),[2,[]]):(null==i?vt(t)&&(i=1e6*t.currentTime):i*=1e3,r=at(t),o=rt(r),a=expandDims$3(r,0),t instanceof Tensor||r.dispose(),s=[],this.multiPoseModel?[3,2]:[4,this.estimateSinglePose(a,o,i)]);case 1:return s=c.sent(),[3,4];case 2:return [4,this.estimateMultiplePoses(a,o,i)];case 3:s=c.sent(),c.label=4;case 4:for(u=0;u<s.length;++u)for(l=0;l<s[u].keypoints.length;++l)s[u].keypoints[l].name=U[l],s[u].keypoints[l].y*=o.height,s[u].keypoints[l].x*=o.width;return [2,s]}}))}))},t.prototype.estimateSinglePose=function(t,e,n){return N(this,void 0,void 0,(function(){var i,o,a,h,c=this;return D(this,(function(p){switch(p.label){case 0:return this.cropRegion||(this.cropRegion=we(null==this.cropRegion,e)),i=tidy((function(){var e=tensor2d([[c.cropRegion.yMin,c.cropRegion.xMin,c.cropRegion.yMax,c.cropRegion.xMax]]),n=zeros([1],"int32"),i=[c.modelInputResolution.height,c.modelInputResolution.width];return cast$3(image$1.cropAndResize(t,e,n,i,"bilinear",0),"int32")})),t.dispose(),[4,this.runSinglePersonPoseModel(i)];case 1:if(o=p.sent(),i.dispose(),o.score<this.minPoseScore)return this.reset(),[2,[]];for(a=0;a<o.keypoints.length;++a)o.keypoints[a].y=this.cropRegion.yMin+o.keypoints[a].y*this.cropRegion.height,o.keypoints[a].x=this.cropRegion.xMin+o.keypoints[a].x*this.cropRegion.width;return null!=n&&this.enableSmoothing&&(o.keypoints=this.keypointFilter.apply(o.keypoints,n,1)),h=xe(this.cropRegion,o.keypoints,this.keypointIndexByName,e),this.cropRegion=this.filterCropRegion(h),[2,[o]]}}))}))},t.prototype.estimateMultiplePoses=function(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,h,c,p,f,d,m,g=this;return D(this,(function(y){switch(y.label){case 0:return e.width>e.height?(r=this.multiPoseMaxDimension,o=Math.round(this.multiPoseMaxDimension*e.height/e.width),i=image$1.resizeBilinear(t,[o,r]),s=r,h=32*Math.ceil(o/32),a=pad$1(i,[[0,0],[0,h-o],[0,0],[0,0]])):(r=Math.round(this.multiPoseMaxDimension*e.width/e.height),o=this.multiPoseMaxDimension,i=image$1.resizeBilinear(t,[o,r]),s=32*Math.ceil(r/32),h=o,a=pad$1(i,[[0,0],[0,0],[0,s-r],[0,0]])),i.dispose(),t.dispose(),c=cast$3(a,"int32"),a.dispose(),[4,this.runMultiPersonPoseModel(c)];case 1:for(p=y.sent(),c.dispose(),p=p.filter((function(t){return t.score>=g.minPoseScore})),d=0;d<p.length;++d)for(f=0;f<p[d].keypoints.length;++f)p[d].keypoints[f].y*=h/o,p[d].keypoints[f].x*=s/r;if(this.enableTracking&&(this.tracker.apply(p,n),this.enableSmoothing)){for(d=0;d<p.length;++d)this.keypointFilterMap.has(p[d].id)||this.keypointFilterMap.set(p[d].id,new Et(ge)),p[d].keypoints=this.keypointFilterMap.get(p[d].id).apply(p[d].keypoints,n,1);m=this.tracker.getTrackIDs(),this.keypointFilterMap.forEach((function(t,e){m.has(e)||g.keypointFilterMap.delete(e);}));}return [2,p]}}))}))},t.prototype.filterCropRegion=function(t){if(t){var e=this.cropRegionFilterYMin.apply(t.yMin),n=this.cropRegionFilterXMin.apply(t.xMin),i=this.cropRegionFilterYMax.apply(t.yMax),r=this.cropRegionFilterXMax.apply(t.xMax);return {yMin:e,xMin:n,yMax:i,xMax:r,height:i-e,width:r-n}}return this.cropRegionFilterYMin.reset(),this.cropRegionFilterXMin.reset(),this.cropRegionFilterYMax.reset(),this.cropRegionFilterXMax.reset(),null},t.prototype.dispose=function(){this.moveNetModel.dispose();},t.prototype.reset=function(){this.cropRegion=null,this.resetFilters();},t.prototype.resetFilters=function(){this.keypointFilter.reset(),this.cropRegionFilterYMin.reset(),this.cropRegionFilterXMin.reset(),this.cropRegionFilterYMax.reset(),this.cropRegionFilterXMax.reset();},t}();function Se(t){return void 0===t&&(t=de),N(this,void 0,void 0,(function(){var e,n,i,r;return D(this,(function(o){switch(o.label){case 0:return e=ke(t),i=!0,e.modelUrl?(i="string"==typeof e.modelUrl&&e.modelUrl.indexOf("https://tfhub.dev")>-1,[4,loadGraphModel(e.modelUrl,{fromTFHub:i})]):[3,2];case 1:return n=o.sent(),[3,4];case 2:return r=void 0,"SinglePose.Lightning"===e.modelType?r="https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4":"SinglePose.Thunder"===e.modelType?r="https://tfhub.dev/google/tfjs-model/movenet/singlepose/thunder/4":"MultiPose.Lightning"===e.modelType&&(r="https://tfhub.dev/google/tfjs-model/movenet/multipose/lightning/1"),[4,loadGraphModel(r,{fromTFHub:i})];case 3:n=o.sent(),o.label=4;case 4:return "webgl"===getBackend()&&env().set("TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD",0),[2,new Me(n,e)]}}))}))}var Te={architecture:"MobileNetV1",outputStride:16,multiplier:.75,inputResolution:{height:257,width:257}},Pe=["MobileNetV1","ResNet50"],Fe={MobileNetV1:[8,16],ResNet50:[16]},_e=[8,16,32],Oe={MobileNetV1:[.5,.75,1],ResNet50:[1]},Ie=[1,2,4],Ae={maxPoses:1,flipHorizontal:!1},ze={maxPoses:5,flipHorizontal:!1,scoreThreshold:.5,nmsRadius:20},Ce=[-123.15,-115.9,-103.06];function Ee(t){return Math.floor(t/2)}var Re=function(){function t(t,e){this.priorityQueue=new Array(t),this.numberOfElements=-1,this.getElementValue=e;}return t.prototype.enqueue=function(t){this.priorityQueue[++this.numberOfElements]=t,this.swim(this.numberOfElements);},t.prototype.dequeue=function(){var t=this.priorityQueue[0];return this.exchange(0,this.numberOfElements--),this.sink(0),this.priorityQueue[this.numberOfElements+1]=null,t},t.prototype.empty=function(){return -1===this.numberOfElements},t.prototype.size=function(){return this.numberOfElements+1},t.prototype.all=function(){return this.priorityQueue.slice(0,this.numberOfElements+1)},t.prototype.max=function(){return this.priorityQueue[0]},t.prototype.swim=function(t){for(;t>0&&this.less(Ee(t),t);)this.exchange(t,Ee(t)),t=Ee(t);},t.prototype.sink=function(t){for(;2*t<=this.numberOfElements;){var e=2*t;if(e<this.numberOfElements&&this.less(e,e+1)&&e++,!this.less(t,e))break;this.exchange(t,e),t=e;}},t.prototype.getValueAt=function(t){return this.getElementValue(this.priorityQueue[t])},t.prototype.less=function(t,e){return this.getValueAt(t)<this.getValueAt(e)},t.prototype.exchange=function(t,e){var n=this.priorityQueue[t];this.priorityQueue[t]=this.priorityQueue[e],this.priorityQueue[e]=n;},t}();function Le(t,e,n,i,r,o){for(var a=o.shape,s=a[0],u=a[1],h=!0,l=Math.max(n-r,0),c=Math.min(n+r+1,s),p=l;p<c;++p){for(var f=Math.max(i-r,0),d=Math.min(i+r+1,u),m=f;m<d;++m)if(o.get(p,m,t)>e){h=!1;break}if(!h)break}return h}function Ve(t){return N(this,void 0,void 0,(function(){return D(this,(function(e){return [2,Promise.all(t.map((function(t){return t.buffer()})))]}))}))}function Be(t,e,n,i){return {y:i.get(t,e,n),x:i.get(t,e,n+17)}}function Ne(t,e,n){var i=Be(t.heatmapY,t.heatmapX,t.id,n),r=i.y,o=i.x;return {x:t.heatmapX*e+o,y:t.heatmapY*e+r}}function De(t,e,n,i){var r=n.x,o=n.y;return t.some((function(t){var n,a,s,u,h,l,c=t.keypoints;return n=o,a=r,s=c[i].y,u=c[i].x,(h=s-n)*h+(l=u-a)*l<=e}))}var Ke=U.reduce((function(t,e,n){return t[e]=n,t}),{}),Ue=[["nose","left_eye"],["left_eye","left_ear"],["nose","right_eye"],["right_eye","right_ear"],["nose","left_shoulder"],["left_shoulder","left_elbow"],["left_elbow","left_wrist"],["left_shoulder","left_hip"],["left_hip","left_knee"],["left_knee","left_ankle"],["nose","right_shoulder"],["right_shoulder","right_elbow"],["right_elbow","right_wrist"],["right_shoulder","right_hip"],["right_hip","right_knee"],["right_knee","right_ankle"]].map((function(t){var e=t[0],n=t[1];return [Ke[e],Ke[n]]})),je=Ue.map((function(t){return t[1]})),He=Ue.map((function(t){return t[0]}));function qe(t,e,n){return t<e?e:t>n?n:t}function Xe(t,e,n,i){return {y:qe(Math.round(t.y/e),0,n-1),x:qe(Math.round(t.x/e),0,i-1)}}function Ye(t,e){return {x:t.x+e.x,y:t.y+e.y}}function We(t,e,n,i,r,o,a,s){void 0===s&&(s=2);for(var u=i.shape,h=u[0],l=u[1],c={y:e.y,x:e.x},p=Ye(c,function(t,e,n){var i=n.shape[2]/2;return {y:n.get(e.y,e.x,t),x:n.get(e.y,e.x,i+t)}}(t,Xe(c,o,h,l),a)),f=0;f<s;f++){var d=Xe(p,o,h,l),m=Be(d.y,d.x,n,r);p=Ye({x:d.x*o,y:d.y*o},{x:m.x,y:m.y});}var g=Xe(p,o,h,l),y=i.get(g.y,g.x,n);return {y:p.y,x:p.x,name:U[n],score:y}}function Ge(t,e,n,i,r,o){var a=e.shape[2],s=je.length,u=new Array(a),h=t.part,l=t.score,c=Ne(h,i,n);u[h.id]={score:l,name:U[h.id],y:c.y,x:c.x};for(var p=s-1;p>=0;--p){var f=je[p],d=He[p];u[f]&&!u[d]&&(u[d]=We(p,u[f],d,e,n,i,o));}for(p=0;p<s;++p){f=He[p],d=je[p];u[f]&&!u[d]&&(u[d]=We(p,u[f],d,e,n,i,r));}return u}function Qe(t,e,n){return n.reduce((function(n,i,r){var o=i.y,a=i.x,s=i.score;return De(t,e,{y:o,x:a},r)||(n+=s),n}),0)/n.length}function Ze(t,e,n,i,r,o,a,s){return void 0===a&&(a=.5),void 0===s&&(s=20),N(this,void 0,void 0,(function(){var u,h,l,c,p,f,d,m,g,y,v,x;return D(this,(function(w){switch(w.label){case 0:return [4,Ve([t,e,n,i])];case 1:for(u=w.sent(),h=u[0],l=u[1],c=u[2],p=u[3],f=[],d=function(t,e,n){for(var i=n.shape,r=i[0],o=i[1],a=i[2],s=new Re(r*o*a,(function(t){return t.score})),u=0;u<r;++u)for(var h=0;h<o;++h)for(var l=0;l<a;++l){var c=n.get(u,h,l);c<t||Le(l,c,u,h,e,n)&&s.enqueue({score:c,part:{heatmapY:u,heatmapX:h,id:l}});}return s}(a,1,h),m=s*s;f.length<o&&!d.empty();)g=d.dequeue(),y=Ne(g.part,r,l),De(f,m,y,g.part.id)||(v=Ge(g,h,l,r,c,p),x=Qe(f,m,v),f.push({keypoints:v,score:x}));return [2,f]}}))}))}function $e(){for(var t,e=[],n=0;n<arguments.length;n++)e[n]=arguments[n];switch(e.length){case 0:t="fn main() ";break;case 1:t="fn main(".concat(e[0]," : i32)");break;default:throw Error("Unreachable")}return t}var Je=function(){function t(t){this.variableNames=["A","B"],this.size=!0;this.workgroupSize=[32,1,1],this.outputShape=[t[0],1],this.dispatchLayout=flatDispatchLayout(this.outputShape),this.dispatch=computeDispatch(this.dispatchLayout,this.outputShape,this.workgroupSize),this.shaderKey="getpointsConfidenceOp";}return t.prototype.getUserCode=function(){return "\n        ".concat($e("index")," {\n          if (index < uniforms.size) {\n            let y = B[index * 2];\n            let x = B[index * 2 + 1];\n            let outIndex = y * uniforms.aShape.x * uniforms.aShape.z + x * uniforms.aShape.z + index;\n            result[index] = A[outIndex];\n          }\n        }\n        ")},t}();function tn(t,e){if(backend()instanceof WebGPUBackend)return function(t,e){var n=backend(),i=new Je(e.shape),r=n.runWebGPUProgram(i,[t,e],"float32");return engine().makeTensorFromTensorInfo(r)}(t,e);throw new Error("getPointsConfidenceWebGPU is not supported in this backend!")}var en=function(){function t(t){if(this.variableNames=["A","B"],this.size=!0,this.supportedLastDimension=2,2!==t.length||t[1]!==this.supportedLastDimension)throw new Error("GetOffsetVectorsProgram only supports shape of [x, ".concat(this.supportedLastDimension,"], but current shape is ").concat(t));this.workgroupSize=[32,1,1],this.outputShape=t;var e=[t[0],1];this.dispatchLayout=flatDispatchLayout(e),this.dispatch=computeDispatch(this.dispatchLayout,e,this.workgroupSize),this.shaderKey="GetOffsetVectors";}return t.prototype.getUserCode=function(){return "\n    fn getOffsetPoint(y: i32, x: i32, index: i32) -> vec2<i32> {\n      let outIndexY = y * uniforms.bShape.x * uniforms.bShape.y + x * uniforms.bShape.y + index;\n      let outIndexX = outIndexY + uniforms.bShape.z;\n      let outY = i32(B[outIndexY]);\n      let outX = i32(B[outIndexX]);\n      return vec2<i32>(outY, outX);\n    }\n\n    ".concat($e("index")," {\n      if (index < uniforms.size) {\n        let indexY = index * ").concat(this.supportedLastDimension,";\n        let indexX = indexY + 1;\n        let heatmapY = A[indexY];\n        let heatmapX = A[indexX];\n        let out = getOffsetPoint(i32(heatmapY), i32(heatmapX), index);\n        result[indexY] = f32(out[0]);\n        result[indexX] = f32(out[1]);\n      }\n    }\n    ")},t}();function nn(t,e){if(backend()instanceof WebGPUBackend)return function(t,e){var n=backend(),i=new en(t.shape),r=n.runWebGPUProgram(i,[t,e],"float32");return engine().makeTensorFromTensorInfo(r)}(t,e);throw new Error("getOffsetVectorsGPU is not supported in this backend!")}function rn(t){var e=t.shape,n=e[0],i=e[1],o=e[2];return tidy((function(){var e,s,u=reshape$3(t,[n*i,o]),l=argMax$2(u,0),c=expandDims$3(div(l,scalar(i,"int32")),1),p=expandDims$3((e=l,s=i,tidy((function(){var t=div(e,scalar(s,"int32"));return sub$2(e,mul(t,scalar(s,"int32")))}))),1);return concat$3([c,p],1)}))}function on(t,e,n){return tidy((function(){var i=function(t,e){for(var n=[],i=0;i<U.length;i++){var r=t.get(i,0).valueOf(),o=t.get(i,1).valueOf(),a=an(r,o,i,e),u=a.x,h=a.y;n.push(h),n.push(u);}return tensor2d(n,[U.length,2])}(t,n);return add(cast$3(mul(t.toTensor(),scalar(e,"int32")),"float32"),i)}))}function an(t,e,n,i){return {y:i.get(t,e,n),x:i.get(t,e,n+U.length)}}function sn(t,e,n){return N(this,void 0,void 0,(function(){var i,r,o,a,s,u,h,l,c,p;return D(this,(function(f){switch(f.label){case 0:return i=0,r=rn(t),[4,Promise.all([t.buffer(),e.buffer(),r.buffer()])];case 1:return o=f.sent(),a=o[0],s=o[1],u=o[2],[4,(h=on(u,n,s)).buffer()];case 2:return l=f.sent(),c=Array.from(function(t,e){for(var n=e.shape[0],i=new Float32Array(n),r=0;r<n;r++){var o=e.get(r,0),a=e.get(r,1);i[r]=t.get(o,a,r);}return i}(a,u)),p=c.map((function(t,e){return i+=t,{y:l.get(e,0),x:l.get(e,1),score:t,name:U[e]}})),r.dispose(),h.dispose(),[2,{keypoints:p,score:i/p.length}]}}))}))}function un(t,e,n){return N(this,void 0,void 0,(function(){var i,s,u;return D(this,(function(h){return i=rn(t),s=function(t,e,n){return tidy((function(){var i=nn(t,n);return add(cast$3(mul(t,scalar(e,"int32")),"float32"),i)}))}(i,n,e),u=tn(t,i),[2,[s,u]]}))}))}function hn(t,e){return (t-1)%e==0}var ln="https://storage.googleapis.com/tfjs-models/savedmodel/posenet/mobilenet/",cn="https://storage.googleapis.com/tfjs-models/savedmodel/posenet/resnet50/";function pn(t,e){return function(t,e){return (t-1)%e==0}(t,e)?t:Math.floor(t/e)*e+1}var fn=function(){function t(t,e){this.posenetModel=t;var n=this.posenetModel.inputs[0].shape;assert(-1===n[1]&&-1===n[2],(function(){return "Input shape [".concat(n[1],", ").concat(n[2],"] ")+"must both be equal to or -1"}));var r,o,a=(r=e.inputResolution,o=e.outputStride,{height:pn(r.height,o),width:pn(r.width,o)});!function(t){assert(_e.indexOf(t)>=0,(function(){return "outputStride of ".concat(t," is invalid. ")+"It must be either 8 or 16."}));}(e.outputStride),function(t,e){assert(hn(t.height,e),(function(){return "height of ".concat(t.height," is invalid for output stride ")+"".concat(e,".")})),assert(hn(t.width,e),(function(){return "width of ".concat(t.width," is invalid for output stride ")+"".concat(e,".")}));}(a,e.outputStride),this.inputResolution=a,this.outputStride=e.outputStride,this.architecture=e.architecture;}return t.prototype.estimatePoses=function(t,e){return void 0===e&&(e=Ae),N(this,void 0,void 0,(function(){return D(this,(function(n){return [2,this.estimatePosesGPU(t,e,!1)]}))}))},t.prototype.estimatePosesGPU=function(t,e,n){return void 0===e&&(e=Ae),void 0===n&&(n=!1),N(this,void 0,void 0,(function(){var i,r,a,s,u,h,l,c,d,m,g,y,v,x,w,k,b,M;return D(this,(function(S){switch(S.label){case 0:return i=function(t){var e=t;if(null==e.maxPoses&&(e.maxPoses=1),e.maxPoses<=0)throw new Error("Invalid maxPoses ".concat(e.maxPoses,". Should be > 0."));if(e.maxPoses>1){if((e=B(B({},ze),e)).scoreThreshold<0||e.scoreThreshold>1)throw new Error("Invalid scoreThreshold ".concat(e.scoreThreshold,". ")+"Should be in range [0.0, 1.0]");if(e.nmsRadius<=0)throw new Error("Invalid nmsRadius ".concat(e.nmsRadius,"."))}return e}(e),null==t?[2,n?[[],[]]:[]]:(this.maxPoses=i.maxPoses,r=mt(t,{outputTensorSize:this.inputResolution,keepAspectRatio:!0,borderMode:"replicate"}),a=r.imageTensor,s=r.padding,u="ResNet50"===this.architecture?add(a,Ce):dt(a,[-1,1]),h=this.posenetModel.predict(u),"ResNet50"===this.architecture?(l=squeeze(h[2],[0]),c=squeeze(h[3],[0]),d=squeeze(h[0],[0]),m=squeeze(h[1],[0])):(l=squeeze(h[0],[0]),c=squeeze(h[1],[0]),d=squeeze(h[2],[0]),m=squeeze(h[3],[0])),g=sigmoid$3(c),1!==this.maxPoses?[3,5]:n?[4,un(g,l,this.outputStride)]:[3,2]);case 1:return v=S.sent(),w=v[0],x=v[1],y=[w,x],[3,4];case 2:return [4,sn(g,l,this.outputStride)];case 3:w=S.sent(),y=[w],S.label=4;case 4:return [3,7];case 5:if(n)throw new Error("GPU renderer only supports single pose!");return [4,Ze(g,l,d,m,this.outputStride,this.maxPoses,i.scoreThreshold,i.nmsRadius)];case 6:y=S.sent(),S.label=7;case 7:if(n){if(!0===i.flipHorizontal)throw new Error("flipHorizontal is not supported!");k=this.getCanvasInfo(rt(t),this.inputResolution,s);}else M=rt(t),b=function(t,e,n,i){var r=e.height,o=e.width,a=r/(n.height*(1-i.top-i.bottom)),s=o/(n.width*(1-i.left-i.right)),u=-i.top*n.height,h=-i.left*n.width;if(1===s&&1===a&&0===u&&0===h)return t;for(var l=0,c=t;l<c.length;l++)for(var p=0,f=c[l].keypoints;p<f.length;p++){var d=f[p];d.x=(d.x+h)*s,d.y=(d.y+u)*a;}return t}(y,M,this.inputResolution,s),i.flipHorizontal&&(b=function(t,e){for(var n=0,i=t;n<i.length;n++)for(var r=0,o=i[n].keypoints;r<o.length;r++){var a=o[r];a.x=e.width-1-a.x;}return t}(b,M));return a.dispose(),u.dispose(),dispose(h),l.dispose(),c.dispose(),d.dispose(),m.dispose(),g.dispose(),[2,n?[y,k]:b]}}))}))},t.prototype.getCanvasInfo=function(t,e,n){var i=t.height,r=t.width,o=i/(e.height*(1-n.top-n.bottom)),a=r/(e.width*(1-n.left-n.right)),s=-n.top*e.height;return [-n.left*e.width,s,a,o,t.width,t.height]},t.prototype.dispose=function(){this.posenetModel.dispose();},t.prototype.reset=function(){},t}();function dn(t){return void 0===t&&(t=Te),N(this,void 0,void 0,(function(){var e,n,i,r,o;return D(this,(function(a){switch(a.label){case 0:return "ResNet50"!==(e=function(t){var e=t||Te;if(null==e.architecture&&(e.architecture="MobileNetV1"),Pe.indexOf(e.architecture)<0)throw new Error("Invalid architecture ".concat(e.architecture,". ")+"Should be one of ".concat(Pe));if(null==e.inputResolution&&(e.inputResolution={height:257,width:257}),null==e.outputStride&&(e.outputStride=16),Fe[e.architecture].indexOf(e.outputStride)<0)throw new Error("Invalid outputStride ".concat(e.outputStride,". ")+"Should be one of ".concat(Fe[e.architecture]," ")+"for architecture ".concat(e.architecture,"."));if(null==e.multiplier&&(e.multiplier=1),Oe[e.architecture].indexOf(e.multiplier)<0)throw new Error("Invalid multiplier ".concat(e.multiplier,". ")+"Should be one of ".concat(Oe[e.architecture]," ")+"for architecture ".concat(e.architecture,"."));if(null==e.quantBytes&&(e.quantBytes=4),Ie.indexOf(e.quantBytes)<0)throw new Error("Invalid quantBytes ".concat(e.quantBytes,". ")+"Should be one of ".concat(Ie," ")+"for architecture ".concat(e.architecture,"."));if("MobileNetV1"===e.architecture&&32===e.outputStride&&1!==e.multiplier)throw new Error("When using an output stride of 32, you must select 1 as the multiplier.");return e}(t)).architecture?[3,2]:(s=e.outputStride,u=e.quantBytes,h="model-stride".concat(s,".json"),n=4===u?cn+"float/"+h:cn+"quant".concat(u,"/")+h,[4,loadGraphModel(e.modelUrl||n)]);case 1:return i=a.sent(),[2,new fn(i,e)];case 2:return r=function(t,e,n){var i={1:"100",.75:"075",.5:"050"},r="model-stride".concat(t,".json");return 4===n?ln+"float/".concat(i[e],"/")+r:ln+"quant".concat(n,"/").concat(i[e],"/")+r}(e.outputStride,e.multiplier,e.quantBytes),[4,loadGraphModel(e.modelUrl||r)];case 3:return o=a.sent(),[2,new fn(o,e)]}var s,u,h;}))}))}function mn(t,e){return N(this,void 0,void 0,(function(){var n,i;return D(this,(function(r){switch(t){case se.PoseNet:return [2,dn(e)];case se.BlazePose:if(i=void 0,null!=(n=e)){if("tfjs"===n.runtime)return [2,oe(e)];if("mediapipe"===n.runtime)return [2,it(e)];i=n.runtime;}throw new Error("Expect modelConfig.runtime to be either 'tfjs' "+"or 'mediapipe', but got ".concat(i));case se.MoveNet:return [2,Se(e)];default:throw new Error("".concat(t," is not a supported model name."))}}))}))}
 
 const defaultMoveNetConfig = (maxPoses) => ({
     maxPoses,
@@ -59524,11 +59530,13 @@ class PlaybackControls extends BaseUi {
     initUi() {
         const app = this.app;
         app.events.addEventListener(Playing, () => {
+            this.debugLog(`Playing`);
             this.stopButton?.classList.remove(`hidden`);
             this.startButton?.classList.add(`hidden`);
             this.recButton?.classList.remove(`hidden`);
         });
         app.events.addEventListener(Stopped, () => {
+            this.debugLog(`Stopped`);
             this.startButton?.classList.remove(`hidden`);
             this.stopButton?.classList.add(`hidden`);
             this.recButton?.classList.add(`hidden`);
@@ -60815,16 +60823,16 @@ function assertNotComplex(tensor, opName) {
  * limitations under the License.
  * =============================================================================
  */
-const ENV = env();
+const ENV$1 = env();
 /**
  * This file contains WebGL-specific flag registrations.
  */
 /**
  * True if WebGL is supported.
  */
-ENV.registerFlag('HAS_WEBGL', () => ENV.getNumber('WEBGL_VERSION') > 0);
+ENV$1.registerFlag('HAS_WEBGL', () => ENV$1.getNumber('WEBGL_VERSION') > 0);
 /** 0: No WebGL, 1: WebGL 1.0, 2: WebGL 2.0. */
-ENV.registerFlag('WEBGL_VERSION', () => {
+ENV$1.registerFlag('WEBGL_VERSION', () => {
     if (isWebGLVersionEnabled(2)) {
         return 2;
     }
@@ -60834,40 +60842,40 @@ ENV.registerFlag('WEBGL_VERSION', () => {
     return 0;
 });
 /** Whether to check for numerical representation problems. */
-ENV.registerFlag('WEBGL_CHECK_NUMERICAL_PROBLEMS', () => false);
-ENV.registerFlag('WEBGL_BUFFER_SUPPORTED', () => ENV.get('WEBGL_VERSION') === 2);
+ENV$1.registerFlag('WEBGL_CHECK_NUMERICAL_PROBLEMS', () => false);
+ENV$1.registerFlag('WEBGL_BUFFER_SUPPORTED', () => ENV$1.get('WEBGL_VERSION') === 2);
 /** Whether the WebGL backend will sometimes forward ops to the CPU. */
-ENV.registerFlag('WEBGL_CPU_FORWARD', () => true);
+ENV$1.registerFlag('WEBGL_CPU_FORWARD', () => true);
 /** Whether the WebGL backend will always use f16 textures for rendering. */
-ENV.registerFlag('WEBGL_FORCE_F16_TEXTURES', () => false);
+ENV$1.registerFlag('WEBGL_FORCE_F16_TEXTURES', () => false);
 /** Whether to turn all packing related flags on. */
-ENV.registerFlag('WEBGL_PACK', () => ENV.getBool('HAS_WEBGL'));
+ENV$1.registerFlag('WEBGL_PACK', () => ENV$1.getBool('HAS_WEBGL'));
 /** Whether we will pack the batchnormalization op. */
-ENV.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack the clip op. */
-ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_CLIP', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack the depthwise conv op. */
-ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack binary ops. */
-ENV.registerFlag('WEBGL_PACK_BINARY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_BINARY_OPERATIONS', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack unary ops. */
-ENV.registerFlag('WEBGL_PACK_UNARY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_UNARY_OPERATIONS', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack array ops. */
-ENV.registerFlag('WEBGL_PACK_ARRAY_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_ARRAY_OPERATIONS', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack image ops. */
-ENV.registerFlag('WEBGL_PACK_IMAGE_OPERATIONS', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_IMAGE_OPERATIONS', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack reduce ops. */
-ENV.registerFlag('WEBGL_PACK_REDUCE', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_REDUCE', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether packed WebGL kernels lazily unpack their outputs. */
-ENV.registerFlag('WEBGL_LAZILY_UNPACK', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_LAZILY_UNPACK', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will use the im2col algorithm to speed up convolutions. */
-ENV.registerFlag('WEBGL_CONV_IM2COL', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_CONV_IM2COL', () => ENV$1.getBool('WEBGL_PACK'));
 /** Whether we will pack conv2dTranspose op. */
-ENV.registerFlag('WEBGL_PACK_CONV2DTRANSPOSE', () => ENV.getBool('WEBGL_PACK'));
+ENV$1.registerFlag('WEBGL_PACK_CONV2DTRANSPOSE', () => ENV$1.getBool('WEBGL_PACK'));
 /** The maximum texture dimension. */
-ENV.registerFlag('WEBGL_MAX_TEXTURE_SIZE', () => getWebGLMaxTextureSize(ENV.getNumber('WEBGL_VERSION')));
+ENV$1.registerFlag('WEBGL_MAX_TEXTURE_SIZE', () => getWebGLMaxTextureSize(ENV$1.getNumber('WEBGL_VERSION')));
 /** The maximum texture dimension. */
-ENV.registerFlag('WEBGL_MAX_TEXTURES_IN_SHADER', () => getMaxTexturesInShader(ENV.getNumber('WEBGL_VERSION')));
+ENV$1.registerFlag('WEBGL_MAX_TEXTURES_IN_SHADER', () => getMaxTexturesInShader(ENV$1.getNumber('WEBGL_VERSION')));
 /**
  * The disjoint_query_timer extension version.
  * 0: disabled, 1: EXT_disjoint_timer_query, 2:
@@ -60876,8 +60884,8 @@ ENV.registerFlag('WEBGL_MAX_TEXTURES_IN_SHADER', () => getMaxTexturesInShader(EN
  * EXT_disjoint_timer_query_webgl2 is not available, so we must use the
  * WebGL 1.0 extension.
  */
-ENV.registerFlag('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', () => {
-    const webGLVersion = ENV.getNumber('WEBGL_VERSION');
+ENV$1.registerFlag('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', () => {
+    const webGLVersion = ENV$1.getNumber('WEBGL_VERSION');
     if (webGLVersion === 0) {
         return 0;
     }
@@ -60887,37 +60895,37 @@ ENV.registerFlag('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', () => {
  * Whether the timer object from the disjoint_query_timer extension gives
  * timing information that is reliable.
  */
-ENV.registerFlag('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => ENV.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0 &&
+ENV$1.registerFlag('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => ENV$1.getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0 &&
     !isMobile());
 /**
  * Whether the device is physically capable of rendering to float32 textures.
  */
-ENV.registerFlag('WEBGL_RENDER_FLOAT32_CAPABLE', () => isCapableOfRenderingToFloatTexture(ENV.getNumber('WEBGL_VERSION')));
+ENV$1.registerFlag('WEBGL_RENDER_FLOAT32_CAPABLE', () => isCapableOfRenderingToFloatTexture(ENV$1.getNumber('WEBGL_VERSION')));
 /**
  * Whether rendering to float32 textures is enabled. If disabled, renders to
  * float16 textures.
  */
-ENV.registerFlag('WEBGL_RENDER_FLOAT32_ENABLED', () => {
-    return ENV.getBool('WEBGL_FORCE_F16_TEXTURES') ?
+ENV$1.registerFlag('WEBGL_RENDER_FLOAT32_ENABLED', () => {
+    return ENV$1.getBool('WEBGL_FORCE_F16_TEXTURES') ?
         false :
-        ENV.getBool('WEBGL_RENDER_FLOAT32_CAPABLE');
+        ENV$1.getBool('WEBGL_RENDER_FLOAT32_CAPABLE');
 });
 /**
  * Whether downloading float textures is enabled (16 or 32 bit). If disabled,
  * uses IEEE 754 encoding of the float32 values to 4 uint8 when downloading.
  */
-ENV.registerFlag('WEBGL_DOWNLOAD_FLOAT_ENABLED', () => isDownloadFloatTextureEnabled(ENV.getNumber('WEBGL_VERSION')));
+ENV$1.registerFlag('WEBGL_DOWNLOAD_FLOAT_ENABLED', () => isDownloadFloatTextureEnabled(ENV$1.getNumber('WEBGL_VERSION')));
 /** Whether the fence API is available. */
-ENV.registerFlag('WEBGL_FENCE_API_ENABLED', () => isWebGLFenceEnabled(ENV.getNumber('WEBGL_VERSION')));
+ENV$1.registerFlag('WEBGL_FENCE_API_ENABLED', () => isWebGLFenceEnabled(ENV$1.getNumber('WEBGL_VERSION')));
 /**
  * Tensors with size <= than this will be uploaded as uniforms, not textures.
  */
-ENV.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
+ENV$1.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
     // Use uniform uploads only when 32bit floats are supported. In
     // 16bit
     // environments there are problems with comparing a 16bit texture value
     // with a 32bit uniform value.
-    const useUniforms = ENV.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+    const useUniforms = ENV$1.getBool('WEBGL_RENDER_FLOAT32_ENABLED');
     return useUniforms ? 4 : 0;
 });
 /**
@@ -60927,7 +60935,7 @@ ENV.registerFlag('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
  *
  * Default value -1 indicates that we will never aggressively delete textures.
  */
-ENV.registerFlag('WEBGL_DELETE_TEXTURE_THRESHOLD', () => {
+ENV$1.registerFlag('WEBGL_DELETE_TEXTURE_THRESHOLD', () => {
     return -1;
 }, threshold => {
     if (!(typeof threshold === 'number')) {
@@ -60948,7 +60956,7 @@ ENV.registerFlag('WEBGL_DELETE_TEXTURE_THRESHOLD', () => {
  * Default value 1 for mobile chrome, and -1 for rest cases. -1 indicates that
  * we will not enforce manual flush and depend on system default flush schedule.
  */
-ENV.registerFlag('WEBGL_FLUSH_THRESHOLD', () => {
+ENV$1.registerFlag('WEBGL_FLUSH_THRESHOLD', () => {
     return isMobile() ? 1 : -1;
 }, threshold => {
     if (!(typeof threshold === 'number')) {
@@ -60966,9 +60974,9 @@ ENV.registerFlag('WEBGL_FLUSH_THRESHOLD', () => {
  *
  * Default value is 128.
  */
-ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
+ENV$1.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
 /** Whether we will use shapes uniforms. */
-ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
+ENV$1.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
 /**
  * Threshold for last dimension of input tensor that determines whether
  * WebGL backend for the Top K op will delegate computation to CPU. If input
@@ -60976,7 +60984,7 @@ ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
  *
  * Default value is 100000.
  */
-ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
+ENV$1.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
 /**
  * Threshold for K that determines whether
  * WebGL backend for the Top K op will delegate computation to CPU. If k
@@ -60984,14 +60992,14 @@ ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
  *
  * Default value is 128.
  */
-ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
+ENV$1.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
 /** Whether we will use the experimental conv op. */
-ENV.registerFlag('WEBGL_EXP_CONV', () => false);
+ENV$1.registerFlag('WEBGL_EXP_CONV', () => false);
 /**
  * If the device performance is low or if no hardware GPU is available, whether
  * software WebGL will be used.
  */
-ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
+ENV$1.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV$1.getBool('IS_TEST'));
 /**
  * For narrow texture (physical height or physical width is 1), if the length of
  * any texture edges exceed the threshold, the texture will be reshaped to be
@@ -61001,7 +61009,7 @@ ENV.registerFlag('SOFTWARE_WEBGL_ENABLED', () => ENV.getBool('IS_TEST'));
  * interpolations for long skinny triangles. We found Mali GPU probably has this
  * problem: https://github.com/tensorflow/tfjs/issues/6775.
  */
-ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
+ENV$1.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
 /**
  * If the flag is set to true, the max size of the narrow texture will be auto
  * computed and it will be considerred as a threshold to reshape the narrow
@@ -61011,14 +61019,14 @@ ENV.registerFlag('WEBGL_MAX_SIZE_FOR_NARROW_TEXTURE', () => Infinity);
  * interpolations for long skinny triangles. We found Mali GPU probably has this
  * problem: https://github.com/tensorflow/tfjs/issues/6775.
  */
-ENV.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
+ENV$1.registerFlag('WEBGL_AUTO_SQUARIFY_NARROW_TEXTURE_SHAPE', () => false);
 /**
  * Whether to use the customized isnan. It's only useful for webgl2 since webgl1
  * doesn't have the builtin isnan.
  */
-ENV.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
+ENV$1.registerFlag('WEBGL2_ISNAN_CUSTOM', () => false);
 /** Experimental flag, whether enter compile only phase. */
-ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
+ENV$1.registerFlag('ENGINE_COMPILE_ONLY', () => false);
 
 /**
  * @license
@@ -65416,7 +65424,7 @@ class MathBackendWebGL extends KernelBackend {
             if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') >
                 0) {
                 const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-                res['kernelMs'] = sum$3(kernelMs);
+                res['kernelMs'] = sum$4(kernelMs);
                 res['getExtraProfileInfo'] = () => kernelMs
                     .map((d, i) => ({ name: flattenedActiveTimerNames[i], ms: d }))
                     .map(d => `${d.name}: ${d.ms}`)
@@ -66216,16 +66224,16 @@ class BinaryOpPackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function identity(args) {
+function identity$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     backend.incRef(x.dataId);
     return { dataId: x.dataId, shape: x.shape, dtype: x.dtype };
 }
-const identityConfig = {
+const identityConfig$1 = {
     kernelName: Identity,
     backendName: 'webgl',
-    kernelFunc: identity
+    kernelFunc: identity$1
 };
 
 /**
@@ -66258,8 +66266,8 @@ function complex(args) {
     const { real, imag } = inputs;
     const complexInfo = backend.makeTensorInfo(real.shape, 'complex64');
     const complex = backend.texData.get(complexInfo.dataId);
-    const realTensorInfo = identity({ inputs: { x: real }, backend });
-    const imagTensorInfo = identity({ inputs: { x: imag }, backend });
+    const realTensorInfo = identity$1({ inputs: { x: real }, backend });
+    const imagTensorInfo = identity$1({ inputs: { x: imag }, backend });
     complex.complexTensorInfos = { real: realTensorInfo, imag: imagTensorInfo };
     return complexInfo;
 }
@@ -66290,7 +66298,7 @@ const LEAKYRELU_PACKED = `
   vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
   return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
 `;
-function leakyRelu(args) {
+function leakyRelu$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { alpha } = attrs;
@@ -66302,10 +66310,10 @@ function leakyRelu(args) {
     backend.disposeIntermediateTensorInfo($alpha);
     return result;
 }
-const leakyReluConfig = {
+const leakyReluConfig$1 = {
     kernelName: LeakyRelu,
     backendName: 'webgl',
-    kernelFunc: leakyRelu
+    kernelFunc: leakyRelu$1
 };
 
 /**
@@ -66329,7 +66337,7 @@ const PRELU_PACKED = `
   vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
   return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
 `;
-function prelu(args) {
+function prelu$1(args) {
     const { inputs, backend } = args;
     const { x, alpha } = inputs;
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -66337,10 +66345,10 @@ function prelu(args) {
         new BinaryOpProgram(PRELU, x.shape, alpha.shape);
     return backend.runWebGLProgram(program, [x, alpha], 'float32');
 }
-const preluConfig = {
+const preluConfig$1 = {
     kernelName: Prelu,
     backendName: 'webgl',
-    kernelFunc: prelu
+    kernelFunc: prelu$1
 };
 
 /**
@@ -66730,7 +66738,7 @@ function multiply(args) {
     }
     return backend.runWebGLProgram(program, [a, b], dtype);
 }
-const multiplyConfig = {
+const multiplyConfig$1 = {
     kernelName: Multiply,
     backendName: 'webgl',
     kernelFunc: multiply
@@ -66785,7 +66793,7 @@ function packedReshape(input, afterShape, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function reshape(args) {
+function reshape$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { shape } = attrs;
@@ -66804,10 +66812,10 @@ function reshape(args) {
     webglBackend.incRef(x.dataId);
     return { dataId: x.dataId, shape: $shape, dtype: x.dtype };
 }
-const reshapeConfig = {
+const reshapeConfig$1 = {
     kernelName: Reshape,
     backendName: 'webgl',
-    kernelFunc: reshape
+    kernelFunc: reshape$1
 };
 
 /**
@@ -67288,10 +67296,10 @@ function sumImpl(x, axis, keepDims, backend) {
     const inSize = sizeFromShape(reduceShape);
     const xSize = sizeFromShape(x.shape);
     const batchSize = xSize / inSize;
-    const reshapedInput = reshape({ inputs: { x: sumInput }, attrs: { shape: [batchSize, inSize] }, backend });
+    const reshapedInput = reshape$1({ inputs: { x: sumInput }, attrs: { shape: [batchSize, inSize] }, backend });
     const outType = sumOutType(x.dtype);
     const reduced = reduce(reshapedInput, outType, 'sum', backend);
-    const out = reshape({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
+    const out = reshape$1({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(reshapedInput);
     backend.disposeIntermediateTensorInfo(reduced);
     if (sumInputIsTransposed) {
@@ -67316,16 +67324,16 @@ function sumImpl(x, axis, keepDims, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function sum(args) {
+function sum$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
     return sumImpl(x, axis, keepDims, backend);
 }
-const sumConfig = {
+const sumConfig$1 = {
     kernelName: Sum,
     backendName: 'webgl',
-    kernelFunc: sum
+    kernelFunc: sum$1
 };
 
 /**
@@ -67344,7 +67352,7 @@ const sumConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function transpose(args) {
+function transpose$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { perm } = attrs;
@@ -67368,10 +67376,10 @@ function transpose(args) {
     }
     return out;
 }
-const transposeConfig = {
+const transposeConfig$1 = {
     kernelName: Transpose,
     backendName: 'webgl',
-    kernelFunc: transpose
+    kernelFunc: transpose$1
 };
 
 /**
@@ -67418,8 +67426,8 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         [batchDimB, outerShapeB, innerShapeB] :
         [batchDimB, innerShapeB, outerShapeB];
     // The rest of the implementation is designed to operate on rank-3 tensors
-    const a3d = reshape({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
-    const b3d = reshape({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
+    const a3d = reshape$1({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
+    const b3d = reshape$1({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
     const intermediates = [a3d, b3d];
     const batchDim = Math.max(batchDimA, batchDimB);
     const sharedDim = transposeA ? a3d.shape[1] : a3d.shape[2];
@@ -67439,18 +67447,18 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         let aVec = a3d;
         let bVec = b3d;
         if (transposeA) {
-            aVec = transpose({ inputs: { x: a3d }, backend, attrs: { perm: [0, 2, 1] } });
+            aVec = transpose$1({ inputs: { x: a3d }, backend, attrs: { perm: [0, 2, 1] } });
             intermediates.push(aVec);
         }
         if (transposeB) {
-            bVec = transpose({ inputs: { x: b3d }, backend, attrs: { perm: [0, 2, 1] } });
+            bVec = transpose$1({ inputs: { x: b3d }, backend, attrs: { perm: [0, 2, 1] } });
             intermediates.push(bVec);
         }
         const shouldReshapeA = outerShapeB !== 1;
         const shouldReshapeB = outerShapeB === 1;
         let aVec3d = aVec;
         if (shouldReshapeA) {
-            aVec3d = reshape({
+            aVec3d = reshape$1({
                 inputs: { x: aVec },
                 backend,
                 attrs: { shape: [batchDim, sharedDim, 1] }
@@ -67460,7 +67468,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         const axis = outerShapeB === 1 ? 2 : 1;
         let bVec3d = bVec;
         if (shouldReshapeB) {
-            bVec3d = reshape({
+            bVec3d = reshape$1({
                 inputs: { x: bVec },
                 backend,
                 attrs: { shape: [batchDim, 1, sharedDim] }
@@ -67468,7 +67476,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
             intermediates.push(bVec3d);
         }
         const product = multiply({ inputs: { a: aVec3d, b: bVec3d }, backend });
-        out = sum({ inputs: { x: product }, backend, attrs: { axis, keepDims: true } });
+        out = sum$1({ inputs: { x: product }, backend, attrs: { axis, keepDims: true } });
         intermediates.push(product);
     }
     else {
@@ -67488,7 +67496,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         }
         out = backend.runWebGLProgram(program, inputs, dtype);
     }
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: outShape } });
     intermediates.push(out);
     for (const i of intermediates) {
         backend.disposeIntermediateTensorInfo(i);
@@ -67528,7 +67536,7 @@ function _fusedMatMul(args) {
         activation
     });
 }
-const _fusedMatMulConfig = {
+const _fusedMatMulConfig$1 = {
     kernelName: _FusedMatMul,
     backendName: 'webgl',
     kernelFunc: _fusedMatMul,
@@ -67570,7 +67578,7 @@ function abs(args) {
     }
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const absConfig = {
+const absConfig$1 = {
     kernelName: Abs,
     backendName: 'webgl',
     kernelFunc: abs
@@ -67599,7 +67607,7 @@ const ACOS = CHECK_NAN_SNIPPET$1 + `
   return acos(x);
 `;
 const acos = unaryKernelFunc({ opSnippet: ACOS });
-const acosConfig = {
+const acosConfig$1 = {
     kernelName: Acos,
     backendName: 'webgl',
     kernelFunc: acos,
@@ -67625,7 +67633,7 @@ const ACOSH = CHECK_NAN_SNIPPET$1 + `
   if (x < 1.0) return NAN;
 return log(x + sqrt(x * x - 1.0));`;
 const acosh = unaryKernelFunc({ opSnippet: ACOSH });
-const acoshConfig = {
+const acoshConfig$1 = {
     kernelName: Acosh,
     backendName: 'webgl',
     kernelFunc: acosh,
@@ -67654,7 +67662,7 @@ const addKernelFunc = binaryKernelFunc({
     supportsComplex: true,
     cpuKernelImpl: addImplCPU
 });
-const addConfig = {
+const addConfig$1 = {
     kernelName: Add,
     backendName: 'webgl',
     kernelFunc: addKernelFunc
@@ -67768,7 +67776,7 @@ function addN(args) {
     const { inputs, backend } = args;
     const tensors = inputs;
     if (tensors.length === 1) {
-        return identity({ inputs: { x: tensors[0] }, backend });
+        return identity$1({ inputs: { x: tensors[0] }, backend });
     }
     // Limit the number of uploaded textures for optimization.
     if (tensors.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
@@ -67786,7 +67794,7 @@ function addN(args) {
         new AddNProgram(tensors[0].shape, shapes);
     return backend.runWebGLProgram(program, tensors, dtype);
 }
-const addNConfig = {
+const addNConfig$1 = {
     kernelName: AddN,
     backendName: 'webgl',
     kernelFunc: addN
@@ -67808,7 +67816,7 @@ const addNConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function all(args) {
+function all$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -67818,21 +67826,21 @@ function all(args) {
     const permutedAxes = getAxesPermutation(axes, xRank);
     let permutedX = x;
     if (permutedAxes != null) {
-        permutedX = transpose({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         axes = getInnerMostAxes(axes.length, xRank);
     }
     assertAxesAreInnerMostDims('all', axes, xRank);
     const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
     const inSize = sizeFromShape(reduceShape);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     const reduced = reduce(a2D, a2D.dtype, 'all', backend);
     let res;
     if (keepDims) {
         const newShape = expandShapeToKeepDim(outShape, origAxes);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
     }
     else {
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
     }
     backend.disposeIntermediateTensorInfo(a2D);
     backend.disposeIntermediateTensorInfo(reduced);
@@ -67841,10 +67849,10 @@ function all(args) {
     }
     return res;
 }
-const allConfig = {
+const allConfig$1 = {
     kernelName: All,
     backendName: 'webgl',
-    kernelFunc: all
+    kernelFunc: all$1
 };
 
 /**
@@ -67863,7 +67871,7 @@ const allConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function any(args) {
+function any$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -67873,21 +67881,21 @@ function any(args) {
     const permutedAxes = getAxesPermutation(axes, xRank);
     let permutedX = x;
     if (permutedAxes != null) {
-        permutedX = transpose({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         axes = getInnerMostAxes(axes.length, xRank);
     }
     assertAxesAreInnerMostDims('any', axes, xRank);
     const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
     const inSize = sizeFromShape(reduceShape);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     const reduced = reduce(a2D, a2D.dtype, 'any', backend);
     let res;
     if (keepDims) {
         const newShape = expandShapeToKeepDim(outShape, origAxes);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
     }
     else {
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
     }
     backend.disposeIntermediateTensorInfo(a2D);
     backend.disposeIntermediateTensorInfo(reduced);
@@ -67896,10 +67904,10 @@ function any(args) {
     }
     return res;
 }
-const anyConfig = {
+const anyConfig$1 = {
     kernelName: Any,
     backendName: 'webgl',
-    kernelFunc: any
+    kernelFunc: any$1
 };
 
 /**
@@ -68147,11 +68155,11 @@ function argMinMaxReduce(backend, x, axis, reduceType) {
         }
         const [outShape, reduceShape] = computeOutAndReduceShapes(xUnPacked.shape, axes);
         const inSize = sizeFromShape(reduceShape);
-        const a2D = reshape({ inputs: { x: xUnPacked }, backend, attrs: { shape: [-1, inSize] } });
+        const a2D = reshape$1({ inputs: { x: xUnPacked }, backend, attrs: { shape: [-1, inSize] } });
         intermediateTensorInfos.push(a2D);
         const reduced = argReduce(backend, a2D, reduceType);
         intermediateTensorInfos.push(reduced);
-        const reshaped = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        const reshaped = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
         intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
         return reshaped;
     }
@@ -68183,7 +68191,7 @@ function argMax(args) {
     let $x = x;
     const intermediateTensorInfos = [];
     if (permutedAxes != null) {
-        $x = transpose({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         intermediateTensorInfos.push($x);
         axes = getInnerMostAxes(axes.length, $x.shape.length);
     }
@@ -68192,7 +68200,7 @@ function argMax(args) {
     intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return out;
 }
-const argMaxConfig = {
+const argMaxConfig$1 = {
     kernelName: ArgMax,
     backendName: 'webgl',
     kernelFunc: argMax
@@ -68223,7 +68231,7 @@ function argMin(args) {
     let $x = x;
     const intermediateTensorInfos = [];
     if (permutedAxes != null) {
-        $x = transpose({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         intermediateTensorInfos.push($x);
         axes = getInnerMostAxes(axes.length, $x.shape.length);
     }
@@ -68232,7 +68240,7 @@ function argMin(args) {
     intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return out;
 }
-const argMinConfig = {
+const argMinConfig$1 = {
     kernelName: ArgMin,
     backendName: 'webgl',
     kernelFunc: argMin
@@ -68261,7 +68269,7 @@ const ASIN = CHECK_NAN_SNIPPET$1 + `
   return asin(x);
 `;
 const asin = unaryKernelFunc({ opSnippet: ASIN });
-const asinConfig = {
+const asinConfig$1 = {
     kernelName: Asin,
     backendName: 'webgl',
     kernelFunc: asin,
@@ -68285,7 +68293,7 @@ const asinConfig = {
  */
 const ASINH = CHECK_NAN_SNIPPET$1 + `return log(x + sqrt(x * x + 1.0));`;
 const asinh = unaryKernelFunc({ opSnippet: ASINH });
-const asinhConfig = {
+const asinhConfig$1 = {
     kernelName: Asinh,
     backendName: 'webgl',
     kernelFunc: asinh,
@@ -68311,7 +68319,7 @@ const ATAN = CHECK_NAN_SNIPPET$1 + `
   return atan(x);
 `;
 const atan = unaryKernelFunc({ opSnippet: ATAN });
-const atanConfig = {
+const atanConfig$1 = {
     kernelName: Atan,
     backendName: 'webgl',
     kernelFunc: atan,
@@ -68346,7 +68354,7 @@ const ATAN2_PACKED = `
   return result;
 `;
 const atan2 = binaryKernelFunc({ opSnippet: ATAN2, packedOpSnippet: ATAN2_PACKED });
-const atan2Config = {
+const atan2Config$1 = {
     kernelName: Atan2,
     backendName: 'webgl',
     kernelFunc: atan2,
@@ -68372,7 +68380,7 @@ const ATANH = CHECK_NAN_SNIPPET$1 + `
   if ((x < -1.0) || (x > 1.0)) return NAN;
 return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
 const atanh = unaryKernelFunc({ opSnippet: ATANH });
-const atanhConfig = {
+const atanhConfig$1 = {
     kernelName: Atanh,
     backendName: 'webgl',
     kernelFunc: atanh,
@@ -68808,7 +68816,7 @@ class Pool3DProgram {
  * limitations under the License.
  * =============================================================================
  */
-function avgPool(args) {
+function avgPool$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     assertNotComplex(x, 'avgPool');
@@ -68819,15 +68827,15 @@ function avgPool(args) {
     const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad, dimRoundingMode);
     if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
         arraysEqual(convInfo.inShape, convInfo.outShape)) {
-        return identity({ inputs: { x }, backend });
+        return identity$1({ inputs: { x }, backend });
     }
     const avgPoolProgram = new Pool2DProgram(convInfo, 'avg', false);
     return backend.runWebGLProgram(avgPoolProgram, [x], 'float32');
 }
-const avgPoolConfig = {
+const avgPoolConfig$1 = {
     kernelName: AvgPool,
     backendName: 'webgl',
-    kernelFunc: avgPool
+    kernelFunc: avgPool$1
 };
 
 /**
@@ -68846,7 +68854,7 @@ const avgPoolConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function avgPool3D(args) {
+function avgPool3D$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { filterSize, strides, pad, dimRoundingMode, dataFormat } = attrs;
@@ -68855,10 +68863,10 @@ function avgPool3D(args) {
     const avgPoolProgram = new Pool3DProgram(convInfo, 'avg', false);
     return backend.runWebGLProgram(avgPoolProgram, [x], 'float32');
 }
-const avgPool3DConfig = {
+const avgPool3DConfig$1 = {
     kernelName: AvgPool3D,
     backendName: 'webgl',
-    kernelFunc: avgPool3D
+    kernelFunc: avgPool3D$1
 };
 
 /**
@@ -69033,7 +69041,7 @@ class AvgPool3DBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function avgPool3DGrad(args) {
+function avgPool3DGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -69043,10 +69051,10 @@ function avgPool3DGrad(args) {
     const avgPoolBackpropProgram = new AvgPool3DBackpropProgram(convInfo);
     return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
-const avgPool3DGradConfig = {
+const avgPool3DGradConfig$1 = {
     kernelName: AvgPool3DGrad,
     backendName: 'webgl',
-    kernelFunc: avgPool3DGrad
+    kernelFunc: avgPool3DGrad$1
 };
 
 /**
@@ -69065,7 +69073,7 @@ const avgPool3DGradConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function avgPoolGrad(args) {
+function avgPoolGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -69075,10 +69083,10 @@ function avgPoolGrad(args) {
     const avgPoolBackpropProgram = new AvgPool2DBackpropProgram(convInfo);
     return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
-const avgPoolGradConfig = {
+const avgPoolGradConfig$1 = {
     kernelName: AvgPoolGrad,
     backendName: 'webgl',
-    kernelFunc: avgPoolGrad
+    kernelFunc: avgPoolGrad$1
 };
 
 /**
@@ -69097,16 +69105,16 @@ const avgPoolGradConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function batchMatMul(args) {
+function batchMatMul$1(args) {
     const { inputs, backend, attrs } = args;
     const { a, b } = inputs;
     const { transposeA, transposeB } = attrs;
     return batchMatMulImpl({ a, b, transposeA, transposeB, backend });
 }
-const batchMatMulConfig = {
+const batchMatMulConfig$1 = {
     kernelName: BatchMatMul,
     backendName: 'webgl',
-    kernelFunc: batchMatMul,
+    kernelFunc: batchMatMul$1,
 };
 
 /**
@@ -69424,7 +69432,7 @@ function shallowSlice(x, begin, size, backend) {
     backend.dataRefCount.set(newTexData.slice.origDataId, refCount + 1);
     return t;
 }
-function slice(args) {
+function slice$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { begin, size } = attrs;
@@ -69456,10 +69464,10 @@ function slice(args) {
     backend.uploadToGPU(x.dataId);
     return shallowSlice(x, $begin, $size, backend);
 }
-const sliceConfig = {
+const sliceConfig$1 = {
     kernelName: Slice,
     backendName: 'webgl',
-    kernelFunc: slice
+    kernelFunc: slice$1
 };
 
 /**
@@ -69478,7 +69486,7 @@ const sliceConfig = {
  * limitations under the License.
  * =============================================================================
  */
-const batchToSpaceND = (args) => {
+const batchToSpaceND$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockShape, crops } = attrs;
@@ -69491,14 +69499,14 @@ const batchToSpaceND = (args) => {
     const sliceBeginCoords = getSliceBeginCoords(crops, blockShape.length);
     const sliceSize = getSliceSize(reshapedPermuted, crops, blockShape.length);
     const toDispose = [];
-    const reshapedIntermediate = reshape({ inputs: { x }, backend, attrs: { shape: reshaped } });
-    const transposedIntermediate = transpose({ inputs: { x: reshapedIntermediate }, backend, attrs: { perm: permuted } });
-    const reshapedIntermediate2 = reshape({
+    const reshapedIntermediate = reshape$1({ inputs: { x }, backend, attrs: { shape: reshaped } });
+    const transposedIntermediate = transpose$1({ inputs: { x: reshapedIntermediate }, backend, attrs: { perm: permuted } });
+    const reshapedIntermediate2 = reshape$1({
         inputs: { x: transposedIntermediate },
         backend,
         attrs: { shape: reshapedPermuted }
     });
-    const sliced = slice({
+    const sliced = slice$1({
         inputs: { x: reshapedIntermediate2 },
         backend,
         attrs: { begin: sliceBeginCoords, size: sliceSize }
@@ -69509,10 +69517,10 @@ const batchToSpaceND = (args) => {
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return sliced;
 };
-const batchToSpaceNDConfig = {
+const batchToSpaceNDConfig$1 = {
     kernelName: BatchToSpaceND,
     backendName: 'webgl',
-    kernelFunc: batchToSpaceND
+    kernelFunc: batchToSpaceND$1
 };
 
 /**
@@ -69531,7 +69539,7 @@ const batchToSpaceNDConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function bincount(args) {
+function bincount$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, weights } = inputs;
     const { size } = attrs;
@@ -69540,10 +69548,10 @@ function bincount(args) {
     const outVals = bincountImplCPU(xVals, weightsVals, weights.dtype, weights.shape, size);
     return backend.makeTensorInfo([size], weights.dtype, outVals);
 }
-const bincountConfig = {
+const bincountConfig$1 = {
     kernelName: Bincount,
     backendName: 'webgl',
-    kernelFunc: bincount
+    kernelFunc: bincount$1
 };
 
 /**
@@ -69597,7 +69605,7 @@ function bitwiseAnd(args) {
     }
     return backend.runWebGLProgram(program, [a, b], a.dtype);
 }
-const bitwiseAndConfig = {
+const bitwiseAndConfig$1 = {
     kernelName: BitwiseAnd,
     backendName: 'webgl',
     kernelFunc: bitwiseAnd
@@ -69619,7 +69627,7 @@ const bitwiseAndConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function broadcastArgs(args) {
+function broadcastArgs$1(args) {
     const { inputs, backend } = args;
     const { s0, s1 } = inputs;
     const s0Vals = backend.readSync(s0.dataId);
@@ -69627,10 +69635,10 @@ function broadcastArgs(args) {
     const broadcastShape = assertAndGetBroadcastShape(Array.from(s0Vals), Array.from(s1Vals));
     return backend.makeTensorInfo([broadcastShape.length], 'int32', Int32Array.from(broadcastShape));
 }
-const broadcastArgsConfig = {
+const broadcastArgsConfig$1 = {
     kernelName: BroadcastArgs,
     backendName: 'webgl',
-    kernelFunc: broadcastArgs
+    kernelFunc: broadcastArgs$1
 };
 
 /**
@@ -69651,7 +69659,7 @@ const broadcastArgsConfig = {
  */
 const NOT_EQUAL = `return float(a != b);`;
 const notEqual = binaryKernelFunc({ opSnippet: NOT_EQUAL, cpuKernelImpl: notEqualImplCPU, dtype: 'bool' });
-const notEqualConfig = {
+const notEqualConfig$1 = {
     kernelName: NotEqual,
     backendName: 'webgl',
     kernelFunc: notEqual,
@@ -69677,7 +69685,7 @@ function real(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
     const inputData = backend.texData.get(input.dataId);
-    return identity({ inputs: { x: inputData.complexTensorInfos.real }, backend });
+    return identity$1({ inputs: { x: inputData.complexTensorInfos.real }, backend });
 }
 const realConfig = {
     kernelName: Real,
@@ -69724,18 +69732,18 @@ function int(input, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function cast(args) {
+function cast$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { dtype } = attrs;
     // Casting to complex64.
     if (dtype === 'complex64') {
         if (x.dtype === 'complex64') {
-            return identity({ inputs: { x }, backend });
+            return identity$1({ inputs: { x }, backend });
         }
         // TODO(annxingyuan): Import kernel function once zeros is modularized.
         const zerosTensor = zeros(x.shape);
-        const floatX = cast({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
+        const floatX = cast$1({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
         const result = complex({ inputs: { real: floatX, imag: zerosTensor }, backend });
         zerosTensor.dispose();
         backend.disposeIntermediateTensorInfo(floatX);
@@ -69744,14 +69752,14 @@ function cast(args) {
     // Casting from complex64
     if (x.dtype === 'complex64') {
         const realPart = real({ inputs: { input: x }, backend });
-        const result = cast({ inputs: { x: realPart }, backend, attrs: { dtype } });
+        const result = cast$1({ inputs: { x: realPart }, backend, attrs: { dtype } });
         backend.disposeIntermediateTensorInfo(realPart);
         return result;
     }
     if (!hasEncodingLoss(x.dtype, dtype)) {
         // We don't change the underlying data, since we cast to higher
         // precision.
-        const result = identity({ inputs: { x }, backend });
+        const result = identity$1({ inputs: { x }, backend });
         return { dataId: result.dataId, shape: result.shape, dtype };
     }
     if (backend.shouldExecuteOnCPU([x])) {
@@ -69771,10 +69779,10 @@ function cast(args) {
     }
     throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
 }
-const castConfig = {
+const castConfig$1 = {
     kernelName: Cast,
     backendName: 'webgl',
-    kernelFunc: cast
+    kernelFunc: cast$1
 };
 
 /**
@@ -69795,7 +69803,7 @@ const castConfig = {
  */
 const CEIL = `return ceil(x);`;
 const ceil = unaryKernelFunc({ opSnippet: CEIL, packedOpSnippet: CEIL, cpuKernelImpl: ceilImplCPU });
-const ceilConfig = {
+const ceilConfig$1 = {
     kernelName: Ceil,
     backendName: 'webgl',
     kernelFunc: ceil
@@ -69911,7 +69919,7 @@ function clipByValue(args) {
     const customValues = [[clipValueMin], [clipValueMax]];
     return backend.runWebGLProgram(program, [x], x.dtype, customValues);
 }
-const clipByValueConfig = {
+const clipByValueConfig$1 = {
     kernelName: ClipByValue,
     backendName: 'webgl',
     kernelFunc: clipByValue
@@ -70017,7 +70025,7 @@ class ConcatProgram {
     // Concats 2d tensors along axis=1. See comments in MathBackendWebGL.concat().
     constructor(shapes) {
         this.outputShape = [];
-        this.outputShape = computeOutShape$1(shapes, 1 /* axis */);
+        this.outputShape = computeOutShape$2(shapes, 1 /* axis */);
         this.variableNames = shapes.map((_, i) => `T${i}`);
         const offsets = new Array(shapes.length - 1);
         offsets[0] = shapes[0][1];
@@ -70066,7 +70074,7 @@ class ConcatPackedProgram {
         this.packedInputs = true;
         this.packedOutput = true;
         this.outputShape = [];
-        this.outputShape = computeOutShape$1(shapes, axis);
+        this.outputShape = computeOutShape$2(shapes, axis);
         const shape = this.outputShape;
         const rank = shape.length;
         const dtype = getCoordsDataType(rank);
@@ -70177,7 +70185,7 @@ function imag(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
     const inputData = backend.texData.get(input.dataId);
-    return identity({ inputs: { x: inputData.complexTensorInfos.imag }, backend });
+    return identity$1({ inputs: { x: inputData.complexTensorInfos.imag }, backend });
 }
 const imagConfig = {
     kernelName: Imag,
@@ -70236,16 +70244,16 @@ function concatImpl(inputs, axis, backend) {
         const tensors2D = inputs.map(t => {
             const innerSize = sizeFromShape(t.shape.slice(axis));
             const shape = [-1, innerSize];
-            return reshape({ inputs: { x: t }, backend, attrs: { shape } });
+            return reshape$1({ inputs: { x: t }, backend, attrs: { shape } });
         });
         const inputsValShapes = tensors2D.map(t => {
             return { vals: backend.readSync(t.dataId), shape: t.shape };
         });
         // Concats 2d tensors along axis=1.
-        const outShape = computeOutShape$1(tensors2D.map(t => t.shape), 1 /* axis */);
+        const outShape = computeOutShape$2(tensors2D.map(t => t.shape), 1 /* axis */);
         const simplyConcat = tensors2D[0].shape[0] === 1;
         const outVals = concatImplCPU(inputsValShapes, outShape, dtype, simplyConcat);
-        const finalOutShape = computeOutShape$1(inputs.map(t => t.shape), axis);
+        const finalOutShape = computeOutShape$2(inputs.map(t => t.shape), axis);
         const outInfo = backend.makeTensorInfo(finalOutShape, dtype, outVals);
         tensors2D.forEach(t => backend.disposeIntermediateTensorInfo(t));
         return outInfo;
@@ -70282,7 +70290,7 @@ function concatImpl(inputs, axis, backend) {
     const program = new ConcatProgram(tensors2D.map(t => t.shape));
     const result = backend.runWebGLProgram(program, tensors2D, dtype);
     tensors2D.forEach(r => backend.disposeIntermediateTensorInfo(r));
-    const reshapedResult = reshape({ inputs: { x: result }, attrs: { shape: outShape }, backend });
+    const reshapedResult = reshape$1({ inputs: { x: result }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(result);
     return reshapedResult;
 }
@@ -70294,8 +70302,8 @@ function computeTensors2D(inputs, axis, backend) {
     // into a two-dimensional tensor by collapsing these two sets of axes and
     // concatenate the resulting matrices across the axis 1, finally reshaping
     // the result to have the proper shape.
-    const outShape = computeOutShape$1(inputs.map(t => t.shape), axis);
-    const tensors2D = inputs.map(x => reshape({
+    const outShape = computeOutShape$2(inputs.map(t => t.shape), axis);
+    const tensors2D = inputs.map(x => reshape$1({
         inputs: { x },
         attrs: { shape: [-1, sizeFromShape(x.shape.slice(axis))] },
         backend
@@ -70319,27 +70327,27 @@ function computeTensors2D(inputs, axis, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function concat(args) {
+function concat$1(args) {
     const { inputs, backend, attrs } = args;
     const { axis } = attrs;
     const $axis = parseAxisParam(axis, inputs[0].shape)[0];
     const shapes = inputs.map(t => t.shape);
     assertParamsConsistent(shapes, $axis);
-    const outShape = computeOutShape$1(inputs.map(t => t.shape), $axis);
+    const outShape = computeOutShape$2(inputs.map(t => t.shape), $axis);
     if (sizeFromShape(outShape) === 0) {
         return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
     }
     // Keep only non-empty tensors (ignore tensors with 0 in their shape).
     const $inputs = inputs.filter(t => sizeFromShape(t.shape) > 0);
     if ($inputs.length === 1) {
-        return identity({ inputs: { x: $inputs[0] }, backend });
+        return identity$1({ inputs: { x: $inputs[0] }, backend });
     }
     return concatImpl($inputs, $axis, backend);
 }
-const concatConfig = {
+const concatConfig$1 = {
     kernelName: Concat,
     backendName: 'webgl',
-    kernelFunc: concat
+    kernelFunc: concat$1
 };
 
 /**
@@ -71186,7 +71194,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
     if (preluActivationWeights != null) {
         const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
         if (targetShape != null) {
-            preluActivationWeights = reshape({
+            preluActivationWeights = reshape$1({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: targetShape }
@@ -71197,7 +71205,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
     if (bias != null) {
         const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
         if (targetShape != null) {
-            bias = reshape({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
             intermediates.push(bias);
         }
     }
@@ -71237,7 +71245,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
         xTexData.shape = xTexData.shape.slice();
         xTexData.shape[xTexData.shape.length - 2]++;
         assert(isReshapeFree(xTexData.shape, xReshaped.shape), () => `packed reshape ${xTexData.shape} to ${xReshaped.shape} isn't free`);
-        const filterReshaped = reshape({
+        const filterReshaped = reshape$1({
             inputs: { x: filter },
             backend,
             attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
@@ -71261,13 +71269,13 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
         // Set the output shape - there is no need for expensive reshape as data
         // layout is already correct.
         pointwiseConvTexData.shape = convInfo.outShape;
-        out = identity({ inputs: { x: pointwiseConv }, backend });
+        out = identity$1({ inputs: { x: pointwiseConv }, backend });
         out.shape = convInfo.outShape;
         intermediates.push(pointwiseConv);
     }
     else {
         const numCols = convInfo.outHeight * convInfo.outWidth;
-        const xReshaped = reshape({
+        const xReshaped = reshape$1({
             inputs: { x },
             backend,
             attrs: {
@@ -71276,7 +71284,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
                     [convInfo.batchSize, convInfo.inChannels, numCols]
             }
         });
-        const filterReshaped = reshape({
+        const filterReshaped = reshape$1({
             inputs: { x: filter },
             backend,
             attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
@@ -71292,7 +71300,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
             preluActivationWeights,
             leakyreluAlpha
         });
-        out = reshape({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
+        out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
         intermediates.push(xReshaped);
         intermediates.push(filterReshaped);
         intermediates.push(result);
@@ -71322,7 +71330,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
     if (preluActivationWeights != null) {
         const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
         if (targetShape != null) {
-            preluActivationWeights = reshape({
+            preluActivationWeights = reshape$1({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: targetShape }
@@ -71333,11 +71341,11 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
     if (bias != null) {
         const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
         if (targetShape != null) {
-            bias = reshape({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
             intermediates.push(bias);
         }
     }
-    const w2Row = reshape({
+    const w2Row = reshape$1({
         inputs: { x: filter },
         backend,
         attrs: { shape: [1, sharedDim, sizeFromShape(filter.shape) / sharedDim] }
@@ -71351,7 +71359,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
         [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
     ];
     const im2Col = backend.runWebGLProgram(im2ColProgram, [x], 'float32', customValues);
-    const im2ColReshaped = reshape({ inputs: { x: im2Col }, backend, attrs: { shape: x2ColShape } });
+    const im2ColReshaped = reshape$1({ inputs: { x: im2Col }, backend, attrs: { shape: x2ColShape } });
     intermediates.push(im2Col);
     intermediates.push(im2ColReshaped);
     const hasBias = bias != null;
@@ -71375,7 +71383,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
         intermediates.push($leakyreluAlpha);
     }
     const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
-    const out = reshape({ inputs: { x: product }, backend, attrs: { shape: convInfo.outShape } });
+    const out = reshape$1({ inputs: { x: product }, backend, attrs: { shape: convInfo.outShape } });
     intermediates.push(product);
     for (const i of intermediates) {
         backend.disposeIntermediateTensorInfo(i);
@@ -71399,7 +71407,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
  * limitations under the License.
  * =============================================================================
  */
-function conv2d(args) {
+function conv2d$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dataFormat, dilations, dimRoundingMode } = attrs;
@@ -71431,14 +71439,14 @@ function conv2d(args) {
         const program = new Conv2DProgram(convInfo);
         out = backend.runWebGLProgram(program, [x, filter], 'float32');
     }
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
     backend.disposeIntermediateTensorInfo(out);
     return outReshaped;
 }
-const conv2DConfig = {
+const conv2DConfig$1 = {
     kernelName: Conv2D,
     backendName: 'webgl',
-    kernelFunc: conv2d,
+    kernelFunc: conv2d$1,
 };
 
 /**
@@ -71862,7 +71870,7 @@ class Conv2DDerInputPackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function conv2DBackpropInput(args) {
+function conv2DBackpropInput$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, filter } = inputs;
     const { inputShape, strides, pad, dataFormat, dimRoundingMode } = attrs;
@@ -71881,10 +71889,10 @@ function conv2DBackpropInput(args) {
         return backend.runWebGLProgram(program, [dy, filter], 'float32');
     }
 }
-const conv2DBackpropInputConfig = {
+const conv2DBackpropInputConfig$1 = {
     kernelName: Conv2DBackpropInput,
     backendName: 'webgl',
-    kernelFunc: conv2DBackpropInput,
+    kernelFunc: conv2DBackpropInput$1,
 };
 
 /**
@@ -71903,7 +71911,7 @@ const conv2DBackpropInputConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function conv3D(args) {
+function conv3D$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -71911,10 +71919,10 @@ function conv3D(args) {
     const program = new Conv3DProgram(convInfo);
     return backend.runWebGLProgram(program, [x, filter], 'float32');
 }
-const conv3DConfig = {
+const conv3DConfig$1 = {
     kernelName: Conv3D,
     backendName: 'webgl',
-    kernelFunc: conv3D,
+    kernelFunc: conv3D$1,
 };
 
 /**
@@ -71933,7 +71941,7 @@ const conv3DConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function conv3DBackpropFilterV2(args) {
+function conv3DBackpropFilterV2$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, dy } = inputs;
     const { strides, pad, filterShape } = attrs;
@@ -71941,10 +71949,10 @@ function conv3DBackpropFilterV2(args) {
     const program = new Conv3DDerFilterProgram(convInfo);
     return backend.runWebGLProgram(program, [x, dy], 'float32');
 }
-const conv3DBackpropFilterV2Config = {
+const conv3DBackpropFilterV2Config$1 = {
     kernelName: Conv3DBackpropFilterV2,
     backendName: 'webgl',
-    kernelFunc: conv3DBackpropFilterV2
+    kernelFunc: conv3DBackpropFilterV2$1
 };
 
 /**
@@ -72003,7 +72011,7 @@ const COS_PACKED = `
   return result;
 `;
 const cos = unaryKernelFunc({ opSnippet: COS, packedOpSnippet: COS_PACKED });
-const cosConfig = {
+const cosConfig$1 = {
     kernelName: Cos,
     backendName: 'webgl',
     kernelFunc: cos,
@@ -72030,7 +72038,7 @@ const COSH = `
   return (e2x + 1.0 / e2x) / 2.0;
 `;
 const cosh = unaryKernelFunc({ opSnippet: COSH });
-const coshConfig = {
+const coshConfig$1 = {
     kernelName: Cosh,
     backendName: 'webgl',
     kernelFunc: cosh,
@@ -72168,17 +72176,17 @@ class CropAndResizeProgram {
  * limitations under the License.
  * =============================================================================
  */
-const cropAndResize = (args) => {
+const cropAndResize$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { image, boxes, boxInd } = inputs;
     const { cropSize, method, extrapolationValue } = attrs;
     const program = new CropAndResizeProgram(image.shape, boxes.shape, cropSize, method, extrapolationValue);
     return backend.runWebGLProgram(program, [image, boxes, boxInd], 'float32');
 };
-const cropAndResizeConfig = {
+const cropAndResizeConfig$1 = {
     kernelName: CropAndResize,
     backendName: 'webgl',
-    kernelFunc: cropAndResize
+    kernelFunc: cropAndResize$1
 };
 
 var CumOpType;
@@ -72281,7 +72289,7 @@ function cumImpl(op, x, backend, axis, exclusive, reverse) {
     const permutation = getAxesPermutation([axis], xRank);
     let permutedX = x;
     if (permutation != null) {
-        permutedX = transpose({ inputs: { x }, backend, attrs: { perm: permutation } });
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
     }
     const permutedAxis = getInnerMostAxes(1, xRank)[0];
     if (permutedAxis !== xRank - 1) {
@@ -72289,7 +72297,7 @@ function cumImpl(op, x, backend, axis, exclusive, reverse) {
             `but got axis=${axis}`);
     }
     const size = permutedX.shape[permutedAxis];
-    let result = identity({ inputs: { x: permutedX }, backend });
+    let result = identity$1({ inputs: { x: permutedX }, backend });
     // Use cum parallel algorithm, inspired by:
     // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
     // Note: although the algorithm is called sum, it works for any associtative
@@ -72312,7 +72320,7 @@ function cumImpl(op, x, backend, axis, exclusive, reverse) {
     }
     if (permutation != null) {
         const reversePermutation = getUndoAxesPermutation(permutation);
-        const reverseTransposedResult = transpose({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
+        const reverseTransposedResult = transpose$1({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
         backend.disposeIntermediateTensorInfo(result);
         backend.disposeIntermediateTensorInfo(permutedX);
         return reverseTransposedResult;
@@ -72336,16 +72344,16 @@ function cumImpl(op, x, backend, axis, exclusive, reverse) {
  * limitations under the License.
  * =============================================================================
  */
-function cumprod(args) {
+function cumprod$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, exclusive, reverse } = attrs;
     return cumImpl(CumOpType.Prod, x, backend, axis, exclusive, reverse);
 }
-const cumprodConfig = {
+const cumprodConfig$1 = {
     kernelName: Cumprod,
     backendName: 'webgl',
-    kernelFunc: cumprod
+    kernelFunc: cumprod$1
 };
 
 /**
@@ -72364,16 +72372,16 @@ const cumprodConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function cumsum(args) {
+function cumsum$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, exclusive, reverse } = attrs;
     return cumImpl(CumOpType.Sum, x, backend, axis, exclusive, reverse);
 }
-const cumsumConfig = {
+const cumsumConfig$1 = {
     kernelName: Cumsum,
     backendName: 'webgl',
-    kernelFunc: cumsum
+    kernelFunc: cumsum$1
 };
 
 /**
@@ -72392,7 +72400,7 @@ const cumsumConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function denseBincount(args) {
+function denseBincount$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, weights } = inputs;
     const { size, binaryOutput } = attrs;
@@ -72411,10 +72419,10 @@ function denseBincount(args) {
     throw new Error(`Error in denseBincount: input must be at most rank 2, but got rank` +
         `${x.shape.length}.`);
 }
-const denseBincountConfig = {
+const denseBincountConfig$1 = {
     kernelName: DenseBincount,
     backendName: 'webgl',
-    kernelFunc: denseBincount
+    kernelFunc: denseBincount$1
 };
 
 /**
@@ -72519,7 +72527,7 @@ class DepthToSpaceProgram {
  * limitations under the License.
  * =============================================================================
  */
-function depthToSpace(args) {
+function depthToSpace$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockSize, dataFormat } = attrs;
@@ -72536,10 +72544,10 @@ function depthToSpace(args) {
     const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const depthToSpaceConfig = {
+const depthToSpaceConfig$1 = {
     kernelName: DepthToSpace,
     backendName: 'webgl',
-    kernelFunc: depthToSpace
+    kernelFunc: depthToSpace$1
 };
 
 /**
@@ -73063,7 +73071,7 @@ function depthwiseConv2dNative(args) {
     ];
     return backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
 }
-const depthwiseConv2dNativeConfig = {
+const depthwiseConv2dNativeConfig$1 = {
     kernelName: DepthwiseConv2dNative,
     backendName: 'webgl',
     kernelFunc: depthwiseConv2dNative,
@@ -73298,23 +73306,23 @@ class DiagProgram {
  * limitations under the License.
  * =============================================================================
  */
-function diag(args) {
+function diag$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     const outShape = [...x.shape, ...x.shape];
     const xSize = sizeFromShape(x.shape);
-    const flat = reshape({ inputs: { x }, backend, attrs: { shape: [xSize] } });
+    const flat = reshape$1({ inputs: { x }, backend, attrs: { shape: [xSize] } });
     const program = new DiagProgram(xSize);
     const res = backend.runWebGLProgram(program, [flat], flat.dtype);
-    const out = reshape({ inputs: { x: res }, backend, attrs: { shape: outShape } });
+    const out = reshape$1({ inputs: { x: res }, backend, attrs: { shape: outShape } });
     backend.disposeIntermediateTensorInfo(flat);
     backend.disposeIntermediateTensorInfo(res);
     return out;
 }
-const diagConfig = {
+const diagConfig$1 = {
     kernelName: Diag,
     backendName: 'webgl',
-    kernelFunc: diag
+    kernelFunc: diag$1
 };
 
 /**
@@ -73397,7 +73405,7 @@ class Dilation2DProgram {
  * limitations under the License.
  * =============================================================================
  */
-function dilation2D(args) {
+function dilation2D$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -73405,14 +73413,14 @@ function dilation2D(args) {
     let out;
     const program = new Dilation2DProgram(convInfo);
     out = backend.runWebGLProgram(program, [x, filter], 'float32');
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
     backend.disposeIntermediateTensorInfo(out);
     return outReshaped;
 }
-const dilation2DConfig = {
+const dilation2DConfig$1 = {
     kernelName: Dilation2D,
     backendName: 'webgl',
-    kernelFunc: dilation2D,
+    kernelFunc: dilation2D$1,
 };
 
 /**
@@ -73450,7 +73458,7 @@ function einsum(args) {
                 x = tensors[idTerm];
             }
             else {
-                x = transpose({ inputs: { x: tensors[idTerm] }, backend, attrs: { perm } });
+                x = transpose$1({ inputs: { x: tensors[idTerm] }, backend, attrs: { perm } });
                 tensorsToDispose.push(x);
             }
             const targetShape = x.shape.slice();
@@ -73458,7 +73466,7 @@ function einsum(args) {
                 targetShape.splice(dimsToExpand[k], 0, 1);
             }
             if (!arraysEqual(x.shape, targetShape)) {
-                x = reshape({ inputs: { x }, backend, attrs: { shape: targetShape } });
+                x = reshape$1({ inputs: { x }, backend, attrs: { shape: targetShape } });
                 tensorsToDispose.push(x);
             }
             if (out === null) {
@@ -73472,7 +73480,7 @@ function einsum(args) {
         }
         if (i < nSteps - 1) {
             if (path[i] >= 0) {
-                out = sum({
+                out = sum$1({
                     inputs: { x: out },
                     backend,
                     attrs: {
@@ -73528,7 +73536,7 @@ const ELU_PACKED = `
   return result;
 `;
 const elu = unaryKernelFunc({ opSnippet: ELU, packedOpSnippet: ELU_PACKED });
-const eluConfig = {
+const eluConfig$1 = {
     kernelName: Elu,
     backendName: 'webgl',
     kernelFunc: elu
@@ -73555,7 +73563,7 @@ const ELU_DER_PACKED = `
   vec4 bGTEZero = vec4(greaterThanEqual(b, vec4(0.)));
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
 `;
-const eluGrad = (args) => {
+const eluGrad$1 = (args) => {
     const { inputs, backend } = args;
     const { dy, y } = inputs;
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -73563,10 +73571,10 @@ const eluGrad = (args) => {
         new BinaryOpProgram(ELU_DER, dy.shape, y.shape);
     return backend.runWebGLProgram(program, [dy, y], dy.dtype);
 };
-const eluGradConfig = {
+const eluGradConfig$1 = {
     kernelName: EluGrad,
     backendName: 'webgl',
-    kernelFunc: eluGrad
+    kernelFunc: eluGrad$1
 };
 
 /**
@@ -73595,7 +73603,7 @@ const equal = binaryKernelFunc({
     dtype: 'bool',
     cpuKernelImpl: equalImplCPU,
 });
-const equalConfig = {
+const equalConfig$1 = {
     kernelName: Equal,
     backendName: 'webgl',
     kernelFunc: equal
@@ -73634,7 +73642,7 @@ const ERF = `
   return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x));
 `;
 const erf = unaryKernelFunc({ opSnippet: ERF });
-const erfConfig = {
+const erfConfig$1 = {
     kernelName: Erf,
     backendName: 'webgl',
     kernelFunc: erf,
@@ -73675,7 +73683,7 @@ const exp = unaryKernelFunc({
     cpuKernelImpl: expImplCPU,
     dtype: 'float32',
 });
-const expConfig = {
+const expConfig$1 = {
     kernelName: Exp,
     backendName: 'webgl',
     kernelFunc: exp
@@ -73697,7 +73705,7 @@ const expConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function expandDims(args) {
+function expandDims$1(args) {
     const { inputs, attrs, backend } = args;
     const { dim } = attrs;
     const { input } = inputs;
@@ -73710,12 +73718,12 @@ function expandDims(args) {
         $dim = inputRank + dim + 1;
     }
     newShape.splice($dim, 0, 1);
-    return reshape({ inputs: { x: input }, backend, attrs: { shape: newShape } });
+    return reshape$1({ inputs: { x: input }, backend, attrs: { shape: newShape } });
 }
-const expandDimsConfig = {
+const expandDimsConfig$1 = {
     kernelName: ExpandDims,
     backendName: 'webgl',
-    kernelFunc: expandDims,
+    kernelFunc: expandDims$1,
 };
 
 /**
@@ -73736,7 +73744,7 @@ const expandDimsConfig = {
  */
 const EXPM1 = `return exp(x) - 1.0;`;
 const expm1 = unaryKernelFunc({ opSnippet: EXPM1, packedOpSnippet: EXPM1, cpuKernelImpl: expm1ImplCPU });
-const expm1Config = {
+const expm1Config$1 = {
     kernelName: Expm1,
     backendName: 'webgl',
     kernelFunc: expm1
@@ -73834,7 +73842,7 @@ function fftImpl(x, inverse, backend) {
     // Collapse all outer dimensions to a single batch dimension.
     const innerDimensionSize = x.shape[x.shape.length - 1];
     const batch = inputSize / innerDimensionSize;
-    const input2D = reshape({ inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } });
+    const input2D = reshape$1({ inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } });
     const xShape = input2D.shape;
     const realProgram = new FFTProgram('real', xShape, inverse);
     const imagProgram = new FFTProgram('imag', xShape, inverse);
@@ -73855,7 +73863,7 @@ function fftImpl(x, inverse, backend) {
     const complexOutput = complex({ inputs: { real: realPart, imag: imagPart }, backend });
     backend.disposeIntermediateTensorInfo(realPart);
     backend.disposeIntermediateTensorInfo(imagPart);
-    const complexOutputReshaped = reshape({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
+    const complexOutputReshaped = reshape$1({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
     backend.disposeIntermediateTensorInfo(input2D);
     backend.disposeIntermediateTensorInfo(complexOutput);
     return complexOutputReshaped;
@@ -73935,7 +73943,7 @@ class FillProgram {
  * limitations under the License.
  * =============================================================================
  */
-function fill(args) {
+function fill$1(args) {
     const { backend, attrs } = args;
     const { shape, value } = attrs;
     let { dtype } = attrs;
@@ -73952,10 +73960,10 @@ function fill(args) {
         return backend.runWebGLProgram(program, [], dtype, customValues);
     }
 }
-const fillConfig = {
+const fillConfig$1 = {
     kernelName: Fill,
     backendName: 'webgl',
-    kernelFunc: fill
+    kernelFunc: fill$1
 };
 
 /**
@@ -74014,7 +74022,7 @@ class FlipLeftRightProgram {
  * limitations under the License.
  * =============================================================================
  */
-const flipLeftRightConfig = {
+const flipLeftRightConfig$1 = {
     kernelName: FlipLeftRight,
     backendName: 'webgl',
     kernelFunc: ({ inputs, backend }) => {
@@ -74044,7 +74052,7 @@ const flipLeftRightConfig = {
  */
 const FLOOR = `return floor(x);`;
 const floor = unaryKernelFunc({ opSnippet: FLOOR, packedOpSnippet: FLOOR, cpuKernelImpl: floorImplCPU });
-const floorConfig = {
+const floorConfig$1 = {
     kernelName: Floor,
     backendName: 'webgl',
     kernelFunc: floor,
@@ -74104,7 +74112,7 @@ const INT_DIV_PACKED = `
   return vec4(result);
 `;
 const floorDiv = binaryKernelFunc({ opSnippet: INT_DIV, packedOpSnippet: INT_DIV_PACKED, dtype: 'int32' });
-const floorDivConfig = {
+const floorDivConfig$1 = {
     kernelName: FloorDiv,
     backendName: 'webgl',
     kernelFunc: floorDiv
@@ -74300,7 +74308,7 @@ function fromPixels(args) {
  * limitations under the License.
  * =============================================================================
  */
-function fusedConv2d(args) {
+function fusedConv2d$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter, bias, preluActivationWeights } = inputs;
     const { strides, pad, dataFormat, dilations, dimRoundingMode, activation, leakyreluAlpha } = attrs;
@@ -74323,7 +74331,7 @@ function fusedConv2d(args) {
         const alignInputWithDataFormat = (input, dataFormat) => {
             if (dataFormat === 'NCHW' && input.shape.length === 1 &&
                 input.shape[0] !== 1) {
-                const alignedInput = reshape({
+                const alignedInput = reshape$1({
                     inputs: { x: input },
                     backend,
                     attrs: { shape: [input.shape[0], 1, 1] }
@@ -74392,15 +74400,15 @@ function fusedConv2d(args) {
         const inputs = prepareInputs();
         out = backend.runWebGLProgram(program, inputs, 'float32');
     }
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
     intermediates.push(out);
     intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return outReshaped;
 }
-const fusedConv2DConfig = {
+const fusedConv2DConfig$1 = {
     kernelName: FusedConv2D,
     backendName: 'webgl',
-    kernelFunc: fusedConv2d,
+    kernelFunc: fusedConv2d$1,
 };
 
 /**
@@ -74469,7 +74477,7 @@ function fusedDepthwiseConv2D(args) {
     intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 }
-const fusedDepthwiseConv2DConfig = {
+const fusedDepthwiseConv2DConfig$1 = {
     kernelName: FusedDepthwiseConv2D,
     backendName: 'webgl',
     kernelFunc: fusedDepthwiseConv2D,
@@ -74522,15 +74530,15 @@ class GatherNDProgram {
  * limitations under the License.
  * =============================================================================
  */
-function gatherNd(args) {
+function gatherNd$1(args) {
     const { inputs, backend } = args;
     const { params, indices } = inputs;
     const indicesShape = indices.shape;
     const sliceRank = indicesShape[indicesShape.length - 1];
     const paramsSize = sizeFromShape(params.shape);
     const [resultShape, numSlices, sliceSize, strides] = prepareAndValidate(params, indices);
-    const flattenIndices = reshape({ inputs: { x: indices }, backend, attrs: { shape: [numSlices, sliceRank] } });
-    const flattenX = reshape({
+    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numSlices, sliceRank] } });
+    const flattenX = reshape$1({
         inputs: { x: params },
         backend,
         attrs: { shape: [(sizeFromShape(params.shape) / sliceSize), sliceSize] }
@@ -74544,16 +74552,16 @@ function gatherNd(args) {
     }
     const program = new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], params.shape);
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndices], flattenX.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
     backend.disposeIntermediateTensorInfo(flattenIndices);
     backend.disposeIntermediateTensorInfo(flattenX);
     backend.disposeIntermediateTensorInfo(res);
     return reshaped;
 }
-const gatherNdConfig = {
+const gatherNdConfig$1 = {
     kernelName: GatherNd,
     backendName: 'webgl',
-    kernelFunc: gatherNd
+    kernelFunc: gatherNd$1
 };
 
 /**
@@ -74620,7 +74628,7 @@ function getSourceCoords$1(aShape, axis) {
  * limitations under the License.
  * =============================================================================
  */
-function gatherV2(args) {
+function gatherV2$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, indices } = inputs;
     const { axis, batchDims } = attrs;
@@ -74638,7 +74646,7 @@ function gatherV2(args) {
     const shapeInfo = collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
     const indicesSize = sizeFromShape(indices.shape);
     const toDispose = [];
-    const flattenX = reshape({
+    const flattenX = reshape$1({
         inputs: { x },
         backend,
         attrs: {
@@ -74648,7 +74656,7 @@ function gatherV2(args) {
             ]
         }
     });
-    const flattenIndex = reshape({
+    const flattenIndex = reshape$1({
         inputs: { x: indices },
         backend,
         attrs: { shape: [shapeInfo.batchSize, indicesSize / shapeInfo.batchSize] }
@@ -74669,14 +74677,14 @@ function gatherV2(args) {
     const program = new GatherProgram(flattenX.shape, flattenOutputShape);
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndex], flattenX.dtype);
     toDispose.push(res);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: shapeInfo.outputShape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: shapeInfo.outputShape } });
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return reshaped;
 }
-const gatherV2Config = {
+const gatherV2Config$1 = {
     kernelName: GatherV2,
     backendName: 'webgl',
-    kernelFunc: gatherV2
+    kernelFunc: gatherV2$1
 };
 
 /**
@@ -74705,7 +74713,7 @@ const greater = binaryKernelFunc({
     cpuKernelImpl: greaterImplCPU,
     dtype: 'bool'
 });
-const greaterConfig = {
+const greaterConfig$1 = {
     kernelName: Greater,
     backendName: 'webgl',
     kernelFunc: greater
@@ -74737,7 +74745,7 @@ const greaterEqual = binaryKernelFunc({
     dtype: 'bool',
     cpuKernelImpl: greaterEqualImplCPU
 });
-const greaterEqualConfig = {
+const greaterEqualConfig$1 = {
     kernelName: GreaterEqual,
     backendName: 'webgl',
     kernelFunc: greaterEqual
@@ -74788,7 +74796,7 @@ const ifftConfig = {
  */
 const IS_FINITE = `return float(!isnan(x) && !isinf(x));`;
 const isFinite$1 = unaryKernelFunc({ opSnippet: IS_FINITE, dtype: 'bool' });
-const isFiniteConfig = {
+const isFiniteConfig$1 = {
     kernelName: IsFinite,
     backendName: 'webgl',
     kernelFunc: isFinite$1,
@@ -74812,7 +74820,7 @@ const isFiniteConfig = {
  */
 const IS_INF = `return float(isinf(x));`;
 const isInf = unaryKernelFunc({ opSnippet: IS_INF, dtype: 'bool' });
-const isInfConfig = {
+const isInfConfig$1 = {
     kernelName: IsInf,
     backendName: 'webgl',
     kernelFunc: isInf,
@@ -74836,7 +74844,7 @@ const isInfConfig = {
  */
 const IS_NAN = `return float(isnan(x));`;
 const isNaN$1 = unaryKernelFunc({ opSnippet: IS_NAN, dtype: 'bool' });
-const isNaNConfig = {
+const isNaNConfig$1 = {
     kernelName: IsNan,
     backendName: 'webgl',
     kernelFunc: isNaN$1,
@@ -74868,7 +74876,7 @@ const less = binaryKernelFunc({
     cpuKernelImpl: lessImplCPU,
     dtype: 'bool'
 });
-const lessConfig = {
+const lessConfig$1 = {
     kernelName: Less,
     backendName: 'webgl',
     kernelFunc: less
@@ -74900,7 +74908,7 @@ const lessEqual = binaryKernelFunc({
     cpuKernelImpl: lessEqualImplCPU,
     dtype: 'bool'
 });
-const lessEqualConfig = {
+const lessEqualConfig$1 = {
     kernelName: LessEqual,
     backendName: 'webgl',
     kernelFunc: lessEqual
@@ -74922,17 +74930,17 @@ const lessEqualConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function linSpace(args) {
+function linSpace$1(args) {
     const { backend, attrs } = args;
     const { start, stop, num } = attrs;
     // TODO: Use CPU implementation due to the precision problem in Safari.
     const outVals = linSpaceImplCPU(start, stop, num);
     return backend.makeTensorInfo([outVals.length], 'float32', outVals);
 }
-const linSpaceConfig = {
+const linSpaceConfig$1 = {
     kernelName: LinSpace,
     backendName: 'webgl',
-    kernelFunc: linSpace
+    kernelFunc: linSpace$1
 };
 
 /**
@@ -74966,7 +74974,7 @@ const LOG_PACKED = `
   return result;
 `;
 const log = unaryKernelFunc({ opSnippet: LOG, packedOpSnippet: LOG_PACKED, cpuKernelImpl: logImplCPU });
-const logConfig = {
+const logConfig$1 = {
     kernelName: Log,
     backendName: 'webgl',
     kernelFunc: log
@@ -74992,7 +75000,7 @@ const LOG1P = CHECK_NAN_SNIPPET_UNARY + `
   return log(1.0 + x);
 `;
 const log1p = unaryKernelFunc({ opSnippet: LOG1P });
-const log1pConfig = {
+const log1pConfig$1 = {
     kernelName: Log1p,
     backendName: 'webgl',
     kernelFunc: log1p,
@@ -75025,7 +75033,7 @@ const logicalAnd = binaryKernelFunc({
     packedOpSnippet: LOGICAL_AND_PACKED,
     dtype: 'bool'
 });
-const logicalAndConfig = {
+const logicalAndConfig$1 = {
     kernelName: LogicalAnd,
     backendName: 'webgl',
     kernelFunc: logicalAnd
@@ -75049,7 +75057,7 @@ const logicalAndConfig = {
  */
 const LOGICAL_NOT = `return float(!(x >= 1.0));`;
 const logicalNot = unaryKernelFunc({ opSnippet: LOGICAL_NOT });
-const logicalNotConfig = {
+const logicalNotConfig$1 = {
     kernelName: LogicalNot,
     backendName: 'webgl',
     kernelFunc: logicalNot,
@@ -75079,7 +75087,7 @@ const LOGICAL_OR_PACKED = `
     vec4(1.0));
 `;
 const logicalOr = binaryKernelFunc({ opSnippet: LOGICAL_OR, packedOpSnippet: LOGICAL_OR_PACKED, dtype: 'bool' });
-const logicalOrConfig = {
+const logicalOrConfig$1 = {
     kernelName: LogicalOr,
     backendName: 'webgl',
     kernelFunc: logicalOr
@@ -75268,7 +75276,7 @@ class LRNPackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-const lrn = (args) => {
+const lrn$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { depthRadius, bias, alpha, beta } = attrs;
@@ -75281,7 +75289,7 @@ const lrn = (args) => {
 const LRNConfig = {
     kernelName: LRN,
     backendName: 'webgl',
-    kernelFunc: lrn
+    kernelFunc: lrn$1
 };
 
 /**
@@ -75385,7 +75393,7 @@ class LRNGradProgram {
  * limitations under the License.
  * =============================================================================
  */
-const lrnGrad = (args) => {
+const lrnGrad$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x, y, dy } = inputs;
     const { depthRadius, bias, alpha, beta } = attrs;
@@ -75396,7 +75404,7 @@ const lrnGrad = (args) => {
 const LRNGradConfig = {
     kernelName: LRNGrad,
     backendName: 'webgl',
-    kernelFunc: lrnGrad
+    kernelFunc: lrnGrad$1
 };
 
 /**
@@ -75419,9 +75427,9 @@ function maxImpl(x, reduceShape, outShape, backend) {
     const inSize = sizeFromShape(reduceShape);
     const xSize = sizeFromShape(x.shape);
     const batchSize = xSize / inSize;
-    const reshapedInput = reshape({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
+    const reshapedInput = reshape$1({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
     const reduced = reduce(reshapedInput, x.dtype, 'max', backend);
-    const reshapedOutput = reshape({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
+    const reshapedOutput = reshape$1({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(reshapedInput);
     backend.disposeIntermediateTensorInfo(reduced);
     return reshapedOutput;
@@ -75443,7 +75451,7 @@ function maxImpl(x, reduceShape, outShape, backend) {
  * limitations under the License.
  * =============================================================================
  */
-function max(args) {
+function max$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { reductionIndices, keepDims } = attrs;
@@ -75496,10 +75504,10 @@ function max(args) {
     }
     return out;
 }
-const maxConfig = {
+const maxConfig$1 = {
     kernelName: Max,
     backendName: 'webgl',
-    kernelFunc: max
+    kernelFunc: max$1
 };
 
 /**
@@ -75535,7 +75543,7 @@ const maximum = binaryKernelFunc({
     packedOpSnippet: MAXIMUM_PACKED,
     cpuKernelImpl: maximumImplCPU
 });
-const maximumConfig = {
+const maximumConfig$1 = {
     kernelName: Maximum,
     backendName: 'webgl',
     kernelFunc: maximum
@@ -75557,7 +75565,7 @@ const maximumConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function maxPool(args) {
+function maxPool$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     assertNotComplex(x, 'maxPool');
@@ -75568,15 +75576,15 @@ function maxPool(args) {
     const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad, dimRoundingMode);
     if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
         arraysEqual(convInfo.inShape, convInfo.outShape)) {
-        return identity({ inputs: { x }, backend });
+        return identity$1({ inputs: { x }, backend });
     }
     const maxPoolProgram = new Pool2DProgram(convInfo, 'max', false);
     return backend.runWebGLProgram(maxPoolProgram, [x], x.dtype);
 }
-const maxPoolConfig = {
+const maxPoolConfig$1 = {
     kernelName: MaxPool,
     backendName: 'webgl',
-    kernelFunc: maxPool
+    kernelFunc: maxPool$1
 };
 
 /**
@@ -75604,7 +75612,7 @@ function maxPool3d(args) {
     const maxPoolProgram = new Pool3DProgram(convInfo, 'max', false);
     return backend.runWebGLProgram(maxPoolProgram, [x], x.dtype);
 }
-const maxPool3DConfig = {
+const maxPool3DConfig$1 = {
     kernelName: MaxPool3D,
     backendName: 'webgl',
     kernelFunc: maxPool3d
@@ -75788,7 +75796,7 @@ class MaxPool3DBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function maxPool3DGrad(args) {
+function maxPool3DGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -75802,10 +75810,10 @@ function maxPool3DGrad(args) {
     backend.disposeIntermediateTensorInfo(maxPool3dPositions);
     return result;
 }
-const maxPool3DGradConfig = {
+const maxPool3DGradConfig$1 = {
     kernelName: MaxPool3DGrad,
     backendName: 'webgl',
-    kernelFunc: maxPool3DGrad
+    kernelFunc: maxPool3DGrad$1
 };
 
 /**
@@ -75824,7 +75832,7 @@ const maxPool3DGradConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function maxPoolGrad(args) {
+function maxPoolGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input, output } = inputs;
     const x = input;
@@ -75839,10 +75847,10 @@ function maxPoolGrad(args) {
     backend.disposeIntermediateTensorInfo(maxPoolPositions);
     return result;
 }
-const maxPoolGradConfig = {
+const maxPoolGradConfig$1 = {
     kernelName: MaxPoolGrad,
     backendName: 'webgl',
-    kernelFunc: maxPoolGrad
+    kernelFunc: maxPoolGrad$1
 };
 
 /**
@@ -75885,7 +75893,7 @@ function maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, backend) {
  * limitations under the License.
  * =============================================================================
  */
-const maxPoolWithArgmaxConfig = {
+const maxPoolWithArgmaxConfig$1 = {
     kernelName: MaxPoolWithArgmax,
     backendName: 'webgl',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -75922,9 +75930,9 @@ function meanImpl(x, reduceShape, outShape, backend) {
     const inSize = sizeFromShape(reduceShape);
     const xSize = sizeFromShape(x.shape);
     const batchSize = xSize / inSize;
-    const reshapedInput = reshape({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
+    const reshapedInput = reshape$1({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
     const reduced = reduce(reshapedInput, 'float32', 'mean', backend);
-    const reshapedOutput = reshape({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
+    const reshapedOutput = reshape$1({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(reshapedInput);
     backend.disposeIntermediateTensorInfo(reduced);
     return reshapedOutput;
@@ -75946,7 +75954,7 @@ function meanImpl(x, reduceShape, outShape, backend) {
  * limitations under the License.
  * =============================================================================
  */
-const meanConfig = {
+const meanConfig$1 = {
     kernelName: Mean,
     backendName: 'webgl',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -76011,7 +76019,7 @@ const meanConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function min(args) {
+function min$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -76021,21 +76029,21 @@ function min(args) {
     const permutedAxes = getAxesPermutation(axes, xRank);
     let permutedX = x;
     if (permutedAxes != null) {
-        permutedX = transpose({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         axes = getInnerMostAxes(axes.length, x.shape.length);
     }
     assertAxesAreInnerMostDims('min', axes, xRank);
     const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
     const inSize = sizeFromShape(reduceShape);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     const reduced = reduce(a2D, a2D.dtype, 'min', backend);
     let res;
     if (keepDims) {
         const newShape = expandShapeToKeepDim(outShape, origAxes);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
     }
     else {
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
     }
     backend.disposeIntermediateTensorInfo(a2D);
     backend.disposeIntermediateTensorInfo(reduced);
@@ -76044,10 +76052,10 @@ function min(args) {
     }
     return res;
 }
-const minConfig = {
+const minConfig$1 = {
     kernelName: Min,
     backendName: 'webgl',
-    kernelFunc: min
+    kernelFunc: min$1
 };
 
 /**
@@ -76083,7 +76091,7 @@ const minimum = binaryKernelFunc({
     packedOpSnippet: MINIMUM_PACKED,
     cpuKernelImpl: minimumImplCPU
 });
-const minimumConfig = {
+const minimumConfig$1 = {
     kernelName: Minimum,
     backendName: 'webgl',
     kernelFunc: minimum
@@ -76316,7 +76324,7 @@ const mirrorPadKernelFunc = ({ inputs, backend, attrs }) => {
     const output = backend.runWebGLProgram(program, [x], x.dtype);
     return output;
 };
-const mirrorPadConfig = {
+const mirrorPadConfig$1 = {
     kernelName: MirrorPad,
     backendName: 'webgl',
     kernelFunc: mirrorPadKernelFunc,
@@ -76351,7 +76359,7 @@ const mod = binaryKernelFunc({
     opSnippet: MOD,
     packedOpSnippet: MOD_PACKED,
 });
-const modConfig = {
+const modConfig$1 = {
     kernelName: Mod,
     backendName: 'webgl',
     kernelFunc: mod
@@ -76447,7 +76455,7 @@ const DIV_PACKED = `
   return result;
 `;
 const realDiv = binaryKernelFunc({ opSnippet: DIV, packedOpSnippet: DIV_PACKED, checkOutOfBounds: true });
-const realDivConfig = {
+const realDivConfig$1 = {
     kernelName: RealDiv,
     backendName: 'webgl',
     kernelFunc: realDiv,
@@ -76476,7 +76484,7 @@ const sub = binaryKernelFunc({
     supportsComplex: true,
     cpuKernelImpl: subImplCPU
 });
-const subConfig = {
+const subConfig$1 = {
     kernelName: Sub,
     backendName: 'webgl',
     kernelFunc: sub
@@ -76498,22 +76506,22 @@ const subConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function softmax(args) {
+function softmax$1(args) {
     const { inputs, backend, attrs } = args;
     const { logits } = inputs;
     const { dim } = attrs;
     const axes = parseAxisParam([dim], logits.shape);
-    const maxLogit = max({
+    const maxLogit = max$1({
         inputs: { x: logits },
         backend,
         attrs: { reductionIndices: axes, keepDims: false }
     });
     const expandedShape = expandShapeToKeepDim(maxLogit.shape, axes);
-    const maxLogitsReshaped = reshape({ inputs: { x: maxLogit }, backend, attrs: { shape: expandedShape } });
+    const maxLogitsReshaped = reshape$1({ inputs: { x: maxLogit }, backend, attrs: { shape: expandedShape } });
     const a = sub({ inputs: { a: logits, b: maxLogitsReshaped }, backend });
     const b = exp({ inputs: { x: a }, backend });
-    const sumExp = sum({ inputs: { x: b }, backend, attrs: { axis: axes, keepDims: false } });
-    const sumExpReshaped = reshape({ inputs: { x: sumExp }, backend, attrs: { shape: expandedShape } });
+    const sumExp = sum$1({ inputs: { x: b }, backend, attrs: { axis: axes, keepDims: false } });
+    const sumExpReshaped = reshape$1({ inputs: { x: sumExp }, backend, attrs: { shape: expandedShape } });
     const res = realDiv({ inputs: { a: b, b: sumExpReshaped }, backend });
     backend.disposeIntermediateTensorInfo(maxLogit);
     backend.disposeIntermediateTensorInfo(maxLogitsReshaped);
@@ -76523,10 +76531,10 @@ function softmax(args) {
     backend.disposeIntermediateTensorInfo(sumExpReshaped);
     return res;
 }
-const softmaxConfig = {
+const softmaxConfig$1 = {
     kernelName: Softmax,
     backendName: 'webgl',
-    kernelFunc: softmax
+    kernelFunc: softmax$1
 };
 
 /**
@@ -76545,13 +76553,13 @@ const softmaxConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function multinomial(args) {
+function multinomial$1(args) {
     const { inputs, backend, attrs } = args;
     const { logits } = inputs;
     const { numSamples, seed, normalized } = attrs;
     const probs = normalized ?
         logits :
-        softmax({ inputs: { logits }, backend, attrs: { dim: logits.shape.length - 1 } });
+        softmax$1({ inputs: { logits }, backend, attrs: { dim: logits.shape.length - 1 } });
     const batchSize = probs.shape[0];
     const numOutcomes = probs.shape[1];
     const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
@@ -76562,10 +76570,10 @@ function multinomial(args) {
     }
     return res;
 }
-const multinomialConfig = {
+const multinomialConfig$1 = {
     kernelName: Multinomial,
     backendName: 'webgl',
-    kernelFunc: multinomial
+    kernelFunc: multinomial$1
 };
 
 /**
@@ -76617,7 +76625,7 @@ function neg(args) {
     }
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const negConfig = {
+const negConfig$1 = {
     kernelName: Neg,
     backendName: 'webgl',
     kernelFunc: neg
@@ -76651,7 +76659,7 @@ function nonMaxSuppressionV3(args) {
     const { selectedIndices } = nonMaxSuppressionV3Impl(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
     return backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices));
 }
-const nonMaxSuppressionV3Config = {
+const nonMaxSuppressionV3Config$1 = {
     kernelName: NonMaxSuppressionV3,
     backendName: 'webgl',
     kernelFunc: nonMaxSuppressionV3
@@ -76674,7 +76682,7 @@ const nonMaxSuppressionV3Config = {
  * =============================================================================
  */
 const nonMaxSuppressionV4Impl = nonMaxSuppressionV4Impl$1;
-function nonMaxSuppressionV4(args) {
+function nonMaxSuppressionV4$1(args) {
     warn('tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const { inputs, backend, attrs } = args;
@@ -76688,10 +76696,10 @@ function nonMaxSuppressionV4(args) {
         backend.makeTensorInfo([], 'int32', new Int32Array([validOutputs]))
     ];
 }
-const nonMaxSuppressionV4Config = {
+const nonMaxSuppressionV4Config$1 = {
     kernelName: NonMaxSuppressionV4,
     backendName: 'webgl',
-    kernelFunc: nonMaxSuppressionV4
+    kernelFunc: nonMaxSuppressionV4$1
 };
 
 /**
@@ -76729,7 +76737,7 @@ function nonMaxSuppressionV5(args) {
         backend.makeTensorInfo([selectedScores.length], 'float32', new Float32Array(selectedScores))
     ];
 }
-const nonMaxSuppressionV5Config = {
+const nonMaxSuppressionV5Config$1 = {
     kernelName: NonMaxSuppressionV5,
     backendName: 'webgl',
     kernelFunc: nonMaxSuppressionV5
@@ -76782,24 +76790,24 @@ class OneHotProgram {
  * limitations under the License.
  * =============================================================================
  */
-const oneHot = (args) => {
+const oneHot$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { indices } = inputs;
     const { dtype, depth, onValue, offValue } = attrs;
     const indicesSize = sizeFromShape(indices.shape);
     const program = new OneHotProgram(indicesSize, depth, onValue, offValue);
-    const reshaped = reshape({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
+    const reshaped = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
     const result = backend.runWebGLProgram(program, [reshaped], dtype);
     backend.disposeIntermediateTensorInfo(reshaped);
     const outShape = [...indices.shape, depth];
-    const out = reshape({ inputs: { x: result }, backend, attrs: { shape: outShape } });
+    const out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: outShape } });
     backend.disposeIntermediateTensorInfo(result);
     return out;
 };
-const oneHotConfig = {
+const oneHotConfig$1 = {
     kernelName: OneHot,
     backendName: 'webgl',
-    kernelFunc: oneHot
+    kernelFunc: oneHot$1
 };
 
 /**
@@ -76818,14 +76826,14 @@ const oneHotConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function zerosLike(args) {
+function zerosLike$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     if (x.dtype === 'complex64') {
         const realPart = real({ inputs: { input: x }, backend });
-        const r = zerosLike({ inputs: { x: realPart }, backend });
+        const r = zerosLike$1({ inputs: { x: realPart }, backend });
         const imagPart = imag({ inputs: { input: x }, backend });
-        const i = zerosLike({ inputs: { x: imagPart }, backend });
+        const i = zerosLike$1({ inputs: { x: imagPart }, backend });
         const result = complex({ inputs: { real: r, imag: i }, backend });
         backend.disposeIntermediateTensorInfo(realPart);
         backend.disposeIntermediateTensorInfo(r);
@@ -76834,7 +76842,7 @@ function zerosLike(args) {
         return result;
     }
     else {
-        return fill({
+        return fill$1({
             attrs: {
                 shape: x.shape,
                 dtype: x.dtype,
@@ -76844,10 +76852,10 @@ function zerosLike(args) {
         });
     }
 }
-const zerosLikeConfig = {
+const zerosLikeConfig$1 = {
     kernelName: ZerosLike,
     backendName: 'webgl',
-    kernelFunc: zerosLike
+    kernelFunc: zerosLike$1
 };
 
 /**
@@ -76866,7 +76874,7 @@ const zerosLikeConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function onesLike(args) {
+function onesLike$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     if (x.dtype === 'string') {
@@ -76874,9 +76882,9 @@ function onesLike(args) {
     }
     else if (x.dtype === 'complex64') {
         const realPart = real({ inputs: { input: x }, backend });
-        const r = onesLike({ inputs: { x: realPart }, backend });
+        const r = onesLike$1({ inputs: { x: realPart }, backend });
         const imagPart = imag({ inputs: { input: x }, backend });
-        const i = zerosLike({ inputs: { x: imagPart }, backend });
+        const i = zerosLike$1({ inputs: { x: imagPart }, backend });
         const result = complex({ inputs: { real: r, imag: i }, backend });
         backend.disposeIntermediateTensorInfo(realPart);
         backend.disposeIntermediateTensorInfo(r);
@@ -76887,13 +76895,13 @@ function onesLike(args) {
     else {
         // TODO(cais, smilkov): Add WebGL shader for onesLike:
         //   https://github.com/tensorflow/tfjs/issues/1293
-        return fill({ attrs: { shape: x.shape, dtype: x.dtype, value: 1 }, backend });
+        return fill$1({ attrs: { shape: x.shape, dtype: x.dtype, value: 1 }, backend });
     }
 }
-const onesLikeConfig = {
+const onesLikeConfig$1 = {
     kernelName: OnesLike,
     backendName: 'webgl',
-    kernelFunc: onesLike
+    kernelFunc: onesLike$1
 };
 
 /**
@@ -76912,11 +76920,11 @@ const onesLikeConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function pack(args) {
+function pack$1(args) {
     const { inputs, backend, attrs } = args;
     const { axis } = attrs;
     if (inputs.length === 1) {
-        return expandDims({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
+        return expandDims$1({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
     }
     const shape = inputs[0].shape;
     const dtype = inputs[0].dtype;
@@ -76926,18 +76934,18 @@ function pack(args) {
     });
     const intermediateTensorInfos = [];
     const expandedTensors = inputs.map(t => {
-        const expandedT = expandDims({ inputs: { input: t }, backend, attrs: { dim: axis } });
+        const expandedT = expandDims$1({ inputs: { input: t }, backend, attrs: { dim: axis } });
         intermediateTensorInfos.push(expandedT);
         return expandedT;
     });
-    const result = concat({ inputs: expandedTensors, backend, attrs: { axis } });
+    const result = concat$1({ inputs: expandedTensors, backend, attrs: { axis } });
     intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 }
-const packConfig = {
+const packConfig$1 = {
     kernelName: Pack,
     backendName: 'webgl',
-    kernelFunc: pack
+    kernelFunc: pack$1
 };
 
 /**
@@ -77095,7 +77103,7 @@ const padV2 = (args) => {
         // Short-circuit the computation, since x doesn't have value, only
         // the shape is used to compute output shape to pad.
         const outputShape = paddings.map((p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
-        return fill({
+        return fill$1({
             backend,
             attrs: { shape: outputShape, value: constantValue, dtype: x.dtype }
         });
@@ -77106,7 +77114,7 @@ const padV2 = (args) => {
     const customValues = [[constantValue]];
     return backend.runWebGLProgram(program, [x], x.dtype, customValues);
 };
-const padV2Config = {
+const padV2Config$1 = {
     kernelName: PadV2,
     backendName: 'webgl',
     kernelFunc: padV2
@@ -77159,7 +77167,7 @@ const POW_PACKED = `
   return result;
 `;
 const pow = binaryKernelFunc({ opSnippet: POW, packedOpSnippet: POW_PACKED });
-const powConfig = {
+const powConfig$1 = {
     kernelName: Pow,
     backendName: 'webgl',
     kernelFunc: pow
@@ -77181,7 +77189,7 @@ const powConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function prod(args) {
+function prod$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -77192,7 +77200,7 @@ function prod(args) {
     const permutedAxes = getAxesPermutation(axes, xRank);
     let permutedX = x;
     if (permutedAxes != null) {
-        permutedX = transpose({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
         axes = getInnerMostAxes(axes.length, xRank);
         toDispose.push(permutedX);
     }
@@ -77206,25 +77214,25 @@ function prod(args) {
     else {
         const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
         const inSize = sizeFromShape(reduceShape);
-        const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+        const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
         const outputDType = sumOutType(x.dtype);
         const reduced = reduce(a2D, outputDType, 'prod', backend);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
         toDispose.push(a2D);
         toDispose.push(reduced);
     }
     if (keepDims) {
         toDispose.push(res);
         const newShape = expandShapeToKeepDim(res.shape, origAxes);
-        res = reshape({ inputs: { x: res }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: res }, backend, attrs: { shape: newShape } });
     }
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return res;
 }
-const prodConfig = {
+const prodConfig$1 = {
     kernelName: Prod,
     backendName: 'webgl',
-    kernelFunc: prod
+    kernelFunc: prod$1
 };
 
 /**
@@ -77345,16 +77353,16 @@ const raggedTensorToTensorConfig = {
  * limitations under the License.
  * =============================================================================
  */
-const range = (args) => {
+const range$1 = (args) => {
     const { backend, attrs } = args;
     const { start, stop, step, dtype } = attrs;
     const values = rangeImplCPU(start, stop, step, dtype);
     return backend.makeTensorInfo([values.length], dtype, values);
 };
-const rangeConfig = {
+const rangeConfig$1 = {
     kernelName: Range,
     backendName: 'webgl',
-    kernelFunc: range
+    kernelFunc: range$1
 };
 
 /**
@@ -77375,7 +77383,7 @@ const rangeConfig = {
  */
 const RECIPROCAL = `return 1.0 / x;`;
 const reciprocal = unaryKernelFunc({ opSnippet: RECIPROCAL });
-const reciprocalConfig = {
+const reciprocalConfig$1 = {
     kernelName: Reciprocal,
     backendName: 'webgl',
     kernelFunc: reciprocal,
@@ -77412,7 +77420,7 @@ const RELU_PACKED = `
   return result;
 `;
 const relu = unaryKernelFunc({ opSnippet: RELU, packedOpSnippet: RELU_PACKED });
-const reluConfig = {
+const reluConfig$1 = {
     kernelName: Relu,
     backendName: 'webgl',
     kernelFunc: relu
@@ -77449,7 +77457,7 @@ const RELU6_PACKED = `
   return result;
 `;
 const relu6 = unaryKernelFunc({ opSnippet: RELU6, packedOpSnippet: RELU6_PACKED });
-const relu6Config = {
+const relu6Config$1 = {
     kernelName: Relu6,
     backendName: 'webgl',
     kernelFunc: relu6
@@ -77668,7 +77676,7 @@ class ResizeBilinearPackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeBilinear(args) {
+function resizeBilinear$1(args) {
     const { inputs, backend, attrs } = args;
     const { images } = inputs;
     const { alignCorners, halfPixelCenters, size } = attrs;
@@ -77678,10 +77686,10 @@ function resizeBilinear(args) {
         new ResizeBilinearProgram(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return backend.runWebGLProgram(program, [images], 'float32');
 }
-const resizeBilinearConfig = {
+const resizeBilinearConfig$1 = {
     kernelName: ResizeBilinear,
     backendName: 'webgl',
-    kernelFunc: resizeBilinear
+    kernelFunc: resizeBilinear$1
 };
 
 /**
@@ -77827,17 +77835,17 @@ class ResizeBilinearBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeBilinearGrad(args) {
+function resizeBilinearGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { images, dy } = inputs;
     const { alignCorners } = attrs;
     const program = new ResizeBilinearBackpropProgram(dy.shape, images.shape, alignCorners);
     return backend.runWebGLProgram(program, [dy], dy.dtype);
 }
-const resizeBilinearGradConfig = {
+const resizeBilinearGradConfig$1 = {
     kernelName: ResizeBilinearGrad,
     backendName: 'webgl',
-    kernelFunc: resizeBilinearGrad
+    kernelFunc: resizeBilinearGrad$1
 };
 
 /**
@@ -78010,7 +78018,7 @@ class ResizeNearestNeighborPackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeNearestNeighbor(args) {
+function resizeNearestNeighbor$1(args) {
     const { inputs, backend, attrs } = args;
     const { images } = inputs;
     const { alignCorners, halfPixelCenters, size } = attrs;
@@ -78020,10 +78028,10 @@ function resizeNearestNeighbor(args) {
         new ResizeNearestNeighborProgram(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return backend.runWebGLProgram(program, [images], images.dtype);
 }
-const resizeNearestNeighborConfig = {
+const resizeNearestNeighborConfig$1 = {
     kernelName: ResizeNearestNeighbor,
     backendName: 'webgl',
-    kernelFunc: resizeNearestNeighbor
+    kernelFunc: resizeNearestNeighbor$1
 };
 
 /**
@@ -78158,17 +78166,17 @@ class ResizeNearestNeigborBackpropProgram {
  * limitations under the License.
  * =============================================================================
  */
-function resizeNearestNeighborGrad(args) {
+function resizeNearestNeighborGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { images, dy } = inputs;
     const { alignCorners } = attrs;
     const program = new ResizeNearestNeigborBackpropProgram(dy.shape, images.shape, alignCorners);
     return backend.runWebGLProgram(program, [dy], dy.dtype);
 }
-const resizeNearestNeighborGradConfig = {
+const resizeNearestNeighborGradConfig$1 = {
     kernelName: ResizeNearestNeighborGrad,
     backendName: 'webgl',
-    kernelFunc: resizeNearestNeighborGrad
+    kernelFunc: resizeNearestNeighborGrad$1
 };
 
 /**
@@ -78334,24 +78342,24 @@ class ReversePackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function reverse(args) {
+function reverse$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { dims } = attrs;
     const xRank = x.shape.length;
     const $dims = parseAxisParam(dims, x.shape);
     if (xRank === 0) {
-        return identity({ inputs: { x }, backend });
+        return identity$1({ inputs: { x }, backend });
     }
     const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
         new ReversePackedProgram(x.shape, $dims) :
         new ReverseProgram(x.shape, $dims);
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const reverseConfig = {
+const reverseConfig$1 = {
     kernelName: Reverse,
     backendName: 'webgl',
-    kernelFunc: reverse
+    kernelFunc: reverse$1
 };
 
 /**
@@ -78424,7 +78432,7 @@ class RotateProgram {
  * limitations under the License.
  * =============================================================================
  */
-const rotateWithOffsetConfig = {
+const rotateWithOffsetConfig$1 = {
     kernelName: RotateWithOffset,
     backendName: 'webgl',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -78472,7 +78480,7 @@ const ROUND = `
   }
 `;
 const round = unaryKernelFunc({ opSnippet: ROUND });
-const roundConfig = {
+const roundConfig$1 = {
     kernelName: Round,
     backendName: 'webgl',
     kernelFunc: round,
@@ -78496,7 +78504,7 @@ const roundConfig = {
  */
 const RSQRT = `return inversesqrt(x);`;
 const rsqrt = unaryKernelFunc({ opSnippet: RSQRT, cpuKernelImpl: rsqrtImplCPU });
-const rsqrtConfig = {
+const rsqrtConfig$1 = {
     kernelName: Rsqrt,
     backendName: 'webgl',
     kernelFunc: rsqrt
@@ -78674,7 +78682,7 @@ class ScatterPackedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function scatterNd(args) {
+function scatterNd$1(args) {
     const { inputs, backend, attrs } = args;
     const { indices, updates } = inputs;
     const { shape } = attrs;
@@ -78683,8 +78691,8 @@ function scatterNd(args) {
     if (outputSize === 0) {
         return backend.makeTensorInfo(shape, indices.dtype);
     }
-    const flattenIndices = reshape({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
-    const flattenX = reshape({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
+    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
+    const flattenX = reshape$1({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
     const defaultValue = backend.makeTensorInfo([], 'float32', new Float32Array([0])); // scalar(0)
     let program;
     if (env().getBool('WEBGL_PACK')) {
@@ -78694,17 +78702,17 @@ function scatterNd(args) {
         program = new ScatterProgram(numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length, strides, flattenShape);
     }
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndices, defaultValue], flattenX.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape } });
     backend.disposeIntermediateTensorInfo(flattenIndices);
     backend.disposeIntermediateTensorInfo(flattenX);
     backend.disposeIntermediateTensorInfo(res);
     backend.disposeIntermediateTensorInfo(defaultValue);
     return reshaped;
 }
-const scatterNdConfig = {
+const scatterNdConfig$1 = {
     kernelName: ScatterNd,
     backendName: 'webgl',
-    kernelFunc: scatterNd
+    kernelFunc: scatterNd$1
 };
 
 /**
@@ -78781,7 +78789,7 @@ class SearchSortedProgram {
  * limitations under the License.
  * =============================================================================
  */
-function searchSorted(args) {
+function searchSorted$1(args) {
     const { inputs, backend, attrs } = args;
     const { sortedSequence, values } = inputs;
     const { side } = attrs;
@@ -78789,10 +78797,10 @@ function searchSorted(args) {
     const customValues = [[sortedSequence.shape[1]]];
     return backend.runWebGLProgram(program, [sortedSequence, values], 'int32', customValues);
 }
-const searchSortedConfig = {
+const searchSortedConfig$1 = {
     kernelName: SearchSorted,
     backendName: 'webgl',
-    kernelFunc: searchSorted,
+    kernelFunc: searchSorted$1,
 };
 
 /**
@@ -78868,16 +78876,16 @@ class SelectProgram {
  * limitations under the License.
  * =============================================================================
  */
-function select(args) {
+function select$1(args) {
     const { inputs, backend } = args;
     const { condition, t, e } = inputs;
     const program = new SelectProgram(condition.shape.length, t.shape, t.shape.length);
     return backend.runWebGLProgram(program, [condition, t, e], upcastType(t.dtype, e.dtype));
 }
-const selectConfig = {
+const selectConfig$1 = {
     kernelName: Select,
     backendName: 'webgl',
-    kernelFunc: select
+    kernelFunc: select$1
 };
 
 /**
@@ -78904,7 +78912,7 @@ const SELU = `
   return (x >= 0.0) ? scale * x : scaleAlpha * (exp(x) - 1.0);
 `;
 const selu = unaryKernelFunc({ opSnippet: SELU });
-const seluConfig = {
+const seluConfig$1 = {
     kernelName: Selu,
     backendName: 'webgl',
     kernelFunc: selu,
@@ -78940,15 +78948,15 @@ const SIGMOID_PACKED = `
 
   return result;
 `;
-const sigmoid = unaryKernelFunc({
+const sigmoid$1 = unaryKernelFunc({
     opSnippet: SIGMOID,
     packedOpSnippet: SIGMOID_PACKED,
     cpuKernelImpl: sigmoidImplCPU
 });
-const sigmoidConfig = {
+const sigmoidConfig$1 = {
     kernelName: Sigmoid,
     backendName: 'webgl',
-    kernelFunc: sigmoid,
+    kernelFunc: sigmoid$1,
 };
 
 /**
@@ -78973,7 +78981,7 @@ const SIGN = `
   return sign(x);
 `;
 const sign = unaryKernelFunc({ opSnippet: SIGN });
-const signConfig = {
+const signConfig$1 = {
     kernelName: Sign,
     backendName: 'webgl',
     kernelFunc: sign,
@@ -79005,7 +79013,7 @@ const SIN_PACKED = `
   return result;
 `;
 const sin = unaryKernelFunc({ opSnippet: SIN, packedOpSnippet: SIN_PACKED });
-const sinConfig = {
+const sinConfig$1 = {
     kernelName: Sin,
     backendName: 'webgl',
     kernelFunc: sin,
@@ -79032,7 +79040,7 @@ const SINH = `
   return (e2x - 1.0 / e2x) / 2.0;
 `;
 const sinh = unaryKernelFunc({ opSnippet: SINH });
-const sinhConfig = {
+const sinhConfig$1 = {
     kernelName: Sinh,
     backendName: 'webgl',
     kernelFunc: sinh,
@@ -79076,7 +79084,7 @@ const SOFTPLUS = `
   return result;
 `;
 const softplus = unaryKernelFunc({ opSnippet: SOFTPLUS });
-const softplusConfig = {
+const softplusConfig$1 = {
     kernelName: Softplus,
     backendName: 'webgl',
     kernelFunc: softplus,
@@ -79098,7 +79106,7 @@ const softplusConfig = {
  * limitations under the License.
  * =============================================================================
  */
-const spaceToBatchND = (args) => {
+const spaceToBatchND$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockShape, paddings } = attrs;
@@ -79119,23 +79127,23 @@ const spaceToBatchND = (args) => {
     const reshapedPaddedShape = getReshaped(paddedX.shape, blockShape, prod, false);
     const permutedReshapedPaddedPermutation = getPermuted(reshapedPaddedShape.length, blockShape.length, false);
     const flattenShape = getReshapedPermuted(paddedX.shape, blockShape, prod, false);
-    const reshapedPaddedX = reshape({ inputs: { x: paddedX }, backend, attrs: { shape: reshapedPaddedShape } });
-    const paddedXT = transpose({
+    const reshapedPaddedX = reshape$1({ inputs: { x: paddedX }, backend, attrs: { shape: reshapedPaddedShape } });
+    const paddedXT = transpose$1({
         inputs: { x: reshapedPaddedX },
         backend,
         attrs: { perm: permutedReshapedPaddedPermutation }
     });
-    const result = reshape({ inputs: { x: paddedXT }, backend, attrs: { shape: flattenShape } });
+    const result = reshape$1({ inputs: { x: paddedXT }, backend, attrs: { shape: flattenShape } });
     toDispose.push(paddedX);
     toDispose.push(reshapedPaddedX);
     toDispose.push(paddedXT);
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 };
-const spaceToBatchNDConfig = {
+const spaceToBatchNDConfig$1 = {
     kernelName: SpaceToBatchND,
     backendName: 'webgl',
-    kernelFunc: spaceToBatchND
+    kernelFunc: spaceToBatchND$1
 };
 
 /**
@@ -79154,7 +79162,7 @@ const spaceToBatchNDConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseFillEmptyRows(args) {
+function sparseFillEmptyRows$1(args) {
     const { inputs, backend } = args;
     const { indices, values, denseShape, defaultValue } = inputs;
     if (denseShape.shape.length !== 1) {
@@ -79185,10 +79193,10 @@ function sparseFillEmptyRows(args) {
         backend.makeTensorInfo([reverseIndexMap.length], indices.dtype, new Int32Array(reverseIndexMap)),
     ];
 }
-const sparseFillEmptyRowsConfig = {
+const sparseFillEmptyRowsConfig$1 = {
     kernelName: SparseFillEmptyRows,
     backendName: 'webgl',
-    kernelFunc: sparseFillEmptyRows,
+    kernelFunc: sparseFillEmptyRows$1,
 };
 
 /**
@@ -79207,7 +79215,7 @@ const sparseFillEmptyRowsConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseReshape(args) {
+function sparseReshape$1(args) {
     const { inputs, backend } = args;
     const { inputIndices, inputShape, newShape } = inputs;
     if (inputIndices.shape.length !== 2) {
@@ -79228,10 +79236,10 @@ function sparseReshape(args) {
         backend.makeTensorInfo([outputShape.length], newShape.dtype, new Int32Array(outputShape)),
     ];
 }
-const sparseReshapeConfig = {
+const sparseReshapeConfig$1 = {
     kernelName: SparseReshape,
     backendName: 'webgl',
-    kernelFunc: sparseReshape,
+    kernelFunc: sparseReshape$1,
 };
 
 /**
@@ -79250,7 +79258,7 @@ const sparseReshapeConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseSegmentMean(args) {
+function sparseSegmentMean$1(args) {
     const { inputs, backend } = args;
     const { data, indices, segmentIds } = inputs;
     if (data.shape.length < 1) {
@@ -79270,10 +79278,10 @@ function sparseSegmentMean(args) {
     const [outputData, outputDataShape] = sparseSegmentReductionImplCPU($data, data.shape, data.dtype, $indices, $segmentIds, true);
     return backend.makeTensorInfo(outputDataShape, data.dtype, outputData);
 }
-const sparseSegmentMeanConfig = {
+const sparseSegmentMeanConfig$1 = {
     kernelName: SparseSegmentMean,
     backendName: 'webgl',
-    kernelFunc: sparseSegmentMean,
+    kernelFunc: sparseSegmentMean$1,
 };
 
 /**
@@ -79292,7 +79300,7 @@ const sparseSegmentMeanConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseSegmentSum(args) {
+function sparseSegmentSum$1(args) {
     const { inputs, backend } = args;
     const { data, indices, segmentIds } = inputs;
     if (data.shape.length < 1) {
@@ -79312,10 +79320,10 @@ function sparseSegmentSum(args) {
     const [outputData, outputDataShape] = sparseSegmentReductionImplCPU($data, data.shape, data.dtype, $indices, $segmentIds);
     return backend.makeTensorInfo(outputDataShape, data.dtype, outputData);
 }
-const sparseSegmentSumConfig = {
+const sparseSegmentSumConfig$1 = {
     kernelName: SparseSegmentSum,
     backendName: 'webgl',
-    kernelFunc: sparseSegmentSum,
+    kernelFunc: sparseSegmentSum$1,
 };
 
 /**
@@ -79334,7 +79342,7 @@ const sparseSegmentSumConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function sparseToDense(args) {
+function sparseToDense$1(args) {
     const { inputs, backend, attrs } = args;
     const { sparseIndices, sparseValues, defaultValue } = inputs;
     const { outputShape } = attrs;
@@ -79349,14 +79357,14 @@ function sparseToDense(args) {
     }
     const program = new ScatterProgram(numUpdates, sliceRank, sparseIndices.shape.length, sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);
     const res = backend.runWebGLProgram(program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: outputShape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: outputShape } });
     backend.disposeIntermediateTensorInfo(res);
     return reshaped;
 }
-const sparseToDenseConfig = {
+const sparseToDenseConfig$1 = {
     kernelName: SparseToDense,
     backendName: 'webgl',
-    kernelFunc: sparseToDense
+    kernelFunc: sparseToDense$1
 };
 
 /**
@@ -79375,7 +79383,7 @@ const sparseToDenseConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function splitV(args) {
+function splitV$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { numOrSizeSplits, axis } = attrs;
@@ -79387,15 +79395,15 @@ function splitV(args) {
     return splitSizes.map(s => {
         const sliceSize = [...size];
         sliceSize[$axis] = s;
-        const sliceT = slice({ inputs: { x }, backend, attrs: { begin, size: sliceSize } });
+        const sliceT = slice$1({ inputs: { x }, backend, attrs: { begin, size: sliceSize } });
         begin[$axis] += s;
         return sliceT;
     });
 }
-const splitVConfig = {
+const splitVConfig$1 = {
     kernelName: SplitV,
     backendName: 'webgl',
-    kernelFunc: splitV
+    kernelFunc: splitV$1
 };
 
 /**
@@ -79416,7 +79424,7 @@ const splitVConfig = {
  */
 const SQRT = `return sqrt(x);`;
 const sqrt = unaryKernelFunc({ opSnippet: SQRT, packedOpSnippet: SQRT, cpuKernelImpl: sqrtImplCPU });
-const sqrtConfig = {
+const sqrtConfig$1 = {
     kernelName: Sqrt,
     backendName: 'webgl',
     kernelFunc: sqrt
@@ -79440,7 +79448,7 @@ const sqrtConfig = {
  */
 const SQUARE = `return x * x;`;
 const square = unaryKernelFunc({ opSnippet: SQUARE });
-const squareConfig = {
+const squareConfig$1 = {
     kernelName: Square,
     backendName: 'webgl',
     kernelFunc: square,
@@ -79464,7 +79472,7 @@ const squareConfig = {
  */
 const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 const squaredDifference = binaryKernelFunc({ opSnippet: SQUARED_DIFFERENCE, packedOpSnippet: SQUARED_DIFFERENCE });
-const squaredDifferenceConfig = {
+const squaredDifferenceConfig$1 = {
     kernelName: SquaredDifference,
     backendName: 'webgl',
     kernelFunc: squaredDifference,
@@ -79519,7 +79527,7 @@ const staticRegexReplaceConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function step({ inputs, attrs, backend }) {
+function step$1({ inputs, attrs, backend }) {
     const { x } = inputs;
     const opSnippet = CHECK_NAN_SNIPPET$1 + `
     return x > 0.0 ? 1.0 : float(${attrs.alpha});
@@ -79527,10 +79535,10 @@ function step({ inputs, attrs, backend }) {
     const program = new UnaryOpProgram(x.shape, opSnippet);
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const stepConfig = {
+const stepConfig$1 = {
     kernelName: Step,
     backendName: 'webgl',
-    kernelFunc: step,
+    kernelFunc: step$1,
 };
 
 /**
@@ -79599,7 +79607,7 @@ class StridedSliceProgram {
  * limitations under the License.
  * =============================================================================
  */
-function stridedSlice(args) {
+function stridedSlice$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask } = attrs;
@@ -79607,16 +79615,16 @@ function stridedSlice(args) {
     let result;
     if (isIdentity) {
         // Optimization #1, slice is a no-op plus reshape
-        result = reshape({ inputs: { x }, backend, attrs: { shape: finalShape } });
+        result = reshape$1({ inputs: { x }, backend, attrs: { shape: finalShape } });
     }
     else if (sliceDim0 || isSimpleSlice) {
         // Optimization #2, slice is memory contiguous (only occurs in dim 0)
         assert(x.shape.length >= 1, () => `Input must have rank at least 1, got: ${x.shape.length}`);
-        const size = computeOutShape$2($begin, $end, $strides);
+        const size = computeOutShape$3($begin, $end, $strides);
         // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
-        const sliced = slice({ inputs: { x }, backend, attrs: { begin: $begin, size } });
+        const sliced = slice$1({ inputs: { x }, backend, attrs: { begin: $begin, size } });
         result =
-            reshape({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
+            reshape$1({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
         backend.disposeIntermediateTensorInfo(sliced);
     }
     else {
@@ -79634,14 +79642,14 @@ function stridedSlice(args) {
             result = backend.runWebGLProgram(program, [x], x.dtype);
         }
     }
-    const resultReshaped = reshape({ inputs: { x: result }, backend, attrs: { shape: finalShape } });
+    const resultReshaped = reshape$1({ inputs: { x: result }, backend, attrs: { shape: finalShape } });
     backend.disposeIntermediateTensorInfo(result);
     return resultReshaped;
 }
-const stridedSliceConfig = {
+const stridedSliceConfig$1 = {
     kernelName: StridedSlice,
     backendName: 'webgl',
-    kernelFunc: stridedSlice
+    kernelFunc: stridedSlice$1
 };
 
 /**
@@ -79660,7 +79668,7 @@ const stridedSliceConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function stringNGrams(args) {
+function stringNGrams$1(args) {
     const { inputs, backend, attrs } = args;
     const { separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences } = attrs;
     const { data, dataSplits } = inputs;
@@ -79672,10 +79680,10 @@ function stringNGrams(args) {
         backend.makeTensorInfo(dataSplits.shape, 'int32', nGramsSplits),
     ];
 }
-const stringNGramsConfig = {
+const stringNGramsConfig$1 = {
     kernelName: StringNGrams,
     backendName: 'webgl',
-    kernelFunc: stringNGrams,
+    kernelFunc: stringNGrams$1,
 };
 
 /**
@@ -79694,7 +79702,7 @@ const stringNGramsConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function stringSplit(args) {
+function stringSplit$1(args) {
     const { inputs, backend, attrs } = args;
     const { skipEmpty } = attrs;
     const { input, delimiter } = inputs;
@@ -79717,10 +79725,10 @@ function stringSplit(args) {
         backend.makeTensorInfo([2], 'int32', new Int32Array(shape))
     ];
 }
-const stringSplitConfig = {
+const stringSplitConfig$1 = {
     kernelName: StringSplit,
     backendName: 'webgl',
-    kernelFunc: stringSplit,
+    kernelFunc: stringSplit$1,
 };
 
 /**
@@ -79739,7 +79747,7 @@ const stringSplitConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function stringToHashBucketFast(args) {
+function stringToHashBucketFast$1(args) {
     const { inputs, backend, attrs } = args;
     const { numBuckets } = attrs;
     const { input } = inputs;
@@ -79753,10 +79761,10 @@ function stringToHashBucketFast(args) {
     const output = stringToHashBucketFastImplCPU($input, numBuckets);
     return backend.makeTensorInfo(input.shape, 'int32', output);
 }
-const stringToHashBucketFastConfig = {
+const stringToHashBucketFastConfig$1 = {
     kernelName: StringToHashBucketFast,
     backendName: 'webgl',
-    kernelFunc: stringToHashBucketFast,
+    kernelFunc: stringToHashBucketFast$1,
 };
 
 /**
@@ -79777,7 +79785,7 @@ const stringToHashBucketFastConfig = {
  */
 const TAN = `return tan(x);`;
 const tan = unaryKernelFunc({ opSnippet: TAN });
-const tanConfig = {
+const tanConfig$1 = {
     kernelName: Tan,
     backendName: 'webgl',
     kernelFunc: tan,
@@ -79804,7 +79812,7 @@ const TANH = `
   return sign(x) * (1.0 - e2x) / (1.0 + e2x);
 `;
 const tanh = unaryKernelFunc({ opSnippet: TANH });
-const tanhConfig = {
+const tanhConfig$1 = {
     kernelName: Tanh,
     backendName: 'webgl',
     kernelFunc: tanh,
@@ -79826,7 +79834,7 @@ const tanhConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function tensorScatterUpdate(args) {
+function tensorScatterUpdate$1(args) {
     const { inputs, backend, attrs } = args;
     const { tensor, indices, updates } = inputs;
     const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, tensor.shape);
@@ -79834,22 +79842,22 @@ function tensorScatterUpdate(args) {
     if (outputSize === 0) {
         return backend.makeTensorInfo(tensor.shape, indices.dtype);
     }
-    const flattenIndices = reshape({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
-    const flattenX = reshape({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
-    const flattenTensor = reshape({ inputs: { x: tensor }, backend, attrs: { shape: flattenShape } });
+    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
+    const flattenX = reshape$1({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
+    const flattenTensor = reshape$1({ inputs: { x: tensor }, backend, attrs: { shape: flattenShape } });
     const program = new ScatterProgram(numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length, strides, flattenShape, false, true);
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndices, flattenTensor], flattenTensor.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: tensor.shape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: tensor.shape } });
     backend.disposeIntermediateTensorInfo(flattenIndices);
     backend.disposeIntermediateTensorInfo(flattenX);
     backend.disposeIntermediateTensorInfo(flattenTensor);
     backend.disposeIntermediateTensorInfo(res);
     return reshaped;
 }
-const tensorScatterUpdateConfig = {
+const tensorScatterUpdateConfig$1 = {
     kernelName: TensorScatterUpdate,
     backendName: 'webgl',
-    kernelFunc: tensorScatterUpdate
+    kernelFunc: tensorScatterUpdate$1
 };
 
 /**
@@ -79919,7 +79927,7 @@ function getSourceCoords(aShape) {
  * limitations under the License.
  * =============================================================================
  */
-function tile(params) {
+function tile$1(params) {
     const { inputs, backend, attrs } = params;
     const { x } = inputs;
     const { reps } = attrs;
@@ -79939,10 +79947,10 @@ function tile(params) {
     const output = backend.runWebGLProgram(program, [x], x.dtype);
     return output;
 }
-const tileConfig = {
+const tileConfig$1 = {
     kernelName: Tile,
     backendName: 'webgl',
-    kernelFunc: tile,
+    kernelFunc: tile$1,
 };
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
@@ -80131,7 +80139,7 @@ function topK(args) {
     }
     if (lastDim === 1 /* firstPass */) {
         return [
-            x, fill({ attrs: { shape: xShape, dtype: 'int32', value: 0 }, backend })
+            x, fill$1({ attrs: { shape: xShape, dtype: 'int32', value: 0 }, backend })
         ];
     }
     // Eagerly unpack x input since it is passed in to all the shaders which
@@ -80142,7 +80150,7 @@ function topK(args) {
     // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
     const xSize = sizeFromShape(xShape);
     const batch = xSize / lastDim;
-    const x2D = reshape({ inputs: { x: xUnPacked }, attrs: { shape: [batch, lastDim] }, backend });
+    const x2D = reshape$1({ inputs: { x: xUnPacked }, attrs: { shape: [batch, lastDim] }, backend });
     if (xIsPacked) {
         disposeIntermediateTensorInfoOrNull(backend, xUnPacked);
     }
@@ -80192,24 +80200,24 @@ function topK(args) {
     }
     // Keep only the requested top K results instead of kPow2
     let prevIndices = indices;
-    indices = slice({ inputs: { x: indices }, backend, attrs: { begin: 0, size: [batch, k] } });
+    indices = slice$1({ inputs: { x: indices }, backend, attrs: { begin: 0, size: [batch, k] } });
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
     // Gather values on last dimension
-    let values = gatherV2({ inputs: { x: x2D, indices }, backend, attrs: { axis: 1, batchDims: 1 } });
+    let values = gatherV2$1({ inputs: { x: x2D, indices }, backend, attrs: { axis: 1, batchDims: 1 } });
     disposeIntermediateTensorInfoOrNull(backend, x2D);
     // Reshape back to the original input shape, except that the last
     // dimension is k.
     const newShape = xShape.slice(0, -1);
     newShape.push(k);
     prevIndices = indices;
-    indices = reshape({ inputs: { x: indices }, attrs: { shape: newShape }, backend });
+    indices = reshape$1({ inputs: { x: indices }, attrs: { shape: newShape }, backend });
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
     const prevValues = values;
-    values = reshape({ inputs: { x: values }, attrs: { shape: newShape }, backend });
+    values = reshape$1({ inputs: { x: values }, attrs: { shape: newShape }, backend });
     disposeIntermediateTensorInfoOrNull(backend, prevValues);
     return [values, indices];
 }
-const topKConfig = {
+const topKConfig$1 = {
     kernelName: TopK,
     backendName: 'webgl',
     kernelFunc: topK
@@ -80386,7 +80394,7 @@ class TransformProgram {
  * limitations under the License.
  * =============================================================================
  */
-function transform(args) {
+function transform$1(args) {
     const { inputs, backend, attrs } = args;
     const { image, transforms } = inputs;
     const { interpolation, fillMode, fillValue, outputShape } = attrs;
@@ -80397,10 +80405,10 @@ function transform(args) {
     const program = new TransformProgram(imageHeight, imageWidth, interpolation, fillMode, fillValue, outShape);
     return backend.runWebGLProgram(program, [image, transforms], 'float32');
 }
-const transformConfig = {
+const transformConfig$1 = {
     kernelName: Transform,
     backendName: 'webgl',
-    kernelFunc: transform
+    kernelFunc: transform$1
 };
 
 /**
@@ -80419,7 +80427,7 @@ const transformConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function unique(args) {
+function unique$1(args) {
     const { inputs, attrs, backend } = args;
     const { axis } = attrs;
     const { x } = inputs;
@@ -80433,10 +80441,10 @@ function unique(args) {
         backend.makeTensorInfo([indices.length], 'int32', indices),
     ];
 }
-const uniqueConfig = {
+const uniqueConfig$1 = {
     kernelName: Unique,
     backendName: 'webgl',
-    kernelFunc: unique,
+    kernelFunc: unique$1,
 };
 
 /**
@@ -80455,7 +80463,7 @@ const uniqueConfig = {
  * limitations under the License.
  * =============================================================================
  */
-function unpack(args) {
+function unpack$1(args) {
     const { inputs, backend, attrs } = args;
     const { value } = inputs;
     let { axis } = attrs;
@@ -80479,18 +80487,18 @@ function unpack(args) {
     const res = new Array(num);
     for (let i = 0; i < res.length; i++) {
         begin[axis] = i;
-        const sliced = slice({ inputs: { x }, backend, attrs: { begin, size } });
-        const reshaped = reshape({ inputs: { x: sliced }, backend, attrs: { shape: outShape } });
+        const sliced = slice$1({ inputs: { x }, backend, attrs: { begin, size } });
+        const reshaped = reshape$1({ inputs: { x: sliced }, backend, attrs: { shape: outShape } });
         res[i] = reshaped;
         toDispose.push(sliced);
     }
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return res;
 }
-const unpackConfig = {
+const unpackConfig$1 = {
     kernelName: Unpack,
     backendName: 'webgl',
-    kernelFunc: unpack
+    kernelFunc: unpack$1
 };
 
 /**
@@ -80667,13 +80675,13 @@ function unsortedSegmentSum(args) {
     const permutation = getAxesPermutation([axis], xRank);
     let permutedX = x;
     if (permutation != null) {
-        permutedX = transpose({ inputs: { x }, backend, attrs: { perm: permutation } });
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
         toDispose.push(permutedX);
         axis = getInnerMostAxes(1, xRank)[0];
     }
-    const outShape = computeOutShape(permutedX.shape, axis, numSegments);
+    const outShape = computeOutShape$1(permutedX.shape, axis, numSegments);
     const inSize = sizeFromShape([permutedX.shape[axis]]);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     toDispose.push(a2D);
     const outputDType = sumOutType(x.dtype);
     const segOpCompute = (x, segOpType, segmentIds, dtype, numSegments) => {
@@ -80688,11 +80696,11 @@ function unsortedSegmentSum(args) {
         if (output.shape[1] === numSegments) {
             return output;
         }
-        const rangeInfo = range({
+        const rangeInfo = range$1({
             backend,
             attrs: { start: 0, stop: numSegments, step: 1, dtype: 'float32' }
         });
-        const tileInfo = tile({
+        const tileInfo = tile$1({
             inputs: { x: rangeInfo },
             backend,
             attrs: { reps: [inSize / windowSize] }
@@ -80703,12 +80711,12 @@ function unsortedSegmentSum(args) {
         return result;
     };
     const segOpResult = segOpCompute(a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments);
-    const reshaped = reshape({ inputs: { x: segOpResult }, backend, attrs: { shape: outShape } });
+    const reshaped = reshape$1({ inputs: { x: segOpResult }, backend, attrs: { shape: outShape } });
     let result = reshaped;
     if (permutation != null) {
         toDispose.push(reshaped);
         const perm = getUndoAxesPermutation(permutation);
-        result = transpose({ inputs: { x: result }, backend, attrs: { perm } });
+        result = transpose$1({ inputs: { x: result }, backend, attrs: { perm } });
     }
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
@@ -80736,6 +80744,7241 @@ const unsortedSegmentSumConfig = {
  * =============================================================================
  */
 // List all kernel configs here
+const kernelConfigs$1 = [
+    _fusedMatMulConfig$1,
+    absConfig$1,
+    acosConfig$1,
+    acoshConfig$1,
+    addConfig$1,
+    addNConfig$1,
+    allConfig$1,
+    anyConfig$1,
+    argMaxConfig$1,
+    argMinConfig$1,
+    asinConfig$1,
+    asinhConfig$1,
+    atanConfig$1,
+    atan2Config$1,
+    atanhConfig$1,
+    avgPoolConfig$1,
+    avgPool3DConfig$1,
+    avgPool3DGradConfig$1,
+    avgPoolGradConfig$1,
+    batchMatMulConfig$1,
+    batchNormConfig,
+    batchToSpaceNDConfig$1,
+    bincountConfig$1,
+    bitwiseAndConfig$1,
+    broadcastArgsConfig$1,
+    castConfig$1,
+    ceilConfig$1,
+    clipByValueConfig$1,
+    complexConfig,
+    complexAbsConfig,
+    concatConfig$1,
+    conv2DConfig$1,
+    conv2DBackpropFilterConfig,
+    conv2DBackpropInputConfig$1,
+    conv3DConfig$1,
+    conv3DBackpropFilterV2Config$1,
+    conv3DBackpropInputConfig,
+    cosConfig$1,
+    coshConfig$1,
+    cropAndResizeConfig$1,
+    cumprodConfig$1,
+    cumsumConfig$1,
+    denseBincountConfig$1,
+    depthToSpaceConfig$1,
+    depthwiseConv2dNativeConfig$1,
+    depthwiseConv2dNativeBackpropFilterConfig,
+    depthwiseConv2dNativeBackpropInputConfig,
+    diagConfig$1,
+    dilation2DConfig$1,
+    einsumConfig,
+    eluConfig$1,
+    eluGradConfig$1,
+    equalConfig$1,
+    erfConfig$1,
+    expConfig$1,
+    expandDimsConfig$1,
+    expm1Config$1,
+    fftConfig,
+    fillConfig$1,
+    flipLeftRightConfig$1,
+    floorConfig$1,
+    floorDivConfig$1,
+    fromPixelsConfig,
+    fusedConv2DConfig$1,
+    fusedDepthwiseConv2DConfig$1,
+    gatherNdConfig$1,
+    gatherV2Config$1,
+    greaterConfig$1,
+    greaterEqualConfig$1,
+    identityConfig$1,
+    ifftConfig,
+    imagConfig,
+    isFiniteConfig$1,
+    isInfConfig$1,
+    isNaNConfig$1,
+    leakyReluConfig$1,
+    lessConfig$1,
+    lessEqualConfig$1,
+    linSpaceConfig$1,
+    logConfig$1,
+    log1pConfig$1,
+    logicalAndConfig$1,
+    logicalNotConfig$1,
+    logicalOrConfig$1,
+    LRNConfig,
+    LRNGradConfig,
+    maxConfig$1,
+    maximumConfig$1,
+    maxPoolConfig$1,
+    maxPool3DConfig$1,
+    maxPool3DGradConfig$1,
+    maxPoolGradConfig$1,
+    maxPoolWithArgmaxConfig$1,
+    meanConfig$1,
+    minConfig$1,
+    minimumConfig$1,
+    mirrorPadConfig$1,
+    modConfig$1,
+    multinomialConfig$1,
+    multiplyConfig$1,
+    negConfig$1,
+    nonMaxSuppressionV3Config$1,
+    nonMaxSuppressionV4Config$1,
+    nonMaxSuppressionV5Config$1,
+    notEqualConfig$1,
+    oneHotConfig$1,
+    onesLikeConfig$1,
+    packConfig$1,
+    padV2Config$1,
+    powConfig$1,
+    preluConfig$1,
+    prodConfig$1,
+    raggedGatherConfig,
+    raggedRangeConfig,
+    raggedTensorToTensorConfig,
+    rangeConfig$1,
+    realConfig,
+    realDivConfig$1,
+    reciprocalConfig$1,
+    reluConfig$1,
+    relu6Config$1,
+    reshapeConfig$1,
+    resizeBilinearConfig$1,
+    resizeBilinearGradConfig$1,
+    resizeNearestNeighborConfig$1,
+    resizeNearestNeighborGradConfig$1,
+    reverseConfig$1,
+    rotateWithOffsetConfig$1,
+    roundConfig$1,
+    rsqrtConfig$1,
+    scatterNdConfig$1,
+    searchSortedConfig$1,
+    selectConfig$1,
+    seluConfig$1,
+    sigmoidConfig$1,
+    signConfig$1,
+    sinConfig$1,
+    sinhConfig$1,
+    sliceConfig$1,
+    softmaxConfig$1,
+    softplusConfig$1,
+    spaceToBatchNDConfig$1,
+    sparseFillEmptyRowsConfig$1,
+    sparseReshapeConfig$1,
+    sparseSegmentMeanConfig$1,
+    sparseSegmentSumConfig$1,
+    sparseToDenseConfig$1,
+    splitVConfig$1,
+    sqrtConfig$1,
+    squareConfig$1,
+    squaredDifferenceConfig$1,
+    staticRegexReplaceConfig,
+    stepConfig$1,
+    stridedSliceConfig$1,
+    stringNGramsConfig$1,
+    stringSplitConfig$1,
+    stringToHashBucketFastConfig$1,
+    subConfig$1,
+    sumConfig$1,
+    tanConfig$1,
+    tanhConfig$1,
+    tensorScatterUpdateConfig$1,
+    tileConfig$1,
+    topKConfig$1,
+    transformConfig$1,
+    transposeConfig$1,
+    uniqueConfig$1,
+    unpackConfig$1,
+    unsortedSegmentSumConfig,
+    zerosLikeConfig$1
+];
+for (const kernelConfig of kernelConfigs$1) {
+    registerKernel(kernelConfig);
+}
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+// This enum must align with the enum defined in cc/backend.h.
+var CppDType;
+(function (CppDType) {
+    CppDType[CppDType["float32"] = 0] = "float32";
+    CppDType[CppDType["int32"] = 1] = "int32";
+    CppDType[CppDType["bool"] = 2] = "bool";
+    CppDType[CppDType["string"] = 3] = "string";
+    CppDType[CppDType["complex64"] = 4] = "complex64";
+})(CppDType || (CppDType = {}));
+// Must match enum in cc/fusable_activations.h.
+var FusableActivation;
+(function (FusableActivation) {
+    FusableActivation[FusableActivation["linear"] = 0] = "linear";
+    FusableActivation[FusableActivation["relu"] = 1] = "relu";
+    FusableActivation[FusableActivation["relu6"] = 2] = "relu6";
+    FusableActivation[FusableActivation["prelu"] = 3] = "prelu";
+    FusableActivation[FusableActivation["leakyrelu"] = 4] = "leakyrelu";
+    FusableActivation[FusableActivation["sigmoid"] = 5] = "sigmoid";
+    FusableActivation[FusableActivation["elu"] = 6] = "elu";
+})(FusableActivation || (FusableActivation = {}));
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFusedMatMul;
+function setup$1a(backend) {
+    wasmFusedMatMul = backend.wasm.cwrap(_FusedMatMul, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // out_id
+    ]);
+}
+function fusedBatchMatMul(args) {
+    const { inputs, backend, attrs } = args;
+    const { a, b, bias, preluActivationWeights } = inputs;
+    if (a.dtype !== 'float32' || b.dtype !== 'float32') {
+        throw new Error(`_FusedMatMul for non non-float32 tensors not yet supported.`);
+    }
+    const { transposeA, transposeB, activation, leakyreluAlpha } = attrs;
+    const aId = backend.dataIdMap.get(a.dataId).id;
+    const bId = backend.dataIdMap.get(b.dataId).id;
+    let biasId = 0;
+    if (bias != null) {
+        const biasData = backend.dataIdMap.get(bias.dataId);
+        if (biasData.shape.length !== 1) {
+            throw new Error(`_FusedMatMul only supports rank-1 bias but got ` +
+                `rank ${biasData.shape.length}.`);
+        }
+        biasId = biasData.id;
+    }
+    const preluActivationWeightsId = preluActivationWeights == null ?
+        0 :
+        backend.dataIdMap.get(preluActivationWeights.dataId).id;
+    const fusedActivation = FusableActivation[activation];
+    if (fusedActivation == null) {
+        throw new Error(`${activation} activation not yet supported for FusedConv2D ` +
+            `in the wasm backend.`);
+    }
+    const leftDim = transposeA ? a.shape[2] : a.shape[1];
+    const rightDim = transposeB ? b.shape[1] : b.shape[2];
+    const batchDims = assertAndGetBroadcastShape(a.shape.slice(0, -2), b.shape.slice(0, -2));
+    const out = backend.makeOutput([...batchDims, leftDim, rightDim], a.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
+    const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
+    wasmFusedMatMul(aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length, transposeA, transposeB, fusedActivation, biasId, preluActivationWeightsId, leakyreluAlpha || 0, outId);
+    return out;
+}
+const _fusedMatMulConfig = {
+    kernelName: _FusedMatMul,
+    backendName: 'wasm',
+    setupFunc: setup$1a,
+    kernelFunc: fusedBatchMatMul
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function createUnaryKernelConfig(kernelName, outType) {
+    let wasmFunc;
+    function setupFunc(backend) {
+        wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+            'number',
+            'number',
+            'number', // out_id
+        ]);
+    }
+    function kernelFunc(args) {
+        const { backend, inputs: { x } } = args;
+        const xId = backend.dataIdMap.get(x.dataId).id;
+        const out = backend.makeOutput(x.shape, outType || x.dtype);
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        // Short-circuit zero-sized tensors.
+        if (sizeFromShape(out.shape) === 0) {
+            return out;
+        }
+        wasmFunc(xId, CppDType[x.dtype], outId);
+        return out;
+    }
+    return { kernelName, backendName: 'wasm', setupFunc, kernelFunc };
+}
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const absConfig = createUnaryKernelConfig(Abs);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const acosConfig = createUnaryKernelConfig(Acos);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const acoshConfig = createUnaryKernelConfig(Acosh);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function createBinaryKernelConfig(kernelName, supportsFullBroadcast, dtype) {
+    let wasmFunc;
+    function setupFunc(backend) {
+        wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+            'number',
+            'array',
+            'number',
+            'number',
+            'array',
+            'number',
+            'number',
+            'number' // out_id
+        ]);
+    }
+    function kernelFunc(args) {
+        const { backend, inputs } = args;
+        const { a, b } = inputs;
+        const aId = backend.dataIdMap.get(a.dataId).id;
+        const bId = backend.dataIdMap.get(b.dataId).id;
+        const outputType = dtype != null ? dtype : a.dtype;
+        const newShape = assertAndGetBroadcastShape(a.shape, b.shape);
+        const out = backend.makeOutput(newShape, outputType);
+        // Short-circuit zero-sized tensors.
+        if (sizeFromShape(newShape) === 0) {
+            return out;
+        }
+        const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
+        const bShapeBytes = new Uint8Array(new Int32Array(b.shape).buffer);
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        const kernelFunc = () => wasmFunc(aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length, CppDType[a.dtype], outId);
+        kernelFunc();
+        return out;
+    }
+    return { kernelName, backendName: 'wasm', setupFunc, kernelFunc };
+}
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const addConfig = createBinaryKernelConfig(Add);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc$6;
+function setupFunc$1(backend) {
+    wasmFunc$6 = backend.wasm.cwrap(AddN, null /* void */, [
+        'array',
+        'number',
+        'number',
+        'number', // out_id
+    ]);
+}
+function addn(args) {
+    const { inputs, backend } = args;
+    const out = backend.makeOutput(inputs[0].shape, inputs[0].dtype);
+    // Short-circuit zero-sized tensors.
+    if (sizeFromShape(out.shape) === 0) {
+        return out;
+    }
+    const inputIds = inputs.map(x => backend.dataIdMap.get(x.dataId).id);
+    const inputIdsBytes = new Uint8Array(new Int32Array(inputIds).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmFunc$6(inputIdsBytes, inputIds.length, CppDType[out.dtype], outId);
+    return out;
+}
+const addNConfig = {
+    kernelName: AddN,
+    backendName: 'wasm',
+    setupFunc: setupFunc$1,
+    kernelFunc: addn,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function identity(args) {
+    const { inputs: { x }, backend } = args;
+    if (x.dtype === 'string') {
+        return tensor(backend.readSync(x.dataId), x.shape, x.dtype);
+    }
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const inVals = backend.typedArrayFromHeap(x);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.set(inVals);
+    return out;
+}
+const identityConfig = {
+    kernelName: Identity,
+    backendName: 'wasm',
+    kernelFunc: identity,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmTranspose;
+function setup$19(backend) {
+    wasmTranspose = backend.wasm.cwrap(Transpose, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number', // perm.length
+    ]);
+}
+function transpose(args) {
+    const { inputs, backend, attrs } = args;
+    // Reduce any dimensions with size one. Lower-rank transpose kernel performs
+    // better due to simpler memory access pattern.
+    const [reducedShape, perm] = removeOneSizeDims(inputs.x.shape, attrs.perm);
+    let permIsNoOp = true;
+    for (let i = 0; i < perm.length; i++) {
+        if (perm[i] !== i) {
+            permIsNoOp = false;
+        }
+    }
+    const outShape = computeOutShape(inputs.x.shape, attrs.perm);
+    const x = {
+        dataId: inputs.x.dataId,
+        shape: reducedShape,
+        dtype: inputs.x.dtype
+    };
+    if (permIsNoOp) {
+        const cloned = identity({ inputs, backend });
+        cloned.shape = outShape;
+        return cloned;
+    }
+    const out = backend.makeOutput(outShape, x.dtype);
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const permBytes = new Uint8Array(new Int32Array(perm).buffer);
+    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+    wasmTranspose(xId, xShapeBytes, x.shape.length, CppDType[x.dtype], outId, permBytes, perm.length);
+    return out;
+}
+function computeOutShape(inShape, perm) {
+    const outShape = new Array(inShape.length);
+    for (let i = 0; i < outShape.length; i++) {
+        outShape[i] = inShape[perm[i]];
+    }
+    return outShape;
+}
+function removeOneSizeDims(shape, perm) {
+    const newShape = [];
+    const newPerm = [];
+    for (let i = 0; i < shape.length; ++i) {
+        if (shape[i] !== 1) {
+            newShape.push(shape[i]);
+        }
+        if (shape[perm[i]] !== 1) {
+            newPerm.push(perm[i]);
+        }
+    }
+    for (let i = 0; i < newPerm.length; ++i) {
+        let minValIdx = -1;
+        for (let j = 0; j < newPerm.length; ++j) {
+            if (newPerm[j] >= i &&
+                (minValIdx === -1 || newPerm[minValIdx] > newPerm[j])) {
+                minValIdx = j;
+            }
+        }
+        newPerm[minValIdx] = i;
+    }
+    return [newShape, newPerm];
+}
+const transposeConfig = {
+    kernelName: Transpose,
+    backendName: 'wasm',
+    kernelFunc: transpose,
+    setupFunc: setup$19,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * Compute permutation axes and do a transpose if necessary.
+ *
+ * Used by reduction ops.
+ * @param x input TensorInfo
+ * @param axis reduction axes
+ * @param backend wasm backend instance
+ */
+function permuteAxesAndTranspose(x, axis, backend) {
+    const xShape = x.shape;
+    const xRank = x.shape.length;
+    const originalAxes = parseAxisParam(axis, xShape);
+    let axes = originalAxes;
+    const permutedAxes = getAxesPermutation(axes, xRank);
+    let xTransposed = null;
+    let inputWasTransposed = false;
+    if (permutedAxes != null) {
+        const newShape = new Array(xRank);
+        for (let i = 0; i < newShape.length; i++) {
+            newShape[i] = xShape[permutedAxes[i]];
+        }
+        axes = getInnerMostAxes(axes.length, xRank);
+        xTransposed =
+            transpose({ inputs: { x }, attrs: { perm: permutedAxes }, backend });
+        const xId = backend.dataIdMap.get(x.dataId).id;
+        const transposedId = backend.dataIdMap.get(xTransposed.dataId).id;
+        if (transposedId !== xId) {
+            inputWasTransposed = true;
+        }
+    }
+    return { transposed: xTransposed, originalAxes, axes, inputWasTransposed };
+}
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmAll;
+function setup$18(backend) {
+    wasmAll = backend.wasm.cwrap(All, null /*void*/, ['number, number, number']);
+}
+function all(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        input = transposed;
+        inputId = transposedId;
+    }
+    const inputRank = input.shape.length;
+    assertAxesAreInnerMostDims('all', axes, inputRank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const out = backend.makeOutput(outShape, x.dtype);
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmAll(inputId, reduceSize, outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    return out;
+}
+const allConfig = {
+    kernelName: All,
+    backendName: 'wasm',
+    setupFunc: setup$18,
+    kernelFunc: all
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmAny;
+function setup$17(backend) {
+    wasmAny = backend.wasm.cwrap(Any, null /*void*/, ['number, number, number']);
+}
+function any(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        input = transposed;
+        inputId = transposedId;
+    }
+    const inputRank = input.shape.length;
+    assertAxesAreInnerMostDims('any', axes, inputRank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const out = backend.makeOutput(outShape, x.dtype);
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmAny(inputId, reduceSize, outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    return out;
+}
+const anyConfig = {
+    kernelName: Any,
+    backendName: 'wasm',
+    setupFunc: setup$17,
+    kernelFunc: any
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function createArgMinMaxKernelConfig(kernelName) {
+    let wasmFunc;
+    function setupFunc(backend) {
+        wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number' // out_id
+        ]);
+    }
+    function kernelFunc(args) {
+        const { backend, inputs, attrs } = args;
+        const { axis } = attrs;
+        const { x } = inputs;
+        const xId = backend.dataIdMap.get(x.dataId).id;
+        let inputId = xId;
+        let input = x;
+        const { transposed, axes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+        if (inputWasTransposed) {
+            const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+            if (transposedId !== xId) {
+                // transpose was not a no-op. We will need to dispose of this
+                // once we are done.
+                input = transposed;
+                inputId = transposedId;
+            }
+        }
+        const outShape = input.shape.slice(0, -1);
+        const out = backend.makeOutput(outShape, 'int32');
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        const outerSize = sizeFromShape(out.shape);
+        const innerSize = input.shape[axes[0]];
+        wasmFunc(inputId, CppDType[input.dtype], outerSize, innerSize, outId);
+        if (inputWasTransposed) {
+            // dispose of the transposed tensor.
+            backend.disposeData(transposed.dataId);
+        }
+        return out;
+    }
+    return {
+        kernelName,
+        backendName: 'wasm',
+        setupFunc,
+        kernelFunc: kernelFunc,
+    };
+}
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const argMaxConfig = createArgMinMaxKernelConfig(ArgMax);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const argMinConfig = createArgMinMaxKernelConfig(ArgMin);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const asinConfig = createUnaryKernelConfig(Asin);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const asinhConfig = createUnaryKernelConfig(Asinh);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const atanConfig = createUnaryKernelConfig(Atan);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const atan2Config = createBinaryKernelConfig(Atan2);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const atanhConfig = createUnaryKernelConfig(Atanh);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmAvgPool;
+function setup$16(backend) {
+    wasmAvgPool = backend.wasm.cwrap(AvgPool, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function avgPool(args) {
+    const { inputs, attrs, backend } = args;
+    const x = inputs.x;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padRight = convInfo.padInfo.right;
+    const padBottom = convInfo.padInfo.bottom;
+    const padLeft = convInfo.padInfo.left;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const channels = convInfo.inChannels;
+    if (convInfo.dataFormat !== 'channelsLast') {
+        throw new Error(`wasm backend does not support dataFormat:'` +
+            `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
+    }
+    if (convInfo.dilationWidth !== 1 || convInfo.dilationHeight !== 1) {
+        throw new Error(`was backend only supports average pooling with dilation = [1, 1], ` +
+            `got [${convInfo.dilationHeight}, ${convInfo.dilationWidth}].`);
+    }
+    const out = backend.makeOutput(convInfo.outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmAvgPool(xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth, padTop, padRight, padBottom, padLeft, strideHeight, strideWidth, channels, outId);
+    return out;
+}
+const avgPoolConfig = {
+    kernelName: AvgPool,
+    backendName: 'wasm',
+    setupFunc: setup$16,
+    kernelFunc: avgPool
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmAvgPool3D;
+function setup$15(backend) {
+    wasmAvgPool3D = backend.wasm.cwrap('AvgPool3D', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function avgPool3D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode, dataFormat } = attrs;
+    const convInfo = computePool3DInfo(x.shape, filterSize, strides, 
+    /*dilations=*/ 1, pad, dimRoundingMode, dataFormat);
+    const out = backend.makeOutput(convInfo.outShape, x.dtype);
+    wasmAvgPool3D(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(out.dataId).id, convInfo.batchSize, 
+    // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/ convInfo.inChannels, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterDepth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left);
+    return out;
+}
+const avgPool3DConfig = {
+    kernelName: AvgPool3D,
+    backendName: 'wasm',
+    setupFunc: setup$15,
+    kernelFunc: avgPool3D
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmAvgPool3DGrad;
+function setup$14(backend) {
+    wasmAvgPool3DGrad = backend.wasm.cwrap('AvgPool3DGrad', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // filterWidth
+    ]);
+}
+function avgPool3DGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const convInfo = computePool3DInfo(input.shape, filterSize, strides, /*dilations=*/ 1, pad, dimRoundingMode);
+    const dx = backend.makeOutput(input.shape, input.dtype);
+    wasmAvgPool3DGrad(backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, convInfo.batchSize, 
+    // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/ convInfo.inChannels, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterDepth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth);
+    return dx;
+}
+const avgPool3DGradConfig = {
+    kernelName: AvgPool3DGrad,
+    backendName: 'wasm',
+    setupFunc: setup$14,
+    kernelFunc: avgPool3DGrad
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmAvgPoolGrad;
+function setup$13(backend) {
+    wasmAvgPoolGrad = backend.wasm.cwrap('AvgPoolGrad', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // filterWidth
+    ]);
+}
+function avgPoolGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const { filterSize, strides, pad } = attrs;
+    const convInfo = computePool2DInfo(input.shape, filterSize, strides, 
+    /*dilations=*/ 1, pad);
+    const dx = backend.makeOutput(input.shape, input.dtype);
+    wasmAvgPoolGrad(backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, convInfo.batchSize, 
+    // Since Pool ops (AvgPool and MaxPool) support 2D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/ convInfo.inChannels, convInfo.inHeight, convInfo.inWidth, convInfo.outHeight, convInfo.outWidth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.top, convInfo.padInfo.left, convInfo.filterHeight, convInfo.filterWidth);
+    return dx;
+}
+const avgPoolGradConfig = {
+    kernelName: AvgPoolGrad,
+    backendName: 'wasm',
+    setupFunc: setup$13,
+    kernelFunc: avgPoolGrad
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function reshape(args) {
+    const { inputs, attrs } = args;
+    const { x } = inputs;
+    const { shape } = attrs;
+    const xSize = sizeFromShape(x.shape);
+    const $shape = inferFromImplicitShape(shape, xSize);
+    assert(xSize === sizeFromShape($shape), () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
+        `shape must have the same number of elements.`);
+    // Backend needs to track refCount for the dataId for reshape op
+    args.backend.incRef(x.dataId);
+    return { dataId: x.dataId, shape: $shape, dtype: x.dtype };
+}
+const reshapeConfig = {
+    kernelName: Reshape,
+    backendName: 'wasm',
+    kernelFunc: reshape
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmBatchMatMul;
+function setup$12(backend) {
+    wasmBatchMatMul = backend.wasm.cwrap(BatchMatMul, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'number' // out_id
+    ]);
+}
+function batchMatMul(args) {
+    const { inputs, backend, attrs } = args;
+    const { a, b } = inputs;
+    const { transposeA, transposeB } = attrs;
+    if (a.dtype !== 'float32' || b.dtype !== 'float32') {
+        throw new Error(`BatchMatMul for non non-float32 tensors not yet supported.`);
+    }
+    const aRank = a.shape.length;
+    const bRank = b.shape.length;
+    const innerShapeA = transposeA ? a.shape[aRank - 2] : a.shape[aRank - 1];
+    const innerShapeB = transposeB ? b.shape[bRank - 1] : b.shape[bRank - 2];
+    const outerShapeA = transposeA ? a.shape[aRank - 1] : a.shape[aRank - 2];
+    const outerShapeB = transposeB ? b.shape[bRank - 2] : b.shape[bRank - 1];
+    const outerDimsA = a.shape.slice(0, -2);
+    const outerDimsB = b.shape.slice(0, -2);
+    const batchDimA = sizeFromShape(outerDimsA);
+    const batchDimB = sizeFromShape(outerDimsB);
+    const outShapeOuterDims = assertAndGetBroadcastShape(a.shape.slice(0, -2), b.shape.slice(0, -2));
+    const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
+    assert(innerShapeA === innerShapeB, () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
+        `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
+        `${b.shape} and transposeA=${transposeA}` +
+        ` and transposeB=${transposeB} must match.`);
+    const a3dShape = transposeA ? [batchDimA, innerShapeA, outerShapeA] :
+        [batchDimA, outerShapeA, innerShapeA];
+    const b3dShape = transposeB ? [batchDimB, outerShapeB, innerShapeB] :
+        [batchDimB, innerShapeB, outerShapeB];
+    // The rest of the implementation is designed to operate on rank-3 tensors
+    const a3d = reshape({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
+    const b3d = reshape({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
+    const a3dId = backend.dataIdMap.get(a3d.dataId).id;
+    const b3dId = backend.dataIdMap.get(b3d.dataId).id;
+    const leftDim = transposeA ? a3d.shape[2] : a3d.shape[1];
+    const rightDim = transposeB ? b3d.shape[1] : b3d.shape[2];
+    const batchDim = Math.max(batchDimA, batchDimB);
+    const out = backend.makeOutput([batchDim, leftDim, rightDim], a3d.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const aShapeBytes = new Uint8Array(new Int32Array(a3d.shape).buffer);
+    const bShapeBytes = new Uint8Array(new Int32Array(b3d.shape).buffer);
+    wasmBatchMatMul(a3dId, aShapeBytes, a3d.shape.length, b3dId, bShapeBytes, b3d.shape.length, transposeA, transposeB, outId);
+    backend.disposeData(a3d.dataId);
+    backend.disposeData(b3d.dataId);
+    out.shape = outShape;
+    return out;
+}
+const batchMatMulConfig = {
+    kernelName: BatchMatMul,
+    backendName: 'wasm',
+    setupFunc: setup$12,
+    kernelFunc: batchMatMul
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function slice(args) {
+    const { inputs: { x }, attrs: { begin, size }, backend } = args;
+    const [begin_, size_] = parseSliceParams(x, begin, size);
+    const isContinous = isSliceContinous(x.shape, begin_, size_);
+    const xVals = backend.readSync(x.dataId);
+    const out = backend.makeOutput(size_, x.dtype);
+    const xStrides = computeStrides(x.shape);
+    const outData = backend.dataIdMap.get(out.dataId);
+    if (isContinous) {
+        const flatOffset = computeFlatOffset(begin_, xStrides);
+        if (x.dtype === 'string') {
+            outData.stringBytes =
+                xVals
+                    .slice(flatOffset, flatOffset + sizeFromShape(size_));
+        }
+        else {
+            const outVals = backend.typedArrayFromHeap(out);
+            outVals.set(xVals
+                .subarray(flatOffset, flatOffset + sizeFromShape(size_)));
+        }
+        return out;
+    }
+    if (x.dtype === 'string') {
+        const res = sliceImpl(xVals, begin_, size_, x.shape, x.dtype);
+        outData.stringBytes = res;
+        return out;
+    }
+    const outVals = backend.typedArrayFromHeap(out);
+    const rank = x.shape.length;
+    if (rank === 2) {
+        slice2d(xVals, xStrides[0], outVals, begin_, size_);
+    }
+    else if (rank === 3) {
+        slice3d(xVals, xStrides[0], xStrides[1], outVals, begin_, size_);
+    }
+    else if (rank === 4) {
+        slice4d(xVals, xStrides[0], xStrides[1], xStrides[2], outVals, begin_, size_);
+    }
+    else {
+        const res = sliceImpl(xVals, begin_, size_, x.shape, x.dtype);
+        outVals.set(res);
+    }
+    return out;
+}
+function slice2d(xVals, xStride, outVals, begin, size) {
+    let outOffset = 0;
+    const beginI = begin[0];
+    const beginJ = begin[1];
+    const endI = beginI + size[0];
+    for (let i = beginI; i < endI; i++) {
+        const xOffset = i * xStride + beginJ;
+        outVals.set(xVals.subarray(xOffset, xOffset + size[1]), outOffset);
+        outOffset += size[1];
+    }
+}
+function slice3d(xVals, xStride1, xStride2, outVals, begin, size) {
+    let outOffset = 0;
+    const beginI = begin[0];
+    const beginJ = begin[1];
+    const beginK = begin[2];
+    const endI = beginI + size[0];
+    const endJ = beginJ + size[1];
+    for (let i = beginI; i < endI; i++) {
+        for (let j = beginJ; j < endJ; j++) {
+            const xOffset = i * xStride1 + j * xStride2 + beginK;
+            outVals.set(xVals.subarray(xOffset, xOffset + size[2]), outOffset);
+            outOffset += size[2];
+        }
+    }
+}
+function slice4d(xVals, xStride1, xStride2, xStride3, outVals, begin, size) {
+    let outOffset = 0;
+    const beginI = begin[0];
+    const beginJ = begin[1];
+    const beginK = begin[2];
+    const endI = beginI + size[0];
+    const endJ = beginJ + size[1];
+    const endK = beginK + size[2];
+    const beginL = begin[3];
+    for (let i = beginI; i < endI; i++) {
+        for (let j = beginJ; j < endJ; j++) {
+            for (let k = beginK; k < endK; k++) {
+                const xOffset = i * xStride1 + j * xStride2 + k * xStride3 + beginL;
+                outVals.set(xVals.subarray(xOffset, xOffset + size[3]), outOffset);
+                outOffset += size[3];
+            }
+        }
+    }
+}
+const sliceConfig = {
+    kernelName: Slice,
+    backendName: 'wasm',
+    kernelFunc: slice,
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function batchToSpaceND(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { blockShape, crops } = attrs;
+    const prod = blockShape.reduce((a, b) => a * b);
+    const reshaped = getReshaped(x.shape, blockShape, prod);
+    const permuted = getPermuted(reshaped.length, blockShape.length);
+    const reshapedPermuted = getReshapedPermuted(x.shape, blockShape, prod);
+    const sliceBeginCoords = getSliceBeginCoords(crops, blockShape.length);
+    const sliceSize = getSliceSize(reshapedPermuted, crops, blockShape.length);
+    const xReshaped = reshape({ inputs: { x }, backend, attrs: { shape: reshaped } });
+    const xTransposed = transpose({ inputs: { x: xReshaped }, backend, attrs: { perm: permuted } });
+    const xTransposedReshaped = reshape({ inputs: { x: xTransposed }, backend, attrs: { shape: reshapedPermuted } });
+    const result = slice({
+        inputs: { x: xTransposedReshaped },
+        backend,
+        attrs: { begin: sliceBeginCoords, size: sliceSize }
+    });
+    backend.disposeData(xReshaped.dataId);
+    backend.disposeData(xTransposed.dataId);
+    backend.disposeData(xTransposedReshaped.dataId);
+    return result;
+}
+const batchToSpaceNDConfig = {
+    kernelName: BatchToSpaceND,
+    backendName: 'wasm',
+    kernelFunc: batchToSpaceND
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmBincount;
+function setup$11(backend) {
+    wasmBincount = backend.wasm.cwrap(Bincount, null /*void*/, [
+        'number',
+        'number',
+        'boolean',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function bincount(args) {
+    const { backend, inputs, attrs } = args;
+    const { x, weights } = inputs;
+    const { size } = attrs;
+    const hasWeights = weights.shape.reduce((p, v) => p * v, 1) !== 0;
+    const outShape = x.shape.length === 1 ? [size] : [x.shape[0], size];
+    const out = backend.makeOutput(outShape, weights.dtype);
+    function tensorId(x) {
+        return backend.dataIdMap.get(x.dataId).id;
+    }
+    wasmBincount(tensorId(x), size, hasWeights, tensorId(weights), CppDType[weights.dtype], tensorId(out));
+    return out;
+}
+const bincountConfig = {
+    kernelName: Bincount,
+    backendName: 'wasm',
+    setupFunc: setup$11,
+    kernelFunc: bincount
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const bitwiseAndConfig = createBinaryKernelConfig(BitwiseAnd);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function broadcastArgs(args) {
+    const { inputs, backend } = args;
+    const { s0, s1 } = inputs;
+    const s0Vals = backend.typedArrayFromHeap(s0);
+    const s1Vals = backend.typedArrayFromHeap(s1);
+    const broadcastShape = assertAndGetBroadcastShape(Array.from(s0Vals), Array.from(s1Vals));
+    return backend.makeOutput([broadcastShape.length], 'int32', /*memoryOffset=*/ undefined, 
+    /*values=*/ new Int32Array(broadcastShape));
+}
+const broadcastArgsConfig = {
+    kernelName: BroadcastArgs,
+    backendName: 'wasm',
+    kernelFunc: broadcastArgs
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function cast(args) {
+    const { inputs: { x }, attrs: { dtype }, backend } = args;
+    const out = backend.makeOutput(x.shape, dtype);
+    const inVals = backend.typedArrayFromHeap(x);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.set(inVals);
+    return out;
+}
+const castConfig = {
+    kernelName: Cast,
+    backendName: 'wasm',
+    kernelFunc: cast,
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const ceilConfig = createUnaryKernelConfig(Ceil);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmClip;
+function setup$10(backend) {
+    wasmClip = backend.wasm.cwrap(ClipByValue, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number' // out_id
+    ]);
+}
+function clip(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { clipValueMin, clipValueMax } = attrs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmClip(xId, clipValueMin, clipValueMax, outId);
+    return out;
+}
+const clipByValueConfig = {
+    kernelName: ClipByValue,
+    backendName: 'wasm',
+    setupFunc: setup$10,
+    kernelFunc: clip
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function concat(args) {
+    const { inputs, backend } = args;
+    const axis = parseAxisParam(args.attrs.axis, inputs[0].shape)[0];
+    const shapes = inputs.map(t => t.shape);
+    assertParamsConsistent(shapes, axis);
+    let outShape = computeOutShape$2(inputs.map(t => t.shape), axis);
+    // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+    const $inputs = inputs.filter(t => sizeFromShape(t.shape) > 0);
+    if ($inputs.length === 1) {
+        return identity({ inputs: { x: $inputs[0] }, backend });
+    }
+    const out = backend.makeOutput(outShape, inputs[0].dtype);
+    if (sizeFromShape(outShape) === 0) {
+        return out;
+    }
+    if ($inputs[0].dtype === 'string') {
+        // Any concat of n-dimensional tensors across any axis can be reduced to
+        // a concatenation of two-dimensional tensors across the axis 1 by first
+        // partitioning the axes of the original tensors into those less than the
+        // axis to be concatenated and the rest. Then reshape the tensors
+        // into a two-dimensional tensor by collapsing these two sets of axes and
+        // concatenate the resulting matrices across the axis 1, finally reshaping
+        // the result to have the proper shape.
+        const inputs2D = $inputs.map(t => {
+            const innerSize = sizeFromShape(t.shape.slice(axis));
+            const shape = [-1, innerSize];
+            return reshape({ inputs: { x: t }, backend, attrs: { shape } });
+        });
+        const inputsValShapes = inputs2D.map(t => {
+            return { vals: backend.readSync(t.dataId), shape: t.shape };
+        });
+        // Concats 2d tensors along axis=1.
+        outShape =
+            computeOutShape$2(inputs2D.map(t => t.shape), 1 /* axis */);
+        const simplyConcat = inputs2D[0].shape[0] === 1;
+        const outVals = concatImpl$2(inputsValShapes, outShape, inputs[0].dtype, simplyConcat);
+        const finalOutShape = computeOutShape$2($inputs.map(t => t.shape), axis);
+        out.shape = finalOutShape;
+        const outData = backend.dataIdMap.get(out.dataId);
+        outData.stringBytes = fromStringArrayToUint8(outVals);
+        inputs2D.forEach(t => backend.disposeData(t.dataId));
+        return out;
+    }
+    const batchDim = sizeFromShape($inputs[0].shape.slice(0, axis));
+    let sumInnerDims = 0;
+    const innerDims = $inputs.map(input => {
+        const innerDim = sizeFromShape(input.shape.slice(axis));
+        sumInnerDims += innerDim;
+        return innerDim;
+    });
+    const inVals = $inputs.map(input => backend.typedArrayFromHeap(input));
+    const outVals = backend.typedArrayFromHeap(out);
+    for (let b = 0; b < batchDim; b++) {
+        let outOffset = b * sumInnerDims;
+        for (let i = 0; i < inVals.length; i++) {
+            const innerDim = innerDims[i];
+            const inOffset = b * innerDim;
+            const vals = inVals[i].subarray(inOffset, inOffset + innerDim);
+            outVals.set(vals, outOffset);
+            outOffset += innerDim;
+        }
+    }
+    return out;
+}
+const concatConfig = {
+    kernelName: Concat,
+    backendName: 'wasm',
+    kernelFunc: concat,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmConv2d;
+function setup$$(backend) {
+    wasmConv2d = backend.wasm.cwrap(Conv2D, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function conv2d(args) {
+    const { inputs, attrs, backend } = args;
+    const { x, filter } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const filterId = backend.dataIdMap.get(filter.dataId).id;
+    const { strides, dilations, pad, dimRoundingMode, dataFormat } = attrs;
+    const $dataFormat = convertConv2DDataFormat(dataFormat);
+    const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode, false, $dataFormat);
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padRight = convInfo.padInfo.right;
+    const padBottom = convInfo.padInfo.bottom;
+    const padLeft = convInfo.padInfo.left;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const inputChannels = convInfo.inChannels;
+    const outputChannels = convInfo.outChannels;
+    const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
+    if (convInfo.dataFormat !== 'channelsLast') {
+        throw new Error(`wasm backend Conv2D does not support dataFormat:'` +
+            `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
+    }
+    const out = backend.makeOutput(convInfo.outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmConv2d(xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight, filterWidth, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, outId);
+    return out;
+}
+const conv2DConfig = {
+    kernelName: Conv2D,
+    backendName: 'wasm',
+    setupFunc: setup$$,
+    kernelFunc: conv2d
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmConv2DBackpropInput;
+function setup$_(backend) {
+    wasmConv2DBackpropInput = backend.wasm.cwrap(Conv2DBackpropInput, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function conv2DBackpropInput(args) {
+    const { backend, inputs, attrs } = args;
+    const { dy, filter } = inputs;
+    const { strides, pad, dataFormat, dimRoundingMode, inputShape } = attrs;
+    const dilations = 1;
+    const $dataFormat = convertConv2DDataFormat(dataFormat);
+    const convInfo = computeConv2DInfo(inputShape, filter.shape, strides, dilations, pad, dimRoundingMode, false /* depthwise */, $dataFormat);
+    const { batchSize, filterHeight, filterWidth, inChannels, inHeight, inWidth, outChannels, outHeight, outWidth, strideHeight, strideWidth } = convInfo;
+    const topPad = filterHeight - 1 - convInfo.padInfo.top;
+    const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    const dxStrides = computeStrides(convInfo.inShape);
+    const dyStrides = computeStrides(dy.shape);
+    const [fltS0, fltS1, fltS2] = computeStrides(filter.shape);
+    const xBatchStride = dxStrides[0];
+    const xRowStride = isChannelsLast ? dxStrides[1] : dxStrides[2];
+    const xColStride = isChannelsLast ? dxStrides[2] : 1;
+    const xChannelStride = isChannelsLast ? 1 : dxStrides[1];
+    const yBatchStride = dyStrides[0];
+    const yRowStride = isChannelsLast ? dyStrides[1] : dyStrides[2];
+    const yColStride = isChannelsLast ? dyStrides[2] : 1;
+    const yChannelStride = isChannelsLast ? 1 : dyStrides[1];
+    const out = backend.makeOutput(convInfo.inShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const dyId = backend.dataIdMap.get(dy.dataId).id;
+    const filterId = backend.dataIdMap.get(filter.dataId).id;
+    wasmConv2DBackpropInput(dyId, filterId, batchSize, filterHeight, filterWidth, inHeight, inWidth, inChannels, outHeight, outWidth, outChannels, strideHeight, strideWidth, topPad, leftPad, fltS0, fltS1, fltS2, xBatchStride, xRowStride, xColStride, xChannelStride, yBatchStride, yRowStride, yColStride, yChannelStride, outId);
+    return out;
+}
+const conv2DBackpropInputConfig = {
+    kernelName: Conv2DBackpropInput,
+    backendName: 'wasm',
+    setupFunc: setup$_,
+    kernelFunc: conv2DBackpropInput
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmConv3D;
+function setup$Z(backend) {
+    wasmConv3D = backend.wasm.cwrap(Conv3D, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function conv3D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter } = inputs;
+    const { strides, pad, dilations } = attrs;
+    if (x.dtype !== 'float32') {
+        throw new Error(`Tensor x must have dtype float32, got ${x.dtype}`);
+    }
+    if (filter.dtype !== 'float32') {
+        throw new Error(`Tensor filter must have dtype float32, got ${filter.dtype}`);
+    }
+    const convInfo = computeConv3DInfo(x.shape, filter.shape, strides, dilations, pad);
+    const out = backend.makeOutput(convInfo.outShape, x.dtype);
+    wasmConv3D(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(filter.dataId).id, backend.dataIdMap.get(out.dataId).id, convInfo.batchSize, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.inChannels, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.outChannels, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left);
+    return out;
+}
+const conv3DConfig = {
+    kernelName: Conv3D,
+    backendName: 'wasm',
+    setupFunc: setup$Z,
+    kernelFunc: conv3D
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmConv3DBackpropFilterV2;
+function setup$Y(backend) {
+    wasmConv3DBackpropFilterV2 =
+        backend.wasm.cwrap(Conv3DBackpropFilterV2, null, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // padLeft
+        ]);
+}
+function conv3DBackpropFilterV2(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, dy } = inputs;
+    const { strides, pad, filterShape } = attrs;
+    if (x.dtype !== 'float32') {
+        throw new Error(`Tensor dy must have dtype float32, got ${x.dtype}`);
+    }
+    if (dy.dtype !== 'float32') {
+        throw new Error(`Tensor filter must have dtype float32, got ${dy.dtype}`);
+    }
+    const convInfo = computeConv3DInfo(x.shape, filterShape, strides, 
+    /*dilations=*/ 1, pad);
+    const dw = backend.makeOutput(convInfo.filterShape, dy.dtype);
+    wasmConv3DBackpropFilterV2(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dw.dataId).id, convInfo.batchSize, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.inChannels, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.outChannels, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left);
+    return dw;
+}
+const conv3DBackpropFilterV2Config = {
+    kernelName: Conv3DBackpropFilterV2,
+    backendName: 'wasm',
+    setupFunc: setup$Y,
+    kernelFunc: conv3DBackpropFilterV2
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmConv3DBackpropInputV2;
+function setup$X(backend) {
+    wasmConv3DBackpropInputV2 = backend.wasm.cwrap(Conv3DBackpropInputV2, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function conv3DBackpropInputV2(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, filter } = inputs;
+    const { pad, strides, inputShape } = attrs;
+    if (dy.dtype !== 'float32') {
+        throw new Error(`Tensor dy must have dtype float32, got ${dy.dtype}`);
+    }
+    if (filter.dtype !== 'float32') {
+        throw new Error(`Tensor filter must have dtype float32, got ${filter.dtype}`);
+    }
+    const convInfo = computeConv3DInfo(inputShape, filter.shape, strides, /*dilations=*/ 1, pad);
+    const dx = backend.makeOutput(convInfo.inShape, dy.dtype);
+    wasmConv3DBackpropInputV2(backend.dataIdMap.get(filter.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, convInfo.batchSize, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.inChannels, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.outChannels, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.filterDepth, convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left);
+    return dx;
+}
+const conv3DBackpropInputV2Config = {
+    kernelName: Conv3DBackpropInputV2,
+    backendName: 'wasm',
+    setupFunc: setup$X,
+    kernelFunc: conv3DBackpropInputV2
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const cosConfig = createUnaryKernelConfig(Cos);
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const coshConfig = createUnaryKernelConfig(Cosh);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+// Must match enum in CropAndResize.cc
+var InterpolationMethod;
+(function (InterpolationMethod) {
+    InterpolationMethod[InterpolationMethod["bilinear"] = 0] = "bilinear";
+    InterpolationMethod[InterpolationMethod["nearest"] = 1] = "nearest";
+})(InterpolationMethod || (InterpolationMethod = {}));
+let wasmCropAndResize;
+function setup$W(backend) {
+    wasmCropAndResize = backend.wasm.cwrap(CropAndResize, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // out id
+    ]);
+}
+function cropAndResize(args) {
+    const { backend, inputs, attrs } = args;
+    const { method, extrapolationValue, cropSize } = attrs;
+    const { image, boxes, boxInd } = inputs;
+    const numBoxes = boxes.shape[0];
+    const [cropHeight, cropWidth] = cropSize;
+    const outShape = [numBoxes, cropHeight, cropWidth, image.shape[3]];
+    let imagesData = backend.dataIdMap.get(image.dataId);
+    let castedData;
+    if (image.dtype !== 'float32') {
+        castedData = cast({ backend, inputs: { x: image }, attrs: { dtype: 'float32' } });
+        imagesData = backend.dataIdMap.get(castedData.dataId);
+    }
+    const imagesId = imagesData.id;
+    const boxesId = backend.dataIdMap.get(boxes.dataId).id;
+    const boxIndId = backend.dataIdMap.get(boxInd.dataId).id;
+    const out = backend.makeOutput(outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const imagesShapeBytes = new Uint8Array(new Int32Array(image.shape).buffer);
+    wasmCropAndResize(imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes, cropHeight, cropWidth, InterpolationMethod[method], extrapolationValue, outId);
+    if (castedData != null) {
+        backend.disposeData(castedData.dataId);
+    }
+    return out;
+}
+const cropAndResizeConfig = {
+    kernelName: CropAndResize,
+    backendName: 'wasm',
+    setupFunc: setup$W,
+    kernelFunc: cropAndResize
+};
+
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmCumprod;
+function setup$V(backend) {
+    wasmCumprod = backend.wasm.cwrap(Cumprod, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // dtype
+    ]);
+}
+function cumprod(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, exclusive, reverse } = attrs;
+    const xRank = x.shape.length;
+    assert(x.dtype === 'float32' || x.dtype === 'int32', () => `cumprod does not support ${x.dtype} tensors in the WASM backend`);
+    // permute required axis to inner most axis
+    const permutation = getAxesPermutation([axis], xRank);
+    let permutedX = x;
+    if (permutation !== null) {
+        permutedX = transpose({ inputs: { x }, attrs: { perm: permutation }, backend });
+    }
+    const permutedAxis = getInnerMostAxes(1, xRank)[0];
+    assertAxesAreInnerMostDims('cumprod', [permutedAxis], xRank);
+    const permutedOut = backend.makeOutput(permutedX.shape, permutedX.dtype);
+    const finalDim = permutedX.shape[permutedAxis];
+    const permutedXId = backend.dataIdMap.get(permutedX.dataId).id;
+    const permutedOutId = backend.dataIdMap.get(permutedOut.dataId).id;
+    wasmCumprod(permutedXId, exclusive ? 1 : 0, reverse ? 1 : 0, finalDim, permutedOutId, CppDType[x.dtype]);
+    // transpose data back if permuted
+    let out = permutedOut;
+    if (permutation !== null) {
+        const undoPermutation = getUndoAxesPermutation(permutation);
+        out = transpose({ inputs: { x: permutedOut }, attrs: { perm: undoPermutation }, backend });
+        backend.disposeData(permutedX.dataId);
+        backend.disposeData(permutedOut.dataId);
+    }
+    return out;
+}
+const cumprodConfig = {
+    kernelName: Cumprod,
+    backendName: 'wasm',
+    setupFunc: setup$V,
+    kernelFunc: cumprod
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmCumsum;
+function setup$U(backend) {
+    wasmCumsum = backend.wasm.cwrap(Cumsum, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // dtype
+    ]);
+}
+function cumsum(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, exclusive, reverse } = attrs;
+    const xRank = x.shape.length;
+    assert(x.dtype === 'float32' || x.dtype === 'int32', () => `cumsum does not support ${x.dtype} tensors in the WASM backend`);
+    // permute required axis to inner most axis
+    const permutation = getAxesPermutation([axis], xRank);
+    let permutedX = x;
+    if (permutation !== null) {
+        permutedX = transpose({ inputs: { x }, attrs: { perm: permutation }, backend });
+    }
+    const permutedAxis = getInnerMostAxes(1, xRank)[0];
+    assertAxesAreInnerMostDims('cumsum', [permutedAxis], xRank);
+    const permutedOut = backend.makeOutput(permutedX.shape, permutedX.dtype);
+    const finalDim = permutedX.shape[permutedAxis];
+    const permutedXId = backend.dataIdMap.get(permutedX.dataId).id;
+    const permutedOutId = backend.dataIdMap.get(permutedOut.dataId).id;
+    wasmCumsum(permutedXId, exclusive ? 1 : 0, reverse ? 1 : 0, finalDim, permutedOutId, CppDType[x.dtype]);
+    // transpose data back if permuted
+    let out = permutedOut;
+    if (permutation !== null) {
+        const undoPermutation = getUndoAxesPermutation(permutation);
+        out = transpose({ inputs: { x: permutedOut }, attrs: { perm: undoPermutation }, backend });
+        backend.disposeData(permutedX.dataId);
+        backend.disposeData(permutedOut.dataId);
+    }
+    return out;
+}
+const cumsumConfig = {
+    kernelName: Cumsum,
+    backendName: 'wasm',
+    setupFunc: setup$U,
+    kernelFunc: cumsum
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDenseBincount;
+function setup$T(backend) {
+    wasmDenseBincount = backend.wasm.cwrap('DenseBincount', null /*void*/, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'boolean',
+        'number',
+        'number',
+        'boolean',
+        'number', // outId
+    ]);
+}
+function denseBincount(args) {
+    const { backend, inputs, attrs } = args;
+    const { x, weights } = inputs;
+    const { size, binaryOutput } = attrs;
+    const hasWeights = weights.shape.reduce((p, v) => p * v, 1) !== 0;
+    const outShape = x.shape.length === 1 ? [size] : [x.shape[0], size];
+    const out = backend.makeOutput(outShape, weights.dtype);
+    function tensorId(x) {
+        return backend.dataIdMap.get(x.dataId).id;
+    }
+    wasmDenseBincount(tensorId(x), new Uint8Array(new Int32Array(x.shape).buffer), x.shape.length, size, hasWeights, tensorId(weights), CppDType[weights.dtype], binaryOutput, tensorId(out));
+    return out;
+}
+const denseBincountConfig = {
+    kernelName: DenseBincount,
+    backendName: 'wasm',
+    setupFunc: setup$T,
+    kernelFunc: denseBincount
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDepthToSpace;
+function setup$S(backend) {
+    wasmDepthToSpace = backend.wasm.cwrap(DepthToSpace, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'array',
+        'number',
+        'array',
+        'array',
+        'number',
+        'number', // outId
+    ]);
+}
+function depthToSpace(args) {
+    const { backend, inputs, attrs } = args;
+    const { x } = inputs;
+    const { blockSize, dataFormat } = attrs;
+    const batchSize = x.shape[0];
+    const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];
+    const inputWidth = (dataFormat === 'NHWC') ? x.shape[2] : x.shape[3];
+    const inputDepth = (dataFormat === 'NHWC') ? x.shape[3] : x.shape[1];
+    const outputHeight = inputHeight * blockSize;
+    const outputWidth = inputWidth * blockSize;
+    const outputDepth = inputDepth / (blockSize * blockSize);
+    const outputShape = (dataFormat === 'NHWC') ?
+        [batchSize, outputHeight, outputWidth, outputDepth] :
+        [batchSize, outputDepth, outputHeight, outputWidth];
+    const out = backend.makeOutput(outputShape, 'float32');
+    const xData = backend.dataIdMap.get(x.dataId);
+    const xId = xData.id;
+    const xStridesBytes = new Uint8Array(new Int32Array(computeStrides(x.shape)).buffer);
+    const outputShapeBytes = new Uint8Array(new Int32Array(outputShape).buffer);
+    const outStridesBytes = new Uint8Array(new Int32Array(computeStrides(outputShape)).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const channelsLast = dataFormat === 'NHWC' ? 1 : 0;
+    wasmDepthToSpace(xId, blockSize, channelsLast, xStridesBytes, x.shape.length - 1, outputShapeBytes, outStridesBytes, outputShape.length, outId);
+    return out;
+}
+const depthToSpaceConfig = {
+    kernelName: DepthToSpace,
+    backendName: 'wasm',
+    setupFunc: setup$S,
+    kernelFunc: depthToSpace
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDepthwiseConv2d;
+function setup$R(backend) {
+    wasmDepthwiseConv2d =
+        backend.wasm.cwrap(DepthwiseConv2dNative, null /* void */, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // outId
+        ]);
+}
+function depthwiseConv2d(args) {
+    const { inputs, attrs, backend } = args;
+    const { x, filter } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const filterId = backend.dataIdMap.get(filter.dataId).id;
+    const { strides, dilations, pad, dimRoundingMode } = attrs;
+    const $dilations = dilations == null ? [1, 1] : dilations;
+    const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, $dilations, pad, dimRoundingMode, true /* depthwise */);
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padRight = convInfo.padInfo.right;
+    const padBottom = convInfo.padInfo.bottom;
+    const padLeft = convInfo.padInfo.left;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const inputChannels = convInfo.inChannels;
+    const outputChannels = convInfo.outChannels;
+    const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
+    if (convInfo.dataFormat !== 'channelsLast') {
+        throw new Error(`wasm backend DepthwiseConv2dNative does not support dataFormat:'` +
+            `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
+    }
+    const out = backend.makeOutput(convInfo.outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmDepthwiseConv2d(xId, x.shape[0], x.shape[1], x.shape[2], filterId, filterHeight, filterWidth, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, outId);
+    return out;
+}
+const depthwiseConv2dNativeConfig = {
+    kernelName: DepthwiseConv2dNative,
+    backendName: 'wasm',
+    setupFunc: setup$R,
+    kernelFunc: depthwiseConv2d
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDiag;
+function setup$Q(backend) {
+    wasmDiag = backend.wasm.cwrap('Diag', null, [
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function diag(args) {
+    const { inputs, backend } = args;
+    const { x } = inputs;
+    const xSize = sizeFromShape(x.shape);
+    const out = backend.makeOutput([...x.shape, ...x.shape], x.dtype);
+    wasmDiag(backend.dataIdMap.get(x.dataId).id, CppDType[x.dtype], xSize, backend.dataIdMap.get(out.dataId).id);
+    return out;
+}
+const diagConfig = {
+    kernelName: Diag,
+    backendName: 'wasm',
+    setupFunc: setup$Q,
+    kernelFunc: diag
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDilation2D;
+function setup$P(backend) {
+    wasmDilation2D = backend.wasm.cwrap(Dilation2D, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function dilation2D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter } = inputs;
+    const { strides, pad, dilations } = attrs;
+    if (x.dtype !== filter.dtype) {
+        throw new Error(`Dilation2D error: x must have the same dtype as filter. Got ${x.dtype} and ${filter.dtype}`);
+    }
+    const dilationInfo = computeDilation2DInfo(x.shape, filter.shape, strides, pad, 
+    /*dataFormat=*/ 'NHWC', dilations);
+    const out = backend.makeOutput(dilationInfo.outShape, x.dtype);
+    wasmDilation2D(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(filter.dataId).id, backend.dataIdMap.get(out.dataId).id, CppDType[x.dtype], dilationInfo.batchSize, 
+    /*depth=*/ dilationInfo.inChannels, dilationInfo.inHeight, dilationInfo.inWidth, dilationInfo.outHeight, dilationInfo.outWidth, dilationInfo.strideHeight, dilationInfo.strideWidth, dilationInfo.dilationHeight, dilationInfo.dilationWidth, dilationInfo.filterHeight, dilationInfo.filterWidth, dilationInfo.padInfo.top, dilationInfo.padInfo.left);
+    return out;
+}
+const dilation2DConfig = {
+    kernelName: Dilation2D,
+    backendName: 'wasm',
+    setupFunc: setup$P,
+    kernelFunc: dilation2D
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDilation2DBackpropFilter;
+function setup$O(backend) {
+    wasmDilation2DBackpropFilter =
+        backend.wasm.cwrap(Dilation2DBackpropFilter, null, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // padLeft
+        ]);
+}
+function dilation2DBackpropFilter(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter, dy } = inputs;
+    const { strides, pad, dilations } = attrs;
+    if (x.dtype !== filter.dtype || x.dtype !== dy.dtype) {
+        throw new Error(`Dilation2DBackpropFilter error: x must have the same dtype as filter and dy. Got ${x.dtype}, ${filter.dtype}, and ${dy.dtype}`);
+    }
+    const dilationInfo = computeDilation2DInfo(x.shape, filter.shape, strides, pad, 
+    /*dataFormat=*/ 'NHWC', dilations);
+    const gradients = backend.makeOutput(filter.shape, filter.dtype);
+    wasmDilation2DBackpropFilter(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(filter.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(gradients.dataId).id, CppDType[x.dtype], dilationInfo.batchSize, 
+    /*depth=*/ dilationInfo.inChannels, dilationInfo.inHeight, dilationInfo.inWidth, dilationInfo.outHeight, dilationInfo.outWidth, dilationInfo.strideHeight, dilationInfo.strideWidth, dilationInfo.dilationHeight, dilationInfo.dilationWidth, dilationInfo.filterHeight, dilationInfo.filterWidth, dilationInfo.padInfo.top, dilationInfo.padInfo.left);
+    return gradients;
+}
+const dilation2DBackpropFilterConfig = {
+    kernelName: Dilation2DBackpropFilter,
+    backendName: 'wasm',
+    setupFunc: setup$O,
+    kernelFunc: dilation2DBackpropFilter
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmDilation2DBackpropInput;
+function setup$N(backend) {
+    wasmDilation2DBackpropInput =
+        backend.wasm.cwrap(Dilation2DBackpropInput, null, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // padLeft
+        ]);
+}
+function dilation2DBackpropInput(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter, dy } = inputs;
+    const { strides, pad, dilations } = attrs;
+    if (x.dtype !== filter.dtype || x.dtype !== dy.dtype) {
+        throw new Error(`Dilation2DBackpropInput error: x must have the same dtype as filter and dy. Got ${x.dtype}, ${filter.dtype}, and ${dy.dtype}`);
+    }
+    const dilationInfo = computeDilation2DInfo(x.shape, filter.shape, strides, pad, 
+    /*dataFormat=*/ 'NHWC', dilations);
+    const gradients = backend.makeOutput(x.shape, x.dtype);
+    wasmDilation2DBackpropInput(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(filter.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(gradients.dataId).id, CppDType[x.dtype], dilationInfo.batchSize, 
+    /*depth=*/ dilationInfo.inChannels, dilationInfo.inHeight, dilationInfo.inWidth, dilationInfo.outHeight, dilationInfo.outWidth, dilationInfo.strideHeight, dilationInfo.strideWidth, dilationInfo.dilationHeight, dilationInfo.dilationWidth, dilationInfo.filterHeight, dilationInfo.filterWidth, dilationInfo.padInfo.top, dilationInfo.padInfo.left);
+    return gradients;
+}
+const dilation2DBackpropInputConfig = {
+    kernelName: Dilation2DBackpropInput,
+    backendName: 'wasm',
+    setupFunc: setup$N,
+    kernelFunc: dilation2DBackpropInput
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const eluConfig = createUnaryKernelConfig(Elu);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmEluGrad;
+function setup$M(backend) {
+    wasmEluGrad = backend.wasm.cwrap(EluGrad, null, [
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function eluGrad(args) {
+    const { inputs, backend } = args;
+    const { dy, y } = inputs;
+    const out = backend.makeOutput(y.shape, 'float32');
+    const tensorId = (x) => {
+        return backend.dataIdMap.get(x.dataId).id;
+    };
+    wasmEluGrad(tensorId(y), tensorId(dy), tensorId(out));
+    return out;
+}
+const eluGradConfig = {
+    kernelName: EluGrad,
+    backendName: 'wasm',
+    setupFunc: setup$M,
+    kernelFunc: eluGrad,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$8 = false;
+const equalConfig = createBinaryKernelConfig(Equal, supportsFullBroadcast$8, 'bool');
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const erfConfig = createUnaryKernelConfig(Erf);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const expConfig = createUnaryKernelConfig(Exp, 'float32');
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function expandDims(args) {
+    const { inputs, attrs, backend } = args;
+    const { input } = inputs;
+    const { dim } = attrs;
+    const inputRank = input.shape.length;
+    const newShape = input.shape.slice();
+    let $dim = dim;
+    if (dim < 0) {
+        // Negative value is counted from the tail of rank.
+        assert(-(inputRank + 1) <= dim, () => `Axis must be in the interval [${-(inputRank + 1)}, ${inputRank}]`);
+        $dim = inputRank + dim + 1;
+    }
+    newShape.splice($dim, 0, 1);
+    return reshape({ inputs: { x: input }, backend, attrs: { shape: newShape } });
+}
+const expandDimsConfig = {
+    kernelName: ExpandDims,
+    backendName: 'wasm',
+    kernelFunc: expandDims,
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const expm1Config = createUnaryKernelConfig(Expm1, 'float32');
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function fill(args) {
+    const { attrs: { shape, value, dtype }, backend } = args;
+    const out = backend.makeOutput(shape, dtype);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.fill(value);
+    return out;
+}
+const fillConfig = {
+    kernelName: Fill,
+    backendName: 'wasm',
+    kernelFunc: fill,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFlipLeftRight;
+function setup$L(backend) {
+    wasmFlipLeftRight = backend.wasm.cwrap(FlipLeftRight, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function flipLeftRight(args) {
+    const { inputs, backend } = args;
+    const { image } = inputs;
+    const out = backend.makeOutput(image.shape, image.dtype);
+    const imageId = backend.dataIdMap.get(image.dataId).id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+    wasmFlipLeftRight(imageId, batch, imageHeight, imageWidth, numChannels, outId);
+    return out;
+}
+const flipLeftRightConfig = {
+    kernelName: FlipLeftRight,
+    backendName: 'wasm',
+    kernelFunc: flipLeftRight,
+    setupFunc: setup$L
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const floorConfig = createUnaryKernelConfig(Floor);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const floorDivConfig = createBinaryKernelConfig(FloorDiv);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmBatchNorm;
+function setup$K(backend) {
+    wasmBatchNorm = backend.wasm.cwrap(FusedBatchNorm, null /* void */, ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
+}
+function fusedBatchNorm(args) {
+    const { backend, inputs, attrs } = args;
+    const { varianceEpsilon } = attrs;
+    const { x, mean, variance, offset, scale } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const meanId = backend.dataIdMap.get(mean.dataId).id;
+    const varianceId = backend.dataIdMap.get(variance.dataId).id;
+    const offsetId = offset != null ? backend.dataIdMap.get(offset.dataId).id : 0;
+    const scaleId = scale != null ? backend.dataIdMap.get(scale.dataId).id : 0;
+    const out = backend.makeOutput(x.shape, x.dtype);
+    // Short-circuit zero-sized tensors.
+    if (sizeFromShape(x.shape) === 0) {
+        return out;
+    }
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmBatchNorm(xId, meanId, varianceId, offsetId, scaleId, varianceEpsilon, outId);
+    return out;
+}
+const fusedBatchNormConfig = {
+    kernelName: FusedBatchNorm,
+    backendName: 'wasm',
+    setupFunc: setup$K,
+    kernelFunc: fusedBatchNorm
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFusedConv2d;
+function setup$J(backend) {
+    wasmFusedConv2d = backend.wasm.cwrap(FusedConv2D, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function fusedConv2d(args) {
+    const { inputs, attrs, backend } = args;
+    const { x, filter, bias, preluActivationWeights } = inputs;
+    const { strides, pad, dilations, dataFormat, dimRoundingMode, activation, leakyreluAlpha } = attrs;
+    const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode);
+    const fusedActivation = FusableActivation[activation];
+    if (fusedActivation == null) {
+        throw new Error(`${activation} activation not yet supported for FusedConv2D ` +
+            `in the wasm backend.`);
+    }
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const filterId = backend.dataIdMap.get(filter.dataId).id;
+    const outputChannels = convInfo.outChannels;
+    let biasId = 0;
+    if (bias != null) {
+        const biasData = backend.dataIdMap.get(bias.dataId);
+        if (biasData.shape.length !== 1) {
+            throw new Error(`FusedConv2D only supports rank-1 bias but got ` +
+                `rank ${biasData.shape.length}.`);
+        }
+        if (biasData.shape[0] !== outputChannels) {
+            throw new Error(`FusedConv2D bias shape (${biasData.shape}) does not ` +
+                `match the number of output channels (${outputChannels})`);
+        }
+        biasId = biasData.id;
+    }
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padRight = convInfo.padInfo.right;
+    const padBottom = convInfo.padInfo.bottom;
+    const padLeft = convInfo.padInfo.left;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const inputChannels = convInfo.inChannels;
+    const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
+    const batchSize = convInfo.batchSize;
+    const inHeight = convInfo.inHeight;
+    const inWidth = convInfo.inWidth;
+    if (dataFormat !== 'NHWC') {
+        throw new Error(`wasm backend FusedConv2D does not support dataFormat:'` +
+            `${dataFormat}'. Please use 'NHWC'.`);
+    }
+    const out = backend.makeOutput(convInfo.outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const preluActivationWeightsId = preluActivationWeights == null ?
+        0 :
+        backend.dataIdMap.get(preluActivationWeights.dataId).id;
+    wasmFusedConv2d(xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth, biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, fusedActivation, preluActivationWeightsId, leakyreluAlpha || 0, outId);
+    return out;
+}
+const fusedConv2DConfig = {
+    kernelName: FusedConv2D,
+    backendName: 'wasm',
+    setupFunc: setup$J,
+    kernelFunc: fusedConv2d
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFusedDepthwiseConv2d;
+function setup$I(backend) {
+    wasmFusedDepthwiseConv2d =
+        backend.wasm.cwrap(FusedDepthwiseConv2D, null /* void */, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // outId
+        ]);
+}
+function fusedDepthwiseConv2d(args) {
+    const { inputs, attrs, backend } = args;
+    const { x, filter, bias, preluActivationWeights } = inputs;
+    const { strides, pad, dilations, dataFormat, dimRoundingMode, activation, leakyreluAlpha } = attrs;
+    const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode, true /* depthwise */);
+    const fusedActivation = FusableActivation[activation];
+    if (fusedActivation == null) {
+        throw new Error(`${activation} activation not yet supported for FusedDepthwiseConv2D ` +
+            `in the wasm backend.`);
+    }
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const filterId = backend.dataIdMap.get(filter.dataId).id;
+    const outputChannels = convInfo.outChannels;
+    let biasId = 0;
+    if (bias != null) {
+        const biasData = backend.dataIdMap.get(bias.dataId);
+        if (biasData.shape.length !== 1) {
+            throw new Error(`FusedDepthwiseConv2D only supports rank-1 bias but got ` +
+                `rank ${biasData.shape.length}.`);
+        }
+        if (biasData.shape[0] !== outputChannels) {
+            throw new Error(`FusedDepthwiseConv2D bias shape (${biasData.shape}) does not ` +
+                `match the number of output channels (${outputChannels})`);
+        }
+        biasId = biasData.id;
+    }
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padRight = convInfo.padInfo.right;
+    const padBottom = convInfo.padInfo.bottom;
+    const padLeft = convInfo.padInfo.left;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const inputChannels = convInfo.inChannels;
+    const isSamePad = convInfo.padInfo.type === 'SAME' ? 1 : 0;
+    const batchSize = convInfo.batchSize;
+    const inHeight = convInfo.inHeight;
+    const inWidth = convInfo.inWidth;
+    if (dataFormat !== 'NHWC') {
+        throw new Error(`wasm backend FusedDepthwiseConv2D does not support dataFormat:'` +
+            `${dataFormat}'. Please use 'NHWC'.`);
+    }
+    const out = backend.makeOutput(convInfo.outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const preluActivationWeightsId = preluActivationWeights == null ?
+        0 :
+        backend.dataIdMap.get(preluActivationWeights.dataId).id;
+    wasmFusedDepthwiseConv2d(xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth, biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, fusedActivation, preluActivationWeightsId, leakyreluAlpha || 0, outId);
+    return out;
+}
+const fusedDepthwiseConv2DConfig = {
+    kernelName: FusedDepthwiseConv2D,
+    backendName: 'wasm',
+    setupFunc: setup$I,
+    kernelFunc: fusedDepthwiseConv2d
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmGatherNd;
+function setup$H(backend) {
+    wasmGatherNd = backend.wasm.cwrap(GatherNd, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number' // outId
+    ]);
+}
+function gatherNd(args) {
+    const { backend, inputs } = args;
+    const { params, indices } = inputs;
+    const [resultShape, numSlices, sliceSize, strides] = prepareAndValidate(params, indices);
+    const out = backend.makeOutput(resultShape, params.dtype);
+    if (numSlices === 0) {
+        return out;
+    }
+    const indicesShape = indices.shape;
+    const sliceRank = indicesShape[indicesShape.length - 1];
+    const xData = backend.dataIdMap.get(params.dataId);
+    const xId = xData.id;
+    const indicesData = backend.dataIdMap.get(indices.dataId);
+    const indicesId = indicesData.id;
+    const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmGatherNd(xId, CppDType[params.dtype], indicesId, numSlices, sliceRank, sliceSize, stridesBytes, outId);
+    return out;
+}
+const gatherNdConfig = {
+    kernelName: GatherNd,
+    backendName: 'wasm',
+    setupFunc: setup$H,
+    kernelFunc: gatherNd
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmGather;
+function setup$G(backend) {
+    wasmGather = backend.wasm.cwrap('Gather', null /*void*/, [
+        'number',
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number' // outId
+    ]);
+}
+function gatherV2(args) {
+    const { backend, inputs, attrs } = args;
+    const { x, indices } = inputs;
+    const { axis, batchDims } = attrs;
+    // Throw error when any index is out of bound.
+    const parsedAxis = parseAxisParam(axis, x.shape)[0];
+    const indicesVals = backend.readSync(indices.dataId);
+    const axisDim = x.shape[parsedAxis];
+    for (let i = 0; i < indicesVals.length; ++i) {
+        const index = indicesVals[i];
+        assert(index <= axisDim - 1 && index >= 0, () => `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+    }
+    const shapeInfo = collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
+    const flattenX = reshape({
+        inputs: { x },
+        attrs: {
+            shape: [
+                shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+                shapeInfo.sliceSize
+            ]
+        },
+        backend
+    });
+    const indicesSize = sizeFromShape(indices.shape);
+    const flattenIndex = reshape({
+        inputs: { x: indices },
+        attrs: { shape: [shapeInfo.batchSize, indicesSize / shapeInfo.batchSize] },
+        backend
+    });
+    const flattenOutputShape = [
+        shapeInfo.batchSize, shapeInfo.outerSize, indicesSize / shapeInfo.batchSize,
+        shapeInfo.sliceSize
+    ];
+    const out = backend.makeOutput(flattenOutputShape, x.dtype);
+    if (sizeFromShape(x.shape) === 0) {
+        return out;
+    }
+    const stridesSize = flattenX.shape.length - 1;
+    const xData = backend.dataIdMap.get(flattenX.dataId);
+    const xId = xData.id;
+    const indicesData = backend.dataIdMap.get(flattenIndex.dataId);
+    const indicesId = indicesData.id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const xStridesBytes = new Uint8Array(new Int32Array(computeStrides(flattenX.shape)).buffer);
+    const outStridesBytes = new Uint8Array(new Int32Array(computeStrides(flattenOutputShape)).buffer);
+    wasmGather(xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId, shapeInfo.batchSize, outStridesBytes, outId);
+    backend.disposeData(flattenX.dataId);
+    backend.disposeData(flattenIndex.dataId);
+    // reshape
+    out.shape = shapeInfo.outputShape;
+    return out;
+}
+const gatherV2Config = {
+    kernelName: GatherV2,
+    backendName: 'wasm',
+    setupFunc: setup$G,
+    kernelFunc: gatherV2
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$7 = false;
+const greaterConfig = createBinaryKernelConfig(Greater, supportsFullBroadcast$7, 'bool');
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$6 = false;
+const greaterEqualConfig = createBinaryKernelConfig(GreaterEqual, supportsFullBroadcast$6, 'bool');
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const isFiniteConfig = createUnaryKernelConfig(IsFinite, 'bool');
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const isInfConfig = createUnaryKernelConfig(IsInf, 'bool');
+
+/**
+ * @license
+ * Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const isNaNConfig = createUnaryKernelConfig(IsNan, 'bool');
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc$5;
+function setupFunc(backend) {
+    wasmFunc$5 = backend.wasm.cwrap(LeakyRelu, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number', // out_id
+    ]);
+}
+function leakyRelu(args) {
+    const { inputs: { x }, attrs: { alpha }, backend } = args;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    // According to TF API, LeakyRelu returns float32 when input is either float32
+    // or int32.
+    const out = backend.makeOutput(x.shape, 'float32');
+    if (sizeFromShape(x.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmFunc$5(xId, CppDType[x.dtype], alpha, outId);
+    }
+    return out;
+}
+const leakyReluConfig = {
+    kernelName: LeakyRelu,
+    backendName: 'wasm',
+    setupFunc,
+    kernelFunc: leakyRelu,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$5 = false;
+const lessConfig = createBinaryKernelConfig(Less, supportsFullBroadcast$5, 'bool');
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$4 = false;
+const lessEqualConfig = createBinaryKernelConfig(LessEqual, supportsFullBroadcast$4, 'bool');
+
+/**
+ * @license
+ * Copyright 2023 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmLinSpace;
+function setup$F(backend) {
+    wasmLinSpace = backend.wasm.cwrap(LinSpace, null, [
+        'number',
+        'number',
+        'number',
+        'number', // num
+    ]);
+}
+function linSpace(args) {
+    const { attrs, backend } = args;
+    const { start, stop, num } = attrs;
+    // TFJS Cpu backend supports num as a float and returns undetermined tensor in
+    // that case. However, according to TensorFlow spec, num should be a integer.
+    const numInt = Math.floor(num);
+    const out = backend.makeOutput([numInt], 'float32');
+    wasmLinSpace(backend.dataIdMap.get(out.dataId).id, start, stop, numInt);
+    return out;
+}
+const linSpaceConfig = {
+    kernelName: LinSpace,
+    backendName: 'wasm',
+    setupFunc: setup$F,
+    kernelFunc: linSpace,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const logConfig = createUnaryKernelConfig(Log);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const log1pConfig = createUnaryKernelConfig(Log1p);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$3 = false;
+const logicalAndConfig = createBinaryKernelConfig(LogicalAnd, supportsFullBroadcast$3, 'bool');
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const logicalNotConfig = createUnaryKernelConfig(LogicalNot);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$2 = false;
+const logicalOrConfig = createBinaryKernelConfig(LogicalOr, supportsFullBroadcast$2, 'bool');
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast$1 = false;
+const logicalXorConfig = createBinaryKernelConfig(LogicalXor, supportsFullBroadcast$1, 'bool');
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmLRN;
+function setup$E(backend) {
+    wasmLRN = backend.wasm.cwrap(LRN, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // beta
+    ]);
+}
+function lrn(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { depthRadius, bias, alpha, beta } = attrs;
+    if (x.dtype !== 'float32') {
+        throw new Error('LRN error: x must have dtype float32');
+    }
+    const out = backend.makeOutput(x.shape, x.dtype);
+    wasmLRN(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(out.dataId).id, 
+    /*channels=*/ x.shape[3], depthRadius, bias, alpha, beta);
+    return out;
+}
+const lrnConfig = {
+    kernelName: LRN,
+    backendName: 'wasm',
+    setupFunc: setup$E,
+    kernelFunc: lrn
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmLRNGrad;
+function setup$D(backend) {
+    wasmLRNGrad = backend.wasm.cwrap(LRNGrad, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // beta
+    ]);
+}
+function lrnGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, y, dy } = inputs;
+    const { depthRadius, bias, alpha, beta } = attrs;
+    if (x.dtype !== 'float32' || y.dtype !== 'float32' ||
+        dy.dtype !== 'float32') {
+        throw new Error('LRNGrad error: x, y, and dy must have dtype float32');
+    }
+    const dx = backend.makeOutput(x.shape, x.dtype);
+    wasmLRNGrad(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(y.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, 
+    /*channels=*/ dy.shape[3], depthRadius, bias, alpha, beta);
+    return dx;
+}
+const lrnGradConfig = {
+    kernelName: LRNGrad,
+    backendName: 'wasm',
+    setupFunc: setup$D,
+    kernelFunc: lrnGrad
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMax;
+function setup$C(backend) {
+    wasmMax = backend.wasm.cwrap(Max, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number', // out_id
+    ]);
+}
+function max(args) {
+    const { backend, inputs, attrs } = args;
+    const { reductionIndices: axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        input = transposed;
+        inputId = transposedId;
+    }
+    const inputRank = input.shape.length;
+    assertAxesAreInnerMostDims('max', axes, inputRank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const out = backend.makeOutput(outShape, x.dtype);
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmMax(inputId, CppDType[x.dtype], reduceSize, outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    return out;
+}
+const maxConfig = {
+    kernelName: Max,
+    backendName: 'wasm',
+    setupFunc: setup$C,
+    kernelFunc: max
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const maximumConfig = createBinaryKernelConfig(Maximum);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMaxPool;
+function setup$B(backend) {
+    wasmMaxPool = backend.wasm.cwrap(MaxPool, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function maxPool(args) {
+    const { inputs, attrs, backend } = args;
+    const x = inputs.x;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    // TF API supports int32 input. CPU and WebGL backend also support int32
+    // input. WASM backend doesn't support it because it uses xnnpack which only
+    // supports float32.
+    //
+    // Add the following assert only for the WASM backend instead of at core op
+    // level.
+    //
+    // TODO: add support for int32 input.
+    assert(x.dtype === 'float32', () => `Error in MaxPool: only float32 input is supported. Got ${x.dtype}.`);
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padRight = convInfo.padInfo.right;
+    const padBottom = convInfo.padInfo.bottom;
+    const padLeft = convInfo.padInfo.left;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const inputChannels = convInfo.inChannels;
+    const outputChannels = convInfo.outChannels;
+    if (convInfo.dataFormat !== 'channelsLast') {
+        throw new Error(`wasm backend does not support dataFormat:'` +
+            `${convInfo.dataFormat}'. Please use 'channelsLast'.`);
+    }
+    const out = backend.makeOutput(convInfo.outShape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmMaxPool(xId, x.shape[0], x.shape[1], x.shape[2], filterHeight, filterWidth, padTop, padRight, padBottom, padLeft, dilationHeight, dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels, outId);
+    return out;
+}
+const maxPoolConfig = {
+    kernelName: MaxPool,
+    backendName: 'wasm',
+    setupFunc: setup$B,
+    kernelFunc: maxPool
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMaxPool3D;
+function setup$A(backend) {
+    wasmMaxPool3D = backend.wasm.cwrap('MaxPool3D', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function maxPool3D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode, dataFormat } = attrs;
+    const convInfo = computePool3DInfo(x.shape, filterSize, strides, 
+    /*dilations=*/ 1, pad, dimRoundingMode, dataFormat);
+    const out = backend.makeOutput(convInfo.outShape, x.dtype);
+    wasmMaxPool3D(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(out.dataId).id, convInfo.batchSize, 
+    // Since Pool3D ops (AvgPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/ convInfo.inChannels, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterDepth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left);
+    return out;
+}
+const maxPool3DConfig = {
+    kernelName: MaxPool3D,
+    backendName: 'wasm',
+    setupFunc: setup$A,
+    kernelFunc: maxPool3D
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMaxPool3DGrad;
+function setup$z(backend) {
+    wasmMaxPool3DGrad = backend.wasm.cwrap('MaxPool3DGrad', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function maxPool3DGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const convInfo = computePool3DInfo(input.shape, filterSize, strides, /*dilations=*/ 1, pad, dimRoundingMode);
+    const dx = backend.makeOutput(input.shape, input.dtype);
+    wasmMaxPool3DGrad(backend.dataIdMap.get(input.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, convInfo.batchSize, 
+    // Since Pool3D ops (MaxPool3D and MaxPool3D) support 3D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/ convInfo.inChannels, convInfo.inDepth, convInfo.inHeight, convInfo.inWidth, convInfo.outDepth, convInfo.outHeight, convInfo.outWidth, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationDepth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterDepth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.front, convInfo.padInfo.top, convInfo.padInfo.left);
+    return dx;
+}
+const maxPool3DGradConfig = {
+    kernelName: MaxPool3DGrad,
+    backendName: 'wasm',
+    setupFunc: setup$z,
+    kernelFunc: maxPool3DGrad
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMaxPoolGrad;
+function setup$y(backend) {
+    wasmMaxPoolGrad = backend.wasm.cwrap('MaxPoolGrad', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function maxPoolGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const convInfo = computePool2DInfo(input.shape, filterSize, strides, 
+    /*dilations=*/ 1, pad, dimRoundingMode);
+    const dx = backend.makeOutput(input.shape, input.dtype);
+    wasmMaxPoolGrad(backend.dataIdMap.get(input.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, convInfo.batchSize, 
+    // Since Pool ops (MaxPool and MaxPool) support 2D filter only, in
+    // channels should always equal to out channels.
+    /*channelSize=*/ convInfo.inChannels, convInfo.inHeight, convInfo.inWidth, convInfo.outHeight, convInfo.outWidth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.top, convInfo.padInfo.left);
+    return dx;
+}
+const maxPoolGradConfig = {
+    kernelName: MaxPoolGrad,
+    backendName: 'wasm',
+    setupFunc: setup$y,
+    kernelFunc: maxPoolGrad
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMaxPoolWithArgmax;
+function setup$x(backend) {
+    wasmMaxPoolWithArgmax = backend.wasm.cwrap('MaxPoolWithArgmax', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'boolean',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // padLeft
+    ]);
+}
+function maxPoolWithArgmax(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { filterSize, strides, pad, includeBatchInIndex } = attrs;
+    assert(x.shape.length === 4, () => `Error in maxPool: input must be rank 4 but got rank ${x.shape.length}.`);
+    const dilations = [1, 1];
+    assert(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in maxPool: Either strides or dilations must be 1. ' +
+        `Got strides ${strides} and dilations '${dilations}'`);
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, [1, 1], pad);
+    const pooled = backend.makeOutput(convInfo.outShape, x.dtype);
+    const indexes = backend.makeOutput(convInfo.outShape, 'int32');
+    wasmMaxPoolWithArgmax(backend.dataIdMap.get(x.dataId).id, backend.dataIdMap.get(pooled.dataId).id, backend.dataIdMap.get(indexes.dataId).id, CppDType[x.dtype], includeBatchInIndex, convInfo.batchSize, convInfo.inChannels, convInfo.inHeight, convInfo.inWidth, convInfo.outHeight, convInfo.outWidth, convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight, convInfo.dilationWidth, convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth, convInfo.padInfo.top, convInfo.padInfo.left);
+    return [pooled, indexes];
+}
+const maxPoolWithArgmaxConfig = {
+    kernelName: MaxPoolWithArgmax,
+    backendName: 'wasm',
+    setupFunc: setup$x,
+    kernelFunc: maxPoolWithArgmax
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMean;
+function setup$w(backend) {
+    wasmMean =
+        backend.wasm.cwrap(Mean, null /*void*/, ['number, number, number']);
+}
+function mean(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    let reductionAxes = axes;
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        if (transposedId !== xId) {
+            // transpose was not a no-op. We will need to dispose of this
+            // once we are done.
+            input = transposed;
+            inputId = transposedId;
+            reductionAxes = getInnerMostAxes(reductionAxes.length, input.shape.length);
+        }
+    }
+    assertAxesAreInnerMostDims('mean', reductionAxes, input.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, reductionAxes);
+    const reduceSize = sizeFromShape(reduceShape);
+    let castedInput = input;
+    if (input.dtype !== 'float32') {
+        castedInput =
+            cast({ backend, inputs: { x: input }, attrs: { dtype: 'float32' } });
+        inputId = backend.dataIdMap.get(castedInput.dataId).id;
+    }
+    const out = backend.makeOutput(outShape, 'float32');
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmMean(inputId, reduceSize, outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    if (input.dtype !== 'float32') {
+        backend.disposeData(castedInput.dataId);
+    }
+    return out;
+}
+const meanConfig = {
+    kernelName: Mean,
+    backendName: 'wasm',
+    setupFunc: setup$w,
+    kernelFunc: mean
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMin;
+function setup$v(backend) {
+    wasmMin = backend.wasm.cwrap(Min, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number', // out_id
+    ]);
+}
+function min(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        if (transposedId !== xId) {
+            // transpose was not a no-op. We will need to dispose of this
+            // once we are done.
+            input = transposed;
+            inputId = transposedId;
+        }
+    }
+    const inputRank = input.shape.length;
+    assertAxesAreInnerMostDims('min', axes, inputRank);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const out = backend.makeOutput(outShape, input.dtype);
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmMin(inputId, CppDType[x.dtype], reduceSize, outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    return out;
+}
+const minConfig = {
+    kernelName: Min,
+    backendName: 'wasm',
+    setupFunc: setup$v,
+    kernelFunc: min
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const minimumConfig = createBinaryKernelConfig(Minimum);
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+// Must match enum in MirrorPad.cc
+var MirrorPaddingMode;
+(function (MirrorPaddingMode) {
+    MirrorPaddingMode[MirrorPaddingMode["reflect"] = 0] = "reflect";
+    MirrorPaddingMode[MirrorPaddingMode["symmetric"] = 1] = "symmetric";
+})(MirrorPaddingMode || (MirrorPaddingMode = {}));
+let wasmMirrorPad;
+function setup$u(backend) {
+    wasmMirrorPad = backend.wasm.cwrap(MirrorPad, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'array',
+        'array',
+        'number',
+        'number', // outId
+    ]);
+}
+function mirrorPad(args) {
+    const { inputs: { x }, backend, attrs: { paddings, mode } } = args;
+    const outShape = paddings.map((p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const out = backend.makeOutput(outShape, x.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+    const prePaddingsFlat = paddings.map(padTuple => padTuple[0]);
+    const postPaddingsFlat = paddings.map(padTuple => padTuple[1]);
+    const prePaddingsBytes = new Uint8Array(new Int32Array(prePaddingsFlat).buffer);
+    const postPaddingsBytes = new Uint8Array(new Int32Array(postPaddingsFlat).buffer);
+    wasmMirrorPad(xId, xShapeBytes, x.shape.length, CppDType[x.dtype], prePaddingsBytes, postPaddingsBytes, MirrorPaddingMode[mode], outId);
+    return out;
+}
+const mirrorPadConfig = {
+    kernelName: MirrorPad,
+    backendName: 'wasm',
+    kernelFunc: mirrorPad,
+    setupFunc: setup$u
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc$4;
+function setup$t(backend) {
+    wasmFunc$4 = backend.wasm.cwrap(Softmax, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number' // batch
+    ]);
+}
+function softmax(args) {
+    const { backend, inputs: { logits }, attrs: { dim } } = args;
+    const xId = backend.dataIdMap.get(logits.dataId).id;
+    const out = backend.makeOutput(logits.shape, logits.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const channels = logits.shape[dim];
+    const batch = sizeFromShape(logits.shape) / channels;
+    // Short-circuit zero-sized tensors.
+    if (sizeFromShape(out.shape) === 0) {
+        return out;
+    }
+    wasmFunc$4(xId, outId, channels, batch);
+    return out;
+}
+const softmaxConfig = {
+    kernelName: Softmax,
+    backendName: 'wasm',
+    setupFunc: setup$t,
+    kernelFunc: softmax
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmMultinomial;
+function setup$s(backend) {
+    wasmMultinomial = backend.wasm.cwrap(Multinomial, null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function multinomial(args) {
+    const { inputs, backend, attrs } = args;
+    const { logits } = inputs;
+    const { numSamples, seed, normalized } = attrs;
+    if (logits.dtype !== 'float32') {
+        throw new Error(`Tensor logits must have dtype float32, got ${logits.dtype}`);
+    }
+    const probabilities = normalized ? logits : softmax({
+        inputs: { logits },
+        backend,
+        attrs: { dim: logits.shape.length - 1 },
+    });
+    const [batchSize, numEvents] = probabilities.shape;
+    const out = backend.makeOutput([batchSize, numSamples], 'int32');
+    wasmMultinomial(backend.dataIdMap.get(probabilities.dataId).id, batchSize, numEvents, numSamples, seed, backend.dataIdMap.get(out.dataId).id);
+    if (!normalized) {
+        backend.disposeData(probabilities.dataId);
+    }
+    return out;
+}
+const multinomialConfig = {
+    kernelName: Multinomial,
+    backendName: 'wasm',
+    setupFunc: setup$s,
+    kernelFunc: multinomial
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const modConfig = createBinaryKernelConfig(Mod);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const multiplyConfig = createBinaryKernelConfig(Multiply);
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const negConfig = createUnaryKernelConfig(Neg);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+/**
+ * Parse the result of the c++ method, which has the shape equivalent to
+ * `Result`.
+ */
+function parseResultStruct(backend, resOffset) {
+    const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 4);
+    const pSelectedIndices = result[0];
+    const selectedSize = result[1];
+    const pSelectedScores = result[2];
+    const pValidOutputs = result[3];
+    // Since the result was allocated on the heap, we have to delete it.
+    backend.wasm._free(resOffset);
+    return { pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs };
+}
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc$3;
+function setup$r(backend) {
+    wasmFunc$3 = backend.wasm.cwrap(NonMaxSuppressionV3, 'number', // Result*
+    [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // scoreThreshold
+    ]);
+}
+function kernelFunc$1(args) {
+    const { backend, inputs, attrs } = args;
+    const { iouThreshold, maxOutputSize, scoreThreshold } = attrs;
+    const { boxes, scores } = inputs;
+    const boxesId = backend.dataIdMap.get(boxes.dataId).id;
+    const scoresId = backend.dataIdMap.get(scores.dataId).id;
+    const resOffset = wasmFunc$3(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
+    const { pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs } = parseResultStruct(backend, resOffset);
+    // Since we are not using scores for V3, we have to delete it from the heap.
+    backend.wasm._free(pSelectedScores);
+    backend.wasm._free(pValidOutputs);
+    const selectedIndicesTensor = backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
+    return selectedIndicesTensor;
+}
+const nonMaxSuppressionV3Config = {
+    kernelName: NonMaxSuppressionV3,
+    backendName: 'wasm',
+    setupFunc: setup$r,
+    kernelFunc: kernelFunc$1,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc$2;
+function setup$q(backend) {
+    wasmFunc$2 = backend.wasm.cwrap(NonMaxSuppressionV4, 'number', // Result*
+    [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'bool', // padToMaxOutputSize
+    ]);
+}
+function nonMaxSuppressionV4(args) {
+    const { backend, inputs, attrs } = args;
+    const { iouThreshold, maxOutputSize, scoreThreshold, padToMaxOutputSize } = attrs;
+    const { boxes, scores } = inputs;
+    const boxesId = backend.dataIdMap.get(boxes.dataId).id;
+    const scoresId = backend.dataIdMap.get(scores.dataId).id;
+    const resOffset = wasmFunc$2(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize);
+    const { pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs } = parseResultStruct(backend, resOffset);
+    // Since we are not using scores for V4, we have to delete it from the heap.
+    backend.wasm._free(pSelectedScores);
+    const selectedIndicesTensor = backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
+    const validOutputsTensor = backend.makeOutput([], 'int32', pValidOutputs);
+    return [selectedIndicesTensor, validOutputsTensor];
+}
+const nonMaxSuppressionV4Config = {
+    kernelName: NonMaxSuppressionV4,
+    backendName: 'wasm',
+    setupFunc: setup$q,
+    kernelFunc: nonMaxSuppressionV4,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc$1;
+function setup$p(backend) {
+    wasmFunc$1 = backend.wasm.cwrap(NonMaxSuppressionV5, 'number', // Result*
+    [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // softNmsSigma
+    ]);
+}
+function kernelFunc(args) {
+    const { backend, inputs, attrs } = args;
+    const { iouThreshold, maxOutputSize, scoreThreshold, softNmsSigma } = attrs;
+    const { boxes, scores } = inputs;
+    const boxesId = backend.dataIdMap.get(boxes.dataId).id;
+    const scoresId = backend.dataIdMap.get(scores.dataId).id;
+    const resOffset = wasmFunc$1(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma);
+    const { pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs } = parseResultStruct(backend, resOffset);
+    // Since we are not using validOutputs for V5, we have to delete it from the
+    // heap.
+    backend.wasm._free(pValidOutputs);
+    const selectedIndicesTensor = backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
+    const selectedScoresTensor = backend.makeOutput([selectedSize], 'float32', pSelectedScores);
+    return [selectedIndicesTensor, selectedScoresTensor];
+}
+const nonMaxSuppressionV5Config = {
+    kernelName: NonMaxSuppressionV5,
+    backendName: 'wasm',
+    setupFunc: setup$p,
+    kernelFunc: kernelFunc,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const supportsFullBroadcast = false;
+const notEqualConfig = createBinaryKernelConfig(NotEqual, supportsFullBroadcast, 'bool');
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmOneHot;
+function setup$o(backend) {
+    wasmOneHot = backend.wasm.cwrap(OneHot, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // out_id
+    ]);
+}
+function oneHot(args) {
+    const { inputs, backend, attrs } = args;
+    const { indices } = inputs;
+    const { dtype, depth, onValue, offValue } = attrs;
+    const out = backend.makeOutput([...indices.shape, depth], dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const indicesData = backend.dataIdMap.get(indices.dataId);
+    const indicesId = indicesData.id;
+    wasmOneHot(indicesId, depth, onValue, offValue, outId);
+    return out;
+}
+const oneHotConfig = {
+    kernelName: OneHot,
+    backendName: 'wasm',
+    setupFunc: setup$o,
+    kernelFunc: oneHot,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function onesLike(args) {
+    const { inputs: { x }, backend } = args;
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.fill(1);
+    return out;
+}
+const onesLikeConfig = {
+    kernelName: OnesLike,
+    backendName: 'wasm',
+    kernelFunc: onesLike,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function pack(args) {
+    const { inputs, backend, attrs } = args;
+    const { axis } = attrs;
+    if (inputs.length === 1) {
+        return expandDims({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
+    }
+    const shape = inputs[0].shape;
+    const dtype = inputs[0].dtype;
+    inputs.forEach(t => {
+        assertShapesMatch(shape, t.shape, 'All tensors passed to stack must have matching shapes');
+        assert(dtype === t.dtype, () => 'All tensors passed to stack must have matching dtypes');
+    });
+    const intermediateTensorInfos = [];
+    const expandedTensors = inputs.map(t => {
+        const expandedT = expandDims({ inputs: { input: t }, backend, attrs: { dim: axis } });
+        intermediateTensorInfos.push(expandedT);
+        return expandedT;
+    });
+    const result = concat({ inputs: expandedTensors, backend, attrs: { axis } });
+    intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
+    return result;
+}
+const packConfig = {
+    kernelName: Pack,
+    backendName: 'wasm',
+    kernelFunc: pack
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmPadV2;
+function setup$n(backend) {
+    wasmPadV2 = backend.wasm.cwrap(PadV2, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'array',
+        'array',
+        'number',
+        'number', // outId
+    ]);
+}
+function pad(args) {
+    const { inputs: { x }, backend, attrs: { paddings, constantValue } } = args;
+    const outShape = paddings.map((p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+    if (sizeFromShape(x.shape) === 0) {
+        // Short-circuit the computation, since x doesn't have value, only
+        // the shape is used to compute output shape to pad.
+        return fill({
+            backend,
+            attrs: { shape: outShape, value: constantValue, dtype: x.dtype }
+        });
+    }
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const out = backend.makeOutput(outShape, x.dtype);
+    const outTensorData = backend.dataIdMap.get(out.dataId);
+    const outId = outTensorData.id;
+    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+    const prePaddingsFlat = paddings.map(padTuple => padTuple[0]);
+    const postPaddingsFlat = paddings.map(padTuple => padTuple[1]);
+    const prePaddingsBytes = new Uint8Array(new Int32Array(prePaddingsFlat).buffer);
+    const postPaddingsBytes = new Uint8Array(new Int32Array(postPaddingsFlat).buffer);
+    wasmPadV2(xId, xShapeBytes, x.shape.length, CppDType[x.dtype], prePaddingsBytes, postPaddingsBytes, constantValue, outId);
+    return out;
+}
+const padV2Config = {
+    kernelName: PadV2,
+    backendName: 'wasm',
+    kernelFunc: pad,
+    setupFunc: setup$n
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const powConfig = createBinaryKernelConfig(Pow);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmPrelu;
+function setup$m(backend) {
+    wasmPrelu = backend.wasm.cwrap(Prelu, null /* void */, [
+        'number',
+        'number',
+        'number' // out_id
+    ]);
+}
+function prelu(args) {
+    const { inputs, backend } = args;
+    const { x, alpha } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const weightsId = backend.dataIdMap.get(alpha.dataId).id;
+    let inputId = xId;
+    const input = x;
+    let castedInput = input;
+    if (input.dtype !== 'float32') {
+        castedInput = cast({ backend, inputs: { x }, attrs: { dtype: 'float32' } });
+        inputId = backend.dataIdMap.get(castedInput.dataId).id;
+    }
+    const out = backend.makeOutput(x.shape, 'float32');
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmPrelu(inputId, weightsId, outId);
+    if (input.dtype !== 'float32') {
+        backend.disposeData(castedInput.dataId);
+    }
+    return out;
+}
+const preluConfig = {
+    kernelName: Prelu,
+    backendName: 'wasm',
+    setupFunc: setup$m,
+    kernelFunc: prelu
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmProd;
+function setup$l(backend) {
+    wasmProd = backend.wasm.cwrap(Prod, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number'
+    ]);
+}
+function prod(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    let reductionAxes = axes;
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        if (transposedId !== xId) {
+            // transpose was not a no-op. We will need to dispose of this
+            // once we are done.
+            input = transposed;
+            inputId = transposedId;
+            reductionAxes = getInnerMostAxes(reductionAxes.length, input.shape.length);
+        }
+    }
+    assertAxesAreInnerMostDims('prod', reductionAxes, input.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, reductionAxes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const out = backend.makeOutput(outShape, input.dtype);
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmProd(inputId, reduceSize, CppDType[out.dtype], outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    return out;
+}
+const prodConfig = {
+    kernelName: Prod,
+    backendName: 'wasm',
+    setupFunc: setup$l,
+    kernelFunc: prod
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const range = (args) => {
+    const { backend, attrs } = args;
+    const { start, stop, step, dtype } = attrs;
+    const values = rangeImpl(start, stop, step, dtype);
+    const out = backend.makeOutput([values.length], dtype);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.set(values);
+    return out;
+};
+const rangeConfig = {
+    kernelName: Range,
+    backendName: 'wasm',
+    kernelFunc: range
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const realDivConfig = createBinaryKernelConfig(RealDiv);
+
+/**
+ * @license
+ * Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const reciprocalConfig = createUnaryKernelConfig(Reciprocal);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const reluConfig = createUnaryKernelConfig(Relu);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const relu6Config = createUnaryKernelConfig(Relu6);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmResizeBilinear;
+function setup$k(backend) {
+    wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // outId
+    ]);
+}
+function resizeBilinear(args) {
+    const { backend, inputs, attrs } = args;
+    const { images } = inputs;
+    const { alignCorners, halfPixelCenters, size } = attrs;
+    const [newHeight, newWidth] = size;
+    const [batch, oldHeight, oldWidth, numChannels] = images.shape;
+    const outShape = [batch, newHeight, newWidth, numChannels];
+    let xData = backend.dataIdMap.get(images.dataId);
+    let castedData;
+    if (xData.dtype !== 'float32') {
+        castedData =
+            cast({ backend, inputs: { x: images }, attrs: { dtype: 'float32' } });
+        xData = backend.dataIdMap.get(castedData.dataId);
+    }
+    const xId = xData.id;
+    const out = backend.makeOutput(outShape, 'float32');
+    if (sizeFromShape(images.shape) === 0) {
+        return out;
+    }
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmResizeBilinear(xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth, alignCorners ? 1 : 0, halfPixelCenters ? 1 : 0, outId);
+    if (castedData != null) {
+        backend.disposeData(castedData.dataId);
+    }
+    return out;
+}
+const resizeBilinearConfig = {
+    kernelName: ResizeBilinear,
+    backendName: 'wasm',
+    setupFunc: setup$k,
+    kernelFunc: resizeBilinear
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmResizeBilinearGrad;
+function setup$j(backend) {
+    wasmResizeBilinearGrad = backend.wasm.cwrap(ResizeBilinearGrad, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'array',
+        'array',
+        'boolean', // alignCorners
+    ]);
+}
+function resizeBilinearGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { images, dy } = inputs;
+    const { alignCorners } = attrs;
+    const dx = backend.makeOutput(images.shape, 'float32');
+    let xData = backend.dataIdMap.get(images.dataId);
+    let castedData;
+    if (xData.dtype !== 'float32') {
+        castedData = cast({
+            backend,
+            inputs: { x: images },
+            attrs: { dtype: 'float32' },
+        });
+        xData = backend.dataIdMap.get(castedData.dataId);
+    }
+    wasmResizeBilinearGrad(backend.dataIdMap.get(images.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, new Uint8Array(new Int32Array(images.shape).buffer), new Uint8Array(new Int32Array(dy.shape).buffer), alignCorners);
+    if (castedData != null) {
+        backend.disposeData(castedData.dataId);
+    }
+    return dx;
+}
+const resizeBilinearGradConfig = {
+    kernelName: ResizeBilinearGrad,
+    backendName: 'wasm',
+    setupFunc: setup$j,
+    kernelFunc: resizeBilinearGrad,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmResizeNearestNeighbor;
+function setup$i(backend) {
+    wasmResizeNearestNeighbor = backend.wasm.cwrap(ResizeNearestNeighbor, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function resizeNearestNeighbor(args) {
+    const { backend, inputs, attrs } = args;
+    const { images } = inputs;
+    const { alignCorners, halfPixelCenters, size } = attrs;
+    const [newHeight, newWidth] = size;
+    const [batch, oldHeight, oldWidth, numChannels] = images.shape;
+    const outShape = [batch, newHeight, newWidth, numChannels];
+    const out = backend.makeOutput(outShape, 'float32');
+    if (sizeFromShape(images.shape) === 0) {
+        return out;
+    }
+    let xData = backend.dataIdMap.get(images.dataId);
+    let castedData;
+    if (xData.dtype !== 'float32') {
+        castedData = cast({
+            backend,
+            inputs: { x: images },
+            attrs: { dtype: 'float32' },
+        });
+        xData = backend.dataIdMap.get(castedData.dataId);
+    }
+    const xId = xData.id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmResizeNearestNeighbor(xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth, alignCorners ? 1 : 0, halfPixelCenters ? 1 : 0, outId);
+    if (castedData != null) {
+        backend.disposeData(castedData.dataId);
+    }
+    return out;
+}
+const resizeNearestNeighborConfig = {
+    kernelName: ResizeNearestNeighbor,
+    backendName: 'wasm',
+    setupFunc: setup$i,
+    kernelFunc: resizeNearestNeighbor,
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmResizeNearestNeighborGrad;
+function setup$h(backend) {
+    wasmResizeNearestNeighborGrad = backend.wasm.cwrap(ResizeNearestNeighborGrad, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'array',
+        'array',
+        'boolean', // alignCorners
+    ]);
+}
+function resizeNearestNeighborGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { images, dy } = inputs;
+    const { alignCorners } = attrs;
+    const dx = backend.makeOutput(images.shape, 'float32');
+    let xData = backend.dataIdMap.get(images.dataId);
+    let castedData;
+    if (xData.dtype !== 'float32') {
+        castedData = cast({
+            backend,
+            inputs: { x: images },
+            attrs: { dtype: 'float32' },
+        });
+        xData = backend.dataIdMap.get(castedData.dataId);
+    }
+    wasmResizeNearestNeighborGrad(backend.dataIdMap.get(images.dataId).id, backend.dataIdMap.get(dy.dataId).id, backend.dataIdMap.get(dx.dataId).id, new Uint8Array(new Int32Array(images.shape).buffer), new Uint8Array(new Int32Array(dy.shape).buffer), alignCorners);
+    if (castedData != null) {
+        backend.disposeData(castedData.dataId);
+    }
+    return dx;
+}
+const resizeNearestNeighborGradConfig = {
+    kernelName: ResizeNearestNeighborGrad,
+    backendName: 'wasm',
+    setupFunc: setup$h,
+    kernelFunc: resizeNearestNeighborGrad,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmReverse;
+function setup$g(backend) {
+    wasmReverse = backend.wasm.cwrap(Reverse, null, [
+        'number',
+        'array',
+        'number',
+        'array',
+        'number',
+        'number' // out_id
+    ]);
+}
+function reverse(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { dims } = attrs;
+    const axes = parseAxisParam(dims, x.shape);
+    if (x.shape.length === 0) {
+        return identity({ inputs: { x }, backend });
+    }
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const axesBytes = new Uint8Array(new Int32Array(axes).buffer);
+    const outShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+    wasmReverse(xId, axesBytes, axes.length, outShapeBytes, x.shape.length, outId);
+    const reshaped = reshape({ inputs: { x: out }, attrs: { shape: x.shape }, backend });
+    backend.disposeData(out.dataId);
+    return reshaped;
+}
+const reverseConfig = {
+    kernelName: Reverse,
+    backendName: 'wasm',
+    kernelFunc: reverse,
+    setupFunc: setup$g
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmRotate;
+function setup$f(backend) {
+    wasmRotate = backend.wasm.cwrap(RotateWithOffset, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number',
+        'number', // outId
+    ]);
+}
+function rotateWithOffset(args) {
+    const { inputs, backend, attrs } = args;
+    const { image } = inputs;
+    const { radians, fillValue, center } = attrs;
+    const out = backend.makeOutput(image.shape, image.dtype);
+    const imageId = backend.dataIdMap.get(image.dataId).id;
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+    const [centerX, centerY] = getImageCenter(center, imageHeight, imageWidth);
+    const fillIsBlack = fillValue === 0;
+    const fullOpacityValue = 255;
+    const fillValues = typeof fillValue === 'number' ?
+        [fillValue, fillValue, fillValue, fillIsBlack ? 0 : fullOpacityValue] :
+        [...fillValue, fullOpacityValue];
+    const fillBytes = new Uint8Array(new Int32Array(fillValues).buffer);
+    wasmRotate(imageId, batch, imageHeight, imageWidth, numChannels, radians, centerX, centerY, fillBytes, fillValues.length, outId);
+    return out;
+}
+const rotateWithOffsetConfig = {
+    kernelName: RotateWithOffset,
+    backendName: 'wasm',
+    kernelFunc: rotateWithOffset,
+    setupFunc: setup$f
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const roundConfig = createUnaryKernelConfig(Round);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const rsqrtConfig = createUnaryKernelConfig(Rsqrt);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmScatterNd;
+function setup$e(backend) {
+    wasmScatterNd = backend.wasm.cwrap(ScatterNd, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number',
+        'number' // outId
+    ]);
+}
+function scatterNd(args) {
+    const { backend, inputs, attrs } = args;
+    const { indices, updates } = inputs;
+    const { shape } = attrs;
+    const out = backend.makeOutput(shape, updates.dtype);
+    if (sizeFromShape(shape) === 0) {
+        return out;
+    }
+    const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, shape);
+    const indicesData = backend.dataIdMap.get(indices.dataId);
+    const indicesId = indicesData.id;
+    const updatesData = backend.dataIdMap.get(updates.dataId);
+    const updatesId = updatesData.id;
+    const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmScatterNd(indicesId, updatesId, CppDType[updates.dtype], sliceRank, numUpdates, sliceSize, stridesBytes, outputSize, outId);
+    return out;
+}
+const scatterNdConfig = {
+    kernelName: ScatterNd,
+    backendName: 'wasm',
+    setupFunc: setup$e,
+    kernelFunc: scatterNd
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSearchSorted;
+function setup$d(backend) {
+    wasmSearchSorted = backend.wasm.cwrap(SearchSorted, null /* void */, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'bool',
+        'number', // outId
+    ]);
+}
+function searchSorted(args) {
+    const { inputs, backend, attrs } = args;
+    const { sortedSequence, values } = inputs;
+    const { side } = attrs;
+    if (sortedSequence.dtype !== values.dtype) {
+        throw new Error(`SearchSorted error: sorted_sequence must have the same dtype as values. Got ${sortedSequence.dtype} and ${values.dtype}`);
+    }
+    const out = backend.makeOutput(values.shape, 'int32');
+    function tensorId(x) {
+        return backend.dataIdMap.get(x.dataId).id;
+    }
+    wasmSearchSorted(tensorId(sortedSequence), tensorId(values), 
+    /*batchSize=*/ sortedSequence.shape[0], 
+    /*sequenceSize=*/ sortedSequence.shape[1], 
+    /*valuesSize=*/ values.shape[1], 
+    /*dtype=*/ CppDType[sortedSequence.dtype], 
+    /*isSideLeft=*/ side === 'left', tensorId(out));
+    return out;
+}
+const searchSortedConfig = {
+    kernelName: SearchSorted,
+    backendName: 'wasm',
+    setupFunc: setup$d,
+    kernelFunc: searchSorted
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSelect;
+function setup$c(backend) {
+    wasmSelect = backend.wasm.cwrap('SelectV2', null, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // outId
+    ]);
+}
+function select(args) {
+    const { inputs, backend } = args;
+    const { condition, t, e } = inputs;
+    const conditionId = backend.dataIdMap.get(condition.dataId).id;
+    const tId = backend.dataIdMap.get(t.dataId).id;
+    const eId = backend.dataIdMap.get(e.dataId).id;
+    const out = backend.makeOutput(t.shape, t.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const cRank = condition.shape.length;
+    const tRank = t.shape.length;
+    const offset = cRank === 0 || cRank > 1 || tRank === 1 ?
+        1 :
+        sizeFromShape(t.shape.slice(1));
+    wasmSelect(conditionId, tId, eId, offset, outId);
+    return out;
+}
+const selectConfig = {
+    kernelName: Select,
+    backendName: 'wasm',
+    kernelFunc: select,
+    setupFunc: setup$c
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const seluConfig = createUnaryKernelConfig(Selu);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmFunc;
+function setup$b(backend) {
+    wasmFunc = backend.wasm.cwrap(Sigmoid, null /* void */, ['number', 'number']);
+}
+function sigmoid(args) {
+    const { backend, inputs: { x } } = args;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    // Short-circuit zero-sized tensors.
+    if (sizeFromShape(out.shape) === 0) {
+        return out;
+    }
+    wasmFunc(xId, outId);
+    return out;
+}
+const sigmoidConfig = {
+    kernelName: 'Sigmoid',
+    backendName: 'wasm',
+    setupFunc: setup$b,
+    kernelFunc: sigmoid
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const signConfig = createUnaryKernelConfig(Sign);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const sinConfig = createUnaryKernelConfig(Sin);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const sinhConfig = createUnaryKernelConfig(Sinh);
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const softplusConfig = createUnaryKernelConfig(Softplus);
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function spaceToBatchND(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { blockShape, paddings } = attrs;
+    const prod = sizeFromShape(blockShape);
+    const completePaddings = [[0, 0]];
+    completePaddings.push(...paddings);
+    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
+        completePaddings.push([0, 0]);
+    }
+    const paddedX = padV2Config.kernelFunc({
+        inputs: { x },
+        backend,
+        attrs: { paddings: completePaddings, constantValue: 0 }
+    });
+    const reshapedPaddedShape = getReshaped(paddedX.shape, blockShape, prod, false);
+    const permutedReshapedPaddedPermutation = getPermuted(reshapedPaddedShape.length, blockShape.length, false);
+    const flattenShape = getReshapedPermuted(paddedX.shape, blockShape, prod, false);
+    const reshapeInputs = { x: paddedX };
+    const reshapeAttrs = { shape: reshapedPaddedShape };
+    const paddedXReshaped = reshape({ inputs: reshapeInputs, backend, attrs: reshapeAttrs });
+    const transposeInputs = { x: paddedXReshaped };
+    const transposeAttrs = { perm: permutedReshapedPaddedPermutation };
+    const paddedXT = transpose({ inputs: transposeInputs, backend, attrs: transposeAttrs });
+    const resultReshapeInputs = { x: paddedXT };
+    const resultReshapeAttrs = { shape: flattenShape };
+    const result = reshape({ inputs: resultReshapeInputs, backend, attrs: resultReshapeAttrs });
+    backend.disposeData(paddedX.dataId);
+    backend.disposeData(paddedXReshaped.dataId);
+    backend.disposeData(paddedXT.dataId);
+    return result;
+}
+const spaceToBatchNDConfig = {
+    kernelName: SpaceToBatchND,
+    backendName: 'wasm',
+    kernelFunc: spaceToBatchND
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSparseFillEmptyRows;
+function setup$a(backend) {
+    wasmSparseFillEmptyRows =
+        backend.wasm.cwrap('SparseFillEmptyRows', 'number', [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // exceptionValuesId
+        ]);
+}
+function sparseFillEmptyRows(args) {
+    const { backend, inputs } = args;
+    const { indices, values, denseShape, defaultValue } = inputs;
+    const indicesCount = indices.shape[0];
+    const rank = indices.shape[1];
+    const denseRows = backend.readSync(denseShape.dataId)[0];
+    // Set output size to maximum possible and resize later (actual result
+    // might be smaller).
+    const maxOutputIndicesShape = [indicesCount + denseRows, rank];
+    const indicesId = backend.dataIdMap.get(indices.dataId).id;
+    const valuesId = backend.dataIdMap.get(values.dataId).id;
+    const defaultValueId = backend.dataIdMap.get(defaultValue.dataId).id;
+    const outputIndices = backend.makeOutput(maxOutputIndicesShape, indices.dtype);
+    const outputIndicesId = backend.dataIdMap.get(outputIndices.dataId).id;
+    const outputValues = backend.makeOutput(maxOutputIndicesShape.slice(0, 1), values.dtype);
+    const outputValuesId = backend.dataIdMap.get(outputValues.dataId).id;
+    const emptyRowIndicator = backend.makeOutput([denseRows], 'bool');
+    const emptyRowIndicatorId = backend.dataIdMap.get(emptyRowIndicator.dataId).id;
+    const reverseIndexMap = backend.makeOutput([indicesCount], indices.dtype);
+    const reverseIndexMapId = backend.dataIdMap.get(reverseIndexMap.dataId).id;
+    const exceptionValues = backend.makeOutput([4], 'int32');
+    const exceptionValuesId = backend.dataIdMap.get(exceptionValues.dataId).id;
+    const outputRows = wasmSparseFillEmptyRows(indicesId, valuesId, CppDType[values.dtype], indicesCount, denseRows, rank, defaultValueId, outputIndicesId, outputValuesId, emptyRowIndicatorId, reverseIndexMapId, exceptionValuesId);
+    const exceptionValuesArray = backend.readSync(exceptionValues.dataId);
+    let exceptionMessage;
+    switch (exceptionValuesArray[0]) {
+        case 1: {
+            exceptionMessage =
+                getSparseFillEmptyRowsIndicesDenseShapeMismatch(exceptionValuesArray[1]);
+            break;
+        }
+        case 2: {
+            exceptionMessage =
+                getSparseFillEmptyRowsNegativeIndexErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+            break;
+        }
+        case 3:
+            exceptionMessage =
+                getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2], exceptionValuesArray[3]);
+            break;
+        default:
+            exceptionMessage = '';
+    }
+    backend.disposeData(exceptionValues.dataId);
+    if (exceptionMessage) {
+        backend.disposeData(outputIndices.dataId);
+        backend.disposeData(outputValues.dataId);
+        backend.disposeData(emptyRowIndicator.dataId);
+        backend.disposeData(reverseIndexMap.dataId);
+        throw new Error(exceptionMessage);
+    }
+    let resizedIndices = outputIndices;
+    let resizedValues = outputValues;
+    // Overestimated output size.
+    if (outputRows !== maxOutputIndicesShape[0]) {
+        resizedIndices = slice({
+            inputs: { x: outputIndices },
+            attrs: { begin: 0, size: [outputRows, rank] },
+            backend
+        });
+        resizedValues = slice({
+            inputs: { x: outputValues },
+            attrs: { begin: 0, size: outputRows },
+            backend
+        });
+        backend.disposeData(outputIndices.dataId);
+        backend.disposeData(outputValues.dataId);
+    }
+    return [resizedIndices, resizedValues, emptyRowIndicator, reverseIndexMap];
+}
+const sparseFillEmptyRowsConfig = {
+    kernelName: SparseFillEmptyRows,
+    backendName: 'wasm',
+    setupFunc: setup$a,
+    kernelFunc: sparseFillEmptyRows
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSparseReshape;
+function setup$9(backend) {
+    wasmSparseReshape = backend.wasm.cwrap(SparseReshape, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number', // exceptionValuesId
+    ]);
+}
+function sparseReshape(args) {
+    const { backend, inputs } = args;
+    const { inputIndices, inputShape, newShape } = inputs;
+    if (inputIndices.shape.length !== 2) {
+        throw new Error(`Input indices should be a matrix but received shape
+        ${inputIndices.shape}`);
+    }
+    if (inputShape.shape.length !== 1) {
+        throw new Error(`Input shape should be a vector but received shape
+        ${inputShape.shape}`);
+    }
+    if (newShape.shape.length !== 1) {
+        throw new Error(`Target shape should be a vector but received shape ${newShape.shape}`);
+    }
+    const inputIndicesId = backend.dataIdMap.get(inputIndices.dataId).id;
+    const inputShapeId = backend.dataIdMap.get(inputShape.dataId).id;
+    const newShapeId = backend.dataIdMap.get(newShape.dataId).id;
+    const nnz = inputIndices.shape[0];
+    const outputRank = sizeFromShape(newShape.shape);
+    const newIndices = backend.makeOutput([nnz, outputRank], inputIndices.dtype);
+    const newIndicesId = backend.dataIdMap.get(newIndices.dataId).id;
+    const outputShape = backend.makeOutput([outputRank], newShape.dtype);
+    const outputShapeId = backend.dataIdMap.get(outputShape.dataId).id;
+    const exceptionValues = backend.makeOutput([3], 'int32');
+    const exceptionValuesId = backend.dataIdMap.get(exceptionValues.dataId).id;
+    wasmSparseReshape(inputIndicesId, inputShapeId, newShapeId, nnz, newIndicesId, outputShapeId, exceptionValuesId);
+    const exceptionValuesArray = backend.readSync(exceptionValues.dataId);
+    let exceptionMessage;
+    switch (exceptionValuesArray[0]) {
+        case 0: {
+            exceptionMessage =
+                getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+            break;
+        }
+        case 1: {
+            exceptionMessage =
+                getSparseReshapeNegativeOutputDimErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+            break;
+        }
+        case 2:
+            exceptionMessage =
+                getSparseReshapeEmptyTensorZeroOutputDimErrorMessage();
+            break;
+        case 3: {
+            const inputShapeValues = Array.from(backend.readSync(inputShape.dataId)), outputShapeValues = Array.from(backend.readSync(outputShape.dataId));
+            exceptionMessage =
+                getSparseReshapeInputOutputMultipleErrorMessage(inputShapeValues, outputShapeValues);
+            break;
+        }
+        case 4: {
+            const inputShapeValues = Array.from(backend.readSync(inputShape.dataId)), outputShapeValues = Array.from(backend.readSync(outputShape.dataId));
+            exceptionMessage =
+                getSparseReshapeInputOutputMismatchErrorMessage(inputShapeValues, outputShapeValues);
+            break;
+        }
+        default:
+            exceptionMessage = '';
+    }
+    backend.disposeData(exceptionValues.dataId);
+    if (exceptionMessage) {
+        backend.disposeData(newIndices.dataId);
+        backend.disposeData(outputShape.dataId);
+        throw new Error(exceptionMessage);
+    }
+    return [newIndices, outputShape];
+}
+const sparseReshapeConfig = {
+    kernelName: SparseReshape,
+    backendName: 'wasm',
+    setupFunc: setup$9,
+    kernelFunc: sparseReshape
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSparseSegmentReduction;
+function setup$8(backend) {
+    wasmSparseSegmentReduction =
+        backend.wasm.cwrap('SparseSegmentReduction', null /*void*/, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number', // defaultValue
+        ]);
+}
+function sparseSegmentReduction(args, isMean) {
+    const { backend, inputs } = args;
+    const { data, indices, segmentIds } = inputs;
+    const numIndices = indices.shape[0];
+    const segmentIdsBack = backend.readSync(segmentIds.dataId, numIndices - 1, numIndices)[0];
+    const lastSegmentIdPlusOne = numIndices > 0 ? segmentIdsBack + 1 : 0;
+    const outputRows = lastSegmentIdPlusOne;
+    if (outputRows < 0) {
+        throw (new Error(getSparseSegmentReductionNegativeSegmentIdsErrorMessage()));
+    }
+    const outputShape = data.shape.slice();
+    outputShape[0] = outputRows;
+    const dataId = backend.dataIdMap.get(data.dataId).id;
+    const indicesId = backend.dataIdMap.get(indices.dataId).id;
+    const segmentIdsId = backend.dataIdMap.get(segmentIds.dataId).id;
+    const output = backend.makeOutput(outputShape, data.dtype);
+    const outputId = backend.dataIdMap.get(output.dataId).id;
+    const exceptionValues = backend.makeOutput([4], 'int32');
+    const exceptionValuesId = backend.dataIdMap.get(exceptionValues.dataId).id;
+    wasmSparseSegmentReduction(dataId, CppDType[data.dtype], data.shape[0], indicesId, segmentIdsId, outputId, exceptionValuesId, isMean, 0);
+    const exceptionValuesArray = backend.readSync(exceptionValues.dataId);
+    let exceptionMessage;
+    switch (exceptionValuesArray[0]) {
+        case 0: {
+            exceptionMessage =
+                getSparseSegmentReductionNegativeSegmentIdsErrorMessage();
+            break;
+        }
+        case 1: {
+            exceptionMessage =
+                getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage();
+            break;
+        }
+        case 2:
+            exceptionMessage =
+                getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2]);
+            break;
+        case 3:
+            exceptionMessage =
+                getSparseSegmentReductionIndicesOutOfRangeErrorMessage(exceptionValuesArray[1], exceptionValuesArray[2], exceptionValuesArray[3]);
+            break;
+        default:
+            exceptionMessage = '';
+    }
+    backend.disposeData(exceptionValues.dataId);
+    if (exceptionMessage) {
+        backend.disposeData(output.dataId);
+        throw new Error(exceptionMessage);
+    }
+    return output;
+}
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function sparseSegmentMean(args) {
+    return sparseSegmentReduction(args, true);
+}
+const sparseSegmentMeanConfig = {
+    kernelName: SparseSegmentMean,
+    backendName: 'wasm',
+    setupFunc: setup$8,
+    kernelFunc: sparseSegmentMean
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function sparseSegmentSum(args) {
+    return sparseSegmentReduction(args, false);
+}
+const sparseSegmentSumConfig = {
+    kernelName: SparseSegmentSum,
+    backendName: 'wasm',
+    setupFunc: setup$8,
+    kernelFunc: sparseSegmentSum
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSparseToDense;
+function setup$7(backend) {
+    wasmSparseToDense = backend.wasm.cwrap(SparseToDense, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number',
+        'number', // outId
+    ]);
+}
+function sparseToDense(args) {
+    const { backend, inputs, attrs } = args;
+    const { sparseIndices, sparseValues, defaultValue } = inputs;
+    const { outputShape } = attrs;
+    const out = backend.makeOutput(outputShape, defaultValue.dtype);
+    if (sizeFromShape(outputShape) === 0) {
+        return out;
+    }
+    const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(sparseValues, sparseIndices, outputShape);
+    const sparseIndicesId = backend.dataIdMap.get(sparseIndices.dataId).id;
+    const sparseValuesId = backend.dataIdMap.get(sparseValues.dataId).id;
+    const defaultValueId = backend.dataIdMap.get(defaultValue.dataId).id;
+    const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmSparseToDense(sparseIndicesId, sparseValuesId, sparseValues.shape.length, defaultValueId, CppDType[defaultValue.dtype], sliceRank, numUpdates, sliceSize, stridesBytes, outputSize, outId);
+    return out;
+}
+const sparseToDenseConfig = {
+    kernelName: SparseToDense,
+    backendName: 'wasm',
+    setupFunc: setup$7,
+    kernelFunc: sparseToDense
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function splitV(args) {
+    const { inputs, attrs, backend } = args;
+    const { x } = inputs;
+    const { numOrSizeSplits, axis } = attrs;
+    const $axis = parseAxisParam(axis, x.shape)[0];
+    const splitSizes = prepareSplitSize(x, numOrSizeSplits, $axis);
+    const begin = new Array(x.shape.length).fill(0);
+    const size = x.shape.slice();
+    return splitSizes.map(s => {
+        const xSliceSize = [...size];
+        xSliceSize[$axis] = s;
+        const xSlice = slice({ inputs: { x }, attrs: { begin, size: xSliceSize }, backend });
+        begin[$axis] += s;
+        return xSlice;
+    });
+}
+const splitVConfig = {
+    kernelName: SplitV,
+    backendName: 'wasm',
+    kernelFunc: splitV
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const sqrtConfig = createUnaryKernelConfig(Sqrt);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const squareConfig = createUnaryKernelConfig(Square);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const squaredDifferenceConfig = createBinaryKernelConfig(SquaredDifference);
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmStep;
+function setup$6(backend) {
+    wasmStep = backend.wasm.cwrap(Step, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number', // out_id
+    ]);
+}
+function step(args) {
+    const { backend, inputs, attrs } = args;
+    const { alpha } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmStep(xId, alpha, CppDType[x.dtype], outId);
+    return out;
+}
+const stepConfig = {
+    kernelName: Step,
+    backendName: 'wasm',
+    setupFunc: setup$6,
+    kernelFunc: step
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmStridedSlice;
+function setup$5(backend) {
+    wasmStridedSlice = backend.wasm.cwrap(StridedSlice, null /*void*/, [
+        'number',
+        'array',
+        'number',
+        'array',
+        'array',
+        'array',
+        'array',
+        'array',
+        'number',
+        'number', // outId
+    ]);
+}
+function stridedSlice(args) {
+    const { backend, inputs, attrs } = args;
+    const { x } = inputs;
+    const { begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask } = attrs;
+    const { finalShapeSparse, finalShape, isIdentity, sliceDim0, isSimpleSlice, begin: $begin, end: $end, strides: $strides } = sliceInfo(x.shape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask);
+    let result;
+    if (isIdentity) {
+        // Optimization #1, slice is a no-op plus reshape
+        result = reshape({ inputs: { x }, backend, attrs: { shape: finalShape } });
+    }
+    else if (sliceDim0 || isSimpleSlice) {
+        // Optimization #2, slice is memory contiguous (only occurs in dim 0)
+        assert(x.shape.length >= 1, () => `Input must have rank at least 1, got: ${x.shape.length}`);
+        const size = computeOutShape$3($begin, $end, $strides);
+        // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
+        const sliced = slice({ inputs: { x }, backend, attrs: { begin: $begin, size } });
+        result =
+            reshape({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
+        backend.disposeData(sliced.dataId);
+    }
+    else {
+        const out = backend.makeOutput(finalShapeSparse, 'float32');
+        const xId = backend.dataIdMap.get(x.dataId).id;
+        const xStridesBytes = new Uint8Array(new Int32Array(computeStrides(x.shape)).buffer);
+        const beginBytes = new Uint8Array(new Int32Array($begin).buffer);
+        const endBytes = new Uint8Array(new Int32Array($end).buffer);
+        const stridesBytes = new Uint8Array(new Int32Array($strides).buffer);
+        const outputShapeBytes = new Uint8Array(new Int32Array(finalShapeSparse).buffer);
+        const outStridesBytes = new Uint8Array(new Int32Array(computeStrides(finalShapeSparse)).buffer);
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmStridedSlice(xId, xStridesBytes, x.shape.length, beginBytes, endBytes, stridesBytes, outputShapeBytes, outStridesBytes, finalShapeSparse.length, outId);
+        result = reshape({ inputs: { x: out }, backend, attrs: { shape: finalShape } });
+        backend.disposeData(out.dataId);
+    }
+    return result;
+}
+const stridedSliceConfig = {
+    kernelName: StridedSlice,
+    backendName: 'wasm',
+    setupFunc: setup$5,
+    kernelFunc: stridedSlice
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function stringNGrams(args) {
+    const { backend, inputs, attrs } = args;
+    const { data, dataSplits } = inputs;
+    const { separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences, } = attrs;
+    const $data = backend.readSync(data.dataId);
+    const $dataSplits = backend.readSync(dataSplits.dataId);
+    const [nGrams, nGramsSplits] = stringNGramsImpl($data, $dataSplits, separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences);
+    const nGramsOut = backend.makeOutput([nGrams.length], 'string');
+    const nGramsOutData = backend.dataIdMap.get(nGramsOut.dataId);
+    nGramsOutData.stringBytes = nGrams;
+    const nGramsSplitsOut = backend.makeOutput(dataSplits.shape, 'int32');
+    const nGramsSplitsOutVals = backend.typedArrayFromHeap(nGramsSplitsOut);
+    nGramsSplitsOutVals.set(nGramsSplits);
+    return [nGramsOut, nGramsSplitsOut];
+}
+const stringNGramsConfig = {
+    kernelName: StringNGrams,
+    backendName: 'wasm',
+    kernelFunc: stringNGrams
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function stringSplit(args) {
+    const { backend, inputs, attrs } = args;
+    const { input, delimiter } = inputs;
+    const { skipEmpty } = attrs;
+    const inputVals = backend.readSync(input.dataId);
+    const delimiterVals = backend.readSync(delimiter.dataId);
+    const [indices, values, shape] = stringSplitImpl(inputVals, delimiterVals[0], skipEmpty);
+    const outputSize = values.length;
+    const indicesOut = backend.makeOutput([outputSize, 2], 'int32');
+    const indicesOutVals = backend.typedArrayFromHeap(indicesOut);
+    indicesOutVals.set(indices);
+    const valuesOut = backend.makeOutput([outputSize], 'string');
+    const valuesOutData = backend.dataIdMap.get(valuesOut.dataId);
+    valuesOutData.stringBytes = values;
+    const shapeOut = backend.makeOutput([2], 'int32');
+    const shapeOutVals = backend.typedArrayFromHeap(shapeOut);
+    shapeOutVals.set(shape);
+    return [indicesOut, valuesOut, shapeOut];
+}
+const stringSplitConfig = {
+    kernelName: StringSplit,
+    backendName: 'wasm',
+    kernelFunc: stringSplit
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function stringToHashBucketFast(args) {
+    const { backend, inputs, attrs } = args;
+    const { input } = inputs;
+    const { numBuckets } = attrs;
+    const inputVals = backend.readSync(input.dataId);
+    const values = stringToHashBucketFastImpl(inputVals, numBuckets);
+    const out = backend.makeOutput(input.shape, 'int32');
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.set(values);
+    return out;
+}
+const stringToHashBucketFastConfig = {
+    kernelName: StringToHashBucketFast,
+    backendName: 'wasm',
+    kernelFunc: stringToHashBucketFast
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const subConfig = createBinaryKernelConfig(Sub);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmSum;
+function setup$4(backend) {
+    wasmSum = backend.wasm.cwrap(Sum, null /*void*/, [
+        'number',
+        'number',
+        'number',
+        'number', // out_id
+    ]);
+}
+function sum(args) {
+    const { backend, inputs, attrs } = args;
+    const { axis, keepDims } = attrs;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    let inputId = xId;
+    let input = x;
+    const { transposed, axes, originalAxes, inputWasTransposed } = permuteAxesAndTranspose(x, axis, backend);
+    let reductionAxes = axes;
+    if (inputWasTransposed) {
+        const transposedId = backend.dataIdMap.get(transposed.dataId).id;
+        if (transposedId !== xId) {
+            // transpose was not a no-op. We will need to dispose of this
+            // once we are done.
+            input = transposed;
+            inputId = transposedId;
+            reductionAxes = getInnerMostAxes(reductionAxes.length, input.shape.length);
+        }
+    }
+    assertAxesAreInnerMostDims('sum', reductionAxes, input.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(input.shape, reductionAxes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const out = backend.makeOutput(outShape, input.dtype);
+    if (sizeFromShape(input.shape) !== 0) {
+        const outId = backend.dataIdMap.get(out.dataId).id;
+        wasmSum(inputId, reduceSize, CppDType[out.dtype], outId);
+    }
+    if (inputWasTransposed) {
+        // dispose of the transposed tensor.
+        backend.disposeData(transposed.dataId);
+    }
+    if (keepDims) {
+        // reshape
+        const newShape = expandShapeToKeepDim(out.shape, originalAxes);
+        out.shape = newShape;
+    }
+    return out;
+}
+const sumConfig = {
+    kernelName: Sum,
+    backendName: 'wasm',
+    setupFunc: setup$4,
+    kernelFunc: sum
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const tanConfig = createUnaryKernelConfig(Tan);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const tanhConfig = createUnaryKernelConfig(Tanh);
+
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmTensorScatterUpdate;
+function setup$3(backend) {
+    wasmTensorScatterUpdate =
+        backend.wasm.cwrap(TensorScatterUpdate, null /*void*/, [
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'number',
+            'array',
+            'number',
+            'number',
+            'number', // tensorId
+        ]);
+}
+function tensorScatterUpdate(args) {
+    const { backend, inputs, attrs } = args;
+    const { tensor, indices, updates } = inputs;
+    const out = backend.makeOutput(tensor.shape, tensor.dtype);
+    if (sizeFromShape(tensor.shape) === 0) {
+        return out;
+    }
+    const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, tensor.shape);
+    const indicesData = backend.dataIdMap.get(indices.dataId);
+    const indicesId = indicesData.id;
+    const updatesData = backend.dataIdMap.get(updates.dataId);
+    const updatesId = updatesData.id;
+    const tensorData = backend.dataIdMap.get(tensor.dataId);
+    const tensorId = tensorData.id;
+    const stridesBytes = new Uint8Array(new Int32Array(strides).buffer);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmTensorScatterUpdate(indicesId, updatesId, CppDType[updates.dtype], sliceRank, numUpdates, sliceSize, stridesBytes, outputSize, outId, tensorId);
+    return out;
+}
+const tensorScatterUpdateConfig = {
+    kernelName: TensorScatterUpdate,
+    backendName: 'wasm',
+    setupFunc: setup$3,
+    kernelFunc: tensorScatterUpdate
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmTile;
+function setup$2(backend) {
+    wasmTile = backend.wasm.cwrap(Tile, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'array',
+        'number',
+        'number' // out_id
+    ]);
+}
+function tile(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const { reps } = attrs;
+    const newShape = new Array(x.shape.length);
+    for (let i = 0; i < newShape.length; i++) {
+        newShape[i] = x.shape[i] * reps[i];
+    }
+    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+    const newShapeBytes = new Uint8Array(new Int32Array(newShape).buffer);
+    const out = backend.makeOutput(newShape, x.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    wasmTile(xId, xShapeBytes, x.shape.length, newShapeBytes, newShape.length, CppDType[out.dtype], outId);
+    return out;
+}
+const tileConfig = {
+    kernelName: Tile,
+    backendName: 'wasm',
+    setupFunc: setup$2,
+    kernelFunc: tile
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmTopK;
+function setup$1(backend) {
+    wasmTopK = backend.wasm.cwrap(TopK, null /* void */, [
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'bool',
+        'number',
+        'number', // outIndicesId
+    ]);
+}
+const topk = ({ inputs, backend, attrs }) => {
+    const { x } = inputs;
+    const { k, sorted } = attrs;
+    const xId = backend.dataIdMap.get(x.dataId).id;
+    const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
+    const outputShape = x.shape.slice();
+    outputShape[outputShape.length - 1] = k;
+    const outValues = backend.makeOutput(outputShape, x.dtype);
+    const outValuesId = backend.dataIdMap.get(outValues.dataId).id;
+    const outIndices = backend.makeOutput(outputShape, 'int32');
+    const outIndicesId = backend.dataIdMap.get(outIndices.dataId).id;
+    wasmTopK(xId, xShapeBytes, x.shape.length, CppDType[x.dtype], k, sorted, outValuesId, outIndicesId);
+    return [outValues, outIndices];
+};
+const topKConfig = {
+    kernelName: TopK,
+    backendName: 'wasm',
+    setupFunc: setup$1,
+    kernelFunc: topk,
+};
+
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+let wasmTransform;
+function setup(backend) {
+    wasmTransform = backend.wasm.cwrap(Transform, null /*void*/, [
+        'number',
+        'number',
+        'bool',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number',
+        'array',
+        'number',
+        'array',
+        'number',
+        'number',
+        'number',
+        'number',
+        'number' // outId
+    ]);
+}
+function transform(args) {
+    const { backend, inputs, attrs } = args;
+    const { image, transforms } = inputs;
+    const { interpolation, fillMode, fillValue, outputShape } = attrs;
+    const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+    const [outHeight, outWidth] = outputShape != null ? outputShape : [imageHeight, imageWidth];
+    const outShape = [batch, outHeight, outWidth,
+        numChannels];
+    const inputStrides = new Uint8Array(new Int32Array(computeStrides(image.shape)).buffer);
+    const outputStrides = new Uint8Array(new Int32Array(computeStrides(outShape)).buffer);
+    const out = backend.makeOutput(outShape, image.dtype);
+    const outId = backend.dataIdMap.get(out.dataId).id;
+    const imageData = backend.dataIdMap.get(image.dataId);
+    const imageId = imageData.id;
+    const transformsData = backend.dataIdMap.get(transforms.dataId);
+    const transformsId = transformsData.id;
+    const interpolationModeId = interpolation === 'nearest' ? 1 : 2;
+    let fillModeId;
+    switch (fillMode) {
+        case 'constant':
+            fillModeId = 1;
+            break;
+        case 'reflect':
+            fillModeId = 2;
+            break;
+        case 'wrap':
+            fillModeId = 3;
+            break;
+        case 'nearest':
+            fillModeId = 4;
+            break;
+        default:
+            fillModeId = 1;
+            break;
+    }
+    wasmTransform(imageId, transformsId, (transforms.shape[0] > 1), batch, outHeight, outWidth, numChannels, imageWidth, imageHeight, inputStrides, image.shape.length - 1, outputStrides, outShape.length - 1, interpolationModeId, fillModeId, fillValue, outId);
+    return out;
+}
+const transformConfig = {
+    kernelName: Transform,
+    backendName: 'wasm',
+    setupFunc: setup,
+    kernelFunc: transform
+};
+
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function unique(args) {
+    const { inputs, attrs, backend } = args;
+    const { axis } = attrs;
+    const { x } = inputs;
+    const { outputValues, outputShape, indices } = uniqueImpl(backend.readSync(x.dataId), axis, x.shape, x.dtype);
+    return [
+        backend.makeOutput(outputShape, x.dtype, /*memoryOffset=*/ undefined, outputValues),
+        backend.makeOutput([indices.length], 'int32', /*memoryOffset=*/ undefined, indices),
+    ];
+}
+const uniqueConfig = {
+    kernelName: Unique,
+    backendName: 'wasm',
+    kernelFunc: unique,
+};
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function unpack(args) {
+    const { inputs, backend, attrs } = args;
+    const { value } = inputs;
+    let { axis } = attrs;
+    if (axis < 0) {
+        axis += value.shape.length;
+    }
+    const numOutputs = value.shape[axis];
+    const rank = value.shape.length;
+    const outShape = new Array(rank - 1);
+    let outIndex = 0;
+    for (let i = 0; i < rank; i++) {
+        if (i !== axis) {
+            outShape[outIndex++] = value.shape[i];
+        }
+    }
+    const outs = new Array(numOutputs);
+    const begin = new Array(rank).fill(0);
+    const size = value.shape.slice();
+    size[axis] = 1;
+    for (let i = 0; i < outs.length; i++) {
+        begin[axis] = i;
+        outs[i] = slice({ inputs: { x: value }, attrs: { begin, size }, backend });
+    }
+    return outs.map(({ dataId, dtype }) => ({ dataId, dtype, shape: outShape }));
+}
+const unpackConfig = {
+    kernelName: Unpack,
+    backendName: 'wasm',
+    kernelFunc: unpack,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function zerosLike(args) {
+    const { inputs: { x }, backend } = args;
+    const out = backend.makeOutput(x.shape, x.dtype);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.fill(0);
+    return out;
+}
+const zerosLikeConfig = {
+    kernelName: ZerosLike,
+    backendName: 'wasm',
+    kernelFunc: zerosLike,
+};
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+// We explicitly import the modular kernels so they get registered in the
+// global registry when we compile the library. A modular build would replace
+// the contents of this file and import only the kernels that are needed.
+// List all kernel configs here
 const kernelConfigs = [
     _fusedMatMulConfig,
     absConfig,
@@ -80753,11 +87996,10 @@ const kernelConfigs = [
     atan2Config,
     atanhConfig,
     avgPoolConfig,
+    avgPoolGradConfig,
     avgPool3DConfig,
     avgPool3DGradConfig,
-    avgPoolGradConfig,
     batchMatMulConfig,
-    batchNormConfig,
     batchToSpaceNDConfig,
     bincountConfig,
     bitwiseAndConfig,
@@ -80765,15 +88007,12 @@ const kernelConfigs = [
     castConfig,
     ceilConfig,
     clipByValueConfig,
-    complexConfig,
-    complexAbsConfig,
     concatConfig,
     conv2DConfig,
-    conv2DBackpropFilterConfig,
     conv2DBackpropInputConfig,
     conv3DConfig,
     conv3DBackpropFilterV2Config,
-    conv3DBackpropInputConfig,
+    conv3DBackpropInputV2Config,
     cosConfig,
     coshConfig,
     cropAndResizeConfig,
@@ -80782,11 +88021,10 @@ const kernelConfigs = [
     denseBincountConfig,
     depthToSpaceConfig,
     depthwiseConv2dNativeConfig,
-    depthwiseConv2dNativeBackpropFilterConfig,
-    depthwiseConv2dNativeBackpropInputConfig,
     diagConfig,
     dilation2DConfig,
-    einsumConfig,
+    dilation2DBackpropFilterConfig,
+    dilation2DBackpropInputConfig,
     eluConfig,
     eluGradConfig,
     equalConfig,
@@ -80794,12 +88032,11 @@ const kernelConfigs = [
     expConfig,
     expandDimsConfig,
     expm1Config,
-    fftConfig,
     fillConfig,
     flipLeftRightConfig,
     floorConfig,
     floorDivConfig,
-    fromPixelsConfig,
+    fusedBatchNormConfig,
     fusedConv2DConfig,
     fusedDepthwiseConv2DConfig,
     gatherNdConfig,
@@ -80807,8 +88044,6 @@ const kernelConfigs = [
     greaterConfig,
     greaterEqualConfig,
     identityConfig,
-    ifftConfig,
-    imagConfig,
     isFiniteConfig,
     isInfConfig,
     isNaNConfig,
@@ -80816,13 +88051,14 @@ const kernelConfigs = [
     lessConfig,
     lessEqualConfig,
     linSpaceConfig,
-    logConfig,
     log1pConfig,
+    logConfig,
     logicalAndConfig,
     logicalNotConfig,
     logicalOrConfig,
-    LRNConfig,
-    LRNGradConfig,
+    logicalXorConfig,
+    lrnConfig,
+    lrnGradConfig,
     maxConfig,
     maximumConfig,
     maxPoolConfig,
@@ -80834,8 +88070,8 @@ const kernelConfigs = [
     minConfig,
     minimumConfig,
     mirrorPadConfig,
-    modConfig,
     multinomialConfig,
+    modConfig,
     multiplyConfig,
     negConfig,
     nonMaxSuppressionV3Config,
@@ -80849,11 +88085,7 @@ const kernelConfigs = [
     powConfig,
     preluConfig,
     prodConfig,
-    raggedGatherConfig,
-    raggedRangeConfig,
-    raggedTensorToTensorConfig,
     rangeConfig,
-    realConfig,
     realDivConfig,
     reciprocalConfig,
     reluConfig,
@@ -80888,7 +88120,6 @@ const kernelConfigs = [
     sqrtConfig,
     squareConfig,
     squaredDifferenceConfig,
-    staticRegexReplaceConfig,
     stepConfig,
     stridedSliceConfig,
     stringNGramsConfig,
@@ -80905,12 +88136,450 @@ const kernelConfigs = [
     transposeConfig,
     uniqueConfig,
     unpackConfig,
-    unsortedSegmentSumConfig,
     zerosLikeConfig
 ];
 for (const kernelConfig of kernelConfigs) {
     registerKernel(kernelConfig);
 }
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const ENV = env();
+/**
+ * True if SIMD is supported.
+ */
+// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
+ENV.registerFlag('WASM_HAS_SIMD_SUPPORT', async () => {
+    try {
+        // This typed array passed in to WebAssembly.validate is WebAssembly binary
+        // code. In this case it is a small program that contains SIMD
+        // instructions.
+        return WebAssembly.validate(new Uint8Array([
+            0, 97, 115, 109, 1, 0, 0, 0, 1, 4, 1, 96, 0, 0, 3,
+            2, 1, 0, 10, 9, 1, 7, 0, 65, 0, 253, 15, 26, 11
+        ]));
+    }
+    catch (e) {
+        return false;
+    }
+});
+/**
+ * True if threads are supported.
+ */
+// From: https://github.com/GoogleChromeLabs/wasm-feature-detect
+ENV.registerFlag('WASM_HAS_MULTITHREAD_SUPPORT', async () => {
+    // TODO(annxingyuan): Enable node support once this is resolved:
+    // https://github.com/tensorflow/tfjs/issues/3830
+    if (ENV.get('IS_NODE')) {
+        return false;
+    }
+    try {
+        // Test for transferability of SABs (needed for Firefox)
+        // https://groups.google.com/forum/#!msg/mozilla.dev.platform/IHkBZlHETpA/dwsMNchWEQAJ
+        new MessageChannel().port1.postMessage(new SharedArrayBuffer(1));
+        // This typed array is a WebAssembly program containing threaded
+        // instructions.
+        return WebAssembly.validate(new Uint8Array([
+            0, 97, 115, 109, 1, 0, 0, 0, 1, 4, 1, 96, 0, 0, 3, 2, 1, 0, 5,
+            4, 1, 3, 1, 1, 10, 11, 1, 9, 0, 65, 0, 254, 16, 2, 0, 26, 11
+        ]));
+    }
+    catch (e) {
+        return false;
+    }
+});
+
+var tfjsBackendWasmThreadedSimd$1 = {exports: {}};
+
+(function (module, exports) {
+	var WasmBackendModuleThreadedSimd = (() => {
+	  var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
+	  if (typeof __filename !== 'undefined') _scriptDir = _scriptDir || __filename;
+	  return (
+	function(WasmBackendModuleThreadedSimd) {
+	  WasmBackendModuleThreadedSimd = WasmBackendModuleThreadedSimd || {};
+
+	function GROWABLE_HEAP_I8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer);}return HEAP8}function GROWABLE_HEAP_U8(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer);}return HEAPU8}function GROWABLE_HEAP_I32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer);}return HEAP32}function GROWABLE_HEAP_U32(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer);}return HEAPU32}function GROWABLE_HEAP_F64(){if(wasmMemory.buffer!=buffer){updateGlobalBufferAndViews(wasmMemory.buffer);}return HEAPF64}var Module=typeof WasmBackendModuleThreadedSimd!="undefined"?WasmBackendModuleThreadedSimd:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject;});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")};}var moduleOverrides=Object.assign({},Module);var quit_=(status,toThrow)=>{throw toThrow};var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var ENVIRONMENT_IS_PTHREAD=Module["ENVIRONMENT_IS_PTHREAD"]||false;var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary;function logExceptionOnExit(e){if(e instanceof ExitStatus)return;let toLog=e;err("exiting due to exception: "+toLog);}if(ENVIRONMENT_IS_NODE){var fs=require$$1;var nodePath=require$$1;if(ENVIRONMENT_IS_WORKER){scriptDirectory=nodePath.dirname(scriptDirectory)+"/";}else {scriptDirectory=__dirname+"/";}read_=(filename,binary)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret);}return ret};readAsync=(filename,onload,onerror)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer);});};if(process["argv"].length>1){process["argv"][1].replace(/\\/g,"/");}process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});quit_=(status,toThrow)=>{if(keepRuntimeAlive()){process["exitCode"]=status;throw toThrow}logExceptionOnExit(toThrow);process["exit"](status);};Module["inspect"]=function(){return "[Emscripten Module object]"};let nodeWorkerThreads;try{nodeWorkerThreads=require$$1;}catch(e){console.error('The "worker_threads" module is not supported in this node.js build - perhaps a newer version is needed?');throw e}commonjsGlobal.Worker=nodeWorkerThreads.Worker;}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href;}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src;}if(typeof _scriptDir !== "undefined" && _scriptDir){scriptDirectory=_scriptDir;}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1);}else {scriptDirectory="";}if(!ENVIRONMENT_IS_NODE){read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)};}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror();};xhr.onerror=onerror;xhr.send(null);};}}else;if(ENVIRONMENT_IS_NODE){if(typeof performance=="undefined"){commonjsGlobal.performance=require$$1.performance;}}var defaultPrint=console.log.bind(console);var defaultPrintErr=console.warn.bind(console);if(ENVIRONMENT_IS_NODE){defaultPrint=str=>fs.writeSync(1,str+"\n");defaultPrintErr=str=>fs.writeSync(2,str+"\n");}var out=Module["print"]||defaultPrint;var err=Module["printErr"]||defaultPrintErr;Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])Module["arguments"];if(Module["thisProgram"])Module["thisProgram"];if(Module["quit"])quit_=Module["quit"];var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];var noExitRuntime=Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected");}var wasmMemory;var wasmModule;var ABORT=false;var EXITSTATUS;function assert(condition,text){if(!condition){abort(text);}}var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.buffer instanceof SharedArrayBuffer?heapOrArray.slice(idx,endPtr):heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2;}else {u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63;}if(u0<65536){str+=String.fromCharCode(u0);}else {var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023);}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(GROWABLE_HEAP_U8(),ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023;}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u;}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63;}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63;}else {if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63;}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,GROWABLE_HEAP_U8(),outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAP32,HEAPU32,HEAPF64;if(ENVIRONMENT_IS_PTHREAD){buffer=Module["buffer"];}function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=new Int16Array(buf);Module["HEAP32"]=HEAP32=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=new Float32Array(buf);Module["HEAPF64"]=HEAPF64=new Float64Array(buf);}var INITIAL_MEMORY=Module["INITIAL_MEMORY"]||16777216;if(ENVIRONMENT_IS_PTHREAD){wasmMemory=Module["wasmMemory"];buffer=Module["buffer"];}else {if(Module["wasmMemory"]){wasmMemory=Module["wasmMemory"];}else {wasmMemory=new WebAssembly.Memory({"initial":INITIAL_MEMORY/65536,"maximum":4294967296/65536,"shared":true});if(!(wasmMemory.buffer instanceof SharedArrayBuffer)){err("requested a shared WebAssembly.Memory but the returned buffer is not a SharedArrayBuffer, indicating that while the browser has SharedArrayBuffer it does not have WebAssembly threads support - you may need to set a flag");if(ENVIRONMENT_IS_NODE){err("(on node you may need: --experimental-wasm-threads --experimental-wasm-bulk-memory and/or recent version)");}throw Error("bad memory")}}}if(wasmMemory){buffer=wasmMemory.buffer;}INITIAL_MEMORY=buffer.byteLength;updateGlobalBufferAndViews(buffer);var wasmTable;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];function keepRuntimeAlive(){return noExitRuntime}function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift());}}callRuntimeCallbacks(__ATPRERUN__);}function initRuntime(){if(ENVIRONMENT_IS_PTHREAD)return;callRuntimeCallbacks(__ATINIT__);}function postRun(){if(ENVIRONMENT_IS_PTHREAD)return;if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift());}}callRuntimeCallbacks(__ATPOSTRUN__);}function addOnPreRun(cb){__ATPRERUN__.unshift(cb);}function addOnInit(cb){__ATINIT__.unshift(cb);}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb);}var runDependencies=0;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}if(runDependencies==0){if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback();}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what);}what="Aborted("+what+")";err(what);ABORT=true;EXITSTATUS=1;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm-threaded-simd.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile);}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw "both async and sync fetching of the wasm failed"}catch(err){abort(err);}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw "failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else {if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response));},reject);})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;registerTLSInit(Module["asm"]["_emscripten_tls_init"]);wasmTable=Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);wasmModule=module;if(!ENVIRONMENT_IS_PTHREAD){var numWorkersToLoad=PThread.unusedWorkers.length;PThread.unusedWorkers.forEach(function(w){PThread.loadWasmModuleToWorker(w,function(){if(!--numWorkersToLoad)removeRunDependency();});});}}if(!ENVIRONMENT_IS_PTHREAD){addRunDependency();}function receiveInstantiationResult(result){receiveInstance(result["instance"],result["module"]);}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason);})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else {return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e);}}instantiateAsync().catch(readyPromiseReject);return {}}var ASM_CONSTS={};function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status;}function killThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];delete PThread.pthreads[pthread_ptr];worker.terminate();__emscripten_thread_free_data(pthread_ptr);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;}function cancelThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];worker.postMessage({"cmd":"cancel"});}function cleanupThread(pthread_ptr){var worker=PThread.pthreads[pthread_ptr];assert(worker);PThread.returnWorkerToPool(worker);}function spawnThread(threadParams){var worker=PThread.getNewWorker();if(!worker){return 6}PThread.runningWorkers.push(worker);PThread.pthreads[threadParams.pthread_ptr]=worker;worker.pthread_ptr=threadParams.pthread_ptr;var msg={"cmd":"run","start_routine":threadParams.startRoutine,"arg":threadParams.arg,"pthread_ptr":threadParams.pthread_ptr};worker.runPthread=()=>{if(ENVIRONMENT_IS_NODE){worker.ref();}worker.postMessage(msg,threadParams.transferList);delete worker.runPthread;};if(worker.loaded){worker.runPthread();}return 0}function _proc_exit(code){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(1,1,code);EXITSTATUS=code;if(!keepRuntimeAlive()){PThread.terminateAllThreads();if(Module["onExit"])Module["onExit"](code);ABORT=true;}quit_(code,new ExitStatus(code));}function exitJS(status,implicit){EXITSTATUS=status;if(!implicit){if(ENVIRONMENT_IS_PTHREAD){exitOnMainThread(status);throw "unwind"}}_proc_exit(status);}var _exit=exitJS;function handleException(e){if(e instanceof ExitStatus||e=="unwind"){return EXITSTATUS}quit_(1,e);}var PThread={unusedWorkers:[],runningWorkers:[],tlsInitFunctions:[],pthreads:{},init:function(){if(ENVIRONMENT_IS_PTHREAD){PThread.initWorker();}else {PThread.initMainThread();}},initMainThread:function(){var pthreadPoolSize=8;while(pthreadPoolSize--){PThread.allocateUnusedWorker();}},initWorker:function(){noExitRuntime=false;},setExitStatus:function(status){EXITSTATUS=status;},terminateAllThreads:function(){for(var worker of Object.values(PThread.pthreads)){PThread.returnWorkerToPool(worker);}for(var worker of PThread.unusedWorkers){worker.terminate();}PThread.unusedWorkers=[];},returnWorkerToPool:function(worker){var pthread_ptr=worker.pthread_ptr;delete PThread.pthreads[pthread_ptr];PThread.unusedWorkers.push(worker);PThread.runningWorkers.splice(PThread.runningWorkers.indexOf(worker),1);worker.pthread_ptr=0;if(ENVIRONMENT_IS_NODE){worker.unref();}__emscripten_thread_free_data(pthread_ptr);},receiveObjectTransfer:function(data){},threadInitTLS:function(){PThread.tlsInitFunctions.forEach(f=>f());},loadWasmModuleToWorker:function(worker,onFinishedLoading){worker.onmessage=e=>{var d=e["data"];var cmd=d["cmd"];if(worker.pthread_ptr)PThread.currentProxiedOperationCallerThread=worker.pthread_ptr;if(d["targetThread"]&&d["targetThread"]!=_pthread_self()){var targetWorker=PThread.pthreads[d.targetThread];if(targetWorker){targetWorker.postMessage(d,d["transferList"]);}else {err('Internal error! Worker sent a message "'+cmd+'" to target pthread '+d["targetThread"]+", but that thread no longer exists!");}PThread.currentProxiedOperationCallerThread=undefined;return}if(cmd==="processProxyingQueue"){executeNotifiedProxyingQueue(d["queue"]);}else if(cmd==="spawnThread"){spawnThread(d);}else if(cmd==="cleanupThread"){cleanupThread(d["thread"]);}else if(cmd==="killThread"){killThread(d["thread"]);}else if(cmd==="cancelThread"){cancelThread(d["thread"]);}else if(cmd==="loaded"){worker.loaded=true;if(ENVIRONMENT_IS_NODE){worker.unref();}if(onFinishedLoading)onFinishedLoading(worker);if(worker.runPthread){worker.runPthread();}}else if(cmd==="print"){out("Thread "+d["threadId"]+": "+d["text"]);}else if(cmd==="printErr"){err("Thread "+d["threadId"]+": "+d["text"]);}else if(cmd==="alert"){alert("Thread "+d["threadId"]+": "+d["text"]);}else if(d.target==="setimmediate"){worker.postMessage(d);}else if(cmd==="callHandler"){Module[d["handler"]](...d["args"]);}else if(cmd){err("worker sent an unknown command "+cmd);}PThread.currentProxiedOperationCallerThread=undefined;};worker.onerror=e=>{var message="worker sent an error!";err(message+" "+e.filename+":"+e.lineno+": "+e.message);throw e};if(ENVIRONMENT_IS_NODE){worker.on("message",function(data){worker.onmessage({data:data});});worker.on("error",function(e){worker.onerror(e);});worker.on("detachedExit",function(){});}var handlers=[];var knownHandlers=["onExit","onAbort","print","printErr"];for(var handler of knownHandlers){if(Module.hasOwnProperty(handler)){handlers.push(handler);}}worker.postMessage({"cmd":"load","handlers":handlers,"urlOrBlob":Module["mainScriptUrlOrBlob"]||_scriptDir,"wasmMemory":wasmMemory,"wasmModule":wasmModule});},allocateUnusedWorker:function(){var worker;var pthreadMainJs=locateFile("tfjs-backend-wasm-threaded-simd.worker.js");worker=new Worker(pthreadMainJs);PThread.unusedWorkers.push(worker);},getNewWorker:function(){if(PThread.unusedWorkers.length==0){PThread.allocateUnusedWorker();PThread.loadWasmModuleToWorker(PThread.unusedWorkers[0]);}return PThread.unusedWorkers.pop()}};Module["PThread"]=PThread;function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module);}}function establishStackSpace(){var pthread_ptr=_pthread_self();var stackTop=GROWABLE_HEAP_I32()[pthread_ptr+52>>>2];var stackSize=GROWABLE_HEAP_I32()[pthread_ptr+56>>>2];var stackMax=stackTop-stackSize;_emscripten_stack_set_limits(stackTop,stackMax);stackRestore(stackTop);}Module["establishStackSpace"]=establishStackSpace;function exitOnMainThread(returnCode){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(2,0,returnCode);try{_exit(returnCode);}catch(e){handleException(e);}}var wasmTableMirror=[];function getWasmTableEntry(funcPtr){var func=wasmTableMirror[funcPtr];if(!func){if(funcPtr>=wasmTableMirror.length)wasmTableMirror.length=funcPtr+1;wasmTableMirror[funcPtr]=func=wasmTable.get(funcPtr);}return func}function invokeEntryPoint(ptr,arg){var result=getWasmTableEntry(ptr)(arg);if(keepRuntimeAlive()){PThread.setExitStatus(result);}else {__emscripten_thread_exit(result);}}Module["invokeEntryPoint"]=invokeEntryPoint;function registerTLSInit(tlsInitFunc){PThread.tlsInitFunctions.push(tlsInitFunc);}function ___emscripten_init_main_thread_js(tb){__emscripten_thread_init(tb,!ENVIRONMENT_IS_WORKER,1,!ENVIRONMENT_IS_WEB);PThread.threadInitTLS();}function ___emscripten_thread_cleanup(thread){if(!ENVIRONMENT_IS_PTHREAD)cleanupThread(thread);else postMessage({"cmd":"cleanupThread","thread":thread});}function pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(3,1,pthread_ptr,attr,startRoutine,arg);return ___pthread_create_js(pthread_ptr,attr,startRoutine,arg)}function ___pthread_create_js(pthread_ptr,attr,startRoutine,arg){if(typeof SharedArrayBuffer=="undefined"){err("Current environment does not support SharedArrayBuffer, pthreads are not available!");return 6}var transferList=[];var error=0;if(ENVIRONMENT_IS_PTHREAD&&(transferList.length===0||error)){return pthreadCreateProxied(pthread_ptr,attr,startRoutine,arg)}var threadParams={startRoutine:startRoutine,pthread_ptr:pthread_ptr,arg:arg,transferList:transferList};if(ENVIRONMENT_IS_PTHREAD){threadParams.cmd="spawnThread";postMessage(threadParams,transferList);return 0}return spawnThread(threadParams)}function __emscripten_default_pthread_stack_size(){return 65536}var nowIsMonotonic=true;function __emscripten_get_now_is_monotonic(){return nowIsMonotonic}function executeNotifiedProxyingQueue(queue){Atomics.store(GROWABLE_HEAP_I32(),queue>>2,1);if(_pthread_self()){__emscripten_proxy_execute_task_queue(queue);}Atomics.compareExchange(GROWABLE_HEAP_I32(),queue>>2,1,0);}Module["executeNotifiedProxyingQueue"]=executeNotifiedProxyingQueue;function __emscripten_notify_task_queue(targetThreadId,currThreadId,mainThreadId,queue){if(targetThreadId==currThreadId){setTimeout(()=>executeNotifiedProxyingQueue(queue));}else if(ENVIRONMENT_IS_PTHREAD){postMessage({"targetThread":targetThreadId,"cmd":"processProxyingQueue","queue":queue});}else {var worker=PThread.pthreads[targetThreadId];if(!worker){return}worker.postMessage({"cmd":"processProxyingQueue","queue":queue});}return 1}function __emscripten_set_offscreencanvas_size(target,width,height){return -1}function _abort(){abort("");}function warnOnce(text){if(!warnOnce.shown)warnOnce.shown={};if(!warnOnce.shown[text]){warnOnce.shown[text]=1;if(ENVIRONMENT_IS_NODE)text="warning: "+text;err(text);}}function _emscripten_check_blocking_allowed(){if(ENVIRONMENT_IS_NODE)return;if(ENVIRONMENT_IS_WORKER)return;warnOnce("Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread");}function _emscripten_date_now(){return Date.now()}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}var _emscripten_get_now;if(ENVIRONMENT_IS_NODE){_emscripten_get_now=()=>{var t=process["hrtime"]();return t[0]*1e3+t[1]/1e6};}else _emscripten_get_now=()=>performance.timeOrigin+performance.now();function _emscripten_memcpy_big(dest,src,num){GROWABLE_HEAP_U8().copyWithin(dest>>>0,src>>>0,src+num>>>0);}function _emscripten_num_logical_cores(){if(ENVIRONMENT_IS_NODE)return require$$1.cpus().length;return navigator["hardwareConcurrency"]}function withStackSave(f){var stack=stackSave();var ret=f();stackRestore(stack);return ret}function _emscripten_proxy_to_main_thread_js(index,sync){var numCallArgs=arguments.length-2;var outerArgs=arguments;return withStackSave(()=>{var serializedNumCallArgs=numCallArgs;var args=stackAlloc(serializedNumCallArgs*8);var b=args>>3;for(var i=0;i<numCallArgs;i++){var arg=outerArgs[2+i];GROWABLE_HEAP_F64()[b+i>>>0]=arg;}return _emscripten_run_in_main_runtime_thread_js(index,serializedNumCallArgs,args,sync)})}var _emscripten_receive_on_main_thread_js_callArgs=[];function _emscripten_receive_on_main_thread_js(index,numCallArgs,args){_emscripten_receive_on_main_thread_js_callArgs.length=numCallArgs;var b=args>>3;for(var i=0;i<numCallArgs;i++){_emscripten_receive_on_main_thread_js_callArgs[i]=GROWABLE_HEAP_F64()[b+i>>>0];}var isEmAsmConst=index<0;var func=!isEmAsmConst?proxiedFunctionTable[index]:ASM_CONSTS[-index-1];return func.apply(null,_emscripten_receive_on_main_thread_js_callArgs)}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=GROWABLE_HEAP_U8().length;requestedSize=requestedSize>>>0;if(requestedSize<=oldSize){return false}var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _emscripten_unwind_to_js_event_loop(){throw "unwind"}function _fd_close(fd){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(4,1,fd);return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(5,1,fd,offset_low,offset_high,whence,newOffset);return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0;}else {buffer.push(curr);}}function _fd_write(fd,iov,iovcnt,pnum){if(ENVIRONMENT_IS_PTHREAD)return _emscripten_proxy_to_main_thread_js(6,1,fd,iov,iovcnt,pnum);var num=0;for(var i=0;i<iovcnt;i++){var ptr=GROWABLE_HEAP_U32()[iov>>>2];var len=GROWABLE_HEAP_U32()[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,GROWABLE_HEAP_U8()[ptr+j>>>0]);}num+=len;}GROWABLE_HEAP_U32()[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){GROWABLE_HEAP_I8().set(array,buffer>>>0);}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len);}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i]);}else {cArgs[i]=args[i];}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments)}}PThread.init();var proxiedFunctionTable=[null,_proc_exit,exitOnMainThread,pthreadCreateProxied,_fd_close,_fd_seek,_fd_write];var asmLibraryArg={"__emscripten_init_main_thread_js":___emscripten_init_main_thread_js,"__emscripten_thread_cleanup":___emscripten_thread_cleanup,"__pthread_create_js":___pthread_create_js,"_emscripten_default_pthread_stack_size":__emscripten_default_pthread_stack_size,"_emscripten_get_now_is_monotonic":__emscripten_get_now_is_monotonic,"_emscripten_notify_task_queue":__emscripten_notify_task_queue,"_emscripten_set_offscreencanvas_size":__emscripten_set_offscreencanvas_size,"abort":_abort,"emscripten_check_blocking_allowed":_emscripten_check_blocking_allowed,"emscripten_date_now":_emscripten_date_now,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_get_now":_emscripten_get_now,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_num_logical_cores":_emscripten_num_logical_cores,"emscripten_receive_on_main_thread_js":_emscripten_receive_on_main_thread_js,"emscripten_resize_heap":_emscripten_resize_heap,"emscripten_unwind_to_js_event_loop":_emscripten_unwind_to_js_event_loop,"exit":_exit,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write,"memory":wasmMemory||Module["wasmMemory"]};createWasm();Module["___wasm_call_ctors"]=function(){return (Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};Module["_init"]=function(){return (Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};Module["_init_with_threads_count"]=function(){return (Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};Module["_get_threads_count"]=function(){return (Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};Module["_register_tensor"]=function(){return (Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};Module["_dispose_data"]=function(){return (Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};Module["_dispose"]=function(){return (Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};Module["_Abs"]=function(){return (Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};Module["_Acos"]=function(){return (Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};Module["_Acosh"]=function(){return (Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};Module["_Add"]=function(){return (Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};Module["_AddN"]=function(){return (Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};Module["_All"]=function(){return (Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};Module["_Any"]=function(){return (Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};Module["_ArgMax"]=function(){return (Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};Module["_ArgMin"]=function(){return (Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};Module["_Asin"]=function(){return (Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};Module["_Asinh"]=function(){return (Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};Module["_Atan"]=function(){return (Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};Module["_Atan2"]=function(){return (Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};Module["_Atanh"]=function(){return (Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};Module["_AvgPool"]=function(){return (Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};Module["_AvgPool3D"]=function(){return (Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};Module["_AvgPool3DGrad"]=function(){return (Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};Module["_AvgPoolGrad"]=function(){return (Module["_AvgPoolGrad"]=Module["asm"]["AvgPoolGrad"]).apply(null,arguments)};Module["_BatchMatMul"]=function(){return (Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};Module["_Bincount"]=function(){return (Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};Module["_BitwiseAnd"]=function(){return (Module["_BitwiseAnd"]=Module["asm"]["BitwiseAnd"]).apply(null,arguments)};Module["_Ceil"]=function(){return (Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};Module["_ClipByValue"]=function(){return (Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};Module["_Conv2D"]=function(){return (Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};Module["_Conv2DBackpropInput"]=function(){return (Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};Module["_Conv3D"]=function(){return (Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};Module["_Conv3DBackpropFilterV2"]=function(){return (Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};Module["_Conv3DBackpropInputV2"]=function(){return (Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};Module["_Cos"]=function(){return (Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};Module["_Cosh"]=function(){return (Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};Module["_CropAndResize"]=function(){return (Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};Module["_Cumprod"]=function(){return (Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};Module["_Cumsum"]=function(){return (Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};Module["_DenseBincount"]=function(){return (Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};Module["_DepthToSpace"]=function(){return (Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};Module["_DepthwiseConv2dNative"]=function(){return (Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};Module["_Diag"]=function(){return (Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};Module["_Dilation2D"]=function(){return (Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};Module["_Dilation2DBackpropFilter"]=function(){return (Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};Module["_Dilation2DBackpropInput"]=function(){return (Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};Module["_Elu"]=function(){return (Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};Module["_EluGrad"]=function(){return (Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};Module["_Equal"]=function(){return (Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};Module["_Erf"]=function(){return (Module["_Erf"]=Module["asm"]["Erf"]).apply(null,arguments)};Module["_Exp"]=function(){return (Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};Module["_Expm1"]=function(){return (Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};Module["_FlipLeftRight"]=function(){return (Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};Module["_Floor"]=function(){return (Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};Module["_FloorDiv"]=function(){return (Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};Module["_FusedBatchNorm"]=function(){return (Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};Module["_FusedConv2D"]=function(){return (Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};Module["_FusedDepthwiseConv2D"]=function(){return (Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};Module["_Gather"]=function(){return (Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};Module["_GatherNd"]=function(){return (Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};Module["_Greater"]=function(){return (Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};Module["_GreaterEqual"]=function(){return (Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};Module["_IsFinite"]=function(){return (Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};Module["_IsInf"]=function(){return (Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};Module["_IsNan"]=function(){return (Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};Module["_LRN"]=function(){return (Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};Module["_LRNGrad"]=function(){return (Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};Module["_LeakyRelu"]=function(){return (Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};Module["_Less"]=function(){return (Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};Module["_LessEqual"]=function(){return (Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};Module["_LinSpace"]=function(){return (Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};Module["_Log"]=function(){return (Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};Module["_Log1p"]=function(){return (Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};Module["_LogicalAnd"]=function(){return (Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};Module["_LogicalNot"]=function(){return (Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};Module["_LogicalOr"]=function(){return (Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};Module["_LogicalXor"]=function(){return (Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};Module["_Max"]=function(){return (Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};Module["_MaxPool"]=function(){return (Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};Module["_MaxPool3D"]=function(){return (Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};Module["_MaxPool3DGrad"]=function(){return (Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};Module["_MaxPoolGrad"]=function(){return (Module["_MaxPoolGrad"]=Module["asm"]["MaxPoolGrad"]).apply(null,arguments)};Module["_MaxPoolWithArgmax"]=function(){return (Module["_MaxPoolWithArgmax"]=Module["asm"]["MaxPoolWithArgmax"]).apply(null,arguments)};Module["_Maximum"]=function(){return (Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};Module["_Mean"]=function(){return (Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};Module["_Min"]=function(){return (Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};Module["_Minimum"]=function(){return (Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};Module["_MirrorPad"]=function(){return (Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};Module["_Mod"]=function(){return (Module["_Mod"]=Module["asm"]["Mod"]).apply(null,arguments)};Module["_Multinomial"]=function(){return (Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};Module["_Multiply"]=function(){return (Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};Module["_Neg"]=function(){return (Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};Module["_NonMaxSuppressionV3"]=function(){return (Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};Module["_NonMaxSuppressionV4"]=function(){return (Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};Module["_NonMaxSuppressionV5"]=function(){return (Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};Module["_NotEqual"]=function(){return (Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};Module["_OneHot"]=function(){return (Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};Module["_PadV2"]=function(){return (Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};Module["_Pow"]=function(){return (Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};Module["_Prelu"]=function(){return (Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};Module["_Prod"]=function(){return (Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};Module["_RealDiv"]=function(){return (Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};Module["_Reciprocal"]=function(){return (Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};Module["_Relu"]=function(){return (Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};Module["_Relu6"]=function(){return (Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};Module["_ResizeBilinear"]=function(){return (Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};Module["_ResizeBilinearGrad"]=function(){return (Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};Module["_ResizeNearestNeighbor"]=function(){return (Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};Module["_ResizeNearestNeighborGrad"]=function(){return (Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};Module["_Reverse"]=function(){return (Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};Module["_RotateWithOffset"]=function(){return (Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};Module["_Round"]=function(){return (Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};Module["_Rsqrt"]=function(){return (Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};Module["_ScatterNd"]=function(){return (Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};Module["_SearchSorted"]=function(){return (Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};Module["_SelectV2"]=function(){return (Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};Module["_Selu"]=function(){return (Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};Module["_Sigmoid"]=function(){return (Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};Module["_Sign"]=function(){return (Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};Module["_Sin"]=function(){return (Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};Module["_Sinh"]=function(){return (Module["_Sinh"]=Module["asm"]["Sinh"]).apply(null,arguments)};Module["_Softmax"]=function(){return (Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};Module["_Softplus"]=function(){return (Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};Module["_SparseFillEmptyRows"]=function(){return (Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};Module["_SparseReshape"]=function(){return (Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};Module["_SparseSegmentReduction"]=function(){return (Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};Module["_SparseToDense"]=function(){return (Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};Module["_Sqrt"]=function(){return (Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};Module["_Square"]=function(){return (Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};Module["_SquaredDifference"]=function(){return (Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};Module["_Step"]=function(){return (Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};Module["_StridedSlice"]=function(){return (Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};Module["_Sub"]=function(){return (Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};Module["_Sum"]=function(){return (Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};Module["_Tan"]=function(){return (Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};Module["_Tanh"]=function(){return (Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};Module["_TensorScatterUpdate"]=function(){return (Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};Module["_Tile"]=function(){return (Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};Module["_TopK"]=function(){return (Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};Module["_Transform"]=function(){return (Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};Module["_Transpose"]=function(){return (Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};Module["__FusedMatMul"]=function(){return (Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};Module["_malloc"]=function(){return (Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};Module["_free"]=function(){return (Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};Module["__emscripten_tls_init"]=function(){return (Module["__emscripten_tls_init"]=Module["asm"]["_emscripten_tls_init"]).apply(null,arguments)};var _pthread_self=Module["_pthread_self"]=function(){return (_pthread_self=Module["_pthread_self"]=Module["asm"]["pthread_self"]).apply(null,arguments)};Module["___errno_location"]=function(){return (Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var __emscripten_thread_init=Module["__emscripten_thread_init"]=function(){return (__emscripten_thread_init=Module["__emscripten_thread_init"]=Module["asm"]["_emscripten_thread_init"]).apply(null,arguments)};Module["__emscripten_thread_crashed"]=function(){return (Module["__emscripten_thread_crashed"]=Module["asm"]["_emscripten_thread_crashed"]).apply(null,arguments)};Module["_emscripten_main_thread_process_queued_calls"]=function(){return (Module["_emscripten_main_thread_process_queued_calls"]=Module["asm"]["emscripten_main_thread_process_queued_calls"]).apply(null,arguments)};Module["_emscripten_main_browser_thread_id"]=function(){return (Module["_emscripten_main_browser_thread_id"]=Module["asm"]["emscripten_main_browser_thread_id"]).apply(null,arguments)};var _emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=function(){return (_emscripten_run_in_main_runtime_thread_js=Module["_emscripten_run_in_main_runtime_thread_js"]=Module["asm"]["emscripten_run_in_main_runtime_thread_js"]).apply(null,arguments)};Module["_emscripten_dispatch_to_thread_"]=function(){return (Module["_emscripten_dispatch_to_thread_"]=Module["asm"]["emscripten_dispatch_to_thread_"]).apply(null,arguments)};var __emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=function(){return (__emscripten_proxy_execute_task_queue=Module["__emscripten_proxy_execute_task_queue"]=Module["asm"]["_emscripten_proxy_execute_task_queue"]).apply(null,arguments)};var __emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=function(){return (__emscripten_thread_free_data=Module["__emscripten_thread_free_data"]=Module["asm"]["_emscripten_thread_free_data"]).apply(null,arguments)};var __emscripten_thread_exit=Module["__emscripten_thread_exit"]=function(){return (__emscripten_thread_exit=Module["__emscripten_thread_exit"]=Module["asm"]["_emscripten_thread_exit"]).apply(null,arguments)};var _emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=function(){return (_emscripten_stack_set_limits=Module["_emscripten_stack_set_limits"]=Module["asm"]["emscripten_stack_set_limits"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return (stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return (stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return (stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};Module["dynCall_iijjiiii"]=function(){return (Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};Module["dynCall_jiji"]=function(){return (Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["keepRuntimeAlive"]=keepRuntimeAlive;Module["wasmMemory"]=wasmMemory;Module["cwrap"]=cwrap;Module["ExitStatus"]=ExitStatus;Module["PThread"]=PThread;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller;};function run(args){if(runDependencies>0){return}if(ENVIRONMENT_IS_PTHREAD){readyPromiseResolve(Module);initRuntime();startWorker(Module);return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun();}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("");},1);doRun();},1);}else {doRun();}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()();}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return !beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return !beforeListeners.unhandledRejection.indexOf(listener)>-1})};}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule;}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd;}else {throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener);});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener);});};}
+
+
+	  return WasmBackendModuleThreadedSimd.ready
+	}
+	);
+	})();
+	module.exports = WasmBackendModuleThreadedSimd; 
+} (tfjsBackendWasmThreadedSimd$1));
+
+var tfjsBackendWasmThreadedSimdExports = tfjsBackendWasmThreadedSimd$1.exports;
+var tfjsBackendWasmThreadedSimd = /*@__PURE__*/getDefaultExportFromCjs(tfjsBackendWasmThreadedSimdExports);
+
+var wasmFactoryThreadedSimd_import = /*#__PURE__*/_mergeNamespaces({
+    __proto__: null,
+    default: tfjsBackendWasmThreadedSimd
+}, [tfjsBackendWasmThreadedSimdExports]);
+
+var wasmWorkerContents = `"use strict";var Module={};var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";if(ENVIRONMENT_IS_NODE){var nodeWorkerThreads=require("worker_threads");var parentPort=nodeWorkerThreads.parentPort;parentPort.on("message",data=>onmessage({data:data}));var fs=require("fs");Object.assign(global,{self:global,require:require,Module:Module,location:{href:__filename},Worker:nodeWorkerThreads.Worker,importScripts:function(f){(0,eval)(fs.readFileSync(f,"utf8")+"//# sourceURL="+f)},postMessage:function(msg){parentPort.postMessage(msg)},performance:global.performance||{now:function(){return Date.now()}}})}var initializedJS=false;var pendingNotifiedProxyingQueues=[];function threadPrintErr(){var text=Array.prototype.slice.call(arguments).join(" ");if(ENVIRONMENT_IS_NODE){fs.writeSync(2,text+"\n");return}console.error(text)}function threadAlert(){var text=Array.prototype.slice.call(arguments).join(" ");postMessage({cmd:"alert",text:text,threadId:Module["_pthread_self"]()})}var err=threadPrintErr;self.alert=threadAlert;Module["instantiateWasm"]=(info,receiveInstance)=>{var instance=new WebAssembly.Instance(Module["wasmModule"],info);receiveInstance(instance);Module["wasmModule"]=null;return instance.exports};self.onunhandledrejection=e=>{throw e.reason??e};self.startWorker=instance=>{Module=instance;postMessage({"cmd":"loaded"})};self.onmessage=e=>{try{if(e.data.cmd==="load"){Module["wasmModule"]=e.data.wasmModule;for(const handler of e.data.handlers){Module[handler]=function(){postMessage({cmd:"callHandler",handler:handler,args:[...arguments]})}}Module["wasmMemory"]=e.data.wasmMemory;Module["buffer"]=Module["wasmMemory"].buffer;Module["ENVIRONMENT_IS_PTHREAD"]=true;if(typeof e.data.urlOrBlob=="string"){importScripts(e.data.urlOrBlob)}else{var objectUrl=URL.createObjectURL(e.data.urlOrBlob);importScripts(objectUrl);URL.revokeObjectURL(objectUrl)}WasmBackendModuleThreadedSimd(Module)}else if(e.data.cmd==="run"){Module["__emscripten_thread_init"](e.data.pthread_ptr,0,0,1);Module["establishStackSpace"]();Module["PThread"].receiveObjectTransfer(e.data);Module["PThread"].threadInitTLS();if(!initializedJS){pendingNotifiedProxyingQueues.forEach(queue=>{Module["executeNotifiedProxyingQueue"](queue)});pendingNotifiedProxyingQueues=[];initializedJS=true}try{Module["invokeEntryPoint"](e.data.start_routine,e.data.arg)}catch(ex){if(ex!="unwind"){if(ex instanceof Module["ExitStatus"]){if(Module["keepRuntimeAlive"]()){}else{Module["__emscripten_thread_exit"](ex.status)}}else{throw ex}}}}else if(e.data.cmd==="cancel"){if(Module["_pthread_self"]()){Module["__emscripten_thread_exit"](-1)}}else if(e.data.target==="setimmediate"){}else if(e.data.cmd==="processProxyingQueue"){if(initializedJS){Module["executeNotifiedProxyingQueue"](e.data.queue)}else{pendingNotifiedProxyingQueues.push(e.data.queue)}}else if(e.data.cmd){err("worker.js received unknown command "+e.data.cmd);err(e.data)}}catch(ex){if(Module["__emscripten_thread_crashed"]){Module["__emscripten_thread_crashed"]()}throw ex}};`;
+
+var tfjsBackendWasm$1 = {exports: {}};
+
+(function (module, exports) {
+	var WasmBackendModule = (() => {
+	  var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
+	  if (typeof __filename !== 'undefined') _scriptDir = _scriptDir || __filename;
+	  return (
+	function(WasmBackendModule) {
+	  WasmBackendModule = WasmBackendModule || {};
+
+	var Module=typeof WasmBackendModule!="undefined"?WasmBackendModule:{};var readyPromiseResolve,readyPromiseReject;Module["ready"]=new Promise(function(resolve,reject){readyPromiseResolve=resolve;readyPromiseReject=reject;});var beforeListeners;if(typeof process!=="undefined"&&process.listeners){beforeListeners={uncaughtException:process.listeners("uncaughtException"),unhandledRejection:process.listeners("unhandledRejection")};}var moduleOverrides=Object.assign({},Module);var ENVIRONMENT_IS_WEB=typeof window=="object";var ENVIRONMENT_IS_WORKER=typeof importScripts=="function";var ENVIRONMENT_IS_NODE=typeof process=="object"&&typeof process.versions=="object"&&typeof process.versions.node=="string";var scriptDirectory="";function locateFile(path){if(Module["locateFile"]){return Module["locateFile"](path,scriptDirectory)}return scriptDirectory+path}var read_,readAsync,readBinary;if(ENVIRONMENT_IS_NODE){var fs=require$$1;var nodePath=require$$1;if(ENVIRONMENT_IS_WORKER){scriptDirectory=nodePath.dirname(scriptDirectory)+"/";}else {scriptDirectory=__dirname+"/";}read_=(filename,binary)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);return fs.readFileSync(filename,binary?undefined:"utf8")};readBinary=filename=>{var ret=read_(filename,true);if(!ret.buffer){ret=new Uint8Array(ret);}return ret};readAsync=(filename,onload,onerror)=>{filename=isFileURI(filename)?new URL(filename):nodePath.normalize(filename);fs.readFile(filename,function(err,data){if(err)onerror(err);else onload(data.buffer);});};if(process["argv"].length>1){process["argv"][1].replace(/\\/g,"/");}process["argv"].slice(2);process["on"]("uncaughtException",function(ex){if(!(ex instanceof ExitStatus)){throw ex}});process["on"]("unhandledRejection",function(reason){throw reason});Module["inspect"]=function(){return "[Emscripten Module object]"};}else if(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER){if(ENVIRONMENT_IS_WORKER){scriptDirectory=self.location.href;}else if(typeof document!="undefined"&&document.currentScript){scriptDirectory=document.currentScript.src;}if(_scriptDir){scriptDirectory=_scriptDir;}if(scriptDirectory.indexOf("blob:")!==0){scriptDirectory=scriptDirectory.substr(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/")+1);}else {scriptDirectory="";}{read_=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.send(null);return xhr.responseText};if(ENVIRONMENT_IS_WORKER){readBinary=url=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,false);xhr.responseType="arraybuffer";xhr.send(null);return new Uint8Array(xhr.response)};}readAsync=(url,onload,onerror)=>{var xhr=new XMLHttpRequest;xhr.open("GET",url,true);xhr.responseType="arraybuffer";xhr.onload=()=>{if(xhr.status==200||xhr.status==0&&xhr.response){onload(xhr.response);return}onerror();};xhr.onerror=onerror;xhr.send(null);};}}else;var out=Module["print"]||console.log.bind(console);var err=Module["printErr"]||console.warn.bind(console);Object.assign(Module,moduleOverrides);moduleOverrides=null;if(Module["arguments"])Module["arguments"];if(Module["thisProgram"])Module["thisProgram"];if(Module["quit"])Module["quit"];var wasmBinary;if(Module["wasmBinary"])wasmBinary=Module["wasmBinary"];Module["noExitRuntime"]||true;if(typeof WebAssembly!="object"){abort("no native wasm support detected");}var wasmMemory;var ABORT=false;var UTF8Decoder=typeof TextDecoder!="undefined"?new TextDecoder("utf8"):undefined;function UTF8ArrayToString(heapOrArray,idx,maxBytesToRead){idx>>>=0;var endIdx=idx+maxBytesToRead;var endPtr=idx;while(heapOrArray[endPtr]&&!(endPtr>=endIdx))++endPtr;if(endPtr-idx>16&&heapOrArray.buffer&&UTF8Decoder){return UTF8Decoder.decode(heapOrArray.subarray(idx,endPtr))}var str="";while(idx<endPtr){var u0=heapOrArray[idx++];if(!(u0&128)){str+=String.fromCharCode(u0);continue}var u1=heapOrArray[idx++]&63;if((u0&224)==192){str+=String.fromCharCode((u0&31)<<6|u1);continue}var u2=heapOrArray[idx++]&63;if((u0&240)==224){u0=(u0&15)<<12|u1<<6|u2;}else {u0=(u0&7)<<18|u1<<12|u2<<6|heapOrArray[idx++]&63;}if(u0<65536){str+=String.fromCharCode(u0);}else {var ch=u0-65536;str+=String.fromCharCode(55296|ch>>10,56320|ch&1023);}}return str}function UTF8ToString(ptr,maxBytesToRead){ptr>>>=0;return ptr?UTF8ArrayToString(HEAPU8,ptr,maxBytesToRead):""}function stringToUTF8Array(str,heap,outIdx,maxBytesToWrite){outIdx>>>=0;if(!(maxBytesToWrite>0))return 0;var startIdx=outIdx;var endIdx=outIdx+maxBytesToWrite-1;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343){var u1=str.charCodeAt(++i);u=65536+((u&1023)<<10)|u1&1023;}if(u<=127){if(outIdx>=endIdx)break;heap[outIdx++>>>0]=u;}else if(u<=2047){if(outIdx+1>=endIdx)break;heap[outIdx++>>>0]=192|u>>6;heap[outIdx++>>>0]=128|u&63;}else if(u<=65535){if(outIdx+2>=endIdx)break;heap[outIdx++>>>0]=224|u>>12;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63;}else {if(outIdx+3>=endIdx)break;heap[outIdx++>>>0]=240|u>>18;heap[outIdx++>>>0]=128|u>>12&63;heap[outIdx++>>>0]=128|u>>6&63;heap[outIdx++>>>0]=128|u&63;}}heap[outIdx>>>0]=0;return outIdx-startIdx}function stringToUTF8(str,outPtr,maxBytesToWrite){return stringToUTF8Array(str,HEAPU8,outPtr,maxBytesToWrite)}var buffer,HEAP8,HEAPU8,HEAPU32;function updateGlobalBufferAndViews(buf){buffer=buf;Module["HEAP8"]=HEAP8=new Int8Array(buf);Module["HEAP16"]=new Int16Array(buf);Module["HEAP32"]=new Int32Array(buf);Module["HEAPU8"]=HEAPU8=new Uint8Array(buf);Module["HEAPU16"]=new Uint16Array(buf);Module["HEAPU32"]=HEAPU32=new Uint32Array(buf);Module["HEAPF32"]=new Float32Array(buf);Module["HEAPF64"]=new Float64Array(buf);}Module["INITIAL_MEMORY"]||16777216;var __ATPRERUN__=[];var __ATINIT__=[];var __ATPOSTRUN__=[];function preRun(){if(Module["preRun"]){if(typeof Module["preRun"]=="function")Module["preRun"]=[Module["preRun"]];while(Module["preRun"].length){addOnPreRun(Module["preRun"].shift());}}callRuntimeCallbacks(__ATPRERUN__);}function initRuntime(){callRuntimeCallbacks(__ATINIT__);}function postRun(){if(Module["postRun"]){if(typeof Module["postRun"]=="function")Module["postRun"]=[Module["postRun"]];while(Module["postRun"].length){addOnPostRun(Module["postRun"].shift());}}callRuntimeCallbacks(__ATPOSTRUN__);}function addOnPreRun(cb){__ATPRERUN__.unshift(cb);}function addOnInit(cb){__ATINIT__.unshift(cb);}function addOnPostRun(cb){__ATPOSTRUN__.unshift(cb);}var runDependencies=0;var dependenciesFulfilled=null;function addRunDependency(id){runDependencies++;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}}function removeRunDependency(id){runDependencies--;if(Module["monitorRunDependencies"]){Module["monitorRunDependencies"](runDependencies);}if(runDependencies==0){if(dependenciesFulfilled){var callback=dependenciesFulfilled;dependenciesFulfilled=null;callback();}}}function abort(what){if(Module["onAbort"]){Module["onAbort"](what);}what="Aborted("+what+")";err(what);ABORT=true;what+=". Build with -sASSERTIONS for more info.";var e=new WebAssembly.RuntimeError(what);readyPromiseReject(e);throw e}var dataURIPrefix="data:application/octet-stream;base64,";function isDataURI(filename){return filename.startsWith(dataURIPrefix)}function isFileURI(filename){return filename.startsWith("file://")}var wasmBinaryFile;wasmBinaryFile="tfjs-backend-wasm.wasm";if(!isDataURI(wasmBinaryFile)){wasmBinaryFile=locateFile(wasmBinaryFile);}function getBinary(file){try{if(file==wasmBinaryFile&&wasmBinary){return new Uint8Array(wasmBinary)}if(readBinary){return readBinary(file)}throw "both async and sync fetching of the wasm failed"}catch(err){abort(err);}}function getBinaryPromise(){if(!wasmBinary&&(ENVIRONMENT_IS_WEB||ENVIRONMENT_IS_WORKER)){if(typeof fetch=="function"&&!isFileURI(wasmBinaryFile)){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){if(!response["ok"]){throw "failed to load wasm binary file at '"+wasmBinaryFile+"'"}return response["arrayBuffer"]()}).catch(function(){return getBinary(wasmBinaryFile)})}else {if(readAsync){return new Promise(function(resolve,reject){readAsync(wasmBinaryFile,function(response){resolve(new Uint8Array(response));},reject);})}}}return Promise.resolve().then(function(){return getBinary(wasmBinaryFile)})}function createWasm(){var info={"env":asmLibraryArg,"wasi_snapshot_preview1":asmLibraryArg};function receiveInstance(instance,module){var exports=instance.exports;Module["asm"]=exports;wasmMemory=Module["asm"]["memory"];updateGlobalBufferAndViews(wasmMemory.buffer);Module["asm"]["__indirect_function_table"];addOnInit(Module["asm"]["__wasm_call_ctors"]);removeRunDependency();}addRunDependency();function receiveInstantiationResult(result){receiveInstance(result["instance"]);}function instantiateArrayBuffer(receiver){return getBinaryPromise().then(function(binary){return WebAssembly.instantiate(binary,info)}).then(function(instance){return instance}).then(receiver,function(reason){err("failed to asynchronously prepare wasm: "+reason);abort(reason);})}function instantiateAsync(){if(!wasmBinary&&typeof WebAssembly.instantiateStreaming=="function"&&!isDataURI(wasmBinaryFile)&&!isFileURI(wasmBinaryFile)&&!ENVIRONMENT_IS_NODE&&typeof fetch=="function"){return fetch(wasmBinaryFile,{credentials:"same-origin"}).then(function(response){var result=WebAssembly.instantiateStreaming(response,info);return result.then(receiveInstantiationResult,function(reason){err("wasm streaming compile failed: "+reason);err("falling back to ArrayBuffer instantiation");return instantiateArrayBuffer(receiveInstantiationResult)})})}else {return instantiateArrayBuffer(receiveInstantiationResult)}}if(Module["instantiateWasm"]){try{var exports=Module["instantiateWasm"](info,receiveInstance);return exports}catch(e){err("Module.instantiateWasm callback failed with error: "+e);readyPromiseReject(e);}}instantiateAsync().catch(readyPromiseReject);return {}}function ExitStatus(status){this.name="ExitStatus";this.message="Program terminated with exit("+status+")";this.status=status;}function callRuntimeCallbacks(callbacks){while(callbacks.length>0){callbacks.shift()(Module);}}function _abort(){abort("");}function getHeapMax(){return 4294901760}function _emscripten_get_heap_max(){return getHeapMax()}function _emscripten_memcpy_big(dest,src,num){HEAPU8.copyWithin(dest>>>0,src>>>0,src+num>>>0);}function emscripten_realloc_buffer(size){try{wasmMemory.grow(size-buffer.byteLength+65535>>>16);updateGlobalBufferAndViews(wasmMemory.buffer);return 1}catch(e){}}function _emscripten_resize_heap(requestedSize){var oldSize=HEAPU8.length;requestedSize=requestedSize>>>0;var maxHeapSize=getHeapMax();if(requestedSize>maxHeapSize){return false}let alignUp=(x,multiple)=>x+(multiple-x%multiple)%multiple;for(var cutDown=1;cutDown<=4;cutDown*=2){var overGrownHeapSize=oldSize*(1+.2/cutDown);overGrownHeapSize=Math.min(overGrownHeapSize,requestedSize+100663296);var newSize=Math.min(maxHeapSize,alignUp(Math.max(requestedSize,overGrownHeapSize),65536));var replacement=emscripten_realloc_buffer(newSize);if(replacement){return true}}return false}function _fd_close(fd){return 52}function _fd_seek(fd,offset_low,offset_high,whence,newOffset){return 70}var printCharBuffers=[null,[],[]];function printChar(stream,curr){var buffer=printCharBuffers[stream];if(curr===0||curr===10){(stream===1?out:err)(UTF8ArrayToString(buffer,0));buffer.length=0;}else {buffer.push(curr);}}function _fd_write(fd,iov,iovcnt,pnum){var num=0;for(var i=0;i<iovcnt;i++){var ptr=HEAPU32[iov>>>2];var len=HEAPU32[iov+4>>>2];iov+=8;for(var j=0;j<len;j++){printChar(fd,HEAPU8[ptr+j>>>0]);}num+=len;}HEAPU32[pnum>>>2]=num;return 0}function getCFunc(ident){var func=Module["_"+ident];return func}function writeArrayToMemory(array,buffer){HEAP8.set(array,buffer>>>0);}function ccall(ident,returnType,argTypes,args,opts){var toC={"string":str=>{var ret=0;if(str!==null&&str!==undefined&&str!==0){var len=(str.length<<2)+1;ret=stackAlloc(len);stringToUTF8(str,ret,len);}return ret},"array":arr=>{var ret=stackAlloc(arr.length);writeArrayToMemory(arr,ret);return ret}};function convertReturnValue(ret){if(returnType==="string"){return UTF8ToString(ret)}if(returnType==="boolean")return Boolean(ret);return ret}var func=getCFunc(ident);var cArgs=[];var stack=0;if(args){for(var i=0;i<args.length;i++){var converter=toC[argTypes[i]];if(converter){if(stack===0)stack=stackSave();cArgs[i]=converter(args[i]);}else {cArgs[i]=args[i];}}}var ret=func.apply(null,cArgs);function onDone(ret){if(stack!==0)stackRestore(stack);return convertReturnValue(ret)}ret=onDone(ret);return ret}function cwrap(ident,returnType,argTypes,opts){argTypes=argTypes||[];var numericArgs=argTypes.every(type=>type==="number"||type==="boolean");var numericRet=returnType!=="string";if(numericRet&&numericArgs&&!opts){return getCFunc(ident)}return function(){return ccall(ident,returnType,argTypes,arguments)}}var asmLibraryArg={"abort":_abort,"emscripten_get_heap_max":_emscripten_get_heap_max,"emscripten_memcpy_big":_emscripten_memcpy_big,"emscripten_resize_heap":_emscripten_resize_heap,"fd_close":_fd_close,"fd_seek":_fd_seek,"fd_write":_fd_write};createWasm();Module["___wasm_call_ctors"]=function(){return (Module["___wasm_call_ctors"]=Module["asm"]["__wasm_call_ctors"]).apply(null,arguments)};Module["_init"]=function(){return (Module["_init"]=Module["asm"]["init"]).apply(null,arguments)};Module["_init_with_threads_count"]=function(){return (Module["_init_with_threads_count"]=Module["asm"]["init_with_threads_count"]).apply(null,arguments)};Module["_get_threads_count"]=function(){return (Module["_get_threads_count"]=Module["asm"]["get_threads_count"]).apply(null,arguments)};Module["_register_tensor"]=function(){return (Module["_register_tensor"]=Module["asm"]["register_tensor"]).apply(null,arguments)};Module["_dispose_data"]=function(){return (Module["_dispose_data"]=Module["asm"]["dispose_data"]).apply(null,arguments)};Module["_dispose"]=function(){return (Module["_dispose"]=Module["asm"]["dispose"]).apply(null,arguments)};Module["_Abs"]=function(){return (Module["_Abs"]=Module["asm"]["Abs"]).apply(null,arguments)};Module["_Acos"]=function(){return (Module["_Acos"]=Module["asm"]["Acos"]).apply(null,arguments)};Module["_Acosh"]=function(){return (Module["_Acosh"]=Module["asm"]["Acosh"]).apply(null,arguments)};Module["_Add"]=function(){return (Module["_Add"]=Module["asm"]["Add"]).apply(null,arguments)};Module["_AddN"]=function(){return (Module["_AddN"]=Module["asm"]["AddN"]).apply(null,arguments)};Module["_All"]=function(){return (Module["_All"]=Module["asm"]["All"]).apply(null,arguments)};Module["_Any"]=function(){return (Module["_Any"]=Module["asm"]["Any"]).apply(null,arguments)};Module["_ArgMax"]=function(){return (Module["_ArgMax"]=Module["asm"]["ArgMax"]).apply(null,arguments)};Module["_ArgMin"]=function(){return (Module["_ArgMin"]=Module["asm"]["ArgMin"]).apply(null,arguments)};Module["_Asin"]=function(){return (Module["_Asin"]=Module["asm"]["Asin"]).apply(null,arguments)};Module["_Asinh"]=function(){return (Module["_Asinh"]=Module["asm"]["Asinh"]).apply(null,arguments)};Module["_Atan"]=function(){return (Module["_Atan"]=Module["asm"]["Atan"]).apply(null,arguments)};Module["_Atan2"]=function(){return (Module["_Atan2"]=Module["asm"]["Atan2"]).apply(null,arguments)};Module["_Atanh"]=function(){return (Module["_Atanh"]=Module["asm"]["Atanh"]).apply(null,arguments)};Module["_AvgPool"]=function(){return (Module["_AvgPool"]=Module["asm"]["AvgPool"]).apply(null,arguments)};Module["_AvgPool3D"]=function(){return (Module["_AvgPool3D"]=Module["asm"]["AvgPool3D"]).apply(null,arguments)};Module["_AvgPool3DGrad"]=function(){return (Module["_AvgPool3DGrad"]=Module["asm"]["AvgPool3DGrad"]).apply(null,arguments)};Module["_AvgPoolGrad"]=function(){return (Module["_AvgPoolGrad"]=Module["asm"]["AvgPoolGrad"]).apply(null,arguments)};Module["_BatchMatMul"]=function(){return (Module["_BatchMatMul"]=Module["asm"]["BatchMatMul"]).apply(null,arguments)};Module["_Bincount"]=function(){return (Module["_Bincount"]=Module["asm"]["Bincount"]).apply(null,arguments)};Module["_BitwiseAnd"]=function(){return (Module["_BitwiseAnd"]=Module["asm"]["BitwiseAnd"]).apply(null,arguments)};Module["_Ceil"]=function(){return (Module["_Ceil"]=Module["asm"]["Ceil"]).apply(null,arguments)};Module["_ClipByValue"]=function(){return (Module["_ClipByValue"]=Module["asm"]["ClipByValue"]).apply(null,arguments)};Module["_Conv2D"]=function(){return (Module["_Conv2D"]=Module["asm"]["Conv2D"]).apply(null,arguments)};Module["_Conv2DBackpropInput"]=function(){return (Module["_Conv2DBackpropInput"]=Module["asm"]["Conv2DBackpropInput"]).apply(null,arguments)};Module["_Conv3D"]=function(){return (Module["_Conv3D"]=Module["asm"]["Conv3D"]).apply(null,arguments)};Module["_Conv3DBackpropFilterV2"]=function(){return (Module["_Conv3DBackpropFilterV2"]=Module["asm"]["Conv3DBackpropFilterV2"]).apply(null,arguments)};Module["_Conv3DBackpropInputV2"]=function(){return (Module["_Conv3DBackpropInputV2"]=Module["asm"]["Conv3DBackpropInputV2"]).apply(null,arguments)};Module["_Cos"]=function(){return (Module["_Cos"]=Module["asm"]["Cos"]).apply(null,arguments)};Module["_Cosh"]=function(){return (Module["_Cosh"]=Module["asm"]["Cosh"]).apply(null,arguments)};Module["_CropAndResize"]=function(){return (Module["_CropAndResize"]=Module["asm"]["CropAndResize"]).apply(null,arguments)};Module["_Cumprod"]=function(){return (Module["_Cumprod"]=Module["asm"]["Cumprod"]).apply(null,arguments)};Module["_Cumsum"]=function(){return (Module["_Cumsum"]=Module["asm"]["Cumsum"]).apply(null,arguments)};Module["_DenseBincount"]=function(){return (Module["_DenseBincount"]=Module["asm"]["DenseBincount"]).apply(null,arguments)};Module["_DepthToSpace"]=function(){return (Module["_DepthToSpace"]=Module["asm"]["DepthToSpace"]).apply(null,arguments)};Module["_DepthwiseConv2dNative"]=function(){return (Module["_DepthwiseConv2dNative"]=Module["asm"]["DepthwiseConv2dNative"]).apply(null,arguments)};Module["_Diag"]=function(){return (Module["_Diag"]=Module["asm"]["Diag"]).apply(null,arguments)};Module["_Dilation2D"]=function(){return (Module["_Dilation2D"]=Module["asm"]["Dilation2D"]).apply(null,arguments)};Module["_Dilation2DBackpropFilter"]=function(){return (Module["_Dilation2DBackpropFilter"]=Module["asm"]["Dilation2DBackpropFilter"]).apply(null,arguments)};Module["_Dilation2DBackpropInput"]=function(){return (Module["_Dilation2DBackpropInput"]=Module["asm"]["Dilation2DBackpropInput"]).apply(null,arguments)};Module["_Elu"]=function(){return (Module["_Elu"]=Module["asm"]["Elu"]).apply(null,arguments)};Module["_EluGrad"]=function(){return (Module["_EluGrad"]=Module["asm"]["EluGrad"]).apply(null,arguments)};Module["_Equal"]=function(){return (Module["_Equal"]=Module["asm"]["Equal"]).apply(null,arguments)};Module["_Erf"]=function(){return (Module["_Erf"]=Module["asm"]["Erf"]).apply(null,arguments)};Module["_Exp"]=function(){return (Module["_Exp"]=Module["asm"]["Exp"]).apply(null,arguments)};Module["_Expm1"]=function(){return (Module["_Expm1"]=Module["asm"]["Expm1"]).apply(null,arguments)};Module["_FlipLeftRight"]=function(){return (Module["_FlipLeftRight"]=Module["asm"]["FlipLeftRight"]).apply(null,arguments)};Module["_Floor"]=function(){return (Module["_Floor"]=Module["asm"]["Floor"]).apply(null,arguments)};Module["_FloorDiv"]=function(){return (Module["_FloorDiv"]=Module["asm"]["FloorDiv"]).apply(null,arguments)};Module["_FusedBatchNorm"]=function(){return (Module["_FusedBatchNorm"]=Module["asm"]["FusedBatchNorm"]).apply(null,arguments)};Module["_FusedConv2D"]=function(){return (Module["_FusedConv2D"]=Module["asm"]["FusedConv2D"]).apply(null,arguments)};Module["_FusedDepthwiseConv2D"]=function(){return (Module["_FusedDepthwiseConv2D"]=Module["asm"]["FusedDepthwiseConv2D"]).apply(null,arguments)};Module["_Gather"]=function(){return (Module["_Gather"]=Module["asm"]["Gather"]).apply(null,arguments)};Module["_GatherNd"]=function(){return (Module["_GatherNd"]=Module["asm"]["GatherNd"]).apply(null,arguments)};Module["_Greater"]=function(){return (Module["_Greater"]=Module["asm"]["Greater"]).apply(null,arguments)};Module["_GreaterEqual"]=function(){return (Module["_GreaterEqual"]=Module["asm"]["GreaterEqual"]).apply(null,arguments)};Module["_IsFinite"]=function(){return (Module["_IsFinite"]=Module["asm"]["IsFinite"]).apply(null,arguments)};Module["_IsInf"]=function(){return (Module["_IsInf"]=Module["asm"]["IsInf"]).apply(null,arguments)};Module["_IsNan"]=function(){return (Module["_IsNan"]=Module["asm"]["IsNan"]).apply(null,arguments)};Module["_LRN"]=function(){return (Module["_LRN"]=Module["asm"]["LRN"]).apply(null,arguments)};Module["_LRNGrad"]=function(){return (Module["_LRNGrad"]=Module["asm"]["LRNGrad"]).apply(null,arguments)};Module["_LeakyRelu"]=function(){return (Module["_LeakyRelu"]=Module["asm"]["LeakyRelu"]).apply(null,arguments)};Module["_Less"]=function(){return (Module["_Less"]=Module["asm"]["Less"]).apply(null,arguments)};Module["_LessEqual"]=function(){return (Module["_LessEqual"]=Module["asm"]["LessEqual"]).apply(null,arguments)};Module["_LinSpace"]=function(){return (Module["_LinSpace"]=Module["asm"]["LinSpace"]).apply(null,arguments)};Module["_Log"]=function(){return (Module["_Log"]=Module["asm"]["Log"]).apply(null,arguments)};Module["_Log1p"]=function(){return (Module["_Log1p"]=Module["asm"]["Log1p"]).apply(null,arguments)};Module["_LogicalAnd"]=function(){return (Module["_LogicalAnd"]=Module["asm"]["LogicalAnd"]).apply(null,arguments)};Module["_LogicalNot"]=function(){return (Module["_LogicalNot"]=Module["asm"]["LogicalNot"]).apply(null,arguments)};Module["_LogicalOr"]=function(){return (Module["_LogicalOr"]=Module["asm"]["LogicalOr"]).apply(null,arguments)};Module["_LogicalXor"]=function(){return (Module["_LogicalXor"]=Module["asm"]["LogicalXor"]).apply(null,arguments)};Module["_Max"]=function(){return (Module["_Max"]=Module["asm"]["Max"]).apply(null,arguments)};Module["_MaxPool"]=function(){return (Module["_MaxPool"]=Module["asm"]["MaxPool"]).apply(null,arguments)};Module["_MaxPool3D"]=function(){return (Module["_MaxPool3D"]=Module["asm"]["MaxPool3D"]).apply(null,arguments)};Module["_MaxPool3DGrad"]=function(){return (Module["_MaxPool3DGrad"]=Module["asm"]["MaxPool3DGrad"]).apply(null,arguments)};Module["_MaxPoolGrad"]=function(){return (Module["_MaxPoolGrad"]=Module["asm"]["MaxPoolGrad"]).apply(null,arguments)};Module["_MaxPoolWithArgmax"]=function(){return (Module["_MaxPoolWithArgmax"]=Module["asm"]["MaxPoolWithArgmax"]).apply(null,arguments)};Module["_Maximum"]=function(){return (Module["_Maximum"]=Module["asm"]["Maximum"]).apply(null,arguments)};Module["_Mean"]=function(){return (Module["_Mean"]=Module["asm"]["Mean"]).apply(null,arguments)};Module["_Min"]=function(){return (Module["_Min"]=Module["asm"]["Min"]).apply(null,arguments)};Module["_Minimum"]=function(){return (Module["_Minimum"]=Module["asm"]["Minimum"]).apply(null,arguments)};Module["_MirrorPad"]=function(){return (Module["_MirrorPad"]=Module["asm"]["MirrorPad"]).apply(null,arguments)};Module["_Mod"]=function(){return (Module["_Mod"]=Module["asm"]["Mod"]).apply(null,arguments)};Module["_Multinomial"]=function(){return (Module["_Multinomial"]=Module["asm"]["Multinomial"]).apply(null,arguments)};Module["_Multiply"]=function(){return (Module["_Multiply"]=Module["asm"]["Multiply"]).apply(null,arguments)};Module["_Neg"]=function(){return (Module["_Neg"]=Module["asm"]["Neg"]).apply(null,arguments)};Module["_NonMaxSuppressionV3"]=function(){return (Module["_NonMaxSuppressionV3"]=Module["asm"]["NonMaxSuppressionV3"]).apply(null,arguments)};Module["_NonMaxSuppressionV4"]=function(){return (Module["_NonMaxSuppressionV4"]=Module["asm"]["NonMaxSuppressionV4"]).apply(null,arguments)};Module["_NonMaxSuppressionV5"]=function(){return (Module["_NonMaxSuppressionV5"]=Module["asm"]["NonMaxSuppressionV5"]).apply(null,arguments)};Module["_NotEqual"]=function(){return (Module["_NotEqual"]=Module["asm"]["NotEqual"]).apply(null,arguments)};Module["_OneHot"]=function(){return (Module["_OneHot"]=Module["asm"]["OneHot"]).apply(null,arguments)};Module["_PadV2"]=function(){return (Module["_PadV2"]=Module["asm"]["PadV2"]).apply(null,arguments)};Module["_Pow"]=function(){return (Module["_Pow"]=Module["asm"]["Pow"]).apply(null,arguments)};Module["_Prelu"]=function(){return (Module["_Prelu"]=Module["asm"]["Prelu"]).apply(null,arguments)};Module["_Prod"]=function(){return (Module["_Prod"]=Module["asm"]["Prod"]).apply(null,arguments)};Module["_RealDiv"]=function(){return (Module["_RealDiv"]=Module["asm"]["RealDiv"]).apply(null,arguments)};Module["_Reciprocal"]=function(){return (Module["_Reciprocal"]=Module["asm"]["Reciprocal"]).apply(null,arguments)};Module["_Relu"]=function(){return (Module["_Relu"]=Module["asm"]["Relu"]).apply(null,arguments)};Module["_Relu6"]=function(){return (Module["_Relu6"]=Module["asm"]["Relu6"]).apply(null,arguments)};Module["_ResizeBilinear"]=function(){return (Module["_ResizeBilinear"]=Module["asm"]["ResizeBilinear"]).apply(null,arguments)};Module["_ResizeBilinearGrad"]=function(){return (Module["_ResizeBilinearGrad"]=Module["asm"]["ResizeBilinearGrad"]).apply(null,arguments)};Module["_ResizeNearestNeighbor"]=function(){return (Module["_ResizeNearestNeighbor"]=Module["asm"]["ResizeNearestNeighbor"]).apply(null,arguments)};Module["_ResizeNearestNeighborGrad"]=function(){return (Module["_ResizeNearestNeighborGrad"]=Module["asm"]["ResizeNearestNeighborGrad"]).apply(null,arguments)};Module["_Reverse"]=function(){return (Module["_Reverse"]=Module["asm"]["Reverse"]).apply(null,arguments)};Module["_RotateWithOffset"]=function(){return (Module["_RotateWithOffset"]=Module["asm"]["RotateWithOffset"]).apply(null,arguments)};Module["_Round"]=function(){return (Module["_Round"]=Module["asm"]["Round"]).apply(null,arguments)};Module["_Rsqrt"]=function(){return (Module["_Rsqrt"]=Module["asm"]["Rsqrt"]).apply(null,arguments)};Module["_ScatterNd"]=function(){return (Module["_ScatterNd"]=Module["asm"]["ScatterNd"]).apply(null,arguments)};Module["_SearchSorted"]=function(){return (Module["_SearchSorted"]=Module["asm"]["SearchSorted"]).apply(null,arguments)};Module["_SelectV2"]=function(){return (Module["_SelectV2"]=Module["asm"]["SelectV2"]).apply(null,arguments)};Module["_Selu"]=function(){return (Module["_Selu"]=Module["asm"]["Selu"]).apply(null,arguments)};Module["_Sigmoid"]=function(){return (Module["_Sigmoid"]=Module["asm"]["Sigmoid"]).apply(null,arguments)};Module["_Sign"]=function(){return (Module["_Sign"]=Module["asm"]["Sign"]).apply(null,arguments)};Module["_Sin"]=function(){return (Module["_Sin"]=Module["asm"]["Sin"]).apply(null,arguments)};Module["_Sinh"]=function(){return (Module["_Sinh"]=Module["asm"]["Sinh"]).apply(null,arguments)};Module["_Softmax"]=function(){return (Module["_Softmax"]=Module["asm"]["Softmax"]).apply(null,arguments)};Module["_Softplus"]=function(){return (Module["_Softplus"]=Module["asm"]["Softplus"]).apply(null,arguments)};Module["_SparseFillEmptyRows"]=function(){return (Module["_SparseFillEmptyRows"]=Module["asm"]["SparseFillEmptyRows"]).apply(null,arguments)};Module["_SparseReshape"]=function(){return (Module["_SparseReshape"]=Module["asm"]["SparseReshape"]).apply(null,arguments)};Module["_SparseSegmentReduction"]=function(){return (Module["_SparseSegmentReduction"]=Module["asm"]["SparseSegmentReduction"]).apply(null,arguments)};Module["_SparseToDense"]=function(){return (Module["_SparseToDense"]=Module["asm"]["SparseToDense"]).apply(null,arguments)};Module["_Sqrt"]=function(){return (Module["_Sqrt"]=Module["asm"]["Sqrt"]).apply(null,arguments)};Module["_Square"]=function(){return (Module["_Square"]=Module["asm"]["Square"]).apply(null,arguments)};Module["_SquaredDifference"]=function(){return (Module["_SquaredDifference"]=Module["asm"]["SquaredDifference"]).apply(null,arguments)};Module["_Step"]=function(){return (Module["_Step"]=Module["asm"]["Step"]).apply(null,arguments)};Module["_StridedSlice"]=function(){return (Module["_StridedSlice"]=Module["asm"]["StridedSlice"]).apply(null,arguments)};Module["_Sub"]=function(){return (Module["_Sub"]=Module["asm"]["Sub"]).apply(null,arguments)};Module["_Sum"]=function(){return (Module["_Sum"]=Module["asm"]["Sum"]).apply(null,arguments)};Module["_Tan"]=function(){return (Module["_Tan"]=Module["asm"]["Tan"]).apply(null,arguments)};Module["_Tanh"]=function(){return (Module["_Tanh"]=Module["asm"]["Tanh"]).apply(null,arguments)};Module["_TensorScatterUpdate"]=function(){return (Module["_TensorScatterUpdate"]=Module["asm"]["TensorScatterUpdate"]).apply(null,arguments)};Module["_Tile"]=function(){return (Module["_Tile"]=Module["asm"]["Tile"]).apply(null,arguments)};Module["_TopK"]=function(){return (Module["_TopK"]=Module["asm"]["TopK"]).apply(null,arguments)};Module["_Transform"]=function(){return (Module["_Transform"]=Module["asm"]["Transform"]).apply(null,arguments)};Module["_Transpose"]=function(){return (Module["_Transpose"]=Module["asm"]["Transpose"]).apply(null,arguments)};Module["__FusedMatMul"]=function(){return (Module["__FusedMatMul"]=Module["asm"]["_FusedMatMul"]).apply(null,arguments)};Module["_malloc"]=function(){return (Module["_malloc"]=Module["asm"]["malloc"]).apply(null,arguments)};Module["_free"]=function(){return (Module["_free"]=Module["asm"]["free"]).apply(null,arguments)};Module["___errno_location"]=function(){return (Module["___errno_location"]=Module["asm"]["__errno_location"]).apply(null,arguments)};var stackSave=Module["stackSave"]=function(){return (stackSave=Module["stackSave"]=Module["asm"]["stackSave"]).apply(null,arguments)};var stackRestore=Module["stackRestore"]=function(){return (stackRestore=Module["stackRestore"]=Module["asm"]["stackRestore"]).apply(null,arguments)};var stackAlloc=Module["stackAlloc"]=function(){return (stackAlloc=Module["stackAlloc"]=Module["asm"]["stackAlloc"]).apply(null,arguments)};Module["dynCall_iijjiiii"]=function(){return (Module["dynCall_iijjiiii"]=Module["asm"]["dynCall_iijjiiii"]).apply(null,arguments)};Module["dynCall_jiji"]=function(){return (Module["dynCall_jiji"]=Module["asm"]["dynCall_jiji"]).apply(null,arguments)};Module["cwrap"]=cwrap;var calledRun;dependenciesFulfilled=function runCaller(){if(!calledRun)run();if(!calledRun)dependenciesFulfilled=runCaller;};function run(args){if(runDependencies>0){return}preRun();if(runDependencies>0){return}function doRun(){if(calledRun)return;calledRun=true;Module["calledRun"]=true;if(ABORT)return;initRuntime();readyPromiseResolve(Module);if(Module["onRuntimeInitialized"])Module["onRuntimeInitialized"]();postRun();}if(Module["setStatus"]){Module["setStatus"]("Running...");setTimeout(function(){setTimeout(function(){Module["setStatus"]("");},1);doRun();},1);}else {doRun();}}if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=[Module["preInit"]];while(Module["preInit"].length>0){Module["preInit"].pop()();}}run();var listenersAdded;if(beforeListeners){listenersAdded={uncaughtException:process.listeners("uncaughtException").filter(function(listener){return !beforeListeners.uncaughtException.indexOf(listener)>-1}),unhandledRejection:process.listeners("unhandledRejection").filter(function(listener){return !beforeListeners.unhandledRejection.indexOf(listener)>-1})};}var actualModule;if(typeof WasmBackendModule!=="undefined"){actualModule=WasmBackendModule;}else if(typeof WasmBackendModuleThreadedSimd!=="undefined"){actualModule=WasmBackendModuleThreadedSimd;}else {throw new Error("Could not find wasm module in post.js")}if(listenersAdded){var tmpDispose=actualModule["_dispose"];actualModule["_dispose"]=function(){tmpDispose();listenersAdded.uncaughtException.forEach(function(listener){process.removeListener("uncaughtException",listener);});listenersAdded.unhandledRejection.forEach(function(listener){process.removeListener("unhandledRejection",listener);});};}
+
+
+	  return WasmBackendModule.ready
+	}
+	);
+	})();
+	module.exports = WasmBackendModule; 
+} (tfjsBackendWasm$1));
+
+var tfjsBackendWasmExports = tfjsBackendWasm$1.exports;
+var tfjsBackendWasm = /*@__PURE__*/getDefaultExportFromCjs(tfjsBackendWasmExports);
+
+var wasmFactory_import = /*#__PURE__*/_mergeNamespaces({
+    __proto__: null,
+    default: tfjsBackendWasm
+}, [tfjsBackendWasmExports]);
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+// This workaround is required for importing in Node.js without using
+// the node bundle (for testing). This would not be necessary if we
+// flipped esModuleInterop to true, but we likely can't do that since
+// google3 does not use it.
+const wasmFactoryThreadedSimd = (tfjsBackendWasmThreadedSimd ||
+    wasmFactoryThreadedSimd_import);
+const wasmFactory = (tfjsBackendWasm || wasmFactory_import);
+class BackendWasm extends KernelBackend {
+    constructor(wasm) {
+        super();
+        this.wasm = wasm;
+        // 0 is reserved for null data ids.
+        this.dataIdNextNumber = 1;
+        this.wasm.tfjs.initWithThreadsCount(threadsCount);
+        this.wasm.tfjs.getThreadsCount();
+        this.dataIdMap = new DataStorage(this, engine());
+    }
+    write(values, shape, dtype) {
+        const dataId = { id: this.dataIdNextNumber++ };
+        this.move(dataId, values, shape, dtype, 1);
+        return dataId;
+    }
+    numDataIds() {
+        return this.dataIdMap.numDataIds();
+    }
+    async time(f) {
+        const start = now();
+        f();
+        const kernelMs = now() - start;
+        return { kernelMs };
+    }
+    move(dataId, values, shape, dtype, refCount) {
+        const id = this.dataIdNextNumber++;
+        if (dtype === 'string') {
+            const stringBytes = values;
+            this.dataIdMap.set(dataId, { id, stringBytes, shape, dtype, memoryOffset: null, refCount });
+            return;
+        }
+        const size = sizeFromShape(shape);
+        const numBytes = size * bytesPerElement(dtype);
+        // `>>> 0` is needed for above 2GB allocations because wasm._malloc returns
+        // a signed int32 instead of an unsigned int32.
+        // https://v8.dev/blog/4gb-wasm-memory
+        const memoryOffset = this.wasm._malloc(numBytes) >>> 0;
+        this.dataIdMap.set(dataId, { id, memoryOffset, shape, dtype, refCount });
+        this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+        if (values != null) {
+            this.wasm.HEAPU8.set(new Uint8Array(values.buffer, values.byteOffset, numBytes), memoryOffset);
+        }
+    }
+    async read(dataId) {
+        return this.readSync(dataId);
+    }
+    readSync(dataId, start, end) {
+        const { memoryOffset, dtype, shape, stringBytes } = this.dataIdMap.get(dataId);
+        if (dtype === 'string') {
+            // Slice all elements.
+            if ((start == null || start === 0) &&
+                (end == null || end >= stringBytes.length)) {
+                return stringBytes;
+            }
+            return stringBytes.slice(start, end);
+        }
+        start = start || 0;
+        end = end || sizeFromShape(shape);
+        const bytesPerElement$1 = bytesPerElement(dtype);
+        const bytes = this.wasm.HEAPU8.slice(memoryOffset + start * bytesPerElement$1, memoryOffset + end * bytesPerElement$1);
+        return typedArrayFromBuffer(bytes.buffer, dtype);
+    }
+    /**
+     * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+     * is released, false otherwise.
+     * @param dataId
+     * @oaram force Optional, remove the data regardless of refCount
+     */
+    disposeData(dataId, force = false) {
+        if (this.dataIdMap.has(dataId)) {
+            const data = this.dataIdMap.get(dataId);
+            data.refCount--;
+            if (!force && data.refCount > 0) {
+                return false;
+            }
+            this.wasm._free(data.memoryOffset);
+            this.wasm.tfjs.disposeData(data.id);
+            this.dataIdMap.delete(dataId);
+        }
+        return true;
+    }
+    /** Return refCount of a `TensorData`. */
+    refCount(dataId) {
+        if (this.dataIdMap.has(dataId)) {
+            const tensorData = this.dataIdMap.get(dataId);
+            return tensorData.refCount;
+        }
+        return 0;
+    }
+    incRef(dataId) {
+        const data = this.dataIdMap.get(dataId);
+        if (data != null) {
+            data.refCount++;
+        }
+    }
+    floatPrecision() {
+        return 32;
+    }
+    // Returns the memory offset of a tensor. Useful for debugging and unit
+    // testing.
+    getMemoryOffset(dataId) {
+        return this.dataIdMap.get(dataId).memoryOffset;
+    }
+    dispose() {
+        this.wasm.tfjs.dispose();
+        if ('PThread' in this.wasm) {
+            this.wasm.PThread.terminateAllThreads();
+        }
+        this.wasm = null;
+    }
+    memory() {
+        return { unreliable: false };
+    }
+    /**
+     * Make a tensor info for the output of an op. If `memoryOffset` is not
+     * present, this method allocates memory on the WASM heap. If `memoryOffset`
+     * is present, the memory was allocated elsewhere (in c++) and we just record
+     * the pointer where that memory lives.
+     */
+    makeOutput(shape, dtype, memoryOffset, values) {
+        let dataId;
+        if (memoryOffset == null) {
+            dataId = this.write(values !== null && values !== void 0 ? values : null, shape, dtype);
+        }
+        else {
+            const id = this.dataIdNextNumber++;
+            dataId = { id };
+            this.dataIdMap.set(dataId, { id, memoryOffset, shape, dtype, refCount: 1 });
+            const size = sizeFromShape(shape);
+            this.wasm.tfjs.registerTensor(id, size, memoryOffset);
+        }
+        return { dataId, shape, dtype };
+    }
+    typedArrayFromHeap({ shape, dtype, dataId }) {
+        const buffer = this.wasm.HEAPU8.buffer;
+        const { memoryOffset } = this.dataIdMap.get(dataId);
+        const size = sizeFromShape(shape);
+        switch (dtype) {
+            case 'float32':
+                return new Float32Array(buffer, memoryOffset, size);
+            case 'int32':
+                return new Int32Array(buffer, memoryOffset, size);
+            case 'bool':
+                return new Uint8Array(buffer, memoryOffset, size);
+            default:
+                throw new Error(`Unknown dtype ${dtype}`);
+        }
+    }
+}
+/**
+ * Returns the path of the WASM binary.
+ * @param simdSupported whether SIMD is supported
+ * @param threadsSupported whether multithreading is supported
+ * @param wasmModuleFolder the directory containing the WASM binaries.
+ */
+function getPathToWasmBinary(simdSupported, threadsSupported, wasmModuleFolder) {
+    let path = 'tfjs-backend-wasm.wasm';
+    if (simdSupported && threadsSupported) {
+        path = 'tfjs-backend-wasm-threaded-simd.wasm';
+    }
+    else if (simdSupported) {
+        path = 'tfjs-backend-wasm-simd.wasm';
+    }
+    if (wasmFileMap != null) {
+        if (wasmFileMap[path] != null) {
+            return wasmFileMap[path];
+        }
+    }
+    return wasmModuleFolder + path;
+}
+/**
+ * Initializes the wasm module and creates the js <--> wasm bridge.
+ *
+ * NOTE: We wrap the wasm module in a object with property 'wasm' instead of
+ * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested
+ * in Chrome 76).
+ */
+async function init() {
+    const [simdSupported, threadsSupported] = await Promise.all([
+        env().getAsync('WASM_HAS_SIMD_SUPPORT'),
+        env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT')
+    ]);
+    return new Promise((resolve, reject) => {
+        const factoryConfig = {};
+        /**
+         * This function overrides the Emscripten module locateFile utility.
+         * @param path The relative path to the file that needs to be loaded.
+         * @param prefix The path to the main JavaScript file's directory.
+         */
+        factoryConfig.locateFile = (path, prefix) => {
+            if (path.endsWith('.worker.js')) {
+                // Escape '\n' because Blob will turn it into a newline.
+                // There should be a setting for this, but 'endings: "native"' does
+                // not seem to work.
+                const response = wasmWorkerContents.replace(/\n/g, '\\n');
+                const blob = new Blob([response], { type: 'application/javascript' });
+                return URL.createObjectURL(blob);
+            }
+            if (path.endsWith('.wasm')) {
+                return getPathToWasmBinary(simdSupported, threadsSupported, prefix);
+            }
+            return prefix + path;
+        };
+        let initialized = false;
+        factoryConfig.onAbort = () => {
+            if (initialized) {
+                // Emscripten already called console.warn so no need to double log.
+                return;
+            }
+            if (initAborted) {
+                // Emscripten calls `onAbort` twice, resulting in double error
+                // messages.
+                return;
+            }
+            initAborted = true;
+            const rejectMsg = 'Make sure the server can serve the `.wasm` file relative to the ' +
+                'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
+            reject({ message: rejectMsg });
+        };
+        let wasm;
+        // If `wasmPath` has been defined we must initialize the vanilla module.
+        if (threadsSupported && simdSupported && wasmPath == null) {
+            factoryConfig.mainScriptUrlOrBlob = new Blob([`var WasmBackendModuleThreadedSimd = ` +
+                    wasmFactoryThreadedSimd.toString()], { type: 'text/javascript' });
+            wasm = wasmFactoryThreadedSimd(factoryConfig);
+        }
+        else {
+            // The wasmFactory works for both vanilla and SIMD binaries.
+            wasm = wasmFactory(factoryConfig);
+        }
+        // The `wasm` promise will resolve to the WASM module created by
+        // the factory, but it might have had errors during creation. Most
+        // errors are caught by the onAbort callback defined above.
+        // However, some errors, such as those occurring from a
+        // failed fetch, result in this promise being rejected. These are
+        // caught and re-rejected below.
+        wasm.then((module) => {
+            initialized = true;
+            initAborted = false;
+            const voidReturnType = null;
+            // Using the tfjs namespace to avoid conflict with emscripten's API.
+            module.tfjs = {
+                init: module.cwrap('init', null, []),
+                initWithThreadsCount: module.cwrap('init_with_threads_count', null, ['number']),
+                getThreadsCount: module.cwrap('get_threads_count', 'number', []),
+                registerTensor: module.cwrap('register_tensor', null, [
+                    'number',
+                    'number',
+                    'number', // memoryOffset
+                ]),
+                disposeData: module.cwrap('dispose_data', voidReturnType, ['number']),
+                dispose: module.cwrap('dispose', voidReturnType, []),
+            };
+            resolve({ wasm: module });
+        })
+            .catch(reject);
+    });
+}
+function typedArrayFromBuffer(buffer, dtype) {
+    switch (dtype) {
+        case 'float32':
+            return new Float32Array(buffer);
+        case 'int32':
+            return new Int32Array(buffer);
+        case 'bool':
+            return new Uint8Array(buffer);
+        default:
+            throw new Error(`Unknown dtype ${dtype}`);
+    }
+}
+let wasmPath = null;
+let wasmFileMap = {};
+let initAborted = false;
+let threadsCount = -1;
+
+/**
+ * @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const WASM_PRIORITY = 2;
+registerBackend('wasm', async () => {
+    const { wasm } = await init();
+    return new BackendWasm(wasm);
+}, WASM_PRIORITY);
 
 class RecordingInProgressElement {
     constructor(rec) {
@@ -81004,14 +88673,16 @@ class RecorderSource {
         this.debugLog(`onStandby`);
     }
     stop() {
+        this.debugLog(`stop. playing: ${__classPrivateFieldGet(this, _RecorderSource_playing, "f")}`);
         if (!__classPrivateFieldGet(this, _RecorderSource_playing, "f"))
             return;
-        this.debugLog(`stop`);
         __classPrivateFieldSet(this, _RecorderSource_playing, false, "f");
         this.events.dispatchEvent(new CustomEvent(Stopped));
     }
     runLoop() {
         var _a;
+        if (!__classPrivateFieldGet(this, _RecorderSource_playing, "f"))
+            return;
         this.app.handleData(__classPrivateFieldGet(this, _RecorderSource_active, "f")?.data[__classPrivateFieldGet(this, _RecorderSource_playPosition, "f")]);
         __classPrivateFieldSet(this, _RecorderSource_playPosition, (_a = __classPrivateFieldGet(this, _RecorderSource_playPosition, "f"), _a++, _a), "f");
         if (__classPrivateFieldGet(this, _RecorderSource_playPosition, "f") === __classPrivateFieldGet(this, _RecorderSource_active, "f")?.data.length)
@@ -81021,6 +88692,7 @@ class RecorderSource {
     async start() {
         if (__classPrivateFieldGet(this, _RecorderSource_playing, "f"))
             return false;
+        __classPrivateFieldSet(this, _RecorderSource_playing, true, "f");
         this.debugLog(`start`);
         this.events.dispatchEvent(new CustomEvent(Playing));
         setTimeout(() => this.runLoop(), __classPrivateFieldGet(this, _RecorderSource_sampleRate, "f"));
@@ -81203,6 +88875,7 @@ class App {
             this.events.dispatchEvent(new CustomEvent(Playing));
         });
         this.camera.events.addEventListener(Stopped, () => {
+            __classPrivateFieldGet(this, _App_instances, "m", _App_debugLog).call(this, `Got camera.Stopped`);
             this.events.dispatchEvent(new CustomEvent(Stopped));
             this.sampler.stop();
         });

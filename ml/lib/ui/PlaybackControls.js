@@ -8,11 +8,13 @@ export class PlaybackControls extends BaseUi {
     initUi() {
         const app = this.app;
         app.events.addEventListener(SourceEvents.Playing, () => {
+            this.debugLog(`Playing`);
             this.stopButton?.classList.remove(`hidden`);
             this.startButton?.classList.add(`hidden`);
             this.recButton?.classList.remove(`hidden`);
         });
         app.events.addEventListener(SourceEvents.Stopped, () => {
+            this.debugLog(`Stopped`);
             this.startButton?.classList.remove(`hidden`);
             this.stopButton?.classList.add(`hidden`);
             this.recButton?.classList.add(`hidden`);

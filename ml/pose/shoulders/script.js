@@ -1,28 +1,25 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import { Points } from '../../../ixfx/geometry.js';
-import {Bipolar, interpolate } from '../../../ixfx/data.js';
-import {fullSizeCanvas} from '../../../ixfx/dom.js';
-import * as Coco from '../../lib/Coco.js';
-import * as Types from '../../lib/Types.js';
-import { PosesTracker } from "../PosesTracker.js";
-import {PoseTracker} from "../PoseTracker.js";
+import { Bipolar, interpolate } from '../../../ixfx/data.js';
+import { fullSizeCanvas } from '../../../ixfx/dom.js';
+import * as MoveNet from "../Poses.js";
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
   // How often to compute data from poses & update thing
-  updateSpeedMs: 100,
+  updateSpeedMs: 10,
   // How much to push toward 0 neutral position
-  tiltDecay: 0.01,
+  tiltDecay: 0.001,
   // How much of computed angle to fold in
-  angleAmount: 0.1,
+  angleAmount: 0.003,
   // Empirically-discovered min angle
   tiltMin: -0.5,
   // Empirically-discovered max angle
   tiltMax: 0.5,
   remote: new Remote(),
-  poses: new PosesTracker({maxAgeMs: 2000 }),
+  poses: new MoveNet.PosesTracker({maxAgeMs: 2000 }),
 });
 
 /** 
@@ -100,11 +97,11 @@ const update = () => {
 
 /**
  * Return angle (in radians) between left and right shoulder
- * @param {Types.Pose} pose 
+ * @param {MoveNet.Pose} pose 
  */
 const computeShoulderAngle = (pose) => {
-  const left = Coco.getKeypoint(pose, `left_shoulder`);
-  const right = Coco.getKeypoint(pose, `right_shoulder`);
+  const left = MoveNet.Coco.getKeypoint(pose, `left_shoulder`);
+  const right = MoveNet.Coco.getKeypoint(pose, `right_shoulder`);
   const angleRadians = Points.angle(left, right);
   return angleRadians;
 };
@@ -114,7 +111,7 @@ const computeShoulderAngle = (pose) => {
  * @param {*} event 
  */
 const onPoseAdded = (event) => {
-  const poseTracker = /** @type PoseTracker */(event.detail);
+  const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
   console.log(`Pose added: ${poseTracker.guid}`);
 };
 
@@ -123,7 +120,7 @@ const onPoseAdded = (event) => {
  * @param {*} event 
  */
 const onPoseExpired = (event) => {
-  const poseTracker = /** @type PoseTracker */(event.detail);
+  const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
   console.log(`Pose expired: ${poseTracker.guid}`);
 };
 
@@ -166,7 +163,7 @@ setup();
  */
 function onReceivedPoses (packet) {
   const { _from, data } = packet;
-  const poseData =/** @type Types.Pose[] */(data);
+  const poseData =/** @type MoveNet.Pose[] */(data);
   
   // Pass each pose over to the poses tracker
   for (const pose of poseData) {

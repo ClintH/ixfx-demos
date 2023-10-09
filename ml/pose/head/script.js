@@ -2,16 +2,13 @@
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import * as Dom from '../../../ixfx/dom.js';
 import { Points } from '../../../ixfx/geometry.js';
-import * as Coco from '../../lib/Coco.js';
-import * as Types from '../../lib/Types.js';
-import { PosesTracker } from "../PosesTracker.js";
-import {PoseTracker} from "../PoseTracker.js";
+import * as MoveNet from "../Poses.js";
 
 const settings = Object.freeze({
   // How quickly to call update()
   updateRateMs: 100,
   remote: new Remote(),
-  poses: new PosesTracker({maxAgeMs: 500 }),
+  poses: new MoveNet.PosesTracker({maxAgeMs: 500 }),
   canvasEl: /** @type HTMLCanvasElement */(document.querySelector(`#canvas`)),
 });
 
@@ -61,13 +58,13 @@ const update = () => {
 
 /**
  * Returns a circle based on a few head keypoints
- * @param {Types.Pose} pose
+ * @param {MoveNet.Pose} pose
  * @return {Head} 
  */
 const computeHead = (pose) => {
-  const nose = Coco.getKeypoint(pose, `nose`);
-  const leftEar = Coco.getKeypoint(pose, `left_ear`);
-  const rightEar = Coco.getKeypoint(pose,`right_ear`);
+  const nose = MoveNet.Coco.getKeypoint(pose, `nose`);
+  const leftEar = MoveNet.Coco.getKeypoint(pose, `left_ear`);
+  const rightEar = MoveNet.Coco.getKeypoint(pose,`right_ear`);
   const earDistance = Points.distance(leftEar, rightEar);
   const radius = earDistance / 2;
   return {
@@ -132,7 +129,7 @@ const drawHead = (context, head) => {
  * @param {*} event 
  */
 const onPoseAdded = (event) => {
-  const poseTracker = /** @type PoseTracker */(event.detail);
+  const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
   console.log(`Pose added: ${poseTracker.guid}`);
 };
 
@@ -141,7 +138,7 @@ const onPoseAdded = (event) => {
  * @param {*} event 
  */
 const onPoseExpired = (event) => {
-  const poseTracker = /** @type PoseTracker */(event.detail);
+  const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
   console.log(`Pose expired: ${poseTracker.guid}`);
 };
 
@@ -151,7 +148,7 @@ const onPoseExpired = (event) => {
  */
 const onReceivedPoses = (packet) => {
   const { _from, data } = packet;
-  const poseData =/** @type Types.Pose[] */(data);
+  const poseData =/** @type MoveNet.Pose[] */(data);
   
   // Pass each pose over to the poses tracker
   for (const pose of poseData) {
