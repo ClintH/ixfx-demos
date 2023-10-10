@@ -19,7 +19,7 @@ const settings = Object.freeze({
   poses: new MoveNet.PosesTracker()
 });
 ```
-
+****
 ## Listening for data
 
 We need a function to handle incoming data. Most of the time we don't want to do anything more with it than add it to the PosesTracker.
@@ -52,7 +52,7 @@ We need two functions to be called when events fire
 const onPoseAdded = (event) => {
   const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
   // poseTracker.guid
-  // do what you want when a pose is added...
+  // do what you want when a pose is asdded...
 };
 const onPoseExpired = (event) => {
   const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
