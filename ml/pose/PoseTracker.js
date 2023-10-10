@@ -1,6 +1,5 @@
 import {PointTracker, TrackedPointMap, pointsTracker} from '../../ixfx/data.js';
-import * as Coco from '../lib/Coco.js';
-import * as Types from '../lib/Types.js';
+import * as MoveNet from '../lib/bundle.js';
 
 /**
  * Track details of a single pose
@@ -10,7 +9,7 @@ export class PoseTracker {
   #poseId;
   #guid;
   #seen = 0;
-  /** @type Types.Pose */
+  /** @type MoveNet.Pose */
   #data;
   /** @type TrackedPointMap */
   points;
@@ -101,6 +100,13 @@ export class PoseTracker {
   }
 
   /**
+   * Returns the prediction score of the pose
+   */
+  get score() {
+    return this.last.score ?? 0;
+  }
+
+  /**
    * Returns the last position for a given keypoint
    * @param {*} name 
    * @returns 
@@ -115,7 +121,7 @@ export class PoseTracker {
 
   /**
    * Update this pose with new information
-   * @param {Types.Pose} pose 
+   * @param {MoveNet.Pose} pose 
    */
   async seen(pose) {
     this.#seen = Date.now();

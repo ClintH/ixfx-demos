@@ -1,11 +1,11 @@
 import {Lines,Points} from '../../ixfx/geometry.js';
-import * as Types from '../lib/Types.js';
+import * as MoveNet from '../lib/bundle.js';
 
 import * as Coco from '../lib/Coco.js';
 
 /**
  * Sorts `poses` by horziontal
- * @param {Types.Pose[]} poses 
+ * @param {MoveNet.Pose[]} poses 
  */
 export const horizontalSort = (poses) => {
   const withCentroids = poses.map(p => ({
@@ -17,14 +17,14 @@ export const horizontalSort = (poses) => {
 
 /**
  * Return centroid of Pose
- * @param {Types.Pose} pose 
+ * @param {MoveNet.Pose} pose 
  */
 export const centroid = (pose) => Points.centroid(...pose.keypoints);
 
 /**
  * Returns a line between two named keypoints.
  * If either of the two points are not found, _undefined_ is returned.
- * @param {Types.Pose} pose 
+ * @param {MoveNet.Pose} pose 
  * @param {string} a 
  * @param {string} b 
  * @returns {Lines.Line|undefined}
@@ -43,7 +43,7 @@ export const lineBetween = (pose, a, b) => {
 /**
  * Returns the rough center of a pose, based on
  * the chest coordinates
- * @param {Types.Pose} pose 
+ * @param {MoveNet.Pose} pose 
  */
 export const roughCenter = (pose) => {
   const a = lineBetween(pose, `left_shoulder`, `right_hip`);
