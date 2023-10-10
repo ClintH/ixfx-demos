@@ -66,7 +66,6 @@ const onPoseExpired = (event) => {
   const { poses } = settings;
   const { things } = state;
   const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
-  const guid = poseTracker.guid;
   
   // Synchronise list of things with current poses
 
