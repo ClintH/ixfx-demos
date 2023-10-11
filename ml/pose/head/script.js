@@ -10,6 +10,7 @@ const settings = Object.freeze({
   remote: new Remote(),
   poses: new MoveNet.PosesTracker({maxAgeMs: 500 }),
   canvasEl: /** @type HTMLCanvasElement */(document.querySelector(`#canvas`)),
+  dataDisplay: new Dom.DataDisplay()
 });
 
 /**
@@ -48,30 +49,32 @@ const update = () => {
 
   // Compute a head size for each pose
   const heads = [];
-  for (const pose of poses.getRawPoses()) {
+  for (const pose of poses.get()) {
     const head = computeHead(pose);
     heads.push(head);
   }
-
   saveState({heads});
+
+  // For debug purposes, dump data to a table
+  settings.dataDisplay.update(heads);
 };
 
 /**
  * Returns a circle based on a few head keypoints
- * @param {MoveNet.Pose} pose
+ * @param {MoveNet.PoseTracker} pose
  * @return {Head} 
  */
 const computeHead = (pose) => {
-  const nose = MoveNet.Coco.getKeypoint(pose, `nose`);
-  const leftEar = MoveNet.Coco.getKeypoint(pose, `left_ear`);
-  const rightEar = MoveNet.Coco.getKeypoint(pose,`right_ear`);
+  const nose = pose.keypoint(`nose`);
+  const leftEar = pose.keypoint(`left_ear`);
+  const rightEar = pose.keypoint(`right_ear`);
   const earDistance = Points.distance(leftEar, rightEar);
   const radius = earDistance / 2;
   return {
     x: nose.x,
     y: nose.y,
     radius,
-    poseId: (pose.id ?? 0).toString()
+    poseId: pose.guid
   };
 };
 
@@ -200,4 +203,5 @@ function saveState (s) {
     ...state,
     ...s
   });
+  
 }
