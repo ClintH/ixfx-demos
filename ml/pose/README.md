@@ -100,7 +100,10 @@ remote.onData = (packet) {
 * Get all the poses from a particular sender: `getFromSender(senderId)`
 * Get all sender ids: `getSenderIds`
 * Get all raw pose data regardless of sender: `getRawPoses` (`getRawPosesByAge` sorts by last updated)
-* Get all trackers, regardless of sender: `get` (`getByAge` sorts by last updated)
+* Get all trackers, regardless of sender: `get` 
+* Get all trackers, sorted by age: `getByAge` (position 0 is most recently updated pose)
+* Get all trackers, sorted by score: `getByScore` (position 0 is highest-ranked score)
+* Get all trackers, sorted by horizontal position `getByHorizontal` (position 0 is the left-most pose)
 
 Example:
 ```js
