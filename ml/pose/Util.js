@@ -4,16 +4,26 @@ import * as MoveNet from '../lib/bundle.js';
 import * as Coco from '../lib/Coco.js';
 
 /**
- * Sorts `poses` by horziontal
+ * Sorts raw `poses` by horziontal.
+ * Leftmost pose will be first.
  * @param {MoveNet.Pose[]} poses 
  */
 export const horizontalSort = (poses) => {
   const withCentroids = poses.map(p => ({
     ...p,
     centroid:centroid(p)}));
-  withCentroids.sort((a,b) => a.centroid.x-b.centroid.y);
+  withCentroids.sort((a,b) => a.centroid.x-b.centroid.x);
   return withCentroids;
 };
+
+/**
+ * Sorts raw `poses` by score. Highest score comes first.
+ * @param {MoveNet.Pose[]} poses 
+ */
+export const scoreSort = (poses) => {
+  return poses.sort((a,b)=>(b.score ?? 0) -(a.score ?? 0));
+};
+
 
 /**
  * Return centroid of Pose
