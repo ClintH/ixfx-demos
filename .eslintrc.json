@@ -22,6 +22,7 @@
     "unicorn/consistent-destructuring": "off",
     "unicorn/no-thenable": "off",
     "unicorn/filename-case":"off",
+    "unicorn/no-abusive-eslint-disable":"off",
     "unicorn/prevent-abbreviations":"off",
     "unicorn/consistent-function-scoping": "off",
     "unicorn/require-post-message-target-origin": "off",

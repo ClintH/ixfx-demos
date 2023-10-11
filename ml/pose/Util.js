@@ -1,7 +1,8 @@
 import {Lines,Points} from '../../ixfx/geometry.js';
-import * as MoveNet from '../lib/bundle.js';
+import * as MoveNet from './Poses.js';
 
-import * as Coco from '../lib/Coco.js';
+//import * as Coco from '../lib/Coco.js';
+
 
 /**
  * Sorts raw `poses` by horziontal.
@@ -40,8 +41,8 @@ export const centroid = (pose) => Points.centroid(...pose.keypoints);
  * @returns {Lines.Line|undefined}
  */
 export const lineBetween = (pose, a, b) => {
-  const ptA = Coco.getKeypoint(pose, a);
-  const ptB = Coco.getKeypoint(pose, b);
+  const ptA = MoveNet.Coco.getKeypoint(pose, a);
+  const ptB = MoveNet.Coco.getKeypoint(pose, b);
   if (ptA === undefined) return;
   if (ptB === undefined) return;
   return Object.freeze({

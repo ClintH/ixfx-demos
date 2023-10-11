@@ -1,6 +1,5 @@
 import {PointTracker, TrackedPointMap, pointsTracker} from '../../ixfx/data.js';
-import * as MoveNet from '../lib/bundle.js';
-import * as Util from './Util.js';
+import * as MoveNet from './Poses.js';
 
 /**
  * Track details of a single pose
@@ -52,7 +51,7 @@ export class PoseTracker {
    * Returns the centroid of all the pose points
    */
   get centroid() {
-    return Util.centroid(this.#data); 
+    return MoveNet.centroid(this.#data); 
   }
 
   /**

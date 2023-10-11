@@ -1,4 +1,4 @@
-import * as MoveNet from '../lib/bundle.js';
+import * as MoveNet from './Poses.js';
 import { PoseTracker } from './PoseTracker.js';
 /**
  * @typedef {Readonly<{
@@ -105,7 +105,8 @@ export class PosesTracker {
     const values = [...this.#data.values()];
     for (const tracker of values) {
       yield tracker.last;
-    }  
+    }
+  
   }
 
   /**
