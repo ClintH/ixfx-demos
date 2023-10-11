@@ -2,7 +2,7 @@
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import { Points } from '../../../ixfx/geometry.js';
 import { Bipolar, interpolate } from '../../../ixfx/data.js';
-import { fullSizeCanvas } from '../../../ixfx/dom.js';
+import * as Dom from '../../../ixfx/dom.js';
 import * as MoveNet from "../Poses.js";
 import * as Things from './thing.js';
 import * as Util from './util.js';
@@ -20,6 +20,8 @@ const settings = Object.freeze({
   tiltMax: 0.5,
   remote: new Remote(),
   poses: new MoveNet.PosesTracker({maxAgeMs: 2000 }),
+  dataDisplay: new Dom.DataDisplay()
+
 });
 
 /** 
@@ -61,12 +63,12 @@ const use = () => {
 
 const update = () => {
   const { poses, angleAmount, tiltMax, tiltMin, tiltDecay } = settings;
-  let { tilt } = state;
+  let { tilt, thing } = state;
 
   // Calculate change in tilt
   let angleTotal = 0;
   let counted = 0;
-  for (const pose of poses.getRawPoses()) {
+  for (const pose of poses.get()) {
     let a = computeShoulderAngle(pose); // Note: angle is in radians, not degrees
 
     // Skip cases where we can't compute angle (eg missing keypoints)
@@ -91,17 +93,24 @@ const update = () => {
   // Push toward 0 (neutral)
   tilt = Bipolar.towardZero(tilt, tiltDecay);
 
+  
+  // Update thing
+  thing = Things.update(state.thing, state);
+    
   // Save
-  saveState({ tilt });
+  saveState({ tilt, thing });
+
+  // For debug purposes, dump data to a table
+  settings.dataDisplay.update(thing);
 };
 
 /**
  * Return angle (in radians) between left and right shoulder
- * @param {MoveNet.Pose} pose 
+ * @param {MoveNet.PoseTracker} pose 
  */
 const computeShoulderAngle = (pose) => {
-  const left = MoveNet.Coco.getKeypoint(pose, `left_shoulder`);
-  const right = MoveNet.Coco.getKeypoint(pose, `right_shoulder`);
+  const left =  pose.keypoint(`left_shoulder`);
+  const right = pose.keypoint(`right_shoulder`);
   const angleRadians = Points.angle(left, right);
   return angleRadians;
 };
@@ -132,18 +141,13 @@ function setup() {
   poses.events.addEventListener(`expired`, onPoseExpired);
 
   // Automatically size canvas to viewport
-  fullSizeCanvas(`#canvas`, onResized => {
+  Dom.fullSizeCanvas(`#canvas`, onResized => {
     saveState({ bounds: onResized.bounds });
   });
 
   // Update
   setInterval(() => {
-    // Update main state
     update();
-    // Update thing
-    saveState({ 
-      thing: Things.update(state.thing, state)
-    });
   }, settings.updateSpeedMs);
 
   // Draw loop
