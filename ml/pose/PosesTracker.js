@@ -52,7 +52,8 @@ export class PosesTracker {
 
   
   /**
-   * Enumerates each of the PoseTrackers, sorted by age
+   * Enumerates each of the PoseTrackers, sorted by age.
+   * The most recent pose will be at position 0.
    * (ie. one for each body).
    * Use getRawPosesByAge() to enumerate raw pose data
    */
@@ -63,13 +64,25 @@ export class PosesTracker {
   }
 
   /**
-   * Enumerates PoseTrackers, sorting by score
+   * Enumerates PoseTrackers, sorting by score.
+   * The higest score will be at position 0
    */
   *getByScore() {
     const trackers = [...this.#data.values()];
-    trackers.sort((a,b)=>a.score-b.score);
+    trackers.sort((a,b)=>b.score-a.score);
     yield* trackers.values();
   }
+
+  /**
+   * Enumerates PoseTrackers, sorting by the horizontal position.
+   * Leftmost pose will be at position 0.
+   */
+  *getByHorizontal() {
+    const trackers = [...this.#data.values()];
+    trackers.sort((a,b) => a.middle.x-b.middle.x);
+    yield* trackers;
+  }
+
   /**
    * Enumerate all PoseTracker instances
    */
