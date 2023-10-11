@@ -36,8 +36,7 @@ const update = () => {
   // Calculate middle of each pose
   const middles = [];
   for (const p of poses.get()) {
-    const middle = MoveNet.roughCenter(p.last);
-    if (middle === undefined) continue;
+    const middle = p.middle;
     middles.push({id:p.guid, position:middle });
   }
   saveState({middles});
@@ -51,7 +50,7 @@ const onPoseAdded = (event) => {
   const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
  
   // Create a thing for this pose
-  const x = poseTracker.middle().x;
+  const x = poseTracker.middle.x;
   const thingForPose = Things.create(poseTracker.guid, x);
 
   // Add it
@@ -73,14 +72,15 @@ const onPoseExpired = (event) => {
   const existing = new Set(poses.getGuids());
 
   // Split the current list into dead/alive using ixfx Arrays.filterAB
-  const [dead,alive] = Arrays.filterAB(things, t => !existing.has(t.id));
+  const [ dead, alive ] = Arrays.filterAB(things, t => !existing.has(t.id));
 
   // Remove the dead thigns
   for (const d of dead) {
     Things.remove(d);
   }
+  
   // Alive things are our new list of things
-  saveState({things:alive});
+  saveState({ things:alive });
 };
 
 /**

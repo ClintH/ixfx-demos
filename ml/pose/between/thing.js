@@ -42,7 +42,7 @@ export const update = (thing, ambientState, poseTracker) => {
   let {x,y} = thing.position;
   const avgDistance = computeDistance(thing, ambientState) ?? thing.distance;
   
-  const middle = poseTracker.middle();
+  const middle = poseTracker.middle;
   x = interpolate(positionInterpolate, x, middle.x);
   return Object.freeze({
     ...thing,
@@ -82,8 +82,8 @@ export const remove = (thing) => {
 
 /**
  * Creates a new thing
- * @param {string} id
- * @param {number} x
+ * @param {string} id Id of pose
+ * @param {number} x Initial x position
  * @returns {Thing}
  */
 export const create = (id, x) => {
