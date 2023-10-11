@@ -2,7 +2,7 @@ import * as Dom from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
   updateRateMs: 1000,
-  dataDisplay: new Dom.DataDisplay(false)
+  dataDisplay: new Dom.DataDisplay()
 });
 
 
@@ -22,13 +22,11 @@ let state = Object.freeze({
 const update = () => {
   saveState({
     random: Math.random()
-  })
+  });
   use();
-}
+};
 
-const use = () => {
-  
-}
+const use = () => {};
 
 function setup() {
   document.addEventListener(`pointermove`, event => {
@@ -37,7 +35,7 @@ function setup() {
         x: event.x / window.innerWidth,
         y: event.y / window.innerHeight
       }
-    })
+    });
   });
 
   setInterval(update, settings.updateRateMs);
