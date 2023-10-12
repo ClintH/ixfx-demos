@@ -1,6 +1,6 @@
 import { a as IStack, b as IStackImmutable, c as IMapOfMutableExtended, d as IMapOfMutable, M as MapArrayEvents, e as IMapOf, I as ICircularArray, f as circularArray } from './IMapOfMutableExtended-16486249.js';
 import { a as Trees } from './Trees-d82ea9e2.js';
-import { A as Arrays } from './Arrays-37472508.js';
+import { A as Arrays, I as Iterables } from './Arrays-55b8ddd0.js';
 import { S as SetStringImmutable, a as SetStringMutable, i as index$4 } from './index-d895b0c6.js';
 import { Q as QueueImmutable, i as index$3 } from './index-f5de7865.js';
 import { Q as QueueMutable } from './QueueMutable-b6767af6.js';
@@ -14,18 +14,6 @@ interface IMappish<K, V> {
 }
 interface IWithEntries<K, V> {
     entries(): IterableIterator<readonly [K, V]>;
-}
-
-declare const max: <V>(iterable: Iterable<V>, scorer: (v: V) => number) => V | undefined;
-declare const min: <V>(iterable: Iterable<V>, scorer: (v: V) => number) => V | undefined;
-
-declare const Iterables_max: typeof max;
-declare const Iterables_min: typeof min;
-declare namespace Iterables {
-  export {
-    Iterables_max as max,
-    Iterables_min as min,
-  };
 }
 
 /**
@@ -1508,4 +1496,4 @@ interface IMapImmutable<K, V> extends IMapBase<K, V> {
  */
 declare const immutable: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V> | undefined) => IMapImmutable<K, V>;
 
-export { ArrayKeys as A, EitherKey as E, IMapImmutable as I, ObjKeys as O, StackMutable as S, index$1 as a, Iterables as b, index$2 as c, StackImmutable as d, index as i };
+export { ArrayKeys as A, EitherKey as E, IMapImmutable as I, ObjKeys as O, StackMutable as S, index$1 as a, index$2 as b, StackImmutable as c, index as i };

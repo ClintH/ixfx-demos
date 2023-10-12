@@ -7726,6 +7726,7 @@ __export(modulation_exports, {
   adsrIterable: () => adsrIterable,
   defaultAdsrOpts: () => defaultAdsrOpts,
   jitter: () => jitter,
+  jitterAbsolute: () => jitterAbsolute,
   perSecond: () => perSecond,
   pingPong: () => pingPong,
   pingPongPercent: () => pingPongPercent
@@ -7973,7 +7974,7 @@ __export(Point_exports, {
   progressBetween: () => progressBetween,
   project: () => project,
   quantiseEvery: () => quantiseEvery2,
-  random: () => random2,
+  random: () => random3,
   reduce: () => reduce2,
   relation: () => relation,
   rightmost: () => rightmost,
@@ -9362,6 +9363,8 @@ var couldAddChild = (parent, prospectiveChild, eq = isEqualDefault) => {
 // src/collections/Iterables.ts
 var Iterables_exports = {};
 __export(Iterables_exports, {
+  compareValues: () => compareValues,
+  compareValuesEqual: () => compareValuesEqual,
   max: () => max2,
   min: () => min2
 });
@@ -9388,6 +9391,45 @@ var min2 = (iterable, scorer) => {
     }
   }
   return lowestValue;
+};
+var compareValuesEqual = (iterableA, iterableB, eq = isEqualDefault) => {
+  const returnValue = compareValues(iterableA, iterableB, eq);
+  return returnValue.a.length === 0 && returnValue.b.length === 0;
+};
+var compareValues = (a, b, eq = isEqualDefault) => {
+  const shared = [];
+  const aUnique = [];
+  const bUnique = [];
+  for (const element of a) {
+    let seenInB = false;
+    for (const element_ of b) {
+      if (eq(element, element_)) {
+        seenInB = true;
+        break;
+      }
+    }
+    if (seenInB) {
+      shared.push(element);
+    } else {
+      aUnique.push(element);
+    }
+  }
+  for (const element of b) {
+    let seenInA = false;
+    for (const element_ of a) {
+      if (eq(element, element_)) {
+        seenInA = true;
+      }
+    }
+    if (!seenInA) {
+      bUnique.push(element);
+    }
+  }
+  return {
+    shared,
+    a: aUnique,
+    b: bUnique
+  };
 };
 
 // src/collections/stack/index.ts
@@ -22814,6 +22856,8 @@ __export(Bipolar_exports, {
   clamp: () => clamp3,
   fromScalar: () => fromScalar,
   immutable: () => immutable4,
+  random: () => random2,
+  randomSource: () => randomSource,
   scale: () => scale3,
   toScalar: () => toScalar,
   towardZero: () => towardZero
@@ -22869,6 +22913,14 @@ var fromScalar = (scalarValue) => {
 };
 var scale3 = (inputValue, inMin, inMax) => {
   return clamp3(scaler(inMin, inMax, -1, 1)(inputValue));
+};
+var randomSource = (maxOrOptions) => {
+  const source = floatSource(maxOrOptions);
+  return () => source() * 2 - 1;
+};
+var random2 = (maxOrOptions) => {
+  const source = randomSource(maxOrOptions);
+  return source();
 };
 var clamp3 = (bipolarValue) => {
   if (typeof bipolarValue !== `number`)
@@ -26877,90 +26929,103 @@ var Resource = class {
    * @param pool Pool
    * @param data Data
    */
-  //eslint-disable-next-line functional/prefer-immutable-types
   constructor(pool, data) {
     this.pool = pool;
-    this._data = data;
-    this.lastUsersChange = 0;
-    this.resourcesWithoutUserExpireAfterMs = pool.resourcesWithoutUserExpireAfterMs;
-    this.capacityPerResource = pool.capacityPerResource;
-    this.users = [];
-    this.state = `idle`;
+    if (data === void 0)
+      throw new Error(`Parameter 'data' is undefined`);
+    if (pool === void 0)
+      throw new Error(`Parameter 'pool' is undefined`);
+    this.#data = data;
+    this.#lastUsersChange = 0;
+    this.#resourcesWithoutUserExpireAfterMs = pool.resourcesWithoutUserExpireAfterMs;
+    this.#capacityPerResource = pool.capacityPerResource;
+    this.#users = [];
+    this.#state = `idle`;
   }
-  state;
-  _data;
-  users;
-  capacityPerResource;
-  resourcesWithoutUserExpireAfterMs;
-  lastUsersChange;
+  #state;
+  #data;
+  #users;
+  #capacityPerResource;
+  #resourcesWithoutUserExpireAfterMs;
+  #lastUsersChange;
   /**
    * Gets data associated with resource.
    * Throws an error if disposed
    */
   get data() {
-    if (this.state === `disposed`)
+    if (this.#state === `disposed`)
       throw new Error(`Resource disposed`);
-    return this._data;
+    return this.#data;
+  }
+  /**
+   * Changes the data associated with this resource.
+   * Throws an error if disposed or `data` is undefined.
+   * @param data
+   */
+  updateData(data) {
+    if (this.#state === `disposed`)
+      throw new Error(`Resource disposed`);
+    if (data === void 0)
+      throw new Error(`Parameter 'data' is undefined`);
+    this.#data = data;
   }
   /**
    * Returns a human-readable debug string for resource
    * @returns
    */
   toString() {
-    return `Resource (expired: ${this.isExpiredFromUsers} users: ${this.users.length}, state: ${this.state}) data: ${JSON.stringify(this.data)}`;
+    return `Resource (expired: ${this.isExpiredFromUsers} users: ${this.#users.length}, state: ${this.#state}) data: ${JSON.stringify(this.data)}`;
   }
   /**
    * Assigns a user to this resource.
    * @internal
    * @param user
    */
-  //eslint-disable-next-line functional/prefer-immutable-types
   _assign(user) {
-    const existing = this.users.find((u) => u === user || u.key === user.key);
+    const existing = this.#users.find((u) => u === user || u.key === user.key);
     if (existing)
       throw new Error(`User instance already assigned to resource`);
-    this.users.push(user);
-    this.lastUsersChange = performance.now();
+    this.#users.push(user);
+    this.#lastUsersChange = performance.now();
   }
   /**
    * Releases a user from this resource
    * @internal
    * @param user
    */
-  //eslint-disable-next-line functional/prefer-immutable-types
   _release(user) {
-    this.users = this.users.filter((u) => u !== user);
+    this.#users = this.#users.filter((u) => u !== user);
     this.pool._release(user);
-    this.lastUsersChange = performance.now();
+    this.#lastUsersChange = performance.now();
   }
   /**
    * Returns true if resource can have additional users allocated
    */
   get hasUserCapacity() {
-    return this.usersCount < this.capacityPerResource;
+    return this.usersCount < this.#capacityPerResource;
   }
   /**
    * Returns number of uses of the resource
    */
   get usersCount() {
-    return this.users.length;
+    return this.#users.length;
   }
   /**
    * Returns true if automatic expiry is enabled, and that interval
    * has elapsed since the users list has changed for this resource
    */
   get isExpiredFromUsers() {
-    if (this.resourcesWithoutUserExpireAfterMs <= 0)
+    if (this.#resourcesWithoutUserExpireAfterMs <= 0)
       return false;
-    if (this.users.length > 0)
+    if (this.#users.length > 0)
       return false;
-    return performance.now() > this.resourcesWithoutUserExpireAfterMs + this.lastUsersChange;
+    return performance.now() > this.#resourcesWithoutUserExpireAfterMs + this.#lastUsersChange;
   }
   /**
    * Returns true if instance is disposed
    */
   get isDisposed() {
-    return this.state === `disposed`;
+    return this.#state === `disposed`;
   }
   /**
    * Disposes the resource.
@@ -26969,16 +27034,16 @@ var Resource = class {
    * @returns
    */
   dispose(reason) {
-    if (this.state === `disposed`)
+    if (this.#state === `disposed`)
       return;
-    const data = this._data;
-    this.state = `disposed`;
+    const data = this.#data;
+    this.#state = `disposed`;
     this.pool.log.log(`Resource disposed (${reason})`);
-    for (const u of this.users) {
+    for (const u of this.#users) {
       u._dispose(`resource-${reason}`);
     }
-    this.users = [];
-    this.lastUsersChange = performance.now();
+    this.#users = [];
+    this.#lastUsersChange = performance.now();
     this.pool._releaseResource(this, reason);
     if (this.pool.freeResource)
       this.pool.freeResource(data);
@@ -27346,7 +27411,8 @@ var leftmost = (...points) => findMinimum((a, b) => a.x <= b.x ? a : b, ...point
 var rightmost = (...points) => findMinimum((a, b) => a.x >= b.x ? a : b, ...points);
 function distance2(a, xOrB, y, z) {
   const pt = getPointParameter2(xOrB, y, z);
-  guard(pt);
+  guard(pt, `b`);
+  guard(a, `a`);
   return isPoint3d(pt) && isPoint3d(a) ? Math.hypot(pt.x - a.x, pt.y - a.y, pt.z - a.z) : Math.hypot(pt.x - a.x, pt.y - a.y);
 }
 var distanceToExterior = (a, shape) => {
@@ -27422,12 +27488,16 @@ var abs3 = (pt) => ({
   y: Math.abs(pt.y)
 });
 var angle = (a, b, c) => {
+  guard(a, `a`);
   if (b === void 0) {
     return Math.atan2(a.y, a.x);
-  } else if (c !== void 0) {
-    return Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(c.y - a.y, c.x - a.x);
   }
-  return Math.atan2(b.y - a.y, b.x - a.x);
+  guard(b, `b`);
+  if (c === void 0) {
+    return Math.atan2(b.y - a.y, b.x - a.x);
+  }
+  guard(c, `c`);
+  return Math.atan2(b.y - a.y, b.x - a.x) - Math.atan2(c.y - a.y, c.x - a.x);
 };
 var centroid2 = (...points) => {
   if (!Array.isArray(points))
@@ -27925,7 +27995,7 @@ function normaliseByRect3(a, b, c, d) {
     });
   }
 }
-var random2 = (rando) => {
+var random3 = (rando) => {
   if (rando === void 0)
     rando = defaultRandom;
   return Object.freeze({
@@ -28503,9 +28573,9 @@ __export(Layout_exports, {
 // src/geometry/CirclePacking.ts
 var CirclePacking_exports = {};
 __export(CirclePacking_exports, {
-  random: () => random3
+  random: () => random4
 });
-var random3 = (circles, container, opts = {}) => {
+var random4 = (circles, container, opts = {}) => {
   if (!Array.isArray(circles))
     throw new Error(`Parameter 'circles' is not an array`);
   const attempts = opts.attempts ?? 2e3;
@@ -29574,46 +29644,6 @@ function* square(timerOrFreq) {
   }
 }
 
-// src/modulation/Jitter.ts
-var jitter = (opts = {}) => {
-  const clamped = opts.clamped ?? true;
-  let r = (_) => 0;
-  if (typeof opts.absolute !== "undefined") {
-    throwNumberTest(
-      opts.absolute,
-      clamped ? `percentage` : `bipolar`,
-      `opts.absolute`
-    );
-    const absRand = floatSource({
-      min: -opts.absolute,
-      max: opts.absolute,
-      source: opts.source
-    });
-    r = (v) => v + absRand();
-  } else if (typeof opts.relative !== "undefined") {
-    throwNumberTest(
-      opts.relative,
-      clamped ? `percentage` : `bipolar`,
-      `opts.relative`
-    );
-    r = (v) => v + float({
-      min: -opts.relative * v,
-      max: opts.relative * v,
-      source: opts.source
-    });
-  } else {
-    throw new Error(`Either absolute or relative jitter amount is required.`);
-  }
-  const compute = (value) => {
-    throwNumberTest(value, clamped ? `percentage` : `bipolar`, `value`);
-    let v = r(value);
-    if (clamped)
-      v = clamp(v);
-    return v;
-  };
-  return compute;
-};
-
 // src/modulation/PerSecond.ts
 var perSecond = (amount) => {
   const perMilli = amount / 1e3;
@@ -29625,12 +29655,79 @@ var perSecond = (amount) => {
   };
 };
 
+// src/modulation/Jitter.ts
+var jitterAbsolute = (opts) => {
+  const { relative, absolute } = opts;
+  const clamped = opts.clamped ?? false;
+  const source = opts.source ?? defaultRandom;
+  if (absolute !== void 0) {
+    return (value) => {
+      const abs4 = source() * absolute * 2 - absolute;
+      const valueNew = value + abs4;
+      if (clamped)
+        return clamp(valueNew, 0, value);
+      return valueNew;
+    };
+  }
+  if (relative !== void 0) {
+    return (value) => {
+      const rel = value * relative;
+      const abs4 = source() * rel * 2 - rel;
+      const valueNew = value + abs4;
+      if (clamped)
+        return clamp(valueNew, 0, value);
+      return valueNew;
+    };
+  }
+  throw new Error(`Either absolute or relative fields expected`);
+};
+var jitter = (opts = {}) => {
+  const clamped = opts.clamped ?? true;
+  let r = (_) => 0;
+  if (opts.absolute !== void 0) {
+    throwNumberTest(
+      opts.absolute,
+      clamped ? `percentage` : `bipolar`,
+      `opts.absolute`
+    );
+    const absRand = floatSource({
+      min: -opts.absolute,
+      max: opts.absolute,
+      source: opts.source
+    });
+    r = (v) => v + absRand();
+  } else if (opts.relative === void 0) {
+    throw new TypeError(`Either absolute or relative jitter amount is required.`);
+  } else {
+    throwNumberTest(
+      opts.relative,
+      clamped ? `percentage` : `bipolar`,
+      `opts.relative`
+    );
+    r = (v) => v + float({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      min: -opts.relative * v,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      max: opts.relative * v,
+      source: opts.source
+    });
+  }
+  const compute = (value) => {
+    throwNumberTest(value, clamped ? `percentage` : `bipolar`, `value`);
+    let v = r(value);
+    if (clamped)
+      v = clamp(v);
+    return v;
+  };
+  return compute;
+};
+
 // src/modulation/index.ts
 try {
   if (typeof window !== `undefined`) {
     window.ixfx = {
       ...window.ixfx,
-      Modulation: { Forces: Forces_exports, jitter, Envelopes: Envelope_exports, Oscillators: Oscillator_exports, Easings: Easing_exports }
+      Modulation: { Forces: Forces_exports, Envelopes: Envelope_exports, Oscillators: Oscillator_exports, Easings: Easing_exports }
     };
   }
 } catch {
@@ -30361,13 +30458,14 @@ var averageWeighted = (data, weightings) => {
     weightings = weight(data, weightings);
   const ww = zip2(data, weightings);
   const [totalV, totalW] = ww.reduce(
-    (acc, v) => [acc[0] + v[0] * v[1], acc[1] + v[1]],
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    (accumulator, v) => [accumulator[0] + v[0] * v[1], accumulator[1] + v[1]],
     [0, 0]
   );
   return totalV / totalW;
 };
 var weight = (data, fn) => {
-  const f = fn === void 0 ? (x) => x : fn;
+  const f = fn ?? ((x) => x);
   return validNumbers(data).map(
     (v, index) => v * f(index / (validNumbers.length - 1))
   );
@@ -30375,14 +30473,14 @@ var weight = (data, fn) => {
 var validNumbers = (data) => data.filter((d) => typeof d === `number` && !Number.isNaN(d));
 var dotProduct4 = (values) => {
   let r = 0;
-  const len = values[0].length;
-  for (let i = 0; i < len; i++) {
+  const length6 = values[0].length;
+  for (let index = 0; index < length6; index++) {
     let t4 = 0;
-    for (let p = 0; p < values.length; p++) {
+    for (const [p, value] of values.entries()) {
       if (p === 0)
-        t4 = values[p][i];
+        t4 = value[index];
       else {
-        t4 *= values[p][i];
+        t4 *= value[index];
       }
     }
     r += t4;
@@ -30393,68 +30491,77 @@ var average = (data) => {
   if (data === void 0)
     throw new Error(`data parameter is undefined`);
   const valid = validNumbers(data);
-  const total4 = valid.reduce((acc, v) => acc + v, 0);
+  const total4 = valid.reduce((accumulator, v) => accumulator + v, 0);
   return total4 / valid.length;
 };
 var min5 = (data) => Math.min(...validNumbers(data));
-var maxIndex = (data) => data.reduce(
-  (bestIndex, value, index, arr) => value > arr[bestIndex] ? index : bestIndex,
-  0
+var maxIndex = (data) => (
+  // eslint-disable-next-line unicorn/no-array-reduce
+  data.reduce(
+    (bestIndex, value, index, array2) => value > array2[bestIndex] ? index : bestIndex,
+    0
+  )
 );
-var minIndex = (...data) => data.reduce(
-  (bestIndex, value, index, arr) => value < arr[bestIndex] ? index : bestIndex,
-  0
+var minIndex = (...data) => (
+  // eslint-disable-next-line unicorn/no-array-reduce
+  data.reduce(
+    (bestIndex, value, index, array2) => value < array2[bestIndex] ? index : bestIndex,
+    0
+  )
 );
 var max5 = (data) => Math.max(...validNumbers(data));
-var total2 = (data) => data.reduce((prev, curr) => {
-  if (typeof curr !== `number`)
-    return prev;
-  if (Number.isNaN(curr))
-    return prev;
-  if (Number.isFinite(curr))
-    return prev;
-  return prev + curr;
-}, 0);
+var total2 = (data) => (
+  // eslint-disable-next-line unicorn/no-array-reduce
+  data.reduce((previous, current) => {
+    if (typeof current !== `number`)
+      return previous;
+    if (Number.isNaN(current))
+      return previous;
+    if (Number.isFinite(current))
+      return previous;
+    return previous + current;
+  }, 0)
+);
 var maxFast = (data) => {
   let m = Number.MIN_SAFE_INTEGER;
-  for (let i = 0; i < data.length; i++) {
-    m = Math.max(m, data[i]);
+  for (const datum of data) {
+    m = Math.max(m, datum);
   }
   return m;
 };
 var totalFast = (data) => {
   let m = 0;
-  for (let i = 0; i < data.length; i++) {
-    m += data[i];
+  for (const datum of data) {
+    m += datum;
   }
   return m;
 };
 var minFast = (data) => {
   let m = Number.MIN_SAFE_INTEGER;
-  for (let i = 0; i < data.length; i++) {
-    m = Math.min(m, data[i]);
+  for (const datum of data) {
+    m = Math.min(m, datum);
   }
   return m;
 };
 
 // src/collections/Arrays.ts
-var guardArray = (array2, paramName = `?`) => {
+var guardArray = (array2, name = `?`) => {
   if (array2 === void 0) {
-    throw new Error(`Param '${paramName}' is undefined. Expected array.`);
+    throw new TypeError(`Param '${name}' is undefined. Expected array.`);
   }
   if (array2 === null) {
-    throw new Error(`Param '${paramName}' is null. Expected array.`);
+    throw new TypeError(`Param '${name}' is null. Expected array.`);
   }
   if (!Array.isArray(array2)) {
-    throw new Error(`Param '${paramName}' not an array as expected`);
+    throw new TypeError(`Param '${name}' not an array as expected`);
   }
 };
-var guardIndex = (array2, index, paramName = `index`) => {
+var guardIndex = (array2, index, name = `index`) => {
   guardArray(array2);
-  throwIntegerTest(index, `positive`, paramName);
+  throwIntegerTest(index, `positive`, name);
   if (index > array2.length - 1) {
     throw new Error(
-      `'${paramName}' ${index} beyond array max of ${array2.length - 1}`
+      `'${name}' ${index} beyond array max of ${array2.length - 1}`
     );
   }
 };
@@ -30463,15 +30570,15 @@ var valuesEqual = (array2, equality) => {
     throw new Error(`Param 'array' is not an array.`);
   if (array2.length === 0)
     return true;
-  const eq = equality === void 0 ? isEqualValueDefault : equality;
+  const eq = equality ?? isEqualValueDefault;
   const a = array2[0];
   const r = array2.some((v) => !eq(a, v));
   if (r)
     return false;
   return true;
 };
-var intersection = (a1, a2, equality = isEqualDefault) => a1.filter((e1) => a2.some((e2) => equality(e1, e2)));
-var flatten3 = (array2) => Array.prototype.concat.apply([], [...array2]);
+var intersection = (arrayA, arrayB, equality = isEqualDefault) => arrayA.filter((valueFromA) => arrayB.some((valueFromB) => equality(valueFromA, valueFromB)));
+var flatten3 = (array2) => [...array2].flat();
 var zip2 = (...arrays) => {
   if (arrays.some((a) => !Array.isArray(a))) {
     throw new Error(`All parameters must be an array`);
@@ -30480,12 +30587,12 @@ var zip2 = (...arrays) => {
   if (!valuesEqual(lengths3)) {
     throw new Error(`Arrays must be of same length`);
   }
-  const ret = [];
-  const len = lengths3[0];
-  for (let i = 0; i < len; i++) {
-    ret.push(arrays.map((a) => a[i]));
+  const returnValue = [];
+  const length6 = lengths3[0];
+  for (let index = 0; index < length6; index++) {
+    returnValue.push(arrays.map((a) => a[index]));
   }
-  return ret;
+  return returnValue;
 };
 var interleave = (...arrays) => {
   if (arrays.some((a) => !Array.isArray(a))) {
@@ -30495,14 +30602,14 @@ var interleave = (...arrays) => {
   if (!valuesEqual(lengths3)) {
     throw new Error(`Arrays must be of same length`);
   }
-  const ret = [];
-  const len = lengths3[0];
-  for (let i = 0; i < len; i++) {
-    for (let p = 0; p < arrays.length; p++) {
-      ret.push(arrays[p][i]);
+  const returnValue = [];
+  const length6 = lengths3[0];
+  for (let index = 0; index < length6; index++) {
+    for (const array2 of arrays) {
+      returnValue.push(array2[index]);
     }
   }
-  return ret;
+  return returnValue;
 };
 var ensureLength = (data, length6, expand = `undefined`) => {
   if (data === void 0)
@@ -30516,15 +30623,24 @@ var ensureLength = (data, length6, expand = `undefined`) => {
   }
   const d = [...data];
   const add3 = length6 - d.length;
-  for (let i = 0; i < add3; i++) {
-    if (expand === `undefined`) {
-      d.push(void 0);
-    } else if (expand === `repeat`) {
-      d.push(data[i % data.length]);
-    } else if (expand === `first`) {
-      d.push(data[0]);
-    } else if (expand === `last`) {
-      d.push(data[data.length - 1]);
+  for (let index = 0; index < add3; index++) {
+    switch (expand) {
+      case `undefined`: {
+        d.push(void 0);
+        break;
+      }
+      case `repeat`: {
+        d.push(data[index % data.length]);
+        break;
+      }
+      case `first`: {
+        d.push(data[0]);
+        break;
+      }
+      case `last`: {
+        d.push(data.at(-1));
+        break;
+      }
     }
   }
   return d;
@@ -30538,17 +30654,17 @@ var filterBetween = (array2, predicate, startIndex, endIndex) => {
   guardIndex(array2, startIndex, `startIndex`);
   guardIndex(array2, endIndex - 1, `endIndex`);
   const t4 = [];
-  for (let i = startIndex; i < endIndex; i++) {
-    if (predicate(array2[i], i, array2))
-      t4.push(array2[i]);
+  for (let index = startIndex; index < endIndex; index++) {
+    if (predicate(array2[index], index, array2))
+      t4.push(array2[index]);
   }
   return t4;
 };
 var randomIndex = (array2, rand = defaultRandom) => Math.floor(rand() * array2.length);
-var randomElementWeightedSource = (array2, weightings, rand = defaultRandom) => {
+var randomElementWeightedSource = (array2, weightings, randomSource2 = defaultRandom) => {
   if (array2.length !== weightings.length)
     throw new Error(`Lengths of 'array' and 'weightings' should be the same.`);
-  const r = weightedIndex(weightings);
+  const r = weightedIndex(weightings, randomSource2);
   return () => {
     const index = r();
     return array2[index];
@@ -30583,9 +30699,9 @@ var randomPluck = (array2, mutate = false, rand = defaultRandom) => {
 };
 var shuffle = (dataToShuffle, rand = defaultRandom) => {
   const array2 = [...dataToShuffle];
-  for (let i = array2.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [array2[i], array2[j]] = [array2[j], array2[i]];
+  for (let index = array2.length - 1; index > 0; index--) {
+    const index_ = Math.floor(rand() * (index + 1));
+    [array2[index], array2[index_]] = [array2[index_], array2[index]];
   }
   return array2;
 };
@@ -30599,25 +30715,37 @@ var sortByNumericProperty = (data, propertyName) => [...data].sort((a, b) => {
     return 1;
   return 0;
 });
-var without = (data, value, comparer = isEqualDefault) => data.filter((v) => !comparer(v, value));
+var without = (data, value, comparer = isEqualDefault) => {
+  if (Array.isArray(value)) {
+    const returnArray = [];
+    for (const source of data) {
+      if (!value.some((v) => comparer(source, v))) {
+        returnArray.push(source);
+      }
+    }
+    return returnArray;
+  } else {
+    return data.filter((v) => !comparer(v, value));
+  }
+};
 var withoutUndefined = (data) => {
   return data.filter((v) => v !== void 0);
 };
 var until = (data, predicate, initial) => {
-  const ret = [];
+  const returnValue = [];
   let total4 = initial;
-  for (let i = 0; i < data.length; i++) {
-    const [stop, acc] = predicate(data[i], total4);
+  for (const datum of data) {
+    const [stop, accumulator] = predicate(datum, total4);
     if (stop)
       break;
-    total4 = acc;
-    ret.push(data[i]);
+    total4 = accumulator;
+    returnValue.push(datum);
   }
-  return ret;
+  return returnValue;
 };
 var remove2 = (data, index) => {
   if (!Array.isArray(data)) {
-    throw new Error(`'data' parameter should be an array`);
+    throw new TypeError(`'data' parameter should be an array`);
   }
   guardIndex(data, index, `index`);
   return [...data.slice(0, index), ...data.slice(index + 1)];
@@ -30648,60 +30776,55 @@ var sample = (array2, amount) => {
     throw new Error(`Subsample steps exceeds array length`);
   }
   const r = [];
-  for (let i = subsampleSteps - 1; i < array2.length; i += subsampleSteps) {
-    r.push(array2[i]);
+  for (let index = subsampleSteps - 1; index < array2.length; index += subsampleSteps) {
+    r.push(array2[index]);
   }
   return r;
 };
-function chunks2(arr, size) {
+function chunks2(array2, size) {
   const output = [];
-  for (let i = 0; i < arr.length; i += size) {
-    output.push(arr.slice(i, i + size));
+  for (let index = 0; index < array2.length; index += size) {
+    output.push(array2.slice(index, index + size));
   }
   return output;
 }
-var mergeByKey2 = (keyFn, reconcile, ...arrays) => {
+var mergeByKey2 = (keyFunction, reconcile, ...arrays) => {
   const result = /* @__PURE__ */ new Map();
   for (const m of arrays) {
     for (const mv of m) {
       if (mv === void 0)
         continue;
-      const mk = keyFn(mv);
+      const mk = keyFunction(mv);
       let v = result.get(mk);
-      if (v) {
-        v = reconcile(v, mv);
-      } else {
-        v = mv;
-      }
+      v = v ? reconcile(v, mv) : mv;
       result.set(mk, v);
     }
   }
   return [...result.values()];
 };
-var reducePairwise = (arr, reducer, initial) => {
-  guardArray(arr, `arr`);
-  if (arr.length < 2)
+var reducePairwise = (array2, reducer, initial) => {
+  guardArray(array2, `arr`);
+  if (array2.length < 2)
     return initial;
-  for (let i = 0; i < arr.length - 1; i++) {
-    initial = reducer(initial, arr[i], arr[i + 1]);
+  for (let index = 0; index < array2.length - 1; index++) {
+    initial = reducer(initial, array2[index], array2[index + 1]);
   }
   return initial;
 };
 var filterAB = (data, filter5) => {
   const a = [];
   const b = [];
-  for (let i = 0; i < data.length; i++) {
-    if (filter5(data[i]))
-      a.push(data[i]);
+  for (const datum of data) {
+    if (filter5(datum))
+      a.push(datum);
     else
-      b.push(data[i]);
+      b.push(datum);
   }
   return [a, b];
 };
 var unique2 = (arrays, comparer = isEqualDefault) => {
   const t4 = [];
-  for (let i = 0; i < arrays.length; i++) {
-    const a = arrays[i];
+  for (const a of arrays) {
     if (Array.isArray(a)) {
       for (const v of additionalValues(t4, a, comparer)) {
         t4.push(v);
@@ -30712,66 +30835,27 @@ var unique2 = (arrays, comparer = isEqualDefault) => {
   }
   return t4;
 };
-var containsDuplicateValues = (array2, keyFn = toStringDefault) => {
+var containsDuplicateValues = (array2, keyFunction = toStringDefault) => {
   if (!Array.isArray(array2))
     throw new Error(`Parameter needs to be an array`);
   try {
-    const _ = fromIterable(array2, keyFn);
-  } catch (ex) {
+    const _ = fromIterable(array2, keyFunction);
+  } catch {
     return true;
   }
   return false;
 };
-var compareValues = (a, b, eq = isEqualDefault) => {
-  const shared = [];
-  const aUnique = [];
-  const bUnique = [];
-  for (let i = 0; i < a.length; i++) {
-    let seenInB = false;
-    for (let x = 0; x < b.length; x++) {
-      if (eq(a[i], b[x])) {
-        seenInB = true;
-        break;
-      }
-    }
-    if (seenInB) {
-      shared.push(a[i]);
-    } else {
-      aUnique.push(a[i]);
-    }
-  }
-  for (let i = 0; i < b.length; i++) {
-    let seenInA = false;
-    for (let x = 0; x < a.length; x++) {
-      if (eq(b[i], a[x])) {
-        seenInA = true;
-      }
-    }
-    if (!seenInA) {
-      bUnique.push(b[i]);
-    }
-  }
-  return {
-    shared,
-    a: aUnique,
-    b: bUnique
-  };
-};
-var compareValuesEqual = (a, b, eq = isEqualDefault) => {
-  const returnValue = compareValues(a, b, eq);
-  return returnValue.a.length === 0 && returnValue.b.length === 0;
-};
 var contains = (haystack, needles, eq = isEqualDefault) => {
   if (!Array.isArray(haystack)) {
-    throw new Error(`Expects haystack parameter to be an array`);
+    throw new TypeError(`Expects haystack parameter to be an array`);
   }
   if (!Array.isArray(needles)) {
-    throw new Error(`Expects needles parameter to be an array`);
+    throw new TypeError(`Expects needles parameter to be an array`);
   }
-  for (let i = 0; i < needles.length; i++) {
+  for (const needle of needles) {
     let found = false;
-    for (let x = 0; x < haystack.length; x++) {
-      if (eq(needles[i], haystack[x])) {
+    for (const element of haystack) {
+      if (eq(needle, element)) {
         found = true;
         break;
       }
@@ -30785,7 +30869,7 @@ var contains = (haystack, needles, eq = isEqualDefault) => {
 function* additionalValues(input, values, eq = isEqualDefault) {
   const yielded = [];
   for (const v of values) {
-    const found = input.find((i) => eq(i, v));
+    const found = input.find((index) => eq(index, v));
     if (!found) {
       const alreadyYielded = yielded.find((ii) => eq(ii, v));
       if (!alreadyYielded) {
@@ -30840,19 +30924,19 @@ var weightedIntegerSource = (maxOrOptions) => {
 };
 var weightedInteger = (maxOrOptions) => weightedIntegerSource(maxOrOptions)();
 var weightedIndex = (weightings, rand = defaultRandom) => {
-  let precompute = [];
+  const precompute = [];
   let total4 = 0;
-  for (let i = 0; i < weightings.length; i++) {
-    total4 += weightings[i];
-    precompute[i] = total4;
+  for (let index = 0; index < weightings.length; index++) {
+    total4 += weightings[index];
+    precompute[index] = total4;
   }
   if (total4 !== 1)
     throw new Error(`Weightings should add up to 1. Got: ${total4}`);
   return () => {
     const v = rand();
-    for (let i = 0; i < precompute.length; i++) {
-      if (v <= precompute[i])
-        return i;
+    for (let index = 0; index < precompute.length; index++) {
+      if (v <= precompute[index])
+        return index;
     }
     throw new Error(`Bug: weightedIndex could not select index`);
   };
@@ -30895,7 +30979,7 @@ var integerSource = (maxOrOptions) => {
     max7 = 1;
     min7 = options.max;
   }
-  const randomSource = options.source ?? defaultRandom;
+  const randomSource2 = options.source ?? defaultRandom;
   if (min7 > max7) {
     throw new Error(`Min value is greater than max (min: ${min7} max: ${max7})`);
   }
@@ -30905,7 +30989,7 @@ var integerSource = (maxOrOptions) => {
     throw new Error(`Max and min values cannot be the same (${max7})`);
   }
   const amt = Math.abs(max7 - min7);
-  return () => Math.floor(randomSource() * amt) + min7;
+  return () => Math.floor(randomSource2() * amt) + min7;
 };
 var integer = (maxOrOptions) => integerSource(maxOrOptions)();
 var floatSource = (maxOrOptions = 1) => {
@@ -31176,6 +31260,8 @@ export {
   Shape_exports,
   QuadTree_exports,
   Trees_exports,
+  compareValuesEqual,
+  compareValues,
   Iterables_exports,
   StackImmutable,
   stack_exports,
@@ -31389,8 +31475,9 @@ export {
   Envelope_exports,
   Forces_exports,
   Oscillator_exports,
-  jitter,
   perSecond,
+  jitterAbsolute,
+  jitter,
   modulation_exports,
   average3 as average2,
   averageWeighted2,
@@ -31468,8 +31555,6 @@ export {
   filterAB,
   unique2 as unique,
   containsDuplicateValues,
-  compareValues,
-  compareValuesEqual,
   contains,
   additionalValues,
   Arrays_exports
@@ -31492,4 +31577,4 @@ tslib/tslib.es6.js:
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** *)
 */
-//# sourceMappingURL=chunk-5DUW2L2T.js.map
+//# sourceMappingURL=chunk-WTPDBAQ5.js.map

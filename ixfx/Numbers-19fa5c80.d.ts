@@ -28,7 +28,7 @@ declare const average: (...numbers: ReadonlyArray<number>) => number;
  * @param numbers
  * @returns
  */
-declare const averageWeighted: (weightings: ReadonlyArray<number> | EasingFn, ...numbers: ReadonlyArray<number>) => number;
+declare const averageWeighted: (weightings: Array<number> | ReadonlyArray<number> | EasingFn, ...numbers: Array<number> | ReadonlyArray<number>) => number;
 /**
  * Apples `fn` to every key of `obj` which is numeric.
  * ```js

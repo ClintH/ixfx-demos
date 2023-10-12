@@ -194,11 +194,11 @@ declare namespace Colour$1 {
   };
 }
 
-interface RandomOptions {
-    readonly max: number;
-    readonly min?: number;
-    readonly source?: RandomSource;
-}
+type RandomOptions = Readonly<{
+    max: number;
+    min?: number;
+    source?: RandomSource;
+}>;
 /**
  * Default random number generator: `Math.random`.
  */
@@ -212,16 +212,16 @@ type RandomSource = () => number;
 /**
  * Options for producing weighted distribution
  */
-interface WeightedOptions {
+type WeightedOptions = Readonly<{
     /**
      * Easing function to use (optional)
      */
-    readonly easing?: EasingName;
+    easing?: EasingName;
     /**
      * Random source (optional)
      */
-    readonly source?: RandomSource;
-}
+    source?: RandomSource;
+}>;
 /***
  * Returns a random number, 0..1, weighted by a given easing function.
  * Default easing is `quadIn`, which skews towards zero.
@@ -473,10 +473,10 @@ declare const floatSource: (maxOrOptions?: number | RandomOptions) => RandomSour
  * @returns Random number
  */
 declare const float: (maxOrOptions?: number | RandomOptions) => number;
-interface StringOptions {
-    readonly length: number;
-    readonly source?: RandomSource;
-}
+type StringOptions = Readonly<{
+    length: number;
+    source?: RandomSource;
+}>;
 /**
  * Returns a string of random letters and numbers of a given `length`.
  *
@@ -731,7 +731,7 @@ declare namespace Random {
  * @param data Data to average
  * @param weightings Array of weightings that match up to data array, or an easing function
  */
-declare const averageWeighted: (data: readonly number[], weightings: readonly number[] | EasingFn) => number;
+declare const averageWeighted: (data: Array<number> | ReadonlyArray<number>, weightings: Array<number> | ReadonlyArray<number> | EasingFn) => number;
 /**
  * Applies a function `fn` to the elements of an array, weighting them based on their relative position.
  *
@@ -763,21 +763,21 @@ declare const averageWeighted: (data: readonly number[], weightings: readonly nu
  * @param data Array of numbers
  * @param fn Returns a weighting based on the given relative position. If unspecified, `(x) => x` is used.
  */
-declare const weight: (data: readonly number[], fn?: ((relativePos: number) => number) | undefined) => readonly number[];
+declare const weight: (data: Array<number> | ReadonlyArray<number>, fn?: ((relativePos: number) => number) | undefined) => Array<number>;
 /**
  * Returns an array of all valid numbers from `data`
  *
  * @param data
  * @returns
  */
-declare const validNumbers: (data: readonly number[]) => number[];
+declare const validNumbers: (data: ReadonlyArray<number>) => number[];
 /**
  * Returns the dot product of two arbitrary-sized arrays. Assumed they are of the same length.
  * @param a
  * @param b
  * @returns
  */
-declare const dotProduct: (values: ReadonlyArray<readonly number[]>) => number;
+declare const dotProduct: (values: ReadonlyArray<ReadonlyArray<number>>) => number;
 /**
  * Calculates the average of all numbers in an array.
  * Array items which aren't a valid number are ignored and do not factor into averaging.
@@ -800,7 +800,7 @@ declare const dotProduct: (values: ReadonlyArray<readonly number[]>) => number;
  * @param data Data to average.
  * @returns Average of array
  */
-declare const average: (data: readonly number[]) => number;
+declare const average: (data: ReadonlyArray<number>) => number;
 /**
  * Returns the minimum number out of `data`.
  * Undefined and non-numbers are silently ignored.
@@ -812,7 +812,7 @@ declare const average: (data: readonly number[]) => number;
  * @param data
  * @returns Minimum number
  */
-declare const min: (data: readonly number[]) => number;
+declare const min$1: (data: ReadonlyArray<number>) => number;
 /**
  * Returns the index of the largest value.
  * ```js
@@ -823,7 +823,7 @@ declare const min: (data: readonly number[]) => number;
  * @param data Array of numbers
  * @returns Index of largest value
  */
-declare const maxIndex: (data: readonly number[]) => number;
+declare const maxIndex: (data: ReadonlyArray<number>) => number;
 /**
  * Returns the index of the smallest value.
  *
@@ -835,7 +835,7 @@ declare const maxIndex: (data: readonly number[]) => number;
  * @param data Array of numbers
  * @returns Index of smallest value
  */
-declare const minIndex: (...data: readonly number[]) => number;
+declare const minIndex: (...data: ReadonlyArray<number>) => number;
 /**
  * Returns the maximum number out of `data`.
  * Undefined and non-numbers are silently ignored.
@@ -847,7 +847,7 @@ declare const minIndex: (...data: readonly number[]) => number;
  * @param data List of numbers
  * @returns Maximum number
  */
-declare const max: (data: readonly number[]) => number;
+declare const max$1: (data: ReadonlyArray<number>) => number;
 /**
  * Returns the total of `data`.
  * Undefined and non-numbers are silently ignored.
@@ -859,7 +859,7 @@ declare const max: (data: readonly number[]) => number;
  * @param data Array of numbers
  * @returns Total
  */
-declare const total: (data: readonly number[]) => number;
+declare const total: (data: ReadonlyArray<number>) => number;
 /**
  * Returns the maximum out of `data` without pre-filtering for speed.
  *
@@ -872,7 +872,7 @@ declare const total: (data: readonly number[]) => number;
  * @param data
  * @returns Maximum
  */
-declare const maxFast: (data: readonly number[] | Float32Array) => number;
+declare const maxFast: (data: ReadonlyArray<number> | Float32Array) => number;
 /**
  * Returns the total of `data` without pre-filtering for speed.
  *
@@ -885,7 +885,7 @@ declare const maxFast: (data: readonly number[] | Float32Array) => number;
  * @param data
  * @returns Maximum
  */
-declare const totalFast: (data: readonly number[] | Float32Array) => number;
+declare const totalFast: (data: ReadonlyArray<number> | Float32Array) => number;
 /**
  * Returns the maximum out of `data` without pre-filtering for speed.
  *
@@ -898,7 +898,69 @@ declare const totalFast: (data: readonly number[] | Float32Array) => number;
  * @param data
  * @returns Maximum
  */
-declare const minFast: (data: readonly number[] | Float32Array) => number;
+declare const minFast: (data: ReadonlyArray<number> | Float32Array) => number;
+
+declare const max: <V>(iterable: Iterable<V>, scorer: (v: V) => number) => V | undefined;
+declare const min: <V>(iterable: Iterable<V>, scorer: (v: V) => number) => V | undefined;
+/**
+ * Returns _true_ if all values in iterables are equal, regardless
+ * of their position. Uses === equality semantics by default.
+ *
+ * @example Default equality checking
+ * ```js
+ * const a = ['apples','oranges','pears'];
+ * const b = ['pears','oranges','apples'];
+ * compareValuesEqual(a, b); // True
+ * ```
+ *
+ * @example Custom equality checking
+ * ```js
+ * const a = [ { name: 'John' }];
+ * const b = [ { name: 'John' }];
+ * // False, since object identies are different
+ * compareValuesEqual(a, b);
+ * // True, since now we're comparing by value
+ * compareValuesEqual(a, b, (aa,bb) => aa.name === bb.name);
+ * ```
+ * @param arrays
+ * @param eq
+ */
+declare const compareValuesEqual: <V>(iterableA: Iterable<V>, iterableB: Iterable<V>, eq?: (a: V, b: V) => boolean) => boolean;
+/**
+ * Compares the values of two iterables, returning a list
+ * of items they have in common, and those unique in `a` or `b`.
+ *
+ * ```js
+ * const a = ['apples', 'oranges', 'pears' ]
+ * const b = ['pears', 'kiwis', 'bananas' ];
+ *
+ * const r = compareValues(a, b);
+ * r.shared;  // [ 'pears' ]
+ * r.a;       // [ 'apples', 'oranges' ]
+ * r.b;       // [ 'kiwis', 'bananas' ]
+ * @param a
+ * @param b
+ * @param eq
+ * @returns
+ */
+declare const compareValues: <V>(a: Iterable<V>, b: Iterable<V>, eq?: (a: V, b: V) => boolean) => {
+    shared: V[];
+    a: V[];
+    b: V[];
+};
+
+declare const Iterables_compareValues: typeof compareValues;
+declare const Iterables_compareValuesEqual: typeof compareValuesEqual;
+declare const Iterables_max: typeof max;
+declare const Iterables_min: typeof min;
+declare namespace Iterables {
+  export {
+    Iterables_compareValues as compareValues,
+    Iterables_compareValuesEqual as compareValuesEqual,
+    Iterables_max as max,
+    Iterables_min as min,
+  };
+}
 
 /**
  * Functions for working with primitive arrays, regardless of type
@@ -914,16 +976,16 @@ declare const minFast: (data: readonly number[] | Float32Array) => number;
  * ```
  * @private
  * @param array
- * @param paramName
+ * @param name
  */
-declare const guardArray: <V>(array: ArrayLike<V>, paramName?: string) => void;
+declare const guardArray: <V>(array: ArrayLike<V>, name?: string) => void;
 /**
  * Throws if `index` is an invalid array index for `array`, and if
  * `array` itself is not a valid array.
  * @param array
  * @param index
  */
-declare const guardIndex: <V>(array: ArrayLike<V>, index: number, paramName?: string) => void;
+declare const guardIndex: <V>(array: ArrayLike<V>, index: number, name?: string) => void;
 /**
  * Returns _true_ if all the contents of the array are identical.
  *
@@ -962,24 +1024,24 @@ declare const valuesEqual: <V>(array: readonly V[] | V[], equality?: IsEqual<V> 
  * ```
  * See also:
  * * {@link unique}: Unique set of items amongst one or more arrays
- * @param a1
- * @param a2
+ * @param arrayA
+ * @param arrayB
  * @param equality
  * @returns
  */
-declare const intersection: <V>(a1: readonly V[], a2: readonly V[], equality?: IsEqual<V>) => V[];
+declare const intersection: <V>(arrayA: readonly V[] | V[], arrayB: readonly V[] | V[], equality?: IsEqual<V>) => V[];
 /**
  * Returns a 'flattened' copy of array, un-nesting arrays one level
  * ```js
- * flatten([1, [2, 3], [[4]]] ]);
+ * flatten([1, [2, 3], [[4]] ]);
  * // Yields: [ 1, 2, 3, [4]];
  * ```
  * @param array
  * @returns
  */
-declare const flatten: <V>(array: readonly (V | readonly V[])[]) => V[];
+declare const flatten: (array: ReadonlyArray<any> | Array<any>) => Array<any>;
 /**
- * Zip ombines the elements of two or more arrays based on their index.
+ * Zip combines the elements of two or more arrays based on their index.
  *
  * ```js
  * import { zip } from 'https://unpkg.com/ixfx/dist/arrays.js';
@@ -1002,7 +1064,7 @@ declare const flatten: <V>(array: readonly (V | readonly V[])[]) => V[];
  * @param arrays
  * @returns Zipped together array
  */
-declare const zip: (...arrays: ReadonlyArray<any> | ReadonlyArray<any>) => Array<any>;
+declare const zip: (...arrays: Array<Array<any>> | ReadonlyArray<Array<any>> | ReadonlyArray<ReadonlyArray<any>>) => Array<any>;
 /**
  * Returns an interleaving of two or more arrays. All arrays must be the same length.
  *
@@ -1018,16 +1080,16 @@ declare const zip: (...arrays: ReadonlyArray<any> | ReadonlyArray<any>) => Array
  * @param arrays
  * @returns
  */
-declare const interleave: <V>(...arrays: readonly (readonly V[])[]) => V[];
+declare const interleave: <V>(...arrays: readonly (readonly V[])[] | V[][]) => V[];
 /**
- * Returns an copy of `data` with specified length.
+ * Returns a copy of `data` with specified length.
  * If the input array is too long, it is truncated.
  *
  * If the input array is too short, it will be expanded based on the `expand` strategy:
  *  - 'undefined': fill with `undefined`
  *  - 'repeat': repeat array elements, starting from position 0
- *  - 'first': continually use first element
- *  - 'last': continually use last element
+ *  - 'first': repeat with first element from `data`
+ *  - 'last': repeat with last element from `data`
  *
  * ```js
  * import { ensureLength } from 'https://unpkg.com/ixfx/dist/arrays.js';
@@ -1043,7 +1105,7 @@ declare const interleave: <V>(...arrays: readonly (readonly V[])[]) => V[];
  * @param expand Expand strategy
  * @typeParam V Type of array
  */
-declare const ensureLength: <V>(data: readonly V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => V[];
+declare const ensureLength: <V>(data: readonly V[] | V[], length: number, expand?: `undefined` | `repeat` | `first` | `last`) => V[];
 /**
  * Return elements from `array` that match a given `predicate`, and moreover are between
  * the given `startIndex` (inclusive) and `endIndex` (exclusive).
@@ -1063,7 +1125,7 @@ declare const ensureLength: <V>(data: readonly V[], length: number, expand?: `un
  * @param startIndex Start index (defaults to 0)
  * @param endIndex End index (by default runs until end)
  */
-declare const filterBetween: <V>(array: readonly V[], predicate: (value: V, index: number, array: readonly V[]) => boolean, startIndex?: number, endIndex?: number) => V[];
+declare const filterBetween: <V>(array: readonly V[] | V[], predicate: (value: V, index: number, array: readonly V[] | V[]) => boolean, startIndex?: number, endIndex?: number) => V[];
 /**
  * Returns a random array index.
  *
@@ -1091,9 +1153,9 @@ declare const randomIndex: <V>(array: ArrayLike<V>, rand?: RandomSource) => numb
  * ```
  * @param array
  * @param weightings
- * @param rand
+ * @param randomSource
  */
-declare const randomElementWeightedSource: <V>(array: ArrayLike<V>, weightings: Array<number>, rand?: RandomSource) => () => V;
+declare const randomElementWeightedSource: <V>(array: ArrayLike<V>, weightings: Array<number>, randomSource?: RandomSource) => () => V;
 /**
  * Returns random element.
  *
@@ -1140,7 +1202,7 @@ declare const randomElement: <V>(array: ArrayLike<V>, rand?: RandomSource) => V;
  * @return Returns an object `{value:V|undefined, array:V[]}`
  *
  */
-declare const randomPluck: <V>(array: readonly V[], mutate?: boolean, rand?: RandomSource) => {
+declare const randomPluck: <V>(array: readonly V[] | V[], mutate?: boolean, rand?: RandomSource) => {
     readonly value: V | undefined;
     readonly array: V[];
 };
@@ -1178,9 +1240,9 @@ declare const shuffle: <V>(dataToShuffle: readonly V[], rand?: RandomSource) => 
  * @param data
  * @param propertyName
  */
-declare const sortByNumericProperty: <V, K extends keyof V>(data: readonly V[], propertyName: K) => V[];
+declare const sortByNumericProperty: <V, K extends keyof V>(data: readonly V[] | V[], propertyName: K) => V[];
 /**
- * Returns an array with a value omitted. If value is not found, result will be a copy of input.
+ * Returns an array with value(s) omitted. If value is not found, result will be a copy of input.
  * Value checking is completed via the provided `comparer` function.
  * By default checking whether `a === b`. To compare based on value, use the `isEqualValueDefault` comparer.
  *
@@ -1220,11 +1282,11 @@ declare const sortByNumericProperty: <V, K extends keyof V>(data: readonly V[], 
  *
  * @template V Type of array items
  * @param data Source array
- * @param value Value to remove
+ * @param value Value(s) to remove
  * @param comparer Comparison function. If not provided `Util.isEqualDefault` is used, which compares using `===`
  * @return Copy of array without value.
  */
-declare const without: <V>(data: readonly V[] | V[], value: V, comparer?: IsEqual<V>) => V[];
+declare const without: <V>(data: readonly V[] | V[], value: V | V[], comparer?: IsEqual<V>) => V[];
 declare const withoutUndefined: <V>(data: readonly V[] | V[]) => V[];
 /**
  * Returns all items in `data` for as long as `predicate` returns true.
@@ -1249,7 +1311,7 @@ declare const withoutUndefined: <V>(data: readonly V[] | V[]) => V[];
  * @param predicate
  * @returns
  */
-declare const until: <V, A>(data: readonly V[] | V[], predicate: (v: V, acc: A) => readonly [stop: boolean, acc: A], initial: A) => V[];
+declare const until: <V, A>(data: readonly V[] | V[], predicate: (v: V, accumulator: A) => readonly [stop: boolean, acc: A], initial: A) => V[];
 /**
  * Removes an element at `index` index from `data`, returning the resulting array without modifying the original.
  *
@@ -1346,7 +1408,7 @@ declare const sample: <V>(array: ArrayLike<V>, amount: number) => V[];
  * @param size
  * @returns
  */
-declare function chunks<V>(arr: ReadonlyArray<V> | ReadonlyArray<V>, size: number): V[][];
+declare function chunks<V>(array: ReadonlyArray<V>, size: number): V[][];
 /**
  * Returns a result of a merged into b.
  * B is always the 'newer' data that takes
@@ -1394,7 +1456,7 @@ type MergeReconcile<V> = (a: V, b: V) => V;
  * @param reconcile Returns value to decide 'winner' when keys conflict.
  * @param arrays Arrays of data to merge
  */
-declare const mergeByKey: <V>(keyFn: ToString<V>, reconcile: MergeReconcile<V>, ...arrays: readonly (readonly V[])[]) => V[];
+declare const mergeByKey: <V>(keyFunction: ToString<V>, reconcile: MergeReconcile<V>, ...arrays: readonly (readonly V[])[]) => V[];
 /**
  * Reduces in a pairwise fashion.
  *
@@ -1419,7 +1481,7 @@ declare const mergeByKey: <V>(keyFn: ToString<V>, reconcile: MergeReconcile<V>, 
  * @param initial
  * @returns
  */
-declare const reducePairwise: <V, X>(arr: readonly V[], reducer: (acc: X, a: V, b: V) => X, initial: X) => X;
+declare const reducePairwise: <V, X>(array: readonly V[], reducer: (accumulator: X, a: V, b: V) => X, initial: X) => X;
 /**
  * Returns two separate arrays of everything that `filter` returns _true_,
  * and everything it returns _false_ on. The in-built Array.filter() in
@@ -1470,48 +1532,7 @@ declare const unique: <V>(arrays: V[] | V[][] | readonly V[] | readonly (readonl
  * @param comparer
  * @returns
  */
-declare const containsDuplicateValues: <V>(array: V[] | readonly V[], keyFn?: (itemToMakeStringFor: V) => string) => boolean;
-/**
- * Compares the values of two arrays, returning a list
- * of items they have in common, and those unique in `a` or `b`.
- *
- * ```js
- * const a = ['apples', 'oranges', 'pears' ]
- * const b = ['pears', 'kiwis', 'bananas' ];
- *
- * const r = compareValues(a, b);
- * r.shared;  // [ 'pears' ]
- * r.a;       // [ 'apples', 'oranges' ]
- * r.b;       // [ 'kiwis', 'bananas' ]
- * @param a
- * @param b
- * @param eq
- * @returns
- */
-declare const compareValues: <V>(a: ArrayLike<V>, b: ArrayLike<V>, eq?: (a: V, b: V) => boolean) => {
-    shared: V[];
-    a: V[];
-    b: V[];
-};
-/**
- * Returns _true_ if all values in `arrays` are equal, regardless
- * of their position. Use === checking by default.
- * ```js
- * const a = ['apples','oranges','pears'];
- * const b = ['pears','oranges','apples'];
- * compareValuesEqual(a, b); // True
- * ```
- *
- * ```js
- * const a = [ { name: 'John' }];
- * const b = [ { name: 'John' }];
- * // Use a custom equality checker
- * compareValuesEqual(a, b, (aa,bb) => aa.name === bb.name);
- * ```
- * @param arrays
- * @param eq
- */
-declare const compareValuesEqual: <V>(a: ArrayLike<V>, b: ArrayLike<V>, eq?: (a: V, b: V) => boolean) => boolean;
+declare const containsDuplicateValues: <V>(array: V[] | readonly V[], keyFunction?: (itemToMakeStringFor: V) => string) => boolean;
 /**
  * Returns _true_ if contents of `needles` is contained by `haystack`.
  * ```js
@@ -1578,11 +1599,9 @@ declare const Arrays_guardArray: typeof guardArray;
 declare const Arrays_guardIndex: typeof guardIndex;
 declare const Arrays_interleave: typeof interleave;
 declare const Arrays_intersection: typeof intersection;
-declare const Arrays_max: typeof max;
 declare const Arrays_maxFast: typeof maxFast;
 declare const Arrays_maxIndex: typeof maxIndex;
 declare const Arrays_mergeByKey: typeof mergeByKey;
-declare const Arrays_min: typeof min;
 declare const Arrays_minFast: typeof minFast;
 declare const Arrays_minIndex: typeof minIndex;
 declare const Arrays_minMaxAvg: typeof minMaxAvg;
@@ -1628,11 +1647,11 @@ declare namespace Arrays {
     Arrays_guardIndex as guardIndex,
     Arrays_interleave as interleave,
     Arrays_intersection as intersection,
-    Arrays_max as max,
+    max$1 as max,
     Arrays_maxFast as maxFast,
     Arrays_maxIndex as maxIndex,
     Arrays_mergeByKey as mergeByKey,
-    Arrays_min as min,
+    min$1 as min,
     Arrays_minFast as minFast,
     Arrays_minIndex as minIndex,
     Arrays_minMaxAvg as minMaxAvg,
@@ -1658,4 +1677,4 @@ declare namespace Arrays {
   };
 }
 
-export { mergeByKey as $, Arrays as A, guardArray as B, Colour$1 as C, guardIndex as D, valuesEqual as E, intersection as F, GenerateRandomOptions as G, flatten as H, zip as I, interleave as J, ensureLength as K, filterBetween as L, randomElementWeightedSource as M, randomPluck as N, shuffle as O, sortByNumericProperty as P, without as Q, Random as R, StringOptions as S, withoutUndefined as T, until as U, remove as V, WeightedOptions as W, groupBy as X, sample as Y, chunks as Z, MergeReconcile as _, RandomSource as a, reducePairwise as a0, filterAB as a1, unique as a2, containsDuplicateValues as a3, compareValues as a4, compareValuesEqual as a5, contains as a6, additionalValues as a7, averageWeighted as a8, weight as a9, validNumbers as aa, dotProduct as ab, average as ac, min as ad, maxIndex as ae, minIndex as af, max as ag, total as ah, maxFast as ai, totalFast as aj, minFast as ak, Rgb as b, RandomOptions as c, defaultRandom as d, weighted as e, WeightedIntegerOptions as f, weightedIntegerSource as g, weightedInteger as h, integerUniqueGen as i, weightedIndex as j, gaussian as k, gaussianSource as l, integerSource as m, integer as n, floatSource as o, float as p, shortGuid as q, minutesMsSource as r, string as s, minutesMs as t, secondsMsSource as u, secondsMs as v, weightedSource as w, randomElement as x, randomHue as y, randomIndex as z };
+export { MergeReconcile as $, Arrays as A, guardArray as B, Colour$1 as C, guardIndex as D, valuesEqual as E, intersection as F, GenerateRandomOptions as G, flatten as H, Iterables as I, zip as J, interleave as K, ensureLength as L, filterBetween as M, randomElementWeightedSource as N, randomPluck as O, shuffle as P, sortByNumericProperty as Q, Random as R, StringOptions as S, without as T, withoutUndefined as U, until as V, WeightedOptions as W, remove as X, groupBy as Y, sample as Z, chunks as _, RandomOptions as a, mergeByKey as a0, reducePairwise as a1, filterAB as a2, unique as a3, containsDuplicateValues as a4, contains as a5, additionalValues as a6, compareValues as a7, compareValuesEqual as a8, averageWeighted as a9, weight as aa, validNumbers as ab, dotProduct as ac, average as ad, min$1 as ae, maxIndex as af, minIndex as ag, max$1 as ah, total as ai, maxFast as aj, totalFast as ak, minFast as al, RandomSource as b, Rgb as c, defaultRandom as d, weighted as e, WeightedIntegerOptions as f, weightedIntegerSource as g, weightedInteger as h, integerUniqueGen as i, weightedIndex as j, gaussian as k, gaussianSource as l, integerSource as m, integer as n, floatSource as o, float as p, shortGuid as q, minutesMsSource as r, string as s, minutesMs as t, secondsMsSource as u, secondsMs as v, weightedSource as w, randomElement as x, randomHue as y, randomIndex as z };

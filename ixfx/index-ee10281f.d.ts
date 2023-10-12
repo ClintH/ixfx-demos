@@ -3,10 +3,11 @@ import { T as ToString } from './Util-6386ef7e.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 import { a as KeyValue } from './KeyValue-f5a637ea.js';
 import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as TimestampedObject, c as TrackedValueMap, d as NumberTrackerResults, e as Timestamped, n as numberTracker } from './NumberTracker-e28ed6a4.js';
-import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-5f820ff1.js';
-import { C as Coord } from './Polar-2985c7f0.js';
+import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-23cb5d9f.js';
+import { C as Coord } from './Polar-2feb60e6.js';
 import { I as Interval } from './IntervalType-a4b20f1c.js';
-import { I as IMapImmutable } from './Map-c67bc910.js';
+import { I as IMapImmutable } from './Map-b692bac0.js';
+import { a as RandomOptions, b as RandomSource } from './Arrays-55b8ddd0.js';
 import { L as LogSet } from './Types-bce495ac.js';
 
 /**
@@ -2095,6 +2096,42 @@ declare const fromScalar: (scalarValue: number) => number;
  */
 declare const scale: (inputValue: number, inMin: number, inMax: number) => number;
 /**
+ * Source for random bipolar values
+ * ```js
+ * const r = Bipolar.randomSource();
+ * r(); // Produce random value on -1...1 scale
+ * ```
+ *
+ * Options can be provided, for example
+ * ```js
+ * // -0.5 to 0.5 range
+ * Bipolar.randomSource({ max: 0.5 });
+ * ```
+ *
+ * Consider using {@link random} if you just want a one-off random
+ * value.
+ * @param source
+ * @returns
+ */
+declare const randomSource: (maxOrOptions?: number | RandomOptions) => RandomSource;
+/**
+ * Returns a random bipolar value
+ * ```js
+ * const r = Bipolar.random(); // -1...1 random
+ * ```
+ *
+ * Options can be provided, eg.
+ * ```js
+ * Bipolar.random({ max: 0.5 }); // -0.5..0.5 random
+ * ```
+ *
+ * Use {@link randomSource} if you want to generate random
+ * values with same settings repeatedly.
+ * @param maxOrOptions
+ * @returns
+ */
+declare const random: (maxOrOptions?: number | RandomOptions) => number;
+/**
  * Clamp a bipolar value
  * ```js
  * import { Bipolar } from 'https://unpkg.com/ixfx/dist/data.js';
@@ -2132,6 +2169,8 @@ type Bipolar_BipolarWrapper = BipolarWrapper;
 declare const Bipolar_clamp: typeof clamp;
 declare const Bipolar_fromScalar: typeof fromScalar;
 declare const Bipolar_immutable: typeof immutable;
+declare const Bipolar_random: typeof random;
+declare const Bipolar_randomSource: typeof randomSource;
 declare const Bipolar_scale: typeof scale;
 declare const Bipolar_toScalar: typeof toScalar;
 declare const Bipolar_towardZero: typeof towardZero;
@@ -2141,6 +2180,8 @@ declare namespace Bipolar {
     Bipolar_clamp as clamp,
     Bipolar_fromScalar as fromScalar,
     Bipolar_immutable as immutable,
+    Bipolar_random as random,
+    Bipolar_randomSource as randomSource,
     Bipolar_scale as scale,
     Bipolar_toScalar as toScalar,
     Bipolar_towardZero as towardZero,
@@ -2404,11 +2445,13 @@ type Opts<V> = {
     readonly capacity?: number;
     /**
      * If above 0, users will be removed if there is no activity after this interval.
-     * Activity is marked whenever `use` us called with that user key
+     * Activity is marked whenever `use` us called with that user key.
+     * Default: disabled
      */
     readonly userExpireAfterMs?: number;
     /**
-     * If above 0, resources with no users will be automatically removed after this interval
+     * If above 0, resources with no users will be automatically removed after this interval.
+     * Default: disabled
      */
     readonly resourcesWithoutUserExpireAfterMs?: number;
     /**
@@ -2416,11 +2459,13 @@ type Opts<V> = {
      */
     readonly capacityPerResource?: number;
     /**
-     * What to do if pool is full and a new resource allocation is requested
+     * What to do if pool is full and a new resource allocation is requested.
+     * Default is `error`, throwing an error when pool is full.
      */
     readonly fullPolicy?: FullPolicy;
     /**
-     * If true, additional logging will trace activity of pool
+     * If true, additional logging will trace activity of pool.
+     * Default: false
      */
     readonly debug?: boolean;
     /**
@@ -2511,13 +2556,8 @@ declare class PoolUser<V> extends SimpleEventEmitter<PoolUserEventMap<V>> {
  * A resource allocated in the Pool
  */
 declare class Resource<V> {
+    #private;
     readonly pool: Pool<V>;
-    private state;
-    private readonly _data;
-    private users;
-    private readonly capacityPerResource;
-    private readonly resourcesWithoutUserExpireAfterMs;
-    private lastUsersChange;
     /**
      * Constructor.
      * @param pool Pool
@@ -2529,6 +2569,12 @@ declare class Resource<V> {
      * Throws an error if disposed
      */
     get data(): V;
+    /**
+     * Changes the data associated with this resource.
+     * Throws an error if disposed or `data` is undefined.
+     * @param data
+     */
+    updateData(data: V): void;
     /**
      * Returns a human-readable debug string for resource
      * @returns

@@ -4,7 +4,7 @@ import { I as Interval } from './IntervalType-a4b20f1c.js';
 import { Q as QueueMutable } from './QueueMutable-b6767af6.js';
 import { C as Continuously } from './Continuously-af72c010.js';
 import { N as NumberTracker } from './NumberTracker-e28ed6a4.js';
-import { a as Point, f as Rect } from './Point-5f820ff1.js';
+import { a as Point, f as Rect } from './Point-23cb5d9f.js';
 import { M as ManualCapturer } from './Video-02eb65f6.js';
 
 /**
