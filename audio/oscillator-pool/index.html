@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oscillator-pool</title>
+</head>
+
+<body>
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 240;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 50%, 90%);
+      --fg: hsl(var(--hue), 30%, 30%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+  </style>
+  <section>
+    <h1>oscillator-pool</h1>
+    <p>Press keys or touch to make sound.</p>
+    <p>Key presses trigger sound from a pool of five voices (with tones randomly assigned from a short scale). Pressing and holding a key will sustain that tone.</p>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>
