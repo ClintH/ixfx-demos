@@ -105,7 +105,7 @@ const drawHead = (context, head) => {
 
   const headAbs = Points.multiplyScalar(head,scaleBy);
   const radius = head.radius*scaleBy;
-  const tracker = poses.getByPoseId(head.poseId);
+  const tracker = poses.getByGuid(head.poseId);
   if (tracker === undefined) return;
   const hue = tracker.hue;
   

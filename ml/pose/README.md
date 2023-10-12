@@ -97,7 +97,7 @@ remote.onData = (packet) {
 
 ## Enumerating data
 
-* Get all the poses from a particular sender: `getFromSender(senderId)`
+* Get all the trackers from a particular sender: `getFromSender(senderId)`
 * Get all sender ids: `getSenderIds`
 * Get all raw pose data regardless of sender: `getRawPoses` (`getRawPosesByAge` sorts by last updated)
 * Get all trackers, regardless of sender: `get` 
