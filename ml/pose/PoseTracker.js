@@ -32,6 +32,13 @@ export class PoseTracker {
   }
 
   /**
+   * Returns the id of the sender
+   */
+  get peerId() {
+    return this.#fromId;
+  }
+
+  /**
    * Returns the middle of the pose bounding box
    * @returns 
    */
