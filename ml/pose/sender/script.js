@@ -3,8 +3,12 @@ import * as MoveNet from "../Poses.js";
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 
+const params = (new URL(document.location.toString())).searchParams;
+const peerId = params.get(`peerId`);
 const remote = new Remote({
   allowNetwork: false,
+  // Set peer id if it's not null
+  peerId: peerId === null ? undefined : peerId
   // websocket: `wss://${window.location.host}/ws`
 });
 
