@@ -27,7 +27,6 @@ export class PosesTracker {
 
   events = new EventTarget();
 
-
   /**
    * 
    * @param {Partial<PosesTrackerOptions>} options 
