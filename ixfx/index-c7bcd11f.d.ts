@@ -109,6 +109,29 @@ declare namespace Elapsed {
   };
 }
 
+type Dispatch<V> = (value: V) => void;
+declare class DispatchList<V> {
+    #private;
+    constructor();
+    /**
+     * Returns _true_ if list is empty
+     * @returns
+     */
+    isEmpty(): boolean;
+    /**
+     * Adds a handler
+     * @param handler
+     * @param options
+     * @returns
+     */
+    add(handler: Dispatch<V>, options?: {
+        once?: boolean;
+    }): string;
+    remove(id: string): boolean;
+    notify(value: V): void;
+    clear(): void;
+}
+
 type IntervalOpts = {
     /**
      * Sleep a fixed period of time regardless of how long each invocation of 'produce' takes
@@ -842,6 +865,9 @@ declare const index_ContinuouslyOpts: typeof ContinuouslyOpts;
 declare const index_ContinuouslySyncCallback: typeof ContinuouslySyncCallback;
 type index_DebouncedFunction = DebouncedFunction;
 type index_DelayOpts = DelayOpts;
+type index_Dispatch<V> = Dispatch<V>;
+type index_DispatchList<V> = DispatchList<V>;
+declare const index_DispatchList: typeof DispatchList;
 declare const index_Elapsed: typeof Elapsed;
 declare const index_HasCompletion: typeof HasCompletion;
 type index_IntervalOpts = IntervalOpts;
@@ -894,6 +920,8 @@ declare namespace index {
     index_ContinuouslySyncCallback as ContinuouslySyncCallback,
     index_DebouncedFunction as DebouncedFunction,
     index_DelayOpts as DelayOpts,
+    index_Dispatch as Dispatch,
+    index_DispatchList as DispatchList,
     index_Elapsed as Elapsed,
     index_HasCompletion as HasCompletion,
     index_IntervalOpts as IntervalOpts,
@@ -939,4 +967,4 @@ declare namespace index {
   };
 }
 
-export { AsyncPromiseOrGenerator as A, DelayOpts as D, Elapsed as E, IntervalOpts as I, RepeatPredicate as R, SleepOpts as S, TaskQueue as T, UpdateFailPolicy as U, interval as a, forEachAsync as b, repeatReduce as c, delayLoop as d, TimeoutSyncCallback as e, forEach as f, TimeoutAsyncCallback as g, Timeout as h, index as i, debounce as j, DebouncedFunction as k, throttle as l, delay as m, everyNth as n, runOnce as o, RetryResult as p, RetryOpts as q, repeat as r, sleep as s, timeout as t, updateOutdated as u, retry as v, waitFor as w };
+export { AsyncPromiseOrGenerator as A, DelayOpts as D, Elapsed as E, IntervalOpts as I, RepeatPredicate as R, SleepOpts as S, TaskQueue as T, UpdateFailPolicy as U, interval as a, forEachAsync as b, repeatReduce as c, delayLoop as d, Dispatch as e, forEach as f, DispatchList as g, TimeoutSyncCallback as h, index as i, TimeoutAsyncCallback as j, Timeout as k, debounce as l, DebouncedFunction as m, throttle as n, delay as o, everyNth as p, runOnce as q, repeat as r, sleep as s, timeout as t, updateOutdated as u, RetryResult as v, waitFor as w, RetryOpts as x, retry as y };

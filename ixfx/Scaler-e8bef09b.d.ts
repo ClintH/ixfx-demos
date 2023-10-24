@@ -1,4 +1,4 @@
-import { a as Point, f as Rect } from './Point-23cb5d9f.js';
+import { a as Point, f as Rect } from './Point-bfc55176.js';
 
 /**
  * A scale function that takes an input value to scale.

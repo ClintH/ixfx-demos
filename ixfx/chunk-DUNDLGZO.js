@@ -12,6 +12,8 @@ __export(Util_exports, {
   ifNaN: () => ifNaN,
   isFunction: () => isFunction,
   isMap: () => isMap,
+  isPlainObject: () => isPlainObject,
+  isPlainObjectOrPrimitive: () => isPlainObjectOrPrimitive,
   isPowerOfTwo: () => isPowerOfTwo,
   isSet: () => isSet,
   jsComparer: () => jsComparer,
@@ -441,6 +443,28 @@ async function* zip(...its) {
 
 // src/Util.ts
 var isFunction = (object) => object instanceof Function;
+var isPlainObject = (value) => {
+  if (typeof value !== `object` || value === null)
+    return false;
+  const prototype = Object.getPrototypeOf(value);
+  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in value) && !(Symbol.iterator in value);
+};
+var isPlainObjectOrPrimitive = (value) => {
+  const t = typeof value;
+  if (t === `symbol`)
+    return false;
+  if (t === `function`)
+    return false;
+  if (t === `bigint`)
+    return true;
+  if (t === `number`)
+    return true;
+  if (t === `string`)
+    return true;
+  if (t === `boolean`)
+    return true;
+  return isPlainObject(value);
+};
 var ifNaN = (v, fallback) => {
   if (Number.isNaN(v))
     return fallback;
@@ -537,6 +561,8 @@ export {
   sleep,
   IterableAsync_exports,
   isFunction,
+  isPlainObject,
+  isPlainObjectOrPrimitive,
   ifNaN,
   isPowerOfTwo,
   relativeDifference,
@@ -552,4 +578,4 @@ export {
   defaultKeyer,
   Util_exports
 };
-//# sourceMappingURL=chunk-66FSPWS7.js.map
+//# sourceMappingURL=chunk-DUNDLGZO.js.map

@@ -21,6 +21,7 @@ declare abstract class TrackerBase<V, SeenResultType> {
      */
     protected sampleLimit: number;
     readonly id: string;
+    protected debug: boolean;
     constructor(opts?: TrackedValueOpts);
     /**
      * Reset tracker
@@ -86,6 +87,10 @@ type TrackedValueOpts = {
      * Automatically implies storeIntermediate
      */
     readonly sampleLimit?: number;
+    /**
+     * If true
+     */
+    readonly debug?: boolean;
 };
 /**
  * Keeps track of keyed values of type `V` (eg Point). It stores occurences in type `T`, which

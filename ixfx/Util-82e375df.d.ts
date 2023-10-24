@@ -277,6 +277,24 @@ type FixedLengthArray<T extends Array<any>> = Pick<T, Exclude<keyof T, ArrayLeng
 };
 declare const isFunction: (object: unknown) => object is (...args: Array<any>) => any;
 /**
+ * Returns _true_ if `value` is a plain object
+ *
+ * ```js
+ * isPlainObject(`text`); // false
+ * isPlainObject(document); // false
+ * isPlainObject({ hello: `there` }); // true
+ * ```
+ * @param value
+ * @returns
+ */
+declare const isPlainObject: (value: unknown) => boolean;
+/**
+ * Returns _true_ if `value` is primitive value or plain object
+ * @param value
+ * @returns
+ */
+declare const isPlainObjectOrPrimitive: (value: unknown) => boolean;
+/**
  * Returns `fallback` if `v` is NaN, otherwise returns `v`.
  *
  * Throws if `v` is not a number type.
@@ -397,6 +415,8 @@ declare const Util_defaultKeyer: typeof defaultKeyer;
 declare const Util_ifNaN: typeof ifNaN;
 declare const Util_isFunction: typeof isFunction;
 declare const Util_isMap: typeof isMap;
+declare const Util_isPlainObject: typeof isPlainObject;
+declare const Util_isPlainObjectOrPrimitive: typeof isPlainObjectOrPrimitive;
 declare const Util_isPowerOfTwo: typeof isPowerOfTwo;
 declare const Util_isSet: typeof isSet;
 declare const Util_jsComparer: typeof jsComparer;
@@ -420,6 +440,8 @@ declare namespace Util {
     Util_ifNaN as ifNaN,
     Util_isFunction as isFunction,
     Util_isMap as isMap,
+    Util_isPlainObject as isPlainObject,
+    Util_isPlainObjectOrPrimitive as isPlainObjectOrPrimitive,
     Util_isPowerOfTwo as isPowerOfTwo,
     Util_isSet as isSet,
     Util_jsComparer as jsComparer,
@@ -431,4 +453,4 @@ declare namespace Util {
   };
 }
 
-export { ArrayLengthMutationKeys as A, CompareResult as C, FixedLengthArray as F, IterableAsync as I, ToString as T, Util as U, ArrayItems as a, ifNaN as b, isPowerOfTwo as c, roundUpToMultiple as d, isMap as e, isSet as f, runningiOS as g, Comparer as h, isFunction as i, jsComparer as j, defaultComparer as k, comparerInverse as l, defaultKeyer as m, numericComparer as n, relativeDifference as r, toStringDefault as t };
+export { ArrayLengthMutationKeys as A, CompareResult as C, FixedLengthArray as F, IterableAsync as I, ToString as T, Util as U, ArrayItems as a, isPlainObject as b, isPlainObjectOrPrimitive as c, ifNaN as d, isPowerOfTwo as e, roundUpToMultiple as f, isMap as g, isSet as h, isFunction as i, runningiOS as j, Comparer as k, jsComparer as l, defaultComparer as m, numericComparer as n, comparerInverse as o, defaultKeyer as p, relativeDifference as r, toStringDefault as t };

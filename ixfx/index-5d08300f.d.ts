@@ -1,4 +1,4 @@
-import { I as IQueueMutable, a as QueueOpts, b as QueueDiscardPolicy, m as mutable } from './QueueMutable-b6767af6.js';
+import { I as IQueueMutable, a as QueueOpts, b as QueueDiscardPolicy, m as mutable } from './QueueMutable-a55e58f6.js';
 
 /**
  * Queue (immutable). See also {@link ./QueueMutable.ts}.

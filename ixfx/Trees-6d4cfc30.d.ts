@@ -136,7 +136,7 @@ type PathOpts = {
  * @param p
  * @returns
  */
-declare function isTreeNode(p: TreeNode | unknown): p is TreeNode;
+declare function isTreeNode(p: TreeNode | object): p is TreeNode;
 /**
  * Returns the count of immediate children for this
  * TreeNode (or map, or plain object)

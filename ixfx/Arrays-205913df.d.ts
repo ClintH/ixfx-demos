@@ -1,5 +1,5 @@
 import { b as EasingName, a as EasingFn } from './Easing-e712c8ff.js';
-import { T as ToString } from './Util-6386ef7e.js';
+import { T as ToString } from './Util-82e375df.js';
 import { I as IsEqual } from './IsEqual-267e4380.js';
 import { a as MinMaxAvgOpts, M as MinMaxAvgTotal, m as minMaxAvg } from './MinMaxAvg-bf5430b4.js';
 import * as d3Colour from 'd3-color';

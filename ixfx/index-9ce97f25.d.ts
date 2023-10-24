@@ -1,7 +1,7 @@
 import * as rxjs from 'rxjs';
 import { Observable } from 'rxjs';
-import { a as Point, C as CardinalDirection } from './Point-23cb5d9f.js';
-import { S as ScaleFn } from './Scaler-ac740f92.js';
+import { a as Point, C as CardinalDirection } from './Point-bfc55176.js';
+import { S as ScaleFn } from './Scaler-e8bef09b.js';
 import { F as Forms } from './Forms-d8146f9f.js';
 
 type LogOpts = {
@@ -147,7 +147,7 @@ type PointSpaces = `viewport` | `screen` | `document`;
  * @param opts
  * @returns
  */
-declare const pointScaler: (reference?: PointSpaces) => (a: Readonly<Point | number | number[]>, b?: number) => Readonly<{
+declare const pointScaler: (reference?: PointSpaces) => (a: Readonly<Point | number | Array<number>>, b?: number) => Readonly<{
     x: number;
     y: number;
 }>;
@@ -252,7 +252,7 @@ declare const positionRelative: (domQueryOrEl: Readonly<string | HTMLElement>, t
  * @param targetSpace
  * @returns
  */
-declare const viewportToSpace: (targetSpace?: PointSpaces) => (a: Readonly<Point | number[] | number>, b?: number) => Readonly<{
+declare const viewportToSpace: (targetSpace?: PointSpaces) => (a: Readonly<Point | Array<number> | number>, b?: number) => Readonly<{
     x: number;
     y: number;
 }>;
@@ -310,7 +310,7 @@ declare const fullSizeCanvas: (domQueryOrEl: Readonly<string | HTMLCanvasElement
  * @param list List of class names
  * @returns
  */
-declare const cycleCssClass: (el: Readonly<HTMLElement>, list: readonly string[]) => void;
+declare const cycleCssClass: (el: Readonly<HTMLElement>, list: ReadonlyArray<string>) => void;
 /**
  * Sets width/height atributes on the given element according to the size of its parent.
  * @param domQueryOrEl Elememnt to resize
@@ -351,7 +351,7 @@ declare const windowResize: (timeoutMs?: number) => Observable<Event>;
  * @param domQueryOrEl
  * @returns
  */
-declare const resolveEl: <V extends Element>(domQueryOrEl: string | V) => V;
+declare const resolveEl: <V extends Element>(domQueryOrEl: string | V | null | undefined) => V;
 /**
  * Creates an element after `sibling`
  * ```
@@ -388,7 +388,7 @@ declare const clear: (parent: Readonly<HTMLElement>) => void;
  * ```
  * @returns
  */
-declare const themeChangeObservable: () => Observable<readonly MutationRecord[]>;
+declare const themeChangeObservable: () => Observable<ReadonlyArray<MutationRecord>>;
 /**
  * Observer when element resizes. Specify `timeoutMs` to debounce.
  *
@@ -402,13 +402,13 @@ declare const themeChangeObservable: () => Observable<readonly MutationRecord[]>
  * @param timeoutMs Tiemout before event gets triggered
  * @returns
  */
-declare const resizeObservable: (elem: Readonly<Element>, timeoutMs?: number) => Observable<readonly ResizeObserverEntry[]>;
+declare const resizeObservable: (elem: Readonly<Element>, timeoutMs?: number) => Observable<ReadonlyArray<ResizeObserverEntry>>;
 /**
  * Copies string representation of object to clipboard
  * @param obj
  * @returns Promise
  */
-declare const copyToClipboard: (obj: object) => Promise<unknown>;
+declare const copyToClipboard: (object: object) => Promise<unknown>;
 type CreateUpdateElement<V> = (item: V, el: HTMLElement | null) => HTMLElement;
 declare const reconcileChildren: <V>(parentEl: HTMLElement, list: Map<string, V>, createUpdate: CreateUpdateElement<V>) => void;
 /**
@@ -421,16 +421,34 @@ declare const reconcileChildren: <V>(parentEl: HTMLElement, list: Map<string, V>
  * @param cssClass
  * @returns
  */
-declare const setCssClass: (selectors: string, value: boolean, cssClass: string) => void;
-declare const setCssDisplay: (selectors: string, value: string) => void;
+declare const setCssClass: (selectors: QueryOrElements, value: boolean, cssClass: string) => void;
+/**
+ * Toggles a CSS class on all elements that match selector
+ * @param selectors
+ * @param cssClass
+ * @returns
+ */
+declare const setCssToggle: (selectors: QueryOrElements, cssClass: string) => void;
+declare const setCssDisplay: (selectors: QueryOrElements, value: string) => void;
+/**
+ * Gets a HTML element by id, throwing an error if not found
+ * @param id
+ * @returns
+ */
 declare const byId: <V extends HTMLElement>(id: string) => HTMLElement;
-declare const setHtml: (selectors: string, value: string | number) => void;
-declare const setText: (selectors: string, value: string | number) => void;
-declare const el: (selectors: string) => {
+type QueryOrElements = string | Array<Element> | Array<HTMLElement> | HTMLElement | Element;
+declare const resolveEls: (selectors: QueryOrElements) => Array<HTMLElement>;
+declare const setHtml: (selectors: QueryOrElements, value: string | number) => void;
+declare const setText: (selectors: QueryOrElements, value: string | number) => void;
+declare const elRequery: (selectors: string) => void;
+declare const el: (selectors: QueryOrElements) => {
     text: (value: string | number) => void;
     html: (value: string | number) => void;
     cssDisplay: (value: string) => void;
     cssClass: (value: boolean, cssClass: string) => void;
+    cssToggle: (cssClass: string) => void;
+    el: () => HTMLElement;
+    els: () => HTMLElement[];
 };
 
 type FormattingOptions = {
@@ -632,6 +650,7 @@ type index_LogOpts = LogOpts;
 type index_Opts = Opts;
 type index_PluckOpts = PluckOpts;
 type index_PointSpaces = PointSpaces;
+type index_QueryOrElements = QueryOrElements;
 type index_Rx<V> = Rx<V>;
 type index_TransformOpts = TransformOpts;
 declare const index_byId: typeof byId;
@@ -644,6 +663,7 @@ declare const index_createIn: typeof createIn;
 declare const index_cycleCssClass: typeof cycleCssClass;
 declare const index_defaultErrorHandler: typeof defaultErrorHandler;
 declare const index_el: typeof el;
+declare const index_elRequery: typeof elRequery;
 declare const index_fullSizeCanvas: typeof fullSizeCanvas;
 declare const index_fullSizeElement: typeof fullSizeElement;
 declare const index_getTranslation: typeof getTranslation;
@@ -659,9 +679,11 @@ declare const index_positionRelative: typeof positionRelative;
 declare const index_reconcileChildren: typeof reconcileChildren;
 declare const index_resizeObservable: typeof resizeObservable;
 declare const index_resolveEl: typeof resolveEl;
+declare const index_resolveEls: typeof resolveEls;
 declare const index_rx: typeof rx;
 declare const index_setCssClass: typeof setCssClass;
 declare const index_setCssDisplay: typeof setCssDisplay;
+declare const index_setCssToggle: typeof setCssToggle;
 declare const index_setHtml: typeof setHtml;
 declare const index_setText: typeof setText;
 declare const index_themeChangeObservable: typeof themeChangeObservable;
@@ -685,6 +707,7 @@ declare namespace index {
     index_Opts as Opts,
     index_PluckOpts as PluckOpts,
     index_PointSpaces as PointSpaces,
+    index_QueryOrElements as QueryOrElements,
     index_Rx as Rx,
     index_TransformOpts as TransformOpts,
     index_byId as byId,
@@ -697,6 +720,7 @@ declare namespace index {
     index_cycleCssClass as cycleCssClass,
     index_defaultErrorHandler as defaultErrorHandler,
     index_el as el,
+    index_elRequery as elRequery,
     index_fullSizeCanvas as fullSizeCanvas,
     index_fullSizeElement as fullSizeElement,
     index_getTranslation as getTranslation,
@@ -712,9 +736,11 @@ declare namespace index {
     index_reconcileChildren as reconcileChildren,
     index_resizeObservable as resizeObservable,
     index_resolveEl as resolveEl,
+    index_resolveEls as resolveEls,
     index_rx as rx,
     index_setCssClass as setCssClass,
     index_setCssDisplay as setCssDisplay,
+    index_setCssToggle as setCssToggle,
     index_setHtml as setHtml,
     index_setText as setText,
     index_themeChangeObservable as themeChangeObservable,
@@ -723,4 +749,4 @@ declare namespace index {
   };
 }
 
-export { createIn as A, clear as B, CanvasResizeArgs as C, DataTable$1 as D, ElementResizeArgs as E, themeChangeObservable as F, resizeObservable as G, copyToClipboard as H, CreateUpdateElement as I, reconcileChildren as J, setCssClass as K, LogOpts as L, setCssDisplay as M, byId as N, setHtml as O, PluckOpts as P, setText as Q, Rx as R, el as S, TransformOpts as T, Opts as U, pointerVisualise as V, defaultErrorHandler as W, InlineConsoleOptions as X, inlineConsole as Y, DataDisplay as a, DragDrop as b, Log as c, DomRxOpts as d, PointSpaces as e, ElPositionOpts as f, positionFn as g, cardinalPosition as h, index as i, positionRelative as j, positionFromMiddle as k, log as l, fullSizeElement as m, CanvasOpts as n, canvasHelper as o, pointScaler as p, fullSizeCanvas as q, rx as r, cycleCssClass as s, parentSize as t, getTranslation as u, viewportToSpace as v, parentSizeCanvas as w, windowResize as x, resolveEl as y, createAfter as z };
+export { InlineConsoleOptions as $, createIn as A, clear as B, CanvasResizeArgs as C, DataTable$1 as D, ElementResizeArgs as E, themeChangeObservable as F, resizeObservable as G, copyToClipboard as H, CreateUpdateElement as I, reconcileChildren as J, setCssClass as K, LogOpts as L, setCssToggle as M, setCssDisplay as N, byId as O, PluckOpts as P, QueryOrElements as Q, Rx as R, resolveEls as S, TransformOpts as T, setHtml as U, setText as V, elRequery as W, el as X, Opts as Y, pointerVisualise as Z, defaultErrorHandler as _, DataDisplay as a, inlineConsole as a0, DragDrop as b, Log as c, DomRxOpts as d, PointSpaces as e, ElPositionOpts as f, positionFn as g, cardinalPosition as h, index as i, positionRelative as j, positionFromMiddle as k, log as l, fullSizeElement as m, CanvasOpts as n, canvasHelper as o, pointScaler as p, fullSizeCanvas as q, rx as r, cycleCssClass as s, parentSize as t, getTranslation as u, viewportToSpace as v, parentSizeCanvas as w, windowResize as x, resolveEl as y, createAfter as z };

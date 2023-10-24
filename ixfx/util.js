@@ -6,6 +6,8 @@ import {
   ifNaN,
   isFunction,
   isMap,
+  isPlainObject,
+  isPlainObjectOrPrimitive,
   isPowerOfTwo,
   isSet,
   jsComparer,
@@ -14,7 +16,7 @@ import {
   roundUpToMultiple,
   runningiOS,
   toStringDefault2 as toStringDefault
-} from "./chunk-66FSPWS7.js";
+} from "./chunk-DUNDLGZO.js";
 import "./chunk-VE7DK22H.js";
 export {
   IterableAsync_exports as IterableAsync,
@@ -24,6 +26,8 @@ export {
   ifNaN,
   isFunction,
   isMap,
+  isPlainObject,
+  isPlainObjectOrPrimitive,
   isPowerOfTwo,
   isSet,
   jsComparer,

@@ -1,13 +1,13 @@
 import { M as MinMaxAvgTotal } from './MinMaxAvg-bf5430b4.js';
-import { T as ToString } from './Util-6386ef7e.js';
+import { T as ToString } from './Util-82e375df.js';
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
 import { a as KeyValue } from './KeyValue-f5a637ea.js';
-import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as TimestampedObject, c as TrackedValueMap, d as NumberTrackerResults, e as Timestamped, n as numberTracker } from './NumberTracker-e28ed6a4.js';
-import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-23cb5d9f.js';
-import { C as Coord } from './Polar-2feb60e6.js';
+import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as TimestampedObject, c as TrackedValueMap, d as NumberTrackerResults, e as Timestamped, n as numberTracker } from './NumberTracker-84cdb10a.js';
+import { P as PointRelationResult, a as Point, b as PointRelation, c as PolyLine, L as Line } from './Point-bfc55176.js';
+import { C as Coord } from './Polar-043d5010.js';
 import { I as Interval } from './IntervalType-a4b20f1c.js';
-import { I as IMapImmutable } from './Map-b692bac0.js';
-import { a as RandomOptions, b as RandomSource } from './Arrays-55b8ddd0.js';
+import { I as IMapImmutable } from './Map-5cfbfc2c.js';
+import { a as RandomOptions, b as RandomSource } from './Arrays-205913df.js';
 import { L as LogSet } from './Types-bce495ac.js';
 
 /**
@@ -353,8 +353,8 @@ declare abstract class ObjectTracker<V extends object, SeenResultType> extends T
     constructor(opts?: TrackedValueOpts);
     onTrimmed(): void;
     /**
-     * Reduces size of value store to `limit`. Returns
-     * number of remaining items
+     * Reduces size of value store to `limit`.
+     * Returns number of remaining items
      * @param limit
      */
     trimStore(limit: number): number;
@@ -444,7 +444,7 @@ declare class PointTracker extends ObjectTracker<Point, PointTrackerResults> {
      *
      * @param p Point
      */
-    computeResults(p: Array<TimestampedObject<Point>>): PointTrackerResults;
+    computeResults(_p: Array<TimestampedObject<Point>>): PointTrackerResults;
     /**
      * Returns a polyline representation of stored points.
      * Returns an empty array if points were not saved, or there's only one.
@@ -470,7 +470,8 @@ declare class PointTracker extends ObjectTracker<Point, PointTrackerResults> {
      * Returns distance from latest point to initial point.
      * If there are less than two points, zero is returned.
      *
-     * This is the direct distance, not the accumulated length.
+     * This is the direct distance from initial to last,
+     * not the accumulated length.
      * @returns Distance
      */
     distanceFromStart(): number;
@@ -750,7 +751,7 @@ declare const scaler: (inMin: number, inMax: number, outMin?: number, outMax?: n
  * @param easing
  * @returns
  */
-declare const scaleClamped: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => number;
+declare const scaleClamped$1: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => number;
 /**
  * Scales an input percentage to a new percentage range.
  *
@@ -822,6 +823,10 @@ declare const scalerPercent: (outMin: number, outMax: number) => (v: number) => 
 declare const flip: (v: number | NumberFunction) => number;
 
 /** Utilities for working with immutable objects */
+/**
+ * Return _true_ if `a` and `b` ought to be considered equal
+ * at a given path
+ */
 type IsEqualContext<V> = (a: V, b: V, path: string) => boolean;
 type Change<V> = {
     path: string;
@@ -830,8 +835,35 @@ type Change<V> = {
 };
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+type SignalKinds = `done`;
+type Passed<V> = {
+    value: V | undefined;
+    signal?: SignalKinds;
+    context?: string;
+};
+type PassedSignal = Passed<any> & {
+    value: undefined;
+    signal: `done`;
+    context: string;
+};
+type PassedValue<V> = Passed<V> & {
+    value: V;
+};
+declare function isSignal<V>(v: Passed<V> | PassedSignal): v is PassedSignal;
+/**
+ * Returns _true_ if `v` has a non-undefined value. Note that sometimes
+ * _undefined_ is a legal value to pass
+ * @param v
+ * @returns
+ */
+declare function hasValue<V>(v: Passed<V> | PassedSignal): v is PassedValue<V>;
 type Reactive<V> = {
-    on(handler: (value: V) => void): void;
+    /**
+     * Subscribes to a reactive.
+     * Return result unsubscribes.
+     * @param handler
+     */
+    on(handler: (value: Passed<V>) => void): () => void;
 };
 type ReactiveNonInitial<V> = Reactive<V> & {
     last(): V | undefined;
@@ -839,23 +871,28 @@ type ReactiveNonInitial<V> = Reactive<V> & {
 type ReactiveWritable<V> = {
     set(value: V): void;
 };
-type ReactiveDiff<V> = ReactiveWritable<V> & {
-    onDiff(handler: (changes: Array<Change<any>>) => void): void;
-    update(changedPart: Record<string, any>): void;
-    updateField(field: string, value: any): void;
-};
 type ReactiveInitial<V> = Reactive<V> & {
     last(): V;
 };
 type ReactiveDisposable = {
     dispose(reason: string): void;
+    isDisposed(): boolean;
 };
-declare function number(initialValue: number): ReactiveWritable<number> & ReactiveInitial<number>;
-declare function number(): ReactiveWritable<number> & ReactiveNonInitial<number>;
+type ReactiveFinite = {
+    isDone(): boolean;
+};
+type ReactiveDiff<V> = ReactiveDisposable & ReactiveWritable<V> & {
+    onDiff(handler: (changes: Passed<Array<Change<any>>>) => void): void;
+    update(changedPart: Record<string, any>): void;
+    updateField(field: string, value: any): void;
+};
+declare function number(initialValue: number): ReactiveDisposable & ReactiveWritable<number> & ReactiveInitial<number>;
+declare function number(): ReactiveDisposable & ReactiveWritable<number> & ReactiveNonInitial<number>;
 /**
  * Monitors input reactive values, storing values as they happen to an array.
  * Whenever a new value is emitted, the whole array is sent out, containing current
  * values from each source.
+ *
  * @param values
  * @returns
  */
@@ -866,45 +903,150 @@ declare function mergeAsArray$1<V>(...values: Array<Reactive<V>>): Reactive<Arra
  *
  * Each source's latest value is returned, in the case of some sources producing results
  * faster than others.
+ *
+ * If a value completes, we won't wait for it and the result set gets smaller.
  * @param sources
  * @returns
  */
 declare function synchronise$1<V>(...sources: Array<Reactive<V>>): Reactive<Array<V | undefined>>;
-type EventOptions<V> = {
-    process: (args?: Event | undefined) => V;
-    lazy?: boolean;
-};
 type ResolveAfterOptions = {
     loops?: number;
     infinite?: boolean;
 };
 declare function resolveAfter<V extends Record<string, any>>(interval: Interval, callbackOrValue: V | (() => V), options?: ResolveAfterOptions): Reactive<V>;
+type EventOptions<V> = {
+    process: (args?: Event | undefined) => V;
+    lazy?: boolean;
+};
 declare function event<V extends Record<string, any>, EventName extends string>(target: EventTarget, name: EventName, options: EventOptions<V>): ReactiveInitial<V> & ReactiveDisposable;
 declare function event<V extends Record<string, any>, EventName extends string>(target: EventTarget, name: EventName, options?: Optional<EventOptions<V>, `process`>): ReactiveNonInitial<V> & ReactiveDisposable;
-declare function object<V extends Record<string, any>>(eq?: IsEqualContext<V>): ReactiveDiff<V> & ReactiveNonInitial<V>;
-declare function object<V extends Record<string, any>>(initialValue: V, eq?: IsEqualContext<V>): ReactiveDiff<V> & ReactiveInitial<V>;
-type BatchOptions = {
-    elapsed?: Interval;
-    limit?: number;
-    logic?: `or` | `and`;
+declare function manual<V>(): Reactive<V> & ReactiveWritable<V>;
+type ObjectOptions<V> = {
+    deepEntries: boolean;
+    eq: IsEqualContext<V>;
 };
-declare function field<In, Out>(source: Reactive<In>, field: keyof In): Reactive<Out> & ReactiveDisposable;
-declare function transform$1<In, Out>(source: Reactive<In>, transformer: (value: In) => Out): Reactive<Out> & ReactiveDisposable;
+declare function object<V extends Record<string, any>>(initialValue: V, options?: Partial<ObjectOptions<V>>): ReactiveDiff<V> & ReactiveInitial<V>;
+declare function object<V extends Record<string, any>>(initialValue: undefined, options?: Partial<ObjectOptions<V>>): ReactiveDiff<V> & ReactiveNonInitial<V>;
+type InitEventOptions = {
+    onFirstSubscribe: () => void;
+    onNoSubscribers: () => void;
+};
+type UpstreamOptions<In> = {
+    lazy: boolean;
+    /**
+     * If _true_ (default), we dispose the underlying stream if the upstream closes. This happens after onStop() is called.
+     */
+    disposeIfSourceDone: boolean;
+    onValue: (v: In) => void;
+    /**
+     * Called just before we subscribe to source
+     * @returns
+     */
+    onStart: () => void;
+    /**
+     * Called after we unsubscribe from source
+     * @returns
+     */
+    onStop: () => void;
+};
+type FieldOptions<V> = InitEventOptions & {
+    /**
+     * If `field` is missing on a value, this value is used in its place.
+     * If not set, the value is skipped.
+     */
+    missingFieldDefault: V;
+};
+/**
+ * From a source value, yields a field from it.
+ *
+ * If a source value doesn't have that field, it is skipped.
+ *
+ * @param source
+ * @param field
+ * @returns
+ */
+declare function field<In, Out>(fieldSource: ReactiveOrSource<In>, field: keyof In, options?: Partial<FieldOptions<Out>>): Reactive<Out>;
+type TransformOpts = InitEventOptions;
+/**
+ * Transforms values from `source` using the `transformer` function.
+ * @param source
+ * @param transformer
+ * @returns
+ */
+declare function transform$1<In, Out>(input: ReactiveOrSource<In>, transformer: (value: In) => Out, options?: Partial<TransformOpts>): Reactive<Out>;
+type BatchOptions = InitEventOptions & {
+    /**
+     * If _true_ (default) remaining results are yielded
+     * if source closes. If _false_, only 'complete' batches are yielded.
+     */
+    returnRemainder: boolean;
+    elapsed: Interval;
+    limit: number;
+    logic: `or` | `and`;
+};
+type GeneratorOptions = {
+    /**
+     * By default (true) only accesses the generator if there is a subscriber.
+     */
+    lazy: boolean;
+};
+/**
+ * Creates a readable reactive based on a generator
+ * ```js
+ * // Generators that makes a random value every 5 seconds
+ * const valuesOverTime = Flow.interval(() => Math.random(), 5000);
+ * // Wrap the generator
+ * const r = Reactive.generator(time);
+ * // Get notified when there is a new value
+ * r.on(v => {
+ *   console.log(v.value);
+ * });
+ * ```
+ * @param generator
+ */
+declare function generator<V>(generator: IterableIterator<V> | AsyncIterableIterator<V> | Generator<V> | AsyncGenerator<V>, options?: Partial<GeneratorOptions>): ReactiveDisposable & Reactive<V>;
+type ReactiveOrSource<V> = Reactive<V> | IterableIterator<V> | AsyncIterableIterator<V> | Generator<V> | AsyncGenerator<V> | Array<V>;
+/**
+ * Resolves various kinds of sources into a Reactive.
+ * If `source` is an iterable/generator, it gets wrapped via `generator()`.
+ * @param source
+ * @returns
+ */
+declare const resolveSource: <V>(source: ReactiveOrSource<V>) => Reactive<V>;
 /**
  * Queue from `source`, emitting when thresholds are reached.
  * Can use a combination of elapsed time or number of data items.
  *
  * By default options are ORed
  *
+ * ```js
+ * // Emit data in batches of 5 items
+ * batch(source, { limit: 5 });
+ * // Emit data every second
+ * batch(source, { elapsed: 1000 });
+ * ```
  * @param source
  * @param options
  * @returns
  */
-declare function batch<V>(source: Reactive<V>, options?: BatchOptions): Reactive<Array<V>>;
-type ThrottleOptions = {
-    elapsed?: Interval;
+declare function batch<V>(batchSource: ReactiveOrSource<V>, options?: Partial<BatchOptions>): Reactive<Array<V>>;
+type ToArrayOptions = {
+    limit: number;
+    elapsed: number;
 };
-declare function throttle<V>(source: Reactive<V>, options?: ThrottleOptions): Reactive<V>;
+/**
+ * Reads the values of a reactive into an array.
+ * Use the `limit` or `elapsed` to limit how many
+ * items to read, and/or for how long.
+ * @param reactive
+ * @param options
+ * @returns
+ */
+declare const toArray: <V>(reactiveSource: ReactiveOrSource<V>, options?: Partial<ToArrayOptions>) => Promise<V[]>;
+type ThrottleOptions = InitEventOptions & {
+    elapsed: Interval;
+};
+declare function throttle<V>(throttleSource: ReactiveOrSource<V>, options?: Partial<ThrottleOptions>): Reactive<V>;
 declare function win(): {
     dispose: (reason?: string) => void;
     size: Reactive<{
@@ -930,49 +1072,86 @@ declare function win(): {
  * Build a graph of reactive dependencies for `rx`
  * @param rx
  */
-declare function prepare<V extends Record<string, any>>(rx: V): Reactive<V>;
+declare function prepare$1<V extends Record<string, any>>(rx: V): Reactive<V>;
 
 type Reactive$1_BatchOptions = BatchOptions;
 type Reactive$1_EventOptions<V> = EventOptions<V>;
+type Reactive$1_FieldOptions<V> = FieldOptions<V>;
+type Reactive$1_GeneratorOptions = GeneratorOptions;
+type Reactive$1_InitEventOptions = InitEventOptions;
+type Reactive$1_ObjectOptions<V> = ObjectOptions<V>;
+type Reactive$1_Passed<V> = Passed<V>;
+type Reactive$1_PassedSignal = PassedSignal;
+type Reactive$1_PassedValue<V> = PassedValue<V>;
 type Reactive$1_Reactive<V> = Reactive<V>;
 type Reactive$1_ReactiveDiff<V> = ReactiveDiff<V>;
 type Reactive$1_ReactiveDisposable = ReactiveDisposable;
+type Reactive$1_ReactiveFinite = ReactiveFinite;
 type Reactive$1_ReactiveInitial<V> = ReactiveInitial<V>;
 type Reactive$1_ReactiveNonInitial<V> = ReactiveNonInitial<V>;
+type Reactive$1_ReactiveOrSource<V> = ReactiveOrSource<V>;
 type Reactive$1_ReactiveWritable<V> = ReactiveWritable<V>;
 type Reactive$1_ResolveAfterOptions = ResolveAfterOptions;
+type Reactive$1_SignalKinds = SignalKinds;
 type Reactive$1_ThrottleOptions = ThrottleOptions;
+type Reactive$1_ToArrayOptions = ToArrayOptions;
+type Reactive$1_TransformOpts = TransformOpts;
+type Reactive$1_UpstreamOptions<In> = UpstreamOptions<In>;
 declare const Reactive$1_batch: typeof batch;
 declare const Reactive$1_event: typeof event;
 declare const Reactive$1_field: typeof field;
+declare const Reactive$1_generator: typeof generator;
+declare const Reactive$1_hasValue: typeof hasValue;
+declare const Reactive$1_isSignal: typeof isSignal;
+declare const Reactive$1_manual: typeof manual;
 declare const Reactive$1_number: typeof number;
 declare const Reactive$1_object: typeof object;
-declare const Reactive$1_prepare: typeof prepare;
 declare const Reactive$1_resolveAfter: typeof resolveAfter;
+declare const Reactive$1_resolveSource: typeof resolveSource;
 declare const Reactive$1_throttle: typeof throttle;
+declare const Reactive$1_toArray: typeof toArray;
 declare const Reactive$1_win: typeof win;
 declare namespace Reactive$1 {
   export {
     Reactive$1_BatchOptions as BatchOptions,
     Reactive$1_EventOptions as EventOptions,
+    Reactive$1_FieldOptions as FieldOptions,
+    Reactive$1_GeneratorOptions as GeneratorOptions,
+    Reactive$1_InitEventOptions as InitEventOptions,
+    Reactive$1_ObjectOptions as ObjectOptions,
+    Reactive$1_Passed as Passed,
+    Reactive$1_PassedSignal as PassedSignal,
+    Reactive$1_PassedValue as PassedValue,
     Reactive$1_Reactive as Reactive,
     Reactive$1_ReactiveDiff as ReactiveDiff,
     Reactive$1_ReactiveDisposable as ReactiveDisposable,
+    Reactive$1_ReactiveFinite as ReactiveFinite,
     Reactive$1_ReactiveInitial as ReactiveInitial,
     Reactive$1_ReactiveNonInitial as ReactiveNonInitial,
+    Reactive$1_ReactiveOrSource as ReactiveOrSource,
     Reactive$1_ReactiveWritable as ReactiveWritable,
     Reactive$1_ResolveAfterOptions as ResolveAfterOptions,
+    Reactive$1_SignalKinds as SignalKinds,
     Reactive$1_ThrottleOptions as ThrottleOptions,
+    Reactive$1_ToArrayOptions as ToArrayOptions,
+    Reactive$1_TransformOpts as TransformOpts,
+    Reactive$1_UpstreamOptions as UpstreamOptions,
     Reactive$1_batch as batch,
     Reactive$1_event as event,
     Reactive$1_field as field,
+    Reactive$1_generator as generator,
+    Reactive$1_hasValue as hasValue,
+    Reactive$1_isSignal as isSignal,
+    Reactive$1_manual as manual,
     mergeAsArray$1 as mergeAsArray,
     Reactive$1_number as number,
     Reactive$1_object as object,
-    Reactive$1_prepare as prepare,
+    prepare$1 as prepare,
     Reactive$1_resolveAfter as resolveAfter,
+    Reactive$1_resolveSource as resolveSource,
     synchronise$1 as synchronise,
     Reactive$1_throttle as throttle,
+    Reactive$1_toArray as toArray,
     transform$1 as transform,
     Reactive$1_win as win,
   };
@@ -983,12 +1162,23 @@ declare namespace Reactive$1 {
  */
 type Gen<V> = Generator<V> | AsyncGenerator<V> | IterableIterator<V>;
 type GenOrData<V> = Array<V> | Gen<V>;
-type Chain<In, Out> = (input: GenOrData<In>) => AsyncGenerator<Out>;
+type Link<In, Out> = (input: GenOrData<In>) => AsyncGenerator<Out>;
 type GenFactoryNoInput<Out> = () => AsyncGenerator<Out>;
-type ChainArguments<In, Out> = [
-    Chain<In, any> | GenOrData<In> | GenFactoryNoInput<Out>,
-    ...Array<Chain<any, any>>,
-    Chain<any, Out>
+/**
+ * An array of chain links where first one is a source
+ */
+type LinksWithSource<In, Out> = [
+    Link<In, any> | GenOrData<In> | GenFactoryNoInput<In>,
+    ...Array<Link<any, any>>,
+    Link<any, Out>
+];
+/**
+ * An array of chain links without a source
+ */
+type Links<In, Out> = [
+    Link<In, any>,
+    ...Array<Link<any, any>>,
+    Link<any, Out>
 ];
 /**
  * Delay options
@@ -1008,7 +1198,7 @@ type DelayOptions = {
  * @param options
  * @returns
  */
-declare function delay<In>(options: DelayOptions): Chain<In, In>;
+declare function delay<In>(options: DelayOptions): Link<In, In>;
 type LazyChain<In, Out> = {
     /**
      * Return the chain as a regular generator,
@@ -1054,14 +1244,14 @@ declare function lazy<In, Out>(): LazyChain<In, Out>;
  * @param rate
  * @returns
  */
-declare function debounce<In>(rate: Interval): Chain<In, In>;
+declare function debounce<In>(rate: Interval): Link<In, In>;
 /**
  * Allow values through until a duration has elapsed. After
  * that, the chain stops.
  * @param duration
  * @returns
  */
-declare function duration<In>(elapsed: Interval): Chain<In, In>;
+declare function duration<In>(elapsed: Interval): Link<In, In>;
 type TickOptions = {
     interval: Interval;
     loops?: number;
@@ -1195,7 +1385,7 @@ declare function addToArray<Out>(array: Array<Out>, valueToWrap: AsyncGenerator<
  * @param input
  * @returns
  */
-declare function single<In, Out>(f: Chain<In, Out>, input: In): Promise<Out | undefined>;
+declare function single<In, Out>(f: Link<In, Out>, input: In): Promise<Out | undefined>;
 /**
  * Takes an array of values, flattening to a single one
  * using the provided `flattener` function.
@@ -1209,13 +1399,13 @@ declare function single<In, Out>(f: Chain<In, Out>, input: In): Promise<Out | un
  * @param flattener Function to flatten array of values to a single value
  * @returns
  */
-declare function flatten<In, Out>(flattener: (v: Array<In>) => Out): Chain<Array<In>, Out>;
+declare function flatten<In, Out>(flattener: (v: Array<In>) => Out): Link<Array<In>, Out>;
 /**
  * Transform values from one type to another. Just like a map function.
  * @param transformer
  * @returns
  */
-declare function transform<In, Out>(transformer: (v: In) => Out): Chain<In, Out>;
+declare function transform<In, Out>(transformer: (v: In) => Out): Link<In, Out>;
 /**
  * Merge values from several sources into one stream, interleaving values.
  * When all streams are complete it finishes.
@@ -1256,7 +1446,7 @@ declare function synchronise(...sources: Array<GenOrData<any> | GenFactoryNoInpu
  * @param limit
  * @returns
  */
-declare function take<In>(limit: number): Chain<In, In>;
+declare function take<In>(limit: number): Link<In, In>;
 /**
  * Returns a running tally of how many items have been
  * emitted from the input source.
@@ -1265,38 +1455,38 @@ declare function take<In>(limit: number): Chain<In, In>;
  * @param limit
  * @returns
  */
-declare function tally<In>(): Chain<In, number>;
+declare function tally<In>(): Link<In, number>;
 /**
  * Returns the smallest value from the input.
  * Non-numeric data is filtered out
  * @returns
  */
-declare function min(): Chain<number, number>;
+declare function min(): Link<number, number>;
 /**
  * Returns the largest value from the input
  * Non-numeric data is filtered out
  * @returns
  */
-declare function max(): Chain<number, number>;
+declare function max(): Link<number, number>;
 /**
  * Returns the average from the input.
  * Non-numeric values are filtered out.
  * @returns
  */
-declare function average(): Chain<number, number>;
+declare function average(): Link<number, number>;
 /**
  * Returns the total of the numeric values.
  * Non-numeric values are filtered out.
  * @returns
  */
-declare function total(): Chain<number, number>;
+declare function total(): Link<number, number>;
 /**
  * Chunks an input stream into `size` chunks.
  * @param size
  * @param returnRemainders If true (default) left over data that didn't make a full chunk is also returned
  * @returns
  */
-declare function chunk<In>(size: number, returnRemainders?: boolean): Chain<In, Array<In>>;
+declare function chunk<In>(size: number, returnRemainders?: boolean): Link<In, Array<In>>;
 /**
  * Filters the input source, only allowing through
  * data for which `predicate` returns _true_
@@ -1305,7 +1495,7 @@ declare function chunk<In>(size: number, returnRemainders?: boolean): Chain<In, 
  * @param predicate
  * @returns
  */
-declare function filter<In>(predicate: (v: In) => boolean): Chain<In, In>;
+declare function filter<In>(predicate: (v: In) => boolean): Link<In, In>;
 /**
  * Drops all values from input stream for which `predicate` returns _true_
  *
@@ -1313,14 +1503,14 @@ declare function filter<In>(predicate: (v: In) => boolean): Chain<In, In>;
  * @param predicate
  * @returns
  */
-declare function drop<In>(predicate: (v: In) => boolean): Chain<In, In>;
+declare function drop<In>(predicate: (v: In) => boolean): Link<In, In>;
 /**
- * Chain functions together.
+ * Chain functions together. First argument is the source.
  *
  * @example Process an array of strings. Transforming into
  * integers, and then filtering only even numbers.
  * ```js
- * const ch = Chains.chain(
+ * const ch = Chains.run(
  *  [ `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10` ],
  *  Chains.transform<string, number>(v => Number.parseInt(v)),
  *  Chains.filter(v => v % 2 === 0)
@@ -1331,82 +1521,103 @@ declare function drop<In>(predicate: (v: In) => boolean): Chain<In, In>;
  * @param functions
  * @returns
  */
-declare function chain<In, Out>(...functions: ChainArguments<In, Out>): AsyncGenerator<Out>;
+declare function run<In, Out>(...functions: LinksWithSource<In, Out>): AsyncGenerator<Out>;
+/**
+ * Prepare a chain, allowing you to provide a source at execution time.
+ * ```js
+ * const chain = Chains.prepare(
+ *  Chains.transform<string,number>( v => number.parseInt(v) ),
+ *  Chains.filter<number>(v => v % 2 === 0)
+ * );
+ *
+ * // Run it with provided source
+ * for await (const v of chain([`1`, `2`, `3`])) {
+ *
+ * }
+ * ```
+ * @param functions
+ * @returns
+ */
+declare function prepare<In, Out>(...functions: Links<In, Out>): (source: GenOrData<In> | GenFactoryNoInput<Out>) => AsyncGenerator<Out, any, unknown>;
 
-type Chain$1_Chain<In, Out> = Chain<In, Out>;
-type Chain$1_ChainArguments<In, Out> = ChainArguments<In, Out>;
-type Chain$1_DelayOptions = DelayOptions;
-type Chain$1_Gen<V> = Gen<V>;
-type Chain$1_GenFactoryNoInput<Out> = GenFactoryNoInput<Out>;
-type Chain$1_GenOrData<V> = GenOrData<V>;
-type Chain$1_LazyChain<In, Out> = LazyChain<In, Out>;
-type Chain$1_TickOptions = TickOptions;
-declare const Chain$1_addToArray: typeof addToArray;
-declare const Chain$1_asArray: typeof asArray;
-declare const Chain$1_asCallback: typeof asCallback;
-declare const Chain$1_asPromise: typeof asPromise;
-declare const Chain$1_asValue: typeof asValue;
-declare const Chain$1_average: typeof average;
-declare const Chain$1_chain: typeof chain;
-declare const Chain$1_chunk: typeof chunk;
-declare const Chain$1_debounce: typeof debounce;
-declare const Chain$1_delay: typeof delay;
-declare const Chain$1_drop: typeof drop;
-declare const Chain$1_duration: typeof duration;
-declare const Chain$1_filter: typeof filter;
-declare const Chain$1_flatten: typeof flatten;
-declare const Chain$1_fromEvent: typeof fromEvent;
-declare const Chain$1_fromFunction: typeof fromFunction;
-declare const Chain$1_lazy: typeof lazy;
-declare const Chain$1_max: typeof max;
-declare const Chain$1_mergeAsArray: typeof mergeAsArray;
-declare const Chain$1_mergeFlat: typeof mergeFlat;
-declare const Chain$1_min: typeof min;
-declare const Chain$1_single: typeof single;
-declare const Chain$1_synchronise: typeof synchronise;
-declare const Chain$1_take: typeof take;
-declare const Chain$1_tally: typeof tally;
-declare const Chain$1_tick: typeof tick;
-declare const Chain$1_total: typeof total;
-declare const Chain$1_transform: typeof transform;
-declare namespace Chain$1 {
+type Chain_DelayOptions = DelayOptions;
+type Chain_Gen<V> = Gen<V>;
+type Chain_GenFactoryNoInput<Out> = GenFactoryNoInput<Out>;
+type Chain_GenOrData<V> = GenOrData<V>;
+type Chain_LazyChain<In, Out> = LazyChain<In, Out>;
+type Chain_Link<In, Out> = Link<In, Out>;
+type Chain_Links<In, Out> = Links<In, Out>;
+type Chain_LinksWithSource<In, Out> = LinksWithSource<In, Out>;
+type Chain_TickOptions = TickOptions;
+declare const Chain_addToArray: typeof addToArray;
+declare const Chain_asArray: typeof asArray;
+declare const Chain_asCallback: typeof asCallback;
+declare const Chain_asPromise: typeof asPromise;
+declare const Chain_asValue: typeof asValue;
+declare const Chain_average: typeof average;
+declare const Chain_chunk: typeof chunk;
+declare const Chain_debounce: typeof debounce;
+declare const Chain_delay: typeof delay;
+declare const Chain_drop: typeof drop;
+declare const Chain_duration: typeof duration;
+declare const Chain_filter: typeof filter;
+declare const Chain_flatten: typeof flatten;
+declare const Chain_fromEvent: typeof fromEvent;
+declare const Chain_fromFunction: typeof fromFunction;
+declare const Chain_lazy: typeof lazy;
+declare const Chain_max: typeof max;
+declare const Chain_mergeAsArray: typeof mergeAsArray;
+declare const Chain_mergeFlat: typeof mergeFlat;
+declare const Chain_min: typeof min;
+declare const Chain_prepare: typeof prepare;
+declare const Chain_run: typeof run;
+declare const Chain_single: typeof single;
+declare const Chain_synchronise: typeof synchronise;
+declare const Chain_take: typeof take;
+declare const Chain_tally: typeof tally;
+declare const Chain_tick: typeof tick;
+declare const Chain_total: typeof total;
+declare const Chain_transform: typeof transform;
+declare namespace Chain {
   export {
-    Chain$1_Chain as Chain,
-    Chain$1_ChainArguments as ChainArguments,
-    Chain$1_DelayOptions as DelayOptions,
-    Chain$1_Gen as Gen,
-    Chain$1_GenFactoryNoInput as GenFactoryNoInput,
-    Chain$1_GenOrData as GenOrData,
-    Chain$1_LazyChain as LazyChain,
-    Chain$1_TickOptions as TickOptions,
-    Chain$1_addToArray as addToArray,
-    Chain$1_asArray as asArray,
-    Chain$1_asCallback as asCallback,
-    Chain$1_asPromise as asPromise,
-    Chain$1_asValue as asValue,
-    Chain$1_average as average,
-    Chain$1_chain as chain,
-    Chain$1_chunk as chunk,
-    Chain$1_debounce as debounce,
-    Chain$1_delay as delay,
-    Chain$1_drop as drop,
-    Chain$1_duration as duration,
-    Chain$1_filter as filter,
-    Chain$1_flatten as flatten,
-    Chain$1_fromEvent as fromEvent,
-    Chain$1_fromFunction as fromFunction,
-    Chain$1_lazy as lazy,
-    Chain$1_max as max,
-    Chain$1_mergeAsArray as mergeAsArray,
-    Chain$1_mergeFlat as mergeFlat,
-    Chain$1_min as min,
-    Chain$1_single as single,
-    Chain$1_synchronise as synchronise,
-    Chain$1_take as take,
-    Chain$1_tally as tally,
-    Chain$1_tick as tick,
-    Chain$1_total as total,
-    Chain$1_transform as transform,
+    Chain_DelayOptions as DelayOptions,
+    Chain_Gen as Gen,
+    Chain_GenFactoryNoInput as GenFactoryNoInput,
+    Chain_GenOrData as GenOrData,
+    Chain_LazyChain as LazyChain,
+    Chain_Link as Link,
+    Chain_Links as Links,
+    Chain_LinksWithSource as LinksWithSource,
+    Chain_TickOptions as TickOptions,
+    Chain_addToArray as addToArray,
+    Chain_asArray as asArray,
+    Chain_asCallback as asCallback,
+    Chain_asPromise as asPromise,
+    Chain_asValue as asValue,
+    Chain_average as average,
+    Chain_chunk as chunk,
+    Chain_debounce as debounce,
+    Chain_delay as delay,
+    Chain_drop as drop,
+    Chain_duration as duration,
+    Chain_filter as filter,
+    Chain_flatten as flatten,
+    Chain_fromEvent as fromEvent,
+    Chain_fromFunction as fromFunction,
+    Chain_lazy as lazy,
+    Chain_max as max,
+    Chain_mergeAsArray as mergeAsArray,
+    Chain_mergeFlat as mergeFlat,
+    Chain_min as min,
+    Chain_prepare as prepare,
+    Chain_run as run,
+    Chain_single as single,
+    Chain_synchronise as synchronise,
+    Chain_take as take,
+    Chain_tally as tally,
+    Chain_tick as tick,
+    Chain_total as total,
+    Chain_transform as transform,
   };
 }
 
@@ -2096,6 +2307,24 @@ declare const fromScalar: (scalarValue: number) => number;
  */
 declare const scale: (inputValue: number, inMin: number, inMax: number) => number;
 /**
+ * Scale a number, clamped to -1..1 range
+ * ```js
+ * import { Bipolar } from 'https://unpkg.com/ixfx/dist/data.js';
+ *
+ * // Scale 100 on 0..100 scale
+ * Bipolar.scale(100, 0, 100); // 1
+ * Bipolar.scale(50, 0, 100);  // 0
+ * Bipolar.scale(0, 0, 100);   // -1
+ * ```
+ *
+ * Return value is clamped.
+ * @param inputValue Value to scale
+ * @param inMin Minimum of scale
+ * @param inMax Maximum of scale
+ * @returns Bipolar value on -1..1 scale
+ */
+declare const scaleClamped: (inputValue: number, inMin: number, inMax: number) => number;
+/**
  * Source for random bipolar values
  * ```js
  * const r = Bipolar.randomSource();
@@ -2172,6 +2401,7 @@ declare const Bipolar_immutable: typeof immutable;
 declare const Bipolar_random: typeof random;
 declare const Bipolar_randomSource: typeof randomSource;
 declare const Bipolar_scale: typeof scale;
+declare const Bipolar_scaleClamped: typeof scaleClamped;
 declare const Bipolar_toScalar: typeof toScalar;
 declare const Bipolar_towardZero: typeof towardZero;
 declare namespace Bipolar {
@@ -2183,6 +2413,7 @@ declare namespace Bipolar {
     Bipolar_random as random,
     Bipolar_randomSource as randomSource,
     Bipolar_scale as scale,
+    Bipolar_scaleClamped as scaleClamped,
     Bipolar_toScalar as toScalar,
     Bipolar_towardZero as towardZero,
   };
@@ -2818,7 +3049,6 @@ declare const index_numberTracker: typeof numberTracker;
 declare const index_piPi: typeof piPi;
 declare const index_pointTracker: typeof pointTracker;
 declare const index_pointsTracker: typeof pointsTracker;
-declare const index_scaleClamped: typeof scaleClamped;
 declare const index_scalePercent: typeof scalePercent;
 declare const index_scalePercentages: typeof scalePercentages;
 declare const index_scaler: typeof scaler;
@@ -2829,7 +3059,7 @@ declare const index_wrapRange: typeof wrapRange;
 declare namespace index {
   export {
     index_Bipolar as Bipolar,
-    Chain$1 as Chains,
+    Chain as Chains,
     index_Correlate as Correlate,
     index_FrequencyEventMap as FrequencyEventMap,
     index_FrequencyMutable as FrequencyMutable,
@@ -2868,7 +3098,7 @@ declare namespace index {
     index_pointTracker as pointTracker,
     index_pointsTracker as pointsTracker,
     scale$1 as scale,
-    index_scaleClamped as scaleClamped,
+    scaleClamped$1 as scaleClamped,
     index_scalePercent as scalePercent,
     index_scalePercentages as scalePercentages,
     index_scaler as scaler,
@@ -2879,4 +3109,4 @@ declare namespace index {
   };
 }
 
-export { Table as A, Bipolar as B, Chain$1 as C, interpolate as D, interpolateAngle as E, FrequencyEventMap as F, wrapInteger as G, wrap as H, IntervalTracker as I, wrapRange as J, MovingAverage as M, NumberFunction as N, Pool$1 as P, Reactive$1 as R, TrackedPointMap as T, Normalise as a, index$1 as b, Correlate as c, FrequencyMutable as d, movingAverageTimed as e, frequencyMutable as f, movingAverage as g, intervalTracker as h, index as i, PointTrack as j, PointTrackerResults as k, PointTracker as l, movingAverageLight as m, noiseFilter as n, pointsTracker as o, piPi as p, pointTracker as q, clamp$1 as r, clampIndex as s, scale$1 as t, scaler as u, scaleClamped as v, scalePercentages as w, scalePercent as x, scalerPercent as y, flip as z };
+export { Table as A, Bipolar as B, Chain as C, interpolate as D, interpolateAngle as E, FrequencyEventMap as F, wrapInteger as G, wrap as H, IntervalTracker as I, wrapRange as J, MovingAverage as M, NumberFunction as N, Pool$1 as P, Reactive$1 as R, TrackedPointMap as T, Normalise as a, index$1 as b, Correlate as c, FrequencyMutable as d, movingAverageTimed as e, frequencyMutable as f, movingAverage as g, intervalTracker as h, index as i, PointTrack as j, PointTrackerResults as k, PointTracker as l, movingAverageLight as m, noiseFilter as n, pointsTracker as o, piPi as p, pointTracker as q, clamp$1 as r, clampIndex as s, scale$1 as t, scaler as u, scaleClamped$1 as v, scalePercentages as w, scalePercent as x, scalerPercent as y, flip as z };

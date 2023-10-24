@@ -1,10 +1,10 @@
 import { a as StateMachineWithEvents, b as StateChangeEvent, T as Transitions } from './StateMachine-0f69de4d.js';
 import { S as SimpleEventEmitter, I as ISimpleEventEmitter } from './Events-f066e560.js';
 import { I as Interval } from './IntervalType-a4b20f1c.js';
-import { Q as QueueMutable } from './QueueMutable-b6767af6.js';
+import { Q as QueueMutable } from './QueueMutable-a55e58f6.js';
 import { C as Continuously } from './Continuously-af72c010.js';
-import { N as NumberTracker } from './NumberTracker-e28ed6a4.js';
-import { a as Point, f as Rect } from './Point-23cb5d9f.js';
+import { N as NumberTracker } from './NumberTracker-84cdb10a.js';
+import { a as Point, f as Rect } from './Point-bfc55176.js';
 import { M as ManualCapturer } from './Video-02eb65f6.js';
 
 /**
@@ -128,9 +128,9 @@ declare class StringWriteBuffer {
      * Longer strings are automatically chunked up according to the buffer's settings.
      *
      * Throws an error if {@link close} has been called.
-     * @param str
+     * @param stringToQueue
      */
-    add(str: string): void;
+    add(stringToQueue: string): void;
 }
 
 type Opts$2 = {
@@ -496,7 +496,7 @@ declare class EspruinoBleDevice extends NordicBleDevice {
      * @param opts Options
      * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
      */
-    eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
+    eval(code: string, opts?: EvalOpts, warn?: (message: string) => void): Promise<string>;
 }
 
 /**
@@ -707,7 +707,7 @@ declare class EspruinoSerialDevice extends Device {
     eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
 }
 
-type EspruinoStates = `ready` | `connecting` | `connected` | `closed` | `closing` | `connecting`;
+type EspruinoStates = `ready` | `connecting` | `connected` | `closed` | `closing`;
 /**
  * Options for device
  */
@@ -757,7 +757,7 @@ type EspruinoBleOpts = {
     /**
      * If specified, these filtering options are used instead
      */
-    readonly filters?: readonly BluetoothLEScanFilter[];
+    readonly filters?: ReadonlyArray<BluetoothLEScanFilter>;
 };
 /**
  * Instantiates a Puck.js. See {@link EspruinoBleDevice} for more info.
@@ -867,7 +867,7 @@ type Events = IoEvents<GenericStateTransitions>;
  *
  * This base interface is implemented by {@link EspruinoBleDevice} and {@link EspruinoSerialDevice}.
  */
-interface EspruinoDevice extends ISimpleEventEmitter<Events> {
+type EspruinoDevice = {
     /**
      * Sends some code to be executed on the Espruino. The result
      * is packaged into JSON and sent back to your code. An exception is
@@ -894,7 +894,7 @@ interface EspruinoDevice extends ISimpleEventEmitter<Events> {
      * @param opts Options
      * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
      */
-    eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
+    eval(code: string, opts?: EvalOpts, warn?: (message: string) => void): Promise<string>;
     /**
      * Write some code for immediate execution. This is a lower-level
      * alternative to {@link writeScript}. Be sure to include a new line character '\n' at the end.
@@ -929,7 +929,7 @@ interface EspruinoDevice extends ISimpleEventEmitter<Events> {
      */
     get evalTimeoutMs(): number;
     get isConnected(): boolean;
-}
+} & ISimpleEventEmitter<Events>;
 /**
  * Evaluates some code on an Espruino device.
  *

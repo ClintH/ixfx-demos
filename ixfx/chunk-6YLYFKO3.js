@@ -3,12 +3,12 @@ import {
   SetStringMutable,
   mutable,
   set_exports
-} from "./chunk-T2KQ46UT.js";
+} from "./chunk-EIQV725C.js";
 import {
   MapOfSimpleMutable,
   SimpleEventEmitter,
   ofSimpleMutable
-} from "./chunk-OQX5CKGU.js";
+} from "./chunk-ZSSYQQHP.js";
 import {
   IterableAsync_exports,
   defaultComparer,
@@ -18,6 +18,7 @@ import {
   intervalToMs,
   isEqualDefault,
   isEqualValueDefault,
+  isPlainObjectOrPrimitive,
   isPowerOfTwo,
   nullUndef,
   numberTest,
@@ -29,7 +30,7 @@ import {
   throwNumberTest,
   throwPercentTest,
   toStringDefault2 as toStringDefault
-} from "./chunk-66FSPWS7.js";
+} from "./chunk-DUNDLGZO.js";
 import {
   getErrorMessage,
   getOrGenerate,
@@ -4391,10 +4392,10 @@ var require_ReadonlyArray = __commonJS({
       return xs;
     };
     exports.unsafeDeleteAt = unsafeDeleteAt;
-    var toArray5 = function(as) {
+    var toArray6 = function(as) {
       return as.slice();
     };
-    exports.toArray = toArray5;
+    exports.toArray = toArray6;
     var fromArray = function(as) {
       return (0, exports.isEmpty)(as) ? exports.empty : as.slice();
     };
@@ -6986,11 +6987,11 @@ var require_dist = __commonJS({
           return final;
         }
       };
-      var JSON53 = {
+      var JSON54 = {
         parse,
         stringify
       };
-      var lib = JSON53;
+      var lib = JSON54;
       var es5 = lib;
       return es5;
     });
@@ -7093,7 +7094,7 @@ __export(Arrays_exports, {
   zip: () => zip2
 });
 
-// src/collections/map/MapFns.ts
+// src/collections/Map/MapFns.ts
 var getClosestIntegerKey = (data, target) => {
   target = Math.round(target);
   if (data.has(target)) {
@@ -7318,6 +7319,7 @@ var interpolateAngle = (amount, aRadians, bRadians) => {
 // src/flow/index.ts
 var flow_exports = {};
 __export(flow_exports, {
+  DispatchList: () => DispatchList,
   Elapsed: () => Elapsed_exports,
   StateMachine: () => StateMachine_exports,
   TaskQueue: () => TaskQueue,
@@ -7531,12 +7533,17 @@ var TrackerBase2 = class {
    */
   sampleLimit;
   id;
+  debug;
   constructor(opts = {}) {
     this.id = opts.id ?? `tracker`;
+    this.debug = opts.debug ?? false;
     this.sampleLimit = opts.sampleLimit ?? -1;
     this.resetAfterSamples = opts.resetAfterSamples ?? -1;
     this.storeIntermediate = opts.storeIntermediate ?? (this.sampleLimit > -1 || this.resetAfterSamples > -1);
     this.seenCount = 0;
+    if (this.debug) {
+      console.log(`TrackerBase: sampleLimit: ${this.sampleLimit} resetAfter: ${this.resetAfterSamples} store: ${this.storeIntermediate}`);
+    }
   }
   /**
    * Reset tracker
@@ -7983,7 +7990,7 @@ __export(Point_exports, {
   round: () => round2,
   subtract: () => subtract,
   sum: () => sum3,
-  toArray: () => toArray4,
+  toArray: () => toArray5,
   toIntegerValues: () => toIntegerValues,
   toString: () => toString4,
   withinRange: () => withinRange2,
@@ -8199,6 +8206,13 @@ var QueueMutable = class {
   clear() {
     this.data = [];
   }
+  /**
+   * Return a copy of the array
+   * @returns 
+   */
+  toArray() {
+    return [...this.data];
+  }
   enqueue(...toAdd) {
     this.data = enqueue(this.opts, this.data, ...toAdd);
     return this.data.length;
@@ -8368,9 +8382,9 @@ __export(IterableSync_exports, {
   yieldNumber: () => yieldNumber,
   zip: () => zip
 });
-function yieldNumber(generator, defaultValue) {
+function yieldNumber(generator2, defaultValue) {
   return () => {
-    const v = generator.next().value;
+    const v = generator2.next().value;
     if (v === void 0)
       return defaultValue;
     return v;
@@ -10979,7 +10993,7 @@ async function init2(machine, handlersOrOpts) {
       );
     }
   }
-  const run2 = async () => {
+  const run3 = async () => {
     debug(`Run. State: ${sm.value}`);
     const state = sm.value;
     let handler = byState.get(state);
@@ -11053,7 +11067,7 @@ async function init2(machine, handlersOrOpts) {
       sm = reset(sm);
     },
     getValue: () => sm.value,
-    run: run2,
+    run: run3,
     to: (state) => {
       sm = to(sm, state);
       return sm;
@@ -11569,7 +11583,9 @@ var StringWriteBuffer = class {
   constructor(dataHandler, opts = {}) {
     this.dataHandler = dataHandler;
     this.chunkSize = opts.chunkSize ?? -1;
-    this.writer = continuously(this.onWrite, opts.interval ?? 10);
+    this.writer = continuously(async () => {
+      await this.onWrite();
+    }, opts.interval ?? 10);
   }
   paused = false;
   queue = new QueueMutable();
@@ -11653,15 +11669,15 @@ var StringWriteBuffer = class {
    * Longer strings are automatically chunked up according to the buffer's settings.
    *
    * Throws an error if {@link close} has been called.
-   * @param str
+   * @param stringToQueue
    */
-  add(str) {
+  add(stringToQueue) {
     if (this.closed)
       throw new Error(`Buffer closed`);
     if (this.chunkSize > 0) {
-      this.queue.enqueue(...splitByLength(str, this.chunkSize));
+      this.queue.enqueue(...splitByLength(stringToQueue, this.chunkSize));
     } else {
-      this.queue.enqueue(str);
+      this.queue.enqueue(stringToQueue);
     }
     this.writer.start();
   }
@@ -11745,10 +11761,10 @@ var BleDevice = class extends SimpleEventEmitter {
         initial: `ready`
       }
     );
-    this.states.addEventListener(`change`, (evt) => {
-      this.fireEvent(`change`, evt);
-      this.verbose(`${evt.priorState} -> ${evt.newState}`);
-      if (evt.priorState === `connected`) {
+    this.states.addEventListener(`change`, (event2) => {
+      this.fireEvent(`change`, event2);
+      this.verbose(`${event2.priorState} -> ${event2.newState}`);
+      if (event2.priorState === `connected`) {
         this.rxBuffer.clear();
         this.txBuffer.clear();
       }
@@ -11789,8 +11805,8 @@ var BleDevice = class extends SimpleEventEmitter {
     }
     try {
       await tx.writeValue(this.codec.toBuffer(txt));
-    } catch (ex) {
-      this.warn(ex);
+    } catch (error) {
+      this.warn(error);
     }
   }
   disconnect() {
@@ -11807,6 +11823,7 @@ var BleDevice = class extends SimpleEventEmitter {
       throw new Error(`Gatt not available on device`);
     await retry(
       async () => {
+        this.verbose(`connect.retry`);
         const server = await gatt.connect();
         this.verbose(`Getting primary service`);
         const service = await server.getPrimaryService(this.config.service);
@@ -11819,7 +11836,9 @@ var BleDevice = class extends SimpleEventEmitter {
         );
         rx2.addEventListener(
           `characteristicvaluechanged`,
-          (evt) => this.onRx(evt)
+          (event2) => {
+            this.onRx(event2);
+          }
         );
         this.rx = rx2;
         this.tx = tx;
@@ -11834,37 +11853,37 @@ var BleDevice = class extends SimpleEventEmitter {
       }
     );
   }
-  onRx(evt) {
+  onRx(event2) {
     const rx2 = this.rx;
     if (rx2 === void 0)
       return;
-    const view = evt.target.value;
+    const view = event2.target.value;
     if (view === void 0)
       return;
-    let str = this.codec.fromBuffer(view.buffer);
-    const plzStop = indexOfCharCode(str, 19);
-    const plzStart = indexOfCharCode(str, 17);
+    let string_ = this.codec.fromBuffer(view.buffer);
+    const plzStop = indexOfCharCode(string_, 19);
+    const plzStart = indexOfCharCode(string_, 17);
     if (plzStart && plzStop < plzStart) {
       this.verbose(`Tx plz start`);
-      str = omitChars(str, plzStart, 1);
+      string_ = omitChars(string_, plzStart, 1);
       this.txBuffer.paused = false;
     }
     if (plzStop && plzStop > plzStart) {
       this.verbose(`Tx plz stop`);
-      str = omitChars(str, plzStop, 1);
+      string_ = omitChars(string_, plzStop, 1);
       this.txBuffer.paused = true;
     }
-    this.rxBuffer.add(str);
+    this.rxBuffer.add(string_);
   }
   verbose(m) {
     if (this.verboseLogging)
-      console.info(`${this.config.name} `, m);
+      console.info(`${this.config.name}`, m);
   }
   log(m) {
-    console.log(`${this.config.name} `, m);
+    console.log(`${this.config.name}`, m);
   }
   warn(m) {
-    console.warn(`${this.config.name} `, m);
+    console.warn(`${this.config.name}`, m);
   }
 };
 
@@ -12399,6 +12418,7 @@ var EspruinoBleDevice = class extends NordicBleDevice {
    *
    * @param code Code to send. A new line is added automatically.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   async writeScript(code) {
     this.write(`reset();
 `);
@@ -12433,8 +12453,10 @@ var EspruinoBleDevice = class extends NordicBleDevice {
    */
   async eval(code, opts = {}, warn) {
     const debug = opts.debug ?? false;
-    const warnCb = warn ?? ((m) => this.warn(m));
-    return deviceEval(code, opts, this, `Bluetooth.println`, debug, warnCb);
+    const warnCallback = warn ?? ((m) => {
+      this.warn(m);
+    });
+    return deviceEval(code, opts, this, `Bluetooth.println`, debug, warnCallback);
   }
   /*
       const timeoutMs = opts.timeoutMs ?? this.evalTimeoutMs;
@@ -12813,7 +12835,7 @@ var connectBle = async (opts = {}) => {
     filters: getFilters(opts),
     optionalServices: [defaultOpts.service]
   });
-  const d = new EspruinoBleDevice(device, { name: `Espruino` });
+  const d = new EspruinoBleDevice(device, { name: `Espruino`, ...opts });
   await d.connect();
   return d;
 };
@@ -12821,7 +12843,7 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug, warn) =
   const timeoutMs = opts.timeoutMs ?? device.evalTimeoutMs;
   const assumeExclusive = opts.assumeExclusive ?? true;
   if (typeof code !== `string`) {
-    throw new Error(`code parameter should be a string`);
+    throw new TypeError(`code parameter should be a string`);
   }
   return new Promise((resolve, reject) => {
     const id = string(5);
@@ -12829,7 +12851,7 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug, warn) =
       try {
         let cleaned = d.data;
         if (cleaned.startsWith(`>{`) && cleaned.endsWith(`}`)) {
-          cleaned = cleaned.substring(1);
+          cleaned = cleaned.slice(1);
         }
         const dd = JSON.parse(cleaned);
         if (`reply` in dd) {
@@ -12844,17 +12866,17 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug, warn) =
         } else {
           warn(`Expected packet, missing 'reply' field. Got: ${d.data}`);
         }
-      } catch (ex) {
+      } catch (error) {
         if (assumeExclusive) {
           done2(d.data);
         } else {
-          warn(ex);
+          warn(error);
         }
       }
     };
-    const onStateChange = (evt) => {
-      if (evt.newState !== `connected`) {
-        done2(`State changed to '${evt.newState}', aborting`);
+    const onStateChange = (event2) => {
+      if (event2.newState !== `connected`) {
+        done2(`State changed to '${event2.newState}', aborting`);
       }
     };
     device.addEventListener(`data`, onData);
@@ -12869,11 +12891,11 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug, warn) =
         device.removeEventListener(`change`, onStateChange);
       }
     );
-    const src = `${evalReplyPrefix}(JSON.stringify({reply:"${id}", result:JSON.stringify(${code})}))
+    const source = `${evalReplyPrefix}(JSON.stringify({reply:"${id}", result:JSON.stringify(${code})}))
 `;
     if (debug)
-      warn(src);
-    device.write(src);
+      warn(source);
+    device.write(source);
   });
 };
 
@@ -17682,7 +17704,7 @@ function __extends(d, b) {
   }
   d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
-function __awaiter(thisArg, _arguments, P, generator) {
+function __awaiter(thisArg, _arguments, P, generator2) {
   function adopt(value) {
     return value instanceof P ? value : new P(function(resolve) {
       resolve(value);
@@ -17691,14 +17713,14 @@ function __awaiter(thisArg, _arguments, P, generator) {
   return new (P || (P = Promise))(function(resolve, reject) {
     function fulfilled(value) {
       try {
-        step(generator.next(value));
+        step(generator2.next(value));
       } catch (e) {
         reject(e);
       }
     }
     function rejected(value) {
       try {
-        step(generator["throw"](value));
+        step(generator2["throw"](value));
       } catch (e) {
         reject(e);
       }
@@ -17706,7 +17728,7 @@ function __awaiter(thisArg, _arguments, P, generator) {
     function step(result) {
       result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
-    step((generator = generator.apply(thisArg, _arguments || [])).next());
+    step((generator2 = generator2.apply(thisArg, _arguments || [])).next());
   });
 }
 function __generator(thisArg, body) {
@@ -17834,10 +17856,10 @@ function __spreadArray(to2, from2, pack) {
 function __await(v) {
   return this instanceof __await ? (this.v = v, this) : new __await(v);
 }
-function __asyncGenerator(thisArg, _arguments, generator) {
+function __asyncGenerator(thisArg, _arguments, generator2) {
   if (!Symbol.asyncIterator)
     throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
+  var g = generator2.apply(thisArg, _arguments || []), i, q = [];
   return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
     return this;
   }, i;
@@ -19151,34 +19173,39 @@ function debounceTime(dueTime, scheduler) {
 // src/dom/Util.ts
 var import_json5 = __toESM(require_dist(), 1);
 var pointScaler = (reference = `viewport`) => {
-  if (reference === `viewport`) {
-    return (a, b) => {
-      const pt = getPointParameter2(a, b);
-      return Object.freeze({
-        x: pt.x / window.innerWidth,
-        y: pt.y / window.innerHeight
-      });
-    };
-  } else if (reference === `screen`) {
-    return (a, b) => {
-      const pt = getPointParameter2(a, b);
-      return Object.freeze({
-        x: pt.x / screen.width,
-        y: pt.y / screen.height
-      });
-    };
-  } else if (reference === `document`) {
-    return (a, b) => {
-      const pt = getPointParameter2(a, b);
-      return Object.freeze({
-        x: pt.x / document.body.scrollWidth,
-        y: pt.y / document.body.scrollHeight
-      });
-    };
-  } else {
-    throw new Error(
-      `Unknown 'reference' parameter: ${JSON.stringify(reference)}`
-    );
+  switch (reference) {
+    case `viewport`: {
+      return (a, b) => {
+        const pt = getPointParameter2(a, b);
+        return Object.freeze({
+          x: pt.x / window.innerWidth,
+          y: pt.y / window.innerHeight
+        });
+      };
+    }
+    case `screen`: {
+      return (a, b) => {
+        const pt = getPointParameter2(a, b);
+        return Object.freeze({
+          x: pt.x / screen.width,
+          y: pt.y / screen.height
+        });
+      };
+    }
+    case `document`: {
+      return (a, b) => {
+        const pt = getPointParameter2(a, b);
+        return Object.freeze({
+          x: pt.x / document.body.scrollWidth,
+          y: pt.y / document.body.scrollHeight
+        });
+      };
+    }
+    default: {
+      throw new Error(
+        `Unknown 'reference' parameter: ${JSON.stringify(reference)}`
+      );
+    }
   }
 };
 var positionFn = (domQueryOrEl, opts = {}) => {
@@ -19204,7 +19231,7 @@ var positionRelative = (domQueryOrEl, target = `viewport`) => {
 };
 var viewportToSpace = (targetSpace = `viewport`) => {
   switch (targetSpace) {
-    case `screen`:
+    case `screen`: {
       return (a, b) => {
         const pt = getPointParameter2(a, b);
         return Object.freeze({
@@ -19212,7 +19239,8 @@ var viewportToSpace = (targetSpace = `viewport`) => {
           y: pt.y + window.screenY
         });
       };
-    case `document`:
+    }
+    case `document`: {
       return (a, b) => {
         const pt = getPointParameter2(a, b);
         return Object.freeze({
@@ -19220,7 +19248,8 @@ var viewportToSpace = (targetSpace = `viewport`) => {
           y: pt.y + window.scrollY
         });
       };
-    case `viewport`:
+    }
+    case `viewport`: {
       return (a, b) => {
         const pt = getPointParameter2(a, b);
         return Object.freeze({
@@ -19228,10 +19257,13 @@ var viewportToSpace = (targetSpace = `viewport`) => {
           y: pt.y
         });
       };
-    default:
+    }
+    default: {
       throw new Error(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Unexpected target coordinate space: ${targetSpace}. Expected: viewport, document or screen`
       );
+    }
   }
 };
 var positionFromMiddle = (domQueryOrEl, relativePos, relativeTo = `window`) => {
@@ -19363,13 +19395,13 @@ var cycleCssClass = (el2, list) => {
   if (el2 === null || !el2)
     return;
   if (!Array.isArray(list)) {
-    throw new Error(`List should be an array of strings`);
+    throw new TypeError(`List should be an array of strings`);
   }
-  for (let i = 0; i < list.length; i++) {
-    if (el2.classList.contains(list[i])) {
-      el2.classList.remove(list[i]);
-      if (i + 1 < list.length) {
-        el2.classList.add(list[i + 1]);
+  for (let index = 0; index < list.length; index++) {
+    if (el2.classList.contains(list[index])) {
+      el2.classList.remove(list[index]);
+      if (index + 1 < list.length) {
+        el2.classList.add(list[index + 1]);
       } else {
         el2.classList.add(list[0]);
       }
@@ -19385,11 +19417,11 @@ var parentSize = (domQueryOrEl, onResized, timeoutMs = 100) => {
     throw new Error(`Element has no parent`);
   const ro = resizeObservable(parent, timeoutMs).subscribe(
     (entries) => {
-      const e = entries.find((v) => v.target === parent);
-      if (e === void 0)
+      const entry = entries.find((v) => v.target === parent);
+      if (entry === void 0)
         return;
-      const width = e.contentRect.width;
-      const height4 = e.contentRect.height;
+      const width = entry.contentRect.width;
+      const height4 = entry.contentRect.height;
       el2.setAttribute(`width`, width + `px`);
       el2.setAttribute(`height`, height4 + `px`);
       if (onResized !== void 0) {
@@ -19421,16 +19453,16 @@ var getTranslation = (domQueryOrEl) => {
   const matrixValues = matrix.match(/matrix.*\((.+)\)/)[1].split(`, `);
   if (matrixType === `2d`) {
     return {
-      x: parseFloat(matrixValues[4]),
-      y: parseFloat(matrixValues[5]),
+      x: Number.parseFloat(matrixValues[4]),
+      y: Number.parseFloat(matrixValues[5]),
       z: 0
     };
   }
   if (matrixType === `3d`) {
     return {
-      x: parseFloat(matrixValues[12]),
-      y: parseFloat(matrixValues[13]),
-      z: parseFloat(matrixValues[14])
+      x: Number.parseFloat(matrixValues[12]),
+      y: Number.parseFloat(matrixValues[13]),
+      z: Number.parseFloat(matrixValues[14])
     };
   }
   return { x: 0, y: 0, z: 0 };
@@ -19452,11 +19484,11 @@ var parentSizeCanvas = (domQueryOrEl, onResized, timeoutMs = 100) => {
   el2.style.height = `100%`;
   const ro = resizeObservable(parent, timeoutMs).subscribe(
     (entries) => {
-      const e = entries.find((v) => v.target === parent);
-      if (e === void 0)
+      const entry = entries.find((v) => v.target === parent);
+      if (entry === void 0)
         return;
-      const width = e.contentRect.width;
-      const height4 = e.contentRect.height;
+      const width = entry.contentRect.width;
+      const height4 = entry.contentRect.height;
       el2.setAttribute(`width`, el2.offsetWidth + `px`);
       el2.setAttribute(`height`, el2.offsetHeight + `px`);
       if (onResized !== void 0) {
@@ -19478,10 +19510,10 @@ var resolveEl = (domQueryOrEl) => {
   if (typeof domQueryOrEl === `string`) {
     const d = document.querySelector(domQueryOrEl);
     if (d === null) {
-      const error = !domQueryOrEl.startsWith(`#`) ? new Error(
-        `Query '${domQueryOrEl}' did not match anything. Did you mean '#${domQueryOrEl}?`
-      ) : new Error(
+      const error = domQueryOrEl.startsWith(`#`) ? new Error(
         `Query '${domQueryOrEl}' did not match anything. Try '#id', 'div', or '.class'`
+      ) : new Error(
+        `Query '${domQueryOrEl}' did not match anything. Did you mean '#${domQueryOrEl}?`
       );
       throw error;
     }
@@ -19501,13 +19533,13 @@ var createAfter = (sibling, tagName) => {
 };
 var createIn = (parent, tagName) => {
   const el2 = document.createElement(tagName);
-  parent.appendChild(el2);
+  parent.append(el2);
   return el2;
 };
 var clear = (parent) => {
   let c = parent.lastElementChild;
   while (c) {
-    parent.removeChild(c);
+    c.remove();
     c = parent.lastElementChild;
   }
 };
@@ -19545,17 +19577,17 @@ var resizeObservable = (elem, timeoutMs = 1e3) => {
   });
   return o.pipe(debounceTime(timeoutMs));
 };
-var copyToClipboard = (obj) => {
+var copyToClipboard = (object2) => {
   const p = new Promise((resolve, reject) => {
-    const str = import_json5.default.stringify(obj);
-    navigator.clipboard.writeText(JSON.stringify(str)).then(
+    const string_ = import_json5.default.stringify(object2);
+    navigator.clipboard.writeText(JSON.stringify(string_)).then(
       () => {
         resolve(true);
       },
-      (_err) => {
+      (error) => {
         console.warn(`Could not copy to clipboard`);
-        console.log(str);
-        reject(_err);
+        console.log(string_);
+        reject(error);
       }
     );
   });
@@ -19578,17 +19610,17 @@ var reconcileChildren = (parentEl, list, createUpdate) => {
     seen.add(id);
   }
   const prune = [];
-  for (let i = 0; i < parentEl.children.length; i++) {
-    const c = parentEl.children[i];
-    if (!seen.has(c.id)) {
-      prune.push(c);
+  for (const child of parentEl.children) {
+    if (!seen.has(child.id)) {
+      prune.push(child);
     }
   }
-  prune.forEach((p) => p.remove());
+  for (const p of prune)
+    p.remove();
 };
 var setCssClass = (selectors, value, cssClass) => {
-  const elements = Array.from(document.querySelectorAll(selectors));
-  if (!elements)
+  const elements = resolveEls(selectors);
+  if (elements.length === 0)
     return;
   for (const element of elements) {
     if (value)
@@ -19597,9 +19629,17 @@ var setCssClass = (selectors, value, cssClass) => {
       element.classList.remove(cssClass);
   }
 };
+var setCssToggle = (selectors, cssClass) => {
+  const elements = resolveEls(selectors);
+  if (elements.length === 0)
+    return;
+  for (const element of elements) {
+    element.classList.toggle(cssClass);
+  }
+};
 var setCssDisplay = (selectors, value) => {
-  const elements = Array.from(document.querySelectorAll(selectors));
-  if (!elements)
+  const elements = resolveEls(selectors);
+  if (elements.length === 0)
     return;
   for (const element of elements) {
     element.style.display = value;
@@ -19607,13 +19647,28 @@ var setCssDisplay = (selectors, value) => {
 };
 var byId = (id) => {
   const element = document.getElementById(id);
+  if (element === null)
+    throw new Error(`HTML element with id '${id}' not found`);
   return element;
 };
+var resolveEls = (selectors) => {
+  if (selectors === void 0)
+    return [];
+  if (selectors === null)
+    return [];
+  if (Array.isArray(selectors))
+    return selectors;
+  if (typeof selectors === `string`) {
+    const elements = [...document.querySelectorAll(selectors)];
+    return elements;
+  }
+  return [selectors];
+};
 var setHtml = (selectors, value) => {
-  const elements = Array.from(document.querySelectorAll(selectors));
-  if (!elements)
+  const elements = resolveEls(selectors);
+  if (elements.length === 0)
     return;
-  if (typeof value === "number") {
+  if (typeof value === `number`) {
     value = value.toString();
   }
   for (const element of elements) {
@@ -19621,22 +19676,59 @@ var setHtml = (selectors, value) => {
   }
 };
 var setText = (selectors, value) => {
-  const elements = Array.from(document.querySelectorAll(selectors));
-  if (!elements)
+  const elements = resolveEls(selectors);
+  if (elements.length === 0)
     return;
-  if (typeof value === "number") {
+  if (typeof value === `number`) {
     value = value.toString();
   }
   for (const element of elements) {
     element.textContent = value;
   }
 };
-var el = (selectors) => ({
-  text: (value) => setText(selectors, value),
-  html: (value) => setHtml(selectors, value),
-  cssDisplay: (value) => setCssDisplay(selectors, value),
-  cssClass: (value, cssClass) => setCssClass(selectors, value, cssClass)
-});
+var elRequery = (selectors) => {
+  ({
+    text: (value) => {
+      setText(selectors, value);
+    },
+    html: (value) => {
+      setHtml(selectors, value);
+    },
+    cssDisplay: (value) => {
+      setCssDisplay(selectors, value);
+    },
+    cssClass: (value, cssClass) => {
+      setCssClass(selectors, value, cssClass);
+    },
+    cssToggle: (cssClass) => {
+      setCssToggle(selectors, cssClass);
+    },
+    el: () => resolveEl(selectors),
+    els: () => resolveEls(selectors)
+  });
+};
+var el = (selectors) => {
+  const elements = resolveEls(selectors);
+  return {
+    text: (value) => {
+      setText(elements, value);
+    },
+    html: (value) => {
+      setHtml(elements, value);
+    },
+    cssDisplay: (value) => {
+      setCssDisplay(elements, value);
+    },
+    cssClass: (value, cssClass) => {
+      setCssClass(elements, value, cssClass);
+    },
+    cssToggle: (cssClass) => {
+      setCssToggle(elements, cssClass);
+    },
+    el: () => elements[0],
+    els: () => elements
+  };
+};
 
 // src/visual/Drawing.ts
 var PIPI = Math.PI * 2;
@@ -20764,6 +20856,7 @@ var Box = class {
   layoutInvalidated(reason) {
     if (reason === void 0)
       debugger;
+    this.debugLog(`layoutInvalidated ${reason}`);
     this._needsMeasuring = true;
     this._needsLayoutX = true;
     this._needsDrawing = true;
@@ -21010,6 +21103,7 @@ var CanvasBox = class _CanvasBox extends Box {
   constructor(parent, id, bounds) {
     super(parent, id);
     this.bounds = bounds;
+    this.debugLog(`CanvasBox ctor bounds: ${JSON.stringify(bounds)}`);
   }
   static fromCanvas(canvasElement) {
     const box = new _CanvasBox(void 0, `canvas-box`, canvasElement.getBoundingClientRect());
@@ -21096,9 +21190,7 @@ var CanvasBox = class _CanvasBox extends Box {
     this.draw(context2, force);
   }
   getBounds() {
-    if (this.bounds === void 0 && this._parent)
-      return this._parent.bounds;
-    return this.bounds;
+    return this.bounds === void 0 && this._parent ? this._parent.bounds : this.bounds;
   }
   /**
    * Update begins.
@@ -21179,16 +21271,29 @@ var CanvasBox = class _CanvasBox extends Box {
 };
 
 // src/Immutable.ts
-var isEqualContextString = (a, b, path2) => {
-  return JSON.stringify(a) === JSON.stringify(b);
+var import_json52 = __toESM(require_dist(), 1);
+var isEqualContextString = (a, b, _path) => {
+  return import_json52.default.stringify(a) === import_json52.default.stringify(b);
 };
-var compareData = (a, b, pathPrefix = ``, eq = isEqualContextString) => {
-  const entries = Object.entries(a);
+var compareData = (a, b, pathPrefix = ``, options = {}) => {
+  const deepProbe = options.deepEntries ?? false;
+  const eq = options.eq ?? isEqualContextString;
   const changes = [];
+  let entries = [];
+  if (deepProbe) {
+    for (const field2 in a) {
+      const value = a[field2];
+      if (isPlainObjectOrPrimitive(value)) {
+        entries.push([field2, value]);
+      }
+    }
+  } else {
+    entries = Object.entries(a);
+  }
   const isArray2 = Array.isArray(a);
   for (const [key, valueA] of entries) {
     if (typeof valueA === `object`) {
-      changes.push(...compareData(valueA, b[key], key + `.`, eq));
+      changes.push(...compareData(valueA, b[key], key + `.`, options));
     } else {
       const valueB = b[key];
       const sub = isArray2 ? untilMatch(pathPrefix, `.`, { fromEnd: true }) + `[${key}]` : pathPrefix + key;
@@ -21285,7 +21390,7 @@ var getFieldImpl = (o, split) => {
     throw new Error(`Path ${start3} not found in data`);
   }
 };
-var getPaths = (o) => {
+var getPaths = (o, onlyLeaves = false) => {
   if (o === null)
     return [];
   if (typeof o !== `object`) {
@@ -21294,7 +21399,7 @@ var getPaths = (o) => {
   const probe = (o2, initialPaths, prefix) => {
     if (typeof o2 !== `object`) {
       return [...initialPaths, prefix];
-    } else if (prefix.length > 0) {
+    } else if (prefix.length > 0 && !onlyLeaves) {
       initialPaths = [...initialPaths, prefix];
     }
     const prefixToUse = prefix.length > 0 ? prefix + `.` : prefix;
@@ -21916,12 +22021,13 @@ var Plot = class extends CanvasBox {
   defaultSeriesOpts;
   constructor(canvasElementOrQuery, opts = {}) {
     const { ctx, element, bounds } = scaleCanvas(canvasElementOrQuery);
-    super(void 0, `Plot`, bounds);
+    super(void 0, `Plot`);
     this._canvasEl = element;
     this._ctx = ctx;
     if (opts.autoSize) {
       parentSizeCanvas(element, (event2) => {
         this.drawingInvalidated(`resize`);
+        this.layoutInvalidated(`resize`);
         this.update(event2.ctx, true);
       });
     }
@@ -21990,7 +22096,7 @@ var Plot = class extends CanvasBox {
    * @param o
    */
   plot(o) {
-    const paths2 = getPaths(o);
+    const paths2 = getPaths(o, true);
     let seriesCreated = false;
     for (const p of paths2) {
       let s = this.series.get(p);
@@ -22859,6 +22965,7 @@ __export(Bipolar_exports, {
   random: () => random2,
   randomSource: () => randomSource,
   scale: () => scale3,
+  scaleClamped: () => scaleClamped2,
   toScalar: () => toScalar,
   towardZero: () => towardZero
 });
@@ -22913,6 +23020,9 @@ var fromScalar = (scalarValue) => {
 };
 var scale3 = (inputValue, inMin, inMax) => {
   return clamp3(scaler(inMin, inMax, -1, 1)(inputValue));
+};
+var scaleClamped2 = (inputValue, inMin, inMax) => {
+  return scaler(inMin, inMax, -1, 1)(inputValue);
 };
 var randomSource = (maxOrOptions) => {
   const source = floatSource(maxOrOptions);
@@ -23541,6 +23651,7 @@ __export(dom_exports, {
   cycleCssClass: () => cycleCssClass,
   defaultErrorHandler: () => defaultErrorHandler2,
   el: () => el,
+  elRequery: () => elRequery,
   fullSizeCanvas: () => fullSizeCanvas,
   fullSizeElement: () => fullSizeElement,
   getTranslation: () => getTranslation,
@@ -23556,9 +23667,11 @@ __export(dom_exports, {
   reconcileChildren: () => reconcileChildren,
   resizeObservable: () => resizeObservable,
   resolveEl: () => resolveEl,
+  resolveEls: () => resolveEls,
   rx: () => rx,
   setCssClass: () => setCssClass,
   setCssDisplay: () => setCssDisplay,
+  setCssToggle: () => setCssToggle,
   setHtml: () => setHtml,
   setText: () => setText,
   themeChangeObservable: () => themeChangeObservable,
@@ -23797,7 +23910,7 @@ __export(DataTable_exports, {
   fromList: () => fromList2,
   fromObject: () => fromObject2
 });
-var import_json52 = __toESM(require_dist(), 1);
+var import_json53 = __toESM(require_dist(), 1);
 var toHtmlSimple = (v, options) => {
   if (v === null)
     return `(null)`;
@@ -23817,7 +23930,7 @@ var toHtmlSimple = (v, options) => {
   }
   if (typeof v === `object`)
     return toTableSimple(v, options);
-  return import_json52.default.stringify(v);
+  return import_json53.default.stringify(v);
 };
 var toTableSimple = (v, options) => {
   let html = `<div style="display:grid; grid-template-columns: repeat(2, 1fr)">`;
@@ -23903,7 +24016,7 @@ var updateElement = (t4, data, opts = {}) => {
     }
     if (valueHTML === void 0) {
       if (typeof value === `object`) {
-        valueHTML = objectsAsTables ? toTableSimple(value, opts) : import_json52.default.stringify(value);
+        valueHTML = objectsAsTables ? toTableSimple(value, opts) : import_json53.default.stringify(value);
       } else if (typeof value === `number`) {
         valueHTML = opts.roundNumbers ? Math.round(value).toString() : value.toFixed(precision);
       } else if (typeof value === `boolean`) {
@@ -24167,8 +24280,8 @@ var ObjectTracker = class extends TrackerBase2 {
   onTrimmed() {
   }
   /**
-   * Reduces size of value store to `limit`. Returns
-   * number of remaining items
+   * Reduces size of value store to `limit`. 
+   * Returns number of remaining items
    * @param limit
    */
   trimStore(limit) {
@@ -24296,7 +24409,7 @@ var PointTracker = class extends ObjectTracker {
    * 
    * @param p Point
    */
-  computeResults(p) {
+  computeResults(_p) {
     const currentLast = this.last;
     const previousLast = this.values.at(-2);
     if (this.initialRelation === void 0 && this.initial) {
@@ -24360,7 +24473,8 @@ var PointTracker = class extends ObjectTracker {
    * Returns distance from latest point to initial point.
    * If there are less than two points, zero is returned.
    *
-   * This is the direct distance, not the accumulated length.
+   * This is the direct distance from initial to last,
+   * not the accumulated length.
    * @returns Distance
    */
   distanceFromStart() {
@@ -25007,13 +25121,19 @@ __export(Reactive_exports, {
   batch: () => batch,
   event: () => event,
   field: () => field,
+  generator: () => generator,
+  hasValue: () => hasValue,
+  isSignal: () => isSignal,
+  manual: () => manual,
   mergeAsArray: () => mergeAsArray,
   number: () => number,
   object: () => object,
   prepare: () => prepare,
   resolveAfter: () => resolveAfter,
+  resolveSource: () => resolveSource,
   synchronise: () => synchronise,
   throttle: () => throttle,
+  toArray: () => toArray4,
   transform: () => transform,
   win: () => win
 });
@@ -25026,6 +25146,19 @@ var DispatchList = class {
   constructor() {
     this.#handlers = [];
   }
+  /**
+   * Returns _true_ if list is empty
+   * @returns 
+   */
+  isEmpty() {
+    return this.#handlers.length === 0;
+  }
+  /**
+   * Adds a handler
+   * @param handler 
+   * @param options 
+   * @returns 
+   */
   add(handler, options = {}) {
     this.#counter++;
     const once2 = options.once ?? false;
@@ -25652,6 +25785,18 @@ function transitiveReduction(graph3) {
 }
 
 // src/data/Reactive.ts
+function isSignal(v) {
+  if (v.value !== void 0)
+    return false;
+  if (`signal` in v && v.signal !== void 0)
+    return true;
+  return false;
+}
+function hasValue(v) {
+  if (v.value !== void 0)
+    return true;
+  return false;
+}
 function number(initialValue) {
   let value = initialValue;
   const events = initEvent();
@@ -25660,6 +25805,8 @@ function number(initialValue) {
     events.notify(v);
   };
   return {
+    dispose: events.dispose,
+    isDisposed: events.isDisposed,
     last: () => value,
     on: events.on,
     set: set2
@@ -25671,7 +25818,9 @@ function mergeAsArray(...values) {
   for (const [index, v] of values.entries()) {
     data[index] = void 0;
     v.on((valueChanged) => {
-      data[index] = valueChanged;
+      if (!isSignal(valueChanged)) {
+        data[index] = valueChanged.value;
+      }
       event2.notify(data);
     });
   }
@@ -25685,7 +25834,13 @@ function synchronise(...sources) {
   for (const [index, v] of sources.entries()) {
     data[index] = void 0;
     v.on((valueChanged) => {
-      data[index] = valueChanged;
+      if (isSignal(valueChanged)) {
+        if (valueChanged.signal === `done`) {
+          sources.splice(index, 1);
+        }
+        return;
+      }
+      data[index] = valueChanged.value;
       if (!data.includes(void 0)) {
         event2.notify(data);
         data = [];
@@ -25701,7 +25856,7 @@ function resolveAfter(interval2, callbackOrValue, options = {}) {
   const event2 = initEvent();
   const loops = options.infinite ? Number.MAX_SAFE_INTEGER : options.loops ?? 1;
   let remaining = loops;
-  const run2 = () => {
+  const run3 = () => {
     if (typeof callbackOrValue === `function`) {
       const value = callbackOrValue();
       event2.notify(value);
@@ -25710,10 +25865,10 @@ function resolveAfter(interval2, callbackOrValue, options = {}) {
     }
     remaining--;
     if (remaining > 0) {
-      setTimeout(run2, intervalMs);
+      setTimeout(run3, intervalMs);
     }
   };
-  setTimeout(run2, intervalMs);
+  setTimeout(run3, intervalMs);
   const r = {
     on: event2.on
   };
@@ -25722,9 +25877,10 @@ function resolveAfter(interval2, callbackOrValue, options = {}) {
 function event(target, name, options = {}) {
   const process2 = options.process;
   const initialValue = process2 ? process2() : void 0;
-  const rxObject = initialValue ? object(initialValue) : object();
+  const rxObject = initialValue ? object(initialValue, { deepEntries: true }) : object(void 0, { deepEntries: true });
   const lazy2 = options.lazy ?? false;
   let eventAdded = false;
+  let disposed = false;
   const callback = (args) => {
     rxObject.set(process2 ? process2(args) : args);
   };
@@ -25738,7 +25894,6 @@ function event(target, name, options = {}) {
     if (eventAdded)
       return;
     eventAdded = true;
-    console.log(`event added ${name}`);
     target.addEventListener(name, callback);
   };
   if (!lazy2)
@@ -25749,23 +25904,41 @@ function event(target, name, options = {}) {
         add3();
       return rxObject.last();
     },
-    dispose: (_) => {
+    dispose: (reason) => {
+      if (disposed)
+        return;
+      disposed = true;
       remove3();
+      rxObject.dispose(reason);
+    },
+    isDisposed() {
+      return disposed;
     },
     on: (handler) => {
       if (lazy2)
         add3();
-      rxObject.on(handler);
+      return rxObject.on(handler);
     }
   };
 }
-function object(initialValue, eq = isEqualContextString) {
+function manual() {
+  const events = initEvent();
+  return {
+    set(value) {
+      events.notify(value);
+    },
+    on: events.on
+  };
+}
+function object(initialValue, options = {}) {
+  const eq = options.eq ?? isEqualContextString;
   const setEvent = initEvent();
   const diffEvent = initEvent();
   let value = initialValue;
+  let disposed = false;
   const set2 = (v) => {
     if (value !== void 0) {
-      const diff = compareData(value, v, ``, eq);
+      const diff = compareData(value, v, ``, options);
       if (diff.length === 0)
         return;
       diffEvent.notify(diff);
@@ -25778,12 +25951,15 @@ function object(initialValue, eq = isEqualContextString) {
     if (value === void 0) {
       value = toMerge;
     } else {
+      const diff = compareData(toMerge, value);
+      if (diff.length === 0)
+        return;
       value = {
         ...value,
         ...toMerge
       };
+      diffEvent.notify(pd);
     }
-    diffEvent.notify(pd);
     setEvent.notify(value);
   };
   const updateField = (path2, valueForField) => {
@@ -25797,61 +25973,262 @@ function object(initialValue, eq = isEqualContextString) {
     diffEvent.notify([{ path: path2, value: valueForField, previous: existing }]);
     setEvent.notify(o);
   };
+  const dispose = (reason) => {
+    if (disposed)
+      return;
+    diffEvent.dispose(reason);
+    setEvent.dispose(reason);
+    disposed = true;
+  };
   return {
+    dispose,
+    isDisposed() {
+      return disposed;
+    },
+    /**
+     * Update a field.
+     * Exception is thrown if field does not exist
+     */
     updateField,
     last: () => value,
     on: setEvent.on,
     onDiff: diffEvent.on,
+    /**
+     * Set the whole object
+     */
     set: set2,
+    /**
+     * Update the object with a partial set of fields and values
+     */
     update
   };
 }
-function initEvent() {
+function initEvent(options = {}) {
   let dispatcher;
+  let disposed = false;
+  let firstSubscribe = false;
+  let emptySubscriptions = true;
+  const onFirstSubscribe = options.onFirstSubscribe ?? void 0;
+  const onNoSubscribers = options.onNoSubscribers ?? void 0;
+  const isEmpty7 = () => {
+    if (dispatcher === void 0)
+      return;
+    if (!dispatcher.isEmpty)
+      return;
+    if (!emptySubscriptions) {
+      emptySubscriptions = true;
+      firstSubscribe = false;
+      if (onNoSubscribers)
+        onNoSubscribers();
+    }
+  };
   return {
-    clear: () => dispatcher?.clear(),
+    dispose: (reason) => {
+      if (disposed)
+        return;
+      dispatcher?.notify({ value: void 0, signal: `done`, context: `Disposed: ${reason}` });
+      disposed = true;
+    },
+    isDisposed: () => {
+      return disposed;
+    },
+    clear: () => {
+      dispatcher?.clear();
+      isEmpty7();
+    },
     notify: (v) => {
-      dispatcher?.notify(v);
+      if (disposed)
+        throw new Error(`Disposed`);
+      dispatcher?.notify({ value: v });
+    },
+    through: (pass) => {
+      if (disposed)
+        throw new Error(`Disposed`);
+      dispatcher?.notify(pass);
+    },
+    signal: (signal, context2) => {
+      if (disposed)
+        throw new Error(`Disposed`);
+      dispatcher?.notify({ signal, value: void 0, context: context2 });
     },
     on: (handler) => {
+      if (disposed)
+        throw new Error(`Disposed`);
       if (dispatcher === void 0)
         dispatcher = new DispatchList();
       const id = dispatcher.add(handler);
+      if (!firstSubscribe) {
+        firstSubscribe = true;
+        if (onFirstSubscribe)
+          setTimeout(() => {
+            onFirstSubscribe();
+          }, 10);
+      }
       return () => {
         dispatcher?.remove(id);
+        isEmpty7();
       };
     }
   };
 }
-function field(source, field2) {
-  const events = initEvent();
-  source.on((value) => {
-    const t4 = value[field2];
-    events.notify(t4);
+var initUpstream = (upstreamSource, options) => {
+  const lazy2 = options.lazy ?? true;
+  const disposeIfSourceDone = options.disposeIfSourceDone ?? true;
+  const onValue = options.onValue ?? ((_v) => {
+  });
+  const source = resolveSource(upstreamSource);
+  let unsub;
+  const start3 = () => {
+    if (unsub !== void 0)
+      return;
+    if (options.onStart)
+      options.onStart();
+    unsub = source.on((value) => {
+      if (isSignal(value)) {
+        if (value.signal === `done`) {
+          stop();
+          if (disposeIfSourceDone)
+            events.dispose(`Source is completed`);
+        } else {
+          events.through(value);
+        }
+      } else if (hasValue(value)) {
+        onValue(value.value);
+      }
+    });
+  };
+  const stop = () => {
+    if (unsub === void 0)
+      return;
+    unsub();
+    unsub = void 0;
+    if (options.onStop)
+      options.onStop();
+  };
+  const initOpts = {
+    onFirstSubscribe() {
+      if (lazy2)
+        start3();
+    },
+    onNoSubscribers() {
+      if (lazy2)
+        stop();
+    }
+  };
+  if (!lazy2)
+    start3();
+  const events = initEvent(initOpts);
+  return events;
+};
+function field(fieldSource, field2, options = {}) {
+  const upstream = initUpstream(fieldSource, {
+    disposeIfSourceDone: true,
+    ...options,
+    onValue(value) {
+      let t4 = value[field2];
+      if (t4 === void 0 && options.missingFieldDefault !== void 0) {
+        t4 = options.missingFieldDefault;
+      }
+      upstream.notify(t4);
+    }
   });
   return {
-    on: events.on,
-    dispose: events.clear
+    on: upstream.on
   };
 }
-function transform(source, transformer) {
-  const events = initEvent();
-  source.on((value) => {
-    const t4 = transformer(value);
-    events.notify(t4);
+function transform(input, transformer, options = {}) {
+  const upstream = initUpstream(input, {
+    ...options,
+    onValue(value) {
+      const t4 = transformer(value);
+      upstream.notify(t4);
+    }
   });
   return {
-    on: events.on,
-    dispose: events.clear
+    on: upstream.on
   };
 }
-function batch(source, options = {}) {
+function generator(generator2, options = {}) {
+  const lazy2 = options.lazy ?? true;
+  let reading = false;
+  const eventOpts = {
+    onFirstSubscribe() {
+      if (lazy2 && !reading) {
+        readingStart();
+      }
+    },
+    onNoSubscribers() {
+      if (lazy2 && reading) {
+        reading = false;
+      }
+    }
+  };
+  const events = initEvent(eventOpts);
+  const read = async () => {
+    try {
+      const v = await generator2.next();
+      if (v.done) {
+        events.dispose(`Generator complete`);
+        return;
+      }
+      if (!reading)
+        return;
+      events.notify(v.value);
+    } catch (error) {
+      events.dispose(`Generator error: ${error.toString()}`);
+      return;
+    }
+    if (events.isDisposed())
+      return;
+    if (!reading)
+      return;
+    setTimeout(read);
+  };
+  const readingStart = () => {
+    if (reading)
+      return;
+    reading = true;
+    void read();
+  };
+  if (!lazy2)
+    readingStart();
+  return {
+    on: events.on,
+    dispose: events.dispose,
+    isDisposed: events.isDisposed
+  };
+}
+var resolveSource = (source) => {
+  if (`on` in source)
+    return source;
+  if (Array.isArray(source)) {
+    return generator(source.values(), { lazy: true });
+  } else {
+    return generator(source, { lazy: true });
+  }
+};
+function batch(batchSource, options = {}) {
   const elapsed = intervalToMs(options.elapsed, 0);
   const queue = new QueueMutable();
   const limit = options.limit ?? 0;
   const logic = options.logic ?? `or`;
+  const returnRemainder = options.returnRemainder ?? true;
   let lastFire = performance.now();
-  const events = initEvent();
+  const upstreamOpts = {
+    ...options,
+    onStop() {
+      if (returnRemainder && !queue.isEmpty) {
+        const data = queue.toArray();
+        queue.clear();
+        upstream.notify(data);
+      }
+    },
+    onValue(value) {
+      queue.enqueue(value);
+      trigger();
+    }
+  };
+  const upstream = initUpstream(batchSource, upstreamOpts);
   const trigger = () => {
     const now = performance.now();
     let byElapsed = false;
@@ -25867,24 +26244,56 @@ function batch(source, options = {}) {
       return;
     if (logic === `and` && (!byElapsed || !byLimit))
       return;
-    const data = queue.data;
+    const data = queue.toArray();
     queue.clear();
-    events.notify(data);
+    upstream.notify(data);
   };
-  source.on((value) => {
-    queue.enqueue(value);
-    trigger();
-  });
   const r = {
-    on: events.on
+    on: upstream.on
   };
   return r;
 }
-function throttle(source, options = {}) {
+var toArray4 = async (reactiveSource, options = {}) => {
+  const source = resolveSource(reactiveSource);
+  const maxValues = options.limit ?? Number.MAX_SAFE_INTEGER;
+  const maxDuration = options.elapsed ?? Number.MAX_SAFE_INTEGER;
+  let buffer = [];
+  let start3 = -1;
+  const promise = new Promise((resolve, _reject) => {
+    const done2 = () => {
+      off();
+      resolve(buffer);
+      buffer = [];
+    };
+    const off = source.on((value) => {
+      if (start3 === -1)
+        start3 = Date.now();
+      if (isSignal(value) && value.signal === `done`) {
+        done2();
+      } else if (hasValue(value)) {
+        buffer.push(value.value);
+        if (buffer.length >= maxValues) {
+          done2();
+        }
+      }
+      if (Date.now() - start3 > maxDuration) {
+        done2();
+      }
+    });
+  });
+  return promise;
+};
+function throttle(throttleSource, options = {}) {
   const elapsed = intervalToMs(options.elapsed, 0);
   let lastFire = performance.now();
-  const events = initEvent();
   let lastValue;
+  const upstream = initUpstream(throttleSource, {
+    ...options,
+    onValue(value) {
+      lastValue = value;
+      trigger();
+    }
+  });
   const trigger = () => {
     const now = performance.now();
     let byElapsed = false;
@@ -25895,15 +26304,11 @@ function throttle(source, options = {}) {
     if (!byElapsed)
       return;
     if (lastValue !== void 0) {
-      events.notify(lastValue);
+      upstream.notify(lastValue);
     }
   };
-  source.on((value) => {
-    lastValue = value;
-    trigger();
-  });
   const r = {
-    on: events.on
+    on: upstream.on
   };
   return r;
 }
@@ -25950,7 +26355,7 @@ function prepare(rx2) {
       if (isReactive(value)) {
         nodes.set(subPath, { value, type: `rx` });
         value.on((v) => {
-          console.log(`Reactive.prepare value: ${v} path: ${subPath}`);
+          console.log(`Reactive.prepare value: ${JSON.stringify(v)} path: ${subPath}`);
         });
       } else {
         const valueType = typeof value;
@@ -25964,14 +26369,6 @@ function prepare(rx2) {
       }
     }
   };
-  process2(rx2, `_root`);
-  console.log(dumpGraph(g));
-  console.log(`--- Map ---`);
-  for (const entries of nodes.entries()) {
-    console.log(entries[0]);
-    console.log(entries[1]);
-    console.log(``);
-  }
   const returnValue = {
     graph: g,
     on: events.on
@@ -25988,7 +26385,6 @@ __export(Chain_exports, {
   asPromise: () => asPromise,
   asValue: () => asValue,
   average: () => average2,
-  chain: () => chain,
   chunk: () => chunk,
   debounce: () => debounce,
   delay: () => delay2,
@@ -26003,6 +26399,8 @@ __export(Chain_exports, {
   mergeAsArray: () => mergeAsArray2,
   mergeFlat: () => mergeFlat,
   min: () => min4,
+  prepare: () => prepare2,
+  run: () => run2,
   single: () => single,
   synchronise: () => synchronise2,
   take: () => take,
@@ -26551,7 +26949,7 @@ function drop(predicate) {
   drop2._name = `drop`;
   return drop2;
 }
-async function* chain(...functions2) {
+async function* run2(...functions2) {
   let input;
   for (const fnOrData of functions2) {
     if (typeof fnOrData === `function`) {
@@ -26565,6 +26963,12 @@ async function* chain(...functions2) {
   for await (const v of input) {
     yield v;
   }
+}
+function prepare2(...functions2) {
+  const r = (source) => {
+    return run2(source, ...functions2);
+  };
+  return r;
 }
 
 // src/data/graphs/index.ts
@@ -27573,7 +27977,7 @@ var isPoint3d = (p) => {
     return false;
   return true;
 };
-var toArray4 = (p) => [p.x, p.y];
+var toArray5 = (p) => [p.x, p.y];
 function toString4(p, digits) {
   if (p === void 0)
     return `(undefined)`;
@@ -30088,12 +30492,12 @@ var everyNth = (nth, callback) => {
 
 // src/flow/RunOnce.ts
 var runOnce = (onRun) => {
-  let run2 = false;
+  let run3 = false;
   let success = false;
   return () => {
-    if (run2)
+    if (run3)
       return success;
-    run2 = true;
+    run3 = true;
     success = onRun();
     return success;
   };
@@ -31390,10 +31794,13 @@ export {
   copyToClipboard,
   reconcileChildren,
   setCssClass,
+  setCssToggle,
   setCssDisplay,
   byId,
+  resolveEls,
   setHtml,
   setText,
+  elRequery,
   el,
   Drawing_exports,
   SvgElements_exports,
@@ -31446,6 +31853,7 @@ export {
   IntervalTracker,
   intervalTracker,
   flip,
+  DispatchList,
   Table,
   Reactive_exports,
   Chain_exports,
@@ -31577,4 +31985,4 @@ tslib/tslib.es6.js:
   PERFORMANCE OF THIS SOFTWARE.
   ***************************************************************************** *)
 */
-//# sourceMappingURL=chunk-WTPDBAQ5.js.map
+//# sourceMappingURL=chunk-6YLYFKO3.js.map

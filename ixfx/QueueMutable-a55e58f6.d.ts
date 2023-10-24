@@ -112,6 +112,11 @@ declare class QueueMutable<V> implements IQueueMutable<V> {
     eq: IsEqual<V>;
     constructor(opts?: QueueOpts<V>, data?: ReadonlyArray<V>);
     clear(): void;
+    /**
+     * Return a copy of the array
+     * @returns
+     */
+    toArray(): V[];
     enqueue(...toAdd: ReadonlyArray<V>): number;
     dequeue(): V | undefined;
     /**
