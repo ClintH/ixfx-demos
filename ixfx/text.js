@@ -1,4 +1,5 @@
 import {
+  abbreviate,
   afterMatch,
   between,
   betweenChomp,
@@ -11,15 +12,13 @@ import {
   splitRanges,
   startsEnds,
   string,
+  toStringAbbreviate,
   untilMatch,
   unwrap
-} from "./chunk-6YLYFKO3.js";
-import "./chunk-EIQV725C.js";
-import "./chunk-ZSSYQQHP.js";
-import "./chunk-DUNDLGZO.js";
-import "./chunk-BIZA3WZ7.js";
+} from "./chunk-X6JJYMWG.js";
 import "./chunk-VE7DK22H.js";
 export {
+  abbreviate,
   afterMatch,
   between,
   betweenChomp,
@@ -32,6 +31,7 @@ export {
   splitByLength,
   splitRanges,
   startsEnds,
+  toStringAbbreviate,
   untilMatch,
   unwrap
 };

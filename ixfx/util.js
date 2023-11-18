@@ -5,6 +5,7 @@ import {
   defaultKeyer,
   ifNaN,
   isFunction,
+  isInteger,
   isMap,
   isPlainObject,
   isPlainObjectOrPrimitive,
@@ -16,7 +17,8 @@ import {
   roundUpToMultiple,
   runningiOS,
   toStringDefault2 as toStringDefault
-} from "./chunk-DUNDLGZO.js";
+} from "./chunk-7X5X4U3O.js";
+import "./chunk-X6JJYMWG.js";
 import "./chunk-VE7DK22H.js";
 export {
   IterableAsync_exports as IterableAsync,
@@ -25,6 +27,7 @@ export {
   defaultKeyer,
   ifNaN,
   isFunction,
+  isInteger,
   isMap,
   isPlainObject,
   isPlainObjectOrPrimitive,

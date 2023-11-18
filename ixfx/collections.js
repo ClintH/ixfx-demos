@@ -1,27 +1,38 @@
 import {
-  Arrays_exports,
-  Iterables_exports,
   Map_exports,
-  QueueImmutable,
-  QueueMutable,
   StackImmutable,
-  StackMutable,
-  Trees_exports,
   circularArray,
-  queue_exports,
   stack_exports
-} from "./chunk-6YLYFKO3.js";
+} from "./chunk-Q6AX6JVR.js";
+import {
+  tree_exports
+} from "./chunk-JOFBU7BB.js";
+import {
+  QueueImmutable,
+  queue_exports
+} from "./chunk-IEB4AISO.js";
 import {
   SetStringImmutable,
   SetStringMutable,
   set_exports
-} from "./chunk-EIQV725C.js";
-import "./chunk-ZSSYQQHP.js";
-import "./chunk-DUNDLGZO.js";
-import "./chunk-BIZA3WZ7.js";
+} from "./chunk-6R6VEKGK.js";
+import {
+  StackMutable
+} from "./chunk-EKQK4G3I.js";
+import "./chunk-IC4XTFPE.js";
+import "./chunk-FQHO5ZXN.js";
+import {
+  Iterables_exports,
+  QueueMutable,
+  arrays_exports
+} from "./chunk-HR35CHTB.js";
+import "./chunk-WW6RH5H5.js";
+import "./chunk-7X5X4U3O.js";
+import "./chunk-X6JJYMWG.js";
+import "./chunk-NEQZAMQB.js";
 import "./chunk-VE7DK22H.js";
 export {
-  Arrays_exports as Arrays,
+  arrays_exports as Arrays,
   Iterables_exports as Iterables,
   Map_exports as Maps,
   QueueImmutable,
@@ -33,7 +44,7 @@ export {
   StackImmutable,
   StackMutable,
   stack_exports as Stacks,
-  Trees_exports as Trees,
+  tree_exports as Trees,
   circularArray
 };
 //# sourceMappingURL=collections.js.map

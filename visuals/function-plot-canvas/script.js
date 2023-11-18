@@ -37,7 +37,7 @@ const update = () => {
 const sineApure = (ticks, x) => Math.sin(x + ticks);
 
 // With noise
-const jitterFunction = jitter({ clamped: false,relative: 0.005 });
+const jitterFunction = jitter({ clamped: false, relative: 0.005 });
 const sineA = (ticks, x) => jitterFunction(Math.sin(x + ticks));
 const sineB = (ticks, x) => (Math.sin(x + ticks) + Math.sin(2 * x)) / 2;
 const sineC = (ticks, x) => (Math.sin(x + ticks) + Math.cos(2 * x)) / 2;
@@ -122,14 +122,21 @@ const plotFunction = (fnc, context, options = {}) => {
   // Use 100 points divided across width of screen
   const sampleWidth = Math.min(1, Math.floor(w / 100));
   for (let x = 0; x <= w; x += sampleWidth) {
-    const v = clamp(fnc((ticks / functionTimeDivider) + offset, x / w), -1, 1);
-    const y = scale(v, -1, 1, 0, h) + verticalPadding;
+    const tickValue = (ticks / functionTimeDivider) + offset;
+    const xValue = x / w;
+    try {
+      const v = clamp(fnc(tickValue, xValue), -1, 1);
+      const y = scale(v, -1, 1, 0, h) + verticalPadding;
 
-    if (x === 0) {
-      context.beginPath();
-      context.moveTo(x , y);
-    } else {
-      context.lineTo(x , y);
+      if (x === 0) {
+        context.beginPath();
+        context.moveTo(x, y);
+      } else {
+        context.lineTo(x, y);
+      }
+    } catch (error) {
+      console.error(error);
+      console.log(`ticks: ${ticks} x: ${x} tickValue: ${tickValue} xValue: ${xValue}`);
     }
   }
 
@@ -143,7 +150,7 @@ const use = () => {
   const canvasElement = document.querySelector(`#canvas`);
   const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
   if (!context) return;
-  
+
   // Update state
   update();
 
@@ -181,7 +188,7 @@ const clear = (context) => {
   context.fillRect(0, 0, width, height);
 };
 
-function setup() { 
+function setup() {
   Dom.fullSizeCanvas(`#canvas`, arguments_ => {
     saveState({
       bounds: arguments_.bounds
@@ -200,7 +207,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

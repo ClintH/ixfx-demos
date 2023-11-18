@@ -1,17 +1,19 @@
 import { S as SimpleEventEmitter } from './Events-f066e560.js';
-import { I as IsEqual } from './IsEqual-267e4380.js';
-import { E as EitherKey } from './Map-5cfbfc2c.js';
-import { T as ToString } from './Util-82e375df.js';
-import { I as ICircularArray } from './IMapOfMutableExtended-16486249.js';
-import './Trees-6d4cfc30.js';
-import './Arrays-205913df.js';
-import './Easing-e712c8ff.js';
-import './Types-bc8c421d.js';
-import './MinMaxAvg-bf5430b4.js';
-import 'd3-color';
-import './index-47887a5a.js';
-import './index-5d08300f.js';
-import './QueueMutable-a55e58f6.js';
+import { I as IsEqual } from './IsEqual-cc8673ae.js';
+import { E as EitherKey } from './Map-c5c67f9e.js';
+import { T as ToString } from './Util-9400ae59.js';
+import { I as ICircularArray } from './IMapOfMutableExtended-ddfe62ee.js';
+import './index-b2a82127.js';
+import './Types-d483f031.js';
+import './index-6f1ded28.js';
+import './Types-85513495.js';
+import './Easing-d20d164d.js';
+import './Types-6259bb31.js';
+import './MinMaxAvg-48c469f8.js';
+import './index-3037932d.js';
+import './index-880557e2.js';
+import './QueueMutable-233c77d8.js';
+import './GetOrGenerate-c0e6682f.js';
 
 /**
  * Expiring map options
@@ -466,6 +468,10 @@ interface IMapOfMutable<V> extends IMapOf<V> {
      */
     clear(): void;
     /**
+     * Returns the number of keys
+     */
+    get lengthKeys(): number;
+    /**
      * Deletes all values under `key` that match `value`.
      * @param key Key
      * @param value Value
@@ -632,12 +638,12 @@ declare class MapOfSimpleBase<V> {
      * @param groupBy Creates keys for values when using `addValue`. By default uses JSON.stringify
      * @param valueEq Compare values. By default uses JS logic for equality
      */
-    constructor(groupBy?: ToString<V>, valueEq?: IsEqual<V>, initial?: [string, readonly V[]][]);
+    constructor(groupBy?: ToString<V>, valueEq?: IsEqual<V>, initial?: Array<[string, ReadonlyArray<V>]>);
     /**
      * Iterate over all entries
      */
     entriesFlat(): IterableIterator<[key: string, value: V]>;
-    entries(): IterableIterator<[key: string, value: V[]]>;
+    entries(): IterableIterator<[key: string, value: Array<V>]>;
     firstKeyByValue(value: V, eq?: IsEqual<V>): string | undefined;
     /**
      * Get all values under `key`
@@ -686,6 +692,7 @@ declare class MapOfSimpleBase<V> {
      * @returns
      */
     count(key: string): number;
+    get lengthKeys(): number;
 }
 
 /**
@@ -776,6 +783,10 @@ declare class MapOfMutableImpl<V, M> extends SimpleEventEmitter<MapArrayEvents<V
      * Returns the type name. For in-built implementations, it will be one of: array, set or circular
      */
     get typeName(): string;
+    /**
+     * Returns the number of keys
+     */
+    get lengthKeys(): number;
     /**
      * Returns the length of the longest child list
      */
@@ -1381,4 +1392,32 @@ type MergeReconcile<V> = (a: V, b: V) => V;
  */
 declare const mergeByKey: <K, V>(reconcile: MergeReconcile<V>, ...maps: readonly ReadonlyMap<K, V>[]) => ReadonlyMap<K, V>;
 
-export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts, IMapImmutable, IMapMutable, IMapOf, IMapOfMutable, IMapOfMutableExtended, IMappish, IWithEntries, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, MapSetOpts, MergeReconcile, MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };
+type GetOrGenerate<K, V, Z> = (key: K, args?: Z) => Promise<V>;
+/**
+ * @inheritDoc getOrGenerate
+ * @param map
+ * @param fn
+ * @returns
+ */
+declare const getOrGenerateSync: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, args?: Z | undefined) => V) => (key: K, args?: Z | undefined) => V;
+/**
+ * Returns a function that fetches a value from a map, or generates and sets it if not present.
+ * Undefined is never returned, because if `fn` yields that, an error is thrown.
+ *
+ * See {@link getOrGenerateSync} for a synchronous version.
+ *
+ * ```
+ * const m = getOrGenerate(new Map(), (key) => {
+ *  return key.toUppercase();
+ * });
+ *
+ * // Not contained in map, so it will run the uppercase function,
+ * // setting the value to the key 'hello'.
+ * const v = await m(`hello`);  // Yields 'HELLO'
+ * const v1 = await m(`hello`); // Value exists, so it is returned ('HELLO')
+ * ```
+ *
+ */
+declare const getOrGenerate: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
+
+export { ExpiringMap, ExpiringMapEvent, ExpiringMapEvents, Opts as ExpiringMapOpts, GetOrGenerate, IMapImmutable, IMapMutable, IMapOf, IMapOfMutable, IMapOfMutableExtended, IMappish, IWithEntries, MapArrayEvents, MapArrayOpts, MapCircularOpts, MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, MapSetOpts, MergeReconcile, MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };

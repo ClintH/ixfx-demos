@@ -6,7 +6,9 @@ import {
   compareValues,
   compareValuesEqual,
   contains,
+  containsDuplicateInstances,
   containsDuplicateValues,
+  cycle,
   dotProduct,
   ensureLength,
   filterAB,
@@ -30,7 +32,7 @@ import {
   randomIndex,
   randomPluck,
   reducePairwise,
-  remove2 as remove,
+  remove,
   sample,
   shuffle,
   sortByNumericProperty,
@@ -44,11 +46,11 @@ import {
   without,
   withoutUndefined,
   zip
-} from "./chunk-6YLYFKO3.js";
-import "./chunk-EIQV725C.js";
-import "./chunk-ZSSYQQHP.js";
-import "./chunk-DUNDLGZO.js";
-import "./chunk-BIZA3WZ7.js";
+} from "./chunk-HR35CHTB.js";
+import "./chunk-WW6RH5H5.js";
+import "./chunk-7X5X4U3O.js";
+import "./chunk-X6JJYMWG.js";
+import "./chunk-NEQZAMQB.js";
 import "./chunk-VE7DK22H.js";
 export {
   additionalValues,
@@ -58,7 +60,9 @@ export {
   compareValues,
   compareValuesEqual,
   contains,
+  containsDuplicateInstances,
   containsDuplicateValues,
+  cycle,
   dotProduct,
   ensureLength,
   filterAB,
