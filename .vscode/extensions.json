@@ -2,7 +2,6 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "motform.ixfx-highlight",
-    "yandeu.five-server",
-    "philnash.ngrok-for-vscode"
+    "yandeu.five-server"
   ]
 }
