@@ -22,11 +22,11 @@ const settings = Object.freeze({
 
 /**
  * Type definition for State
- * @typedef {{
+ * @typedef {Readonly<{
  * time: number
  * lastTime: number
  * pressed: false
- * }} State
+ * }>} State
  */
 
 /** @type State */
