@@ -16,7 +16,7 @@ let state = Object.freeze({
   // Point to compare against (in relative coords)
   reference: { x: 0.5, y: 0.5 },
   // Other point to compare to
-  location: { 
+  location: {
     x: Math.random(),
     y: Math.random()
   },
@@ -49,7 +49,7 @@ const update = () => {
 
 const use = () => {
   const { location, reference, distance, angleDeg } = state;
-  
+
   // Position element that tracks pointer
   Util.positionElementByRelative(`#thing`, location);
 
@@ -72,7 +72,7 @@ const onPointerMoveOrDown = (event) => {
     pointer: Util.relativePoint(event.clientX, event.clientY)
   });
 };
-  
+
 function setup() {
   document.addEventListener(`pointerdown`, onPointerMoveOrDown);
   document.addEventListener(`pointermove`, onPointerMoveOrDown);
@@ -90,7 +90,7 @@ setup();
  * Update state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

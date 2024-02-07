@@ -13,4 +13,4 @@ declare class DataDisplayComponent extends HTMLElement {
     update(value: Record<string, any>): void;
 }
 
-export { DataDisplayComponent, FormattingOptions };
+export { DataDisplayComponent, type FormattingOptions };

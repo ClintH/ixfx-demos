@@ -113,4 +113,4 @@ declare const throwArrayTest: (value: unknown, parameterName?: string) => void;
 /** Throws an error if parameter is not defined */
 declare const defined: <T>(argument: T | undefined) => argument is T;
 
-export { NumberGuardRange, arrayTest, defined, integerParse, integerTest, isStringArray, nullUndef, numberTest, percentTest, throwArrayTest, throwFromResult, throwIntegerTest, throwNumberTest, throwPercentTest };
+export { type NumberGuardRange, arrayTest, defined, integerParse, integerTest, isStringArray, nullUndef, numberTest, percentTest, throwArrayTest, throwFromResult, throwIntegerTest, throwNumberTest, throwPercentTest };
