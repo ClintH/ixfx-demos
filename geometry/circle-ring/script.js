@@ -17,13 +17,13 @@ let state = Object.freeze({
 
 const use = () => {
   const { points } = state;
-  
+
   const origin = {
-    x: window.innerWidth/2,
-    y: window.innerHeight/2
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2
   };
 
-  for (const [index,pt] of points.entries()) {
+  for (const [index, pt] of points.entries()) {
     const element = document.querySelector(`#pt-${index}`);
     if (element === null) continue;
     const absPolar = Polar.multiply(pt, scaleBy());
@@ -36,11 +36,11 @@ function setup() {
   const { totalPoints } = settings;
 
   // Evenly distribute angle by number of points
-  const angleSteps = (Math.PI*2) / totalPoints;
+  const angleSteps = (Math.PI * 2) / totalPoints;
   const points = [];
   let angle = 0;
 
-  for (let index=0;index<totalPoints;index++) {
+  for (let index = 0; index < totalPoints; index++) {
     // Create polar coordinate for this point
     points.push({
       distance: 0.3,
@@ -65,7 +65,7 @@ continuously(use).start();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

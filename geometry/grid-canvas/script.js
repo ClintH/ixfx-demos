@@ -38,8 +38,8 @@ const update = () => {
   const gridMax = Math.max(grid.cols, grid.rows);
 
   // Find cell position for pointer
-  console.log(grid);
-  const pointerCell = Grids.cellAtPoint( grid, pointer);
+  //console.log(grid);
+  const pointerCell = Grids.cellAtPoint(grid, pointer);
 
   // Update each cell
   for (const cell of Grids.cells(grid)) {
@@ -61,7 +61,7 @@ const use = () => {
   if (context === null || context === undefined || canvasElement === null) return;
 
   context.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  
+
   context.strokeStyle = `white`;
   for (const cell of Grids.cells(grid)) {
     // Get bounds for cell, as well as current mod value
@@ -160,10 +160,11 @@ function setup() {
     // We'd use minDimension if it was important
     // to not lose cells off the viewport
     saveState({
-      grid: { 
-        rows: settings.rows, 
-        cols: settings.cols, 
-        size: Math.ceil(maxDimension / Math.max(settings.rows, settings.cols)) }
+      grid: {
+        rows: settings.rows,
+        cols: settings.cols,
+        size: Math.ceil(maxDimension / Math.max(settings.rows, settings.cols))
+      }
     });
   });
 
@@ -174,7 +175,7 @@ function setup() {
       pointer: { x: event.clientX, y: event.clientY }
     });
   });
-  
+
   // Pointer moving
   window.addEventListener(`pointermove`, event => {
     event.preventDefault();
@@ -193,7 +194,7 @@ function setup() {
   const loop = () => {
     update();
     use();
-   
+
     window.requestAnimationFrame(loop);
   };
   window.requestAnimationFrame(loop);
@@ -204,7 +205,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

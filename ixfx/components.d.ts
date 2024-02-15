@@ -1,9 +1,8 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-VPcSRFIC.js';
+import { a as KeyValue } from './KeyValue-6zP_QgTW.js';
 import './MinMaxAvg-X_wBRrCz.js';
-import 'fp-ts/lib/Ord.js';
 
 type Bar = {
     readonly percentage: number;
@@ -85,7 +84,7 @@ declare class FrequencyHistogramPlot {
     #private;
     readonly el: HistogramVis | undefined;
     constructor(el: HistogramVis);
-    setAutoSort(sortStyle: `value` | `valueReverse` | `key` | `keyReverse`): void;
+    setAutoSort(sortStyle: `value` | `value-reverse` | `key` | `key-reverse`): void;
     clear(): void;
     dispose(): void;
     update(data: ReadonlyArray<readonly [key: string, count: number]>): void;

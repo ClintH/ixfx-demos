@@ -33,21 +33,21 @@
   },
   "homepage": "https://github.com/ClintH/ixfx-demos#readme",
   "dependencies": {
-    "five-server": "^0.3.1",
-    "ws": "^8.9.0"
+    "five-server": "^0.3.2",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^6.4.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "body-parser": "^1.20.2",
-    "concurrently": "^8.2.0",
+    "concurrently": "^8.2.2",
     "copyfiles": "^2.4.1",
-    "cpy": "^9.0.1",
-    "del": "^7.0.0",
-    "eslint": "^8.20.0",
-    "eslint-plugin-unicorn": "^48.0.1",
+    "cpy": "^11.0.0",
+    "del": "^7.1.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-unicorn": "^51.0.1",
     "express": "^4.18.2",
     "express-ws": "^5.0.2",
-    "replace-in-file": "^6.3.5",
+    "replace-in-file": "^7.1.0",
     "rimraf": "^5.0.5"
   },
   "stackblitz": {

@@ -1,54 +1,59 @@
 import {
   data_exports
-} from "./chunk-2F4XIGCX.js";
+} from "./chunk-E3NI5S6W.js";
 import {
   visual_exports
-} from "./chunk-K2FRGEOY.js";
-import {
-  Immutable_exports
-} from "./chunk-INUSCX72.js";
-import {
-  Generators_exports
-} from "./chunk-A5LLNH5C.js";
+} from "./chunk-QITIOAX7.js";
 import {
   io_exports
-} from "./chunk-JSAPFWFH.js";
-import "./chunk-K4YFIVTY.js";
-import "./chunk-GOBROKDQ.js";
+} from "./chunk-RPK2LF53.js";
+import "./chunk-KGTXNTDC.js";
+import {
+  changedDataFields,
+  compareData
+} from "./chunk-VPVY4V72.js";
 import {
   dom_exports
-} from "./chunk-VEVQ356S.js";
-import "./chunk-RXJUANCZ.js";
-import "./chunk-RRODV6MT.js";
-import "./chunk-2WFY4FDX.js";
-import "./chunk-N6BOZ6TE.js";
+} from "./chunk-ONRGJN2I.js";
+import "./chunk-TM67WSRM.js";
+import "./chunk-VNLHRFTI.js";
+import {
+  Immutable_exports
+} from "./chunk-XWVYH63X.js";
+import "./chunk-HPDILTRH.js";
+import "./chunk-5E656OQG.js";
+import {
+  Generators_exports
+} from "./chunk-2YIWGEPD.js";
 import {
   Numbers_exports,
   geometry_exports,
   modulation_exports
-} from "./chunk-CSXKM6EC.js";
+} from "./chunk-QHMHQL3M.js";
 import "./chunk-KPH2Y2KE.js";
 import {
   random_exports
-} from "./chunk-CJWF6KY2.js";
-import "./chunk-GDL43LNY.js";
-import {
-  collections_exports
-} from "./chunk-AYLWR5FX.js";
-import "./chunk-QP7LFIBX.js";
-import "./chunk-IBLCUW7F.js";
-import "./chunk-S5ZTGMED.js";
-import "./chunk-BAODRVRF.js";
-import "./chunk-6CMYPWCZ.js";
-import {
-  KeyValue_exports
-} from "./chunk-BRCA3Y62.js";
+} from "./chunk-NCKQMQK4.js";
+import "./chunk-QY5LFF2P.js";
 import {
   flow_exports
-} from "./chunk-BVEFIWIQ.js";
+} from "./chunk-TXGBPR3B.js";
+import {
+  collections_exports
+} from "./chunk-OFL7SXB4.js";
+import "./chunk-NK6HAYS3.js";
+import "./chunk-Z2KIHL7P.js";
+import "./chunk-TVFDG2SY.js";
+import "./chunk-LLFBMR3M.js";
+import "./chunk-TPDZCJAQ.js";
+import "./chunk-OIMRACQX.js";
 import {
   Events_exports
-} from "./chunk-N36MP4EU.js";
+} from "./chunk-7WLVSHT7.js";
+import {
+  KeyValue_exports
+} from "./chunk-HXJ3OV5R.js";
+import "./chunk-BPBV6L7W.js";
 import {
   Util_exports,
   isEqualDefault,
@@ -58,15 +63,16 @@ import {
   isEqualValuePartial,
   toStringDefault,
   toStringOrdered
-} from "./chunk-DMAFYMXH.js";
+} from "./chunk-J2Z65AN3.js";
 import {
   Text_exports
 } from "./chunk-Z2HKKABB.js";
 import "./chunk-JNUBDOCI.js";
 import {
   debug_exports
-} from "./chunk-L7Q4QN6B.js";
-import "./chunk-NEQZAMQB.js";
+} from "./chunk-DQRNLTXJ.js";
+import "./chunk-EKX6PMDK.js";
+import "./chunk-EG2IYMCR.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   collections_exports as Collections,
@@ -86,6 +92,8 @@ export {
   Text_exports as Text,
   Util_exports as Util,
   visual_exports as Visual,
+  changedDataFields,
+  compareData,
   isEqualDefault,
   isEqualTrace,
   isEqualValueDefault,

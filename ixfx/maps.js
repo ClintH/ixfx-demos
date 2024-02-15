@@ -8,13 +8,18 @@ import {
   ofArrayMutable,
   ofCircularMutable,
   ofSetMutable
-} from "./chunk-AYLWR5FX.js";
-import "./chunk-QP7LFIBX.js";
-import "./chunk-IBLCUW7F.js";
-import "./chunk-S5ZTGMED.js";
-import "./chunk-BAODRVRF.js";
-import "./chunk-6CMYPWCZ.js";
-import "./chunk-BRCA3Y62.js";
+} from "./chunk-OFL7SXB4.js";
+import "./chunk-NK6HAYS3.js";
+import "./chunk-Z2KIHL7P.js";
+import "./chunk-TVFDG2SY.js";
+import "./chunk-LLFBMR3M.js";
+import "./chunk-TPDZCJAQ.js";
+import "./chunk-OIMRACQX.js";
+import {
+  MapOfSimpleMutable,
+  ofSimpleMutable
+} from "./chunk-7WLVSHT7.js";
+import "./chunk-HXJ3OV5R.js";
 import {
   addKeepingExisting,
   addObject,
@@ -29,7 +34,7 @@ import {
   hasAnyValue,
   hasKeyValue,
   mapToArray,
-  mapToObjTransform,
+  mapToObjectTransform,
   mergeByKey,
   sortByValue,
   sortByValueProperty,
@@ -37,18 +42,14 @@ import {
   toObject,
   transformMap,
   zipKeyValue
-} from "./chunk-BVEFIWIQ.js";
-import {
-  MapOfSimpleMutable,
-  ofSimpleMutable
-} from "./chunk-N36MP4EU.js";
-import "./chunk-DMAFYMXH.js";
+} from "./chunk-BPBV6L7W.js";
+import "./chunk-J2Z65AN3.js";
 import "./chunk-Z2HKKABB.js";
 import "./chunk-JNUBDOCI.js";
 import {
   getOrGenerate,
   getOrGenerateSync
-} from "./chunk-NEQZAMQB.js";
+} from "./chunk-EG2IYMCR.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   ExpiringMap,
@@ -73,7 +74,7 @@ export {
   immutable,
   ofSimpleMutable as mapOfSimpleMutable,
   mapToArray,
-  mapToObjTransform,
+  mapToObjectTransform,
   mergeByKey,
   mutable,
   ofArrayMutable,

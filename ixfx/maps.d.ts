@@ -1,18 +1,16 @@
 import { S as SimpleEventEmitter } from './Events-Nrj5kd7m.js';
 import { I as IsEqual } from './IsEqual-FYvx3mfi.js';
-import { E as EitherKey } from './MakeGlobal-8M80A4uD.js';
-import { T as ToString } from './Util-eBwLEzVa.js';
-import { b as ICircularArray } from './IMapOfMutableExtended-mZ6dH-Vd.js';
-import './index-kgtMJLbR.js';
+import { E as EitherKey } from './MakeGlobal-_36cgUqn.js';
+import { T as ToString } from './Util-Voz0dRxX.js';
+import { b as ICircularArray } from './IMapOfMutableExtended-FYs7kpPg.js';
+import './index-lZDksnZ7.js';
 import './Types-Dp38nROC.js';
-import './index-U1F_dJHp.js';
+import './index-dCWqpzL4.js';
 import './Types-ATA4eXqe.js';
-import './Easing-6U8WQcr8.js';
-import './Types-v5TpUZ0T.js';
 import './MinMaxAvg-X_wBRrCz.js';
-import './index-_uHddzoO.js';
-import './index-ZvXPjyGL.js';
-import './QueueMutable-0fPE_WYG.js';
+import './index-zrxduB_i.js';
+import './index-JvLnxXU2.js';
+import './QueueMutable-yoYJUNSp.js';
 import './GetOrGenerate-HGpLQwnB.js';
 
 /**
@@ -1117,7 +1115,7 @@ declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: 
  * @param prop Property of value
  * @param compareFn Comparer. If unspecified, uses a default.
  */
-declare const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, prop: string, compareFn?: ((a: Z, b: Z) => number) | undefined) => [K, V][];
+declare const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, property: string, compareFunction?: ((a: Z, b: Z) => number) | undefined) => [K, V][];
 /**
  * Returns _true_ if any key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
  * if you only want to find a value under a certain key.
@@ -1177,7 +1175,7 @@ declare const toArray: <V>(map: ReadonlyMap<string, V>) => readonly V[];
  * @param allowOverwrites When set to _true_, items with same id will silently overwrite each other, with last write wins. _false_ by default.
  * @returns
  */
-declare const fromIterable: <V>(data: Iterable<V>, keyFn?: (itemToMakeStringFor: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
+declare const fromIterable: <V>(data: Iterable<V>, keyFunction?: (itemToMakeStringFor: V) => string, allowOverwrites?: boolean) => ReadonlyMap<string, V>;
 /**
  * Returns a Map from an object, or array of objects.
  * Assumes the top-level properties of the object is the key.
@@ -1238,7 +1236,7 @@ declare const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolea
  * map.set(`name`, `Alice`);
  * map.set(`pet`, `dog`);
  *
- * const o = mapToObjTransform(map, v => {
+ * const o = mapToObjectTransform(map, v => {
  *  ...v,
  *  registered: true
  * });
@@ -1253,9 +1251,7 @@ declare const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolea
  * @typeParam K Value type of destination map
  * @returns
  */
-declare const mapToObjTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => {
-    readonly [key: string]: K;
-};
+declare const mapToObjectTransform: <T, K>(m: ReadonlyMap<string, T>, valueTransform: (value: T) => K) => Readonly<Record<string, K>>;
 /**
  * Zips together an array of keys and values into an object. Requires that
  * `keys` and `values` are the same length.
@@ -1288,7 +1284,7 @@ declare const zipKeyValue: <V>(keys: ReadonlyArray<string>, values: ArrayLike<V 
  * mapOfInts.get(`a`); // Yields 10 (a proper number)
  * ```
  *
- * If you want to combine values into a single object, consider instead  {@link mapToObjTransform}.
+ * If you want to combine values into a single object, consider instead  {@link mapToObjectTransform}.
  * @param source
  * @param transformer
  * @typeParam K Type of keys (generally a string)
@@ -1316,9 +1312,7 @@ declare const transformMap: <K, V, R>(source: ReadonlyMap<K, V>, transformer: (v
  * @param m
  * @returns
  */
-declare const toObject: <T>(m: ReadonlyMap<string, T>) => {
-    readonly [key: string]: T;
-};
+declare const toObject: <T>(m: ReadonlyMap<string, T>) => Readonly<Record<string, T>>;
 /**
  * Converts Map to Array with a provided `transformer` function. Useful for plucking out certain properties
  * from contained values and for creating a new map based on transformed values from an input map.
@@ -1420,4 +1414,4 @@ declare const getOrGenerateSync: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, arg
  */
 declare const getOrGenerate: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
 
-export { ExpiringMap, type ExpiringMapEvent, type ExpiringMapEvents, type Opts as ExpiringMapOpts, type GetOrGenerate, type IMapImmutable, type IMapMutable, type IMapOf, type IMapOfMutable, type IMapOfMutableExtended, type IMappish, type IWithEntries, type MapArrayEvents, type MapArrayOpts, type MapCircularOpts, type MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, type MapSetOpts, type MergeReconcile, type MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };
+export { ExpiringMap, type ExpiringMapEvent, type ExpiringMapEvents, type Opts as ExpiringMapOpts, type GetOrGenerate, type IMapImmutable, type IMapMutable, type IMapOf, type IMapOfMutable, type IMapOfMutableExtended, type IMappish, type IWithEntries, type MapArrayEvents, type MapArrayOpts, type MapCircularOpts, type MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, type MapSetOpts, type MergeReconcile, type MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjectTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };

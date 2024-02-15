@@ -12,7 +12,7 @@ import {
   forEachAsync,
   frequencyTimer,
   frequencyTimerSource,
-  hasElapsedMs,
+  hasElapsed,
   interval,
   msElapsedTimer,
   relativeTimer,
@@ -25,16 +25,19 @@ import {
   timeout,
   updateOutdated,
   waitFor
-} from "./chunk-BVEFIWIQ.js";
-import "./chunk-N36MP4EU.js";
+} from "./chunk-TXGBPR3B.js";
+import "./chunk-OIMRACQX.js";
+import "./chunk-7WLVSHT7.js";
+import "./chunk-BPBV6L7W.js";
 import {
   intervalToMs,
   isInterval,
   sleep
-} from "./chunk-DMAFYMXH.js";
+} from "./chunk-J2Z65AN3.js";
 import "./chunk-Z2HKKABB.js";
 import "./chunk-JNUBDOCI.js";
-import "./chunk-NEQZAMQB.js";
+import "./chunk-EKX6PMDK.js";
+import "./chunk-EG2IYMCR.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   DispatchList,
@@ -50,7 +53,7 @@ export {
   forEachAsync,
   frequencyTimer,
   frequencyTimerSource,
-  hasElapsedMs,
+  hasElapsed,
   interval,
   intervalToMs,
   isInterval,

@@ -8,7 +8,7 @@ const settings = Object.freeze({
   piPi: Math.PI * 2,
   // Loop back and forth between 0 and 1, 0.0.1 steps at a time
   pingPong: Generators.pingPongPercent(0.001),
-  canvasEl: /** @type {HTMLCanvasElement} */(Dom.resolveEl(`#canvas`))
+  canvasEl: /** @type HTMLCanvasElement */(document.querySelector(`#canvas`))
 });
 
 // Initial state with empty values
@@ -60,7 +60,7 @@ const update = () => {
     x: bounds.center.x,
     y: bounds.center.y,
     /* 30% of width/height */
-    radius: Math.min(bounds.width, bounds.height) * 0.3, 
+    radius: Math.min(bounds.width, bounds.height) * 0.3,
     startRadian: 0,
     endRadian: Math.PI
   };
@@ -119,8 +119,8 @@ const setup = () => {
   });
 
   // Backdrop is automatically assigned -100, we want this one to be above that.
-  canvasElement.style.zIndex = `0`; 
-  
+  canvasElement.style.zIndex = `0`;
+
   const loop = () => {
     update();
     use();
@@ -132,6 +132,7 @@ setup();
 
 const use = () => {
   const { canvasEl } = settings;
+  if (!canvasEl) return;
   const context = canvasEl.getContext(`2d`);
 
   if (context === null) return;
@@ -158,7 +159,7 @@ const bounds = (element) => {
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
