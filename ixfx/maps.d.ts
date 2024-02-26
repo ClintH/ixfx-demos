@@ -1,16 +1,16 @@
 import { S as SimpleEventEmitter } from './Events-Nrj5kd7m.js';
-import { I as IsEqual } from './IsEqual-FYvx3mfi.js';
-import { E as EitherKey } from './MakeGlobal-_36cgUqn.js';
-import { T as ToString } from './Util-Voz0dRxX.js';
-import { b as ICircularArray } from './IMapOfMutableExtended-FYs7kpPg.js';
-import './index-lZDksnZ7.js';
+import { I as IsEqual } from './IsEqual-f56NWa68.js';
+import { E as EitherKey } from './MakeGlobal-z1h_w5em.js';
+import { T as ToString } from './Util-lqHq7HUO.js';
+import { b as ICircularArray } from './IMapOfMutableExtended-1zto7GSn.js';
+import './index-WOQU6Vla.js';
 import './Types-Dp38nROC.js';
-import './index-dCWqpzL4.js';
+import './index-POwx0MHI.js';
 import './Types-ATA4eXqe.js';
 import './MinMaxAvg-X_wBRrCz.js';
-import './index-zrxduB_i.js';
-import './index-JvLnxXU2.js';
-import './QueueMutable-yoYJUNSp.js';
+import './index-XsioXNLe.js';
+import './index-02SnR_hB.js';
+import './QueueMutable-y9N20W8a.js';
 import './GetOrGenerate-HGpLQwnB.js';
 
 /**
@@ -988,6 +988,19 @@ declare class NumberMap<K> extends Map<K, number> {
  */
 declare const getClosestIntegerKey: (data: ReadonlyMap<number, any>, target: number) => number;
 /**
+ * Returns the first value in `data` that matches a key from `keys`.
+ * ```js
+ * // Iterate, yielding: `a.b.c.d`, `b.c.d`, `c.d`, `d`
+ * const keys = Text.segmentsFromEnd(`a.b.c.d`);
+ * // Gets first value that matches a key (starting from most precise)
+ * const value = getFromKeys(data, keys);
+ * ```
+ * @param data
+ * @param keys
+ * @returns
+ */
+declare const getFromKeys: <T>(data: ReadonlyMap<string, T>, keys: Iterable<string>) => T | undefined;
+/**
  * Returns true if map contains `value` under `key`, using `comparer` function. Use {@link hasAnyValue} if you don't care
  * what key value might be under.
  *
@@ -1215,7 +1228,7 @@ declare const fromObject: <V>(data: any) => ReadonlyMap<string, V>;
  */
 declare const addObject: <V>(map: Map<string, V>, data: any) => void;
 /**
- * Returns the first found item that matches `predicate` or _undefined_.
+ * Returns the first found value that matches `predicate` or _undefined_.
  *
  * If you want all matches, use {@link filter}.
  *
@@ -1224,8 +1237,8 @@ declare const addObject: <V>(map: Map<string, V>, data: any) => void;
  * const overThirty = find(people, person => person.age > 30);
  * ```
  * @param map Map to search
- * @param predicate Function that returns true for a matching item
- * @returns Found item or _undefined_
+ * @param predicate Function that returns true for a matching value
+ * @returns Found value or _undefined_
  */
 declare const find: <V>(map: ReadonlyMap<string, V>, predicate: (v: V) => boolean) => V | undefined;
 /**
@@ -1414,4 +1427,4 @@ declare const getOrGenerateSync: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, arg
  */
 declare const getOrGenerate: <K, V, Z>(map: IMappish<K, V>, fn: (key: K, args?: Z | undefined) => V | Promise<V>) => GetOrGenerate<K, V, Z>;
 
-export { ExpiringMap, type ExpiringMapEvent, type ExpiringMapEvents, type Opts as ExpiringMapOpts, type GetOrGenerate, type IMapImmutable, type IMapMutable, type IMapOf, type IMapOfMutable, type IMapOfMutableExtended, type IMappish, type IWithEntries, type MapArrayEvents, type MapArrayOpts, type MapCircularOpts, type MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, type MapSetOpts, type MergeReconcile, type MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjectTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };
+export { ExpiringMap, type ExpiringMapEvent, type ExpiringMapEvents, type Opts as ExpiringMapOpts, type GetOrGenerate, type IMapImmutable, type IMapMutable, type IMapOf, type IMapOfMutable, type IMapOfMutableExtended, type IMappish, type IWithEntries, type MapArrayEvents, type MapArrayOpts, type MapCircularOpts, type MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, type MapSetOpts, type MergeReconcile, type MultiValue, NumberMap, addKeepingExisting, addObject, deleteByValue, create as expiringMap, filter, find, firstEntryByIterablePredicate, firstEntryByIterableValue, fromIterable, fromObject, getClosestIntegerKey, getFromKeys, getOrGenerate, getOrGenerateSync, hasAnyValue, hasKeyValue, immutable, ofSimpleMutable as mapOfSimpleMutable, mapToArray, mapToObjectTransform, mergeByKey, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable, sortByValue, sortByValueProperty, toArray, toObject, transformMap, zipKeyValue };

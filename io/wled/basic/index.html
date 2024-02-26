@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wled-basic</title>
+</head>
+
+<body class="ws-closed">
+  <style>
+    *,
+    *:before,
+    *:after,
+    html,
+    body {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --hue: 200;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --bg: hsl(var(--hue), 10%, 80%);
+      --fg: hsl(var(--hue), 100%, 30%);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+    }
+
+    body.ws-closed {
+      opacity: 0.5;
+    }
+
+    #ixfx-log {
+      top: unset !important;
+      bottom: 0;
+      width: 100vw;
+      height: 10em;
+      pointer-events: all !important;
+      border-top: 2px solid black;
+    }
+  </style>
+  <script type="module" src="script.js"></script>
+  <section>
+    <p>This code expects the device is connected to the 'WLED-AP' access point.</p>
+    <button id="btnBrightness">Brightness</button>
+    <button id="btnPreset">Preset</button>
+    <button id="btnEffect">Effect</button>
+
+  </section>
+</body>
+
+</html>

@@ -1,36 +1,38 @@
 import {
+  chain_exports,
   count,
   numericPercent,
   numericRange,
-  numericRangeRaw
-} from "./chunk-2YIWGEPD.js";
-import {
+  numericRangeRaw,
   pingPong,
-  pingPongPercent
-} from "./chunk-KPH2Y2KE.js";
+  pingPongPercent,
+  stringSegmentsFromEnd,
+  stringSegmentsFromStart
+} from "./chunk-BOSU35ZW.js";
+import "./chunk-RCXAP77T.js";
+import "./chunk-DTAJ7TFM.js";
 import {
+  IterableSync_exports,
   integerUniqueGen
-} from "./chunk-NCKQMQK4.js";
+} from "./chunk-Q7SAKCA4.js";
 import {
   delayLoop,
   interval
-} from "./chunk-TXGBPR3B.js";
-import {
-  IterableSync_exports
-} from "./chunk-TPDZCJAQ.js";
-import "./chunk-OIMRACQX.js";
-import "./chunk-7WLVSHT7.js";
-import "./chunk-BPBV6L7W.js";
+} from "./chunk-JVEQSTEZ.js";
+import "./chunk-GMKE2SCE.js";
+import "./chunk-3LEZRET7.js";
+import "./chunk-L3UAAAAG.js";
+import "./chunk-YOLZFTRH.js";
+import "./chunk-KHC3C4P2.js";
 import {
   IterableAsync_exports
-} from "./chunk-J2Z65AN3.js";
-import "./chunk-Z2HKKABB.js";
+} from "./chunk-BBT4NEOP.js";
 import "./chunk-JNUBDOCI.js";
-import "./chunk-EKX6PMDK.js";
-import "./chunk-EG2IYMCR.js";
+import "./chunk-NEQZAMQB.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   IterableAsync_exports as Async,
+  chain_exports as Chain,
   IterableSync_exports as Sync,
   count,
   delayLoop,
@@ -40,6 +42,8 @@ export {
   numericRangeRaw,
   pingPong,
   pingPongPercent,
-  integerUniqueGen as randomUniqueInteger
+  integerUniqueGen as randomUniqueInteger,
+  stringSegmentsFromEnd,
+  stringSegmentsFromStart
 };
 //# sourceMappingURL=generators.js.map

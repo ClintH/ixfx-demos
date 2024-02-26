@@ -25,6 +25,7 @@ import {
   positionFn,
   positionFromMiddle,
   positionRelative,
+  query,
   reconcileChildren,
   setCssClass,
   setCssDisplay,
@@ -32,42 +33,36 @@ import {
   setHtml,
   setText,
   viewportToSpace
-} from "./chunk-ONRGJN2I.js";
+} from "./chunk-DZUU2SHT.js";
 import {
   DomRx_exports,
   fullSizeCanvas,
   parentSizeCanvas
-} from "./chunk-TM67WSRM.js";
-import "./chunk-VNLHRFTI.js";
-import "./chunk-XWVYH63X.js";
+} from "./chunk-EDZHMM3V.js";
+import "./chunk-D5ADH5DU.js";
+import "./chunk-XI57CQNH.js";
+import "./chunk-43RNITBD.js";
 import {
   Forms_exports
-} from "./chunk-HPDILTRH.js";
+} from "./chunk-YURVZ2AM.js";
+import "./chunk-PHLWRZHO.js";
+import "./chunk-RRGLDMEX.js";
+import "./chunk-BOSU35ZW.js";
+import "./chunk-RCXAP77T.js";
+import "./chunk-DTAJ7TFM.js";
+import "./chunk-Q7SAKCA4.js";
+import "./chunk-JVEQSTEZ.js";
+import "./chunk-GMKE2SCE.js";
+import "./chunk-3LEZRET7.js";
 import {
   resolveEl,
   resolveEls
-} from "./chunk-5E656OQG.js";
-import "./chunk-2YIWGEPD.js";
-import "./chunk-QHMHQL3M.js";
-import "./chunk-KPH2Y2KE.js";
-import "./chunk-NCKQMQK4.js";
-import "./chunk-QY5LFF2P.js";
-import "./chunk-TXGBPR3B.js";
-import "./chunk-OFL7SXB4.js";
-import "./chunk-NK6HAYS3.js";
-import "./chunk-Z2KIHL7P.js";
-import "./chunk-TVFDG2SY.js";
-import "./chunk-LLFBMR3M.js";
-import "./chunk-TPDZCJAQ.js";
-import "./chunk-OIMRACQX.js";
-import "./chunk-7WLVSHT7.js";
-import "./chunk-HXJ3OV5R.js";
-import "./chunk-BPBV6L7W.js";
-import "./chunk-J2Z65AN3.js";
-import "./chunk-Z2HKKABB.js";
+} from "./chunk-L3UAAAAG.js";
+import "./chunk-YOLZFTRH.js";
+import "./chunk-KHC3C4P2.js";
+import "./chunk-BBT4NEOP.js";
 import "./chunk-JNUBDOCI.js";
-import "./chunk-EKX6PMDK.js";
-import "./chunk-EG2IYMCR.js";
+import "./chunk-NEQZAMQB.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   DataDisplay,
@@ -100,6 +95,7 @@ export {
   positionFn,
   positionFromMiddle,
   positionRelative,
+  query,
   reconcileChildren,
   resolveEl,
   resolveEls,
