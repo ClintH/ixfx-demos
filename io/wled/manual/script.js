@@ -1,11 +1,17 @@
-import * as Dom from '../../../ixfx/dom.js';
-import { Wled, setRange } from "../wled.js";
+import { HslOff, Wled } from "../wled.js";
 import { clamp } from '../../../ixfx/data.js';
+import { continuously } from '../../../ixfx/flow.js';
+import { frequencyTimer } from '../../../ixfx/flow.js';
+import { Oscillators } from '../../../ixfx/modulation.js';
 
 const settings = Object.freeze({
   wled: new Wled(`ws://4.3.2.1/ws`),
   // What segment to control
-  segment: 0
+  segment: 0,
+  // Number of LEDs
+  numberOfLeds: 8,
+  // Oscillator
+  osc: Oscillators.sine(frequencyTimer(0.1))
 });
 
 /**
@@ -13,6 +19,7 @@ const settings = Object.freeze({
  * connected: boolean
  * reset: boolean
  * index: number
+ * test4Loop: undefined|import('../../../ixfx/flow.js').Continuously
  * }} State
  */
 
@@ -20,7 +27,8 @@ const settings = Object.freeze({
 let state = Object.freeze({
   connected: false,
   reset: false,
-  index: 0
+  index: 0,
+  test4Loop: undefined
 });
 
 /**
@@ -45,8 +53,7 @@ function reset() {
  * Demos lighting up a single random LED
  */
 function test1() {
-  const { wled, segment } = settings;
-
+  const { wled, segment, numberOfLeds } = settings;
   const s = wled.segments[segment];
 
   // Get an array of off LEDs
@@ -54,7 +61,7 @@ function test1() {
   const leds = s.getBlank();
 
   // Manually set hue, sat & lightness
-  const ledIndex = Math.floor(Math.random() * s.length);
+  const ledIndex = Math.floor(Math.random() * numberOfLeds);
   const hue = Math.floor(Math.random() * 360);
   leds[ledIndex].h = hue;  // 0..360
   leds[ledIndex].s = 1;    // 100% saturation
@@ -119,14 +126,58 @@ function test3() {
   incrementIndex();
 }
 
+/**
+ * Demonstrates animation.
+ * 
+ * On starting, it sets all LEDs to a colour.
+ * Each time it loops, it drains some saturation from each LED
+ * It also lights up a single LED with full saturation based on 
+ * the position of a sine oscillator.
+ * @returns 
+ */
+function test4() {
+  const { wled, segment, osc } = settings;
+  let { test4Loop } = state;
+  const s = wled.segments[segment];
+
+  // If it's already running, turn off LEDs and stop
+  if (test4Loop?.runState === `running` || test4Loop?.runState === `scheduled`) {
+    s.setAll(HslOff());
+    s.update();
+
+    test4Loop.cancel();
+    return;
+  }
+
+  // Init segment
+  s.setAll({ h: 330, s: 0, l: 0.4 });
+
+  const anim = continuously(() => {
+    // Fade out every LED a little
+    for (const led of s.each()) {
+      led.s = clamp(led.s - 0.1);
+    }
+
+    const v = osc.next().value;
+    if (v) {
+      const targetLed = Math.floor(v * s.length);
+      s.setPixel(targetLed, { h: 100, s: 1, l: 0.5 });
+    }
+    s.update();
+  }, 100);
+  anim.start();
+
+  saveState({ test4Loop: anim });
+}
+
 function incrementIndex() {
-  const { wled, segment } = settings;
+  const { wled, segment, numberOfLeds } = settings;
   let { index } = state;
   const s = wled.segments[segment];
 
   // Next time use the next LED as a starting point
   index++;
-  if (state.index === s.length) index = 0;
+  if (state.index === numberOfLeds) index = 0;
   saveState({ index });
 }
 
@@ -146,6 +197,10 @@ function setup() {
     test3();
   });
 
+  document.querySelector(`#btnTest4`)?.addEventListener(`click`, event => {
+    test4();
+  });
+
   // Enable this to see debug info on page. Useful for mobile.
   // Dom.inlineConsole();
 
@@ -159,6 +214,10 @@ function setup() {
   wled.addEventListener(`updated`, event => {
     if (event.what === `info` && !state.reset) {
       reset();
+    } else if (event.what == `state`) {
+      // Override segment length, because my particular
+      // WLED setup doesn't have segments configured properly
+      wled.segments[settings.segment].length = settings.numberOfLeds;
     }
   });
 };

@@ -65,7 +65,7 @@ export const HslOff = () => {
  * ```
  * @param {Led[]} segment 
  * @param {Led[]} leds 
- * @param {HslMixer} mixer
+ * @param {HslMixer} [mixer]
  */
 export const updateSegment = (segment, leds, mixer) => {
   // Get existing
@@ -82,14 +82,27 @@ export const updateSegment = (segment, leds, mixer) => {
     // Don't blend off pixels
     if (existingLed.l === 0) continue;
 
-    const mixed = mixer(existingLed, updated);
-    updated.h = mixed.h;
-    updated.s = mixed.s;
-    updated.l = mixed.l;
+    if (mixer) {
+      const mixed = mixer(existingLed, updated);
+      updated.h = mixed.h;
+      updated.s = mixed.s;
+      updated.l = mixed.l;
+    }
   }
 
   // Insert the new values
   return [...without, ...leds];
+};
+
+/**
+ * Sets the pixel values in `segment`, overwriting exiting values.
+ * Use `updateSegment` to include blending
+ * @param {Led[]} segment 
+ * @param {Led[]} led 
+ */
+export const setPixel = (segment, led) => {
+  return updateSegment(segment, led);
+
 };
 
 /**
@@ -100,7 +113,7 @@ export const updateSegment = (segment, leds, mixer) => {
  * @param {number} start Start index
  * @param {number} count Number of LEDs to set, including start
  * @param {number} total Total number of LEDs (used for 'wrap around' logic)
- * @param {HslMixer} mixer How to mix colours
+ * @param {HslMixer} [mixer] How to mix colours
  */
 export const setRange = (segment, colour, start, count, total, mixer) => {
   /** @type Led[] */
@@ -257,6 +270,32 @@ export class WledSegment {
   }
 
   /**
+   * Set the colour for a single LED
+   * @param {number} index 
+   * @param {Hsl} colour 
+   */
+  setPixel(index, colour) {
+    this.leds = setPixel(this.leds, [{ ...colour, index }]);
+  }
+
+  /**
+   * 
+   * @param {Led[]} leds 
+   */
+  setPixels(leds) {
+    this.leds = setPixel(this.leds, leds);
+  }
+
+  /**
+   * Set all pixels to a colour
+   * @param {Hsl} hsl
+   * @param {HslMixer} [mixer] 
+   */
+  setAll(hsl, mixer) {
+    this.leds = setRange(this.leds, hsl, 0, this.length, this.length, mixer);
+  }
+
+  /**
    * Set led values in bulk
    * @param {Led[]} led 
    */
@@ -377,6 +416,18 @@ export class WledSegment {
    */
   get length() {
     return this.data.len;
+  }
+
+  /**
+   * Sets the length of the segment. Necessary for some effects.
+   * It will reset LED data to the new length.
+   * 
+   * This should usually be configured in the WLED app, but
+   * in case you can't...
+   */
+  set length(length) {
+    this.data.len = length;
+    this.leds = this.getBlank();
   }
 }
 
