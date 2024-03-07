@@ -12,13 +12,13 @@ import {
   movingAverageTimed,
   noiseFilter,
   piPi
-} from "./chunk-WAFFU5V4.js";
+} from "./chunk-7XYZDCBR.js";
 import {
   Bipolar_exports,
   flip
-} from "./chunk-SXVQJVMT.js";
-import "./chunk-QHN6WHXM.js";
-import "./chunk-OXJ6QC3W.js";
+} from "./chunk-B4CDDYO7.js";
+import "./chunk-MY4KX5HP.js";
+import "./chunk-BUE6DDCB.js";
 import "./chunk-VPVY4V72.js";
 import {
   PointTracker,
@@ -27,14 +27,16 @@ import {
   pointsTracker,
   trackUnique,
   trackUniqueInstances
-} from "./chunk-DZUU2SHT.js";
-import "./chunk-EDZHMM3V.js";
-import "./chunk-D5ADH5DU.js";
+} from "./chunk-TMXVK3PQ.js";
+import "./chunk-G6Z6O2LU.js";
+import "./chunk-SABYMCBM.js";
 import {
   Table
-} from "./chunk-XI57CQNH.js";
-import "./chunk-43RNITBD.js";
+} from "./chunk-SFSN2WDJ.js";
 import "./chunk-YURVZ2AM.js";
+import "./chunk-PYFIYY4J.js";
+import "./chunk-L3UAAAAG.js";
+import "./chunk-UDAYCUKJ.js";
 import {
   scale,
   scaleClamped,
@@ -42,37 +44,46 @@ import {
   scalePercentages,
   scaler,
   scalerPercent
-} from "./chunk-PHLWRZHO.js";
+} from "./chunk-VXGNZKQE.js";
 import {
   NumberTracker,
   PrimitiveTracker,
   TrackedValueMap,
   TrackerBase,
   numberTracker
-} from "./chunk-RRGLDMEX.js";
-import "./chunk-BOSU35ZW.js";
-import "./chunk-RCXAP77T.js";
-import "./chunk-DTAJ7TFM.js";
+} from "./chunk-UD5UG5VS.js";
+import "./chunk-ASKZEBPD.js";
 import {
   interpolate,
   interpolateAngle,
+  interpolatorInterval,
+  interpolatorStepped,
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-Q7SAKCA4.js";
+} from "./chunk-DIIBFUSS.js";
 import {
   clamp,
   clampIndex
-} from "./chunk-JVEQSTEZ.js";
-import "./chunk-GMKE2SCE.js";
-import "./chunk-3LEZRET7.js";
-import "./chunk-L3UAAAAG.js";
-import "./chunk-YOLZFTRH.js";
-import "./chunk-KHC3C4P2.js";
-import "./chunk-BBT4NEOP.js";
-import "./chunk-JNUBDOCI.js";
-import "./chunk-L7Q4QN6B.js";
-import "./chunk-NEQZAMQB.js";
+} from "./chunk-MJGMR6XO.js";
+import "./chunk-A3ULUZHV.js";
+import "./chunk-HOIJSNKY.js";
+import "./chunk-4ERYDIHG.js";
+import "./chunk-4YJZWSR5.js";
+import "./chunk-XZCD447U.js";
+import "./chunk-KSOMPNJ5.js";
+import "./chunk-7KTY42OF.js";
+import "./chunk-DI7TMLF6.js";
+import "./chunk-K45JUSCV.js";
+import "./chunk-3JJ2GHGZ.js";
+import "./chunk-36BU5EN5.js";
+import "./chunk-46GN7MZ3.js";
+import "./chunk-JIUPCK6W.js";
+import "./chunk-XJES6KLL.js";
+import "./chunk-WUN4GNAA.js";
+import "./chunk-DQRNLTXJ.js";
+import "./chunk-EKX6PMDK.js";
+import "./chunk-EG2IYMCR.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   Bipolar_exports as Bipolar,
@@ -95,6 +106,8 @@ export {
   frequencyMutable,
   interpolate,
   interpolateAngle,
+  interpolatorInterval,
+  interpolatorStepped,
   intervalTracker,
   movingAverage,
   movingAverageLight,

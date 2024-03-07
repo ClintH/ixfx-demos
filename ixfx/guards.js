@@ -12,7 +12,7 @@ import {
   throwIntegerTest,
   throwNumberTest,
   throwPercentTest
-} from "./chunk-JNUBDOCI.js";
+} from "./chunk-WUN4GNAA.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   arrayTest,

@@ -13,24 +13,15 @@ import {
   splitByLength,
   splitRanges,
   startsEnds,
-  stringSegmentsFromEnd,
   toStringAbbreviate,
-  unwrap
-} from "./chunk-BOSU35ZW.js";
-import "./chunk-RCXAP77T.js";
-import "./chunk-DTAJ7TFM.js";
+  unwrap,
+  wildcard
+} from "./chunk-7KTY42OF.js";
 import {
   string
-} from "./chunk-Q7SAKCA4.js";
-import "./chunk-JVEQSTEZ.js";
-import "./chunk-GMKE2SCE.js";
-import "./chunk-3LEZRET7.js";
-import "./chunk-L3UAAAAG.js";
-import "./chunk-YOLZFTRH.js";
-import "./chunk-KHC3C4P2.js";
-import "./chunk-BBT4NEOP.js";
-import "./chunk-JNUBDOCI.js";
-import "./chunk-NEQZAMQB.js";
+} from "./chunk-K45JUSCV.js";
+import "./chunk-JIUPCK6W.js";
+import "./chunk-WUN4GNAA.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   abbreviate,
@@ -45,11 +36,11 @@ export {
   lineSpan,
   omitChars,
   string as random,
-  stringSegmentsFromEnd as segmentsFromEnd,
   splitByLength,
   splitRanges,
   startsEnds,
   toStringAbbreviate,
-  unwrap
+  unwrap,
+  wildcard
 };
 //# sourceMappingURL=text.js.map

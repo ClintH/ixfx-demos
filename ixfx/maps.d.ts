@@ -1,14 +1,15 @@
-import { S as SimpleEventEmitter } from './Events-Nrj5kd7m.js';
+import { S as SimpleEventEmitter } from './Events-nue2G3Li.js';
 import { I as IsEqual } from './IsEqual-f56NWa68.js';
-import { E as EitherKey } from './MakeGlobal-z1h_w5em.js';
+import { E as EitherKey } from './MakeGlobal-NPFPy2NR.js';
 import { T as ToString } from './Util-lqHq7HUO.js';
-import { b as ICircularArray } from './IMapOfMutableExtended-1zto7GSn.js';
+import { b as ICircularArray } from './IMapOfMutableExtended-OxnNM6u4.js';
+import './IntervalType-CQa4mlKV.js';
 import './index-WOQU6Vla.js';
 import './Types-Dp38nROC.js';
 import './index-POwx0MHI.js';
 import './Types-ATA4eXqe.js';
 import './MinMaxAvg-X_wBRrCz.js';
-import './index-XsioXNLe.js';
+import './index-ESkpRsmo.js';
 import './index-02SnR_hB.js';
 import './QueueMutable-y9N20W8a.js';
 import './GetOrGenerate-HGpLQwnB.js';
@@ -127,7 +128,6 @@ declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, 
     #private;
     private capacity;
     private store;
-    private keyCount;
     private evictPolicy;
     private autoDeleteElapsedMs;
     private autoDeletePolicy;
@@ -174,6 +174,11 @@ declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, 
      */
     delete(key: K): boolean;
     /**
+     * Clears the contents of the map.
+     * Note: does not fire `removed` event
+     */
+    clear(): void;
+    /**
      * Updates the lastSet/lastGet time for a value
      * under `k`.
      *
@@ -191,7 +196,7 @@ declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, 
      * @param time
      * @param prop get/set/either
      */
-    deleteWithElapsed(time: number, prop: `get` | `set` | `either`): [k: K, v: V][];
+    deleteWithElapsed(time: number, property: `get` | `set` | `either`): Array<[k: K, v: V]>;
     /**
      * Sets the `key` to be `value`.
      *
@@ -1114,7 +1119,7 @@ declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, h
  * @param comparer
  * @returns
  */
-declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: V) => number) | undefined) => void;
+declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: V) => number) | undefined) => [K, V][];
 /**
  * Returns an array of entries from a map, sorted by a property of the value
  *

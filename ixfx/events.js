@@ -1,10 +1,12 @@
 import {
-  SimpleEventEmitter
-} from "./chunk-3LEZRET7.js";
-import "./chunk-BBT4NEOP.js";
-import "./chunk-JNUBDOCI.js";
+  SimpleEventEmitter,
+  eventRace
+} from "./chunk-XZCD447U.js";
+import "./chunk-XJES6KLL.js";
+import "./chunk-WUN4GNAA.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
-  SimpleEventEmitter
+  SimpleEventEmitter,
+  eventRace
 };
 //# sourceMappingURL=events.js.map
