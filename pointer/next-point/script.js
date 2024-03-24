@@ -1,38 +1,30 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, Vectors } from '../../ixfx/geometry.js';
 import { PointTracker, pointTracker } from '../../ixfx/data.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
   updateRateMs: 10,
-  circleHue: 320
+  circleHue: 320,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 /**
- * @typedef {{
- * bounds: Bounds
- * scaleBy: number
- * tracker: PointTracker
- * pointer: Points.Point
- * prediction: Points.Point
- * }} State
+ * @typedef {Readonly<{
+ *  tracker: PointTracker
+ *  pointer: Points.Point
+ *  prediction: Points.Point
+ * }>} State
  */
 
 /** @type State */
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 },
-  },
-  /** @type number */
-  scaleBy: 1,
   tracker: pointTracker({
     sampleLimit: 10,
     storeIntermediate: true
   }),
-  pointer: { x:0.5, y:0.5 },
-  prediction: { x:0.5, y:0.5 }
+  pointer: { x: 0.5, y: 0.5 },
+  prediction: { x: 0.5, y: 0.5 }
 });
 
 /**
@@ -46,10 +38,11 @@ const update = () => {
 };
 
 const onPointerMove = (event) => {
+  const { canvas } = settings;
   const { tracker } = state;
- 
+
   // Get a relative version of pointer position
-  const pointerRelative = Points.divide(event, state.bounds);
+  const pointerRelative = canvas.toRelative({ x: event.clientX, y: event.clientY });
 
   // Add it to the tracker
   tracker.seen(pointerRelative);
@@ -58,7 +51,7 @@ const onPointerMove = (event) => {
   const vector = tracker.vectorCartesian;
 
   // Apply vector to predict the next point
-  const prediction = Points.sum( vector, pointerRelative);
+  const prediction = Points.sum(vector, pointerRelative);
 
   saveState({ pointer: pointerRelative, prediction });
 };
@@ -77,50 +70,50 @@ const use = () => {
   if (!context || !canvasElement) return;
 
   // Clear canvas
-  clear(context);
+  clear();
 
   const { pointer, prediction } = state;
-  
-  drawLabelledCircle(context, prediction, `hsla(${circleHue}, 50%, 50%, 0.5)` );
-  drawLabelledCircle(context, pointer, `hsl(${circleHue}, 50%, 90%)` );
+
+  drawLabelledCircle(prediction, `hsla(${circleHue}, 50%, 50%, 0.5)`);
+  drawLabelledCircle(pointer, `hsl(${circleHue}, 50%, 90%)`);
 };
 
 /**
- * @param {CanvasRenderingContext2D} context
  * @param {Circle} circle 
  * @param {string} fillStyle
  * @param {string} message?
  * @param {string} textFillStyle?
  */
-const drawLabelledCircle = (context, circle, fillStyle, message = ``, textFillStyle =  `black`) => {
-  const { scaleBy } = state;
+const drawLabelledCircle = (circle, fillStyle, message = ``, textFillStyle = `black`) => {
+  const { canvas } = settings;
+  const { ctx } = canvas;
 
   // Convert relative radius to absolute
-  const radius = (circle.radius ?? 0.1) * (scaleBy / 2);
+  const radius = (circle.radius ?? 0.1) * (canvas.dimensionMin / 2);
 
   // Convert x,y to absolute point
-  const abs = Points.multiply(circle, state.bounds);
+  const abs = canvas.toAbsolute(circle);
 
-  Util.drawLabelledCircle(context, { ...abs, radius }, fillStyle, message, textFillStyle);
+  Util.drawLabelledCircle(ctx, { ...abs, radius }, fillStyle, message, textFillStyle);
 };
 
 /**
  * Clears canvas
- * @param {CanvasRenderingContext2D} context 
  */
-const clear = (context) => {
-  const { width, height } = state.bounds;
+const clear = () => {
+  const { canvas } = settings;
+  const { width, height, ctx } = canvas;
 
   // Make background transparent
-  context.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
 
   // Clear with a colour
-  //context.fillStyle = `orange`;
-  //context.fillRect(0, 0, width, height);
+  //ctx.fillStyle = `orange`;
+  //ctx.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  //context.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //context.fillRect(0, 0, width, height);
+  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
+  //ctx.fillRect(0, 0, width, height);
 };
 
 /**
@@ -129,13 +122,6 @@ const clear = (context) => {
 const setup = () => {
   const { updateRateMs } = settings;
 
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({ 
-      bounds: arguments_.bounds,
-      scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
-    });
-  });
 
   // Call at a given rate
   const loop = () => {
@@ -160,7 +146,7 @@ setup();
  * Update state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

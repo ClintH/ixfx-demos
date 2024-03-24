@@ -1,8 +1,9 @@
 import { pingPongPercent, count } from '../../ixfx/generators.js';
 import { forEach } from '../../ixfx/flow.js';
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport`, scaleBy: `min` }),
   outerColour: `indigo`,
   innerColour: `pink`,
   piPi: Math.PI * 2,
@@ -10,30 +11,27 @@ const settings = Object.freeze({
   pingPong: pingPongPercent(0.01),
   // % to reduce radius by for each circle
   radiusDecay: 0.8,
-  // Proportion of viewport size to radius
-  radiusViewProportion: 0.45 /* 45% keeps it within screen */,
+  // Relative radius size (45% of screen)
+  radius: 0.45
 });
 
+/**
+ * @typedef {Readonly<{
+ *  pingPong: number
+ * }>} State
+ */
+
+/** @type {State} */
 let state = Object.freeze({
-  /** @type {number} */
-  pingPong: 0,
-  bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
-  /** @type {number} */
-  radius: 0
+  pingPong: 0
 });
 
 // Update state of world
 const update = () => {
-  const { pingPong, radiusViewProportion } = settings;
-  const { bounds } = state;
-
-  // Define radius in proportion to viewport size
-  const radius = Math.min(bounds.width, bounds.height) * radiusViewProportion;
+  const { pingPong } = settings;
 
   // Update state
   saveState({
-    bounds,
-    radius,
     // Get a new value from the generator
     pingPong: pingPong.next().value,
   });
@@ -41,32 +39,23 @@ const update = () => {
 
 /**
  * Draw a gradient-filled circle
- * @param {CanvasRenderingContext2D} context 
- * @param {number} radius 
+ * @param {number} radiusAbs 
  */
-const drawGradientCircle = (context, radius) => {
-  // Grab state/settings we need
-  const { pingPong, bounds } = state;
-  const { piPi } = settings;
-  const { center } = bounds;
+const drawGradientCircle = (radiusAbs) => {
+  const { pingPong } = state;
+  const { canvas, piPi } = settings;
+  const { ctx, center } = canvas;
 
   // Let inner circle of gradient grow in and out.
-  const inner = pingPong * radius;
-
-  // Define bounds based on radius. Needed for gradient creation
-  const circleBounds = {
-    ...bounds,
-    width: radius,
-    height: radius
-  };
+  const inner = pingPong * radiusAbs;
 
   // Create a gradient 'brush' based on size of circle
-  context.fillStyle = getGradient(context, inner, circleBounds);
+  ctx.fillStyle = getGradient(ctx, inner, canvas.center, radiusAbs);
 
   // Fill circle
-  context.beginPath();
-  context.arc(center.x, center.y, radius, 0, piPi);
-  context.fill();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radiusAbs, 0, piPi);
+  ctx.fill();
 };
 
 const use = () => {
@@ -75,24 +64,27 @@ const use = () => {
   if (!context || !canvasElement) return;
 
   context.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  draw(context);
+  draw();
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} context 
  */
-const draw = (context) => {
-  let { radius } = state;
-  const { radiusDecay } = settings;
+const draw = () => {
+  const { radius } = settings;
+  const { canvas, radiusDecay } = settings;
+
+  // Convert radius to absolute value
+  let radiusAbs = radius * canvas.dimensionMin;
 
   // Uses ixfx's forEach and count to run the body 10 times
   forEach(count(10), () => {
     // Draw a circle with given radius  
-    drawGradientCircle(context, radius);
+    drawGradientCircle(radiusAbs);
 
     // Diminish radius
-    radius *= radiusDecay;
+    radiusAbs *= radiusDecay;
+    return true; // Keep looping
   });
 };
 
@@ -100,17 +92,9 @@ const draw = (context) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds
-    });
-  });
-
   const loop = () => {
     update();
-    use();  
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -120,22 +104,22 @@ setup();
 /**
  * Returns a gradient fill
  * @param {CanvasRenderingContext2D} context 
- * @param {{width:number, height:number, center: {x:number, y:number}}} bounds 
+ * @param {number} inner
+ * @param {{x:number,y:number}} center
+ * @param {number} width
  */
-function getGradient (context, inner, bounds) {
+function getGradient(context, inner, center, width) {
   const { outerColour, innerColour } = settings;
-
-  const c = bounds.center;
 
   // Make a gradient
   //  See: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
   const g = context.createRadialGradient(
-    c.x,
-    c.y,
+    center.x,
+    center.y,
     inner,
-    c.x,
-    c.y,
-    bounds.width);
+    center.x,
+    center.y,
+    width);
   g.addColorStop(0, innerColour);    // Inner circle
   g.addColorStop(1, outerColour);  // Outer circle
 
@@ -146,7 +130,7 @@ function getGradient (context, inner, bounds) {
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

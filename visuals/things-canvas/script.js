@@ -1,4 +1,4 @@
-import {fullSizeCanvas} from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points } from '../../ixfx/geometry.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
@@ -8,14 +8,14 @@ const settings = Object.freeze({
   thingUpdateSpeedMs: 10,
   // How many things to spawn
   spawnThings: 100,
-  hueChange: 0.1
+  hueChange: 0.1,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 /** 
  * @typedef {{
  *  hue:number
  *  things:Things.Thing[]
- *  bounds: import('./util.js').Bounds
  * }} State
  */
 
@@ -26,28 +26,23 @@ let state = Object.freeze({
   things: [],
   hue: 0,
   movement: 0,
-  bounds: {
-    width: 0, height: 0,
-    min:0, max: 0,
-    center: { x: 0, y: 0 },
-  }
 });
 
 /**
  * Makes use of the data contained in `state`
  */
 const use = () => {
-  const { hue, bounds, things } = state;
-
-  const context = Util.getDrawingContext();
+  const { canvas } = settings;
+  const { hue, things } = state;
+  const { ctx } = canvas;
 
   // 1. Eg. use the ambient state
-  context.fillStyle = `hsl(${hue}, 100%, 90%)`;
-  context.fillRect(0,0,bounds.width,bounds.height);
-  
+  ctx.fillStyle = `hsl(${hue}, 100%, 90%)`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   // 2. Use things
   for (const thing of things) {
-    Things.use(thing, context, bounds);
+    Things.use(thing, canvas);
   }
 };
 
@@ -59,7 +54,7 @@ const update = () => {
   hue += hueChange;
 
   // 2. Sanity check
-  hue = hue%360; // 0..360 scale
+  hue = hue % 360; // 0..360 scale
 
   // 3. Save state
   saveState({ hue });
@@ -71,31 +66,27 @@ const update = () => {
   window.requestAnimationFrame(update);
 };
 
-function setup () {
-  // Automatically size canvas to viewport
-  fullSizeCanvas(`#canvas`, onResized => {
-    saveState({ bounds: onResized.bounds });
-  });
-    
+function setup() {
   const things = [];
-  for (let index=1;index<=settings.spawnThings;index++) {
+  for (let index = 1; index <= settings.spawnThings; index++) {
     things.push(Things.create(index));
   }
   saveState({ things });
 
   document.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = Util.addUpMovement(event);
-    const relativePosition = Points.divide({x: event.clientX, y:event.clientY}, state.bounds);
+    const { canvas } = settings;
+    const relativeMovement = Util.addUpMovement(event, canvas);
+    const relativePosition = canvas.toRelative({ x: event.clientX, y: event.clientY });
 
     // Get new thing state
     let things = state.things.map(
       thing => Things.onMovement(
-        thing, 
+        thing,
         relativeMovement,
         relativePosition)
     );
     saveState({ things });
-    
+
   });
 
   // Update things at a fixed rate
@@ -120,7 +111,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -150,6 +141,6 @@ function updateThingInState(thingId, updatedThing) {
   });
 
   // Save changed things
-  saveState({things});
+  saveState({ things });
   return completedThing;
 }

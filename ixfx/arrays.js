@@ -17,6 +17,7 @@ import {
   groupBy,
   guardArray,
   guardIndex,
+  insertAt,
   interleave,
   intersection,
   isEqual,
@@ -47,7 +48,7 @@ import {
   without,
   withoutUndefined,
   zip
-} from "./chunk-46GN7MZ3.js";
+} from "./chunk-YM25TBRP.js";
 import "./chunk-JIUPCK6W.js";
 import "./chunk-XJES6KLL.js";
 import "./chunk-WUN4GNAA.js";
@@ -71,6 +72,7 @@ export {
   groupBy,
   guardArray,
   guardIndex,
+  insertAt,
   interleave,
   intersection,
   isEqual,

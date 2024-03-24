@@ -10,6 +10,7 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/ixfx": true,
+    "ml/**/*":true,
     "docs/**": true,
     "**/*.code-search": true
   },

@@ -1,5 +1,5 @@
-import {fullSizeCanvas} from '../../ixfx/dom.js';
-import {clamp } from '../../ixfx/data.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
+import { clamp } from '../../ixfx/data.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
@@ -7,7 +7,8 @@ import * as Util from './util.js';
 const settings = Object.freeze({
   thingUpdateSpeedMs: 10,
   hueChange: 0.5,
-  movementDecay: 0.1
+  movementDecay: 0.1,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 /** 
@@ -15,7 +16,6 @@ const settings = Object.freeze({
  *  hue: number
  *  movement: number
  *  thing: Things.Thing
- *  bounds: import('./util.js').Bounds
  * }} State
  */
 
@@ -24,11 +24,6 @@ const settings = Object.freeze({
  */
 let state = Object.freeze({
   thing: Things.create(),
-  bounds: {
-    width: 0, height: 0,
-    min:0, max: 0,
-    center: { x: 0, y: 0 },
-  },
   hue: 0,
   movement: 0
 });
@@ -37,15 +32,17 @@ let state = Object.freeze({
  * Makes use of the data contained in `state`
  */
 const use = () => {
-  const { hue, bounds, thing } = state;
-  const context = Util.getDrawingContext();
+  const { canvas } = settings;
+  const { ctx } = canvas;
+  const { hue, thing } = state;
+
 
   // 1. Eg. use the ambient state
-  context.fillStyle = `hsl(${hue}, 100%, 90%)`;
-  context.fillRect(0,0,bounds.width,bounds.height);
+  ctx.fillStyle = `hsl(${hue}, 100%, 90%)`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // 2. Get Thing to draw itself
-  Things.use(thing, context, bounds);
+  Things.use(thing, canvas);
 };
 
 const update = () => {
@@ -59,7 +56,7 @@ const update = () => {
   movement -= movementDecay;
 
   // 2. Sanity check
-  hue = hue%360; // 0..360 scale
+  hue = hue % 360; // 0..360 scale
   movement = clamp(movement); // 0..1 scale
 
   // 3. Save state
@@ -73,13 +70,8 @@ const update = () => {
 };
 
 function setup() {
-  // Automatically size canvas to viewport
-  fullSizeCanvas(`#canvas`, onResized => {
-    saveState({ bounds: onResized.bounds });
-  });
-
   document.addEventListener(`pointermove`, (event) => {
-    const relativeMovement = Util.addUpMovement(event);
+    const relativeMovement = Util.addUpMovement(event, settings.canvas);
     let movement = clamp(state.movement + relativeMovement);
     saveState({ movement });
   });
@@ -87,7 +79,7 @@ function setup() {
   // Update thing at a fixed rate
   setInterval(() => {
     // Save new thing into state
-    saveState({ 
+    saveState({
       thing: Things.update(state.thing, state)
     });
   }, settings.thingUpdateSpeedMs);
@@ -103,7 +95,7 @@ setup();
  * Update state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

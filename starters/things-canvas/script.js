@@ -1,19 +1,19 @@
-import {fullSizeCanvas} from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import * as Things from './thing.js';
-import * as Util from './util.js';
 
 // Settings for sketch
 const settings = Object.freeze({
   // How often to update all the things
   thingUpdateSpeedMs: 10,
   // How many things to spawn
-  spawnThings: 100
+  spawnThings: 100,
+  // Create an ixfx CanvasHelper to manage scaling and sizing
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 /** 
  * @typedef {{
  *  things:Things.Thing[]
- *  bounds: Util.Bounds
  * }} State
  */
 
@@ -21,26 +21,22 @@ const settings = Object.freeze({
  * @type {State}
  */
 let state = Object.freeze({
-  things: [],
-  bounds: {
-    width: 0, height: 0,
-    min:0, max: 0,
-    center: { x: 0, y: 0 },
-  }
+  things: []
 });
 
 /**
  * Makes use of the data contained in `state`
  */
-const use = () => {  
-  const { things, bounds} = state;
-  const context = Util.getDrawingContext();
+const use = () => {
+  const { canvas } = settings;
+  const { things } = state;
+
 
   // 1. Eg. use the ambient state
-  
+
   // 2. Use things
   for (const thing of things) {
-    Things.use(thing, context, bounds);
+    Things.use(thing, canvas);
   }
 };
 
@@ -55,14 +51,11 @@ const update = () => {
   window.requestAnimationFrame(update);
 };
 
-function setup () {
-  // Automatically size canvas to viewport
-  fullSizeCanvas(`#canvas`, onResized => {
-    saveState({ bounds: onResized.bounds });
-  });
-    
+function setup() {
+
+
   const things = [];
-  for (let index=1;index<=settings.spawnThings;index++) {
+  for (let index = 1; index <= settings.spawnThings; index++) {
     things.push(Things.create(index));
   }
   saveState({ things });
@@ -89,7 +82,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -119,6 +112,6 @@ function updateThingInState(thingId, updatedThing) {
   });
 
   // Save changed things
-  saveState({things});
+  saveState({ things });
   return completedThing;
 }

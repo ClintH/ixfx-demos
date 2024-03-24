@@ -1,25 +1,22 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { repeat } from '../../ixfx/flow.js';
 import * as Random from '../../ixfx/random.js';
 import { Points, Circles, Polar } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
   numberOfPoints: 500,
-  piPi:Math.PI*2,
+  piPi: Math.PI * 2,
   // Try also using other random sources, such as
   // Random.weightedFn(`cubicIn`), or Random.gaussian()
   randomSource: Math.random,
   pointColour: `hsl(70, 100%, 50%)`,
   pointSize: 0.005,
-  origin: { x: 0.5, y:0.5, radius:0.5 },
-  radius:0.5
+  origin: { x: 0.5, y: 0.5, radius: 0.5 },
+  radius: 0.5,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
-let state = Object.freeze({
-  bounds: { width: 0, height: 0 },
-  /** @type number */
-  scaleBy: 1,
-});
+let state = Object.freeze({});
 
 /**
  * Given the random number source `r`, returns a distance for a point (0..1)
@@ -46,12 +43,12 @@ const randomDistance = (r) => r();
  * @returns 
  */
 const randomPoints = (circle, numberOfPoints) => {
-  const { piPi, randomSource  } =  settings;
+  const { piPi, randomSource } = settings;
   const { radius } = circle;
 
   // Generate a random point in circle
   // Uses Polar to create a point from a random distsance and angle
-  const generate = () => Polar.toCartesian(randomDistance(randomSource) * radius, randomSource()*piPi, circle);
+  const generate = () => Polar.toCartesian(randomDistance(randomSource) * radius, randomSource() * piPi, circle);
 
   // Run generate() for the number of points needed, returning as an array
   return repeat(numberOfPoints, generate);
@@ -64,41 +61,30 @@ const randomPoints = (circle, numberOfPoints) => {
  * @returns 
  */
 const use = () => {
-  const { numberOfPoints, pointColour, origin, radius, pointSize } = settings;
-  const { scaleBy, bounds } = state;
-
-  /** @type HTMLCanvasElement|null */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context || !canvasElement) return;
+  const { numberOfPoints, pointColour, origin, radius, pointSize, canvas } = settings;
+  const { ctx } = canvas;
 
   // Make background transparent
-  context.clearRect(0, 0, bounds.width, bounds.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Get absolutely-positioned circle
-  const absCircle = { 
-    x: origin.x * bounds.width, 
-    y: origin.y * bounds.height,
-    radius: radius * scaleBy
+  const absCircle = {
+    x: origin.x * canvas.width,
+    y: origin.y * canvas.height,
+    radius: radius * canvas.dimensionMin
   };
-  
+
   // Compute points
   const pts = randomPoints(absCircle, numberOfPoints);
 
-  const size = pointSize * scaleBy; 
+  const size = pointSize * canvas.dimensionMin;
   for (const pt of pts) {
-    drawPoint(context, pt, pointColour, size);
+    drawPoint(ctx, pt, pointColour, size);
   }
 };
 
-function setup() { 
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    saveState({ 
-      bounds: arguments_.bounds,
-      scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
-    });
-    use();
-  });
+function setup() {
+  use();
 };
 setup();
 
@@ -106,7 +92,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -118,7 +104,7 @@ function saveState (s) {
  * @param {CanvasRenderingContext2D} context 
  * @param {Points.Point} position 
  */
-function drawPoint(context, position, fillStyle = `black`, size = 1)  {
+function drawPoint(context, position, fillStyle = `black`, size = 1) {
   context.fillStyle = fillStyle;
   context.beginPath();
   context.arc(position.x, position.y, size, 0, settings.piPi);

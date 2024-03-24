@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points } from '../../ixfx/geometry.js';
 import { repeat } from '../../ixfx/flow.js';
 import { Colour } from '../../ixfx/visual.js';
@@ -13,6 +13,7 @@ const randomPoint = () => ({
 });
 
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   gravity: 0.01,
   // Drawing settings
   dotColour: `hsla(${Colour.getCssVariable(`hue`, `100`)}, 100%, 80%, 0.8)`,
@@ -20,31 +21,26 @@ const settings = Object.freeze({
 });
 
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
   // Generate 100 random points
   // with x,y and radius on 0..1 scale
-  points: [ ...repeat(100, randomPoint) ]
+  points: [...repeat(100, randomPoint)]
 });
 
 const use = () => {
   const { points } = state;
-  
+
   const canvasElement = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
   const context = canvasElement?.getContext(`2d`);
 
   if (!context) return;
-    
+
   // Clear canvas
-  clear(context);
+  clear();
 
   context.globalCompositeOperation = `lighter`; // color-dodge also good
 
   // Draw each point
-  for (const p of points) drawPoint(context, p);
+  for (const p of points) drawPoint(p);
 };
 
 // Update state of world
@@ -73,40 +69,38 @@ const update = () => {
 
 /**
  * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number,radius:number}} pt 
  */
-const drawPoint = (context, pt) => {
-  const { radiusMax, dotColour } = settings;
-  const { width, height } = state.bounds;
+const drawPoint = (pt) => {
+  const { canvas, radiusMax, dotColour } = settings;
+  const { ctx } = canvas;
 
   // Convert relative x,y coords to screen coords
-  const { x, y } = Points.multiply(pt, { x: width, y: height });
+  const { x, y } = canvas.toAbsolute(pt);
 
   // Calculate radius based on relative random radius
   // and the max radius.
   const radius = radiusMax * pt.radius;
 
   // Translate so 0,0 is the middle
-  context.save();
-  context.translate(x, y);
+  ctx.save();
+  ctx.translate(x, y);
 
   // Fill a circle
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fillStyle = dotColour;
-  context.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fillStyle = dotColour;
+  ctx.fill();
 
   // Unwind translation
-  context.restore();
+  ctx.restore();
 };
 
 /**
  * Clear
- * @param {CanvasRenderingContext2D} context 
  */
-const clear = (context) => {
-  const { width, height } = state.bounds;
+const clear = () => {
+  const { ctx, width, height } = settings.canvas;
 
   // Make background transparent
   //ctx.clearRect(0, 0, width, height);
@@ -116,20 +110,12 @@ const clear = (context) => {
   //ctx.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  context.globalCompositeOperation = `source-over`;
-  context.fillStyle = `hsla(${Colour.getCssVariable(`hue`, `100`)}, 100%, 1%, 0.1)`;
-  context.fillRect(0, 0, width, height);
+  ctx.globalCompositeOperation = `source-over`;
+  ctx.fillStyle = `hsla(${Colour.getCssVariable(`hue`, `100`)}, 100%, 1%, 0.1)`;
+  ctx.fillRect(0, 0, width, height);
 };
 
 function setup() {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds
-    });
-  });
-
   const loop = () => {
     update();
     use();
@@ -143,7 +129,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { clamp, numberTracker } from '../../ixfx/data.js';
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
 import { repeat } from '../../ixfx/flow.js';
@@ -6,15 +6,12 @@ import * as Util from './util.js';
 import * as Things from './thing.js';
 
 // Define settings
-const settings = Object.freeze({});
+const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
+});
 
 // Initial state with empty values
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
   pointA: {
     y: 0.5,
     x: 0.5
@@ -24,9 +21,9 @@ let state = Object.freeze({
     y: 0.5
   },
   /** @type {readonly Things.Thing[]} */
-  things: [...repeat(40, () =>Things.create())],
+  things: [...repeat(40, () => Things.create())],
   /** @type number */
-  distance:0,
+  distance: 0,
   distanceAvg: numberTracker({
     id: `distance`,
     storeIntermediate: true,
@@ -44,7 +41,7 @@ const update = () => {
   const angleDegrees = radianToDegree(angle);
 
   distanceAvg.seen(distance);
-  
+
   const averageDistance = distanceAvg.avg;
   const distanceDiff = distance - averageDistance;
 
@@ -73,8 +70,8 @@ const updateThing = (thing) => {
   const { scale, mass } = thing;
 
   let computedScale = scale * (0.9999);
-  
-  computedScale = computedScale + (distanceDiff*mass*0.1);
+
+  computedScale = computedScale + (distanceDiff * mass * 0.1);
   computedScale = clamp(computedScale, 0.01);
 
   return {
@@ -92,65 +89,63 @@ function setText(id, text) {
 }
 
 const use = () => {
+  const { canvas } = settings;
   const { pointA, pointB } = state;
-  /** @type HTMLCanvasElement|null */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context || !canvasElement) return;
 
   // Clear canvas
-  clear(context);
+  clear(canvas);
 
   for (const thing of state.things) {
-    drawThing(context, thing);
+    drawThing(canvas, thing);
   }
 
   // Draw new things
-  Util.drawCircle(context, pointA, `red`);
-  Util.drawCircle(context, pointB, `blue`);
+  Util.drawCircle(canvas, pointA, `red`);
+  Util.drawCircle(canvas, pointB, `blue`);
 };
 
 /**
  * Draw a thing
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasHelper} canvas 
  * @param {Things.Thing} thing
  */
-const drawThing = (context, thing) => {
-  const posAbs = Util.relativeToAbsolute(thing);
+const drawThing = (canvas, thing) => {
+  const { ctx } = canvas;
+  const posAbs = canvas.toAbsolute(thing);
   const radius = thing.scale * window.innerWidth / 4;
-  
+
   // Translate so 0,0 is the middle
-  context.save();
-  context.translate(posAbs.x, posAbs.y);
+  ctx.save();
+  ctx.translate(posAbs.x, posAbs.y);
 
   // Fill a circle
-  context.beginPath();
-  context.fillStyle = `hsl(${thing.mass*360}, 100%, 50%)`;
-  
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fill();
+  ctx.beginPath();
+  ctx.fillStyle = `hsl(${thing.mass * 360}, 100%, 50%)`;
+
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
 
   // Unwind translation
-  context.restore();
+  ctx.restore();
 };
 
 /**
  * Clears canvas
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasHelper} canvas 
  */
-const clear = (context) => {
-  const { width, height } = state.bounds;
+const clear = (canvas) => {
+  const { width, height, ctx } = canvas;
 
   // Make background transparent
-  context.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
 
   // Clear with a colour
-  //context.fillStyle = `orange`;
-  //context.fillRect(0, 0, width, height);
+  //ctx.fillStyle = `orange`;
+  //ctx.fillRect(0, 0, width, height);
 
   // Fade out previously painted pixels
-  //context.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
-  //context.fillRect(0, 0, width, height);
+  //ctx.fillStyle = `hsl(200, 100%, 50%, 0.1%)`;
+  //ctx.fillRect(0, 0, width, height);
 };
 
 /**
@@ -158,19 +153,15 @@ const clear = (context) => {
  * @param {PointerEvent} event 
  */
 const onPointerMove = (event) => {
-  const pos = Util.absoluteToRelative(event);
+  const { canvas } = settings;
+  const pos = canvas.toRelative({ x: event.clientX, y: event.clientY });
   saveState({
     pointA: pos
   });
 };
 
 
-function setup() { 
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({ bounds: arguments_.bounds });
-  });
-
+function setup() {
   const loop = () => {
     use();
     window.requestAnimationFrame(loop);
@@ -190,7 +181,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

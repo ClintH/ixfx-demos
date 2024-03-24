@@ -5,22 +5,24 @@
  *  - Computing corners coordinates, computing line geometry for a rectangle
  *  - Drawing based on these computed composite shapes
  */
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Rects, Lines } from '../../ixfx/geometry.js';
 
 // Define settings
 const settings = Object.freeze({
   centerColour: `yellow`,
-  cornerColour: `blue`
+  cornerColour: `blue`,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
-// Initial state with empty values
+/**
+ * @typedef {Readonly<{
+ *  pointer: { x: number, y: number} // Relative position
+ * }>} State
+ */
+
+/** @type State */
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
   pointer: { x: 0, y: 0 }
 });
 
@@ -28,44 +30,42 @@ let state = Object.freeze({
 const update = () => {};
 
 const use = () => {
-  /** @type {HTMLCanvasElement|null}} */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context) return;
+  const { canvas } = settings;
+  const { ctx } = canvas;
 
   // Clear canvas
-  clear(context);
+  clear();
 
   // Draw new things
-  draw(context);
+  draw(ctx);
 };
 /**
  * Draws a rectangle
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasRenderingContext2D} ctx 
  * @param {{x:number,y:number,width:number,height:number}} r 
  */
-const drawRect = (context, r, strokeStyle) => {
-  context.strokeStyle = strokeStyle;
-  context.lineWidth = 2;
-  context.strokeRect(r.x, r.y, r.width, r.height);
+const drawRect = (ctx, r, strokeStyle) => {
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(r.x, r.y, r.width, r.height);
 };
 
 /**
  * Demonstrates drawing a rectangle line by line.
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasRenderingContext2D} ctx 
  * @param {{x:number,y:number,width:number,height:number}} r 
  */
-const drawRectManual = (context, r, strokeStyle) => {
+const drawRectManual = (ctx, r, strokeStyle) => {
   // Compute corner coordinates for a rect
   const pts = Rects.corners(r);
-  context.strokeStyle = strokeStyle;
+  ctx.strokeStyle = strokeStyle;
 
   // Draw circles for each corner
   for (const p of pts) {
     // Draw a circle
-    context.beginPath();
-    context.arc(p.x, p.y, 5, 0, Math.PI * 2);
-    context.stroke();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   // Compute the lines for a rectangle
@@ -74,23 +74,23 @@ const drawRectManual = (context, r, strokeStyle) => {
   const points = Lines.asPoints(lines);
   let started = false;
 
-  context.beginPath();
+  ctx.beginPath();
   for (const pt of points) {
     if (started) {
-      context.lineTo(pt.x, pt.y);
+      ctx.lineTo(pt.x, pt.y);
     } else {
-      context.moveTo(pt.x, pt.y);
+      ctx.moveTo(pt.x, pt.y);
       started = true;
     }
   }
-  context.stroke();
+  ctx.stroke();
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasRenderingContext2D} ctx 
  */
-const draw = (context) => {
+const draw = (ctx) => {
   const { pointer } = state;
   const { centerColour, cornerColour } = settings;
 
@@ -99,22 +99,23 @@ const draw = (context) => {
   const r = Rects.fromCenter(pointer, 200, 100);
 
   // Draw a rectangle using the in-built `strokeRect`
-  drawRect(context, r, centerColour);
+  drawRect(ctx, r, centerColour);
 
   // Draw rectangle 'manually'.
   const r2 = Rects.fromTopLeft(pointer, 100, 200);
-  drawRectManual(context, r2, cornerColour);
+  drawRectManual(ctx, r2, cornerColour);
 };
 
 /**
  * Clear canvas
- * @param {CanvasRenderingContext2D} context 
  */
-const clear = (context) => {
-  const { width, height } = state.bounds;
+const clear = () => {
+  const { canvas } = settings;
+  const { ctx, width, height } = canvas;
+
 
   // Make background transparent
-  context.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
 
   // Clear with a colour
   //ctx.fillStyle = `orange`;
@@ -126,24 +127,14 @@ const clear = (context) => {
 };
 
 function setup() {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds
-    });
-  });
-
+  const { canvas } = settings;
   /**
    * Handle pointerdown and pointermove
    * @param {PointerEvent} event 
    */
   const onPointer = (event) => {
-    const x = event.clientX;
-    const y = event.clientY;
-  
     saveState({
-      pointer: { x, y }
+      pointer: { x: event.clientX, y: event.clientY }
     });
   };
 
@@ -163,7 +154,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

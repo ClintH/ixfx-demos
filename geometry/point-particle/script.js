@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { repeat } from '../../ixfx/flow.js';
 import { jitter } from '../../ixfx/modulation.js';
 import { flip } from '../../ixfx/data.js';
@@ -6,6 +6,7 @@ import { gaussian } from '../../ixfx/random.js';
 import * as Particle from './particle.js';
 
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   // How much to age with each loop (% of current age)
   agePerLoop: 0.02,
   // How many particles to spawn each loop
@@ -19,12 +20,11 @@ const settings = Object.freeze({
 
 
 /**
- * @typedef {{
+ * @typedef {Readonly<{
  * particles: Particle[]
  * pointer: Point
  * pointerDown: boolean
- * bounds: {width:number,height:number,center:{x:number,y:number}}
- * }} State
+ * }>} State
  */
 
 /** @type {State} */
@@ -32,17 +32,12 @@ let state = Object.freeze({
   particles: [],
   pointer: { x: 0, y: 0 },
   pointerDown: false,
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  }
 });
 
 // Runs at animation speed
 const update = () => {
   const { yMovement, spawnPerLoop, agePerLoop, xJitter } = settings;
-  const { particles }  = state;
+  const { particles } = state;
 
   // 1. Age particles, deleting when they are too old
   const aged = particles
@@ -50,13 +45,13 @@ const update = () => {
     .filter(p => p.age > 0.001);
 
   // 2. Spawn new particles
-  const withNew = [ ...aged, ...repeat(spawnPerLoop, () => Particle.create(state)) ];
+  const withNew = [...aged, ...repeat(spawnPerLoop, () => Particle.create(state))];
 
   // 3. Move particles: some jitter applied to X, and drift upwards
   const moved = withNew.map(p => ({
-    ...p, 
+    ...p,
     x: xJitter(p.x),
-    y: p.y - (p.weight*yMovement*Math.random())
+    y: p.y - (p.weight * yMovement * Math.random())
   }));
 
   // 3. Update state for later drawing
@@ -66,30 +61,27 @@ const update = () => {
 };
 
 const use = () => {
+  const { canvas } = settings;
+  const { ctx } = canvas;
   const { particles } = state;
 
-  /** @type {HTMLCanvasElement|null}} */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context) return;
-
   // Clear canvas
-  clear(context);
+  clear();
 
-  context.globalCompositeOperation = `lighter`;
+  ctx.globalCompositeOperation = `lighter`;
 
   // Draw particles  
   for (const p of particles) {
-    Particle.draw(context, p, state);
+    Particle.draw(canvas, p, state);
   }
 };
 
 /**
  * Clears the canvas
- * @param {CanvasRenderingContext2D} context 
  */
-const clear = (context) => {
-  const { width, height } = state.bounds;
+const clear = () => {
+  const { canvas } = settings;
+  const { ctx, width, height } = canvas;
   const { bgHue } = settings;
 
   // Clear screen  
@@ -99,27 +91,21 @@ const clear = (context) => {
 
   // Use the composite operation to leave some
   // traces behind
-  context.fillStyle = `hsla(${bgHue}, 100%, 50%, 0.5)`;
-  context.globalCompositeOperation = `luminosity`;
-  context.fillRect(0, 0, width, height);
+  ctx.fillStyle = `hsla(${bgHue}, 100%, 50%, 0.5)`;
+  ctx.globalCompositeOperation = `luminosity`;
+  ctx.fillRect(0, 0, width, height);
 };
 
 const defaultPosition = () => {
-  saveState({ pointer: {
-    x: 0.5, //window.innerWidth / 2,
-    y: 0.5, //window.innerHeight / 2
-  } });
+  saveState({
+    pointer: {
+      x: 0.5, //window.innerWidth / 2,
+      y: 0.5, //window.innerHeight / 2
+    }
+  });
 };
 
 function setup() {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds
-    });
-  });
-
   // Animation loop
   const loop = () => {
     update();
@@ -130,14 +116,14 @@ function setup() {
 
 
   defaultPosition();
-  
+
   // Keep track of pointer moving
   document.addEventListener(`pointermove`, event => {
     event.preventDefault();
-    saveState({ 
+    saveState({
       pointer: {
-        x: event.x/window.innerWidth,
-        y: event.y/window.innerHeight
+        x: event.x / window.innerWidth,
+        y: event.y / window.innerHeight
       }
     });
   });
@@ -163,7 +149,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -1,13 +1,11 @@
-// #region Imports
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, SurfacePoints } from '../../ixfx/geometry.js';
 import { numericRange } from '../../ixfx/generators.js';
 import { clamp } from '../../ixfx/data.js';
-const piPi = Math.PI*2;
-// #endregion
+const piPi = Math.PI * 2;
 
-// #region Settings & state
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   // Visualisation of points
   dotRadius: 0.01,
   dotHue: 270,
@@ -20,100 +18,85 @@ const settings = Object.freeze({
     radius: 0.6
   },
   // Continually generate numbers on the radian angle range
-  radiansRange: numericRange(0.01, 0, Math.PI*2, true),
+  radiansRange: numericRange(0.01, 0, Math.PI * 2, true),
 });
 
+/**
+ * @typedef {Readonly<{
+ *  pointer: Points.Point
+ *  points: Points.Point3d[]
+ * }>} State
+ */
+
+/** @type State */
 let state = Object.freeze({
-  bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
-  /** @type {number} */
-  scaleFactor: 1,
-  pointer: { x:0.5, y:0.5  },
-  /** @type {Points.Point3d[]} */
+  pointer: { x: 0.5, y: 0.5 },
   points: []
 });
-// #endregion
 
 // Update state of world: Rotate sphere, generate points
 const update = () => {
   const { radiansRange, sphere } = settings;
   const rotation = /** @type number */(radiansRange.next().value);
-  const points = [ ...SurfacePoints.sphereFibonacci(500, rotation, sphere) ];
+  const points = [...SurfacePoints.sphereFibonacci(500, rotation, sphere)];
 
-  saveState({
-    points
-  });
+  saveState({ points });
 };
 
 /**
  * Draw state of world
- * @param {CanvasRenderingContext2D} context 
  */
-const use = (context) => {
-  const { bounds, scaleFactor, points, pointer } = state;
-  const { sphere,  dotRadius } = settings;
-  
+const use = () => {
+  const { points, pointer } = state;
+  const { sphere, dotRadius, canvas } = settings;
+  const { ctx, dimensionMin, center, width, height } = canvas;
+
   // How much hue to increase by with each subsequent point.
   // Increase 60 to cover more of the spectrum
-  const hueIncrease = (1/points.length) * 60;
+  const hueIncrease = (1 / points.length) * 60;
 
-  const radius = sphere.radius * scaleFactor;
-  const dotRadiusScaled = dotRadius*scaleFactor;
+  const radius = sphere.radius * dimensionMin;
+  const dotRadiusScaled = dotRadius * dimensionMin;
   let hue = settings.dotHue;
-  context.clearRect(0, 0, bounds.width, bounds.height);
+  ctx.clearRect(0, 0, width, height);
 
-  context.save();
-  context.translate(bounds.center.x - radius/2, bounds.center.y - radius/2);
+  ctx.save();
+  ctx.translate(center.x - radius / 2, center.y - radius / 2);
+
+  // For every point...
   for (const [index, pt] of points.entries()) {
     // Calc a % distance of pointer to this point
-    const distance = 1-clamp(Points.distance(pointer, pt) / 0.7);
+    const distance = 1 - clamp(Points.distance(pointer, pt) / 0.7);
 
+    // Scale size of point by distance
+    const pointRadius = dotRadiusScaled * distance;
     // Draw a point, scaling it by the
     // absolute radius in pixels
-    drawPoint(context, {
+    drawPoint(ctx, {
       x: pt.x * radius,
       y: pt.y * radius,
       // Invert z for the opacity effect we want
       z: 0.8 - pt.z
-    }, 
-    // Scale size of point by distance
-    dotRadiusScaled*distance, 
-    hue);
+    }, pointRadius, hue);
     hue += hueIncrease;
   }
-  context.restore();
+  ctx.restore();
 };
 
 document.addEventListener(`pointermove`, event => {
-  const { bounds } = state;
+  const { canvas } = settings;
   saveState({
-    pointer: { 
-      x: event.x / bounds.width, 
-      y: event.y / bounds.height
-    }
+    pointer: canvas.toRelative({ x: event.x, y: event.y })
   });
 });
 
-
-// #region Toolbox
 /**
  * Initialise and run main loop 
  */
 const init = () => {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds,
-      scaleFactor: Math.min(arguments_.bounds.width, arguments_.bounds.height)
-    });
-  });
-
-  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
-  const context =/** @type {CanvasRenderingContext2D} */(canvasElement?.getContext(`2d`));
-
   const loop = () => {
     update();
-    use(context);  
+    use();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -128,20 +111,20 @@ init();
  * @param {number} hue
  */
 function drawPoint(context, pt, radius = 5, hue = 200) {
-  
+
   // Translate so point is 0,0
   context.save();
   context.translate(pt.x, pt.y);
-  
+
   // Make a colour with opacity determined by Z of point
   context.fillStyle = `hsla(${hue},100%,50%,${pt.z})`;
 
   // Draw a circle
   context.beginPath();
-  context.arc(0,0,radius,0,piPi);
+  context.arc(0, 0, radius, 0, piPi);
   context.closePath();
   context.fill();
-  
+
   context.restore();
 }
 
@@ -149,11 +132,9 @@ function drawPoint(context, pt, radius = 5, hue = 200) {
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
-
-// #endregion

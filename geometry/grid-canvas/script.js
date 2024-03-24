@@ -9,10 +9,11 @@
 import { Grids, Points } from '../../ixfx/geometry.js';
 import * as Modulation from '../../ixfx/modulation.js';
 import * as Flow from '../../ixfx/flow.js';
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { scalePercent } from '../../ixfx/data.js';
 
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   colour: `hotpink`,
   piPi: Math.PI * 2,
   rows: 10,
@@ -150,24 +151,26 @@ const drawCell = (moduleValue, rect, context) => {
   context.restore();
 };
 
-function setup() {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Set grid cell size to be proportional to size of viewport
-    const minDimension = Math.min(arguments_.bounds.width, arguments_.bounds.height);
-    const maxDimension = Math.max(arguments_.bounds.width, arguments_.bounds.height);
+function onCanvasResize() {
+  const { width, height } = settings.canvas;
+  // Set grid cell size to be proportional to size of viewport
+  const minDimension = Math.min(width, height);
+  const maxDimension = Math.max(width, height);
 
-    // We'd use minDimension if it was important
-    // to not lose cells off the viewport
-    saveState({
-      grid: {
-        rows: settings.rows,
-        cols: settings.cols,
-        size: Math.ceil(maxDimension / Math.max(settings.rows, settings.cols))
-      }
-    });
+  // We'd use minDimension if it was important
+  // to not lose cells off the viewport
+  saveState({
+    grid: {
+      rows: settings.rows,
+      cols: settings.cols,
+      size: Math.ceil(maxDimension / Math.max(settings.rows, settings.cols))
+    }
   });
 
+}
+
+function setup() {
+  settings.canvas.addEventListener(`resize`, () => onCanvasResize());
   // Pointer down
   window.addEventListener(`pointerdown`, event => {
     event.preventDefault();
@@ -190,6 +193,8 @@ function setup() {
       pointer: { x: -1, y: -1 }
     });
   });
+
+  onCanvasResize();
 
   const loop = () => {
     update();

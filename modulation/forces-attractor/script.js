@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Forces } from '../../ixfx/modulation.js';
 
 import { Points, Rects, Shapes } from '../../ixfx/geometry.js';
@@ -6,6 +6,7 @@ import { repeat } from '../../ixfx/flow.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   // Visual option for attractor
   attractorRadius: 50,
 
@@ -15,19 +16,21 @@ const settings = Object.freeze({
   orientationForce: Forces.orientationForce(1)
 });
 
+/**
+ * @typedef {Readonly<{
+ *  attractor: Forces.ForceAffected
+ *  attractees: readonly Forces.ForceAffected[]
+ * }>} State
+ */
+
+/** @type State */
 let state = Object.freeze({
   attractor: {
     position: { x: 0.5, y: 0.5 },
     mass: 1,
     angle: Math.random() * Math.PI * 2
   },
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
-  /** @type readonly Forces.ForceAffected[] */
-  attractees: [ ...repeat(20, generate) ],
+  attractees: [...repeat(20, generate)],
 });
 
 const update = () => {
@@ -51,34 +54,27 @@ const update = () => {
 };
 
 const use = () => {
-  const canvas = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
+  const { canvas } = settings;
+  const { ctx, width, height } = canvas;
+
   const { attractorRadius } = settings;
-  const { attractor, attractees, bounds } = state;
-  
-  /** @type {CanvasRenderingContext2D|null|undefined} */
-  const context = canvas?.getContext(`2d`);
-  if (!context) return;
+  const { attractor, attractees } = state;
 
   // Gold background
-  context.fillStyle = `gold`;
-  context.fillRect(0, 0, bounds.width, bounds.height);
-  
+  ctx.fillStyle = `gold`;
+  ctx.fillRect(0, 0, width, height);
+
   // Draw attractees as arrows
   for (const a of attractees) {
     // @ts-ignore
-    Util.arrow(a, context, bounds);
+    Util.arrow(a, canvas);
   }
 
   // Draw main attraction
-  Util.circle(attractor, context, bounds, attractorRadius, `LightGoldenrodYellow`);
+  Util.circle(attractor, canvas, attractorRadius, `LightGoldenrodYellow`);
 };
 
 function setup() {
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({ bounds: arguments_.bounds });
-  });
-
   const loop = () => {
     update();
     use();
@@ -90,16 +86,13 @@ function setup() {
     // If there's no click/touch, not interested
     if (event.buttons === 0) return;
 
-    // Compute relative pointer position
-    const position = Points.divide({ x: event.x, y: event.y }, state.bounds);
-
     // Move attractor to relative pointer position
     saveState({
       attractor: {
         ...state.attractor,
-        position
+        position: settings.canvas.toRelative({ x: event.x, y: event.y })
       }
-    }); 
+    });
   });
 };
 setup();
@@ -108,7 +101,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

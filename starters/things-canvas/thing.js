@@ -1,6 +1,10 @@
-import { Points } from '../../ixfx/geometry.js';
-import * as Util from './util.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
+import { Points, Rects } from '../../ixfx/geometry.js';
 
+/**
+ * These are the fixed settings for things
+ * The 'settings' object in script.js are settings for the sketch.
+ */
 const settings = Object.freeze({});
 
 /**
@@ -15,24 +19,24 @@ const settings = Object.freeze({});
 /**
  * Make use of data from `thing` somehow...
  * @param {Thing} thing 
- * @param {CanvasRenderingContext2D} context
- * @param {import('./util.js').Bounds} bounds
+ * @param {CanvasHelper} canvas
  */
-export const use = (thing, context, bounds) => {
-  const { id  } = thing;
-  let { position } = thing;
-  context.fillStyle = `black`;
+export const use = (thing, canvas) => {
+  const { id, position } = thing;
+  const { ctx } = canvas;
 
-  const absolutePoint = Util.makeAbsolute(position);
-  
+  const absolutePosition = canvas.toAbsolute(position);
+
   // Translate canvas so 0,0 will be the position of Thing
-  context.save();
-  context.translate(absolutePoint.x, absolutePoint.y);
+  ctx.save();
+  ctx.translate(absolutePosition.x, absolutePosition.y);
 
+  // Draw the id of the thing
+  ctx.fillStyle = `black`;
+  ctx.fillText(id.toString(), 0, 0);
 
-  context.fillText(id.toString(), 0, 0);
-
-  context.restore();
+  // Remove the translation
+  ctx.restore();
 };
 
 /**
@@ -43,7 +47,7 @@ export const use = (thing, context, bounds) => {
  */
 export const update = (thing, ambientState) => {
   // In this function, we probably want the steps:
-  
+
   // 1. Alter properties based on external state/settings
   // 2. Alter properties based on the state of 'thing'
   // 3. Apply 'intrinsic' logic of thing. Eg. that a variable will

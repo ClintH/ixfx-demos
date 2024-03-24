@@ -1,20 +1,13 @@
-import * as Dom from '../../ixfx/dom.js';
-import { Points } from '../../ixfx/geometry.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 
 // Define settings - properties that don't change
 const settings = Object.freeze({
-  updateRateMs: 10
+  updateRateMs: 10,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 // Initial state - properties that change as code runs
-let state = Object.freeze({
-  bounds: {
-    width: 0, height: 0,
-    center: { x: 0, y: 0 },
-  },
-  /** @type number */
-  scaleBy: 1
-});
+let state = Object.freeze({});
 
 /**
  * This is called at a slower rate
@@ -32,27 +25,28 @@ const update = () => {
  * @returns 
  */
 const draw = () => {
-  /** @type HTMLCanvasElement|null */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context || !canvasElement) return;
+  // Get canvas
+  const { canvas } = settings;
+  // Get drawing context
+  const { ctx } = canvas;
 
   // Clear canvas
-  clear(context);
+  clear(canvas);
 
   // TODO: drawing...
-  drawLabelledCircle(context, { x: 0.2, y: 0.2, radius: 0.1 }, `pink` );
+  drawLabelledCircle({ x: 0.2, y: 0.2, radius: 0.1 }, `pink`);
 };
 
 /**
  * Clears canvas
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasHelper} canvas 
  */
-const clear = (context) => {
-  const { width, height } = state.bounds;
+const clear = (canvas) => {
+  const { width, height } = canvas.size;
+  const { ctx } = canvas;
 
   // Make background transparent
-  context.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
 
   // Clear with a colour
   //ctx.fillStyle = `orange`;
@@ -68,15 +62,6 @@ const clear = (context) => {
  */
 function setup() {
   const { updateRateMs } = settings;
-
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({ 
-      bounds: arguments_.bounds,
-      scaleBy: Math.min(arguments_.bounds.width, arguments_.bounds.height)
-    });
-  });
-
 
   const updateLoop = () => {
     update();
@@ -98,7 +83,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -107,32 +92,32 @@ function saveState (s) {
 
 /**
  * Draws a circle with optional text
- * @param {CanvasRenderingContext2D} context 
  * @param {{x:number, y:number, radius:number}} circle 
  */
-function drawLabelledCircle(context, circle, fillStyle = `black`, message = ``, textFillStyle = `white`)  {
-  const { scaleBy } = state;
+function drawLabelledCircle(circle, fillStyle = `black`, message = ``, textFillStyle = `white`) {
+  const { canvas } = settings;
+  const { ctx } = canvas;
 
-  // Convert relative radius to absolute
-  const radius = circle.radius * (scaleBy / 2);
+  // Convert relative radius based on canvas size
+  const radius = circle.radius * (canvas.dimensionMax / 2);
 
   // Convert x,y to absolute point
-  const abs = Points.multiply(circle, state.bounds);
+  const absolutePoint = canvas.toAbsolute(circle);
 
   // Translate so 0,0 is the center of circle
-  context.save();
-  context.translate(abs.x, abs.y);
-  
+  ctx.save();
+  ctx.translate(absolutePoint.x, absolutePoint.y);
+
   // Fill a circle
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fillStyle = fillStyle;
-  context.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
 
   if (message.length > 0) {
-    context.fillStyle = textFillStyle;
-    context.textAlign = `center`;
-    context.fillText(message, 0, 0);
+    ctx.fillStyle = textFillStyle;
+    ctx.textAlign = `center`;
+    ctx.fillText(message, 0, 0);
   }
-  context.restore();
+  ctx.restore();
 }

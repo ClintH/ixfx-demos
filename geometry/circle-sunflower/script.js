@@ -1,13 +1,14 @@
 // #region Imports
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, SurfacePoints, Circles } from '../../ixfx/geometry.js';
 import { numericRange } from '../../ixfx/generators.js';
 import { clamp } from '../../ixfx/data.js';
-const piPi = Math.PI*2;
+const piPi = Math.PI * 2;
 // #endregion
 
 // #region Settings & state
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   // Visualisation of points
   dots: {
     radius: 0.005,
@@ -28,29 +29,27 @@ const settings = Object.freeze({
   },
   // Continually generate numbers on the radian angle range
   // This is used for rotating the spiral
-  radiansRange: numericRange(0.001, 0, Math.PI*2, true),
+  radiansRange: numericRange(0.001, 0, Math.PI * 2, true),
 });
 
 let state = Object.freeze({
-  bounds: { width: 0, height: 0, center: { x: 0, y: 0 }, min: 1 },
-  pointerAbs: { x:0, y:0  },
+  pointerAbs: { x: 0, y: 0 },
   /** @type {Points.Point[]} */
   pointsAbs: [],
-  circleAbs: { radius: 0, x: 0, y: 0 }
 });
 // #endregion
 
 // Update state of world: Rotate sphere, generate points
 const update = () => {
-  const { radiansRange, vogelOpts } = settings;
-  const { circleAbs } = state;
+  const { canvas, radiansRange, vogelOpts, circle } = settings;
   const rotation = /** @type number */(radiansRange.next().value);
 
+  const circleAbs = { ...canvas.toAbsolute(circle), radius: circle.radius * canvas.dimensionMin };
   // Produce points on a Vogel spiral
-  const pointsAbs = [ ...SurfacePoints.circleVogelSpiral(circleAbs, {
+  const pointsAbs = [...SurfacePoints.circleVogelSpiral(circleAbs, {
     ...vogelOpts,
     rotation
-  }) ];
+  })];
 
   // As an alternative...
   // Produce points across 15 rings
@@ -66,65 +65,48 @@ const update = () => {
 
 /**
  * Draw state of world
- * @param {CanvasRenderingContext2D} context 
  */
-const draw = (context) => {
-  const { bounds, pointsAbs, pointerAbs } = state;
-  const { dots } = settings;
+const draw = () => {
+  const { pointsAbs, pointerAbs } = state;
+  const { canvas, dots } = settings;
+  const { ctx, width, height } = canvas;
 
-  const dotRadiusScaled = dots.radius*bounds.min;
+  const dotRadiusScaled = dots.radius * canvas.dimensionMin;
 
-  context.clearRect(0, 0, bounds.width, bounds.height);
-  context.save();
-  context.translate(0,0);
+  ctx.clearRect(0, 0, width, height);
+  ctx.save();
+  ctx.translate(0, 0);
   for (const [index, ptAbs] of pointsAbs.entries()) {
     // Calc a % distance of pointer to this point
-    const distance =  1-clamp(Points.distance(pointerAbs, ptAbs) / bounds.min);
+    const distance = 1 - clamp(Points.distance(pointerAbs, ptAbs) / canvas.dimensionMin);
 
     drawPoint(
-      context, 
-      ptAbs, 
-      dotRadiusScaled, 
+      ctx,
+      ptAbs,
+      dotRadiusScaled,
       // Scale hue based on the distance to cursor
-      dots.hue*distance
+      dots.hue * distance
     );
   }
-  context.restore();
+  ctx.restore();
 };
 
 document.addEventListener(`pointermove`, event => {
   saveState({
-    pointerAbs: { 
-      x: event.x, 
+    pointerAbs: {
+      x: event.x,
       y: event.y
     }
   });
 });
 
-
-// #region Toolbox
 /**
  * Initialise and run main loop 
  */
 const init = () => {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds,
-      circleAbs: {
-        radius: settings.circle.radius * arguments_.bounds.min,
-        ...arguments_.bounds.center
-      }
-    });
-  });
-
-  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
-  const context =/** @type {CanvasRenderingContext2D} */(canvasElement?.getContext(`2d`));
-
   const loop = () => {
     update();
-    draw(context);  
+    draw();
     window.requestAnimationFrame(loop);
   };
   loop();
@@ -133,36 +115,34 @@ init();
 
 /**
  * Draws a point
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasRenderingContext2D} ctx 
  * @param {Points.Point} pt 
  * @param {number} radius
  * @param {number} hue
  */
-function drawPoint(context, pt, radius = 5, hue = 200) {
+function drawPoint(ctx, pt, radius = 5, hue = 200) {
   // Translate so point is 0,0
-  context.save();
-  context.translate(pt.x, pt.y);
-  
-  context.fillStyle = `hsl(${hue},100%,50%)`;
+  ctx.save();
+  ctx.translate(pt.x, pt.y);
+
+  ctx.fillStyle = `hsl(${hue},100%,50%)`;
 
   // Draw a circle
-  context.beginPath();
-  context.arc(0,0,radius,0,piPi);
-  context.closePath();
-  context.fill();
-  
-  context.restore();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, piPi);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
 }
 
 /**
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
-
-// #endregion

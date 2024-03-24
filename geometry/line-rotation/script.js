@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Colour } from '../../ixfx/visual.js';
 import { Points, Lines } from '../../ixfx/geometry.js';
 
@@ -6,6 +6,7 @@ const piPi = Math.PI * 2;
 
 // Define settings
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   // Set up three lines, using relative coordinates
   lineMid: {
     a: { x: 0.1, y: 0.5 },
@@ -26,11 +27,6 @@ const settings = Object.freeze({
 
 // Initial state with empty values
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
   lineMid: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } },
   lineStart: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } },
   lineEnd: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } },
@@ -55,83 +51,63 @@ const update = () => {
 
 /**
  * Draw a line based on relative coordinates
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasHelper} canvas 
  * @param {{a:{x:number,y:number}, b:{x:number,y:number}}} line 
  * @param {string} strokeStyle
  */
-const drawRelativeLine = (context, line, strokeStyle = `yellow`) => {
-  const { bounds } = state;
-  const a = Points.multiply(line.a, bounds.width, bounds.height);
-  const b = Points.multiply(line.b, bounds.width, bounds.height);
+const drawRelativeLine = (canvas, line, strokeStyle = `yellow`) => {
+  const { ctx } = canvas;
+  const a = canvas.toAbsolute(line.a);
+  const b = canvas.toAbsolute(line.b);
 
-  context.beginPath();
-  context.strokeStyle = strokeStyle;
-  context.lineWidth = 4;
-  context.moveTo(a.x, a.y);
-  context.lineTo(b.x, b.y);
-  context.stroke();
+  ctx.beginPath();
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = 4;
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
 };
 
 /**
  * Draw a dot at a relative position
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasHelper} canvas 
  * @param {{x:number, y:number}} dot 
  * @param {string} fillStyle 
  */
-const drawRelativeDot = (context, dot, fillStyle = `red`) => {
-  const { bounds } = state;
-  const abs = Points.multiply(dot, bounds.width, bounds.height);
-  drawDot(context, abs, fillStyle);
-};
+const drawRelativeDot = (canvas, dot, fillStyle = `red`) => {
+  const { ctx } = canvas;
+  const abs = canvas.toAbsolute(dot);
 
-/**
- * Draw a dot at an absolute position
- * @param {CanvasRenderingContext2D} context 
- * @param {{x:number, y:number}} dot 
- * @param {string} fillStyle 
- */
-const drawDot = (context, dot, fillStyle = `red`) => {
-  context.beginPath();
-  context.fillStyle = fillStyle;
-  context.arc(dot.x, dot.y, 5, 0, piPi);
-  context.fill();
+  ctx.beginPath();
+  ctx.fillStyle = fillStyle;
+  ctx.arc(abs.x, abs.y, 5, 0, piPi);
+  ctx.fill();
 };
 
 const use = () => {
-  const { lineStyle } = settings;
+  const { canvas, lineStyle } = settings;
   const { lineMid, lineStart, lineEnd } = state;
-  const { width, height } = state.bounds;
-
-  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
-  const context = canvasElement?.getContext(`2d`);
-
-  if (!context) return;
+  const { ctx, width, height } = canvas;
 
   // Clear
-  context.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
 
   // Draw each line, and show the point by which it is rotating...
-  drawRelativeLine(context, lineMid, lineStyle);
-  drawRelativeDot(context, Lines.interpolate(0.5, lineMid), lineStyle);
+  drawRelativeLine(canvas, lineMid, lineStyle);
+  drawRelativeDot(canvas, Lines.interpolate(0.5, lineMid), lineStyle);
 
-  drawRelativeLine(context, lineStart, lineStyle);
-  drawRelativeDot(context, Lines.interpolate(0, lineStart), lineStyle);
+  drawRelativeLine(canvas, lineStart, lineStyle);
+  drawRelativeDot(canvas, Lines.interpolate(0, lineStart), lineStyle);
 
-  drawRelativeLine(context, lineEnd, lineStyle);
-  drawRelativeDot(context, Lines.interpolate(1, lineEnd), lineStyle);
+  drawRelativeLine(canvas, lineEnd, lineStyle);
+  drawRelativeDot(canvas, Lines.interpolate(1, lineEnd), lineStyle);
 };
 
 /**
  * Setup and run main loop 
  */
 const setup = () => {
-  // Keep our primary canvas full size
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({
-      bounds: arguments_.bounds
-    });
-  });
+
 
   const loop = () => {
     update();
@@ -146,7 +122,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

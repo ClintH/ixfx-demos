@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { scalePercent, clamp } from '../../ixfx/data.js';
 import { Points, Circles } from '../../ixfx/geometry.js';
 import * as Util from './util.js';
@@ -12,21 +12,17 @@ const settings = Object.freeze({
     y: 0.5
   },
   hue: 290,
-  saturation: 0.1
+  saturation: 0.1,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 /** @typedef {{ 
- * bounds: {width:number, height:number, center: {x: number, y: number }}
  * distance: number
  * }} State */
 
 /** @type State */
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
+
   distance: 0
 });
 
@@ -35,41 +31,38 @@ const update = () => {
 };
 
 const use = () => {
-  const { distance, bounds } = state;
-  const { hue, saturation, circle } = settings;
+  const { hue, saturation, circle, canvas } = settings;
+  const { distance } = state;
+  const { ctx, width, height } = canvas;
 
-  /** @type HTMLCanvasElement|null */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context || !canvasElement) return;
+  ctx.fillStyle = `hsl(${hue}, ${saturation * 100}%, ${Math.ceil(distance * 100)}%)`;
+  ctx.fillRect(0, 0, width, height);
 
-  context.fillStyle = `hsl(${hue}, ${saturation*100}%, ${Math.ceil(distance*100)}%)`;
-  context.fillRect(0, 0, bounds.width, bounds.height);
-
-  drawCircle(context, circle);
+  drawCircle(circle);
 };
 
 /**
  * Draw the current state
- * @param {CanvasRenderingContext2D} context 
  * @param {Circles.CirclePositioned} circle
  */
-const drawCircle = (context, circle) => {
-  
+const drawCircle = (circle) => {
+  const { canvas } = settings;
+  const { ctx } = canvas;
+
   // Get absolute point
-  const circlePos = Util.toAbsolutePoint(circle, state.bounds);
+  const circlePos = canvas.toAbsolute(circle);
 
   // Translate to middle of circle
-  context.save();
-  context.translate(circlePos.x, circlePos.y);
+  ctx.save();
+  ctx.translate(circlePos.x, circlePos.y);
 
   // Fill a circle
-  context.arc(0, 0, circle.radius*window.innerWidth, 0, Math.PI * 2);
-  context.fillStyle = `black`;
-  context.fill();
+  ctx.arc(0, 0, circle.radius * window.innerWidth, 0, Math.PI * 2);
+  ctx.fillStyle = `black`;
+  ctx.fill();
 
   // Unwind translation
-  context.restore();
+  ctx.restore();
 };
 
 const onPointerMove = (event) => {
@@ -89,11 +82,6 @@ const onPointerMove = (event) => {
  * Setup and run main loop 
  */
 const setup = () => {
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({ bounds: arguments_.bounds });
-  });
-
   document.addEventListener(`pointermove`, onPointerMove);
 
   const loop = () => {
@@ -109,7 +97,7 @@ setup();
  * Update state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

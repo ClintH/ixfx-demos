@@ -1,4 +1,4 @@
-import * as Dom from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Forces } from '../../ixfx/modulation.js';
 import { Points } from '../../ixfx/geometry.js';
 
@@ -7,17 +7,13 @@ const settings = Object.freeze({
   mass: 0.1,
   thingRadius: 40,
   pinRadius: 20,
-  lineWidth: 10
+  lineWidth: 10,
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
 let state = Object.freeze({
-  bounds: {
-    width: 0,
-    height: 0,
-    center: { x: 0, y: 0 }
-  },
   thing: {
-    position: { x: 1 , y: 0.5 },
+    position: { x: 1, y: 0.5 },
     mass: settings.mass
   },
   /** @type boolean */
@@ -29,11 +25,11 @@ let state = Object.freeze({
 });
 
 const update = () => {
-  const { pause , thing, pendulumForce, springForce } = state;
+  const { pause, thing, pendulumForce, springForce } = state;
   if (!pause) {
     let t = Forces.apply(
-      thing, 
-      springForce, 
+      thing,
+      springForce,
       pendulumForce);
     // @ts-ignore
     saveState({ thing: t });
@@ -41,48 +37,38 @@ const update = () => {
 };
 
 const use = () => {
-  const { lineWidth, thingRadius, pinRadius } = settings;
+  const { lineWidth, thingRadius, pinRadius, canvas } = settings;
+  const { thing } = state;
+  const { ctx, width, height } = canvas;
 
-  const canvas = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
-  const { thing, bounds } = state;
-  
-  /** @type {CanvasRenderingContext2D|null|undefined} */
-  const context = canvas?.getContext(`2d`);
-  if (!context) return;
+  // Get absolute positions
+  const thingPos = canvas.toAbsolute(thing.position);
+  const pinPos = canvas.toAbsolute(settings.pinnedAt);
 
-  // Get absolute position from relative
-  const thingPos = Points.multiply(thing.position, bounds);
-  const pinPos = Points.multiply(settings.pinnedAt, bounds);
+  // Paint background
+  ctx.fillStyle = `SkyBlue`;
+  ctx.fillRect(0, 0, width, height);
 
-  // Fill rect
-  context.fillStyle = `SkyBlue`;
-  context.fillRect(0, 0, bounds.width, bounds.height);
-  
-  // Line
-  context.moveTo(thingPos.x, thingPos.y);
-  context.strokeStyle = `SlateGray`;
-  context.lineWidth = lineWidth;
-  context.lineTo(pinPos.x, pinPos.y);
-  context.stroke();
-  
-  // Thing
-  context.fillStyle = `MidnightBlue`;
-  context.beginPath();
-  context.ellipse(thingPos.x, thingPos.y, thingRadius, thingRadius, 0, 0, Math.PI * 2);
-  context.fill();
+  // Line representing the 'string' of the pendulum
+  ctx.moveTo(thingPos.x, thingPos.y);
+  ctx.strokeStyle = `SlateGray`;
+  ctx.lineWidth = lineWidth;
+  ctx.lineTo(pinPos.x, pinPos.y);
+  ctx.stroke();
 
-  // Pin
-  context.fillStyle = `SlateGrey`;
-  context.beginPath();
-  context.ellipse(pinPos.x, pinPos.y, pinRadius, pinRadius, 0, 0, Math.PI * 2);
+  // Thing being swung
+  ctx.fillStyle = `MidnightBlue`;
+  ctx.beginPath();
+  ctx.ellipse(thingPos.x, thingPos.y, thingRadius, thingRadius, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Circle representing the anchor of the pendulum
+  ctx.fillStyle = `SlateGrey`;
+  ctx.beginPath();
+  ctx.ellipse(pinPos.x, pinPos.y, pinRadius, pinRadius, 0, 0, Math.PI * 2);
 };
 
 function setup() {
-  Dom.fullSizeCanvas(`#canvas`, arguments_ => {
-    // Update state with new size of canvas
-    saveState({ bounds: arguments_.bounds });
-  });
-
   const loop = () => {
     update();
     use();
@@ -98,29 +84,29 @@ function setup() {
   const onPointer = (event) => {
     if (event.buttons === 0) return;
     const t = {
-      position: {
-        x: event.x / window.innerWidth,
-        y: event.y / window.innerHeight
-      },
+      position: settings.canvas.toRelative({
+        x: event.x,
+        y: event.y
+      }),
       velocity: { x: 0, y: 0 },
       mass: settings.mass
     };
     saveState({ thing: t });
   };
   document.addEventListener(`pointermove`, onPointer);
-  
+
 
   document.addEventListener(`pointerdown`, (event) => {
     onPointer(event);
-    saveState({ pause:true });
+    saveState({ pause: true });
   });
 
   document.addEventListener(`pointerup`, () => {
-    saveState({ pause:false });
+    saveState({ pause: false });
   });
 
   document.addEventListener(`pointerleave`, () => {
-    saveState({ pause:false });
+    saveState({ pause: false });
   });
 
 };
@@ -130,7 +116,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

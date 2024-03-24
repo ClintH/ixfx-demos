@@ -1,6 +1,7 @@
 import { Points } from '../../ixfx/geometry.js';
 import { interpolate, clamp } from '../../ixfx/data.js';
 import * as Util from './util.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
   hueInterpolateAmount: 0.0001,
@@ -33,7 +34,7 @@ export const onMovement = (thing, amount, lastPosition) => {
 
   // Inverse distance from thing to pointer
   // ie. directly in the middle will be 1, further away will be closer to 0
-  const distance = (1-Points.distance(thing.position, lastPosition));
+  const distance = (1 - Points.distance(thing.position, lastPosition));
 
   // Scale movement movement amount in relation to distance
   //  - makes it have a smaller effect furtherer away it us
@@ -41,7 +42,7 @@ export const onMovement = (thing, amount, lastPosition) => {
 
   // Sanity check
   movement = clamp(movement + amount);
-  
+
   return {
     ...thing,
     movement
@@ -51,31 +52,31 @@ export const onMovement = (thing, amount, lastPosition) => {
 /**
  * Make use of data from `thing` somehow...
  * @param {Thing} thing 
- * @param {CanvasRenderingContext2D} context
- * @param {import('./util.js').Bounds} bounds
+ * @param {CanvasHelper} canvas
  */
-export const use = (thing, context, bounds) => {
+export const use = (thing, canvas) => {
+  const { ctx } = canvas;
   // Grab some properties from `thing`
   const { position, size, surprise, hue } = thing;
-  
-  const absolutePosition = Points.multiply(position, bounds.width, bounds.height);
-  
-  // Translate so 0,0 is the middle of the Thing
-  context.save();
-  context.translate(absolutePosition.x, absolutePosition.y);
 
-  // Max radius is 8th of screen
-  const radius = size * bounds.min / 8;
-  
+  const absolutePosition = canvas.toAbsolute(position);
+
+  // Translate so 0,0 is the middle of the Thing
+  ctx.save();
+  ctx.translate(absolutePosition.x, absolutePosition.y);
+
+  // Max radius is 8th of canvas
+  const radius = size * canvas.dimensionMin / 8;
+
   // Opacity is based on 'surprise'
   const opacity = surprise;
 
   // Draw circle
   const fillStyle = `hsl(${hue}, 50%, 50%, ${opacity})`;
-  Util.drawLabelledCircle(context, radius, fillStyle);
-  
+  Util.drawLabelledCircle(ctx, radius, fillStyle);
+
   // Unwind translation
-  context.restore();
+  ctx.restore();
 };
 
 /**
@@ -88,11 +89,11 @@ export const update = (thing, ambientState) => {
   const { hueInterpolateAmount, surpriseDropAmount, movementDecayAmt } = settings;
   let { hue, surprise, size, movement } = thing;
   // In this function, we probably want the steps:
-  
+
   // 1. Alter properties based on external state/settings
   //  eg. get the thing to chase the hue of the ambient state,
   //      in relation to size (larger ones will change faster)
-  hue = interpolate(hueInterpolateAmount*size, hue, ambientState.hue);
+  hue = interpolate(hueInterpolateAmount * size, hue, ambientState.hue);
 
   // 2. Alter properties based on the state of 'thing'
   // eg. 'movement' from ambient state into surprise

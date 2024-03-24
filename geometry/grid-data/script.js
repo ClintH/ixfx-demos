@@ -1,28 +1,35 @@
 
 import { Grids, Points } from '../../ixfx/geometry.js';
 import { Arrays, Maps } from '../../ixfx/collections.js';
-import { fullSizeCanvas } from '../../ixfx/dom.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
+  canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
   rows: 15,
   cols: 15,
-  colours: [ `bisque`, `cadetblue`,`cornflowerblue`, `coral` ],
+  colours: [`bisque`, `cadetblue`, `cornflowerblue`, `coral`],
   tooltipEl: /** @type HTMLElement */(document.querySelector(`#tooltip`))
 });
 
 /**
- * Data we will keep for each cell:
- * @typedef {object} GridData
- * @prop {number} karma
- * @prop {string} colour
+ * @typedef {{
+ *  karma: number
+ *  colour: string
+ * }} GridData
+ */
+/**
+ * @typedef {{
+ * grid: Grids.GridVisual
+ * gridData: Maps.IMapImmutable<String,GridData>
+ * highlightedCell: Grids.Cell|undefined
+ * }} State
  */
 
+/** @type {State} */
 let state = Object.freeze({
-  /** @type {Grids.GridVisual} */
   grid: { rows: settings.rows, cols: settings.cols, size: 15 },
-  gridData: /** @type {Maps.IMapImmutable<String,GridData>} */(Maps.immutable()),
-  /** @type {Grids.Cell|undefined} */
-  highlightedCell: { x:0,y:0 }
+  gridData: Maps.immutable(),
+  highlightedCell: { x: 0, y: 0 }
 });
 
 const keyForCell = (cell) => cell.x + `-` + cell.y;
@@ -61,20 +68,20 @@ function drawCell(cell, context) {
 
   // Bounds for cell
   const rect = Grids.rectangleForCell(grid, cell);
-  
+
   // Translate so 0,0 is the top-left of cell
   context.save();
   context.translate(rect.x, rect.y);
 
   // Fill with cell's colour
   context.fillStyle = data.colour;
-  context.fillRect(0,0,rect.width,rect.height);
+  context.fillRect(0, 0, rect.width, rect.height);
 
   if (isHiglighted) {
     context.lineWidth = 4;
     //ctx.strokeRect(4, 0, rect.width, rect.height);
     context.beginPath();
-    context.moveTo(0,2);
+    context.moveTo(0, 2);
     context.lineTo(rect.width, 2);
     context.closePath();
     context.stroke();
@@ -82,30 +89,35 @@ function drawCell(cell, context) {
 
   context.fillStyle = `black`;
   context.fillText(data.karma.toString(), 15, 15);
-  
+
   // Undo translate
   context.restore();
 }
 
+function onCanvasResize() {
+  const { grid } = state;
+  const { size } = settings.canvas;
+  // Set grid cell size to be proportional to size of viewport
+  const minDimension = Math.min(size.width, size.height);
+  const maxDimension = Math.max(size.width, size.height);
+
+  // We'd use minDimension if it was important
+  // to not lose cells off the viewport
+  saveState({
+    grid: {
+      ...state.grid,
+      size: Math.ceil(maxDimension / Math.max(grid.rows, grid.cols))
+    }
+  });
+  use(); // repaint
+}
+
 function setup() {
-  const { colours } = settings;
+  const { canvas, colours } = settings;
   const { grid } = state;
 
-  // Keep our primary canvas full size
-  fullSizeCanvas(`#canvas`, arguments_ => {
-    // Set grid cell size to be proportional to size of viewport
-    const minDimension = Math.min(arguments_.bounds.width, arguments_.bounds.height);
-    const maxDimension = Math.max(arguments_.bounds.width, arguments_.bounds.height);
-  
-    // We'd use minDimension if it was important
-    // to not lose cells off the viewport
-    saveState({
-      grid: {
-        ...state.grid,
-        size: Math.ceil(maxDimension / Math.max(grid.rows, grid.cols))
-      }
-    });
-    use(); // repaint
+  canvas.addEventListener(`resize`, event => {
+    onCanvasResize();
   });
 
   window.addEventListener(`pointermove`, event => {
@@ -116,7 +128,7 @@ function setup() {
     });
     use();
   });
-    
+
   let gridData = Maps.immutable();
   for (const cell of Grids.cells(grid)) {
     // Compute random data
@@ -126,9 +138,9 @@ function setup() {
     };
     gridData = gridData.set(keyForCell(cell), data);
   }
-  
+
   saveState({ gridData });
-  use();
+  onCanvasResize();
 }
 
 setup();
@@ -137,7 +149,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

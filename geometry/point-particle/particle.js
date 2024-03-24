@@ -1,3 +1,5 @@
+import { CanvasHelper } from "../../ixfx/dom.js";
+
 /**
  * @typedef {{
  * x: number
@@ -7,6 +9,7 @@
  * intensity: number
  * }} Particle
  */
+
 
 const settings = Object.freeze({
   radiusMax: 30,
@@ -35,33 +38,33 @@ export function create(state) {
 
 /**
  * Each point is drawn as a circle
- * @param {CanvasRenderingContext2D} context 
+ * @param {CanvasHelper} canvas 
  * @param {Particle} pt 
  * @param {import("./script").State} state
  */
-export const draw = (context, pt, state) => {
+export const draw = (canvas, pt, state) => {
   const { radiusMax, radiusMin, dotHue } = settings;
-  const { width, height } = state.bounds;
+  const { ctx, width, height } = canvas;
 
   // Calculate radius based on relative 
   // random radius, max radius & age of particle
-  const radius = (radiusMax - radiusMin) * (pt.weight * pt.age) + (radiusMin* pt.age);
+  const radius = (radiusMax - radiusMin) * (pt.weight * pt.age) + (radiusMin * pt.age);
 
   // Calculate colour for dot, with age determining the opacity
-  const fillStyle = `hsla(${dotHue}, 60%, ${Math.floor(pt.intensity*100)}%, ${pt.age})`;
+  const fillStyle = `hsla(${dotHue}, 60%, ${Math.floor(pt.intensity * 100)}%, ${pt.age})`;
 
   // Translate so 0,0 is the middle
-  context.save();
-  context.translate(pt.x*width, pt.y*height);
+  ctx.save();
+  ctx.translate(pt.x * width, pt.y * height);
 
   // Fill a circle
-  context.beginPath();
-  context.arc(0, 0, radius, 0, Math.PI * 2);
-  context.fillStyle = fillStyle;
-  context.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
 
   // Unwind translation
-  context.restore();
+  ctx.restore();
 };
 
 /**

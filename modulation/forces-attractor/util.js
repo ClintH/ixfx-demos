@@ -1,4 +1,5 @@
 import { Drawing } from '../../ixfx/visual.js';
+import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, Rects, Shapes } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
@@ -12,37 +13,39 @@ const settings = Object.freeze({
 
 /**
  * Draws a circle
- * @param {{position:Points.Point, mass:number}} a 
- * @param {CanvasRenderingContext2D} context 
- * @param {Rects.Rect} bounds 
+ * @param {{position?:Points.Point|undefined, mass?:number|undefined}} a 
+ * @param {CanvasHelper} canvas 
  * @param {number} radius 
  * @param {string} fillStyle 
  */
-export const circle = (a, context, bounds, radius = 10, fillStyle = `black`) => {
+export const circle = (a, canvas, radius = 10, fillStyle = `black`) => {
+  if (!a.position) return;
+  const { ctx } = canvas;
   if (a === undefined) throw new Error(`a is undefined`);
-  const pt = Points.multiply(a.position, bounds);
+  const pt = canvas.toAbsolute(a.position);
   radius = 5 + (radius * (a.mass ?? 1));
-  context.save();
-  context.translate(pt.x, pt.y);
-  context.fillStyle = fillStyle;
-  context.beginPath();
-  context.ellipse(-radius / 2, -radius / 2, radius, radius, 0, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
+  ctx.save();
+  ctx.translate(pt.x, pt.y);
+  ctx.fillStyle = fillStyle;
+  ctx.beginPath();
+  ctx.ellipse(-radius / 2, -radius / 2, radius, radius, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 };
 
 /**
  * Draws an arrow
- * @param {{position:Points.Point, angle:number}} a 
- * @param {CanvasRenderingContext2D} context 
- * @param {Rects.Rect} bounds 
+ * @param {{position?:Points.Point, angle:number}} a 
+ * @param {CanvasHelper} canvas
  */
-export const arrow = (a, context, bounds) => {
-  const pt = Points.multiply(a.position, bounds);
+export const arrow = (a, canvas) => {
+  if (!a.position) return;
+  const { ctx } = canvas;
+  const pt = canvas.toAbsolute(a.position);
 
   // Translate so 0,0 is the point of the attractee
-  context.save();
-  context.translate(pt.x, pt.y);
+  ctx.save();
+  ctx.translate(pt.x, pt.y);
 
   // Drawing options for this arrow
   const options = {
@@ -54,8 +57,8 @@ export const arrow = (a, context, bounds) => {
   const arrow = Shapes.arrow({ x: 0, y: 0 }, `middle`, options);
 
   // Helper function that draws a path, connecting points
-  Drawing.connectedPoints(context, arrow, { strokeStyle: `firebrick`, loop: true });
+  Drawing.connectedPoints(ctx, arrow, { strokeStyle: `firebrick`, loop: true });
 
   // Restore translation
-  context.restore();
+  ctx.restore();
 };
