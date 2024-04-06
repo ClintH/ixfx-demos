@@ -3,7 +3,7 @@
  * angle interval. Gradient hues are rotated over time.
  */
 import { continuously } from '../../ixfx/flow.js';
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   // Opacity of gradient stop
@@ -13,7 +13,7 @@ const settings = Object.freeze({
   // Gradient stop
   stop: 0.65,
   // Loop continually between 0-359
-  offsetRange: Generators.numericRange(1, 0, 359, true)
+  offsetRange: Numbers.numericRange(1, 0, 359, true)
 });
 
 let state = Object.freeze({
@@ -54,7 +54,7 @@ function setup() {
   const { interval } = settings;
 
   // Generate a set of hues
-  saveState({ hues: [...Generators.numericRange(interval, 0, 360)] });
+  saveState({ hues: [...Numbers.numericRange(interval, 0, 360)] });
 
   continuously(() => {
     update();

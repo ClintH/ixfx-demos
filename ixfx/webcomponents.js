@@ -1,26 +1,21 @@
 import {
   changedDataFields
-} from "./chunk-PQR7SZNU.js";
-import "./chunk-UG5VC4V5.js";
-import "./chunk-6KC5Y434.js";
-import "./chunk-HOIJSNKY.js";
-import "./chunk-LTVMQVYQ.js";
-import "./chunk-SCJHOOU2.js";
+} from "./chunk-LULAJS36.js";
 import {
   round
-} from "./chunk-A6Y6VVSF.js";
-import "./chunk-XZCD447U.js";
-import "./chunk-6QSGM2TM.js";
+} from "./chunk-2FF4255M.js";
+import "./chunk-XLH7KSHF.js";
+import "./chunk-EEB2RB6T.js";
 import "./chunk-7KTY42OF.js";
-import "./chunk-6P2L4NAZ.js";
 import "./chunk-K45JUSCV.js";
-import "./chunk-75D4WLYC.js";
-import "./chunk-QBUG35TX.js";
-import "./chunk-YM25TBRP.js";
+import "./chunk-FQ6AJA3D.js";
+import "./chunk-2MOQXBDW.js";
+import "./chunk-NJIMQZNH.js";
+import "./chunk-PSPCCJSY.js";
 import "./chunk-JIUPCK6W.js";
-import "./chunk-XJES6KLL.js";
+import "./chunk-BLGLFIG7.js";
+import "./chunk-ESXWQDUL.js";
 import "./chunk-WUN4GNAA.js";
-import "./chunk-NEQZAMQB.js";
 import "./chunk-Q2EHUQVZ.js";
 
 // src/web-components/DataDisplay.ts

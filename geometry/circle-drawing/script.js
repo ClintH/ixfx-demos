@@ -1,4 +1,4 @@
-import { pingPongPercent, count } from '../../ixfx/generators.js';
+import { pingPongPercent, count } from '../../ixfx/numbers.js';
 import { forEach } from '../../ixfx/flow.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 
@@ -59,11 +59,8 @@ const drawGradientCircle = (radiusAbs) => {
 };
 
 const use = () => {
-  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
-  const context = canvasElement?.getContext(`2d`);
-  if (!context || !canvasElement) return;
-
-  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  const { canvas } = settings;
+  canvas.clear();
   draw();
 };
 

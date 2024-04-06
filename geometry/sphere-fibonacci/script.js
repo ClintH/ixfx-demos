@@ -1,6 +1,6 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, SurfacePoints } from '../../ixfx/geometry.js';
-import { numericRange } from '../../ixfx/generators.js';
+import { numericRange } from '../../ixfx/numbers.js';
 import { clamp } from '../../ixfx/data.js';
 const piPi = Math.PI * 2;
 

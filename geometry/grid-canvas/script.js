@@ -54,16 +54,12 @@ const update = () => {
 };
 
 const use = () => {
+  const { canvas } = settings;
   const { grid, modValues } = state;
+  const { ctx } = canvas;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const canvasElement = /** @type {HTMLCanvasElement|null} */(document.querySelector(`#canvas`));
-
-  const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
-  if (context === null || context === undefined || canvasElement === null) return;
-
-  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-  context.strokeStyle = `white`;
+  ctx.strokeStyle = `white`;
   for (const cell of Grids.cells(grid)) {
     // Get bounds for cell, as well as current mod value
     const rect = Grids.rectangleForCell(grid, cell);
@@ -71,7 +67,7 @@ const use = () => {
     const moduleValue = modValues.get(cellKey);
 
     // ...pass on over to drawCell
-    drawCell(moduleValue, rect, context);
+    drawCell(moduleValue, rect, ctx);
   }
 };
 

@@ -1,7 +1,7 @@
 /**
  * Read more: https://en.wikipedia.org/wiki/Archimedean_spiral
  */
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { scalePercent } from '../../ixfx/data.js';
 import { Polar } from '../../ixfx/geometry.js';
@@ -9,8 +9,8 @@ import { Polar } from '../../ixfx/geometry.js';
 const settings = Object.freeze({
   colour: `gray`,
   lineWidth: 2,
-  slowPp: Generators.pingPongPercent(0.0001),
-  fastPp: Generators.pingPongPercent(0.001),
+  slowPp: Numbers.pingPongPercent(0.0001),
+  fastPp: Numbers.pingPongPercent(0.001),
   steps: 1000,
   canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });

@@ -7,7 +7,7 @@
  * The normal amount to turn is settings.maxRadiansPerCycle. This is multiplied
  * by the state.orbitSpeedFactor to make it slower or faster.
  */
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 import { Points } from '../../ixfx/geometry.js';
 import { Polar } from '../../ixfx/geometry.js';
 
@@ -16,7 +16,7 @@ const settings = Object.freeze({
   // How much angle to increment each loop, if speed is 100%
   maxRadiansPerCycle: 0.2,
   // Generator for setting radius
-  distanceGen: Generators.pingPongPercent(0.001),
+  distanceGen: Numbers.pingPongPercent(0.001),
 });
 
 // Initialise state with empty values
@@ -105,7 +105,7 @@ function setup() {
 
   document.querySelector(`#rangeSpeed`)?.addEventListener(`input`, event => {
     const element = /** @type {HTMLInputElement}*/(event.target);
-    
+
     // Range slider is 0-500, normalise to 0..1
     saveState({ orbitSpeedFactor: Number.parseInt(element.value) / 500 });
   });
@@ -116,7 +116,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

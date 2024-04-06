@@ -1,6 +1,6 @@
 import { Circles } from '../../ixfx/geometry.js';
 import { Svg } from '../../ixfx/visual.js';
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 import * as Dom from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
@@ -11,7 +11,7 @@ const settings = Object.freeze({
   text: `Hello there text on a path`,
   // Loops from 0 to 100%, but starts back at 0. 
   // In contrast, pingPong counts down to 0
-  genLoop: Generators.numericPercent(0.001, true)
+  genLoop: Numbers.numericPercent(0.001, true)
 });
 
 let state = Object.freeze({
@@ -104,7 +104,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

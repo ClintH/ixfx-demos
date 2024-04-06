@@ -1,10 +1,10 @@
 import { Arcs } from '../../ixfx/geometry.js';
 import { timeout, continuously } from '../../ixfx/flow.js';
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   // Loop back and forth between 0 and 1, 0.0.1 steps at a time
-  pingPong: Generators.pingPongPercent(0.01),
+  pingPong: Numbers.pingPongPercent(0.01),
   // Arc settings
   endAngle: 180,
   radiusProportion: 0.3,
@@ -14,7 +14,7 @@ const settings = Object.freeze({
 
 let state = Object.freeze({
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
-  coord: { x: 0, y:0 }
+  coord: { x: 0, y: 0 }
 });
 
 // Update state of world
@@ -31,8 +31,8 @@ const update = () => {
 
   // Define arc
   const arc = Arcs.fromDegrees(
-    radius, 
-    settings.startAngle, 
+    radius,
+    settings.startAngle,
     settings.endAngle,
     center);
 
@@ -98,7 +98,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

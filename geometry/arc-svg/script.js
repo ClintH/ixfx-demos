@@ -1,7 +1,7 @@
 import { Arcs } from '../../ixfx/geometry.js';
 import { Svg } from '../../ixfx/visual.js';
 import { scalePercent } from '../../ixfx/data.js';
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 import * as Dom from '../../ixfx/dom.js';
 
 // Define settings
@@ -14,10 +14,10 @@ const settings = Object.freeze({
   strokeWidthMin: 3,
   strokeStyle: `black`,
   // Loop up and down again from 0 and 100%, 1% at a time
-  genPingPong: Generators.pingPongPercent(0.01),
+  genPingPong: Numbers.pingPongPercent(0.01),
   // Loops from 0 to 100%, but starts back at 0. 
   // In contrast, pingPong counts down to 0
-  genLoop: Generators.numericPercent(0.01, true)
+  genLoop: Numbers.numericPercent(0.01, true)
 });
 
 // State
@@ -53,7 +53,7 @@ const updateSvg = (arcElement) => {
 
   // pingPong runs from 0-100%, producing a radius that is too large. 
   // Scale to 0-40%
-  const radius = settings.radiusMin + 
+  const radius = settings.radiusMin +
     (bounds.width * scalePercent(pingPong, 0, radiusProportion));
 
   // Apply same pingPong value to stroke width
@@ -63,9 +63,9 @@ const updateSvg = (arcElement) => {
   const offset = loop * 360;
 
   // Define arc
-  const arc = Arcs.fromDegrees(radius, 
+  const arc = Arcs.fromDegrees(radius,
     settings.startDegrees + offset,
-    settings.endDegrees + offset, 
+    settings.endDegrees + offset,
     bounds.center);
 
   // Apply stroke width
@@ -115,7 +115,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

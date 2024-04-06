@@ -35,16 +35,12 @@ let state = Object.freeze({
 const keyForCell = (cell) => cell.x + `-` + cell.y;
 
 function use() {
-  const { tooltipEl } = settings;
+  const { tooltipEl, canvas } = settings;
   const { grid, highlightedCell, gridData } = state;
 
-  const canvasElement = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
-  const context = /** @type {HTMLCanvasElement} */(canvasElement).getContext(`2d`);
-  if (context === null) return;
+  canvas.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  context.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-  for (const cell of Grids.cells(grid)) drawCell(cell, context);
+  for (const cell of Grids.cells(grid)) drawCell(cell, canvas.ctx);
 
   if (highlightedCell) {
     const cellData = gridData.get(keyForCell(highlightedCell));

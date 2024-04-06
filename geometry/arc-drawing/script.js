@@ -1,4 +1,4 @@
-import * as Generators from '../../ixfx/generators.js';
+import * as Numbers from '../../ixfx/numbers.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 
 // Define settings
@@ -14,8 +14,7 @@ const settings = Object.freeze({
   innerColour: `pink`,
   piPi: Math.PI * 2,
   // Loop back and forth between 0 and 1, 0.0.1 steps at a time
-  pingPong: Generators.pingPongPercent(0.001),
-  canvasEl: /** @type HTMLCanvasElement */(document.querySelector(`#canvas`))
+  pingPong: Numbers.pingPongPercent(0.001)
 });
 
 /** 
@@ -85,7 +84,7 @@ const draw = (context) => {
 
   // Draw a series of arcs. 
   // Start at max radius, count down by 10 down to a min of 10
-  const radiusRange = Generators.numericRange(-10, arcRadiusAbs, 10);
+  const radiusRange = Numbers.numericRange(-10, arcRadiusAbs, 10);
   for (const radius of radiusRange) {
     context.beginPath();
     // Arc end angle is determined by the ping-pong progression
@@ -119,14 +118,10 @@ const setup = () => {
 setup();
 
 const use = () => {
-  const { canvasEl } = settings;
-  if (!canvasEl) return;
-  const context = canvasEl.getContext(`2d`);
+  const { canvas } = settings;
 
-  if (context === null) return;
-
-  context.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  draw(context);
+  canvas.ctx.clearRect(0, 0, canvas.width, canvas.height);
+  draw(canvas.ctx);
 };
 
 

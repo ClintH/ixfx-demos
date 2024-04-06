@@ -27,17 +27,13 @@ let state = Object.freeze({
 });
 
 const use = () => {
+  const { canvas } = settings;
   const { points } = state;
-
-  const canvasElement = /** @type {HTMLCanvasElement} */(document.querySelector(`#canvas`));
-  const context = canvasElement?.getContext(`2d`);
-
-  if (!context) return;
 
   // Clear canvas
   clear();
 
-  context.globalCompositeOperation = `lighter`; // color-dodge also good
+  canvas.ctx.globalCompositeOperation = `lighter`; // color-dodge also good
 
   // Draw each point
   for (const p of points) drawPoint(p);

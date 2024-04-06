@@ -4,23 +4,27 @@ import {
   annotate,
   annotateElapsed,
   batch,
+  boolean,
+  cache,
   cloneFromFields,
+  count,
   debounce,
   field,
   filter,
   fromArray,
   fromEvent,
+  fromFunction,
   fromGenerator,
   fromObject,
   fromProxy,
   fromProxySymbol,
-  fromQuery,
-  generator,
   hasLast,
   isDisposable,
+  isReactive,
   lit,
   manual,
-  mergeAsArray,
+  mergeToArray,
+  mergeToObject,
   messageHasValue,
   messageIsDoneSignal,
   messageIsSignal,
@@ -28,17 +32,21 @@ import {
   observable,
   observableWritable,
   opify,
+  pinged,
   pipe,
   prepare,
   readFromArray,
   resolve,
+  resolveSource,
   run,
   singleFromArray,
   split,
   splitLabelled,
   switcher,
   symbol,
-  synchronise,
+  sync,
+  syncToObject,
+  takeNextValue,
   throttle,
   to,
   toArray,
@@ -47,28 +55,43 @@ import {
   transform,
   wrap,
   x
-} from "./chunk-ZLZAMZGI.js";
-import "./chunk-PJQ7J6OJ.js";
-import "./chunk-L3UAAAAG.js";
-import "./chunk-PQR7SZNU.js";
-import "./chunk-UG5VC4V5.js";
-import "./chunk-6KC5Y434.js";
-import "./chunk-HOIJSNKY.js";
-import "./chunk-LTVMQVYQ.js";
-import "./chunk-SCJHOOU2.js";
-import "./chunk-A6Y6VVSF.js";
-import "./chunk-XZCD447U.js";
-import "./chunk-6QSGM2TM.js";
+} from "./chunk-RNK3YXOK.js";
+import "./chunk-CB6UZHH7.js";
+import "./chunk-JQCXMGPI.js";
+import "./chunk-E3O5ZEQM.js";
+import "./chunk-KHHDWT6P.js";
+import "./chunk-3XY6BLXP.js";
+import "./chunk-BWOKLGST.js";
+import "./chunk-OXJCLPKB.js";
+import "./chunk-OVKLVJUW.js";
+import "./chunk-C37M4BRE.js";
+import "./chunk-YQAYXQ6L.js";
+import "./chunk-RDGMRPM6.js";
+import "./chunk-ZPGFUGHT.js";
+import "./chunk-2U2UFSNC.js";
+import "./chunk-X5XYENNF.js";
+import "./chunk-KLQXWQ53.js";
+import "./chunk-GMCX5TOQ.js";
+import "./chunk-ZK2W6ZH7.js";
+import "./chunk-NS7KXKH6.js";
+import "./chunk-5AETFVOQ.js";
+import "./chunk-LULAJS36.js";
+import "./chunk-2FF4255M.js";
+import "./chunk-XLH7KSHF.js";
+import "./chunk-EEB2RB6T.js";
 import "./chunk-7KTY42OF.js";
-import "./chunk-6P2L4NAZ.js";
 import "./chunk-K45JUSCV.js";
-import "./chunk-75D4WLYC.js";
-import "./chunk-QBUG35TX.js";
-import "./chunk-YM25TBRP.js";
+import "./chunk-FQ6AJA3D.js";
+import "./chunk-2MOQXBDW.js";
+import "./chunk-NJIMQZNH.js";
+import "./chunk-PSPCCJSY.js";
 import "./chunk-JIUPCK6W.js";
-import "./chunk-XJES6KLL.js";
+import "./chunk-BLGLFIG7.js";
+import "./chunk-ESXWQDUL.js";
 import "./chunk-WUN4GNAA.js";
-import "./chunk-NEQZAMQB.js";
+import "./chunk-DQRNLTXJ.js";
+import "./chunk-EKX6PMDK.js";
+import "./chunk-EG2IYMCR.js";
 import "./chunk-Q2EHUQVZ.js";
 export {
   Dom_exports as Dom,
@@ -77,23 +100,27 @@ export {
   annotate,
   annotateElapsed,
   batch,
+  boolean,
+  cache,
   cloneFromFields,
+  count,
   debounce,
   field,
   filter,
   fromArray,
   fromEvent,
+  fromFunction,
   fromGenerator,
   fromObject,
   fromProxy,
   fromProxySymbol,
-  fromQuery,
-  generator,
   hasLast,
   isDisposable,
+  isReactive,
   lit,
   manual,
-  mergeAsArray,
+  mergeToArray,
+  mergeToObject,
   messageHasValue,
   messageIsDoneSignal,
   messageIsSignal,
@@ -101,17 +128,21 @@ export {
   observable,
   observableWritable,
   opify,
+  pinged,
   pipe,
   prepare,
   readFromArray,
   resolve,
+  resolveSource,
   run,
   singleFromArray,
   split,
   splitLabelled,
   switcher,
   symbol,
-  synchronise,
+  sync,
+  syncToObject,
+  takeNextValue,
   throttle,
   to,
   toArray,

@@ -89,10 +89,9 @@ const update = async () => {
 /**
  * Does the visual drawing.
  * Gets called at animation speed.
- * @param {CanvasRenderingContext2D} context 
  * @returns 
  */
-const use = (context) => {
+const use = () => {
   const { distances, current } = state;
   const { canvas, hue, circles } = settings;
   const { ctx, width, height } = canvas;
@@ -118,7 +117,6 @@ const use = (context) => {
 
     // Draw
     drawCircle(c, fillStyle, strokeStyle);
-
   }
 };
 
@@ -182,12 +180,8 @@ function setup() {
 
   document.addEventListener(`pointermove`, onPointerMove);
 
-  /** @type HTMLCanvasElement|null */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-
   const loop = () => {
-    if (context) use(context);
+    use();
     window.setTimeout(loop, 10);
   };
   loop();

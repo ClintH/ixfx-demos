@@ -63,16 +63,10 @@ const onPointerMove = (event) => {
  */
 const use = () => {
   const { circleHue } = settings;
-
-  /** @type HTMLCanvasElement|null */
-  const canvasElement = document.querySelector(`#canvas`);
-  const context = canvasElement?.getContext(`2d`);
-  if (!context || !canvasElement) return;
+  const { pointer, prediction } = state;
 
   // Clear canvas
   clear();
-
-  const { pointer, prediction } = state;
 
   drawLabelledCircle(prediction, `hsla(${circleHue}, 50%, 50%, 0.5)`);
   drawLabelledCircle(pointer, `hsl(${circleHue}, 50%, 90%)`);
