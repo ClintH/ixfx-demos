@@ -15,7 +15,9 @@ type GuardResultOk = Readonly<readonly [true: boolean]>;
 type GuardResultFail = Readonly<readonly [false: boolean, reason: string]>;
 type GuardResult = GuardResultFail | GuardResultOk;
 /**
- * Throws an error if `t` is not a number or within specified range.
+ * Checks if `t` is not a number or within specified range.
+ * Returns `[false, reason:string]` if invalid or `[true]` if valid.
+ *
  * Use an empty string for no special range constraints.
  * Alternatives: {@link integer} for additional integer check, {@link percent} for percentage-range.
  *

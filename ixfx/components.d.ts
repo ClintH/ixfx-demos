@@ -1,7 +1,7 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-C8BVtJ3M.js';
+import { a as KeyValue } from './KeyValue-m9PR1TTk.js';
 import './MinMaxAvg-X_wBRrCz.js';
 
 type Bar = {

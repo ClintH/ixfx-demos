@@ -1,0 +1,784 @@
+import {
+  jitter,
+  jitterAbsolute,
+  pingPong,
+  pingPongPercent
+} from "./chunk-QBWUF57Q.js";
+import {
+  Easing_exports,
+  interpolateAngle
+} from "./chunk-ZESXYRA7.js";
+import {
+  Polar_exports,
+  getEdgeX,
+  getEdgeY,
+  point_exports,
+  quadraticSimple,
+  scale,
+  toPath
+} from "./chunk-FUZHXQHR.js";
+import {
+  StateMachineWithEvents,
+  frequencyTimer,
+  interval,
+  msElapsedTimer
+} from "./chunk-XGTRFTA7.js";
+import {
+  clamp
+} from "./chunk-2U2UFSNC.js";
+import {
+  SimpleEventEmitter
+} from "./chunk-5BFMO22S.js";
+import {
+  __export
+} from "./chunk-Q2EHUQVZ.js";
+
+// src/modulation/index.ts
+var modulation_exports = {};
+__export(modulation_exports, {
+  Easings: () => Easing_exports,
+  Envelopes: () => Envelope_exports,
+  Forces: () => Forces_exports,
+  Oscillators: () => Oscillator_exports,
+  adsr: () => adsr,
+  adsrIterable: () => adsrIterable,
+  defaultAdsrOpts: () => defaultAdsrOpts,
+  jitter: () => jitter,
+  jitterAbsolute: () => jitterAbsolute,
+  perSecond: () => perSecond,
+  pingPong: () => pingPong,
+  pingPongPercent: () => pingPongPercent
+});
+
+// src/modulation/Envelope.ts
+var Envelope_exports = {};
+__export(Envelope_exports, {
+  adsr: () => adsr,
+  adsrIterable: () => adsrIterable,
+  defaultAdsrOpts: () => defaultAdsrOpts
+});
+var defaultAdsrOpts = () => ({
+  attackBend: -1,
+  decayBend: -0.3,
+  releaseBend: -0.3,
+  peakLevel: 1,
+  initialLevel: 0,
+  sustainLevel: 0.6,
+  releaseLevel: 0,
+  attackDuration: 600,
+  decayDuration: 200,
+  releaseDuration: 800,
+  shouldLoop: false
+});
+var adsrTransitionsInstance = Object.freeze({
+  attack: [`decay`, `release`],
+  decay: [`sustain`, `release`],
+  sustain: [`release`],
+  release: [`complete`],
+  //eslint-disable-next-line unicorn/no-null
+  complete: null
+});
+var AdsrBase = class extends SimpleEventEmitter {
+  #sm;
+  #timeSource;
+  #timer;
+  #holding;
+  #holdingInitial;
+  attackDuration;
+  decayDuration;
+  releaseDuration;
+  decayDurationTotal;
+  shouldLoop;
+  constructor(opts) {
+    super();
+    this.attackDuration = opts.attackDuration ?? 300;
+    this.decayDuration = opts.decayDuration ?? 500;
+    this.releaseDuration = opts.releaseDuration ?? 1e3;
+    this.shouldLoop = opts.shouldLoop ?? false;
+    this.#sm = new StateMachineWithEvents(
+      adsrTransitionsInstance,
+      { initial: `attack` }
+    );
+    this.#sm.addEventListener(`change`, (event) => {
+      if (event.newState === `release` && this.#holdingInitial) {
+        this.#timer?.reset();
+      }
+      super.fireEvent(`change`, event);
+    });
+    this.#sm.addEventListener(`stop`, (event) => {
+      super.fireEvent(`complete`, event);
+    });
+    this.#timeSource = msElapsedTimer;
+    this.#holding = this.#holdingInitial = false;
+    this.decayDurationTotal = this.attackDuration + this.decayDuration;
+  }
+  switchState() {
+    if (this.#timer === void 0)
+      return false;
+    let elapsed = this.#timer.elapsed;
+    const wasHeld = this.#holdingInitial && !this.#holding;
+    let hasChanged = false;
+    do {
+      hasChanged = false;
+      switch (this.#sm.state) {
+        case `attack`: {
+          if (elapsed > this.attackDuration || wasHeld) {
+            this.#sm.next();
+            hasChanged = true;
+          }
+          break;
+        }
+        case `decay`: {
+          if (elapsed > this.decayDurationTotal || wasHeld) {
+            this.#sm.next();
+            hasChanged = true;
+          }
+          break;
+        }
+        case `sustain`: {
+          if (!this.#holding || wasHeld) {
+            elapsed = 0;
+            this.#sm.next();
+            this.#timer.reset();
+            hasChanged = true;
+          }
+          break;
+        }
+        case `release`: {
+          if (elapsed > this.releaseDuration) {
+            this.#sm.next();
+            hasChanged = true;
+          }
+          break;
+        }
+        case `complete`: {
+          if (this.shouldLoop) {
+            this.trigger(this.#holdingInitial);
+          }
+        }
+      }
+    } while (hasChanged);
+    return hasChanged;
+  }
+  /**
+   * Computes a stage progress from 0-1
+   * @param allowStateChange
+   * @returns
+   */
+  computeRaw(allowStateChange = true) {
+    if (this.#timer === void 0)
+      return [void 0, 0, this.#sm.state];
+    if (allowStateChange)
+      this.switchState();
+    const previousStage = this.#sm.state;
+    const elapsed = this.#timer.elapsed;
+    let relative = 0;
+    const state = this.#sm.state;
+    switch (state) {
+      case `attack`: {
+        relative = elapsed / this.attackDuration;
+        break;
+      }
+      case `decay`: {
+        relative = (elapsed - this.attackDuration) / this.decayDuration;
+        break;
+      }
+      case `sustain`: {
+        relative = 1;
+        break;
+      }
+      case `release`: {
+        relative = Math.min(elapsed / this.releaseDuration, 1);
+        break;
+      }
+      case `complete`: {
+        return [void 0, 1, previousStage];
+      }
+      default: {
+        throw new Error(`State machine in unknown state: ${state}`);
+      }
+    }
+    return [state, relative, previousStage];
+  }
+  get isDone() {
+    return this.#sm.isDone;
+  }
+  onTrigger() {
+  }
+  trigger(hold = false) {
+    this.onTrigger();
+    this.#sm.reset();
+    this.#timer = this.#timeSource();
+    this.#holding = hold;
+    this.#holdingInitial = hold;
+  }
+  compute() {
+  }
+  release() {
+    if (this.isDone || !this.#holdingInitial)
+      return;
+    this.#holding = false;
+    this.compute();
+  }
+};
+var AdsrImpl = class extends AdsrBase {
+  attackPath;
+  decayPath;
+  releasePath;
+  initialLevel;
+  peakLevel;
+  releaseLevel;
+  sustainLevel;
+  attackBend;
+  decayBend;
+  releaseBend;
+  initialLevelOverride;
+  retrigger;
+  releasedAt;
+  constructor(opts) {
+    super(opts);
+    this.initialLevel = opts.initialLevel ?? 0;
+    this.peakLevel = opts.peakLevel ?? 1;
+    this.releaseLevel = opts.releaseLevel ?? 0;
+    this.sustainLevel = opts.sustainLevel ?? 0.75;
+    this.retrigger = opts.retrigger ?? true;
+    this.attackBend = opts.attackBend ?? 0;
+    this.releaseBend = opts.releaseBend ?? 0;
+    this.decayBend = opts.decayBend ?? 0;
+    const max = 1;
+    this.attackPath = toPath(
+      quadraticSimple(
+        { x: 0, y: this.initialLevel },
+        { x: max, y: this.peakLevel },
+        -this.attackBend
+      )
+    );
+    this.decayPath = toPath(
+      quadraticSimple(
+        { x: 0, y: this.peakLevel },
+        { x: max, y: this.sustainLevel },
+        -this.decayBend
+      )
+    );
+    this.releasePath = toPath(
+      quadraticSimple(
+        { x: 0, y: this.sustainLevel },
+        { x: max, y: this.releaseLevel },
+        -this.releaseBend
+      )
+    );
+  }
+  onTrigger() {
+    this.initialLevelOverride = void 0;
+    if (!this.retrigger) {
+      const [_stage, scaled, _raw] = this.compute();
+      if (!Number.isNaN(scaled) && scaled > 0) {
+        this.initialLevelOverride = scaled;
+      }
+    }
+  }
+  get value() {
+    return this.compute(true)[1];
+  }
+  compute(allowStateChange = true) {
+    const [stage, amt] = super.computeRaw(allowStateChange);
+    if (stage === void 0)
+      return [void 0, Number.NaN, Number.NaN];
+    let v;
+    switch (stage) {
+      case `attack`: {
+        v = this.attackPath.interpolate(amt).y;
+        if (this.initialLevelOverride !== void 0) {
+          v = scale(v, 0, 1, this.initialLevelOverride, 1);
+        }
+        this.releasedAt = v;
+        break;
+      }
+      case `decay`: {
+        v = this.decayPath.interpolate(amt).y;
+        this.releasedAt = v;
+        break;
+      }
+      case `sustain`: {
+        v = this.sustainLevel;
+        this.releasedAt = v;
+        break;
+      }
+      case `release`: {
+        v = this.releasePath.interpolate(amt).y;
+        if (this.releasedAt !== void 0) {
+          v = scale(v, 0, this.sustainLevel, 0, this.releasedAt);
+        }
+        break;
+      }
+      case `complete`: {
+        v = this.releaseLevel;
+        this.releasedAt = void 0;
+        break;
+      }
+      default: {
+        throw new Error(`Unknown state: ${stage}`);
+      }
+    }
+    return [stage, v, amt];
+  }
+};
+var adsr = (opts) => new AdsrImpl(opts);
+async function* adsrIterable(opts) {
+  const envelope = adsr(opts.env);
+  const sampleRateMs = opts.sampleRateMs ?? 100;
+  envelope.trigger();
+  for await (const v of interval(
+    () => {
+      if (envelope.isDone)
+        return;
+      return envelope.value;
+    },
+    {
+      fixed: sampleRateMs,
+      signal: opts.signal
+    }
+  )) {
+    yield v;
+  }
+}
+
+// src/modulation/Forces.ts
+var Forces_exports = {};
+__export(Forces_exports, {
+  accelerationForce: () => accelerationForce,
+  angleFromAccelerationForce: () => angleFromAccelerationForce,
+  angleFromVelocityForce: () => angleFromVelocityForce,
+  angularForce: () => angularForce,
+  apply: () => apply,
+  attractionForce: () => attractionForce,
+  computeAccelerationToTarget: () => computeAccelerationToTarget,
+  computeAttractionForce: () => computeAttractionForce,
+  computePositionFromAngle: () => computePositionFromAngle,
+  computePositionFromVelocity: () => computePositionFromVelocity,
+  computeVelocity: () => computeVelocity,
+  constrainBounce: () => constrainBounce,
+  guard: () => guard,
+  magnitudeForce: () => magnitudeForce,
+  nullForce: () => nullForce,
+  orientationForce: () => orientationForce,
+  pendulumForce: () => pendulumForce,
+  springForce: () => springForce,
+  targetForce: () => targetForce,
+  velocityForce: () => velocityForce
+});
+var guard = (t, name = `t`) => {
+  if (t === void 0) {
+    throw new Error(`Parameter ${name} is undefined. Expected ForceAffected`);
+  }
+  if (t === null) {
+    throw new Error(`Parameter ${name} is null. Expected ForceAffected`);
+  }
+  if (typeof t !== `object`) {
+    throw new TypeError(
+      `Parameter ${name} is type ${typeof t}. Expected object of shape ForceAffected`
+    );
+  }
+};
+var constrainBounce = (bounds, dampen = 1) => {
+  if (!bounds)
+    bounds = { width: 1, height: 1 };
+  const minX = getEdgeX(bounds, `left`);
+  const maxX = getEdgeX(bounds, `right`);
+  const minY = getEdgeY(bounds, `top`);
+  const maxY = getEdgeY(bounds, `bottom`);
+  return (t) => {
+    const position = computePositionFromVelocity(
+      t.position ?? point_exports.Empty,
+      t.velocity ?? point_exports.Empty
+    );
+    let velocity = t.velocity ?? point_exports.Empty;
+    let { x, y } = position;
+    if (x > maxX) {
+      x = maxX;
+      velocity = point_exports.invert(point_exports.multiply(velocity, dampen), `x`);
+    } else if (x < minX) {
+      x = minX;
+      velocity = point_exports.invert(point_exports.multiply(velocity, dampen), `x`);
+    }
+    if (y > maxY) {
+      y = maxY;
+      velocity = point_exports.multiply(point_exports.invert(velocity, `y`), dampen);
+    } else if (position.y < minY) {
+      y = minY;
+      velocity = point_exports.invert(point_exports.multiply(velocity, dampen), `y`);
+    }
+    return Object.freeze({
+      ...t,
+      position: { x, y },
+      velocity
+    });
+  };
+};
+var attractionForce = (attractors, gravity, distanceRange = {}) => (attractee) => {
+  let accel = attractee.acceleration ?? point_exports.Empty;
+  for (const a of attractors) {
+    if (a === attractee)
+      continue;
+    const f = computeAttractionForce(a, attractee, gravity, distanceRange);
+    accel = point_exports.sum(accel, f);
+  }
+  return {
+    ...attractee,
+    acceleration: accel
+  };
+};
+var computeAttractionForce = (attractor, attractee, gravity, distanceRange = {}) => {
+  if (attractor.position === void 0) {
+    throw new Error(`attractor.position not set`);
+  }
+  if (attractee.position === void 0) {
+    throw new Error(`attractee.position not set`);
+  }
+  const distributionRangeMin = distanceRange.min ?? 0.01;
+  const distributionRangeMax = distanceRange.max ?? 0.7;
+  const f = point_exports.normalise(
+    point_exports.subtract(attractor.position, attractee.position)
+  );
+  const d = clamp(point_exports.distance(f), distributionRangeMin, distributionRangeMax);
+  return point_exports.multiply(
+    f,
+    gravity * (attractor.mass ?? 1) * (attractee.mass ?? 1) / (d * d)
+  );
+};
+var targetForce = (targetPos, opts = {}) => {
+  const fn = (t) => {
+    const accel = computeAccelerationToTarget(
+      targetPos,
+      t.position ?? { x: 0.5, y: 0.5 },
+      opts
+    );
+    return {
+      ...t,
+      acceleration: point_exports.sum(t.acceleration ?? point_exports.Empty, accel)
+    };
+  };
+  return fn;
+};
+var apply = (t, ...accelForces) => {
+  if (t === void 0)
+    throw new Error(`t parameter is undefined`);
+  for (const f of accelForces) {
+    if (f === null || f === void 0)
+      continue;
+    t = typeof f === `function` ? f(t) : {
+      ...t,
+      acceleration: point_exports.sum(t.acceleration ?? point_exports.Empty, f)
+    };
+  }
+  const velo = computeVelocity(
+    t.acceleration ?? point_exports.Empty,
+    t.velocity ?? point_exports.Empty
+  );
+  const pos = computePositionFromVelocity(t.position ?? point_exports.Empty, velo);
+  const ff = {
+    ...t,
+    position: pos,
+    velocity: velo,
+    // Clear accel, because it has been integrated into velocity
+    acceleration: point_exports.Empty
+  };
+  return ff;
+};
+var accelerationForce = (vector, mass = `ignored`) => (t) => Object.freeze({
+  ...t,
+  acceleration: massApplyAccel(vector, t, mass)
+  //Points.sum(t.acceleration ?? Points.Empty, op(t.mass ?? 1))
+});
+var massApplyAccel = (vector, thing, mass = `ignored`) => {
+  let op;
+  switch (mass) {
+    case `dampen`: {
+      op = (mass2) => point_exports.divide(vector, mass2, mass2);
+      break;
+    }
+    case `multiply`: {
+      op = (mass2) => point_exports.multiply(vector, mass2, mass2);
+      break;
+    }
+    case `ignored`: {
+      op = (_mass) => vector;
+      break;
+    }
+    default: {
+      throw new Error(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        `Unknown 'mass' parameter '${mass}. Expected 'dampen', 'multiply' or 'ignored'`
+      );
+    }
+  }
+  return point_exports.sum(thing.acceleration ?? point_exports.Empty, op(thing.mass ?? 1));
+};
+var magnitudeForce = (force, mass = `ignored`) => (t) => {
+  if (t.velocity === void 0)
+    return t;
+  const mag = point_exports.distance(point_exports.normalise(t.velocity));
+  const magSq = force * mag * mag;
+  const vv = point_exports.multiply(point_exports.invert(t.velocity), magSq);
+  return Object.freeze({
+    ...t,
+    acceleration: massApplyAccel(vv, t, mass)
+  });
+};
+var nullForce = (t) => t;
+var velocityForce = (force, mass) => {
+  const pipeline = point_exports.pipeline(
+    // Points.normalise,
+    point_exports.invert,
+    (v) => point_exports.multiply(v, force)
+  );
+  return (t) => {
+    if (t.velocity === void 0)
+      return t;
+    const v = pipeline(t.velocity);
+    return Object.freeze({
+      ...t,
+      acceleration: massApplyAccel(v, t, mass)
+    });
+  };
+};
+var angularForce = () => (t) => {
+  const accumulator = t.angularAcceleration ?? 0;
+  const vel = t.angularVelocity ?? 0;
+  const angle = t.angle ?? 0;
+  const v = vel + accumulator;
+  const a = angle + v;
+  return Object.freeze({
+    ...t,
+    angle: a,
+    angularVelocity: v,
+    angularAcceleration: 0
+  });
+};
+var angleFromAccelerationForce = (scaling = 20) => (t) => {
+  const accel = t.acceleration ?? point_exports.Empty;
+  return Object.freeze({
+    ...t,
+    angularAcceleration: accel.x * scaling
+  });
+};
+var angleFromVelocityForce = (interpolateAmt = 1) => (t) => {
+  const a = point_exports.angle(t.velocity ?? point_exports.Empty);
+  return Object.freeze({
+    ...t,
+    angle: interpolateAmt < 1 ? interpolateAngle(interpolateAmt, t.angle ?? 0, a) : a
+  });
+};
+var springForce = (pinnedAt, restingLength = 0.5, k = 2e-4, damping = 0.999) => (t) => {
+  const direction = point_exports.subtract(t.position ?? point_exports.Empty, pinnedAt);
+  const mag = point_exports.distance(direction);
+  const stretch = Math.abs(restingLength - mag);
+  const f = point_exports.pipelineApply(
+    direction,
+    point_exports.normalise,
+    (p) => point_exports.multiply(p, -k * stretch)
+  );
+  const accel = massApplyAccel(f, t, `dampen`);
+  const velo = computeVelocity(
+    accel ?? point_exports.Empty,
+    t.velocity ?? point_exports.Empty
+  );
+  const veloDamped = point_exports.multiply(velo, damping, damping);
+  return {
+    ...t,
+    velocity: veloDamped,
+    acceleration: point_exports.Empty
+  };
+};
+var pendulumForce = (pinnedAt, opts = {}) => (t) => {
+  if (!pinnedAt)
+    pinnedAt = { x: 0, y: 0 };
+  const length = opts.length ?? point_exports.distance(pinnedAt, t.position ?? point_exports.Empty);
+  const speed = opts.speed ?? 1e-3;
+  const damping = opts.damping ?? 0.995;
+  let angle = t.angle;
+  if (angle === void 0) {
+    if (t.position) {
+      angle = point_exports.angle(pinnedAt, t.position) - Math.PI / 2;
+    } else {
+      angle = 0;
+    }
+  }
+  const accel = -1 * speed / length * Math.sin(angle);
+  const v = (t.angularVelocity ?? 0) + accel;
+  angle += v;
+  return Object.freeze({
+    angularVelocity: v * damping,
+    angle,
+    position: computePositionFromAngle(length, angle + Math.PI / 2, pinnedAt)
+  });
+};
+var computeVelocity = (acceleration, velocity, velocityMax) => {
+  const p = point_exports.sum(velocity, acceleration);
+  return velocityMax === void 0 ? p : point_exports.clampMagnitude(p, velocityMax);
+};
+var computeAccelerationToTarget = (targetPos, currentPos, opts = {}) => {
+  const diminishBy = opts.diminishBy ?? 1e-3;
+  const direction = point_exports.subtract(targetPos, currentPos);
+  if (opts.range && // If direction is less than range, return { x: 0, y: 0}
+  point_exports.compare(point_exports.abs(direction), opts.range) === -2) {
+    return point_exports.Empty;
+  }
+  return point_exports.multiply(direction, diminishBy);
+};
+var computePositionFromVelocity = (position, velocity) => point_exports.sum(position, velocity);
+var computePositionFromAngle = (distance, angleRadians, origin) => Polar_exports.toCartesian(distance, angleRadians, origin);
+var _angularForce = angularForce();
+var _angleFromAccelerationForce = angleFromAccelerationForce();
+var orientationForce = (interpolationAmt = 0.5) => {
+  const angleFromVel = angleFromVelocityForce(interpolationAmt);
+  return (t) => {
+    t = _angularForce(t);
+    t = _angleFromAccelerationForce(t);
+    t = angleFromVel(t);
+    return t;
+  };
+};
+
+// src/modulation/Oscillator.ts
+var Oscillator_exports = {};
+__export(Oscillator_exports, {
+  saw: () => saw,
+  sine: () => sine,
+  sineBipolar: () => sineBipolar,
+  spring: () => spring,
+  square: () => square,
+  triangle: () => triangle
+});
+var piPi = Math.PI * 2;
+var springRaw = (opts = {}, from = 0, to = 1) => {
+  const mass = opts.mass ?? 1;
+  const stiffness = opts.stiffness ?? 100;
+  const soft = opts.soft ?? false;
+  const damping = opts.damping ?? 10;
+  const velocity = opts.velocity ?? 0.1;
+  const delta = to - from;
+  if (soft || 1 <= damping / (2 * Math.sqrt(stiffness * mass))) {
+    const angularFrequency = -Math.sqrt(stiffness / mass);
+    const leftover = -angularFrequency * delta - velocity;
+    return (t) => to - (delta + t * leftover) * Math.E ** (t * angularFrequency);
+  } else {
+    const dampingFrequency = Math.sqrt(4 * mass * stiffness - damping ** 2);
+    const leftover = (damping * delta - 2 * mass * velocity) / dampingFrequency;
+    const dfm = 0.5 * dampingFrequency / mass;
+    const dm = -(0.5 * damping) / mass;
+    return (t) => to - (Math.cos(t * dfm) * delta + Math.sin(t * dfm) * leftover) * Math.E ** (t * dm);
+  }
+};
+function* spring(opts = {}, timerOrFreq) {
+  if (timerOrFreq === void 0)
+    timerOrFreq = msElapsedTimer();
+  else if (typeof timerOrFreq === `number`) {
+    timerOrFreq = frequencyTimer(timerOrFreq);
+  }
+  const fn = springRaw(opts, 0, 1);
+  let doneCountdown = opts.countdown ?? 10;
+  while (doneCountdown > 0) {
+    const s = fn(timerOrFreq.elapsed / 1e3);
+    yield s;
+    if (s === 1) {
+      doneCountdown--;
+    } else {
+      doneCountdown = 100;
+    }
+  }
+}
+function* sine(timerOrFreq) {
+  if (timerOrFreq === void 0)
+    throw new TypeError(`Parameter 'timerOrFreq' is undefined`);
+  if (typeof timerOrFreq === `number`) {
+    timerOrFreq = frequencyTimer(timerOrFreq);
+  }
+  while (true) {
+    yield (Math.sin(timerOrFreq.elapsed * piPi) + 1) / 2;
+  }
+}
+function* sineBipolar(timerOrFreq) {
+  if (timerOrFreq === void 0)
+    throw new TypeError(`Parameter 'timerOrFreq' is undefined`);
+  if (typeof timerOrFreq === `number`) {
+    timerOrFreq = frequencyTimer(timerOrFreq);
+  }
+  while (true) {
+    yield Math.sin(timerOrFreq.elapsed * piPi);
+  }
+}
+function* triangle(timerOrFreq) {
+  if (typeof timerOrFreq === `number`) {
+    timerOrFreq = frequencyTimer(timerOrFreq);
+  }
+  while (true) {
+    let v = timerOrFreq.elapsed;
+    if (v < 0.5) {
+      v *= 2;
+    } else {
+      v = 2 - v * 2;
+    }
+    yield v;
+  }
+}
+function* saw(timerOrFreq) {
+  if (timerOrFreq === void 0)
+    throw new TypeError(`Parameter 'timerOrFreq' is undefined`);
+  if (typeof timerOrFreq === `number`) {
+    timerOrFreq = frequencyTimer(timerOrFreq);
+  }
+  while (true) {
+    yield timerOrFreq.elapsed;
+  }
+}
+function* square(timerOrFreq) {
+  if (typeof timerOrFreq === `number`) {
+    timerOrFreq = frequencyTimer(timerOrFreq);
+  }
+  while (true) {
+    yield timerOrFreq.elapsed < 0.5 ? 0 : 1;
+  }
+}
+
+// src/modulation/PerSecond.ts
+var perSecond = (amount, options = {}) => {
+  const perMilli = amount / 1e3;
+  const min = options.min ?? Number.MIN_SAFE_INTEGER;
+  const max = options.max ?? Number.MAX_SAFE_INTEGER;
+  let called = performance.now();
+  return () => {
+    const now = performance.now();
+    const elapsed = now - called;
+    called = now;
+    const x = perMilli * elapsed;
+    if (x > max)
+      return max;
+    if (x < min)
+      return min;
+    return x;
+  };
+};
+
+// src/modulation/index.ts
+try {
+  if (typeof window !== `undefined`) {
+    window.ixfx = {
+      ...window.ixfx,
+      Modulation: { Forces: Forces_exports, Envelopes: Envelope_exports, Oscillators: Oscillator_exports, Easings: Easing_exports }
+    };
+  }
+} catch {
+}
+
+export {
+  defaultAdsrOpts,
+  adsr,
+  adsrIterable,
+  Envelope_exports,
+  Forces_exports,
+  Oscillator_exports,
+  perSecond,
+  modulation_exports
+};
+//# sourceMappingURL=chunk-KFXCDBRO.js.map

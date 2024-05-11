@@ -82,7 +82,7 @@ const onData = (level) => {
   saveState({
     rawLevel: level,
     // Adding to averager returns current averag
-    avgLevel: settings.averager.add(level)
+    avgLevel: settings.averager(level)
   });
   use();
 };
@@ -90,7 +90,7 @@ const onData = (level) => {
 /**
  * Setup sketch
  */
-function setup () {
+function setup() {
   // Show unexpected errors on the page to help debugger;
   defaultErrorHandler();
   document.querySelector(`#btnStart`)?.addEventListener(`click`, () => {
@@ -109,7 +109,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

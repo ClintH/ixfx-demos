@@ -5,9 +5,9 @@ const settings = Object.freeze({
   // Element to hold created letters
   lettersEl: document.querySelector(`#letters`),
   // Keys to allow even though they aren't letters/digits
-  allowCodes: [ `Backquote`, `Minus`, `Equal`, `Plus`, `Period`, `Semicolon`, `Comma`, `Slash`, `Quote`, `Backslash`, `BracketLeft`, `BracketRight` ],
+  allowCodes: [`Backquote`, `Minus`, `Equal`, `Plus`, `Period`, `Semicolon`, `Comma`, `Slash`, `Quote`, `Backslash`, `BracketLeft`, `BracketRight`],
   // Create a speed tracker that auto-resets after 3 samples
-  speedTracker: intervalTracker({ id: `typing`, resetAfterSamples:3 })
+  speedTracker: intervalTracker({ id: `typing`, resetAfterSamples: 3 })
 });
 
 let state = Object.freeze({
@@ -33,18 +33,18 @@ const onKeydown = (event) => {
 
   // Special case a few keys
   switch (code) {
-  case `Backspace`: {
-    removeLastLetter();
-    return;
-  }
-  case `Space`: {
-    addLetter(`&nbsp;`);
-    return;
-  }
-  case `Enter`: {
-    addWrap();
-    return;
-  }
+    case `Backspace`: {
+      removeLastLetter();
+      return;
+    }
+    case `Space`: {
+      addLetter(`&nbsp;`);
+      return;
+    }
+    case `Enter`: {
+      addWrap();
+      return;
+    }
   }
 
   // Ignore keys that don't seem to be letters
@@ -60,18 +60,18 @@ const onKeydown = (event) => {
 
   // Special case letters for some keys
   switch (code) {
-  case `Backquote`: {
-    letter = event.shiftKey ? `~` : `\``;
-    break;
-  }
-  case `Quote`: {
-    letter = event.shiftKey ? `"` : `'`;
-    break;
-  }
-  case `Digit6`: {
-    if (event.shiftKey) letter = `^`;
-    break;
-  }
+    case `Backquote`: {
+      letter = event.shiftKey ? `~` : `\``;
+      break;
+    }
+    case `Quote`: {
+      letter = event.shiftKey ? `"` : `'`;
+      break;
+    }
+    case `Digit6`: {
+      if (event.shiftKey) letter = `^`;
+      break;
+    }
   }
 
   // Add letter to DOM
@@ -89,7 +89,7 @@ const onKeydown = (event) => {
 const effectsDemo = (letterElement, letter) => {
   const { speed } = state;
   if (!letterElement) return;
-  
+
   // Example: Apply random font weight to letter
   letterElement.style.fontWeight = (200 + Math.round(400 * Math.random())).toString();
 
@@ -182,7 +182,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

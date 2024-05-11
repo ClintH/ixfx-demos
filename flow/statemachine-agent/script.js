@@ -20,10 +20,10 @@ let state = Object.freeze({
 // State machine transitions
 const stateMachine = Object.freeze({
   sleeping: `waking`,
-  waking: [ `resting`, `sleeping` ],
-  resting: [ `sleeping`, `walking` ],
-  walking: [ `running`, `resting` ],
-  running: [ `walking` ],
+  waking: [`resting`, `sleeping`],
+  resting: [`sleeping`, `walking`],
+  walking: [`running`, `resting`],
+  running: [`walking`],
 });
 
 // State handlers
@@ -46,7 +46,7 @@ const stateHandlers = Object.freeze([
     // State is 'waking'
     if: `waking`,
     resultChoice: `random`,
-    then: [ { next: `resting` }, { next: `sleeping` } ],
+    then: [{ next: `resting` }, { next: `sleeping` }],
   }),
   {
     // State is 'resting'
@@ -126,21 +126,21 @@ function updateEnergy(amt) {
 
 function stateToEmoji(state) {
   switch (state) {
-  case `sleeping`: {
-    return `😴`;
-  }
-  case `waking`: {
-    return `😵‍💫`;
-  }
-  case `resting`: {
-    return `😌`;
-  }
-  case `walking`: {
-    return `🚶🏻‍♀️`;
-  }
-  case `running`: {
-    return `🏃🏻‍♀️`;
-  }
+    case `sleeping`: {
+      return `😴`;
+    }
+    case `waking`: {
+      return `😵‍💫`;
+    }
+    case `resting`: {
+      return `😌`;
+    }
+    case `walking`: {
+      return `🚶🏻‍♀️`;
+    }
+    case `running`: {
+      return `🏃🏻‍♀️`;
+    }
   }
   return `?`;
 }

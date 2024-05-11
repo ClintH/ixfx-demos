@@ -19,7 +19,7 @@ import {
   msElapsedTimer,
   relativeTimer,
   repeat,
-  repeatAsync,
+  repeatAwait,
   retryFunction,
   retryTask,
   runOnce,
@@ -28,20 +28,20 @@ import {
   timeout,
   updateOutdated,
   waitFor
-} from "./chunk-OVKLVJUW.js";
+} from "./chunk-XGTRFTA7.js";
 import "./chunk-2U2UFSNC.js";
-import "./chunk-5AETFVOQ.js";
-import "./chunk-2FF4255M.js";
-import "./chunk-FQ6AJA3D.js";
-import "./chunk-PSPCCJSY.js";
+import "./chunk-5BFMO22S.js";
+import "./chunk-VYSWKRXA.js";
+import "./chunk-KAHSJ6KJ.js";
+import "./chunk-YOQ54OW2.js";
 import "./chunk-JIUPCK6W.js";
-import "./chunk-BLGLFIG7.js";
 import {
   intervalToMs,
   isInterval,
-  sleep
-} from "./chunk-ESXWQDUL.js";
-import "./chunk-WUN4GNAA.js";
+  sleep,
+  sleepWhile
+} from "./chunk-Z5PR74I2.js";
+import "./chunk-LTXP53ZM.js";
 import "./chunk-EKX6PMDK.js";
 import "./chunk-EG2IYMCR.js";
 import "./chunk-Q2EHUQVZ.js";
@@ -68,11 +68,12 @@ export {
   msElapsedTimer,
   relativeTimer,
   repeat,
-  repeatAsync,
+  repeatAwait,
   retryFunction,
   retryTask,
   runOnce,
   sleep,
+  sleepWhile,
   throttle,
   ticksElapsedTimer,
   timeout,

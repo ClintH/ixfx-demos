@@ -34,26 +34,26 @@ const onKeydown = (event) => {
   hintElement.classList.add(`hidden`);
 
   switch (event.code) {
-  case `ArrowUp`: {
-    saveState({ up:true });
-    break;
-  }
-  case `ArrowDown`: {
-    saveState({ down:true });
-    break;
-  }
-  case `ArrowLeft`: {
-    saveState({ left:true });
-    break;
-  }
-  case `ArrowRight`: {
-    saveState({ right:true });
-    break;
-  }
-  default: {
-    logKeyEvent(event, `keydown`);
-    return;
-  }
+    case `ArrowUp`: {
+      saveState({ up: true });
+      break;
+    }
+    case `ArrowDown`: {
+      saveState({ down: true });
+      break;
+    }
+    case `ArrowLeft`: {
+      saveState({ left: true });
+      break;
+    }
+    case `ArrowRight`: {
+      saveState({ right: true });
+      break;
+    }
+    default: {
+      logKeyEvent(event, `keydown`);
+      return;
+    }
   }
   use();
 };
@@ -94,25 +94,25 @@ const moveElement = (element, vector) => {
  */
 const onKeyup = (event) => {
   switch (event.code) {
-  case `ArrowUp`: {
-    saveState({ up:false });
-    break;
-  }
-  case `ArrowDown`: {
-    saveState({ down:false });
-    break;
-  }
-  case `ArrowLeft`: {
-    saveState({ left:false });
-    break;
-  }
-  case `ArrowRight`: {
-    saveState({ right:false });
-    break;
-  }
-  default: {
-    logKeyEvent(event, `keydown`);
-  }
+    case `ArrowUp`: {
+      saveState({ up: false });
+      break;
+    }
+    case `ArrowDown`: {
+      saveState({ down: false });
+      break;
+    }
+    case `ArrowLeft`: {
+      saveState({ left: false });
+      break;
+    }
+    case `ArrowRight`: {
+      saveState({ right: false });
+      break;
+    }
+    default: {
+      logKeyEvent(event, `keydown`);
+    }
   }
   use();
 };
@@ -131,7 +131,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

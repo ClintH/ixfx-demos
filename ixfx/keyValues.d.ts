@@ -1,2 +1,2 @@
 import './MinMaxAvg-X_wBRrCz.js';
-export { B as BasicType, a as KeyValue, c as KeyValueSorter, P as Primitive, S as SortSyles, b as StringOrNumber, g as getSorter, i as isPrimitive, m as minMaxAvg } from './KeyValue-C8BVtJ3M.js';
+export { B as BasicType, a as KeyValue, e as KeyValueSorter, P as Primitive, b as PrimitiveOrObject, S as SortSyles, c as StringOrNumber, g as getSorter, i as isPrimitive, d as isPrimitiveOrObject, m as minMaxAvg } from './KeyValue-m9PR1TTk.js';

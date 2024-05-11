@@ -14,13 +14,13 @@ const settings = Object.freeze({
  */
 let state = Object.freeze({
   /** @type boolean */
-  held:false,
+  held: false,
   /** @type number */
   velocity: 0
 });
 
 const use = () => {
-  const { info,visElement } = settings;
+  const { info, visElement } = settings;
   const { held, velocity } = state;
   info(`Velocity: ${velocity}`);
   if (held) {
@@ -39,7 +39,7 @@ const onMidiMessage = (message, input) => {
   const { note } = settings;
   console.log(message);
 
-  if (message.command ===`noteon` && message.note === note) {
+  if (message.command === `noteon` && message.note === note) {
     saveState({ held: true, velocity: message.velocity });
   } else if (message.command === `noteoff` && message.note === note) {
     saveState({ held: false });
@@ -51,11 +51,13 @@ const onMidiMessage = (message, input) => {
 async function setup() {
   try {
     const r = await navigator.requestMIDIAccess();
-    for (const [id,input] of r.inputs) {
+    for (const [id, input] of r.inputs) {
       console.log(`MIDI input: ${input.id} - ${input.name} (${input.manufacturer})`);
-    
+
       input.addEventListener(`midimessage`, event => {
-        const message = MIDI.parse(/** @type MIDIMessageEvent */(event).data);
+        const data = /** @type MIDIMessageEvent */(event).data;
+        if (!data) return;
+        const message = MIDI.parse(data);
         if (!message) return;
         onMidiMessage(message, input);
       });
@@ -70,7 +72,7 @@ await setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

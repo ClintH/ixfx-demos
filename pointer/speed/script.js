@@ -7,9 +7,9 @@ const settings = Object.freeze({
   // This determines the scaling of speed
   maxSpeed: 1,
   // Range for font width
-  fontWidth: [ 50, 200 ],
+  fontWidth: [50, 200],
   // Range for font weight
-  fontWeight: [ 200, 900 ],
+  fontWeight: [200, 900],
   // Two moving averagers for x,y
   // Average over 30 samples
   avg: {
@@ -34,11 +34,11 @@ const settings = Object.freeze({
 let state = Object.freeze({
   distance: 0,
   // Accumulates movement in x,y
-  movement: { x:0, y:0 },
+  movement: { x: 0, y: 0 },
   // Current speed in x,y
-  speed: { x:0, y: 0 },
+  speed: { x: 0, y: 0 },
   // Output of x,y movingAveragers
-  speedAvg: { x:0, y: 0 },
+  speedAvg: { x: 0, y: 0 },
   lastUpdate: Date.now()
 });
 
@@ -54,12 +54,12 @@ const update = () => {
   };
 
   let speedAvg = {
-    x: avg.x.add(speed.x),
-    y: avg.y.add(speed.y)
+    x: avg.x(speed.x),
+    y: avg.y(speed.y)
   };
 
   saveState({
-    movement: { x:0 , y: 0 }, // Reset accumulated movement
+    movement: { x: 0, y: 0 }, // Reset accumulated movement
     lastUpdate: now,
     speed,
     speedAvg
@@ -69,13 +69,13 @@ const update = () => {
 const use = () => {
   const { speed, speedAvg } = state;
   const { fontWidth, fontWeight } = settings;
-  
+
   Util.textContent(`debug`,
     `
     Speed: ${Points.toString(speed, 2)}
     Speed average: ${Points.toString(speedAvg, 2)}
   `);
-  
+
   const width = Math.round(scalePercent(speedAvg.x, fontWidth[0], fontWidth[1]));
   const weight = Math.round(scalePercent(speedAvg.y, fontWeight[0], fontWeight[1]));
   Util.setFontVariation(`speed`, width, weight);
@@ -117,7 +117,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

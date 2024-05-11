@@ -3,11 +3,11 @@ const settings = Object.freeze({});
 let state = Object.freeze({});
 
 /**
- * 
- * @param {Element} el 
+ * Bind an element
+ * @param {Element} element 
  */
 const bindElement = (element) => {
-  
+
   element.addEventListener(`pointerdown`, event => {
     console.log(event);
     event.preventDefault();
@@ -28,7 +28,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
