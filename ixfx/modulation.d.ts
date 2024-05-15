@@ -1,9 +1,9 @@
-export { e as Adsr, h as AdsrIterableOpts, A as AdsrOpts, b as AdsrTimingOpts, C as CompleteEvent, a as EnvelopeOpts, E as Envelopes, c as Events, F as Forces, O as Oscillators, S as StateChangeEvent, f as adsr, g as adsrIterable, d as defaultAdsrOpts, p as perSecond } from './index-096qebhM.js';
+export { e as Adsr, h as AdsrIterableOpts, A as AdsrOpts, b as AdsrTimingOpts, C as CompleteEvent, a as EnvelopeOpts, E as Envelopes, c as Events, F as Forces, O as Oscillators, S as StateChangeEvent, f as adsr, g as adsrIterable, d as defaultAdsrOpts, p as perSecond } from './index-cGDYSJUW.js';
 export { J as JitterOpts, a as Jitterer, j as jitter, b as jitterAbsolute, p as pingPong, c as pingPongPercent } from './Jitter-nziPt0dL.js';
 export { E as Easings } from './Easing-mq_uz_TT.js';
 import './Events-nue2G3Li.js';
 import './IntervalType-CQa4mlKV.js';
-import './index-CMQTRBRs.js';
+import './index-EqRAk4La.js';
 import './Types-ATA4eXqe.js';
 import './index-hdv6JT0k.js';
 import './Util-lMkeEZwv.js';

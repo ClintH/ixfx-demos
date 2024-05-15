@@ -1,4 +1,4 @@
-import { f as ReactiveOrSource, T as TransformOpts, R as Reactive, A as AnnotationElapsed, B as BatchOptions, g as CombineLatestOptions, h as RxValueTypes, i as ReactiveDisposable, j as RxValueTypeObject, D as DebounceOptions, F as FieldOptions, k as FilterPredicate, I as InitStreamOptions, l as ReactiveWritable, S as SingleFromArrayOptions, m as SplitOptions, n as ReactiveStream, o as SwitcherOptions, p as SyncOptions, q as ThrottleOptions, r as TimeoutTriggerOptions, W as WithValueOptions, s as ReactiveInitial, t as ToArrayOptions, P as Passed, u as PassedSignal, v as PassedValue, w as ReactiveDiff, x as Wrapped, y as Trigger, z as TriggerValue, E as TriggerFunction, G as TriggerGenerator, H as GeneratorOptions, J as FunctionOptions, K as CountOptions, L as DomBindSourceValue, M as PipeDomBinding, N as DomBindValueTarget, O as DomBindUnresolvedSource, Q as BindUpdateOpts, V as ElementsOptions, X as ArrayOptions, Y as ReactiveFinite, Z as ArrayObjectOptions, _ as ReactiveArray, $ as ReactiveNonInitial, a0 as EventOptions, a1 as Optional, a2 as FunctionFunction, a3 as PingedFunctionFunction, a4 as PingedFunctionOptions, a5 as ObjectOptions, a6 as symbol, U as Unsubscriber, a7 as ReactiveOp, a8 as DomBindResolvedSource, a9 as DomBindTargetNode, aa as DomBindTargetNodeResolved, ab as DomCreateOptions, ac as ElementBind, ad as InitLazyStreamOptions, ae as Lazy, af as PipeSet, ag as PrimitiveValueTypeObject, ah as ReactiveOpInit, ai as ReactiveOpLinks, aj as ResolveOptions, ak as SignalKinds, al as UpstreamOptions } from './Types-LLu0bae9.js';
+import { f as ReactiveOrSource, T as TransformOpts, R as Reactive, A as AnnotationElapsed, B as BatchOptions, g as CombineLatestOptions, h as RxValueTypes, i as ReactiveDisposable, j as RxValueTypeObject, D as DebounceOptions, F as FieldOptions, k as FilterPredicate, I as InitStreamOptions, l as ReactiveWritable, S as SingleFromArrayOptions, m as SplitOptions, n as ReactiveStream, o as SwitcherOptions, p as SyncOptions, q as ThrottleOptions, r as TimeoutTriggerOptions, W as WithValueOptions, s as ReactiveInitial, t as ToArrayOptions, P as Passed, u as PassedSignal, v as PassedValue, w as ReactiveDiff, x as Wrapped, y as Trigger, z as TriggerValue, E as TriggerFunction, G as TriggerGenerator, H as GeneratorOptions, J as FunctionOptions, K as CountOptions, L as DomBindSourceValue, M as PipeDomBinding, N as DomBindValueTarget, O as DomBindUnresolvedSource, Q as BindUpdateOpts, V as ElementsOptions, X as ArrayOptions, Y as ReactiveFinite, Z as ArrayObjectOptions, _ as ReactiveArray, $ as ReactiveNonInitial, a0 as EventOptions, a1 as Optional, a2 as FunctionFunction, a3 as PingedFunctionFunction, a4 as PingedFunctionOptions, a5 as ObjectOptions, a6 as symbol, U as Unsubscriber, a7 as ReactiveOp, a8 as DomBindResolvedSource, a9 as DomBindTargetNode, aa as DomBindTargetNodeResolved, ab as DomCreateOptions, ac as ElementBind, ad as InitLazyStreamOptions, ae as Lazy, af as PipeSet, ag as PrimitiveValueTypeObject, ah as ReactiveOpInit, ai as ReactiveOpLinks, aj as ResolveOptions, ak as SignalKinds, al as UpstreamOptions } from './Types-PirRH8q6.js';
 import { I as Interval } from './IntervalType-CQa4mlKV.js';
 import { C as Change } from './Immutable-XxQg9zkc.js';
 
@@ -150,7 +150,7 @@ declare function filter<In>(input: ReactiveOrSource<In>, predicate: FilterPredic
  * @param streams
  * @returns
  */
-declare const pipe: <TInput, TOutput>(...streams: [Reactive<TInput>, ...(Reactive<any> & ReactiveWritable<any>)[], ReactiveWritable<TOutput> & Reactive<any>]) => Reactive<TOutput> & ReactiveDisposable<TOutput>;
+declare const pipe: <TInput, TOutput>(streams_0: Reactive<TInput>, ...streams_1: (Reactive<any> & ReactiveWritable<any>)[]) => Reactive<TOutput> & ReactiveDisposable<TOutput>;
 
 /**
  * For a stream that emits arrays of values, this op will select a single value.
@@ -308,7 +308,7 @@ declare function throttle<V>(throttleSource: ReactiveOrSource<V>, options?: Part
  * @param source
  * @param options
  */
-declare function timeoutTrigger<TSource, TTriggerValue>(source: ReactiveOrSource<TSource>, options: TimeoutTriggerOptions<TTriggerValue>): Reactive<TSource | TTriggerValue>;
+declare function timeoutTrigger<TSource, TTriggerValue>(source: ReactiveOrSource<TSource>, options: TimeoutTriggerOptions<TTriggerValue>): ReactiveDisposable<TSource | TTriggerValue> & Reactive<TSource | TTriggerValue>;
 
 /**
  * Transforms values from `source` using the `transformer` function.
@@ -449,6 +449,18 @@ declare const isTriggerGenerator: <V>(t: Trigger<V>) => t is TriggerGenerator<V>
 declare const isTrigger: <V>(t: any) => t is Trigger<V>;
 type ResolveTriggerValue<V> = [value: V, false];
 type ResolveTriggerDone = [undefined, true];
+/**
+ * Resolves a trigger value.
+ *
+ * A trigger can be a value, a function or generator. Value triggers never complete.
+ * A trigger function is considered complete if it returns undefined.
+ * A trigger generator is considered complete if it returns done.
+ *
+ * Returns `[value, _false_]` if we have a value and trigger is not completed.
+ * Returns `[value, _true_]` trigger is completed
+ * @param t
+ * @returns
+ */
 declare function resolveTriggerValue<V>(t: Trigger<V>): ResolveTriggerDone | ResolveTriggerValue<V>;
 
 /**
@@ -1145,7 +1157,7 @@ declare const Ops: {
      * @returns
      */
     readonly filter: <V_6>(predicate: (value: V_6) => boolean) => <In_1>(source: ReactiveOrSource<In_1>) => Reactive<In_1>;
-    readonly pipe: <TInput, TOutput>(...streams: Array<Reactive<any> & ReactiveWritable<any>>) => (source: ReactiveOrSource<TInput>) => Reactive<TOutput> & {
+    readonly pipe: <TInput, TOutput>(...streams: Array<Reactive<any> & ReactiveWritable<any>>) => (source: ReactiveOrSource<TInput>) => Reactive<unknown> & {
         dispose(reason: string): void;
         isDisposed(): boolean;
     };
@@ -1168,8 +1180,11 @@ declare const Ops: {
      * @param options
      * @returns
      */
-    readonly timeoutTrigger: <V_3, TTriggerValue>(options: TimeoutTriggerOptions<TTriggerValue>) => (source: ReactiveOrSource<V_3>) => Reactive<V_3 | TTriggerValue>;
-    readonly transform: <In, Out>(transformer: (value: In) => Out) => ReactiveOp<In, Out>;
+    readonly timeoutTrigger: <V_3, TTriggerValue>(options: TimeoutTriggerOptions<TTriggerValue>) => (source: ReactiveOrSource<V_3>) => Reactive<V_3 | TTriggerValue> & {
+        dispose(reason: string): void;
+        isDisposed(): boolean;
+    };
+    readonly transform: <In, Out>(transformer: ((value: In) => Out)) => ReactiveOp<In, Out>;
     /**
     * Reactive where last (or a given initial) value is available to read
     * @param opts
@@ -1188,6 +1203,12 @@ declare const Ops: {
  * @returns
  */
 declare function run<TIn, TOut>(source: ReactiveOrSource<TIn>, ...ops: Array<ReactiveOp<any, any>>): Reactive<TOut>;
+declare function cache<T>(r: Reactive<T>, initialValue: T): {
+    last(): T | undefined;
+    reset(): void;
+    on(handler: (value: Passed<T>) => void): Unsubscriber;
+    value(handler: (value: T) => void): Unsubscriber;
+};
 /**
  * Grabs the next value emitted from `source`.
  * By default waits up to a maximum of one second.
@@ -1278,6 +1299,7 @@ declare const index_Wrapped: typeof Wrapped;
 declare const index_annotate: typeof annotate;
 declare const index_annotateElapsed: typeof annotateElapsed;
 declare const index_batch: typeof batch;
+declare const index_cache: typeof cache;
 declare const index_cloneFromFields: typeof cloneFromFields;
 declare const index_combineLatestToArray: typeof combineLatestToArray;
 declare const index_combineLatestToObject: typeof combineLatestToObject;
@@ -1321,7 +1343,7 @@ declare const index_transform: typeof transform;
 declare const index_withValue: typeof withValue;
 declare const index_wrap: typeof wrap;
 declare namespace index {
-  export { index_AnnotationElapsed as AnnotationElapsed, index_BatchOptions as BatchOptions, index_BindUpdateOpts as BindUpdateOpts, index_CombineLatestOptions as CombineLatestOptions, index_CountOptions as CountOptions, index_DebounceOptions as DebounceOptions, index_Dom as Dom, index_DomBindResolvedSource as DomBindResolvedSource, index_DomBindSourceValue as DomBindSourceValue, index_DomBindTargetNode as DomBindTargetNode, index_DomBindTargetNodeResolved as DomBindTargetNodeResolved, index_DomBindUnresolvedSource as DomBindUnresolvedSource, index_DomBindValueTarget as DomBindValueTarget, index_DomCreateOptions as DomCreateOptions, index_ElementBind as ElementBind, index_ElementsOptions as ElementsOptions, index_FieldOptions as FieldOptions, index_FilterPredicate as FilterPredicate, index$1 as From, index_InitLazyStreamOptions as InitLazyStreamOptions, index_InitStreamOptions as InitStreamOptions, index_Lazy as Lazy, index_Ops as Ops, index_Optional as Optional, index_Passed as Passed, index_PassedSignal as PassedSignal, index_PassedValue as PassedValue, index_PipeDomBinding as PipeDomBinding, index_PipeSet as PipeSet, index_PrimitiveValueTypeObject as PrimitiveValueTypeObject, index_Reactive as Reactive, index_ReactiveArray as ReactiveArray, index_ReactiveDiff as ReactiveDiff, index_ReactiveDisposable as ReactiveDisposable, index_ReactiveFinite as ReactiveFinite, index_ReactiveInitial as ReactiveInitial, index_ReactiveNonInitial as ReactiveNonInitial, index_ReactiveOp as ReactiveOp, index_ReactiveOpInit as ReactiveOpInit, index_ReactiveOpLinks as ReactiveOpLinks, index_ReactiveOrSource as ReactiveOrSource, index_ReactiveStream as ReactiveStream, index_ReactiveWritable as ReactiveWritable, index_ResolveOptions as ResolveOptions, type index_ResolveSourceOptions as ResolveSourceOptions, type index_ResolveTriggerDone as ResolveTriggerDone, type index_ResolveTriggerValue as ResolveTriggerValue, index_RxValueTypeObject as RxValueTypeObject, index_RxValueTypes as RxValueTypes, index_SignalKinds as SignalKinds, index_SingleFromArrayOptions as SingleFromArrayOptions, index_SplitOptions as SplitOptions, index_SwitcherOptions as SwitcherOptions, index_SyncOptions as SyncOptions, index_ThrottleOptions as ThrottleOptions, index_ToArrayOptions as ToArrayOptions, index_TransformOpts as TransformOpts, index_Unsubscriber as Unsubscriber, index_UpstreamOptions as UpstreamOptions, index_WithValueOptions as WithValueOptions, index_Wrapped as Wrapped, index_annotate as annotate, index_annotateElapsed as annotateElapsed, index_batch as batch, index_cloneFromFields as cloneFromFields, index_combineLatestToArray as combineLatestToArray, index_combineLatestToObject as combineLatestToObject, index_count as count, index_debounce as debounce, index_field as field, index_filter as filter, index_hasLast as hasLast, index_isDisposable as isDisposable, index_isReactive as isReactive, index_isTrigger as isTrigger, index_isTriggerFunction as isTriggerFunction, index_isTriggerGenerator as isTriggerGenerator, index_isTriggerValue as isTriggerValue, index_isWrapped as isWrapped, index_manual as manual, index_messageHasValue as messageHasValue, index_messageIsDoneSignal as messageIsDoneSignal, index_messageIsSignal as messageIsSignal, index_opify as opify, index_pipe as pipe, index_prepare as prepare, index_resolveSource as resolveSource, index_resolveTriggerValue as resolveTriggerValue, index_run as run, index_singleFromArray as singleFromArray, index_split as split, index_splitLabelled as splitLabelled, index_switcher as switcher, index_symbol as symbol, index_syncToArray as syncToArray, index_syncToObject as syncToObject, index_takeNextValue as takeNextValue, index_throttle as throttle, index_timeoutTrigger as timeoutTrigger, index_to as to, index_toArray as toArray, index_toArrayOrThrow as toArrayOrThrow, index_toGenerator as toGenerator, index_transform as transform, index_withValue as withValue, index_wrap as wrap };
+  export { index_AnnotationElapsed as AnnotationElapsed, index_BatchOptions as BatchOptions, index_BindUpdateOpts as BindUpdateOpts, index_CombineLatestOptions as CombineLatestOptions, index_CountOptions as CountOptions, index_DebounceOptions as DebounceOptions, index_Dom as Dom, index_DomBindResolvedSource as DomBindResolvedSource, index_DomBindSourceValue as DomBindSourceValue, index_DomBindTargetNode as DomBindTargetNode, index_DomBindTargetNodeResolved as DomBindTargetNodeResolved, index_DomBindUnresolvedSource as DomBindUnresolvedSource, index_DomBindValueTarget as DomBindValueTarget, index_DomCreateOptions as DomCreateOptions, index_ElementBind as ElementBind, index_ElementsOptions as ElementsOptions, index_FieldOptions as FieldOptions, index_FilterPredicate as FilterPredicate, index$1 as From, index_InitLazyStreamOptions as InitLazyStreamOptions, index_InitStreamOptions as InitStreamOptions, index_Lazy as Lazy, index_Ops as Ops, index_Optional as Optional, index_Passed as Passed, index_PassedSignal as PassedSignal, index_PassedValue as PassedValue, index_PipeDomBinding as PipeDomBinding, index_PipeSet as PipeSet, index_PrimitiveValueTypeObject as PrimitiveValueTypeObject, index_Reactive as Reactive, index_ReactiveArray as ReactiveArray, index_ReactiveDiff as ReactiveDiff, index_ReactiveDisposable as ReactiveDisposable, index_ReactiveFinite as ReactiveFinite, index_ReactiveInitial as ReactiveInitial, index_ReactiveNonInitial as ReactiveNonInitial, index_ReactiveOp as ReactiveOp, index_ReactiveOpInit as ReactiveOpInit, index_ReactiveOpLinks as ReactiveOpLinks, index_ReactiveOrSource as ReactiveOrSource, index_ReactiveStream as ReactiveStream, index_ReactiveWritable as ReactiveWritable, index_ResolveOptions as ResolveOptions, type index_ResolveSourceOptions as ResolveSourceOptions, type index_ResolveTriggerDone as ResolveTriggerDone, type index_ResolveTriggerValue as ResolveTriggerValue, index_RxValueTypeObject as RxValueTypeObject, index_RxValueTypes as RxValueTypes, index_SignalKinds as SignalKinds, index_SingleFromArrayOptions as SingleFromArrayOptions, index_SplitOptions as SplitOptions, index_SwitcherOptions as SwitcherOptions, index_SyncOptions as SyncOptions, index_ThrottleOptions as ThrottleOptions, index_ToArrayOptions as ToArrayOptions, index_TransformOpts as TransformOpts, index_Unsubscriber as Unsubscriber, index_UpstreamOptions as UpstreamOptions, index_WithValueOptions as WithValueOptions, index_Wrapped as Wrapped, index_annotate as annotate, index_annotateElapsed as annotateElapsed, index_batch as batch, index_cache as cache, index_cloneFromFields as cloneFromFields, index_combineLatestToArray as combineLatestToArray, index_combineLatestToObject as combineLatestToObject, index_count as count, index_debounce as debounce, index_field as field, index_filter as filter, index_hasLast as hasLast, index_isDisposable as isDisposable, index_isReactive as isReactive, index_isTrigger as isTrigger, index_isTriggerFunction as isTriggerFunction, index_isTriggerGenerator as isTriggerGenerator, index_isTriggerValue as isTriggerValue, index_isWrapped as isWrapped, index_manual as manual, index_messageHasValue as messageHasValue, index_messageIsDoneSignal as messageIsDoneSignal, index_messageIsSignal as messageIsSignal, index_opify as opify, index_pipe as pipe, index_prepare as prepare, index_resolveSource as resolveSource, index_resolveTriggerValue as resolveTriggerValue, index_run as run, index_singleFromArray as singleFromArray, index_split as split, index_splitLabelled as splitLabelled, index_switcher as switcher, index_symbol as symbol, index_syncToArray as syncToArray, index_syncToObject as syncToObject, index_takeNextValue as takeNextValue, index_throttle as throttle, index_timeoutTrigger as timeoutTrigger, index_to as to, index_toArray as toArray, index_toArrayOrThrow as toArrayOrThrow, index_toGenerator as toGenerator, index_transform as transform, index_withValue as withValue, index_wrap as wrap };
 }
 
-export { prepare as A, toArray as B, toArrayOrThrow as C, Dom as D, toGenerator as E, messageIsSignal as F, messageIsDoneSignal as G, messageHasValue as H, hasLast as I, isReactive as J, isDisposable as K, isWrapped as L, opify as M, isTriggerValue as N, Ops as O, isTriggerFunction as P, isTriggerGenerator as Q, isTrigger as R, type ResolveTriggerValue as S, type ResolveTriggerDone as T, resolveTriggerValue as U, wrap as V, type ResolveSourceOptions as W, resolveSource as X, count as Y, to as a, index$1 as b, annotate as c, annotateElapsed as d, batch as e, cloneFromFields as f, combineLatestToArray as g, combineLatestToObject as h, index as i, debounce as j, field as k, filter as l, manual as m, split as n, splitLabelled as o, pipe as p, switcher as q, run as r, singleFromArray as s, takeNextValue as t, syncToArray as u, syncToObject as v, throttle as w, timeoutTrigger as x, transform as y, withValue as z };
+export { withValue as A, prepare as B, toArray as C, Dom as D, toArrayOrThrow as E, toGenerator as F, messageIsSignal as G, messageIsDoneSignal as H, messageHasValue as I, hasLast as J, isReactive as K, isDisposable as L, isWrapped as M, opify as N, Ops as O, isTriggerValue as P, isTriggerFunction as Q, isTriggerGenerator as R, isTrigger as S, type ResolveTriggerValue as T, type ResolveTriggerDone as U, resolveTriggerValue as V, wrap as W, type ResolveSourceOptions as X, resolveSource as Y, count as Z, to as a, index$1 as b, cache as c, annotate as d, annotateElapsed as e, batch as f, cloneFromFields as g, combineLatestToArray as h, index as i, combineLatestToObject as j, debounce as k, field as l, manual as m, filter as n, split as o, pipe as p, splitLabelled as q, run as r, singleFromArray as s, takeNextValue as t, switcher as u, syncToArray as v, syncToObject as w, throttle as x, timeoutTrigger as y, transform as z };

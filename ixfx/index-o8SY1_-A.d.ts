@@ -4,7 +4,7 @@ import { I as Interval } from './IntervalType-CQa4mlKV.js';
 import { b as QueueMutable } from './QueueMutable-y9N20W8a.js';
 import { C as Continuously } from './Continuously-PWOv5oQH.js';
 import { N as NumberTracker } from './NumberTracker-H3s2ZmQk.js';
-import { P as Point, R as Rect } from './index-CMQTRBRs.js';
+import { P as Point, R as Rect } from './index-EqRAk4La.js';
 import { M as ManualCapturer } from './Video-HeCB2pcQ.js';
 
 /**
@@ -768,6 +768,7 @@ type EspruinoBleOpts = {
  * @returns Returns a connected instance, or throws exception if user cancelled or could not connect.
  */
 declare const puck: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
+declare const bangle: (opts?: EspruinoBleOpts) => Promise<EspruinoBleDevice>;
 /**
  * Create a serial-connected Espruino device.
  *
@@ -948,12 +949,13 @@ type Espruino_EspruinoStates = EspruinoStates;
 type Espruino_EvalOpts = EvalOpts;
 type Espruino_Events = Events;
 type Espruino_Options = Options;
+declare const Espruino_bangle: typeof bangle;
 declare const Espruino_connectBle: typeof connectBle;
 declare const Espruino_deviceEval: typeof deviceEval;
 declare const Espruino_puck: typeof puck;
 declare const Espruino_serial: typeof serial;
 declare namespace Espruino {
-  export { Espruino_EspruinoBleDevice as EspruinoBleDevice, type Espruino_EspruinoBleOpts as EspruinoBleOpts, type Espruino_EspruinoDevice as EspruinoDevice, Espruino_EspruinoSerialDevice as EspruinoSerialDevice, type Espruino_EspruinoSerialDeviceOpts as EspruinoSerialDeviceOpts, type Espruino_EspruinoStates as EspruinoStates, type Espruino_EvalOpts as EvalOpts, type Espruino_Events as Events, type Espruino_Options as Options, Espruino_connectBle as connectBle, Espruino_deviceEval as deviceEval, Espruino_puck as puck, Espruino_serial as serial };
+  export { Espruino_EspruinoBleDevice as EspruinoBleDevice, type Espruino_EspruinoBleOpts as EspruinoBleOpts, type Espruino_EspruinoDevice as EspruinoDevice, Espruino_EspruinoSerialDevice as EspruinoSerialDevice, type Espruino_EspruinoSerialDeviceOpts as EspruinoSerialDeviceOpts, type Espruino_EspruinoStates as EspruinoStates, type Espruino_EvalOpts as EvalOpts, type Espruino_Events as Events, type Espruino_Options as Options, Espruino_bangle as bangle, Espruino_connectBle as connectBle, Espruino_deviceEval as deviceEval, Espruino_puck as puck, Espruino_serial as serial };
 }
 
 /**

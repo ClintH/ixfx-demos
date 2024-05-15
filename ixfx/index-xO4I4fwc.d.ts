@@ -1,6 +1,6 @@
 import { T as TrackedValueOpts, N as NumberTracker } from './NumberTracker-H3s2ZmQk.js';
 import { J as JitterOpts, a as Jitterer, j as jitter, b as jitterAbsolute, p as pingPong, c as pingPongPercent } from './Jitter-nziPt0dL.js';
-import { a as integer } from './index-CJDBTnNR.js';
+import { a as integer } from './index-oYwGg4CR.js';
 
 /**
  * Yields `amount` integers, counting by one from zero. If a negative amount is used,

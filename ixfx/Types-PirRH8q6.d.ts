@@ -1,4 +1,4 @@
-import { P as Primitive } from './KeyValue-m9PR1TTk.js';
+import { P as Primitive } from './KeyValue-tgb3aKKD.js';
 import { I as IsEqual } from './IsEqual-f56NWa68.js';
 import { I as Interval } from './IntervalType-CQa4mlKV.js';
 import { a as IsEqualContext, C as Change } from './Immutable-XxQg9zkc.js';
@@ -207,8 +207,22 @@ type TriggerFunction<TTriggerValue> = {
 type TriggerGenerator<TTriggerValue> = {
     gen: IterableIterator<TTriggerValue>;
 };
+/**
+ * A trigger can be a value, a function or generator. Value triggers never complete.
+ *
+ * A trigger function is considered complete if it returns undefined.
+ * A trigger generator is considered complete if it returns done.
+ *
+ */
 type Trigger<TTriggerValue> = TriggerValue<TTriggerValue> | TriggerFunction<TTriggerValue> | TriggerGenerator<TTriggerValue>;
 type TimeoutTriggerOptions<TTriggerValue> = Trigger<TTriggerValue> & {
+    /**
+     * Whether to repeatedly trigger even if upstream source doesn't emit values.
+     * When _false_ (default) it will emit a max of one value after a source value if `interval` is reached.
+     * When _true_, it will continue emitting values at `interval`.
+     * Default: false
+     */
+    repeat?: boolean;
     /**
      * Interval before emitting trigger value
      * Default: 1s
@@ -690,8 +704,7 @@ type DomBindSourceValue<V> = {
 };
 type PipeSet<In, Out> = [
     Reactive<In>,
-    ...Array<Reactive<any> & ReactiveWritable<any>>,
-    ReactiveWritable<Out> & Reactive<any>
+    ...Array<Reactive<any> & ReactiveWritable<any>>
 ];
 type InitStreamOptions = {
     /**

@@ -898,6 +898,7 @@ var Espruino_exports = {};
 __export(Espruino_exports, {
   EspruinoBleDevice: () => EspruinoBleDevice,
   EspruinoSerialDevice: () => EspruinoSerialDevice,
+  bangle: () => bangle,
   connectBle: () => connectBle,
   deviceEval: () => deviceEval,
   puck: () => puck,
@@ -1295,7 +1296,19 @@ var puck = async (opts = {}) => {
   const name = opts.name ?? `Puck`;
   const debug = opts.debug ?? false;
   const device = await navigator.bluetooth.requestDevice({
-    filters: getFilters(opts),
+    filters: getFilters(opts, `Puck.js`),
+    optionalServices: [defaultOpts.service]
+  });
+  console.log(device.name);
+  const d = new EspruinoBleDevice(device, { name, debug });
+  await d.connect();
+  return d;
+};
+var bangle = async (opts = {}) => {
+  const name = opts.name ?? `Bangle`;
+  const debug = opts.debug ?? false;
+  const device = await navigator.bluetooth.requestDevice({
+    filters: getFilters(opts, `Bangle.js`),
     optionalServices: [defaultOpts.service]
   });
   console.log(device.name);
@@ -1308,7 +1321,7 @@ var serial = async (opts = {}) => {
   await d.connect();
   return d;
 };
-var getFilters = (opts) => {
+var getFilters = (opts, defaultNamePrefix) => {
   const filters = [];
   if (opts.filters) {
     filters.push(...opts.filters);
@@ -1316,13 +1329,13 @@ var getFilters = (opts) => {
     filters.push({ name: opts.name });
     console.info(`Filtering Bluetooth devices by name '${opts.name}'`);
   } else {
-    filters.push({ namePrefix: `Puck.js` });
+    filters.push({ namePrefix: defaultNamePrefix });
   }
   return filters;
 };
 var connectBle = async (opts = {}) => {
   const device = await navigator.bluetooth.requestDevice({
-    filters: getFilters(opts),
+    filters: getFilters(opts, `Puck.js`),
     optionalServices: [defaultOpts.service]
   });
   const d = new EspruinoBleDevice(device, { name: `Espruino`, ...opts });
@@ -2081,4 +2094,4 @@ export {
   genericStateTransitionsInstance,
   io_exports
 };
-//# sourceMappingURL=chunk-OLTRXGL7.js.map
+//# sourceMappingURL=chunk-M7SWWJL5.js.map

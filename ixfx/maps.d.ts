@@ -1,12 +1,12 @@
 import { S as SimpleEventEmitter } from './Events-nue2G3Li.js';
 import { I as Interval } from './IntervalType-CQa4mlKV.js';
 import { I as IsEqual } from './IsEqual-f56NWa68.js';
-import { E as EitherKey } from './MakeGlobal-oEHCbhRE.js';
+import { E as EitherKey } from './MakeGlobal-aaM2MklV.js';
 import { T as ToString } from './Util-lMkeEZwv.js';
 import { b as ICircularArray } from './IMapOfMutableExtended-OxnNM6u4.js';
 import './index-HsL-zwxm.js';
 import './Types-fof41_Zh.js';
-import './index-Uak1gZS8.js';
+import './index-Tb5kvnfW.js';
 import './Types-ATA4eXqe.js';
 import './MinMaxAvg-X_wBRrCz.js';
 import './index-hdv6JT0k.js';
@@ -1126,7 +1126,7 @@ declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, h
  * @param comparer
  * @returns
  */
-declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: V) => number) | undefined) => [K, V][];
+declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: (a: V, b: V) => number) => [K, V][];
 /**
  * Returns an array of entries from a map, sorted by a property of the value
  *
@@ -1140,7 +1140,7 @@ declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: 
  * @param prop Property of value
  * @param compareFn Comparer. If unspecified, uses a default.
  */
-declare const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, property: string, compareFunction?: ((a: Z, b: Z) => number) | undefined) => [K, V][];
+declare const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, property: string, compareFunction?: (a: Z, b: Z) => number) => [K, V][];
 /**
  * Returns _true_ if any key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
  * if you only want to find a value under a certain key.

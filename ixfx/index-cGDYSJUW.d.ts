@@ -1,7 +1,7 @@
 import { J as JitterOpts, a as Jitterer, j as jitter, b as jitterAbsolute, p as pingPong, c as pingPongPercent } from './Jitter-nziPt0dL.js';
 import { S as SimpleEventEmitter } from './Events-nue2G3Li.js';
 import { E as Easing } from './Easing-mq_uz_TT.js';
-import { P as Point, R as Rect } from './index-CMQTRBRs.js';
+import { P as Point, R as Rect } from './index-EqRAk4La.js';
 import { T as Timer } from './Timer-tic7MGUQ.js';
 
 /**

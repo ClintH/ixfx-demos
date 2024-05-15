@@ -2478,7 +2478,10 @@ declare const height$1: (t: Right) => number;
  * @param t
  * @returns
  */
-declare const hypotenuseSegments: (t: Right) => readonly [p: number, q: number];
+declare const hypotenuseSegments: (t: Right) => readonly [
+    p: number,
+    q: number
+];
 declare const perimeter$1: (t: Right) => number;
 declare const area$1: (t: Right) => number;
 /**
@@ -2501,7 +2504,11 @@ declare const angleAtPointB: (t: Right) => number;
  * @param t
  * @returns
  */
-declare const medians$1: (t: Right) => readonly [a: number, b: number, c: number];
+declare const medians$1: (t: Right) => readonly [
+    a: number,
+    b: number,
+    c: number
+];
 /**
  * The circle which passes through the points of the triangle
  * @param t
@@ -3517,7 +3524,7 @@ declare const apply: (pt: Point, fn: (v: number, field?: string) => number) => P
  * @param pipeline
  * @returns
  */
-declare const pipelineApply: (pt: Point, ...pipelineFns: readonly ((pt: Point) => Point)[]) => Point;
+declare const pipelineApply: (pt: Point, ...pipelineFns: ReadonlyArray<(pt: Point) => Point>) => Point;
 /**
  * Returns a pipeline function that takes a point to be transformed through a series of functions
  * ```js
@@ -3533,7 +3540,7 @@ declare const pipelineApply: (pt: Point, ...pipelineFns: readonly ((pt: Point) =
  * @param pipeline Pipeline of functions
  * @returns
  */
-declare const pipeline: (...pipeline: readonly ((pt: Point) => Point)[]) => (pt: Point) => Point;
+declare const pipeline: (...pipeline: ReadonlyArray<(pt: Point) => Point>) => (pt: Point) => Point;
 /**
  * Reduces over points, treating _x_ and _y_ separately.
  *

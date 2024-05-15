@@ -1,8 +1,8 @@
-import { P as Point, an as CardinalDirection, R as Rect } from './index-CMQTRBRs.js';
-import { F as Forms } from './Forms-L7Bq41nz.js';
+import { P as Point, an as CardinalDirection, R as Rect } from './index-EqRAk4La.js';
+import { F as Forms } from './Forms-h0yI26Mq.js';
 import { S as SimpleEventEmitter } from './Events-nue2G3Li.js';
-import { a as ScaleBy, b as Scaler } from './Scaler-NEZgsxv4.js';
-import { R as Reactive, U as Unsubscriber, P as Passed } from './Types-LLu0bae9.js';
+import { a as ScaleBy, b as Scaler } from './Scaler-GbQJsQJS.js';
+import { R as Reactive, U as Unsubscriber, P as Passed } from './Types-PirRH8q6.js';
 import { I as Interval } from './IntervalType-CQa4mlKV.js';
 
 type LogOpts = {
@@ -788,7 +788,7 @@ type ElementResizeArgs<V extends HTMLElement | SVGSVGElement> = {
         readonly max: number;
     };
 };
-declare const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined) => Reactive<UIEvent>;
+declare const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V, onResized?: (args: ElementResizeArgs<V>) => void) => Reactive<UIEvent>;
 /**
  * Sets width/height atributes on the given element according to the size of its parent.
  * @param domQueryOrEl Elememnt to resize
@@ -796,7 +796,7 @@ declare const fullSizeElement: <V extends HTMLElement>(domQueryOrEl: string | V,
  * @param timeoutMs Timeout for debouncing events
  * @returns
  */
-declare const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: ((args: ElementResizeArgs<V>) => void) | undefined, timeoutMs?: number) => Unsubscriber;
+declare const parentSize: <V extends HTMLElement | SVGSVGElement>(domQueryOrEl: string | V, onResized?: (args: ElementResizeArgs<V>) => void, timeoutMs?: number) => Unsubscriber;
 
 type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
     readonly ctx: CanvasRenderingContext2D;
@@ -810,7 +810,7 @@ type CanvasResizeArgs = ElementResizeArgs<HTMLCanvasElement> & {
  * @param onResized Callback for when resize happens, eg for redrawing canvas
  * @returns Observable
  */
-declare const parentSizeCanvas: (domQueryOrEl: Readonly<string | HTMLCanvasElement>, onResized?: ((args: CanvasResizeArgs) => void) | undefined, timeoutMs?: number) => Unsubscriber;
+declare const parentSizeCanvas: (domQueryOrEl: Readonly<string | HTMLCanvasElement>, onResized?: (args: CanvasResizeArgs) => void, timeoutMs?: number) => Unsubscriber;
 /**
  * Resizes given canvas element to match window size.
  * To resize canvas to match its parent, use {@link parentSizeCanvas}.
@@ -832,7 +832,7 @@ declare const parentSizeCanvas: (domQueryOrEl: Readonly<string | HTMLCanvasEleme
  * @param skipCss if true, style are not added
  * @returns Observable
  */
-declare const fullSizeCanvas: (domQueryOrEl: Readonly<string | HTMLCanvasElement | undefined | null>, onResized?: ((args: CanvasResizeArgs) => void) | undefined, skipCss?: boolean) => Reactive<UIEvent>;
+declare const fullSizeCanvas: (domQueryOrEl: Readonly<string | HTMLCanvasElement | undefined | null>, onResized?: (args: CanvasResizeArgs) => void, skipCss?: boolean) => Reactive<UIEvent>;
 
 /**
  * Returns an Reactive for window resize. Default 100ms debounce.

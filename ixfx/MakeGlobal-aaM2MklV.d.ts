@@ -1,6 +1,6 @@
 import { c as IStack, I as IStackImmutable, a as IMapOfMutableExtended, d as IMapOfMutable, M as MapArrayEvents, e as IMapOf, b as ICircularArray, f as circularArray } from './IMapOfMutableExtended-OxnNM6u4.js';
 import { i as index$6 } from './index-HsL-zwxm.js';
-import { i as index$3, I as Iterables } from './index-Uak1gZS8.js';
+import { i as index$3, I as Iterables } from './index-Tb5kvnfW.js';
 import { S as SetStringImmutable, a as SetStringMutable, i as index$5 } from './index-hdv6JT0k.js';
 import { Q as QueueImmutable, i as index$4 } from './index-4CnUPpC1.js';
 import { b as QueueMutable } from './QueueMutable-y9N20W8a.js';
@@ -986,7 +986,7 @@ declare const addKeepingExisting: <V>(set: ReadonlyMap<string, V> | undefined, h
  * @param comparer
  * @returns
  */
-declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: V) => number) | undefined) => [K, V][];
+declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: (a: V, b: V) => number) => [K, V][];
 /**
  * Returns an array of entries from a map, sorted by a property of the value
  *
@@ -1000,7 +1000,7 @@ declare const sortByValue: <K, V>(map: ReadonlyMap<K, V>, comparer?: ((a: V, b: 
  * @param prop Property of value
  * @param compareFn Comparer. If unspecified, uses a default.
  */
-declare const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, property: string, compareFunction?: ((a: Z, b: Z) => number) | undefined) => [K, V][];
+declare const sortByValueProperty: <K, V, Z>(map: ReadonlyMap<K, V>, property: string, compareFunction?: (a: Z, b: Z) => number) => [K, V][];
 /**
  * Returns _true_ if any key contains `value`, based on the provided `comparer` function. Use {@link hasKeyValue}
  * if you only want to find a value under a certain key.

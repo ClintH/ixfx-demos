@@ -4,7 +4,7 @@ import {
 } from "./chunk-CO2IP74V.js";
 import {
   Video_exports
-} from "./chunk-OLTRXGL7.js";
+} from "./chunk-M7SWWJL5.js";
 import {
   NumberTracker,
   PrimitiveTracker,
@@ -174,6 +174,7 @@ __export(rx_exports, {
   annotate: () => annotate,
   annotateElapsed: () => annotateElapsed,
   batch: () => batch,
+  cache: () => cache,
   cloneFromFields: () => cloneFromFields,
   combineLatestToArray: () => combineLatestToArray,
   combineLatestToObject: () => combineLatestToObject,
@@ -1150,6 +1151,7 @@ function throttle(throttleSource, options = {}) {
 function timeoutTrigger(source, options) {
   let timer;
   const immediate = options.immediate ?? true;
+  const repeat = options.repeat ?? false;
   const timeoutMs = intervalToMs(options.interval, 1e3);
   if (!isTrigger(options)) {
     throw new Error(`Param 'options' does not contain trigger 'value' or 'fn' fields`);
@@ -1159,11 +1161,17 @@ function timeoutTrigger(source, options) {
     if (done) {
       events.dispose(`Trigger completed`);
     } else {
+      if (events.isDisposed())
+        return;
       events.set(value);
+      if (repeat) {
+        timer = setTimeout(sendFallback, timeoutMs);
+      }
     }
   };
   const events = initUpstream(source, {
     disposeIfSourceDone: true,
+    // Received a value from upstream source
     onValue(v) {
       if (timer)
         clearTimeout(timer);
@@ -1171,6 +1179,7 @@ function timeoutTrigger(source, options) {
       events.set(v);
     },
     onDispose() {
+      console.log(`disposing`);
       if (timer)
         clearTimeout(timer);
     }
@@ -8839,6 +8848,21 @@ function run(source, ...ops) {
   const raw = prepareOps(...ops);
   return raw(source);
 }
+function cache(r, initialValue) {
+  let lastValue = initialValue;
+  r.value((value) => {
+    lastValue = value;
+  });
+  return {
+    ...r,
+    last() {
+      return lastValue;
+    },
+    reset() {
+      lastValue = void 0;
+    }
+  };
+}
 async function takeNextValue(source, maximumWait = 1e3) {
   const rx = resolveSource(source);
   let off = () => {
@@ -8951,6 +8975,7 @@ export {
   manual,
   Ops,
   run,
+  cache,
   takeNextValue,
   to,
   rx_exports,
@@ -9009,4 +9034,4 @@ export {
   query,
   dom_exports
 };
-//# sourceMappingURL=chunk-25YY5CRU.js.map
+//# sourceMappingURL=chunk-GU2CUOTP.js.map

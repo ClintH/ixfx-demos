@@ -16,7 +16,7 @@ declare function isPrimitiveOrObject(value: any): value is PrimitiveOrObject;
 type KeyValueSorter = (data: Array<KeyValue>) => Array<KeyValue>;
 type SortSyles = `value` | `value-reverse` | `key` | `key-reverse`;
 declare const getSorter: (sortStyle: SortSyles) => KeyValueSorter;
-declare const minMaxAvg: (entries: ReadonlyArray<KeyValue>, conversionFunction?: ((v: KeyValue) => number) | undefined) => MinMaxAvgTotal;
+declare const minMaxAvg: (entries: ReadonlyArray<KeyValue>, conversionFunction?: (v: KeyValue) => number) => MinMaxAvgTotal;
 
 type KeyValue$1_BasicType = BasicType;
 type KeyValue$1_KeyValue = KeyValue;

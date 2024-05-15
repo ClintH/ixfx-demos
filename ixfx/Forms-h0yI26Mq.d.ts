@@ -20,7 +20,7 @@ declare const textAreaKeyboard: (el: HTMLTextAreaElement) => void;
  * @param {(currentVal:boolean) => void} [onChanged]
  * @returns
  */
-declare const checkbox: (domIdOrEl: string | HTMLInputElement, onChanged?: ((currentValue: boolean) => void) | undefined) => {
+declare const checkbox: (domIdOrEl: string | HTMLInputElement, onChanged?: (currentValue: boolean) => void) => {
     checked: boolean;
 };
 /**
@@ -41,7 +41,7 @@ declare const checkbox: (domIdOrEl: string | HTMLInputElement, onChanged?: ((cur
  * @param live If true, event handler fires based on `input` event, rather than `change`
  * @returns
  */
-declare const numeric: (domIdOrEl: string | HTMLInputElement, onChanged?: ((currentValue: number) => void) | undefined, live?: boolean) => {
+declare const numeric: (domIdOrEl: string | HTMLInputElement, onChanged?: (currentValue: number) => void, live?: boolean) => {
     value: number;
 };
 /**
@@ -229,7 +229,7 @@ type SelectHandler = {
  * @param opts Options
  * @return
  */
-declare const select: (domQueryOrEl: string | HTMLSelectElement, onChanged?: ((currentValue: string) => void) | undefined, opts?: SelectOpts) => SelectHandler;
+declare const select: (domQueryOrEl: string | HTMLSelectElement, onChanged?: (currentValue: string) => void, opts?: SelectOpts) => SelectHandler;
 
 type Forms_SelectHandler = SelectHandler;
 type Forms_SelectOpts = SelectOpts;

@@ -34,7 +34,7 @@ import { a as MinMaxAvgOpts, M as MinMaxAvgTotal, m as minMaxAvg } from './MinMa
  * @param data Array of numbers
  * @param fn Returns a weighting based on the given relative position. If unspecified, `(x) => x` is used.
  */
-declare const weight: (data: Array<number> | ReadonlyArray<number>, fn?: ((relativePos: number) => number) | undefined) => Array<number>;
+declare const weight: (data: Array<number> | ReadonlyArray<number>, fn?: (relativePos: number) => number) => Array<number>;
 /**
  * Returns an array of all valid numbers from `data`
  *
@@ -286,7 +286,7 @@ declare const guardIndex: <V>(array: ArrayLike<V>, index: number, name?: string)
  * @param data Data to average
  * @param weightings Array of weightings that match up to data array, or an easing function
  */
-declare const averageWeighted: (data: Array<number> | ReadonlyArray<number>, weightings: number[] | readonly number[] | ((value: number) => number)) => number;
+declare const averageWeighted: (data: Array<number> | ReadonlyArray<number>, weightings: Array<number> | ReadonlyArray<number> | ((value: number) => number)) => number;
 
 /**
  * Zip combines the elements of two or more arrays based on their index.
@@ -856,7 +856,7 @@ declare const reducePairwise: <V, X>(array: ReadonlyArray<V>, reducer: (accumula
  * @param filter Function which returns _true_ to add items to the A list, or _false_ for items to add to the B list
  * @returns Array of two elements. The first is items that match `filter`, the second is items that do not.
  */
-declare const filterAB: <V>(data: ReadonlyArray<V>, filter: (a: V) => boolean) => [a: V[], b: V[]];
+declare const filterAB: <V>(data: ReadonlyArray<V>, filter: (a: V) => boolean) => [a: Array<V>, b: Array<V>];
 /**
  * Combines the values of one or more arrays, removing duplicates
  * ```js

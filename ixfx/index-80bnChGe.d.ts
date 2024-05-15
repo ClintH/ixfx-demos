@@ -1,13 +1,13 @@
 import { M as MinMaxAvgTotal } from './MinMaxAvg-X_wBRrCz.js';
 import { T as ToString } from './Util-lMkeEZwv.js';
 import { S as SimpleEventEmitter } from './Events-nue2G3Li.js';
-import { a as KeyValue, S as SortSyles, b as PrimitiveOrObject } from './KeyValue-m9PR1TTk.js';
+import { a as KeyValue, S as SortSyles, b as PrimitiveOrObject } from './KeyValue-tgb3aKKD.js';
 import { I as Interval } from './IntervalType-CQa4mlKV.js';
 import { N as NumberTracker, T as TrackedValueOpts, a as TrackerBase, b as TimestampedObject, c as TrackedValueMap, d as NumberTrackerResults, P as PrimitiveTracker, e as Timestamped, f as TimestampedPrimitive, n as numberTracker } from './NumberTracker-H3s2ZmQk.js';
-import { ao as PointRelationResult, P as Point, ap as PointRelation, p as PolyLine, L as Line } from './index-CMQTRBRs.js';
-import { C as Coord } from './Polar-qx3vkwiW.js';
-import { I as IMapImmutable } from './MakeGlobal-oEHCbhRE.js';
-import { R as Reactive } from './Types-LLu0bae9.js';
+import { ao as PointRelationResult, P as Point, ap as PointRelation, p as PolyLine, L as Line } from './index-EqRAk4La.js';
+import { C as Coord } from './Polar-pseVjl2N.js';
+import { I as IMapImmutable } from './MakeGlobal-aaM2MklV.js';
+import { R as Reactive } from './Types-PirRH8q6.js';
 import { a as RandomOptions, R as RandomSource } from './Types-ATA4eXqe.js';
 import { b as LogSet } from './Types-Yc1lP6QG.js';
 
@@ -283,7 +283,7 @@ declare const movingAverageTimed: (options: MovingAverageTimedOptions) => (v: nu
  * @param weighter Optional weighting function
  * @returns
  */
-declare const movingAverage: (samples?: number, weighter?: ((v: number) => number) | undefined) => (value?: number) => number;
+declare const movingAverage: (samples?: number, weighter?: (v: number) => number) => (value?: number) => number;
 /**
  * Noise filtering
  *
@@ -722,7 +722,7 @@ declare const clampIndex: (v: number, arrayOrLength: number | ReadonlyArray<any>
  * @param easing Easing function
  * @returns Scaled value
  */
-declare const scale$1: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => number;
+declare const scale$1: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: (v: number) => number) => number;
 /**
  * Returns a scaling function
  * @param inMin Input minimum
@@ -732,7 +732,7 @@ declare const scale$1: (v: number, inMin: number, inMax: number, outMin?: number
  * @param easing Easing function
  * @returns
  */
-declare const scaler: (inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => (v: number) => number;
+declare const scaler: (inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: (v: number) => number) => ((v: number) => number);
 /**
  * As {@link scale}, but result is clamped to be
  * within `outMin` and `outMax`.
@@ -745,7 +745,7 @@ declare const scaler: (inMin: number, inMax: number, outMin?: number, outMax?: n
  * @param easing
  * @returns
  */
-declare const scaleClamped$1: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: ((v: number) => number) | undefined) => number;
+declare const scaleClamped$1: (v: number, inMin: number, inMax: number, outMin?: number, outMax?: number, easing?: (v: number) => number) => number;
 /**
  * Scales an input percentage to a new percentage range.
  *

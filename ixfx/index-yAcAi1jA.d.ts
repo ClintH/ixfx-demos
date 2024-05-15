@@ -497,7 +497,7 @@ declare const throttle: (callback: (elapsedMs: number, ...args: readonly unknown
  * @param onComplete
  * @returns
  */
-declare const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: ((success: boolean) => void) | undefined) => (error?: string) => void;
+declare const waitFor: (timeoutMs: number, onAborted: (reason: string) => void, onComplete?: (success: boolean) => void) => (error?: string) => void;
 
 /**
  * Delay options
@@ -619,7 +619,7 @@ declare function delayLoop(timeout: Interval): AsyncGenerator<undefined, void, u
  * @param callback
  * @returns Function which in turn returns true if nth call has been hit, false otherwise
  */
-declare const everyNth: (nth: number, callback?: ((...args: readonly unknown[]) => void) | undefined) => (...args: unknown[]) => boolean;
+declare const everyNth: (nth: number, callback?: (...args: readonly unknown[]) => void) => (...args: unknown[]) => boolean;
 
 /**
  * Runs a function once
