@@ -275,7 +275,7 @@ var eventRace = (target, eventNames, opts = {}) => {
       if (triggered || disposed)
         return;
       dispose();
-      reject(new Error(`Events not fired within interval. Events: ${JSON.stringify(eventNames)}`));
+      reject(new Error(`eventRace: Events not fired within interval. Events: ${JSON.stringify(eventNames)} Interval: ${intervalMs}`));
     }, intervalMs);
     signal?.addEventListener(`abort`, () => {
       if (triggered || disposed)
@@ -344,4 +344,4 @@ export {
   SimpleEventEmitter,
   Events_exports
 };
-//# sourceMappingURL=chunk-5BFMO22S.js.map
+//# sourceMappingURL=chunk-SQZ3DU5K.js.map

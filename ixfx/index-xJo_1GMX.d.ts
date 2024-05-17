@@ -658,7 +658,7 @@ declare class EspruinoSerialDevice extends Device {
      *
      * @param code Code to send. A new line is added automatically.
      */
-    writeScript(code: string): Promise<void>;
+    writeScript(code: string): void;
     /**
      * Sends some code to be executed on the Espruino. The result
      * is packaged into JSON and sent back to your code. An exception is
@@ -685,7 +685,7 @@ declare class EspruinoSerialDevice extends Device {
      * @param opts Options
      * @param warn Function to pass warning/trace messages to. If undefined, this.warn is used, printing to console.
      */
-    eval(code: string, opts?: EvalOpts, warn?: (msg: string) => void): Promise<string>;
+    eval(code: string, opts?: EvalOpts, warn?: (message: string) => void): Promise<string>;
 }
 
 type EspruinoStates = `ready` | `connecting` | `connected` | `closed` | `closing`;

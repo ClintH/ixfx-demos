@@ -788,6 +788,26 @@ type RetryTask<T> = {
  * @returns
  */
 declare const retryFunction: <T>(callback: () => Promise<T | undefined>, opts?: Partial<RetryOpts<T>>) => Promise<RetryResult<T>>;
+/**
+ * Keeps trying to run `task`.
+ *
+ * ```js
+ * const task = (attempts) => {
+ *  // attempts is number of times it has been retried
+ *
+ *  if (Math.random() > 0.5) {
+ *    // Return a succesful result
+ *    return { success: true }
+ *  } else {
+ *  }
+ *
+ * }
+ * const t = await retryTask(task, opts);
+ * ```
+ * @param task
+ * @param opts
+ * @returns
+ */
 declare const retryTask: <V>(task: RetryTask<V>, opts?: Partial<RetryOpts<V>>) => Promise<RetryResult<V>>;
 
 type RequestResponseOptions<TRequest, TResp> = {

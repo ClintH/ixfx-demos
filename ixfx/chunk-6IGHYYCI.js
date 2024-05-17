@@ -3,7 +3,7 @@ import {
 } from "./chunk-2U2UFSNC.js";
 import {
   SimpleEventEmitter
-} from "./chunk-5BFMO22S.js";
+} from "./chunk-SQZ3DU5K.js";
 import {
   round
 } from "./chunk-VYSWKRXA.js";
@@ -30,7 +30,7 @@ import {
 import {
   getErrorMessage,
   resolveLogOption
-} from "./chunk-EKX6PMDK.js";
+} from "./chunk-LHWS2R35.js";
 import {
   __export
 } from "./chunk-Q2EHUQVZ.js";
@@ -940,10 +940,14 @@ function* backoffGenerator(options = {}) {
 var retryFunction = (callback, opts = {}) => {
   const task = {
     async probe() {
-      const v = await callback();
-      if (v === void 0)
-        return { value: opts.taskValueFallback, success: false };
-      return { value: v, success: true };
+      try {
+        const v = await callback();
+        if (v === void 0)
+          return { value: opts.taskValueFallback, success: false };
+        return { value: v, success: true };
+      } catch (error) {
+        return { success: false, message: getErrorMessage(error) };
+      }
     }
   };
   return retryTask(task, opts);
@@ -1774,4 +1778,4 @@ export {
   flow_exports,
   timeout
 };
-//# sourceMappingURL=chunk-XGTRFTA7.js.map
+//# sourceMappingURL=chunk-6IGHYYCI.js.map

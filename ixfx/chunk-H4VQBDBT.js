@@ -1,6 +1,6 @@
 import {
   numberTracker
-} from "./chunk-R6QB4GYU.js";
+} from "./chunk-H2N4BLJI.js";
 import {
   StateMachineWithEvents,
   StateMachine_exports,
@@ -9,11 +9,11 @@ import {
   retryFunction,
   retryTask,
   waitFor
-} from "./chunk-XGTRFTA7.js";
+} from "./chunk-6IGHYYCI.js";
 import {
   SimpleEventEmitter,
   eventRace
-} from "./chunk-5BFMO22S.js";
+} from "./chunk-SQZ3DU5K.js";
 import {
   indexOfCharCode,
   omitChars,
@@ -38,7 +38,7 @@ import {
 } from "./chunk-LTXP53ZM.js";
 import {
   getErrorMessage
-} from "./chunk-EKX6PMDK.js";
+} from "./chunk-LHWS2R35.js";
 import {
   __export
 } from "./chunk-Q2EHUQVZ.js";
@@ -1252,7 +1252,7 @@ var EspruinoSerialDevice = class extends Device {
    *
    * @param code Code to send. A new line is added automatically.
    */
-  async writeScript(code) {
+  writeScript(code) {
     this.write(`reset();
 `);
     this.write(`${code}
@@ -1286,8 +1286,10 @@ var EspruinoSerialDevice = class extends Device {
    */
   async eval(code, opts = {}, warn) {
     const debug = opts.debug ?? false;
-    const warnCb = warn ?? ((m) => this.warn(m));
-    return deviceEval(code, opts, this, `USB.println`, debug, warnCb);
+    const warner = warn ?? ((m) => {
+      this.warn(m);
+    });
+    return deviceEval(code, opts, this, `USB.println`, debug, warner);
   }
 };
 
@@ -1387,7 +1389,7 @@ var deviceEval = async (code, opts = {}, device, evalReplyPrefix, debug, warn) =
     const done = waitFor(
       timeoutMs,
       (reason) => {
-        reject(reason);
+        reject(new Error(reason));
       },
       () => {
         device.removeEventListener(`data`, onData);
@@ -1985,10 +1987,14 @@ var reconnectingWebsocket = (url, opts = {}) => {
       ws = void 0;
     }
     const retry = await retryTask({
-      async probe(attempts) {
-        const wss = new WebSocket(url);
-        const r = await eventRace(wss, [`open`, `error`], { timeout: 1e3 });
-        return r.type === `open` ? { success: true, value: wss } : { success: false, value: void 0 };
+      async probe(_attempts) {
+        try {
+          const wss = new WebSocket(url);
+          const r = await eventRace(wss, [`open`, `error`], { timeout: 1e3 });
+          return r.type === `open` ? { success: true, value: wss } : { success: false, value: void 0 };
+        } catch (error) {
+          return { success: false, message: getErrorMessage(error) };
+        }
       }
     }, { predelayMs: startDelayMs, limitAttempts: opts.limitAttempts });
     ws = retry.value;
@@ -2094,4 +2100,4 @@ export {
   genericStateTransitionsInstance,
   io_exports
 };
-//# sourceMappingURL=chunk-M7SWWJL5.js.map
+//# sourceMappingURL=chunk-H4VQBDBT.js.map

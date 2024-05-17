@@ -1,4 +1,4 @@
-// src/collections/map/GetOrGenerate.ts
+// src/collections/Map/GetOrGenerate.ts
 var getOrGenerateSync = (map, fn) => (key, args) => {
   let value = map.get(key);
   if (value !== void 0)
@@ -22,4 +22,4 @@ export {
   getOrGenerateSync,
   getOrGenerate
 };
-//# sourceMappingURL=chunk-EG2IYMCR.js.map
+//# sourceMappingURL=chunk-5OXN5BKJ.js.map
