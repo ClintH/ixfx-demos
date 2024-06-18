@@ -1,19 +1,9 @@
-import { S as SimpleEventEmitter } from './Events-nue2G3Li.js';
+import { S as SimpleEventEmitter } from './Events-QY1ngixJ.js';
 import { I as Interval } from './IntervalType-CQa4mlKV.js';
-import { I as IsEqual } from './IsEqual-f56NWa68.js';
-import { E as EitherKey } from './MakeGlobal-aaM2MklV.js';
-import { T as ToString } from './Util-lMkeEZwv.js';
-import { b as ICircularArray } from './IMapOfMutableExtended-OxnNM6u4.js';
-import './index-HsL-zwxm.js';
-import './Types-fof41_Zh.js';
-import './index-Tb5kvnfW.js';
-import './Types-ATA4eXqe.js';
-import './MinMaxAvg-X_wBRrCz.js';
-import './index-hdv6JT0k.js';
-import './index-4CnUPpC1.js';
-import './QueueMutable-y9N20W8a.js';
-import './GetOrGenerate-kIk9vbTz.js';
-import './Sleep-ezLnv9Vt.js';
+import { I as IsEqual } from './IsEqual-EdZcaNvH.js';
+import { E as EitherKey } from './Types-S6h-aw9z.js';
+import { I as ICircularArray } from './CircularArray-sm3CThg9.js';
+import { T as ToString } from './ToString-Wn1YmnlL.js';
 
 /**
  * Expiring map options
@@ -641,14 +631,14 @@ declare const ofArrayMutable: <V>(opts?: MapArrayOpts<V>) => IMapOfMutableExtend
 
 declare class MapOfSimpleBase<V> {
     protected map: Map<string, ReadonlyArray<V>>;
-    protected readonly groupBy: ToString<V>;
+    protected readonly groupBy: (value: V) => string;
     protected valueEq: IsEqual<V>;
     /**
      * Constructor
      * @param groupBy Creates keys for values when using `addValue`. By default uses JSON.stringify
      * @param valueEq Compare values. By default uses JS logic for equality
      */
-    constructor(groupBy?: ToString<V>, valueEq?: IsEqual<V>, initial?: Array<[string, ReadonlyArray<V>]>);
+    constructor(groupBy?: (value: V) => string, valueEq?: IsEqual<V>, initial?: Array<[string, ReadonlyArray<V>]>);
     /**
      * Iterate over all entries
      */
@@ -779,7 +769,7 @@ declare class MapOfSimpleMutable<V> extends MapOfSimpleBase<V> implements IMapOf
  * @template V Type of items
  * @returns New instance
  */
-declare const ofSimpleMutable: <V>(groupBy?: ToString<V>, valueEq?: IsEqual<V>) => IMapOfMutable<V>;
+declare const ofSimpleMutable: <V>(groupBy?: (value: V) => string, valueEq?: IsEqual<V>) => IMapOfMutable<V>;
 
 /**
  * @internal
@@ -865,10 +855,10 @@ type MapMultiOpts<V> = {
      *
      * @type {(ToString<V>|undefined)}
      */
-    readonly groupBy?: ToString<V> | undefined;
+    readonly groupBy?: ((value: V) => string) | undefined;
 };
 type MapSetOpts<V> = MapMultiOpts<V> & {
-    readonly hash: ToString<V>;
+    readonly hash: (value: V) => string;
 };
 
 /**

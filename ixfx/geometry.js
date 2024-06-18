@@ -1,5 +1,4 @@
 import {
-  Bezier_exports,
   CompoundPath_exports,
   Convolve2d_exports,
   CurveSimplification_exports,
@@ -13,6 +12,7 @@ import {
   Vector_exports,
   Waypoint_exports,
   arc_exports,
+  bezier_exports,
   circle_exports,
   degreeToRadian,
   line_exports,
@@ -23,30 +23,36 @@ import {
   rect_exports,
   shape_exports,
   triangle_exports
-} from "./chunk-7IZ676KD.js";
-import "./chunk-SJSSWM63.js";
-import "./chunk-3XE462OU.js";
-import "./chunk-2U2UFSNC.js";
-import "./chunk-Z3OIEOA4.js";
-import "./chunk-EV5NUNIF.js";
-import "./chunk-LGWKIFXB.js";
-import "./chunk-YPZEBOSD.js";
-import "./chunk-SQZ3DU5K.js";
-import "./chunk-VYSWKRXA.js";
-import "./chunk-LLEN4PGD.js";
-import "./chunk-67EP4MRJ.js";
-import "./chunk-K45JUSCV.js";
-import "./chunk-KAHSJ6KJ.js";
-import "./chunk-XWCACJL7.js";
-import "./chunk-YOQ54OW2.js";
-import "./chunk-JIUPCK6W.js";
-import "./chunk-Z5PR74I2.js";
-import "./chunk-LTXP53ZM.js";
-import "./chunk-5OXN5BKJ.js";
-import "./chunk-Q2EHUQVZ.js";
+} from "./chunk-NHXQKTQZ.js";
+import "./chunk-CGA5QY4R.js";
+import "./chunk-EO6AODLL.js";
+import "./chunk-T5BRTWW5.js";
+import "./chunk-3C3A3AGE.js";
+import "./chunk-B6BKOHRA.js";
+import "./chunk-YCVQG6QX.js";
+import "./chunk-JGB3SA7S.js";
+import "./chunk-H3LNITJL.js";
+import "./chunk-KDXVGFLS.js";
+import "./chunk-NMUBNCEC.js";
+import "./chunk-KE5JATLO.js";
+import "./chunk-2IRL3DMU.js";
+import "./chunk-AHTRZRWD.js";
+import "./chunk-LDUIWGOR.js";
+import "./chunk-NOMCNAPH.js";
+import "./chunk-E7QFX75E.js";
+import "./chunk-B5XN372M.js";
+import "./chunk-QB72AUCZ.js";
+import "./chunk-DLF4WKM6.js";
+import "./chunk-AAXTH4Z6.js";
+import "./chunk-3NK3ODTY.js";
+import "./chunk-HOGLR6UM.js";
+import "./chunk-SGQC7FGM.js";
+import "./chunk-2OY2BTO2.js";
+import "./chunk-G6WH2AA6.js";
+import "./chunk-4VA37QKG.js";
 export {
   arc_exports as Arcs,
-  Bezier_exports as Beziers,
+  bezier_exports as Beziers,
   circle_exports as Circles,
   CompoundPath_exports as Compound,
   Convolve2d_exports as Convolve2d,

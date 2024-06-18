@@ -1,5 +1,6 @@
 {
   "port": 5555,
+  "host": "0.0.0.0",
   "open": "index.html",
   "openTerminal": false,
   "watch": [

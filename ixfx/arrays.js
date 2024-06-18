@@ -3,10 +3,7 @@ import {
   average,
   averageWeighted,
   chunks,
-  compareValues,
-  compareValuesEqual,
   contains,
-  containsDuplicateInstances,
   containsDuplicateValues,
   cycle,
   dotProduct,
@@ -29,6 +26,7 @@ import {
   minFast,
   minIndex,
   minMaxAvg,
+  piecewise,
   randomElement,
   randomElementWeightedSource,
   randomIndex,
@@ -45,14 +43,24 @@ import {
   validNumbers,
   valuesEqual,
   weight,
-  without,
   withoutUndefined,
   zip
-} from "./chunk-YOQ54OW2.js";
-import "./chunk-JIUPCK6W.js";
-import "./chunk-Z5PR74I2.js";
-import "./chunk-LTXP53ZM.js";
-import "./chunk-Q2EHUQVZ.js";
+} from "./chunk-NOMCNAPH.js";
+import {
+  containsDuplicateInstances,
+  without
+} from "./chunk-E7QFX75E.js";
+import "./chunk-B5XN372M.js";
+import "./chunk-QB72AUCZ.js";
+import {
+  compareValues,
+  compareValuesEqual
+} from "./chunk-DLF4WKM6.js";
+import "./chunk-AAXTH4Z6.js";
+import "./chunk-HOGLR6UM.js";
+import "./chunk-SGQC7FGM.js";
+import "./chunk-2OY2BTO2.js";
+import "./chunk-4VA37QKG.js";
 export {
   additionalValues,
   average,
@@ -84,6 +92,7 @@ export {
   minFast,
   minIndex,
   minMaxAvg,
+  piecewise,
   randomElement,
   randomElementWeightedSource,
   randomIndex,

@@ -16,9 +16,9 @@ const settings = Object.freeze({
 
 /** 
  * @typedef {{
- * relative:import("../../ixfx/data").PointTrack|undefined,
- * angle: number
- * speed: number
+ *  relative:import("../../ixfx/data.js").PointTrack|undefined,
+ *  angle: number
+ *  speed: number
  * }} State
 */
 
@@ -28,7 +28,7 @@ const settings = Object.freeze({
 let state = Object.freeze({
   relative: undefined,
   angle: 0,
-  speed:0
+  speed: 0
 });
 
 const update = () => {
@@ -37,12 +37,12 @@ const update = () => {
 
   // Get latest calculated relative data
   const { relative } = state;
-  
+
   // Decay values
   speed = speed * decayAmount;
 
   // Yes, there is new data from the pointTracker
-  if (relative) {    
+  if (relative) {
     // Get speed, but could be other things like
     //    .angle, .centroid, .distanceFromStart
     const relativeSpeed = clamp(relative.speed / speedMax); // make proportional
@@ -62,9 +62,9 @@ const update = () => {
 
 const use = () => {
   const { speed } = state;
-  
+
   // Update HTML element with current speed
-  Util.textContent(`#speed`,speed);
+  Util.textContent(`#speed`, speed);
 };
 
 function setup() {
@@ -73,7 +73,7 @@ function setup() {
     settings.tracker.reset();
   });
 
-  document.addEventListener(`pointermove` ,event => {
+  document.addEventListener(`pointermove`, event => {
     if (event.buttons === 0) return;
 
     const { tracker } = settings;
@@ -83,11 +83,11 @@ function setup() {
 
     // Keep track of infom about move event with respect
     // to last pointerdown
-    saveState( {
+    saveState({
       relative: info.fromLast // could also use .fromInitial
     });
   });
-  
+
   // Call every half a second
   setInterval(update, 500);
 };
@@ -96,7 +96,7 @@ function setup() {
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

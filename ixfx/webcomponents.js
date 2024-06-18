@@ -1,20 +1,13 @@
 import {
   changedDataFields
-} from "./chunk-CRTFMN7Y.js";
-import "./chunk-QNHSDXZP.js";
+} from "./chunk-GRQ4ZZQI.js";
 import {
   round
-} from "./chunk-VYSWKRXA.js";
-import "./chunk-LLEN4PGD.js";
-import "./chunk-67EP4MRJ.js";
-import "./chunk-K45JUSCV.js";
-import "./chunk-KAHSJ6KJ.js";
-import "./chunk-XWCACJL7.js";
-import "./chunk-YOQ54OW2.js";
-import "./chunk-JIUPCK6W.js";
-import "./chunk-Z5PR74I2.js";
-import "./chunk-LTXP53ZM.js";
-import "./chunk-Q2EHUQVZ.js";
+} from "./chunk-3NK3ODTY.js";
+import "./chunk-HOGLR6UM.js";
+import "./chunk-SGQC7FGM.js";
+import "./chunk-2OY2BTO2.js";
+import "./chunk-4VA37QKG.js";
 
 // src/web-components/DataDisplay.ts
 var DataDisplayComponent = class _DataDisplayComponent extends HTMLElement {
@@ -43,20 +36,14 @@ var DataDisplayComponent = class _DataDisplayComponent extends HTMLElement {
     this._shadow.append(style, this._container);
   }
   formatValue(v, options = {}) {
-    if (v === null)
-      return `(null)`;
-    if (v === void 0)
-      return `(undefined)`;
-    if (typeof v === `boolean`)
-      return v ? `true` : `false`;
-    if (typeof v === `string`)
-      return `"${v}"`;
+    if (v === null) return `(null)`;
+    if (v === void 0) return `(undefined)`;
+    if (typeof v === `boolean`) return v ? `true` : `false`;
+    if (typeof v === `string`) return `"${v}"`;
     if (typeof v === `number`) {
       let vAsNumber = v;
-      if (options.roundNumbers !== void 0)
-        vAsNumber = round(options.roundNumbers, v);
-      if (options.precision !== void 0)
-        return vAsNumber.toFixed(options.precision);
+      if (options.roundNumbers !== void 0) vAsNumber = round(options.roundNumbers, v);
+      if (options.precision !== void 0) return vAsNumber.toFixed(options.precision);
       return vAsNumber.toString();
     }
     return JSON.stringify(v);
@@ -96,12 +83,10 @@ var DataDisplayComponent = class _DataDisplayComponent extends HTMLElement {
   }
   getOrCreate(path, init) {
     const element = this._shadow.getElementById(path);
-    if (element !== null)
-      return element;
+    if (element !== null) return element;
     const elementCreated = document.createElement(`div`);
     elementCreated.id = path;
-    if (init)
-      init(elementCreated);
+    if (init) init(elementCreated);
     this._container.append(elementCreated);
     return elementCreated;
   }

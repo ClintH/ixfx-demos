@@ -3,7 +3,6 @@ import {
   CssVariables_exports,
   DataDisplay,
   DataTable_exports,
-  DomRx_exports,
   DragDrop_exports,
   byId,
   cardinalPosition,
@@ -15,14 +14,12 @@ import {
   defaultErrorHandler,
   el,
   elRequery,
-  fullSizeCanvas,
   fullSizeElement,
   getTranslation,
   inlineConsole,
   insertSorted,
   log,
   parentSize,
-  parentSizeCanvas,
   pointScaler,
   pointerVisualise,
   positionFn,
@@ -33,51 +30,63 @@ import {
   setCssClass,
   setCssDisplay,
   setCssToggle,
-  setHtml,
-  setText,
   viewportToSpace
-} from "./chunk-D5H77PH6.js";
-import "./chunk-PEZNQXZI.js";
-import "./chunk-H4VQBDBT.js";
-import "./chunk-UKE2WE4A.js";
-import "./chunk-ZVCNUQQF.js";
-import "./chunk-H2N4BLJI.js";
-import "./chunk-36TJLLQJ.js";
-import "./chunk-SIOL7W3V.js";
+} from "./chunk-Y5XTHTYB.js";
+import {
+  DomRx_exports,
+  fullSizeCanvas,
+  parentSizeCanvas
+} from "./chunk-LM36MBTL.js";
+import "./chunk-CNSWLNVH.js";
 import {
   Forms_exports
-} from "./chunk-YURVZ2AM.js";
-import "./chunk-7IZ676KD.js";
-import "./chunk-SJSSWM63.js";
-import "./chunk-3XE462OU.js";
-import "./chunk-GIWC2HXP.js";
-import "./chunk-6IGHYYCI.js";
+} from "./chunk-4BON7GSA.js";
+import "./chunk-OMT7QNRQ.js";
+import "./chunk-FNU4RZK5.js";
+import {
+  setHtml,
+  setProperty,
+  setText
+} from "./chunk-NEXBEDMZ.js";
+import "./chunk-NHXQKTQZ.js";
+import "./chunk-CGA5QY4R.js";
+import "./chunk-EO6AODLL.js";
+import "./chunk-T5BRTWW5.js";
+import "./chunk-3C3A3AGE.js";
+import "./chunk-76P77IH3.js";
+import "./chunk-BLCC4LIS.js";
+import "./chunk-MF53JWPN.js";
+import "./chunk-3ODHGCQA.js";
+import "./chunk-WMPIC65G.js";
 import {
   resolveEl,
   resolveEls
-} from "./chunk-L3UAAAAG.js";
-import "./chunk-2U2UFSNC.js";
-import "./chunk-Z3OIEOA4.js";
-import "./chunk-EV5NUNIF.js";
-import "./chunk-LGWKIFXB.js";
-import "./chunk-YPZEBOSD.js";
-import "./chunk-SQZ3DU5K.js";
-import "./chunk-CRTFMN7Y.js";
-import "./chunk-QNHSDXZP.js";
-import "./chunk-VYSWKRXA.js";
-import "./chunk-LLEN4PGD.js";
-import "./chunk-67EP4MRJ.js";
-import "./chunk-K45JUSCV.js";
-import "./chunk-KAHSJ6KJ.js";
-import "./chunk-XWCACJL7.js";
-import "./chunk-YOQ54OW2.js";
-import "./chunk-JIUPCK6W.js";
-import "./chunk-Z5PR74I2.js";
-import "./chunk-LTXP53ZM.js";
-import "./chunk-VFOO3T2I.js";
-import "./chunk-LHWS2R35.js";
-import "./chunk-5OXN5BKJ.js";
-import "./chunk-Q2EHUQVZ.js";
+} from "./chunk-ZNCB3DZ2.js";
+import "./chunk-B6BKOHRA.js";
+import "./chunk-YCVQG6QX.js";
+import "./chunk-JGB3SA7S.js";
+import "./chunk-H3LNITJL.js";
+import "./chunk-KDXVGFLS.js";
+import "./chunk-NMUBNCEC.js";
+import "./chunk-KE5JATLO.js";
+import "./chunk-2IRL3DMU.js";
+import "./chunk-AHTRZRWD.js";
+import "./chunk-LDUIWGOR.js";
+import "./chunk-NOMCNAPH.js";
+import "./chunk-E7QFX75E.js";
+import "./chunk-B5XN372M.js";
+import "./chunk-QB72AUCZ.js";
+import "./chunk-DLF4WKM6.js";
+import "./chunk-AAXTH4Z6.js";
+import "./chunk-GRQ4ZZQI.js";
+import "./chunk-3NK3ODTY.js";
+import "./chunk-HOGLR6UM.js";
+import "./chunk-SGQC7FGM.js";
+import "./chunk-2OY2BTO2.js";
+import "./chunk-4IJNRUE7.js";
+import "./chunk-R2QHTQ2N.js";
+import "./chunk-G6WH2AA6.js";
+import "./chunk-4VA37QKG.js";
 export {
   CanvasHelper,
   DataDisplay,
@@ -117,6 +126,7 @@ export {
   setCssDisplay,
   setCssToggle,
   setHtml,
+  setProperty,
   setText,
   viewportToSpace
 };

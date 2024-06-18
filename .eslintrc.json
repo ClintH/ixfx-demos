@@ -24,6 +24,8 @@
     "unicorn/filename-case":"off",
     "unicorn/no-abusive-eslint-disable":"off",
     "unicorn/prevent-abbreviations":"off",
+    "unicorn/no-array-for-each":"off",
+    "unicorn/no-array-callback-reference":"off",
     "unicorn/consistent-function-scoping": "off",
     "unicorn/require-post-message-target-origin": "off",
     "unicorn/prefer-ternary": "off",

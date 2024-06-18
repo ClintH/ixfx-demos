@@ -4,7 +4,7 @@
  * and should not need to be modified
  * #####################################
  */
-import * as Visual from '../../ixfx/visual.js';
+import { Colour } from '../../ixfx/visual.js';
 import * as Arrays from '../../ixfx/arrays.js';
 import { wrapRange } from '../../ixfx/data.js';
 import { StateMachine } from '../../ixfx/flow.js';
@@ -29,7 +29,7 @@ export const parseLeds = (colours) => {
     const colour = (typeof v === `string`) ? v : v[1];
     const index = (typeof v === `string`) ? i : v[0];
 
-    const parsed = Visual.Colour.toHsl(colour);
+    const parsed = Colour.toHsl(colour);
     leds.push({
       index,
       ...parsed
@@ -138,7 +138,7 @@ const isContiguous = (leds) => {
 };
 
 /**
- * 
+ * Get the hexidecimal value for LED
  * @param {Led} led 
  * @returns 
  */
@@ -146,7 +146,7 @@ const getHex = (led) => {
   const h = Math.abs(led.h % 360);
 
   // @ts-ignore
-  const hex = Visual.Colour.toHex({ h, s: led.s, l: led.l });
+  const hex = Colour.toHex({ h, s: led.s, l: led.l });
   return hex.slice(1);
 };
 
@@ -437,7 +437,7 @@ export class WledSegment {
  * }} WledEvents
  */
 /**
- * @extends SimpleEventEmitter<WledEvents>
+ * @extends SimpleEventEmitter
  */
 export class Wled extends SimpleEventEmitter {
   /**

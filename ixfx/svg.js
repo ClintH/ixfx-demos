@@ -10,28 +10,20 @@ import {
   makeHelper,
   remove,
   setBounds
-} from "./chunk-PEZNQXZI.js";
-import "./chunk-7IZ676KD.js";
-import "./chunk-SJSSWM63.js";
-import "./chunk-3XE462OU.js";
-import "./chunk-2U2UFSNC.js";
-import "./chunk-Z3OIEOA4.js";
-import "./chunk-EV5NUNIF.js";
-import "./chunk-LGWKIFXB.js";
-import "./chunk-YPZEBOSD.js";
-import "./chunk-SQZ3DU5K.js";
-import "./chunk-VYSWKRXA.js";
-import "./chunk-LLEN4PGD.js";
-import "./chunk-67EP4MRJ.js";
-import "./chunk-K45JUSCV.js";
-import "./chunk-KAHSJ6KJ.js";
-import "./chunk-XWCACJL7.js";
-import "./chunk-YOQ54OW2.js";
-import "./chunk-JIUPCK6W.js";
-import "./chunk-Z5PR74I2.js";
-import "./chunk-LTXP53ZM.js";
-import "./chunk-5OXN5BKJ.js";
-import "./chunk-Q2EHUQVZ.js";
+} from "./chunk-CNSWLNVH.js";
+import "./chunk-CGA5QY4R.js";
+import "./chunk-3C3A3AGE.js";
+import "./chunk-B6BKOHRA.js";
+import "./chunk-NOMCNAPH.js";
+import "./chunk-E7QFX75E.js";
+import "./chunk-B5XN372M.js";
+import "./chunk-QB72AUCZ.js";
+import "./chunk-DLF4WKM6.js";
+import "./chunk-AAXTH4Z6.js";
+import "./chunk-HOGLR6UM.js";
+import "./chunk-SGQC7FGM.js";
+import "./chunk-2OY2BTO2.js";
+import "./chunk-4VA37QKG.js";
 export {
   SvgElements_exports as Elements,
   applyOpts,

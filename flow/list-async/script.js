@@ -1,15 +1,10 @@
-/**
- * flow/list-async
- * Demonstrates processing a list of things asynchronously,
- *  with a defined interval.
- * 
- * It uses a stack to store the processnig queue. This means 
- * that the most recently added will be processed before older 
- * items. Use a Queue if you want the opposite.
- */
 import { continuously } from "../../ixfx/flow.js";
-import { Stacks } from "../../ixfx/collections.js";
 import { log } from '../../ixfx/dom.js';
+import { Stacks } from '../../ixfx/collections.js';
+
+let state = {
+  toProcess: Stacks.immutable()
+};
 
 const settings = Object.freeze({
   processIntervalMs: 1000,
@@ -19,15 +14,11 @@ const settings = Object.freeze({
   })
 });
 
-let state = Object.freeze({
-  // Eg: limit stack to 10 items
-  toProcess: Stacks.immutable({ capacity: 10 })
-});
-
 const processor = continuously(() => {
   // Keeps looping until we've done everything in backlog
   const { log } = settings;
-  let { toProcess } = state;
+  const { toProcess } = state;
+
   if (toProcess.isEmpty) return false; // Stack is empty
 
   // Get top-most item
@@ -69,7 +60,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

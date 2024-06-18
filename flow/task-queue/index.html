@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>task-queue</title>
+</head>
+<style>
+  :root {
+    --hue: 310;
+  }
+
+  body {
+    background-color: hsl(var(--hue), 40%, 80%);
+    color: hsl(var(--hue), 80%, 10%);
+    font-size: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  }
+
+  button {
+    padding: 0.4em;
+  }
+</style>
+
+<body>
+  <section>
+    <h1>task-queue</h1>
+    <p>Demonstrates adding tasks to a queue and having them run in series.</p>
+    <button id="btnAddTask">Add task</button>
+    <div id="log"></div>
+    <script type="module" src="script.js"></script>
+  </section>
+</body>
+
+</html>

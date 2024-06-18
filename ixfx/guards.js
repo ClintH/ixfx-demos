@@ -1,24 +1,37 @@
 import {
   arrayTest,
   defined,
-  integerParse,
-  integerTest,
+  isFunction,
+  isPlainObject,
+  isPlainObjectOrPrimitive,
   isStringArray,
   nullUndef,
+  throwArrayTest,
+  throwNullUndef
+} from "./chunk-AAXTH4Z6.js";
+import {
+  ifNaN,
+  integerParse,
+  integerTest,
+  isPowerOfTwo,
   numberTest,
   percentTest,
-  throwArrayTest,
   throwFromResult,
   throwIntegerTest,
   throwNumberTest,
   throwPercentTest
-} from "./chunk-LTXP53ZM.js";
-import "./chunk-Q2EHUQVZ.js";
+} from "./chunk-2OY2BTO2.js";
+import "./chunk-4VA37QKG.js";
 export {
   arrayTest,
   defined,
+  ifNaN,
   integerParse,
   integerTest,
+  isFunction,
+  isPlainObject,
+  isPlainObjectOrPrimitive,
+  isPowerOfTwo,
   isStringArray,
   nullUndef,
   numberTest,
@@ -26,6 +39,7 @@ export {
   throwArrayTest,
   throwFromResult,
   throwIntegerTest,
+  throwNullUndef,
   throwNumberTest,
   throwPercentTest
 };

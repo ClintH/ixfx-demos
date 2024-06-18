@@ -1,8 +1,7 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement } from 'lit';
-import { a as KeyValue } from './KeyValue-tgb3aKKD.js';
-import './MinMaxAvg-X_wBRrCz.js';
+import { K as KeyValue } from './PrimitiveTypes-HWqXs_XP.js';
 
 type Bar = {
     readonly percentage: number;

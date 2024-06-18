@@ -8,6 +8,8 @@ To debug your sketches running on an Android device, make sure you're using Chro
 
 # iPhone/iPad
 
-To debug your sketches running on an iPhone or iOS and your machine must be a Mac. You can do so via Safari.
+To debug your sketches running on an iPhone or iPad your machine must be a Mac. You can do so via Safari.
 
-[Tutorial](https://appletoolbox.com/use-web-inspector-debug-mobile-safari/)
+The initial setup requires a cabled connection to your laptop, but after that it's possible to do it wirelessly.
+
+[Documentation from Apple](https://developer.apple.com/documentation/safari-developer-tools/inspecting-ios)
