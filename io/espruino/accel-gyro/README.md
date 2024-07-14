@@ -1,13 +1,12 @@
 # espruino / accel-gyro
 
 Sends back a stream of acceleration & gyro data from
-[Puck.js](https://www.espruino.com/Puck.js).
+[Puck.js](https://www.espruino.com/Puck.js). [Try online](https://clinth.github.io/ixfx-demos/io/espruino/accel-gyro/)
 
-- [Try demos online](https://clinth.github.io/ixfx-demos/io/)
-- [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
+The [Espruino plotter](https://clinth.github.io/ixfx-play/io/espruino-plot/index.html) is
+useful for getting a feel for the sensor data.
 
 Read more:
-
 - [ixfx Espruino module](https://clinth.github.io/ixfx/modules/Io.Espruino.html)
 - [Puck.js accel/gyro sensor](https://www.espruino.com/Puck.js#accelerometer-gyro)
 - [Puck.js accelOn event](https://www.espruino.com/Reference#l_Puck_accelOn)

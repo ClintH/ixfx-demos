@@ -93,7 +93,16 @@ document.addEventListener('gestureend', function(e) {
 });
 ```
 
-# Snippet
+If you get a context menu popping up, try adding:
+```js
+document.addEventListener(`contextmenu`, (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  return false;
+});
+```
+
+# CSS Snippet
 
 Here is a snippet which neuters most of the default behaviour for all elements:
 

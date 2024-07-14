@@ -1,78 +1,78 @@
 import {
-  additionalValues,
-  average,
-  averageWeighted,
   chunks,
   contains,
   containsDuplicateValues,
   cycle,
-  dotProduct,
   ensureLength,
-  filterAB,
-  filterBetween,
   flatten,
   groupBy,
-  guardArray,
-  guardIndex,
-  insertAt,
   interleave,
   intersection,
-  isEqual,
-  max,
-  maxFast,
-  maxIndex,
-  mergeByKey2 as mergeByKey,
-  min,
-  minFast,
-  minIndex,
-  minMaxAvg,
-  piecewise,
+  mergeByKey,
+  sample,
+  until
+} from "./chunk-J7QWV4CF.js";
+import {
+  zip
+} from "./chunk-I4A6YGP5.js";
+import {
+  isContentsTheSame,
+  isEqual
+} from "./chunk-CHBOXPIA.js";
+import {
+  minMaxAvg
+} from "./chunk-BXWBMVS6.js";
+import {
+  insertAt,
+  remove
+} from "./chunk-C6FK33KH.js";
+import {
+  sortByNumericProperty
+} from "./chunk-AL5TF55L.js";
+import {
+  pairwise,
+  pairwiseReduce
+} from "./chunk-VJWZGNDD.js";
+import {
+  unique
+} from "./chunk-AMGGFK7I.js";
+import {
   randomElement,
   randomElementWeightedSource,
   randomIndex,
   randomPluck,
-  reducePairwise,
-  remove,
-  sample,
-  shuffle,
-  sortByNumericProperty,
-  total,
-  totalFast,
-  unique,
-  until,
-  validNumbers,
-  valuesEqual,
-  weight,
-  withoutUndefined,
-  zip
-} from "./chunk-NOMCNAPH.js";
+  shuffle
+} from "./chunk-WIEQUAVY.js";
 import {
-  containsDuplicateInstances,
-  without
-} from "./chunk-E7QFX75E.js";
-import "./chunk-B5XN372M.js";
-import "./chunk-QB72AUCZ.js";
+  containsDuplicateInstances
+} from "./chunk-MZFSDYZE.js";
+import "./chunk-Q2N6YFPP.js";
+import "./chunk-TZZOFPLH.js";
 import {
-  compareValues,
-  compareValuesEqual
-} from "./chunk-DLF4WKM6.js";
-import "./chunk-AAXTH4Z6.js";
+  filterAB,
+  filterBetween,
+  guardIndex,
+  without,
+  withoutUndefined
+} from "./chunk-2XNNMGQC.js";
+import {
+  guardArray
+} from "./chunk-UH4IORRN.js";
+import "./chunk-CMDYFLOS.js";
+import "./chunk-KQLC3QPI.js";
+import "./chunk-3ZEQSJPN.js";
+import "./chunk-5VWJ6TUI.js";
+import "./chunk-QZ7DQTW7.js";
 import "./chunk-HOGLR6UM.js";
 import "./chunk-SGQC7FGM.js";
-import "./chunk-2OY2BTO2.js";
-import "./chunk-4VA37QKG.js";
+import "./chunk-JIDOUNL5.js";
+import "./chunk-AFNFQUHK.js";
 export {
-  additionalValues,
-  average,
-  averageWeighted,
   chunks,
-  compareValues,
-  compareValuesEqual,
   contains,
   containsDuplicateInstances,
   containsDuplicateValues,
   cycle,
-  dotProduct,
   ensureLength,
   filterAB,
   filterBetween,
@@ -83,32 +83,22 @@ export {
   insertAt,
   interleave,
   intersection,
+  isContentsTheSame,
   isEqual,
-  max,
-  maxFast,
-  maxIndex,
   mergeByKey,
-  min,
-  minFast,
-  minIndex,
   minMaxAvg,
-  piecewise,
+  pairwise,
+  pairwiseReduce,
   randomElement,
   randomElementWeightedSource,
   randomIndex,
   randomPluck,
-  reducePairwise,
   remove,
   sample,
   shuffle,
   sortByNumericProperty,
-  total,
-  totalFast,
   unique,
   until,
-  validNumbers,
-  valuesEqual,
-  weight,
   without,
   withoutUndefined,
   zip

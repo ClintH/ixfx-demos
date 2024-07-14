@@ -1,7 +1,8 @@
 
-import { Grids, Points } from '../../ixfx/geometry.js';
-import { Arrays, Maps } from '../../ixfx/collections.js';
+import { Grids } from '../../ixfx/geometry.js';
+import { Maps } from '../../ixfx/collections.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
+import { Arrays } from '../../ixfx/data.js';
 
 const settings = Object.freeze({
   canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),
