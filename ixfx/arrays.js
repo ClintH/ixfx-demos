@@ -11,10 +11,10 @@ import {
   mergeByKey,
   sample,
   until
-} from "./chunk-J7QWV4CF.js";
+} from "./chunk-BHCE37EK.js";
 import {
   zip
-} from "./chunk-I4A6YGP5.js";
+} from "./chunk-UEAUFROA.js";
 import {
   isContentsTheSame,
   isEqual
@@ -27,8 +27,9 @@ import {
   remove
 } from "./chunk-C6FK33KH.js";
 import {
-  sortByNumericProperty
-} from "./chunk-AL5TF55L.js";
+  sortByNumericProperty,
+  sortByProperty
+} from "./chunk-AK2RMORX.js";
 import {
   pairwise,
   pairwiseReduce
@@ -46,7 +47,7 @@ import {
 import {
   containsDuplicateInstances
 } from "./chunk-MZFSDYZE.js";
-import "./chunk-Q2N6YFPP.js";
+import "./chunk-YWGG2NOJ.js";
 import "./chunk-TZZOFPLH.js";
 import {
   filterAB,
@@ -58,7 +59,7 @@ import {
 import {
   guardArray
 } from "./chunk-UH4IORRN.js";
-import "./chunk-CMDYFLOS.js";
+import "./chunk-N37UR7MZ.js";
 import "./chunk-KQLC3QPI.js";
 import "./chunk-3ZEQSJPN.js";
 import "./chunk-5VWJ6TUI.js";
@@ -97,6 +98,7 @@ export {
   sample,
   shuffle,
   sortByNumericProperty,
+  sortByProperty,
   unique,
   until,
   without,

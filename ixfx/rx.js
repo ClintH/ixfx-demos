@@ -10,6 +10,7 @@ import {
   cloneFromFields,
   combineLatestToArray,
   combineLatestToObject,
+  computeWithPrevious,
   count,
   debounce,
   drop,
@@ -17,6 +18,9 @@ import {
   field,
   filter,
   hasLast,
+  interpolate,
+  interpolateToTarget,
+  isPingable,
   isReactive,
   isTrigger,
   isTriggerFunction,
@@ -62,32 +66,34 @@ import {
   transform,
   withValue,
   wrap
-} from "./chunk-NRZ7TMA5.js";
-import "./chunk-BBPGDHBT.js";
-import "./chunk-WTMM6PI4.js";
+} from "./chunk-RBLOJS6A.js";
+import "./chunk-YEZDB5LJ.js";
+import "./chunk-3RVYHJO6.js";
+import "./chunk-4NG2GB4D.js";
+import "./chunk-SJ3R4FCY.js";
 import "./chunk-ZNCB3DZ2.js";
-import "./chunk-RSWMANK7.js";
-import "./chunk-HYRO3NLJ.js";
+import "./chunk-RNUQGND2.js";
+import "./chunk-XONNGZY5.js";
 import "./chunk-4LUNZR7B.js";
 import "./chunk-REDAXMKO.js";
 import "./chunk-C6FK33KH.js";
 import "./chunk-VJWZGNDD.js";
 import "./chunk-AMGGFK7I.js";
 import "./chunk-WIEQUAVY.js";
-import "./chunk-X3MBMXKX.js";
+import "./chunk-JR5DG2GR.js";
 import "./chunk-SP37NBBE.js";
-import "./chunk-CIFHH2EE.js";
+import "./chunk-KSOSZLHF.js";
 import "./chunk-RLUQAN6Q.js";
 import "./chunk-BS3QYH4U.js";
 import "./chunk-5PZ2TXZH.js";
 import "./chunk-QZPNGNL4.js";
 import "./chunk-37WZU5ZM.js";
 import "./chunk-MZFSDYZE.js";
-import "./chunk-Q2N6YFPP.js";
+import "./chunk-YWGG2NOJ.js";
 import "./chunk-TZZOFPLH.js";
 import "./chunk-2XNNMGQC.js";
 import "./chunk-UH4IORRN.js";
-import "./chunk-CMDYFLOS.js";
+import "./chunk-N37UR7MZ.js";
 import "./chunk-KQLC3QPI.js";
 import "./chunk-3ZEQSJPN.js";
 import "./chunk-5VWJ6TUI.js";
@@ -115,6 +121,7 @@ export {
   cloneFromFields,
   combineLatestToArray,
   combineLatestToObject,
+  computeWithPrevious,
   count,
   debounce,
   drop,
@@ -122,6 +129,9 @@ export {
   field,
   filter,
   hasLast,
+  interpolate,
+  interpolateToTarget,
+  isPingable,
   isReactive,
   isTrigger,
   isTriggerFunction,

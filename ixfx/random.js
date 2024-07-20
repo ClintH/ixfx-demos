@@ -1,5 +1,6 @@
 import {
   calculateNonZero,
+  chance,
   gaussian,
   gaussianSource,
   integer,
@@ -14,15 +15,16 @@ import {
   weightedInteger,
   weightedIntegerSource,
   weightedSource
-} from "./chunk-I6O3ZA33.js";
+} from "./chunk-FCEXFCW7.js";
 import {
   float,
   floatSource
-} from "./chunk-VLVPWAYU.js";
+} from "./chunk-FVMOM6Z4.js";
+import "./chunk-YEZDB5LJ.js";
 import "./chunk-3RVYHJO6.js";
 import {
   randomHue
-} from "./chunk-BBPGDHBT.js";
+} from "./chunk-4NG2GB4D.js";
 import "./chunk-4LUNZR7B.js";
 import "./chunk-REDAXMKO.js";
 import "./chunk-VJWZGNDD.js";
@@ -44,6 +46,7 @@ export {
   randomElement as arrayElement,
   randomIndex as arrayIndex,
   calculateNonZero,
+  chance,
   float,
   floatSource,
   gaussian,

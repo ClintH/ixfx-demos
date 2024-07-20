@@ -1,14 +1,15 @@
-export { c as CanvasEvents, e as CanvasHelper, d as CanvasHelperOpts, f as CanvasResizeArgs, _ as CreateUpdateElement, l as DataDisplay, k as DataDisplayOptions, D as DataTable, b as DragDrop, J as ElPositionOpts, x as ElementQueryOptions, E as ElementResizeArgs, I as InlineConsoleOptions, u as Log, L as LogOpts, O as Opts, P as PointSpaces, Q as QueryOrElements, a as Rx, C as Variables, a0 as byId, M as cardinalPosition, X as clear, Y as copyToClipboard, V as createAfter, W as createIn, T as cycleCssClass, r as defaultErrorHandler, m as el, n as elRequery, g as fullSizeCanvas, o as fullSizeElement, U as getTranslation, t as inlineConsole, Z as insertSorted, v as log, q as parentSize, p as parentSizeCanvas, H as pointScaler, w as pointerVisualise, K as positionFn, S as positionFromMiddle, N as positionRelative, y as query, $ as reconcileChildren, z as resolveEl, A as resolveEls, s as setCssClass, j as setCssDisplay, h as setCssToggle, F as setHtml, G as setProperty, B as setText, R as viewportToSpace } from './index-rMIi-Agg.js';
+export { c as CanvasEvents, e as CanvasHelper, d as CanvasHelperOpts, f as CanvasResizeArgs, _ as CreateUpdateElement, l as DataDisplay, k as DataDisplayOptions, D as DataTable, b as DragDrop, J as ElPositionOpts, x as ElementQueryOptions, E as ElementResizeArgs, I as InlineConsoleOptions, u as Log, L as LogOpts, O as Opts, P as PointSpaces, Q as QueryOrElements, a as Rx, C as Variables, a0 as byId, M as cardinalPosition, X as clear, Y as copyToClipboard, V as createAfter, W as createIn, T as cycleCssClass, r as defaultErrorHandler, m as el, n as elRequery, g as fullSizeCanvas, o as fullSizeElement, U as getTranslation, t as inlineConsole, Z as insertSorted, v as log, q as parentSize, p as parentSizeCanvas, H as pointScaler, w as pointerVisualise, K as positionFn, S as positionFromMiddle, N as positionRelative, y as query, $ as reconcileChildren, z as resolveEl, A as resolveEls, s as setCssClass, j as setCssDisplay, h as setCssToggle, F as setHtml, G as setProperty, B as setText, R as viewportToSpace } from './index-SGFjJEQ5.js';
 export { F as Forms } from './Forms-6ij68wV5.js';
 import './Scaler-PgueV1cj.js';
 import './PointType-0vgoM_lJ.js';
 import './RectTypes-kjDrC-8b.js';
 import './Events-MevXuVvQ.js';
 import './IntervalType-CQa4mlKV.js';
-import './Types-ZXIECzsQ.js';
+import './Types-qqK8vQyN.js';
 import './PrimitiveTypes-HWqXs_XP.js';
+import './Results-mPoPoaRi.js';
 import './IsEqual-EdZcaNvH.js';
-import './Types-0RfFkd3L.js';
+import './Types-soOaQOq9.js';
 import './PointRelationTypes-s8dUPZOm.js';
 import './Grid-DwvA8aOV.js';
 import './ISetMutable-K88MnyxI.js';

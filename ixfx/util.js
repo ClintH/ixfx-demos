@@ -5,8 +5,9 @@ import {
   isInteger,
   jsComparer,
   numericComparer,
-  runningiOS
-} from "./chunk-CMDYFLOS.js";
+  runningiOS,
+  throwResult
+} from "./chunk-N37UR7MZ.js";
 import "./chunk-KQLC3QPI.js";
 import "./chunk-3ZEQSJPN.js";
 import "./chunk-5VWJ6TUI.js";
@@ -46,6 +47,7 @@ export {
   mapKeys,
   numericComparer,
   runningiOS,
+  throwResult,
   toStringDefault,
   toStringOrdered
 };
