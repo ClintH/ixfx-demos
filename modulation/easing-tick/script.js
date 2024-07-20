@@ -40,7 +40,7 @@ const use = () => {
 
   if (!thingEl) return;
 
-  if (isDone)  {
+  if (isDone) {
     thingEl.classList.add(`isDone`);
   }
 
@@ -55,13 +55,14 @@ const use = () => {
   thingEl.style.transform = `translate(${amt * width}px, 0px)`;
 };
 
-const reset = (event) => {
+/**
+ * Not used, but shows how to reset
+ * easing 
+ */
+const reset = () => {
   const { thingEl, easing } = settings;
 
   if (!thingEl) return;
-
-  // Don't reset if circle is clicked 
-  if (event.target === thingEl) return;
 
   // Reset
   easing.reset();
@@ -75,9 +76,8 @@ function setup() {
   if (!thingEl) return;
 
   // Handle events
-  document.addEventListener(`pointerdown`, reset);
   document.addEventListener(`keydown`, onPointerOrKeyUp);
-  thingEl.addEventListener(`click`, onPointerOrKeyUp);
+  document.addEventListener(`click`, onPointerOrKeyUp);
 };
 setup();
 
@@ -85,7 +85,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
