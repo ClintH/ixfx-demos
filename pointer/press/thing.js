@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 import * as Util from './util.js';
 
 /** 
@@ -54,7 +54,7 @@ export const onPointerEvent = (thing, event) => {
 export const use = (thing) => {
   // Grab some properties from `thing`
   const { position, elementId, energy, hue } = thing;
-  
+
   // Resolve element
   const element = /** @type HTMLElement */(document.querySelector(`#${elementId}`));
   if (!element) return;
@@ -79,13 +79,13 @@ export const use = (thing) => {
 export const update = (thing, ambientState) => {
   const { energyGainAmount, energyLoss } = settings;
   let { energy, clicked } = thing;
-  
+
   // 1. Alter properties based on external state/settings
 
   // 2. Alter properties based on the state of 'thing'
   // eg. increase 'energy' while being clicked
   if (clicked) {
-    energy += energyGainAmount; 
+    energy += energyGainAmount;
   }
 
   // 3. Apply 'intrinsic' logic of thing. Eg. that a variable will
@@ -110,7 +110,7 @@ export const update = (thing, ambientState) => {
  */
 export const create = (elementId) => {
   return Object.freeze({
-    position: { x: 0.5, y:0.5 },
+    position: { x: 0.5, y: 0.5 },
     elementId,
     energy: 1,
     clicked: false,

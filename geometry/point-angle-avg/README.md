@@ -9,6 +9,6 @@ Guides
 * [Trackers guide](https://clinth.github.io/ixfx-docs/data/trackers/)
 
 APIs
-* [Data.pointTracker](https://clinth.github.io/ixfx/functions/Data.pointTracker.html)
-* [Data.numberTracker](https://clinth.github.io/ixfx/functions/Data.numberTracker.html)
+* [Data.pointTracker](https://clinth.github.io/ixfx/functions/Trackers.points.html)
+* [Data.numberTracker](https://clinth.github.io/ixfx/functions/Trackers.number.html)
 * [Geometry.Points](https://clinth.github.io/ixfx/modules/Geometry.Points.html)

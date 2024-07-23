@@ -5,6 +5,6 @@ This sketch demonstrates using key events to make a very simple typewriter. By a
 [See demo online](https://clinth.github.io/ixfx-demos/io/keyboard/typer/)
 
 Demonstrates:
-* [`intervalTracker`](https://clinth.github.io/ixfx/functions/Data.intervalTracker.html)
+* [`intervalTracker`](https://clinth.github.io/ixfx/functions/Trackers.interval.html)
 
 [Read more about ixfx trackers](https://clinth.github.io/ixfx-docs/data/trackers/)

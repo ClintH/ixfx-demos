@@ -6,7 +6,7 @@
  */
 import { Colour } from '../../ixfx/visual.js';
 import * as Arrays from '../../ixfx/arrays.js';
-import { wrapRange } from '../../ixfx/data.js';
+import { wrapRange } from '../../ixfx/numbers.js';
 import { StateMachine } from '../../ixfx/flow.js';
 import { SimpleEventEmitter } from '../../ixfx/events.js';
 

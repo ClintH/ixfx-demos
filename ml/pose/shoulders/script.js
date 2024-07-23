@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
 import { Points } from '../../../ixfx/geometry.js';
-import { Bipolar, interpolate } from '../../../ixfx/data.js';
+import { Bipolar, interpolate } from '../../../ixfx/numbers.js';
 import * as Dom from '../../../ixfx/dom.js';
 import * as MoveNet from "../Poses.js";
 import * as Things from './thing.js';
@@ -19,7 +19,7 @@ const settings = Object.freeze({
   // Empirically-discovered max angle
   tiltMax: 0.5,
   remote: new Remote(),
-  poses: new MoveNet.PosesTracker({maxAgeMs: 2000 }),
+  poses: new MoveNet.PosesTracker({ maxAgeMs: 2000 }),
   dataDisplay: new Dom.DataDisplay()
 
 });
@@ -39,11 +39,11 @@ let state = Object.freeze({
   thing: Things.create(),
   bounds: {
     width: 0, height: 0,
-    min:0, max: 0,
+    min: 0, max: 0,
     center: { x: 0, y: 0 },
   },
   // Bipolar value: -1...1
-  tilt:0
+  tilt: 0
 });
 
 /**
@@ -56,8 +56,8 @@ const use = () => {
   Util.textContent(`#info`, tilt);
 
   context.fillStyle = `hsl(220, 100%, 90%)`;
-  context.fillRect(0,0,bounds.width,bounds.height);
-  
+  context.fillRect(0, 0, bounds.width, bounds.height);
+
   Things.use(thing, context, bounds);
 };
 
@@ -81,11 +81,11 @@ const update = () => {
     angleTotal += a;
     counted++;
   }
-  
+
   // Interpolate if we have the data
   if (counted > 0) {
-    const angleAverage = angleTotal/counted;
-  
+    const angleAverage = angleTotal / counted;
+
     // Interpolate toward average of all poses
     tilt = interpolate(angleAmount, tilt, angleAverage);
   }
@@ -93,10 +93,10 @@ const update = () => {
   // Push toward 0 (neutral)
   tilt = Bipolar.towardZero(tilt, tiltDecay);
 
-  
+
   // Update thing
   thing = Things.update(state.thing, state);
-    
+
   // Save
   saveState({ tilt, thing });
 
@@ -109,7 +109,7 @@ const update = () => {
  * @param {MoveNet.PoseTracker} pose 
  */
 const computeShoulderAngle = (pose) => {
-  const left =  pose.keypoint(`left_shoulder`);
+  const left = pose.keypoint(`left_shoulder`);
   const right = pose.keypoint(`right_shoulder`);
   const angleRadians = Points.angle(left, right);
   return angleRadians;
@@ -165,10 +165,10 @@ setup();
  * Called when we receive data
  * @param {*} packet 
  */
-function onReceivedPoses (packet) {
+function onReceivedPoses(packet) {
   const { _from, data } = packet;
   const poseData =/** @type MoveNet.Pose[] */(data);
-  
+
   // Pass each pose over to the poses tracker
   for (const pose of poseData) {
     settings.poses.seen(_from, pose);
@@ -179,7 +179,7 @@ function onReceivedPoses (packet) {
  * Update state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

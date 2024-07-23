@@ -1,19 +1,23 @@
 import {
   comparerInverse,
   defaultComparer,
+  getSorter,
   isEqualTrace,
   isInteger,
   jsComparer,
+  minMaxAvg,
   numericComparer,
   runningiOS,
   throwResult
-} from "./chunk-N37UR7MZ.js";
-import "./chunk-KQLC3QPI.js";
-import "./chunk-3ZEQSJPN.js";
+} from "./chunk-YEPQKQF6.js";
+import "./chunk-WWMZJ2DK.js";
+import "./chunk-HE2SC3FY.js";
+import "./chunk-7U6QARGK.js";
+import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
 import {
   guards_exports
-} from "./chunk-QZ7DQTW7.js";
+} from "./chunk-G7E3BCBX.js";
 import {
   mapKeys
 } from "./chunk-HOGLR6UM.js";
@@ -29,12 +33,13 @@ import {
   toStringOrdered
 } from "./chunk-SGQC7FGM.js";
 import "./chunk-JIDOUNL5.js";
-import "./chunk-AFNFQUHK.js";
+import "./chunk-BPDJLURO.js";
 export {
   guards_exports as Guards,
   comparerInverse,
   defaultComparer,
   defaultToString,
+  getSorter,
   isEqualDefault,
   isEqualTrace,
   isEqualValueDefault,
@@ -45,6 +50,7 @@ export {
   isSet,
   jsComparer,
   mapKeys,
+  minMaxAvg,
   numericComparer,
   runningiOS,
   throwResult,

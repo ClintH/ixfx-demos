@@ -1,7 +1,6 @@
 import { Svg, Colour } from '../../ixfx/visual.js';
-import * as Numbers from '../../ixfx/numbers.js';
-import * as Dom from '../../ixfx/dom.js';
 import { Points } from '../../ixfx/geometry.js';
+import { Numbers, Dom, Modulation } from '../../ixfx/bundle.js';
 
 const settings = Object.freeze({
   // Relative middle
@@ -9,24 +8,31 @@ const settings = Object.freeze({
   strokeWidthMax: 70,
   strokeWidthMin: 3,
   strokeStyle: Colour.getCssVariable(`arc`, `#FACF5A`),
-  // Loop up and down again from 0 and 100%, 1% at a time
-  genPingPong: Numbers.pingPongPercent(0.01)
+  wave: Modulation.wave({ shape: `sine`, hertz: 0.1 })
 });
 
-let state = Object.freeze({
-  /** @type {number} */
-  pingPong: 0,
+/**
+ * @typedef {Readonly<{
+ * wave: number
+ * bounds: { center: {x:number, y:number}, width: number, height: number}
+ * pointers: {}
+ * }>} State
+ */
+
+/** @type State */
+let state = {
+  wave: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   pointers: {}
-});
+};
 
 // Update state of world
 const update = () => {
-  const { genPingPong } = settings;
+  const { wave } = settings;
 
   saveState({
     // Get new values from generators
-    pingPong: genPingPong.next().value
+    wave: wave()
   });
 };
 
@@ -35,13 +41,13 @@ const update = () => {
  */
 const updateSvg = () => {
   const { originPoint } = settings;
-  const { bounds, pingPong, pointers } = state;
+  const { bounds, wave, pointers } = state;
   const svg = document.querySelector(`svg`);
 
   if (!svg) return;
 
-  // Apply same pingPong value to stroke width
-  const strokeWidth = settings.strokeWidthMin + (pingPong * settings.strokeWidthMax);
+  // Apply same sine value to stroke width
+  const strokeWidth = settings.strokeWidthMin + (wave * settings.strokeWidthMax);
 
   // Calc absolute point of origin according to screen size
   const originAbs = Points.multiply(originPoint, bounds.width, bounds.height);

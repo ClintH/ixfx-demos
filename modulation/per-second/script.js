@@ -1,5 +1,5 @@
 
-import { clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 import { Sources } from '../../ixfx/modulation.js';
 
 const settings = Object.freeze({

@@ -1,4 +1,4 @@
-import { scaleClamped } from '../../ixfx/data.js';
+import { scaleClamped } from '../../ixfx/numbers.js';
 import { Oscillators } from '../../ixfx/modulation.js';
 import { interval } from '../../ixfx/flow.js';
 import * as Random from '../../ixfx/random.js';
@@ -29,7 +29,7 @@ let state = Object.freeze({
 
 const use = () => {
   const { audioId } = settings;
-  const a = state.audio.get(audioId); 
+  const a = state.audio.get(audioId);
   if (!a) return;
 
   const { filter } = a;
@@ -67,7 +67,7 @@ const stop = () => {
   el.pause();
 };
 
-function setup ()  {
+function setup() {
   const { audioId } = settings;
 
   // Set pan to a random value
@@ -125,9 +125,9 @@ function setup ()  {
   });
 
   document.querySelector(`#btnAutoStop`)?.addEventListener(`click`, event => {
-    saveState({ readingAutoFilter:false });
+    saveState({ readingAutoFilter: false });
   });
-  
+
 };
 setup();
 
@@ -135,7 +135,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -150,13 +150,13 @@ function initAudio() {
   // Already initialised
   if (state.initialised) return;
 
-  saveState({ initialised:true });
+  saveState({ initialised: true });
   /** @type Map<string,BasicAudio> */
   const ac = new Map();
   for (const element of document.querySelectorAll(`audio`)) {
     ac.set(element.id, initBasicAudio(element));
   }
-  saveState({ audio:ac });
+  saveState({ audio: ac });
   return ac;
 }
 
@@ -170,7 +170,7 @@ function initBasicAudio(audioElement) {
 
   // Source from AUDIO element
   const source = context.createMediaElementSource(audioElement);
-  
+
   // Create stereo panner
   const pan = context.createStereoPanner();
 
@@ -192,7 +192,7 @@ function initBasicAudio(audioElement) {
     pan, gain, filter,
     id: audioElement.id,
     ctx: context,
-    el:audioElement
+    el: audioElement
   };
 }
 

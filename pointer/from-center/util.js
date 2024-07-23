@@ -1,4 +1,4 @@
-import { scalePercent, clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 
 /**
  * Convert relative point to absolute.

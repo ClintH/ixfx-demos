@@ -1,4 +1,4 @@
-import { clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 import { StateMachine, continuously } from '../../ixfx/flow.js';
 
 // Settings

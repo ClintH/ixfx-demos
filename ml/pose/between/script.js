@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Remote } from "https://unpkg.com/@clinth/remote@latest/dist/index.mjs";
-import {Arrays} from '../../../ixfx/collections.js';
-import {Points} from '../../../ixfx/geometry.js';
+import { Arrays } from '../../../ixfx/data.js';
+import { Points } from '../../../ixfx/geometry.js';
 import * as MoveNet from "../Poses.js";
 import * as Things from './thing.js';
 import * as Util from './util.js';
@@ -12,7 +12,7 @@ const settings = Object.freeze({
   // How often to update main state
   updateSpeedMs: 200,
   remote: new Remote(),
-  poses: new MoveNet.PosesTracker({maxAgeMs: 1000 }),
+  poses: new MoveNet.PosesTracker({ maxAgeMs: 1000 }),
 });
 
 /** 
@@ -31,15 +31,15 @@ let state = Object.freeze({
 const use = () => {};
 
 const update = () => {
-  const {poses} = settings;
+  const { poses } = settings;
 
   // Calculate middle of each pose
   const middles = [];
   for (const p of poses.get()) {
     const middle = p.middle;
-    middles.push({id:p.guid, position:middle });
+    middles.push({ id: p.guid, position: middle });
   }
-  saveState({middles});
+  saveState({ middles });
 };
 
 /**
@@ -48,13 +48,13 @@ const update = () => {
  */
 const onPoseAdded = (event) => {
   const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
- 
+
   // Create a thing for this pose
   const x = poseTracker.middle.x;
   const thingForPose = Things.create(poseTracker.guid, x);
 
   // Add it
-  saveState({things: [...state.things, thingForPose] });
+  saveState({ things: [...state.things, thingForPose] });
 };
 
 /**
@@ -65,22 +65,22 @@ const onPoseExpired = (event) => {
   const { poses } = settings;
   const { things } = state;
   const poseTracker = /** @type MoveNet.PoseTracker */(event.detail);
-  
+
   // Synchronise list of things with current poses
 
   // Get list of current pose guids
   const existing = new Set(poses.getGuids());
 
   // Split the current list into dead/alive using ixfx Arrays.filterAB
-  const [ dead, alive ] = Arrays.filterAB(things, t => !existing.has(t.id));
+  const [dead, alive] = Arrays.filterAB(things, t => !existing.has(t.id));
 
   // Remove the dead thigns
   for (const d of dead) {
     Things.remove(d);
   }
-  
+
   // Alive things are our new list of things
-  saveState({ things:alive });
+  saveState({ things: alive });
 };
 
 /**
@@ -88,7 +88,7 @@ const onPoseExpired = (event) => {
  * @param {string} guid 
  * @returns 
  */
-const getThing = (guid) => state.things.find(t=>t.id === guid);
+const getThing = (guid) => state.things.find(t => t.id === guid);
 
 function setup() {
   const { remote, poses } = settings;
@@ -135,10 +135,10 @@ function setup() {
  * Called when we receive data
  * @param {*} packet 
  */
-function onReceivedPoses (packet) {
+function onReceivedPoses(packet) {
   const { _from, data } = packet;
   const poseData =/** @type MoveNet.Pose[] */(data);
-  
+
   // Pass each pose over to the poses tracker
   for (const pose of poseData) {
     settings.poses.seen(_from, pose);
@@ -151,7 +151,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -172,7 +172,7 @@ function updateThingInState(thingId, updatedThing) {
   const things = state.things.map(thing => {
     // Is it the thing we want to change?
     if (thing.id !== thingId) return thing; // nup
-    
+
     // Return mutated thing
     completedThing = {
       ...thing,
@@ -182,6 +182,6 @@ function updateThingInState(thingId, updatedThing) {
   });
 
   // Save changed things
-  saveState({things});
+  saveState({ things });
   return completedThing;
 }

@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
+import { interpolate, clamp } from '../../ixfx/numbers.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
@@ -7,7 +7,7 @@ const settings = Object.freeze({
   sizeEm: 10,
   // Min and max range of mass
   // Note that range can go up to 4, meaning 400%
-  massRange: [ 0.1, 4 ],
+  massRange: [0.1, 4],
   // Reduction of mass per loop
   meltRate: 0.999,
   activityInterpolation: 0.1
@@ -38,11 +38,11 @@ export const use = (thing) => {
   // Change opacity based on last pointer press
   // x100 to get %, and make sure we don't drop down to zero
   // because otherwise the thing disappears
-  const opacity = Math.max(Math.floor(activity*100), 5);
+  const opacity = Math.max(Math.floor(activity * 100), 5);
   element.style.opacity = `${opacity}%`;
-  
+
   // Change size based on mass
-  element.style.height = element.style.width = `${sizeEm*mass}em`;
+  element.style.height = element.style.width = `${sizeEm * mass}em`;
 
   // Position
   Util.positionFromMiddle(element, position);
@@ -61,7 +61,7 @@ export const update = (thing, ambientState) => {
   let { mass, activity } = thing;
 
   // Apply relevant state from the world. 0.01 is used to scale it down
-  mass = mass + (mass*movement*0.01);
+  mass = mass + (mass * movement * 0.01);
 
   // Apply the 'logic' of the thing
   // - Our thing melts over time
@@ -73,13 +73,13 @@ export const update = (thing, ambientState) => {
   // Set 'activity' based on interpolation of current activity
   // and pressElapsed. pressElapsed is 0 when person has just pressed,
   // and 1 when maximum time has elapsed
-  activity = interpolate(activityInterpolation, activity, 1-pressElapsed);
+  activity = interpolate(activityInterpolation, activity, 1 - pressElapsed);
 
   // Apply changes to a new Thing
-  return { 
+  return {
     ...thing,
     activity,
-    mass 
+    mass
   };
 };
 
@@ -91,8 +91,8 @@ export const create = (elementSelector) => {
   return {
     elementSelector,
     activity: 0.5,
-    dragState:  `none`,
-    position: { x: 0.5, y:0.5 },
+    dragState: `none`,
+    position: { x: 0.5, y: 0.5 },
     mass: 1
   };
 };

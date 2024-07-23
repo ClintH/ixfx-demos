@@ -4,8 +4,8 @@ import { Pool } from '../../ixfx/data.js';
 const settings = Object.freeze({
   pool: Pool.create({
     capacity: 10,
-    userExpireAfterMs: 1*1000,
-    resourcesWithoutUserExpireAfterMs: 5*1000,
+    userExpireAfterMs: 1 * 1000,
+    resourcesWithoutUserExpireAfterMs: 5 * 1000,
     fullPolicy: `evictOldestUser`,
     // Generate a new resource (in this example, a HTML element)
     generate: () => {
@@ -13,12 +13,12 @@ const settings = Object.freeze({
       element.classList.add(`pool-item`);
       document.querySelector(`#items`)?.append(element);
       return element;
-    }, 
+    },
     /**
      * Delete the HTML element when resource is freed
      * @param {HTMLElement} element
      */
-    free:(element) => {
+    free: (element) => {
       element.remove();
     }
   })
@@ -50,7 +50,7 @@ const onKeyDown = (event) => {
   const { keysDown } = state;
   saveState({
     // Add key to list of keys down, if it's not already there
-    keysDown: Arrays.unique([ ...keysDown,  event.key  ])
+    keysDown: Arrays.unique([...keysDown, event.key])
   });
   use();
 };
@@ -71,7 +71,7 @@ const onKeyUp = (event) => {
 
 const setup = () => {
   document.addEventListener(`keydown`, onKeyDown);
-  document.addEventListener(`keyup`,onKeyUp);
+  document.addEventListener(`keyup`, onKeyUp);
 };
 
 
@@ -80,7 +80,7 @@ const setup = () => {
  * Saves state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

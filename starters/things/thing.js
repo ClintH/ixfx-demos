@@ -1,5 +1,4 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({});
@@ -20,7 +19,7 @@ const settings = Object.freeze({});
 export const use = (thing) => {
   // Grab some properties from `thing`
   const { position, element } = thing;
-  
+
   // Position
   Util.positionFromMiddle(element, position);
 };
@@ -33,12 +32,12 @@ export const use = (thing) => {
  */
 export const update = (thing, ambientState) => {
   // In this function, we probably want the steps:
-  
+
   // 1. Alter properties based on external state/settings
   // 2. Alter properties based on the state of 'thing'
   // 3. Apply 'intrinsic' logic of thing.
   // 4. Apply sanity checks to properties, making sure they are within proper ranges
-  
+
   // 5. Return a new Thing, with updated fields
   return Object.freeze({
     ...thing,

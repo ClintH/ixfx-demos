@@ -1,36 +1,38 @@
 /**
  * Read more: https://en.wikipedia.org/wiki/Archimedean_spiral
  */
-import * as Numbers from '../../ixfx/numbers.js';
+import { Modulation, Numbers } from '../../ixfx/bundle.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { scalePercent } from '../../ixfx/data.js';
 import { Polar } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
   colour: `gray`,
   lineWidth: 2,
-  slowPp: Numbers.pingPongPercent(0.0001),
-  fastPp: Numbers.pingPongPercent(0.001),
+  slowWave: Modulation.wave({ shape: `sine`, hertz: 0.001 }),
+  fastWave: Modulation.wave({ shape: `sine`, hertz: 0.1 }),
   steps: 1000,
   canvas: new CanvasHelper(`#canvas`, { fill: `viewport` })
 });
 
+/**
+ * @typedef {Readonly<{
+ * slow:number
+ * fast:number
+ * }>} State
+ */
+
+/** @type State */
 let state = Object.freeze({
-  /** @type {number} */
   slow: 0,
-  /** @type {number} */
   fast: 0
 });
 
 // Update state of world
 const update = () => {
-  const { slowPp, fastPp } = settings;
-
-  // Update state
+  const { slowWave, fastWave } = settings;
   saveState({
-    // Get a new value from the generator
-    slow: slowPp.next().value,
-    fast: fastPp.next().value
+    slow: slowWave(),
+    fast: fastWave()
   });
 };
 
@@ -57,10 +59,10 @@ const draw = () => {
   ctx.strokeStyle = settings.colour;
 
   // Use fast ping pong value, scaling from 0.1 -> 1
-  const smoothness = scalePercent(fast, 0.1, 1);
+  const smoothness = Numbers.scalePercent(fast, 0.1, 1);
 
   // Use slower ping pong value, scaling from 1 -> 10
-  const zoom = scalePercent(slow, 1, 10);
+  const zoom = Numbers.scalePercent(slow, 1, 10);
 
   // Makes a generator to produce coordinates of spiral
   const spiral = Polar.spiral(smoothness, zoom);

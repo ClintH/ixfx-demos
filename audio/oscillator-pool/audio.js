@@ -1,9 +1,9 @@
 import { arrayIndex as RandomArrayIndex } from '../../ixfx/random.js';
 import { jitterAbsolute } from '../../ixfx/modulation.js';
-import { Bipolar } from '../../ixfx/data.js';
+import { Bipolar } from '../../ixfx/numbers.js';
 const settings = Object.freeze({
   // Default oscillator settings
-  oscillator:  {
+  oscillator: {
     /** @type OscillatorType */
     type: `sawtooth`,
     frequency: 440
@@ -11,9 +11,9 @@ const settings = Object.freeze({
   // Tones via https://ragajunglism.org/ragas/tanpuras/
   tones: [130.8, 138.6, 146.8, 155.6, 164.8, 174.6, 92.5, 98, 103.8, 110, 116.5, 123.5, 55],
   // Drift each voice's frequency a little
-  frequencyJitter: jitterAbsolute({relative:0.001}),
+  frequencyJitter: jitterAbsolute({ relative: 0.001 }),
   // Drif each voice's panning a little
-  panJitter: jitterAbsolute({relative: 0.1})
+  panJitter: jitterAbsolute({ relative: 0.1 })
 });
 
 /**
@@ -22,8 +22,8 @@ const settings = Object.freeze({
  */
 export const use = (thing) => {
   const { frequency, gain, node } = thing;
-  
-  const { ctx,pan } = node;
+
+  const { ctx, pan } = node;
 
   pan.pan.setValueAtTime(thing.pan, ctx.currentTime);
   node.osc.frequency.setValueAtTime(frequency, ctx.currentTime);
@@ -53,14 +53,14 @@ export const update = (thing) => {
  */
 export const remove = (thing) => {
   const { node } = thing;
-  const {ctx} = node;
+  const { ctx } = node;
   // Fade out
   node.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.9);
   // Stop after 10s
-  node.osc.stop(ctx.currentTime+10_000);
+  node.osc.stop(ctx.currentTime + 10_000);
   setTimeout(() => {
     node.osc.disconnect();
-  },10_000);
+  }, 10_000);
 };
 
 /**
@@ -105,8 +105,8 @@ export const create = (context) => {
   source.start();
   return {
     node: {
-      ctx:context, 
-      filter, gain, 
+      ctx: context,
+      filter, gain,
       osc: source, pan
     },
     frequency,

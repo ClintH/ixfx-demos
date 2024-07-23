@@ -1,5 +1,5 @@
 import { Points } from '../../../ixfx/geometry.js';
-import {interpolate} from '../../../ixfx/data.js';
+import { interpolate } from '../../../ixfx/numbers.js';
 import * as MoveNet from "../Poses.js";
 import * as Util from './util.js';
 
@@ -23,8 +23,8 @@ const settings = Object.freeze({
  */
 export const use = (thing) => {
   const { position, element, distance } = thing;
-  
-  element.textContent = Math.round(distance*100).toString() + `%`;
+
+  element.textContent = Math.round(distance * 100).toString() + `%`;
 
   // Position
   Util.positionFromMiddle(element, position);
@@ -38,10 +38,10 @@ export const use = (thing) => {
  * @returns {Thing}
  */
 export const update = (thing, ambientState, poseTracker) => {
-  const {positionInterpolate} = settings;
-  let {x,y} = thing.position;
+  const { positionInterpolate } = settings;
+  let { x, y } = thing.position;
   const avgDistance = computeDistance(thing, ambientState) ?? thing.distance;
-  
+
   const middle = poseTracker.middle;
   x = interpolate(positionInterpolate, x, middle.x);
   return Object.freeze({
@@ -56,7 +56,7 @@ export const update = (thing, ambientState, poseTracker) => {
  * @param {import('./script.js').State} ambientState
  */
 const computeDistance = (thing, ambientState) => {
-// Add up distance from this thing to all other things
+  // Add up distance from this thing to all other things
   const ourMiddle = ambientState.middles.find(m => m.id === thing.id);
   if (ourMiddle !== undefined) {
     let distance = 0;
@@ -64,9 +64,9 @@ const computeDistance = (thing, ambientState) => {
     for (const p of ambientState.middles) {
       if (p.id === thing.id) continue; // Skip itself
       distance += Points.distance(ourMiddle.position, p.position);
-      counted++; 
+      counted++;
     }
-    return distance/counted;
+    return distance / counted;
   }
   return 1;
 };

@@ -1,4 +1,4 @@
-import { scale, clamp } from '../../ixfx/data.js';
+import { scale, clamp } from '../../ixfx/numbers.js';
 import { jitter } from '../../ixfx/modulation.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 

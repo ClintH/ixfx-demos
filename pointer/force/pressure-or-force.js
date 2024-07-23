@@ -1,4 +1,4 @@
-import { clamp, scale } from '../../ixfx/data.js';
+import { clamp, scale } from '../../ixfx/numbers.js';
 /**
  * @typedef PressureForceState
  * @property {number} [webkitForce]
@@ -50,7 +50,7 @@ export function pressureOrForce(element, onChange, options = {}) {
   const updateWebkitForce = (event) => {
     seenWebkitForce = true;
     event.preventDefault();
-    updateElementState({ 
+    updateElementState({
       webkitForce: event.webkitForce,
       normalised: clamp(scale(event.webkitForce, webkitForceMin, webkitForceMax))
     });
@@ -69,15 +69,15 @@ export function pressureOrForce(element, onChange, options = {}) {
     event.preventDefault();
     if (event.type === `pointerleave` || event.type === `pointerup`) {
       if (resetOnLeave) updateElementState({ pointerPressure: 0, normalised: 0, webkitForce: 0 });
-    } else { 
+    } else {
       if (seenWebkitForce && event.pointerType === `mouse`) {
-      // Don't trample on normalised value if it seems we have Webkit force events instead
-        updateElementState({ 
+        // Don't trample on normalised value if it seems we have Webkit force events instead
+        updateElementState({
           normalised: elementState.normalised,
           pointerPressure: event.pressure
         });
       } else {
-        updateElementState({ 
+        updateElementState({
           pointerPressure: event.pressure,
           normalised: event.pressure
         });

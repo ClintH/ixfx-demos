@@ -10,7 +10,7 @@ import { Grids, Points } from '../../ixfx/geometry.js';
 import * as Modulation from '../../ixfx/modulation.js';
 import * as Flow from '../../ixfx/flow.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { scalePercent } from '../../ixfx/data.js';
+import { scalePercent } from '../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   canvas: new CanvasHelper(`#canvas`, { fill: `viewport` }),

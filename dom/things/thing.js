@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
+import { interpolate, clamp } from '../../ixfx/numbers.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
@@ -52,7 +52,7 @@ export const onMovement = (thing, amount, elements) => {
 export const use = (thing) => {
   // Grab some properties from `thing`
   const { position, element, surprise, hue } = thing;
-  
+
   // Set background
   element.style.backgroundColor = `hsl(${hue}, 50%, 50%)`;
 
@@ -73,11 +73,11 @@ export const update = (thing, ambientState) => {
   const { hueInterpolateAmount, surpriseDropAmount, movementDecayAmt } = settings;
   let { hue, surprise, size, movement } = thing;
   // In this function, we probably want the steps:
-  
+
   // 1. Alter properties based on external state/settings
   //  eg. get the thing to chase the hue of the ambient state,
   //      in relation to size (larger ones will change faster)
-  hue = interpolate(hueInterpolateAmount*size, hue, ambientState.hue);
+  hue = interpolate(hueInterpolateAmount * size, hue, ambientState.hue);
 
   // 2. Alter properties based on the state of 'thing'
   // eg. 'movement' from ambient state into surprise
@@ -109,13 +109,13 @@ export const update = (thing, ambientState) => {
  * @returns {Thing}
  */
 export const create = (id) => {
-  const size =Math.random();
+  const size = Math.random();
 
   const element = document.createElement(`div`);
   element.id = `thing-${id}`;
   element.classList.add(`thing`);
-  element.style.width = `${size*30}em`;
-  element.style.height = `${size*30}em`;
+  element.style.width = `${size * 30}em`;
+  element.style.height = `${size * 30}em`;
   document.body.append(element);
 
   const t = {

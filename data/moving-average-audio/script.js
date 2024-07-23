@@ -2,9 +2,9 @@
  * Uses a moving average to smooth out audio levels from the microphone.
  * See README.MD
  */
-import { movingAverage } from '../../ixfx/data.js';
+import { movingAverage } from '../../ixfx/numbers.js';
 import { AudioAnalysers } from '../../ixfx/io.js';
-import { clamp, flip } from '../../ixfx/data.js';
+import { clamp, flip } from '../../ixfx/numbers.js';
 import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({

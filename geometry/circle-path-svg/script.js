@@ -1,7 +1,6 @@
 import { Circles } from '../../ixfx/geometry.js';
 import { Svg } from '../../ixfx/visual.js';
-import * as Numbers from '../../ixfx/numbers.js';
-import * as Dom from '../../ixfx/dom.js';
+import { Numbers, Dom, Modulation } from '../../ixfx/bundle.js';
 
 const settings = Object.freeze({
   // Colour for text
@@ -9,9 +8,7 @@ const settings = Object.freeze({
   // Radius will be 30% of viewport
   radiusProportion: 0.3,
   text: `Hello there text on a path`,
-  // Loops from 0 to 100%, but starts back at 0. 
-  // In contrast, pingPong counts down to 0
-  genLoop: Numbers.numericPercent(0.001, true)
+  wave: Modulation.wave({ shape: `saw`, hertz: 0.1 })
 });
 
 let state = Object.freeze({
@@ -25,14 +22,10 @@ let state = Object.freeze({
 
 // Update state of world
 const update = () => {
-  const { genLoop } = settings;
-
-  // Get new values from generator
-  const v = genLoop.next().value;
-  if (!v) return; // Exit if generator doesn't return a value
+  const { wave } = settings;
 
   saveState({
-    loop: v
+    loop: wave()
   });
 };
 

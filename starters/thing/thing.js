@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
+import { interpolate, clamp } from '../../ixfx/numbers.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
@@ -24,7 +24,7 @@ const settings = Object.freeze({
 export const use = (thing) => {
   // Grab some properties from `thing`
   const { position, elementId, surprise, hue } = thing;
-  
+
   // Resolve element
   const element = /** @type HTMLElement */(document.querySelector(`#${elementId}`));
   if (!element) return;
@@ -49,7 +49,7 @@ export const update = (thing, ambientState) => {
   const { hueInterpolateAmount, surpriseDropAmount } = settings;
   let { hue, surprise } = thing;
   // In this function, we probably want the steps:
-  
+
   // 1. Alter properties based on external state/settings
   //  eg. get the thing to chase the hue of the ambient state
   hue = interpolate(hueInterpolateAmount, hue, ambientState.hue);
@@ -58,7 +58,7 @@ export const update = (thing, ambientState) => {
   surprise += ambientState.movement;
 
   // 2. Alter properties based on the state of 'thing'
- 
+
   // 3. Apply 'intrinsic' logic of thing. Eg. that a variable will
   //    always decrease a little each loop
   //  eg. surprise goes down over time
@@ -83,7 +83,7 @@ export const update = (thing, ambientState) => {
  */
 export const create = (elementId) => {
   return {
-    position: { x: 0.5, y:0.5 },
+    position: { x: 0.5, y: 0.5 },
     elementId,
     surprise: 1,
     hue: 0

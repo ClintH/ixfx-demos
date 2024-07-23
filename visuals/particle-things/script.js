@@ -1,5 +1,5 @@
+import { Trackers, Numbers } from '../../ixfx/bundle.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { clamp, numberTracker } from '../../ixfx/data.js';
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
 import { repeat } from '../../ixfx/flow.js';
 import * as Util from './util.js';
@@ -24,7 +24,7 @@ let state = Object.freeze({
   things: [...repeat(40, () => Things.create())],
   /** @type number */
   distance: 0,
-  distanceAvg: numberTracker({
+  distanceAvg: Trackers.number({
     id: `distance`,
     storeIntermediate: true,
     sampleLimit: 200
@@ -72,7 +72,7 @@ const updateThing = (thing) => {
   let computedScale = scale * (0.9999);
 
   computedScale = computedScale + (distanceDiff * mass * 0.1);
-  computedScale = clamp(computedScale, 0.01);
+  computedScale = Numbers.clamp(computedScale, 0.01);
 
   return {
     ...thing,

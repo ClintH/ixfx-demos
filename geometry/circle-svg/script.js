@@ -1,7 +1,5 @@
 import { Svg } from '../../ixfx/visual.js';
-import { scalePercent } from '../../ixfx/data.js';
-import * as Numbers from '../../ixfx/numbers.js';
-import * as Dom from '../../ixfx/dom.js';
+import { Numbers, Modulation, Dom } from '../../ixfx/bundle.js';
 
 // Define settings
 const settings = Object.freeze({
@@ -11,52 +9,46 @@ const settings = Object.freeze({
   strokeWidthMax: 70,
   strokeWidthMin: 3,
   strokeStyle: `#EEBB55`,
-  // Loop up and down again from 0 and 100%, 1% at a time
-  genPingPong: Numbers.pingPongPercent(0.01),
-  // Loops from 0 to 100%, but starts back at 0.
-  // In contrast, pingPong counts down to 0
-  genLoop: Numbers.numericPercent(0.01, true)
+  waveSine: Modulation.wave({ shape: `sine`, hertz: 0.1 }),
+
 });
 
-// Initialise state
+/**
+ * @typedef {{
+ * sine:number
+ * pointer: {x: number, y:number}
+ * circleEl: SVGCircleElement|undefined
+ * bounds: { center: { x:number,y:number },width:number,height:number}
+ * }} State
+ */
+
+/** @type State */
 let state = Object.freeze({
-  /** @type {number} */
-  pingPong: 0,
-  /** @type {number} */
-  loop: 0,
+  sine: 0,
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } },
   pointer: { x: 0, y: 0 },
-  /** @type {SVGCircleElement|undefined} */
   circleEl: undefined
 });
 
 // Update state of world
 const update = () => {
-  const { genPingPong, genLoop } = settings;
-
-  // In case generator stops returning values, default to 0
-  let v = genLoop.next().value;
-  if (!v) v = 0;
+  const { waveSine } = settings;
 
   saveState({
-    // Get new values from generators
-    pingPong: genPingPong.next().value,
-    loop: v
+    sine: waveSine()
   });
 };
 
 const use = () => {
   const { radiusProportion } = settings;
-  const { bounds, pingPong, pointer, circleEl } = state;
+  const { bounds, sine, pointer, circleEl } = state;
 
   if (circleEl === undefined) return;
 
-  // pingPong runs from 0-100%, producing a radius that is too large.
   const radius = settings.radiusMin +
-    (bounds.width * scalePercent(pingPong, 0, radiusProportion));
+    (bounds.width * Numbers.scalePercent(sine, 0, radiusProportion));
 
-  // Apply same pingPong value to stroke width
-  const width = settings.strokeWidthMin + (pingPong * settings.strokeWidthMax);
+  const width = settings.strokeWidthMin + (sine * settings.strokeWidthMax);
 
   // Define circle, using pointer for x,y 
   const circle = { radius, ...pointer };

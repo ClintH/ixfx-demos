@@ -2,12 +2,12 @@
  * Receives JSON from a microcontroller
  */
 import { Serial } from '../../../ixfx/io.js';
-import { scale } from '../../../ixfx/data.js';
+import { scale } from '../../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   serial: new Serial.Device({ name: `Arduino`, debug: true, eol: `\n` }),
-  rangeMax: { x:1023, y:1023 },
-  rangeMin: { x:0, y:0 }
+  rangeMax: { x: 1023, y: 1023 },
+  rangeMin: { x: 0, y: 0 }
 });
 
 // Initial state
@@ -67,8 +67,8 @@ const use = () => {
   const { x, y, sw } = state;
 
   // X,y are relative values
-  const pc = (v) => Math.round(v*100) +`%`;
-  
+  const pc = (v) => Math.round(v * 100) + `%`;
+
   setHtml(`lblX`, pc(x));
   setHtml(`lblY`, pc(y));
   setHtml(`lblSwitch`, sw ? `Pressed` : `Not pressed`);
@@ -101,7 +101,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

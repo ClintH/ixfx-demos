@@ -1,6 +1,6 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, Vectors } from '../../ixfx/geometry.js';
-import { PointTracker, pointTracker } from '../../ixfx/data.js';
+import { PointTracker, point } from '../../ixfx/trackers.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
@@ -19,7 +19,7 @@ const settings = Object.freeze({
 
 /** @type State */
 let state = Object.freeze({
-  tracker: pointTracker({
+  tracker: point({
     sampleLimit: 10,
     storeIntermediate: true
   }),

@@ -1,7 +1,7 @@
-import { frequencyMutable } from '../../ixfx/data.js';
+import { frequency } from '../../ixfx/trackers.js';
 
 let state = Object.freeze({
-  freq: frequencyMutable()
+  freq: frequency()
 });
 
 const use = () => {
@@ -41,7 +41,7 @@ const update = () => {
   const text = element.value.toLocaleUpperCase();
 
   // Create a new frequency tracker
-  const f = frequencyMutable();
+  const f = frequency();
 
   // Add all letters except spaces
   for (let index = 0; index < text.length; index++) {

@@ -1,7 +1,7 @@
 import { pointerVisualise } from '../../ixfx/dom.js';
 import { Points } from '../../ixfx/geometry.js';
-import { NumberTracker, PointTracker, TrackedPointMap, clamp } from '../../ixfx/data.js';
-import { numberTracker, pointsTracker } from '../../ixfx/data.js';
+import * as Trackers from '../../ixfx/trackers.js';
+import * as Numbers from '../../ixfx/numbers.js';
 
 // Pointer visualiser. Useful for debugging. It's what adds the red border
 pointerVisualise(document.body);
@@ -14,8 +14,8 @@ const settings = Object.freeze({
 
 /**
  * @typedef {{
- * pointers: TrackedPointMap
- * twoFingerDistance: NumberTracker
+ * pointers: Trackers.TrackedPointMap
+ * twoFingerDistance: Trackers.NumberTracker
  * scale: number
  * }} State
  */
@@ -23,9 +23,9 @@ const settings = Object.freeze({
 /** @type State */
 let state = Object.freeze({
   // Track pointer locations
-  pointers: pointsTracker(),
+  pointers: Trackers.points(),
   // Track how the distance between two pointers changes
-  twoFingerDistance: numberTracker(),
+  twoFingerDistance: Trackers.number(),
   // Current text scaling value
   scale: 1
 });
@@ -44,7 +44,7 @@ const onPointerMove = (event) => {
   pointers.seen(event.pointerId.toString(), { x: event.x, y: event.y });
 
   // Get list of tracked pointers, in ascending order by age
-  const byAge = [ ...pointers.valuesByAge() ];
+  const byAge = [...pointers.valuesByAge()];
 
   // We need at least two pointers for gesture
   const a = byAge[0];
@@ -80,10 +80,10 @@ const onPointerMove = (event) => {
 
   // Add to scale factor, clamping to 0.1 ... 
   // 20 in practice means 2000%
-  scale = clamp(scale + v, 0.1, 20);
-  
+  scale = Numbers.clamp(scale + v, 0.1, 20);
+
   // Save & then use
-  saveState({ 
+  saveState({
     scale
   });
   use();
@@ -119,7 +119,7 @@ const setup = () => {
 
   document.addEventListener(`wheel`, event => {
     event.preventDefault();
-  }, { passive:false });
+  }, { passive: false });
 };
 setup();
 
@@ -127,7 +127,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

@@ -1,5 +1,4 @@
-import { Points } from '../../ixfx/geometry.js';
-import {clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
@@ -45,8 +44,8 @@ const update = () => {
 
   // Calculate relative time since last press
   pressElapsed = (performance.now() - lastPress) / elapsedMax;
-  
-  saveState({ 
+
+  saveState({
     movement: clamp(movement),
     pressElapsed: clamp(pressElapsed)
   });
@@ -55,7 +54,7 @@ const update = () => {
   setTimeout(update);
 };
 
-const onPointerMove = (event) => {  
+const onPointerMove = (event) => {
   const { movementMax } = settings;
 
   // Calculate movement based on pointer event
@@ -63,7 +62,7 @@ const onPointerMove = (event) => {
   const scaledMovement = movement / movementMax;
 
   // Add to state
-  saveState({ 
+  saveState({
     movement: clamp(state.movement + scaledMovement)
   });
 };
@@ -82,7 +81,7 @@ function setup() {
   // Update thing at a fixed rate
   setInterval(() => {
     // Calculate new thing and save it into state
-    saveState({ 
+    saveState({
       thing: Things.update(state.thing, state)
     });
 
@@ -101,7 +100,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

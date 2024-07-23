@@ -1,7 +1,22 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
-import { LitElement } from 'lit';
+import { LitElement, PropertyValues } from 'lit';
 import { K as KeyValue } from './PrimitiveTypes-HWqXs_XP.js';
+import { Ref } from 'lit/directives/ref.js';
+import { C as CanvasHelper } from './CanvasHelper-bmixRaHe.js';
+import { a as RectPositioned, R as Rect } from './RectTypes-kjDrC-8b.js';
+import { C as Colourish } from './Colour-Dzx2zUdg.js';
+import { D as DrawingHelper } from './Drawing-mtp-emr9.js';
+import './Scaler-PgueV1cj.js';
+import './PointType-0vgoM_lJ.js';
+import './Events-IwuYx9yI.js';
+import './IntervalType-CQa4mlKV.js';
+import 'colorjs.io';
+import './Types-Tj0rQbez.js';
+import './LineType-Lekba5_H.js';
+import './ArcType-VEUNL6ta.js';
+import './CircleType-hb8awD7g.js';
+import './IStackImmutable-nAQ6b3zv.js';
 
 type Bar = {
     readonly percentage: number;
@@ -89,4 +104,111 @@ declare class FrequencyHistogramPlot {
     update(data: ReadonlyArray<readonly [key: string, count: number]>): void;
 }
 
-export { FrequencyHistogramPlot, HistogramVis };
+interface IPlotElement {
+    plot(value: number, series?: string): IDataSeries;
+    draw(): void;
+}
+interface IDataSeries {
+    clear(): void;
+}
+
+/**
+ * Attributes
+ * * streaming: true/false (default: true)
+ * * max-length: number (default: 500). How many data points per series to store
+ * * data-width: when streaming, how much horizontal width per point
+ * * fixed-max/fixed-min: global input scaling (default: NaN, ie. disabled)
+ *
+ * * line-width: stroke width of drawing line (default:2)
+ *
+ * * render: 'dot' or 'line' (default: 'dot')
+ *
+ * Styling variables
+ * * --legend-fg: legend foreground text
+ */
+declare class PlotElement extends LitElement implements IPlotElement {
+    #private;
+    streaming: boolean;
+    maxLength: number;
+    dataWidth: number;
+    fixedMax: number;
+    fixedMin: number;
+    lineWidth: number;
+    renderStyle: string;
+    autoRedraw: boolean;
+    padding: number;
+    paused: boolean;
+    canvasEl: Ref<HTMLCanvasElement>;
+    constructor();
+    get series(): DataSeries[];
+    get seriesCount(): number;
+    /**
+     * Delete a series.
+     * Returns _true_ if there was a series to delete
+     * @param name
+     * @returns
+     */
+    deleteSeries(name: string): boolean;
+    /**
+     * Keeps the series, but deletes its data
+     * @param name
+     * @returns
+     */
+    clearSeries(name: string): boolean;
+    /**
+     * Delete all data & series
+     */
+    clear(): void;
+    /**
+     * Keeps all series, but deletes their data
+     */
+    clearData(): void;
+    render(): lit_html.TemplateResult<1>;
+    connectedCallback(): void;
+    protected firstUpdated(_changedProperties: PropertyValues): void;
+    updateColours(): void;
+    plot(value: number, seriesName?: string): DataSeries;
+    plotObject(value: object): void;
+    draw(): void;
+    drawLegend(cl: RectPositioned, d: DrawingHelper): void;
+    drawLineSeries(data: number[], cp: Rect, d: DrawingHelper, colour: string): void;
+    drawDotSeries(data: number[], cp: Rect, d: DrawingHelper, colour: string): void;
+    computePlot(c: CanvasHelper, plotHeight: number, axisYwidth: number, padding: number): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
+    computeAxisYWidth(c: CanvasHelper): number;
+    computeLegend(c: CanvasHelper, maxWidth: number, padding: number): {
+        bounds: {
+            width: number;
+            height: number;
+        };
+        parts: {
+            width: number;
+            height: number;
+            x: number;
+            y: number;
+        }[];
+    };
+    getSeries(name: string): DataSeries | undefined;
+    static styles: lit.CSSResult;
+}
+declare class DataSeries implements IDataSeries {
+    name: string;
+    private plot;
+    data: number[];
+    colour: Colourish;
+    minSeen: number;
+    maxSeen: number;
+    static hue: number;
+    constructor(name: string, plot: PlotElement);
+    clear(): void;
+    getScaled(): number[];
+    getScaledBy(scaler: (v: number) => number): number[];
+    push(value: number): void;
+    resetScale(): void;
+}
+
+export { DataSeries, FrequencyHistogramPlot, HistogramVis, type IDataSeries, type IPlotElement, PlotElement };

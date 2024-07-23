@@ -1,12 +1,12 @@
-import { scaleClamped, scale, scalePercent } from '../../ixfx/data.js';
+import { scaleClamped, scalePercent } from '../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   /** @type OscillatorOpts */
-  oscillator:  {
+  oscillator: {
     type: `sawtooth`,
     frequency: 440
   },
-  freqRange: [ 120, 1000 ]
+  freqRange: [120, 1000]
 });
 
 let state = Object.freeze({
@@ -21,7 +21,7 @@ let state = Object.freeze({
 const use = () => {
   const { freqRange } = settings;
   const { x, y } = state;
-  
+
   const audio = initAudio();
   if (!audio) return;
 
@@ -47,11 +47,11 @@ const muteOscillator = () => {
   if (!audio) return;
 
   const { gain, ctx } = audio;
-  
+
   gain.gain.setValueAtTime(0, ctx.currentTime);
 };
 
-function setup () {
+function setup() {
   const freqAreaElement = /** @type HTMLElement */document.querySelector(`#freqArea`);
   if (!freqAreaElement) return;
 
@@ -72,7 +72,7 @@ function setup () {
     // Set to state and use state
     saveState({ x, y });
     use();
-  });  
+  });
 };
 setup();
 
@@ -80,7 +80,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
@@ -98,7 +98,7 @@ function initAudio() {
   if (state.audio) return state.audio;
 
   const ac = initBasicAudio(oscillator);
-  
+
   // Mute oscillator
   ac.gain.gain.setValueAtTime(0, ac.ctx.currentTime);
 
@@ -106,7 +106,7 @@ function initAudio() {
   ac.osc.start();
 
   saveState({
-    audio:ac
+    audio: ac
   });
   return ac;
 }
@@ -117,7 +117,7 @@ function initAudio() {
  * @returns {BasicAudio}
  */
 function initBasicAudio(oscillatorOptions = {}) {
-  
+
   const context = new AudioContext();
   const oscType = oscillatorOptions.type ?? `sawtooth`;
   const oscFreq = oscillatorOptions.frequency ?? 440;
@@ -146,7 +146,7 @@ function initBasicAudio(oscillatorOptions = {}) {
   return {
     pan, gain, filter,
     ctx: context,
-    osc:source
+    osc: source
   };
 }
 

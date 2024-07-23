@@ -1,9 +1,10 @@
-import { interpolate, pointTracker, clamp } from "../../ixfx/data.js";
+import * as Numbers from '../../ixfx/numbers.js';
+import * as Trackers from '../../ixfx/trackers.js';
 import * as Util from "./util.js";
 
 const settings = Object.freeze({
   // Tracker for point. Reset when there is a pointerdown
-  tracker: pointTracker({
+  tracker: Trackers.point({
     sampleLimit: 5
   }),
   // How much to decay values by each loop
@@ -16,7 +17,7 @@ const settings = Object.freeze({
 
 /** 
  * @typedef {{
- *  relative:import("../../ixfx/data.js").PointTrack|undefined,
+ *  relative:import("../../ixfx/trackers.js").PointTrack|undefined,
  *  angle: number
  *  speed: number
  * }} State
@@ -45,10 +46,10 @@ const update = () => {
   if (relative) {
     // Get speed, but could be other things like
     //    .angle, .centroid, .distanceFromStart
-    const relativeSpeed = clamp(relative.speed / speedMax); // make proportional
+    const relativeSpeed = Numbers.clamp(relative.speed / speedMax); // make proportional
 
     // Interpolate to new speed value
-    speed = interpolate(interpolateAmount, speed, relativeSpeed);
+    speed = Numbers.interpolate(interpolateAmount, speed, relativeSpeed);
   }
 
   saveState({
@@ -73,13 +74,13 @@ function setup() {
     settings.tracker.reset();
   });
 
-  document.addEventListener(`pointermove`, event => {
+  document.addEventListener(`pointermove`, async event => {
     if (event.buttons === 0) return;
 
     const { tracker } = settings;
 
     // Add to tracker, get back computed results
-    const info = tracker.seenEvent(event);
+    const info = await tracker.seenEvent(event);
 
     // Keep track of infom about move event with respect
     // to last pointerdown

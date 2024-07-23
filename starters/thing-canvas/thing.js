@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-import { interpolate, clamp } from '../../ixfx/data.js';
+import { interpolate, clamp } from '../../ixfx/numbers.js';
 import * as Util from './util.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 

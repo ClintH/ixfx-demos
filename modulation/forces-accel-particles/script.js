@@ -5,7 +5,7 @@
 import { Points } from '../../ixfx/geometry.js';
 import { Forces } from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
-import { pointTracker } from '../../ixfx/data.js';
+import { point as pointTracker } from '../../ixfx/trackers.js';
 
 import * as Util from './util.js';
 import * as Thing from './thing.js';
@@ -106,7 +106,7 @@ const setup = () => {
   for (let index = 0; index < settings.thingsCount; index++) {
     thingsNew.push(Thing.create());
   }
-  saveState({things:thingsNew});
+  saveState({ things: thingsNew });
 };
 setup();
 
@@ -114,7 +114,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

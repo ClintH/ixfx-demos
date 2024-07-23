@@ -1,4 +1,4 @@
-import { clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   fullMode: window.location.hash === `#full`,
@@ -26,12 +26,12 @@ const use = () => {
   const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
 
   // 0..100
-  const saturation = Math.round(speed*100);
+  const saturation = Math.round(speed * 100);
   const hsl = `hsl(var(--hue), ${saturation}%, 50%)`;
   if (spotElement && !fullMode) {
     spotElement.style.backgroundColor = hsl;
   } else if (fullMode) {
-    document.body.style.backgroundColor = hsl; 
+    document.body.style.backgroundColor = hsl;
   }
 };
 
@@ -69,9 +69,9 @@ function setup() {
     buttonFullScreen.addEventListener(`click`, event => {
       document.documentElement.requestFullscreen();
     });
-    if (!fullMode) buttonFullScreen.style.display =`none`;
+    if (!fullMode) buttonFullScreen.style.display = `none`;
   }
-  
+
   if (fullMode) {
     const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
     if (spotElement) spotElement.style.display = `none`;
@@ -84,7 +84,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

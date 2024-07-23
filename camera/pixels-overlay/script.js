@@ -5,7 +5,7 @@
  */
 import { Camera } from '../../ixfx/io.js';
 import { Video } from '../../ixfx/visual.js';
-import { intervalTracker } from '../../ixfx/data.js';
+import * as Trackers from '../../ixfx/trackers.js';
 import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 /**
@@ -17,8 +17,9 @@ const settings = Object.freeze({
   // If true, the differencing is shown. If false, just the
   // difference calculation is shown
   visualise: true,
-  frameIntervalTracker: intervalTracker({
-    id: `fps`, resetAfterSamples: 100 }),
+  frameIntervalTracker: Trackers.interval({
+    id: `fps`, resetAfterSamples: 100
+  }),
   // HTML Elements
   /** @type {HTMLCanvasElement|null} */
   canvasEl: document.querySelector(`#canvas`),
@@ -49,7 +50,7 @@ const use = () => {
   const { lblFps, lblDifferences } = settings;
 
   if (lblFps) lblFps.textContent = `FPS: ${fps}`;
-  if (lblDifferences) 
+  if (lblDifferences)
     lblDifferences.textContent = `Differences: ${Math.round(differences * 100)}%`;
 };
 
@@ -127,7 +128,7 @@ const update = (frame, context) => {
  */
 const rgbaIndexes = (width, x, y) => {
   const p = y * (width * 4) + x * 4;
-  return [ p, p + 1, p + 2, p + 3 ];
+  return [p, p + 1, p + 2, p + 3];
 };
 
 /**
@@ -192,7 +193,7 @@ const startVideo = async () => {
   }
 };
 
-function setup () {
+function setup() {
   // Show unexpected errors on the page to help debugger;
   defaultErrorHandler();
 
@@ -208,7 +209,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

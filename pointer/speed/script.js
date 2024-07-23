@@ -1,5 +1,5 @@
 import { Points } from '../../ixfx/geometry.js';
-import { movingAverage, scalePercent, scaleClamped } from '../../ixfx/data.js';
+import { movingAverage, scalePercent, scaleClamped } from '../../ixfx/numbers.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({

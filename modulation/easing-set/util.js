@@ -1,10 +1,10 @@
-import { clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 /**
  * Returns a position relative to size of element
  * @param {PointerEvent} event 
  * @param {HTMLElement} element 
  */
-export function relativePosition(element, event)  {
+export function relativePosition(element, event) {
   const bounds = element.getBoundingClientRect();
   const s = getComputedStyle(element);
   const padding = Number.parseFloat(s.padding) * 2;

@@ -1,6 +1,5 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { scalePercent, clamp } from '../../ixfx/data.js';
-import { Points, Circles } from '../../ixfx/geometry.js';
+import { Circles } from '../../ixfx/geometry.js';
 import * as Util from './util.js';
 
 // Define settings

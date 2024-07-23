@@ -1,4 +1,4 @@
-import { clamp, interpolate } from '../../ixfx/data.js';
+import { clamp, interpolate } from '../../ixfx/numbers.js';
 
 const settings = Object.freeze({
   fullMode: window.location.hash.includes(`full`),
@@ -35,12 +35,12 @@ const use = () => {
   const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
 
   // 0..100
-  const saturation = Math.round(value*100);
+  const saturation = Math.round(value * 100);
   const hsl = `hsl(var(--hue), ${saturation}%, 50%)`;
   if (spotElement && !fullMode) {
     spotElement.style.backgroundColor = hsl;
   } else if (fullMode) {
-    document.body.style.backgroundColor = hsl; 
+    document.body.style.backgroundColor = hsl;
   }
 };
 
@@ -94,15 +94,15 @@ const setup = () => {
     buttonFullScreen.addEventListener(`click`, event => {
       document.documentElement.requestFullscreen();
     });
-    if (!fullMode) buttonFullScreen.style.display =`none`;
+    if (!fullMode) buttonFullScreen.style.display = `none`;
   }
-  
+
   // Hide colour swatch if we're in 'full' mode
   if (fullMode) {
     const spotElement = /** @type HTMLElement */(document.querySelector(`#spot`));
     if (spotElement) spotElement.style.display = `none`;
   }
-  
+
   if (jumboSlider) document.body.classList.add(`jumbo`);
 
   // Continuous loop
@@ -121,7 +121,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

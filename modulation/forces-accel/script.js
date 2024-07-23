@@ -1,7 +1,7 @@
 import { Points } from '../../ixfx/geometry.js';
 import { Forces } from '../../ixfx/modulation.js';
 import { continuously } from '../../ixfx/flow.js';
-import { pointTracker } from '../../ixfx/data.js';
+import { point as pointTracker } from '../../ixfx/trackers.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
@@ -30,8 +30,8 @@ const update = () => {
   // Wrap point to be between 0,0 and 1,1
   // This means if the new position is outside the bounds of the screen
   // it will carry over to other side
-  const posAfterWrap = Points.wrap(changedThing.position ?? { x: 0.5, y: 0.5 } );
-    
+  const posAfterWrap = Points.wrap(changedThing.position ?? { x: 0.5, y: 0.5 });
+
   // Set to state
   state = {
     ...state,
@@ -61,10 +61,12 @@ function setup() {
 
   // Update our tracking of window size if there's a resize
   window.addEventListener(`resize`, () => {
-    saveState({ window: {
-      width: window.innerWidth,
-      height: window.innerHeight
-    } });
+    saveState({
+      window: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      }
+    });
   });
 
   // On pointerup, assign a new velocity based on accumulated movement
@@ -108,7 +110,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

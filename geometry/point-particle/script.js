@@ -1,7 +1,7 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { repeat } from '../../ixfx/flow.js';
 import { jitter } from '../../ixfx/modulation.js';
-import { flip } from '../../ixfx/data.js';
+import { flip } from '../../ixfx/numbers.js';
 import { gaussian } from '../../ixfx/random.js';
 import * as Particle from './particle.js';
 

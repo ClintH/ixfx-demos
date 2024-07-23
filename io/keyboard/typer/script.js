@@ -1,5 +1,5 @@
-import { flip, clamp, scale } from "../../../ixfx/data.js";
-import { intervalTracker } from "../../../ixfx/data.js";
+import { flip, clamp, scale } from "../../../ixfx/numbers.js";
+import { interval } from "../../../ixfx/trackers.js";
 
 const settings = Object.freeze({
   // Element to hold created letters
@@ -7,7 +7,7 @@ const settings = Object.freeze({
   // Keys to allow even though they aren't letters/digits
   allowCodes: [`Backquote`, `Minus`, `Equal`, `Plus`, `Period`, `Semicolon`, `Comma`, `Slash`, `Quote`, `Backslash`, `BracketLeft`, `BracketRight`],
   // Create a speed tracker that auto-resets after 3 samples
-  speedTracker: intervalTracker({ id: `typing`, resetAfterSamples: 3 })
+  speedTracker: interval({ id: `typing`, resetAfterSamples: 3 })
 });
 
 let state = Object.freeze({

@@ -1,7 +1,7 @@
+import { clamp } from '../../ixfx/numbers.js';
 import * as Things from './thing.js';
 import * as Util from './util.js';
 
-import {clamp } from '../../ixfx/data.js';
 
 // Settings for sketch
 const settings = Object.freeze({
@@ -47,7 +47,7 @@ const update = () => {
   movement -= movementDecay;
 
   // 2. Sanity check
-  hue = hue%360; // 0..360 scale
+  hue = hue % 360; // 0..360 scale
   movement = clamp(movement); // 0..1 scale
 
   // 3. Save state
@@ -72,13 +72,13 @@ function setup() {
     movement = clamp(state.movement + movement);
 
     // Save it
-    saveState({ movement:0.2 });
+    saveState({ movement: 0.2 });
   });
 
   // Update thing at a fixed rate
   setInterval(() => {
     // Save new thing into state
-    saveState({ 
+    saveState({
       thing: Things.update(state.thing, state)
     });
     // Visually update based on new state
@@ -96,7 +96,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

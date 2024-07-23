@@ -1,43 +1,34 @@
 import {
+  Normalise_exports,
   applyToValues,
+  averageWeighted,
   filter,
   isApproximately,
   isValid,
+  movingAverage,
+  movingAverageLight,
+  movingAverageTimed,
+  noiseFilter,
   numericPercent,
   numericRange,
   numericRangeRaw,
+  proportion,
   relativeDifference,
-  tracker
-} from "./chunk-N5HYURL3.js";
+  softmax
+} from "./chunk-IQCT4OWU.js";
 import {
-  jitter,
-  jitterAbsolute,
-  pingPong,
-  pingPongPercent
-} from "./chunk-TTX527YE.js";
+  Bipolar_exports,
+  flip
+} from "./chunk-PNJUAKRR.js";
 import {
-  count,
-  integer,
-  integerUniqueGen
-} from "./chunk-FCEXFCW7.js";
-import {
-  averageWeighted
-} from "./chunk-FFP764T4.js";
-import "./chunk-FVMOM6Z4.js";
-import "./chunk-R2SBCFPC.js";
-import "./chunk-UEAUFROA.js";
-import "./chunk-CHBOXPIA.js";
-import {
-  minMaxAvg
-} from "./chunk-BXWBMVS6.js";
-import "./chunk-YEZDB5LJ.js";
+  count
+} from "./chunk-AGFYQA5X.js";
+import "./chunk-VHEJ5XJJ.js";
+import "./chunk-CSWMME6O.js";
 import {
   linearSpace,
   quantiseEvery
 } from "./chunk-OHBN76WG.js";
-import "./chunk-3RVYHJO6.js";
-import "./chunk-4NG2GB4D.js";
-import "./chunk-RRVLDWW5.js";
 import {
   average,
   dotProduct,
@@ -51,16 +42,40 @@ import {
   totalFast,
   validNumbers,
   weight
-} from "./chunk-IALMVFKW.js";
-import "./chunk-4LUNZR7B.js";
-import "./chunk-REDAXMKO.js";
-import "./chunk-VJWZGNDD.js";
-import "./chunk-WIEQUAVY.js";
+} from "./chunk-JIJ5ZCVI.js";
+import {
+  interpolate,
+  interpolateAngle,
+  interpolatorInterval,
+  interpolatorStepped,
+  piPi
+} from "./chunk-XKK2DE7P.js";
+import {
+  wrap,
+  wrapInteger,
+  wrapRange
+} from "./chunk-LJHTLZZF.js";
+import {
+  scale,
+  scaleClamped,
+  scalePercent,
+  scalePercentages,
+  scaler,
+  scalerPercent
+} from "./chunk-PDPCB2FF.js";
+import "./chunk-27QUVD4O.js";
+import "./chunk-EDWGLKJ5.js";
+import {
+  clamp,
+  clampIndex
+} from "./chunk-ZJSCF2A4.js";
+import "./chunk-BUQPN7XA.js";
+import "./chunk-Y73QERC3.js";
 import "./chunk-37WZU5ZM.js";
-import "./chunk-TZZOFPLH.js";
-import "./chunk-2XNNMGQC.js";
-import "./chunk-UH4IORRN.js";
-import "./chunk-3ZEQSJPN.js";
+import {
+  minMaxAvg
+} from "./chunk-HE2SC3FY.js";
+import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
 import {
   round,
@@ -68,19 +83,25 @@ import {
 } from "./chunk-2EX73MGI.js";
 import "./chunk-SGQC7FGM.js";
 import "./chunk-JIDOUNL5.js";
-import "./chunk-IQEKYUOH.js";
-import "./chunk-AFNFQUHK.js";
+import "./chunk-BPDJLURO.js";
 export {
+  Bipolar_exports as Bipolar,
+  Normalise_exports as Normalise,
   applyToValues,
   average,
   averageWeighted,
+  clamp,
+  clampIndex,
   count,
   dotProduct,
   filter,
+  flip,
+  interpolate,
+  interpolateAngle,
+  interpolatorInterval,
+  interpolatorStepped,
   isApproximately,
   isValid,
-  jitter,
-  jitterAbsolute,
   linearSpace,
   max,
   maxFast,
@@ -89,21 +110,32 @@ export {
   minFast,
   minIndex,
   minMaxAvg,
+  movingAverage,
+  movingAverageLight,
+  movingAverageTimed,
+  noiseFilter,
   numericPercent,
   numericRange,
   numericRangeRaw,
-  pingPong,
-  pingPongPercent,
+  piPi,
+  proportion,
   quantiseEvery,
-  integer as randomInteger,
-  integerUniqueGen as randomUniqueInteger,
   relativeDifference,
   round,
   roundUpToMultiple,
+  scale,
+  scaleClamped,
+  scalePercent,
+  scalePercentages,
+  scaler,
+  scalerPercent,
+  softmax,
   total,
   totalFast,
-  tracker,
   validNumbers,
-  weight
+  weight,
+  wrap,
+  wrapInteger,
+  wrapRange
 };
 //# sourceMappingURL=numbers.js.map

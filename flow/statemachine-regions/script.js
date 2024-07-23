@@ -1,4 +1,4 @@
-import { clamp } from '../../ixfx/data.js';
+import { clamp } from '../../ixfx/numbers.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { Colour } from '../../ixfx/visual.js';
 import { StateMachine, Elapsed } from '../../ixfx/flow.js';

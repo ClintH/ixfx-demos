@@ -1,3 +1,4 @@
+import * as Mod from '../../ixfx/modulation.js';
 import * as Numbers from '../../ixfx/numbers.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 
@@ -13,8 +14,7 @@ const settings = Object.freeze({
   outerColour: `indigo`,
   innerColour: `pink`,
   piPi: Math.PI * 2,
-  // Loop back and forth between 0 and 1, 0.0.1 steps at a time
-  pingPong: Numbers.pingPongPercent(0.001)
+  wave: Mod.wave({ shape: `sine`, hertz: 0.1 })
 });
 
 /** 
@@ -57,12 +57,12 @@ const drawGradient = (context, width, height) => {
 
 // Update state of world
 const update = () => {
-  const { pingPong } = settings;
+  const { wave } = settings;
 
   // Update state
   saveState({
     // Get a new value from the generator
-    progression: pingPong.next().value,
+    progression: wave(),
   });
 };
 
@@ -87,7 +87,7 @@ const draw = (context) => {
   const radiusRange = Numbers.numericRange(-10, arcRadiusAbs, 10);
   for (const radius of radiusRange) {
     context.beginPath();
-    // Arc end angle is determined by the ping-pong progression
+    // Arc end angle is determined by the wave progression
     context.arc(arcAbs.x, arcAbs.y, radius, 0, piPi * progression);
     context.stroke();
   }

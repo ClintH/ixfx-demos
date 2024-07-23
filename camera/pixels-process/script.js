@@ -6,7 +6,7 @@
  */
 import { Camera } from '../../ixfx/io.js';
 import { Video } from '../../ixfx/visual.js';
-import { intervalTracker } from '../../ixfx/data.js';
+import * as Trackers from '../../ixfx/trackers.js';
 import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
@@ -15,7 +15,7 @@ const settings = Object.freeze({
   // If true, the differencing is shown. If false, 
   // just the difference calculation is shown
   visualise: true,
-  frameIntervalTracker: intervalTracker({ id: `fps`, resetAfterSamples: 100 }),
+  frameIntervalTracker: Trackers.interval({ id: `fps`, resetAfterSamples: 100 }),
   // HTML Elements
   /** @type {HTMLCanvasElement|null} */
   canvasEl: document.querySelector(`#canvas`),

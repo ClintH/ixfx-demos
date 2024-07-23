@@ -7,31 +7,33 @@
  * The normal amount to turn is settings.maxRadiansPerCycle. This is multiplied
  * by the state.orbitSpeedFactor to make it slower or faster.
  */
-import * as Numbers from '../../ixfx/numbers.js';
 import { Points } from '../../ixfx/geometry.js';
 import { Polar } from '../../ixfx/geometry.js';
+import { Modulation } from '../../ixfx/bundle.js';
 
-// Define settings
 const settings = Object.freeze({
   // How much angle to increment each loop, if speed is 100%
   maxRadiansPerCycle: 0.2,
-  // Generator for setting radius
-  distanceGen: Numbers.pingPongPercent(0.001),
+  distanceWave: Modulation.wave({ shape: `sine`, hertz: 0.05 }),
 });
 
-// Initialise state with empty values
+/** @typedef {Readonly<{
+ * orbitSpeedFactor:number
+ * angle:number
+ * distance:number
+ * minDimension:number
+ * bounds: { center: {x:number,y:number}, width:number,height:number}
+ * }>} State */
+
+/** @type State */
 let state = Object.freeze({
   // Multiplier for orbit speed
-  /** @type {number} */
   orbitSpeedFactor: 1,
   // Current angle (radians)
-  /** @type {number} */
   angle: 0,
   // Current distance
-  /** @type {number} */
   distance: 0,
   // Width or height of viewport, whichever is smaller
-  /** @type {number} */
   minDimension: 0,
   // Will be set to size of screen
   bounds: { width: 0, height: 0, center: { x: 0, y: 0 } }
@@ -39,13 +41,13 @@ let state = Object.freeze({
 
 // Update state of world
 const update = () => {
-  const { distanceGen, maxRadiansPerCycle } = settings;
+  const { distanceWave, maxRadiansPerCycle } = settings;
 
   // Calculate new angle
   const angle = state.angle + (maxRadiansPerCycle * state.orbitSpeedFactor);
 
   // Calculate distance - relative value 0..1
-  const distance = distanceGen.next().value;
+  const distance = distanceWave();
 
   // Update state
   saveState({

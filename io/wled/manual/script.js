@@ -1,5 +1,5 @@
 import { HslOff, Wled } from "../wled.js";
-import { clamp } from '../../../ixfx/data.js';
+import { clamp } from '../../../ixfx/numbers.js';
 import { continuously } from '../../../ixfx/flow.js';
 import { frequencyTimer } from '../../../ixfx/flow.js';
 import { Oscillators } from '../../../ixfx/modulation.js';

@@ -1,5 +1,4 @@
-import { pingPongPercent, count } from '../../ixfx/numbers.js';
-import { forEach } from '../../ixfx/flow.js';
+import { Modulation, Numbers, Flow } from '../../ixfx/bundle.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 
 const settings = Object.freeze({
@@ -7,8 +6,7 @@ const settings = Object.freeze({
   outerColour: `indigo`,
   innerColour: `pink`,
   piPi: Math.PI * 2,
-  // Loop back and forth between 0 and 1, 1% at a time
-  pingPong: pingPongPercent(0.01),
+  wave: Modulation.wave({ hertz: 0.1 }),
   // % to reduce radius by for each circle
   radiusDecay: 0.8,
   // Relative radius size (45% of screen)
@@ -17,23 +15,23 @@ const settings = Object.freeze({
 
 /**
  * @typedef {Readonly<{
- *  pingPong: number
+ *  wave: number
  * }>} State
  */
 
 /** @type {State} */
 let state = Object.freeze({
-  pingPong: 0
+  wave: 0
 });
 
 // Update state of world
 const update = () => {
-  const { pingPong } = settings;
+  const { wave } = settings;
 
   // Update state
   saveState({
     // Get a new value from the generator
-    pingPong: pingPong.next().value,
+    wave: wave(),
   });
 };
 
@@ -42,12 +40,12 @@ const update = () => {
  * @param {number} radiusAbs 
  */
 const drawGradientCircle = (radiusAbs) => {
-  const { pingPong } = state;
+  const { wave } = state;
   const { canvas, piPi } = settings;
   const { ctx, center } = canvas;
 
   // Let inner circle of gradient grow in and out.
-  const inner = pingPong * radiusAbs;
+  const inner = wave * radiusAbs;
 
   // Create a gradient 'brush' based on size of circle
   ctx.fillStyle = getGradient(ctx, inner, canvas.center, radiusAbs);
@@ -75,7 +73,7 @@ const draw = () => {
   let radiusAbs = radius * canvas.dimensionMin;
 
   // Uses ixfx's forEach and count to run the body 10 times
-  forEach(count(10), () => {
+  Flow.forEach(Numbers.count(10), () => {
     // Draw a circle with given radius  
     drawGradientCircle(radiusAbs);
 

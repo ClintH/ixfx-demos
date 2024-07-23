@@ -6,7 +6,7 @@
  */
 import { Camera } from '../../ixfx/io.js';
 import { Video } from '../../ixfx/visual.js';
-import { intervalTracker, numberTracker } from '../../ixfx/data.js';
+import * as Trackers from '../../ixfx/trackers.js';
 import { defaultErrorHandler } from '../../ixfx/dom.js';
 
 /**
@@ -14,8 +14,8 @@ import { defaultErrorHandler } from '../../ixfx/dom.js';
  */
 const settings = Object.freeze({
   worker: new Worker(`worker.js`),
-  diffTracker: numberTracker({ id: `difference`, resetAfterSamples: 200 }),
-  frameIntervalTracker: intervalTracker( { id: `fps`, resetAfterSamples: 100 }),
+  diffTracker: Trackers.number({ id: `difference`, resetAfterSamples: 200 }),
+  frameIntervalTracker: Trackers.interval({ id: `fps`, resetAfterSamples: 100 }),
   // HTML elements for status
   /** @type {HTMLElement|null} */
   lblFps: document.querySelector(`#lblFps`),
@@ -42,7 +42,7 @@ const use = () => {
 
   // Update HTML labels
   if (lblFps) lblFps.textContent = `FPS: ${fps}`;
-  if (lblDifferences) 
+  if (lblDifferences)
     lblDifferences.textContent = `Differences: ${percentage(differences)}`;
   if (lblDiffVu) lblDiffVu.innerHTML = diffVu;
 };
@@ -62,10 +62,10 @@ const startVideo = async () => {
         width: frame.width,
         height: frame.height,
         channels: 4
-      }, [ frame.data.buffer ]);
+      }, [frame.data.buffer]);
 
       // Keep track of how long it takes us to process frames
-      frameIntervalTracker.mark(); 
+      frameIntervalTracker.mark();
 
       saveState({
         fps: Math.round(1000 / frameIntervalTracker.avg)
@@ -86,7 +86,7 @@ const startVideo = async () => {
  */
 const percentage = (v) => Math.round(v * 100) + `%`;
 
-function setup () {
+function setup() {
   const { worker } = settings;
   defaultErrorHandler();
 
@@ -121,7 +121,7 @@ setup();
  * Save state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
