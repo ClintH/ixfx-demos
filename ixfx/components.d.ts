@@ -1,22 +1,23 @@
 import * as lit_html from 'lit-html';
 import * as lit from 'lit';
 import { LitElement, PropertyValues } from 'lit';
-import { K as KeyValue } from './PrimitiveTypes-HWqXs_XP.js';
+import { K as KeyValue } from './PrimitiveTypes-F6miV4Zn.js';
 import { Ref } from 'lit/directives/ref.js';
-import { C as CanvasHelper } from './CanvasHelper-bmixRaHe.js';
-import { a as RectPositioned, R as Rect } from './RectTypes-kjDrC-8b.js';
-import { C as Colourish } from './Colour-Dzx2zUdg.js';
-import { D as DrawingHelper } from './Drawing-mtp-emr9.js';
-import './Scaler-PgueV1cj.js';
-import './PointType-0vgoM_lJ.js';
-import './Events-IwuYx9yI.js';
-import './IntervalType-CQa4mlKV.js';
+import { C as CanvasHelper } from './CanvasHelper-B2T6ZgU5.js';
+import { a as RectPositioned, R as Rect } from './RectTypes-Brg8Cmy-.js';
+import { C as Colourish } from './Colour-B60StqKZ.js';
+import { D as DrawingHelper } from './Drawing-Cr-FMhsC.js';
+import './Scaler-C_gjBH0I.js';
+import './PointType-DYug3Yo5.js';
+import './Events-CigdLXTv.js';
+import './IntervalType-B6zEAEa4.js';
 import 'colorjs.io';
-import './Types-Tj0rQbez.js';
-import './LineType-Lekba5_H.js';
-import './ArcType-VEUNL6ta.js';
-import './CircleType-hb8awD7g.js';
-import './IStackImmutable-nAQ6b3zv.js';
+import './Types-CR0Pe5zY.js';
+import './LineType-FU9c78oU.js';
+import './PathType-BjzQ3mag.js';
+import './CircleType-HV1S_Vyw.js';
+import './ArcType-BQP6bHin.js';
+import './IStackImmutable-DwpwVyob.js';
 
 type Bar = {
     readonly percentage: number;
@@ -104,14 +105,6 @@ declare class FrequencyHistogramPlot {
     update(data: ReadonlyArray<readonly [key: string, count: number]>): void;
 }
 
-interface IPlotElement {
-    plot(value: number, series?: string): IDataSeries;
-    draw(): void;
-}
-interface IDataSeries {
-    clear(): void;
-}
-
 /**
  * Attributes
  * * streaming: true/false (default: true)
@@ -126,7 +119,7 @@ interface IDataSeries {
  * Styling variables
  * * --legend-fg: legend foreground text
  */
-declare class PlotElement extends LitElement implements IPlotElement {
+declare class PlotElement extends LitElement {
     #private;
     streaming: boolean;
     maxLength: number;
@@ -140,7 +133,7 @@ declare class PlotElement extends LitElement implements IPlotElement {
     paused: boolean;
     canvasEl: Ref<HTMLCanvasElement>;
     constructor();
-    get series(): DataSeries[];
+    get series(): PlotSeries[];
     get seriesCount(): number;
     /**
      * Delete a series.
@@ -167,7 +160,7 @@ declare class PlotElement extends LitElement implements IPlotElement {
     connectedCallback(): void;
     protected firstUpdated(_changedProperties: PropertyValues): void;
     updateColours(): void;
-    plot(value: number, seriesName?: string): DataSeries;
+    plot(value: number, seriesName?: string): PlotSeries;
     plotObject(value: object): void;
     draw(): void;
     drawLegend(cl: RectPositioned, d: DrawingHelper): void;
@@ -192,10 +185,10 @@ declare class PlotElement extends LitElement implements IPlotElement {
             y: number;
         }[];
     };
-    getSeries(name: string): DataSeries | undefined;
+    getSeries(name: string): PlotSeries | undefined;
     static styles: lit.CSSResult;
 }
-declare class DataSeries implements IDataSeries {
+declare class PlotSeries {
     name: string;
     private plot;
     data: number[];
@@ -211,4 +204,11 @@ declare class DataSeries implements IDataSeries {
     resetScale(): void;
 }
 
-export { DataSeries, FrequencyHistogramPlot, HistogramVis, type IDataSeries, type IPlotElement, PlotElement };
+declare function init(): void;
+declare global {
+    interface HTMLElementTagNameMap {
+        "plot-element": PlotElement;
+    }
+}
+
+export { FrequencyHistogramPlot, HistogramVis, PlotElement, PlotSeries, init };

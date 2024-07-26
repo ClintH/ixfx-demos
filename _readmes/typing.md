@@ -4,7 +4,6 @@ Contents:
 - [Type annotations](#type-annotations)
 - [Annotating a function](#annotating-a-function)
 - [Defining a type](#defining-a-type)
-- [Typed declarations](#typed-declarations)
 - [Type assertions](#type-assertions)
 - [Disabling](#disabling)
 - [Importing types](#importing-types)
@@ -71,7 +70,7 @@ setHtml(document.getElementById(`test`), `hello`);
 
 ...will give a warning, because `document.getElementById()` can return `null` if the element is not found. This warning can seem annoying if you know for sure the element is there, but again will likely save your bacon in other cases where you've mistyped the id of an element or forgot to include it in your HTML.
 
-Since our `setHtml` function handles `el` being `null`, we need to hint that using the pipe operator `|`.
+Since our `setHtml` function handles `el` being `null`, we need to hint the additional type option using the pipe operator `|`.
 
 ```js
 /**
@@ -79,11 +78,13 @@ Since our `setHtml` function handles `el` being `null`, we need to hint that usi
  * @param {string} msg 
  */
 const setHtml = (el, msg) => {
+  if (!msg) return; // Exit out if we get null/undefined
 ...
 }
 ```
 
-Now our calling code has no warnings, because even though we may pass in a null, we've hinted that `setHtml` can handle that just fine.
+This hints that `msg` can be of type `HTMLElement` _or_ a value of null. Now we can call the code without warning, indeed our `setHtml` handles null properly.
+
 
 # Defining a type
 
@@ -92,58 +93,39 @@ An example of a type is:
 ```js
 /**
  * @typedef {{
- *  webkitForce?: number
- *  normalised: number
- *  pointerPressure?: number
- * }} PressureForceState
+ *  name: string
+ *  age: number
+ *  hatColour?: string
+ * }} Person
 ```
 
-Or alternatively:
+Here, we define a type named _Person_, along with some associated properties. The basic syntax inside of the {{ }} block is: 
+```
+property: type
+```
+
+So our _Person_ has a `name` property which is a string, `age` which is a number and `hatColour` which is a string. Note the `?` at the end. This means the property is optional. A valid `Person` object might have that property, or it may be undefined.
+
+To express that a variable is of a type you can use this syntax:
+```js
+/** @type Person */
+const p = { name `Sally`, age: 31, hatColour: `red` }
+```
+
+Now your editor will give you warnings if you miss a required property or use the wrong types. This is super helpful.
+
+Another common way of using types is to specify them as function parameters as we saw earlier
+
 ```js
 /**
- * @typedef PressureForceState
- * @property {number} [webkitForce]
- * @property {number} normalised
- * @property {number} [pointerPressure]
+ * Greet people
+ * @param {Person} p
  */
-``` 
-
-Here, we define a type named _PressureForceState_, along with some associated properties. The type for each property is enclosed in the curly brackets, followed by the name of the property. If the property is optional, the name is enclosed in square brackets. 
-
-This type would then match data like:
-
-```js
-const f = {
-  normalised: 1
-};
-
-const ff = {
-  webkitForce: 2,
-  normalised: 0.5
+function greet(p) {
+  console.log(`Hello, ${p.name}!`);
 }
-``` 
-
-# Typed declarations
-
-To take advantage of the type, we need annotate our variable declaration with the intended type:
-
-```js
-/** @type {PressureForceState} */
-const f = {
-  normalised: 1
-};
 ```
 
-Now the editor will know what is expected of the variable `f`, and will give you warnings if you try to assign or access properties that don't exist or are the wrong type. This catches a lot of common mistakes while programing.
-
-Eg, now we'd get a warning if we tried to assign a string to the property `normalised`:
-
-```js
-/** @type {PressureForceState} */
-const f = {
-  normalised: `100`
-};
-```
 
 # Type assertions
 
@@ -173,7 +155,7 @@ if (!el) return;
 el.value = 100; // Now it is ok
 ```
 
-It's also possible to do inline assertions, which is handy in cases where variables are not being declared. The syntax is a bit ugly, but basically we use the same `/** @type {...} */` syntax, but wrap the statement in parenthesis:
+It's also possible to do inline assertions, which is handy in cases where variables are not being declared. The syntax is a bit ugly, but basically we use the same `/** @type {...} */` syntax, and also wrap the statement in parenthesis:
 
 ```js
 /** @type {HTMLInputElement} */(el).value = `10`;
@@ -201,35 +183,27 @@ You could also edit your project settings and ensure that `"js/ts.implicitProjec
 
 Visual Studio Code is smart enough to find and use type definitions from imported libraries, such as ixfx, even when it's not explicit.
 
-In the example below, `envelope` is correctly typed to the interface [`Adsr`](https://clinth.github.io/ixfx/interfaces/Modulation.Adsr.html):
+In the example below, `envelope` is correctly typed, so as we write the code
+the editor can give us hints of what the values are.
 
 ```js
-import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
-const envelope = adsr(defaultAdsrOpts());
+import { adsr } from '../../ixfx/modulation.js';
+const envelope = adsr();
 ```
 
-Note that we're not explicitly importing [`Adsr`], just a function that happens to return that type.
-
-It may be necessary to [manually import types](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#other) when you are referring to them in a type annotation. For example, if we want to define a type that references an `Adsr` instance.
-
-In the below example, we referring to the the types `Points.Point`, `Adsr`, and the in-built `string` type.
-
+It may be necessary to [manually import types](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#other) when you are referring to them in a type annotation. In the below example, we import ixfx's `Point` type
 ```js
-import { Points } from '../../ixfx/geometry.js';
-import { adsr, defaultAdsrOpts } from '../../ixfx/modulation.js';
-
 /** 
- * @typedef Thing
- * @property {Points.Point} position
- * @property { import('../../ixfx/modulation.js').Adsr} envelope
- * @property {string} id
+ * @typedef {{
+ * position: import('../../ixfx/geometry.js').Point
+ * }} Thing
  */
-```
 
-`Points.Point` we can reference succinctly - `{Points.Point}` because `Points` is imported as a module. This allows VSC to resolve it to a type. However with `Adsr`, we do not import the type, just a function. In Javascript, it's not possible to import types, because they aren't part of the language.
-
-Instead we use the _import_ syntax, using the same path as we would for the function. This is wrapped in parentheses, and followed by a period and then the name of the type:
-
-```js
-{ import('../../ixfx/modulation.js').Adsr }
+/**
+ * @param {Thing} p
+ */
+function blah(p) {
+  // Editor knows p.x and p.y exist and are numbers
+  // This helps us to catch mistakes like: p.x = `hello`
+} 
 ```

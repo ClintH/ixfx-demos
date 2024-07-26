@@ -10,16 +10,16 @@ import {
   makeHelper,
   remove,
   setBounds
-} from "./chunk-CDISQJWP.js";
-import "./chunk-COIMNZ4Q.js";
-import "./chunk-TDI7KZV2.js";
-import "./chunk-PDPCB2FF.js";
+} from "./chunk-F2Y5ENIO.js";
+import "./chunk-XRHVMID2.js";
+import "./chunk-OMH656NO.js";
+import "./chunk-S3B4O2KL.js";
 import "./chunk-BGQOJZFW.js";
 import "./chunk-ZJSCF2A4.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-JIDOUNL5.js";
-import "./chunk-BPDJLURO.js";
+import "./chunk-44XJNV6Z.js";
+import "./chunk-L5EJU35C.js";
 export {
   SvgElements_exports as Elements,
   applyOpts,

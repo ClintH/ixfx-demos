@@ -1,6 +1,6 @@
 import {
   fpsCounter
-} from "./chunk-6K6ZI7CZ.js";
+} from "./chunk-72HWREB4.js";
 import {
   getErrorMessage
 } from "./chunk-4IJNRUE7.js";
@@ -11,7 +11,7 @@ import {
   resolveLogOption
 } from "./chunk-BWJ5AMOD.js";
 import "./chunk-IQEKYUOH.js";
-import "./chunk-BPDJLURO.js";
+import "./chunk-L5EJU35C.js";
 export {
   fpsCounter,
   getErrorMessage,

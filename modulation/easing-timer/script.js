@@ -1,80 +1,73 @@
-import * as Flow from '../../ixfx/flow.js';
 import { Easings } from '../../ixfx/modulation.js';
+import { Flow, Data } from '../../ixfx/bundle.js';
+import * as Util from './util.js';
 
 const settings = Object.freeze({
-  // thing to move
-  thingEl: /** @type HTMLElement */(document.querySelector(`#thing`)),
-  // setup easing
-  easing: Easings.time(`sineIn`, 1000)
+  easing: /** @type Easings.Options */({
+    name: `sineIn`,
+    duration: 1000,
+  }),
+  // Thing to move
+  thingElement: /** @type HTMLElement */(document.querySelector(`#thing`)),
 });
 
-let state = Object.freeze({
-  /** @type {number} */
-  amt: 0,
-  /** @type {boolean} */
-  isDone: false,
-});
-
-// Update state with value from easing
-const update = () => {
-  const { easing } = settings;
-  saveState({
-    amt: easing.compute(),
-    isDone: easing.isDone
-  });
-
-  // Trigger a visual refresh
-  use();
-
-  // Return false if envelope is done, stopping animation
-  return !easing.isDone;
+let state = {
+  easing: () => 0
 };
 
-// Make a human-friendly percentage
-const percentage = (v) => Math.floor(v * 100) + `%`;
 
-// Update visuals
-const use = () => {
-  // Grab relevant field from settings & state
-  const { thingEl } = settings;
-  const { amt, isDone } = state;
+async function update() {
+  // Resolve functions in state
+  const computed = await Data.resolveFields(state);
 
-  if (!thingEl) return;
+  // Use the computed state
+  await use(computed);
 
-  if (isDone) {
-    thingEl.classList.add(`isDone`);
+  window.requestAnimationFrame(update);
+}
+
+/**
+ * Make visual udpates based on current state
+ * @param {Data.ResolvedObject<state>} computed
+ * @returns 
+ */
+function use(computed) {
+  const { thingElement } = settings;
+  const { easing } = computed;
+
+  if (easing >= 0.99) {
+    thingElement.classList.add(`isDone`);
   }
 
-  // Available width is width of viewport minus size of circle
-  const thingElementBounds = thingEl.getBoundingClientRect();
-  const width = document.body.clientWidth - thingElementBounds.width;
+  thingElement.textContent = Util.percentage(easing);
+  Util.translateElement(thingElement, easing, 0);
 
-  console.log(amt);
-  thingEl.textContent = percentage(amt);
-
-  // Move element
-  thingEl.style.transform = `translate(${amt * width}px, 0px)`;
 };
 
-const setup = () => {
-  // Run loop. This will call `saveState` until it returns false
-  const run = Flow.continuously(update);
 
-  // Called on pointerup or keyup. 
-  // Triggers easing function
-  const trigger = () => {
-    const { easing, thingEl } = settings;
-    if (!thingEl) return;
-    easing.reset();
-    run.start();
-    thingEl.classList.remove(`isDone`);
-    thingEl.style.transform = ``;
-    thingEl.textContent = ``;
-  };
+// Called on pointerup or keyup. 
+// Resets the easing function
+function trigger() {
+  const { easing, thingElement } = settings;
 
+  // Reset visuals
+  thingElement.classList.remove(`isDone`);
+  thingElement.style.transform = ``;
+  thingElement.textContent = ``;
+
+  // Create a new easer. 
+  // e() will return 0..1 non-linearly.
+  const e = Easings.create(easing);
+
+  saveState({ easing: e });
+};
+
+function setup() {
   // Wire up events
   document.addEventListener(`pointerup`, trigger);
   document.addEventListener(`keyup`, trigger);
+
+  update();
 };
 setup();
 
@@ -82,7 +75,7 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

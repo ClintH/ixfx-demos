@@ -1,46 +1,47 @@
 import {
   Drawing_exports
-} from "./chunk-ESZYWNXF.js";
-import "./chunk-7UA47DUZ.js";
-import "./chunk-IQCT4OWU.js";
-import "./chunk-PNJUAKRR.js";
-import "./chunk-AU7KZOCA.js";
-import "./chunk-AGFYQA5X.js";
-import "./chunk-D6B5XJEV.js";
-import "./chunk-6K6ZI7CZ.js";
-import "./chunk-ZEYQOWUB.js";
+} from "./chunk-AZQ4WJ37.js";
+import "./chunk-WB7B2CFX.js";
+import "./chunk-I4LMYJRJ.js";
+import "./chunk-GPMQ4ROV.js";
+import "./chunk-J6RVWG5Y.js";
+import "./chunk-XQGWPAMW.js";
+import "./chunk-N6QOOBVH.js";
+import "./chunk-72HWREB4.js";
+import "./chunk-INY6TNWP.js";
 import "./chunk-VHEJ5XJJ.js";
 import "./chunk-CSWMME6O.js";
 import {
   CanvasHelper
-} from "./chunk-7LI4HX2O.js";
-import "./chunk-QVYWRFS5.js";
-import "./chunk-CDISQJWP.js";
-import "./chunk-CEQEEDJO.js";
-import "./chunk-COIMNZ4Q.js";
-import "./chunk-OHBN76WG.js";
-import "./chunk-JIJ5ZCVI.js";
+} from "./chunk-D7YERPJE.js";
+import "./chunk-HR2SGSZG.js";
+import "./chunk-F2Y5ENIO.js";
+import "./chunk-WTZWRTJV.js";
+import "./chunk-XRHVMID2.js";
+import "./chunk-3CCQZF6R.js";
+import "./chunk-2MKDZQRI.js";
 import {
   Pathed_exports
-} from "./chunk-U64PXFNO.js";
-import "./chunk-XKK2DE7P.js";
+} from "./chunk-F3WF55XZ.js";
+import "./chunk-3EZX4TDE.js";
 import {
   Colour_exports
-} from "./chunk-TDI7KZV2.js";
+} from "./chunk-OMH656NO.js";
 import {
   wrap
-} from "./chunk-LJHTLZZF.js";
+} from "./chunk-LQKA6R2Q.js";
 import {
   scaler
-} from "./chunk-PDPCB2FF.js";
-import "./chunk-HJOUA52G.js";
+} from "./chunk-S3B4O2KL.js";
+import "./chunk-5I5EMARC.js";
 import "./chunk-AGCCB7IA.js";
 import "./chunk-BGQOJZFW.js";
-import "./chunk-WLTNNG5E.js";
-import "./chunk-2ACUEACA.js";
-import "./chunk-WXHQVCDC.js";
-import "./chunk-27QUVD4O.js";
-import "./chunk-EDWGLKJ5.js";
+import "./chunk-KQRLSLOJ.js";
+import "./chunk-2HENLVQE.js";
+import "./chunk-DLPP7I2Q.js";
+import "./chunk-6IZ7GCYP.js";
+import "./chunk-IHIXEDTC.js";
+import "./chunk-GHZFZEKP.js";
 import "./chunk-4IJNRUE7.js";
 import "./chunk-BWJ5AMOD.js";
 import "./chunk-IQEKYUOH.js";
@@ -50,39 +51,40 @@ import {
 } from "./chunk-ZJSCF2A4.js";
 import "./chunk-AMGGFK7I.js";
 import "./chunk-32ZT4CAA.js";
-import "./chunk-4MTZ4LR4.js";
-import "./chunk-62ZIIY3J.js";
-import "./chunk-OSHEEYFX.js";
-import "./chunk-SSJKT4VN.js";
-import "./chunk-BUQPN7XA.js";
-import "./chunk-R5OKWGBU.js";
-import "./chunk-Y73QERC3.js";
-import "./chunk-37WZU5ZM.js";
+import "./chunk-I3HI45DP.js";
+import "./chunk-R4J7WGCM.js";
+import "./chunk-NKNAN3KD.js";
+import "./chunk-32Y5CK4C.js";
+import "./chunk-YLRZZLGG.js";
+import "./chunk-6TH2VSQN.js";
+import "./chunk-IOH3DBVT.js";
+import "./chunk-KNMCW5SP.js";
+import "./chunk-NXPE4HQJ.js";
 import "./chunk-MZFSDYZE.js";
-import "./chunk-V3GRAXTF.js";
+import "./chunk-ENJ6X6ZE.js";
 import {
   getSorter
-} from "./chunk-YEPQKQF6.js";
-import "./chunk-WWMZJ2DK.js";
-import "./chunk-HE2SC3FY.js";
+} from "./chunk-AUYIXQZL.js";
+import "./chunk-IQYPVUM5.js";
+import "./chunk-5ASCYXA4.js";
 import "./chunk-7U6QARGK.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-G7E3BCBX.js";
+import "./chunk-P3TY2N4I.js";
+import "./chunk-5MXEL2YC.js";
 import "./chunk-EHDC2PRM.js";
-import "./chunk-2EX73MGI.js";
 import "./chunk-SMLGKS2N.js";
+import "./chunk-J3H2THXX.js";
 import "./chunk-HOGLR6UM.js";
 import "./chunk-SGQC7FGM.js";
-import "./chunk-JIDOUNL5.js";
+import "./chunk-44XJNV6Z.js";
 import {
   __decorateClass,
   __privateAdd,
   __privateGet,
   __privateMethod,
-  __privateSet,
-  __publicField
-} from "./chunk-BPDJLURO.js";
+  __privateSet
+} from "./chunk-L5EJU35C.js";
 
 // node_modules/@lit/reactive-element/css-tag.js
 var t = globalThis;
@@ -898,7 +900,7 @@ var HistogramVis = class extends s3 {
     return h6;
   }
 };
-__publicField(HistogramVis, "styles", i`
+HistogramVis.styles = i`
     :host {
     }
     div.container {
@@ -941,7 +943,7 @@ __publicField(HistogramVis, "styles", i`
       width: 100%;
       height: 100%;
     }
-  `);
+  `;
 __decorateClass([
   n4()
 ], HistogramVis.prototype, "data", 2);
@@ -963,7 +965,6 @@ HistogramVis = __decorateClass([
 
 // src/components/FrequencyHistogramPlot.ts
 var FrequencyHistogramPlot = class {
-  el;
   #sorter;
   constructor(el) {
     this.el = el;
@@ -1089,22 +1090,22 @@ var PlotElement = class extends s3 {
   constructor() {
     super();
     __privateAdd(this, _PlotElement_instances);
-    __publicField(this, "streaming", true);
-    __publicField(this, "maxLength", 500);
-    __publicField(this, "dataWidth", 5);
-    __publicField(this, "fixedMax", Number.NaN);
-    __publicField(this, "fixedMin", Number.NaN);
-    __publicField(this, "lineWidth", 2);
-    __publicField(this, "renderStyle", `dot`);
-    __publicField(this, "autoRedraw", true);
-    __publicField(this, "padding", 5);
-    __publicField(this, "paused", false);
+    this.streaming = true;
+    this.maxLength = 500;
+    this.dataWidth = 5;
+    this.fixedMax = Number.NaN;
+    this.fixedMin = Number.NaN;
+    this.lineWidth = 2;
+    this.renderStyle = `dot`;
+    this.autoRedraw = true;
+    this.padding = 5;
+    this.paused = false;
     __privateAdd(this, _series, /* @__PURE__ */ new Map());
     __privateAdd(this, _canvas);
     __privateAdd(this, _drawing);
     __privateAdd(this, _legendColour, ``);
     //#backgroundColour: string = ``
-    __publicField(this, "canvasEl", e5());
+    this.canvasEl = e5();
     __privateAdd(this, _swatchSize, 10);
   }
   get series() {
@@ -1178,7 +1179,7 @@ var PlotElement = class extends s3 {
   plot(value, seriesName = ``) {
     let s6 = __privateGet(this, _series).get(seriesName.toLowerCase());
     if (s6 === void 0) {
-      s6 = new DataSeries(seriesName, this);
+      s6 = new PlotSeries(seriesName, this);
       __privateGet(this, _series).set(seriesName.toLowerCase(), s6);
     }
     s6.push(value);
@@ -1357,13 +1358,13 @@ setupCanvas_fn = function() {
   return c6;
 };
 _swatchSize = new WeakMap();
-__publicField(PlotElement, "styles", i`
+PlotElement.styles = i`
   :host {
     width: 100%;
     height: 100%;
     display: block;
   }
-  `);
+  `;
 __decorateClass([
   n4({ attribute: `streaming`, type: Boolean })
 ], PlotElement.prototype, "streaming", 2);
@@ -1388,18 +1389,19 @@ __decorateClass([
 PlotElement = __decorateClass([
   t3(`plot-element`)
 ], PlotElement);
-var DataSeries = class _DataSeries {
+var PlotSeries = class _PlotSeries {
   constructor(name, plot) {
     this.name = name;
     this.plot = plot;
-    this.colour = Colour_exports.fromHsl(_DataSeries.hue, 0.9, 0.4);
-    _DataSeries.hue = wrap(_DataSeries.hue + 0.1);
+    this.data = [];
+    this.minSeen = Number.MAX_SAFE_INTEGER;
+    this.maxSeen = Number.MIN_SAFE_INTEGER;
+    this.colour = Colour_exports.fromHsl(_PlotSeries.hue, 0.9, 0.4);
+    _PlotSeries.hue = wrap(_PlotSeries.hue + 0.1);
   }
-  data = [];
-  colour;
-  minSeen = Number.MAX_SAFE_INTEGER;
-  maxSeen = Number.MIN_SAFE_INTEGER;
-  static hue = 0;
+  static {
+    this.hue = 0;
+  }
   clear() {
     this.data = [];
     this.resetScale();
@@ -1425,15 +1427,20 @@ var DataSeries = class _DataSeries {
     this.maxSeen = Number.MIN_SAFE_INTEGER;
   }
 };
-try {
-  customElements.define(`plot-element`, PlotElement);
-} catch {
+
+// src/components/index.ts
+function init() {
+  try {
+    customElements.define(`plot-element`, PlotElement);
+  } catch {
+  }
 }
 export {
-  DataSeries,
   FrequencyHistogramPlot,
   HistogramVis,
-  PlotElement
+  PlotElement,
+  PlotSeries,
+  init
 };
 /*! Bundled license information:
 

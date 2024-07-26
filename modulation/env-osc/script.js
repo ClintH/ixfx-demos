@@ -1,73 +1,101 @@
-
 import { Envelopes } from '../../ixfx/modulation.js';
+import { count } from '../../ixfx/numbers.js';
 import * as Things from './thing.js';
 
 const settings = Object.freeze({
   sizeEm: 10,
-  envelope: {
-    ...Envelopes.defaultAdsrOpts(),
-    // Override some envelope options...
-    // See: https://clinth.github.io/ixfx-docs/modulation/envelope/
+  howManyThings: 10,
+  envelope: new Envelopes.Adsr({
     sustainLevel: 1,
-    releaseDuration: 1000,
+    attackDuration: 2000,
+    releaseDuration: 6000,
     retrigger: true
-  }
+  })
 });
 
 /**
  * @typedef {{
-*  thing: Things.Thing
-* }} State
-*/
+ * things: Things.Thing[]
+ * mod: number
+ * }} SketchState
+ */
 
-/** @type State */
-let state = Object.freeze({
-  /** 
-   * Create a thing, to control HTML element with id 'thing'
-   */
-  thing: Things.generate(`thing`, settings.envelope),
-});
-
-const use = () => {
-  Things.use(state.thing);
+/** @type SketchState */
+let state = {
+  things: [],
+  mod: 0
 };
 
-const update = () => {
-  // Update state with changed thing
-  saveState({ 
-    thing: Things.update(state.thing)
+const use = () => {
+  for (const t of state.things) {
+    Things.use(t);
+  }
+};
+
+const update = async () => {
+  const { envelope } = settings;
+  const { things } = state;
+
+  // Get value value & stage of envelope
+  const env = envelope.compute();
+  let envelopeValue = 0;
+  // If the envelope is running, use the value and print it out
+  if (env[0] !== undefined) {
+    envelopeValue = env[1];
+    //console.log(`Envelope stage: '${env[0]}' value: ${envelopeValue.toFixed(2)}`);
+  }
+  // Update each thing
+  // 1. Things.update is async, so it returns a Promise. Make an array of these promises via .map
+  const promises = things.map(t => Things.update(t, envelopeValue));
+
+  // 2. Wait for all these promises to resolve
+  const changedThings = await Promise.all(promises);
+
+  // 3. Save final results
+  saveState({
+    things: changedThings,
+    mod: envelopeValue
   });
 
-  use(); 
+  use();
   window.requestAnimationFrame(update);
 };
 
-const setup = () => {
-  console.log(`Envelope looks like:`);
-  console.log(settings.envelope);
+function generateThing() {
+  const thing = Things.generate();
+  saveState({
+    things: [...state.things, thing]
+  });
+  return thing;
+}
 
+const setup = () => {
   // Trigger and hold envelopes when pointer is down
   window.addEventListener(`pointerdown`, event => {
-    const { thing } = state;
-    console.log(`Envelope trigger`);
-    thing.envelope.trigger(false);
+    const { envelope } = settings;
+    envelope.trigger(true);
   });
 
   // Release envelope on pointerup
   window.addEventListener(`pointerup`, event => {
-    const { thing } = state;
-    console.log(`Envelope release`);
-    thing.envelope.release();
+    console.log(`pointerup`);
+    const { envelope } = settings;
+    envelope.release();
   });
+
+  // Create 5 things
+  for (const v of count(settings.howManyThings)) {
+    generateThing();
+  }
   update();
 };
 setup();
 
 /**
  * Update state
- * @param {Partial<state>} s 
+ * @param {Partial<SketchState>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

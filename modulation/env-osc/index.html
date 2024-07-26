@@ -34,7 +34,7 @@
       overflow: hidden;
     }
 
-    #thing {
+    .thing {
       position: absolute;
       width: 2em;
       height: 2em;
@@ -43,13 +43,18 @@
       top: 0;
       background-color: var(--fg);
       pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #proto-thing {
+      display:none;
     }
   </style>
   <section>
-    <h1>env-osc</h1>
-    <p>Tap to trigger envelope.</p>
-    <p>This sketch uses an oscillator to module an envelope.</p>
-    <div id="thing"></div>
+    <p>Balls move according to an oscillator.</p>
+    <p>Press to hold the envelope, modulating the range of movement.</p>
+    <div class="thing" id="proto-thing"></div>
     <script type="module" src="script.js"></script>
   </section>
 </body>

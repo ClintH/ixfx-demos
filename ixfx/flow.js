@@ -27,53 +27,59 @@ import {
   throttle,
   updateOutdated,
   waitFor
-} from "./chunk-2ACUEACA.js";
+} from "./chunk-2HENLVQE.js";
+import "./chunk-DLPP7I2Q.js";
 import {
   StateMachine_exports,
+  Stopwatch_exports,
   run,
   runSingle
-} from "./chunk-WXHQVCDC.js";
+} from "./chunk-6IZ7GCYP.js";
 import {
   rateMinimum,
   timeout
-} from "./chunk-27QUVD4O.js";
+} from "./chunk-IHIXEDTC.js";
 import {
-  Elapsed_exports,
+  elapsedMillisecondsAbsolute,
+  elapsedTicksAbsolute,
   frequencyTimer,
-  frequencyTimerSource,
   hasElapsed,
-  msElapsedTimer,
-  relativeTimer,
-  ticksElapsedTimer
-} from "./chunk-EDWGLKJ5.js";
+  ofTotal,
+  ofTotalTicks,
+  relative,
+  timerWithFunction
+} from "./chunk-GHZFZEKP.js";
 import "./chunk-4IJNRUE7.js";
 import "./chunk-BWJ5AMOD.js";
 import "./chunk-IQEKYUOH.js";
 import "./chunk-ZJSCF2A4.js";
 import "./chunk-AMGGFK7I.js";
 import "./chunk-32ZT4CAA.js";
-import "./chunk-BUQPN7XA.js";
-import "./chunk-Y73QERC3.js";
+import "./chunk-YLRZZLGG.js";
+import "./chunk-6TH2VSQN.js";
+import "./chunk-KNMCW5SP.js";
 import {
+  elapsedToHumanString,
   intervalToMs,
   isInterval
-} from "./chunk-37WZU5ZM.js";
-import "./chunk-YEPQKQF6.js";
-import "./chunk-WWMZJ2DK.js";
-import "./chunk-HE2SC3FY.js";
+} from "./chunk-NXPE4HQJ.js";
+import "./chunk-AUYIXQZL.js";
+import "./chunk-IQYPVUM5.js";
+import "./chunk-5ASCYXA4.js";
 import "./chunk-7U6QARGK.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-G7E3BCBX.js";
-import "./chunk-2EX73MGI.js";
+import "./chunk-P3TY2N4I.js";
+import "./chunk-5MXEL2YC.js";
+import "./chunk-J3H2THXX.js";
 import "./chunk-HOGLR6UM.js";
 import "./chunk-SGQC7FGM.js";
-import "./chunk-JIDOUNL5.js";
-import "./chunk-BPDJLURO.js";
+import "./chunk-44XJNV6Z.js";
+import "./chunk-L5EJU35C.js";
 export {
   BehaviourTree_exports as BehaviourTree,
   DispatchList,
-  Elapsed_exports as Elapsed,
+  Stopwatch_exports as Elapsed,
   RequestResponseMatch,
   StateMachine_exports as StateMachine,
   SyncWait,
@@ -84,20 +90,23 @@ export {
   debounce,
   delay,
   delayLoop,
+  elapsedMillisecondsAbsolute,
+  elapsedTicksAbsolute,
+  elapsedToHumanString,
   everyNth,
   forEach,
   forEachAsync,
   frequencyTimer,
-  frequencyTimerSource,
   hasElapsed,
   interval,
   intervalToMs,
   isInterval,
-  msElapsedTimer,
+  ofTotal,
+  ofTotalTicks,
   promiseFromEvent,
   promiseWithResolvers,
   rateMinimum,
-  relativeTimer,
+  relative,
   repeat,
   repeatAwait,
   retryFunction,
@@ -109,8 +118,8 @@ export {
   sleep,
   sleepWhile,
   throttle,
-  ticksElapsedTimer,
   timeout,
+  timerWithFunction,
   updateOutdated,
   waitFor
 };

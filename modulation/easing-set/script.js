@@ -1,79 +1,83 @@
-
-import { continuously } from '../../ixfx/flow.js';
 import { Easings } from '../../ixfx/modulation.js';
+import * as Data from '../../ixfx/data.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
-  easing: Easings.time(`quintIn`, 1000),
-  easingSample: continuously(sampleEnvelope, 20)
+  easing: /** @type Easings.Options */({
+    name: `quintIn`,
+    duration: 1000,
+  }),
+  // The visual 'fill' element
+  fillElement: /** @type HTMLElement */(document.querySelector(`#slider>.fill`)),
+  sliderElement: /** @type HTMLElement */(document.querySelector(`#slider`))
 });
 
-let state = Object.freeze({
-  /** @type number */
-  target: 0,
-  /** @type number */
-  value: 0.5
-});
 
-// Fill slider with current value
-const use = () => {
-  const { value } = state;
-  const fillElement = /** @type HTMLElement */(document.querySelector(`#slider>.fill`));
-  if (!fillElement) return;
-
-  fillElement.style.width = `${value*100}%`;
+let state = {
+  // By default, compute x by just returning 0
+  x: () => 0
 };
 
-// Loop that runs via settings.envSample, reading
-// envelope value
-function sampleEnvelope() {
-  const { easing } = settings;
-  const { target,  value } = state;
+/**
+ * Make visual udpates based on current state
+ * @param {Data.ResolvedObject<state>} computed
+ * @returns 
+ */
+async function use(computed) {
+  const { fillElement } = settings;
+  const { x } = computed;
 
-  // End sampling loop if easing is done
-  if (easing.isDone) return false;
-  
-  // Get value from easing
-  const v = easing.compute();
+  // Update UI
+  fillElement.style.width = `${x * 100}%`;
+};
 
-  // How far to target from current
-  // could be positive or negative value
-  const distance = target - value;
-
-  // Modulate distance based on easing,
-  // add to current value
-  const vv = (v * distance) + value;
-  
-  saveState({
-    value: vv
-  });
-
-  // Visual refresh
-  use();
-}
 
 /**
- * 
+ * Pointer up on the '#slider' element
  * @param {PointerEvent} event 
  */
 const onPointerUp = (event) => {
-  const { easing, easingSample } = settings;
+  const { easing, sliderElement } = settings;
 
-  const slider = /** @type HTMLElement */(document.querySelector(`#slider`));
-  if (!slider) return;
-  
-  // Get relative pos based on click within element
-  const pos = Util.relativePosition(slider, event);
+  // Get relative position of click according to size of element
+  // This gives us {x,y} on a scale of 0..1
+  const pos = Util.relativePosition(sliderElement, event);
 
-  // Update target
+  // The easing function will produce 0..1 on a non-linear scale (ie. curved a little)
+  const e = Easings.create(easing);
+
+  // We want to ease from the current value to the new target
+  const currentX = state.x();         // Current x value
+  const totalDistance = pos.x - currentX;  // Distance that needs to be travelled
+
+  // Function to compute relative x value
+  // based on progress on easing curve 
+  // and the starting point
+  const x = () => {
+    // How far along total distance, according to
+    // easing function
+    const distance = e() * totalDistance;
+
+    // Apply to the value when we started
+    return currentX + distance;
+  };
+
+  // Save this function to state
+  // so it will get called during update()
   saveState({
-    target: pos.x
+    x
   });
-
-  // Trigger envelope & (re)start envelope sampler loop
-  easing.reset();
-  easingSample.start();
 };
+
+async function update() {
+  // Resolve functions in state
+  const computed = await Data.resolveFields(state);
+
+  // Use the computed state
+  await use(computed);
+
+  window.requestAnimationFrame(update);
+}
 
 function setup() {
   const slider = /** @type HTMLElement */(document.querySelector(`#slider`));
@@ -81,7 +85,7 @@ function setup() {
 
   slider.addEventListener(`pointerup`, onPointerUp);
 
-  use();
+  update();
 };
 setup();
 
@@ -89,10 +93,9 @@ setup();
  * Update state
  * @param {Partial<state>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s
   });
 }
-

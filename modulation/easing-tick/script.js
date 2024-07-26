@@ -1,85 +1,90 @@
 import { Easings } from '../../ixfx/modulation.js';
+import * as Data from '../../ixfx/data.js';
 
 const settings = Object.freeze({
-  // thing we'll move
-  thingEl: /** @type HTMLElement */(document.querySelector(`#thing`)),
-  // setup easing
-  easing: Easings.tick(`sineIn`, 100)
+  // Use a manual 'Easer' so we can advanced it when we want 
+  easing: Easings.tickEasing(`sineIn`, 10),
+  // Thing we'll move
+  thingElement: /** @type HTMLElement */(document.querySelector(`#thing`)),
 });
 
-let state = Object.freeze({
-  /** @type {number} */
-  amt: 0,
-  /** @type {boolean} */
-  isDone: false
-});
+/**
+ * @typedef {Readonly<{
+ * value:number
+ * }>} State
+ */
 
-const onPointerOrKeyUp = (event) => {
-  event.preventDefault();
-  const { easing } = settings;
-  saveState({
-    amt: easing.compute(), // Progresses easing by one tick
-    isDone: easing.isDone
-  });
-
-  // Trigger a visual refresh
-  use();
-
-  // Return false if envelope is done, stopping animation
-  return !easing.isDone;
-};
-
-// Make a human-friendly percentage
-const percentage = (v) => Math.floor(v * 100) + `%`;
-
-// Update visuals
-const use = () => {
-  // Grab relevant fields from settings & state
-  const { thingEl } = settings;
-  const { amt, isDone } = state;
-
-  if (!thingEl) return;
-
-  if (isDone) {
-    thingEl.classList.add(`isDone`);
-  }
-
-  // Available width is width of viewport minus size of circle
-  const thingElementBounds = thingEl.getBoundingClientRect();
-  const width = document.body.clientWidth - thingElementBounds.width;
-
-  console.log(amt);
-  thingEl.textContent = percentage(amt);
-
-  // Move element
-  thingEl.style.transform = `translate(${amt * width}px, 0px)`;
+/** @type State */
+let state = {
+  value: 0
 };
 
 /**
- * Not used, but shows how to reset
- * easing 
+ * Trigger a 'tick' of the easing, manually advancing it.
+ * @param {Event} event 
+ * @returns 
  */
-const reset = () => {
-  const { thingEl, easing } = settings;
+const onPointerOrKeyUp = (event) => {
+  const { easing } = settings;
+  event.preventDefault();
 
-  if (!thingEl) return;
+  saveState({
+    value: easing.compute() // trigger a 'tick'
+  });
 
-  // Reset
-  easing.reset();
-  thingEl.classList.remove(`isDone`);
-  thingEl.style.transform = ``;
-  thingEl.textContent = ``;
+  // Update visuals
+  update();
 };
 
-function setup() {
-  const { thingEl } = settings;
-  if (!thingEl) return;
+/**
+ * Make visual udpates based on current state
+ * @param {Data.ResolvedObject<state>} computed
+ * @returns 
+ */
+const use = (computed) => {
+  // Grab relevant fields from settings & state
+  const { thingElement, easing } = settings;
+  const { value } = computed;
 
+  if (easing.isDone) {
+    thingElement.classList.add(`isDone`);
+  }
+
+  // Available width is width of viewport minus size of circle
+  const thingElementBounds = thingElement.getBoundingClientRect();
+  const width = document.body.clientWidth - thingElementBounds.width;
+
+  thingElement.textContent = percentage(value);
+
+  // Move element
+  thingElement.style.transform = `translate(${value * width}px, 0px)`;
+};
+
+async function update() {
+  // Resolve functions in state
+  const computed = await Data.resolveFields(state);
+
+  // Use the computed state
+  await use(computed);
+}
+
+function setup() {
   // Handle events
   document.addEventListener(`keydown`, onPointerOrKeyUp);
   document.addEventListener(`click`, onPointerOrKeyUp);
+
+  update();
 };
 setup();
+
+/**
+ * Make a human-friendly percentage
+ * @param {number} v 
+ * @returns 
+ */
+function percentage(v) {
+  return Math.floor(v * 100) + `%`;
+}
 
 /**
  * Update state

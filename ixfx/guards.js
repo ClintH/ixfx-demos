@@ -8,7 +8,11 @@ import {
   nullUndef,
   throwArrayTest,
   throwNullUndef
-} from "./chunk-G7E3BCBX.js";
+} from "./chunk-P3TY2N4I.js";
+import {
+  stringTest,
+  throwStringTest
+} from "./chunk-5MXEL2YC.js";
 import {
   ifNaN,
   integerParse,
@@ -20,8 +24,8 @@ import {
   throwIntegerTest,
   throwNumberTest,
   throwPercentTest
-} from "./chunk-JIDOUNL5.js";
-import "./chunk-BPDJLURO.js";
+} from "./chunk-44XJNV6Z.js";
+import "./chunk-L5EJU35C.js";
 export {
   arrayTest,
   defined,
@@ -36,11 +40,13 @@ export {
   nullUndef,
   numberTest,
   percentTest,
+  stringTest,
   throwArrayTest,
   throwFromResult,
   throwIntegerTest,
   throwNullUndef,
   throwNumberTest,
-  throwPercentTest
+  throwPercentTest,
+  throwStringTest
 };
 //# sourceMappingURL=guards.js.map

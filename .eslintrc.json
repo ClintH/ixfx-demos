@@ -23,6 +23,7 @@
     "unicorn/no-thenable": "off",
     "unicorn/filename-case":"off",
     "unicorn/no-abusive-eslint-disable":"off",
+    "unicorn/no-keyword-prefix":"off",
     "unicorn/prevent-abbreviations":"off",
     "unicorn/no-array-for-each":"off",
     "unicorn/no-array-callback-reference":"off",

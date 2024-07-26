@@ -1,51 +1,61 @@
-import * as Flow from '../../ixfx/flow.js';
-import { Oscillators } from '../../ixfx/modulation.js';
+import { Flow, Data, Modulation } from '../../ixfx/bundle.js';
 import { Points } from '../../ixfx/geometry.js';
 import * as Util from './util.js';
 
-let state = Object.freeze({
-  // Default spring
-  spring: yieldNumber(Oscillators.spring()),
-  to: { x: 0.5, y:0.5 },
-  from: { x:0.5, y: 0.5 },
-  /** @type number */
-  amt: 0,
-  /** @type boolean */
-  isDone: false,
-  currentPos: { x: 0.5, y:0.5 },
-  bounds: { width: 0, height: 0 }
+const settings = Object.freeze({
+  spring: /** @type Modulation.SpringOptions */({
+    // Bounciness. Higher == bouncier
+    stiffness: 100,
+    // 'Weight' of object. 
+    // Less weight means faster movement, but also less noticeable effect of the spring
+    mass: 1,
+    // Acts a kind of friction
+    damping: 10
+  }),
+  // Thing to move around
+  thingElement: /** @type HTMLElement */ (document.querySelector(`#thing`))
 });
 
-// Update state with value from easing
-const update = () => {
-  const { spring, to, from } = state;
-
-  const v = spring();
-  if (v === undefined) {
-    // Spring is complete
-    saveState({ 
-      isDone:true
-    });
-  } else {
-    // Calculate position
-    const pos = Points.interpolate(v, from, to, true);
-  
-    saveState({
-      amt: v,
-      isDone: false,
-      currentPos: pos
-    });
-  }
-  // Trigger a visual refresh
-  use();
+let rawState = {
+  // Initially spring value will compute as 0
+  spring: () => 0,
+  // Where object is meant to move (viewport-relative coords)
+  to: { x: 0.5, y: 0.5 },
+  // Where it started moving from (viewport-relative coords)
+  from: { x: 0.5, y: 0.5 },
+  // Current calculated position (viewport-relative coords)
+  currentPos: { x: 0.5, y: 0.5 },
+  // Is the spring finished springing
+  isDone: false,
 };
 
-// Update visuals
-const use = () => {
-  const { isDone, currentPos } = state;
+// Update state with value from spring
+const update = async () => {
+  // Compute functions on state object
+  const state = await Data.resolveFields(rawState);
 
-  const thingElement = document.querySelector(`#thing`);
-  if (!thingElement) return;
+  const { spring, to, from } = state;
+
+  // Calculate position between 'from' and 'to' using the value of the
+  // spring (0..1) as the %
+  const pos = Points.interpolate(spring, from, to, true);
+
+  saveState({
+    isDone: spring === 1,
+    currentPos: pos
+  });
+
+  // Trigger a visual refresh
+  use();
+
+  // Loop
+  window.requestAnimationFrame(update);
+};
+
+
+const use = () => {
+  const { thingElement } = settings;
+  const { isDone, currentPos } = rawState;
 
   if (isDone) {
     thingElement.classList.add(`isDone`);
@@ -57,55 +67,28 @@ const use = () => {
   Util.moveElement(thingElement, currentPos);
 };
 
-function setup() {
-  // Run loop. This will call `update` until it returns false
-  const run = Flow.continuously(update);
-
-  // Wire up events
-  const updateResize = () => {
-    saveState({ 
-      bounds: { 
-        width: window.innerWidth, 
-        height: window.innerHeight 
-      },
-      from: state.currentPos 
-    });
-  };
-  document.addEventListener(`resize`, updateResize);
-  updateResize();
-  
+const setup = () => {
   document.addEventListener(`pointerup`, event => {
-    const { bounds } = state;
-    saveState({ 
-      to: { 
-        x: event.x / bounds.width, 
-        y: event.y / bounds.height 
-      },
-      from: state.currentPos 
+    saveState({
+      // Reset spring
+      spring: Modulation.springValue(settings.spring),
+      // Set new 'to' and 'from' positions
+      to: Util.getRelativePosition(event),
+      from: rawState.currentPos
     });
-    saveState({ spring: yieldNumber(Oscillators.spring()) });
-    run.start();
   });
 
-  Util.moveElement(document.querySelector(`#thing`), state.currentPos);
+  update();
 };
 setup();
 
 /**
  * Save state
- * @param {Partial<state>} s 
+ * @param {Partial<rawState>} s 
  */
-function saveState (s) {
-  state = Object.freeze({
-    ...state,
+function saveState(s) {
+  rawState = Object.freeze({
+    ...rawState,
     ...s
   });
-}
-
-function yieldNumber(generator, defaultValue) {
-  return () => {
-    const v = generator.next().value;
-    if (v === undefined) return defaultValue;
-    return v;
-  };
 }

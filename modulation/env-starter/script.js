@@ -4,56 +4,57 @@ import { continuously } from '../../ixfx/flow.js';
 
 const settings = Object.freeze({
   sampleRateMs: 5,
-  adsrOptions: {
-    ...Envelopes.defaultAdsrOpts(),
+  // Create the envelope
+  envelope: new Envelopes.Adsr({
     attackBend: 1,
-    attackDuration: 10*1000,
+    attackDuration: 10 * 1000,
     releaseLevel: 0,
-    releaseDuration: 15*1000,
+    releaseDuration: 15 * 1000,
     sustainLevel: 1
-  }
+  })
 });
 
 /**
  * @typedef {{
- *  envelope: Envelopes.Adsr
- *  target: number
- *  value: number
- *  abortController: AbortController
+ * envelopeValue: number
  * }} State
  */
 
 /** @type State */
 let state = Object.freeze({
-  envelope: Envelopes.adsr(settings.adsrOptions),
-  target: 0,
-  value: 0,
-  abortController: new AbortController()
+  envelopeValue: 0
 });
 
 const update = () => {
-  let { envelope } = state;
-  
+  let { envelope } = settings;
+
   // Read value from envelope and set it to state
-  saveState({ value: envelope.value});
+  let envelopeValue = envelope.value;
+  // Set value to 0 if envelope has not been started
+  if (Number.isNaN(envelopeValue)) envelopeValue = 0;
+
+  saveState({
+    envelopeValue
+  });
+
+  use();
+
+  window.requestAnimationFrame(update);
 };
 
 /**
- * Use state properties for something...
+ * Apply the state to visual properties etc...
  */
 const use = () => {
-  const { value } = state;
-  console.log(value);
+  const { envelopeValue } = state;
+  console.log(envelopeValue);
 };
 
 function setup() {
-  continuously(() => {
-    update();
-    use();
-  }).start();
+  update();
 
   // Trigger envelope
-  state.envelope.trigger();
+  settings.envelope.trigger();
 };
 setup();
 
@@ -61,7 +62,7 @@ setup();
  * Save state
  * @param {Partial<State>} s 
  */
-function saveState (s) {
+function saveState(s) {
   state = Object.freeze({
     ...state,
     ...s

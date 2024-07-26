@@ -21,11 +21,16 @@
     user-select: none;
     -webkit-user-select: none;
     overscroll-behavior: contain;
-
+    margin:0;
+    padding:0;
   }
 
   body {
+    height:100vh;
+    width:100vw;
     font-size: 2vw;
+    display:flex;
+    align-items: center;
   }
 
   h1 {
@@ -40,6 +45,8 @@
     color: var(--bg);
     display: inline-block;
     border-radius: 99em;
+    user-select: none;
+    -webkit-user-select: none;
     background-color: hsl(var(--hue), 100%, 88%);
     display: flex;
     justify-content: center;
@@ -53,7 +60,6 @@
 </style>
 
 <body>
-  <h1>Click to start easing</h1>
   <div id="thing"></div>
   <script type="module" src="script.js"></script>
 </body>

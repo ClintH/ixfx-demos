@@ -3,7 +3,7 @@ import {
   applyToValues,
   averageWeighted,
   filter,
-  isApproximately,
+  isApprox,
   isValid,
   movingAverage,
   movingAverageLight,
@@ -15,20 +15,20 @@ import {
   proportion,
   relativeDifference,
   softmax
-} from "./chunk-IQCT4OWU.js";
+} from "./chunk-I4LMYJRJ.js";
 import {
   Bipolar_exports,
   flip
-} from "./chunk-PNJUAKRR.js";
+} from "./chunk-GPMQ4ROV.js";
 import {
   count
-} from "./chunk-AGFYQA5X.js";
+} from "./chunk-XQGWPAMW.js";
 import "./chunk-VHEJ5XJJ.js";
 import "./chunk-CSWMME6O.js";
 import {
   linearSpace,
   quantiseEvery
-} from "./chunk-OHBN76WG.js";
+} from "./chunk-3CCQZF6R.js";
 import {
   average,
   dotProduct,
@@ -42,19 +42,19 @@ import {
   totalFast,
   validNumbers,
   weight
-} from "./chunk-JIJ5ZCVI.js";
+} from "./chunk-2MKDZQRI.js";
 import {
   interpolate,
   interpolateAngle,
   interpolatorInterval,
   interpolatorStepped,
   piPi
-} from "./chunk-XKK2DE7P.js";
+} from "./chunk-3EZX4TDE.js";
 import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-LJHTLZZF.js";
+} from "./chunk-LQKA6R2Q.js";
 import {
   scale,
   scaleClamped,
@@ -62,28 +62,29 @@ import {
   scalePercentages,
   scaler,
   scalerPercent
-} from "./chunk-PDPCB2FF.js";
-import "./chunk-27QUVD4O.js";
-import "./chunk-EDWGLKJ5.js";
+} from "./chunk-S3B4O2KL.js";
+import "./chunk-IHIXEDTC.js";
+import "./chunk-GHZFZEKP.js";
 import {
   clamp,
   clampIndex
 } from "./chunk-ZJSCF2A4.js";
-import "./chunk-BUQPN7XA.js";
-import "./chunk-Y73QERC3.js";
-import "./chunk-37WZU5ZM.js";
+import "./chunk-6TH2VSQN.js";
+import "./chunk-KNMCW5SP.js";
+import "./chunk-NXPE4HQJ.js";
 import {
   minMaxAvg
-} from "./chunk-HE2SC3FY.js";
+} from "./chunk-5ASCYXA4.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
+import "./chunk-5MXEL2YC.js";
 import {
   round,
   roundUpToMultiple
-} from "./chunk-2EX73MGI.js";
+} from "./chunk-J3H2THXX.js";
 import "./chunk-SGQC7FGM.js";
-import "./chunk-JIDOUNL5.js";
-import "./chunk-BPDJLURO.js";
+import "./chunk-44XJNV6Z.js";
+import "./chunk-L5EJU35C.js";
 export {
   Bipolar_exports as Bipolar,
   Normalise_exports as Normalise,
@@ -100,7 +101,7 @@ export {
   interpolateAngle,
   interpolatorInterval,
   interpolatorStepped,
-  isApproximately,
+  isApprox,
   isValid,
   linearSpace,
   max,
