@@ -1,5 +1,5 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { repeat } from '../../ixfx/flow.js';
+import { repeatSync } from '../../ixfx/flow.js';
 import { jitter } from '../../ixfx/modulation.js';
 import { flip } from '../../ixfx/numbers.js';
 import { gaussian } from '../../ixfx/random.js';
@@ -45,7 +45,7 @@ const update = () => {
     .filter(p => p.age > 0.001);
 
   // 2. Spawn new particles
-  const withNew = [...aged, ...repeat(spawnPerLoop, () => Particle.create(state))];
+  const withNew = [...aged, ...repeatSync(() => Particle.create(state), { count: spawnPerLoop })];
 
   // 3. Move particles: some jitter applied to X, and drift upwards
   const moved = withNew.map(p => ({

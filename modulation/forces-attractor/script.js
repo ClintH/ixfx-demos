@@ -1,8 +1,7 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { Forces } from '../../ixfx/modulation.js';
-
-import { Points, Rects, Shapes } from '../../ixfx/geometry.js';
-import { repeat } from '../../ixfx/flow.js';
+import { Points } from '../../ixfx/geometry.js';
+import { repeatSync } from '../../ixfx/flow.js';
 import * as Util from './util.js';
 
 const settings = Object.freeze({
@@ -30,7 +29,7 @@ let state = Object.freeze({
     mass: 1,
     angle: Math.random() * Math.PI * 2
   },
-  attractees: [...repeat(20, generate)],
+  attractees: [...repeatSync(generate, { count: 20 })],
 });
 
 const update = () => {

@@ -1,83 +1,83 @@
 import {
   Drawing_exports
-} from "./chunk-AZQ4WJ37.js";
-import "./chunk-WB7B2CFX.js";
-import "./chunk-I4LMYJRJ.js";
-import "./chunk-GPMQ4ROV.js";
-import "./chunk-J6RVWG5Y.js";
-import "./chunk-XQGWPAMW.js";
-import "./chunk-N6QOOBVH.js";
+} from "./chunk-3EMZHUSI.js";
+import "./chunk-ZRKWGYD5.js";
+import "./chunk-HATU5YQE.js";
+import "./chunk-ERUN6IGZ.js";
+import "./chunk-UBWL5KAS.js";
+import "./chunk-OVLG22EY.js";
+import "./chunk-M2XIICMK.js";
+import "./chunk-DIMQ6WOR.js";
+import "./chunk-2LUR5STP.js";
+import "./chunk-ES4STI5R.js";
 import "./chunk-72HWREB4.js";
-import "./chunk-INY6TNWP.js";
-import "./chunk-VHEJ5XJJ.js";
-import "./chunk-CSWMME6O.js";
+import "./chunk-MM6D35JS.js";
+import "./chunk-FT4AY56C.js";
+import "./chunk-ZRXEXVUC.js";
 import {
   CanvasHelper
-} from "./chunk-D7YERPJE.js";
-import "./chunk-HR2SGSZG.js";
-import "./chunk-F2Y5ENIO.js";
-import "./chunk-WTZWRTJV.js";
-import "./chunk-XRHVMID2.js";
-import "./chunk-3CCQZF6R.js";
-import "./chunk-2MKDZQRI.js";
+} from "./chunk-JYIJOPEM.js";
+import "./chunk-OXLPQ75P.js";
+import "./chunk-QQ6D5TQU.js";
+import "./chunk-MVQCQHQL.js";
+import "./chunk-VUEFATQ3.js";
+import "./chunk-647FAJGC.js";
+import "./chunk-NGZXMICH.js";
+import "./chunk-FKXNN6PM.js";
+import "./chunk-AGCCB7IA.js";
 import {
   Pathed_exports
-} from "./chunk-F3WF55XZ.js";
-import "./chunk-3EZX4TDE.js";
-import {
-  Colour_exports
-} from "./chunk-OMH656NO.js";
-import {
-  wrap
-} from "./chunk-LQKA6R2Q.js";
-import {
-  scaler
-} from "./chunk-S3B4O2KL.js";
-import "./chunk-5I5EMARC.js";
-import "./chunk-AGCCB7IA.js";
-import "./chunk-BGQOJZFW.js";
-import "./chunk-KQRLSLOJ.js";
-import "./chunk-2HENLVQE.js";
-import "./chunk-DLPP7I2Q.js";
-import "./chunk-6IZ7GCYP.js";
-import "./chunk-IHIXEDTC.js";
-import "./chunk-GHZFZEKP.js";
+} from "./chunk-FVOMQHH6.js";
+import "./chunk-33YLZAWN.js";
+import "./chunk-XFNQJV53.js";
+import "./chunk-ACBFZQG5.js";
+import "./chunk-4SO3XXQP.js";
+import "./chunk-NYNE45QF.js";
+import "./chunk-TNZP4XTK.js";
+import "./chunk-XC4MJHLC.js";
+import "./chunk-YLRZZLGG.js";
+import "./chunk-VOHY2O2W.js";
+import "./chunk-4RHG66EP.js";
+import "./chunk-HCM42F75.js";
 import "./chunk-4IJNRUE7.js";
 import "./chunk-BWJ5AMOD.js";
 import "./chunk-IQEKYUOH.js";
 import "./chunk-ZNCB3DZ2.js";
 import {
+  wrap
+} from "./chunk-W3MH7W5D.js";
+import {
+  Colour_exports
+} from "./chunk-F6XISRGF.js";
+import {
+  scaler
+} from "./chunk-56LYTHQU.js";
+import {
   clamp
 } from "./chunk-ZJSCF2A4.js";
-import "./chunk-AMGGFK7I.js";
-import "./chunk-32ZT4CAA.js";
-import "./chunk-I3HI45DP.js";
-import "./chunk-R4J7WGCM.js";
-import "./chunk-NKNAN3KD.js";
-import "./chunk-32Y5CK4C.js";
-import "./chunk-YLRZZLGG.js";
-import "./chunk-6TH2VSQN.js";
-import "./chunk-IOH3DBVT.js";
-import "./chunk-KNMCW5SP.js";
-import "./chunk-NXPE4HQJ.js";
+import "./chunk-YSD5376E.js";
+import "./chunk-2LQNQUVT.js";
+import "./chunk-2J3BQQHA.js";
 import "./chunk-MZFSDYZE.js";
-import "./chunk-ENJ6X6ZE.js";
+import "./chunk-CF6OEEVD.js";
+import "./chunk-UK6L3VJJ.js";
+import "./chunk-BGQOJZFW.js";
+import "./chunk-HKC65PTS.js";
 import {
   getSorter
-} from "./chunk-AUYIXQZL.js";
-import "./chunk-IQYPVUM5.js";
-import "./chunk-5ASCYXA4.js";
+} from "./chunk-JEKP7EQY.js";
+import "./chunk-SPSPSDHG.js";
+import "./chunk-MYMJ4JUA.js";
 import "./chunk-7U6QARGK.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-P3TY2N4I.js";
-import "./chunk-5MXEL2YC.js";
-import "./chunk-EHDC2PRM.js";
-import "./chunk-SMLGKS2N.js";
-import "./chunk-J3H2THXX.js";
+import "./chunk-46F56PDU.js";
+import "./chunk-Q5FM47RE.js";
+import "./chunk-DWAKOV2F.js";
+import "./chunk-S5D7YRXR.js";
 import "./chunk-HOGLR6UM.js";
-import "./chunk-SGQC7FGM.js";
-import "./chunk-44XJNV6Z.js";
+import "./chunk-6UZ3OSJO.js";
+import "./chunk-CSXWZ3IC.js";
 import {
   __decorateClass,
   __privateAdd,
@@ -1085,7 +1085,7 @@ var n6 = e4(class extends f4 {
 });
 
 // src/components/PlotElement.ts
-var _series, _canvas, _drawing, _legendColour, _PlotElement_instances, setupCanvas_fn, _swatchSize;
+var _series, _canvas, _drawing, _legendColour, _hue, _PlotElement_instances, setupCanvas_fn, _swatchSize;
 var PlotElement = class extends s3 {
   constructor() {
     super();
@@ -1104,7 +1104,7 @@ var PlotElement = class extends s3 {
     __privateAdd(this, _canvas);
     __privateAdd(this, _drawing);
     __privateAdd(this, _legendColour, ``);
-    //#backgroundColour: string = ``
+    __privateAdd(this, _hue, 0);
     this.canvasEl = e5();
     __privateAdd(this, _swatchSize, 10);
   }
@@ -1179,7 +1179,7 @@ var PlotElement = class extends s3 {
   plot(value, seriesName = ``) {
     let s6 = __privateGet(this, _series).get(seriesName.toLowerCase());
     if (s6 === void 0) {
-      s6 = new PlotSeries(seriesName, this);
+      s6 = new PlotSeries(seriesName, this.colourGenerator(seriesName), this);
       __privateGet(this, _series).set(seriesName.toLowerCase(), s6);
     }
     s6.push(value);
@@ -1190,6 +1190,11 @@ var PlotElement = class extends s3 {
     for (const p4 of Pathed_exports.getPathsAndData(value, true)) {
       this.plot(p4.value, p4.path);
     }
+  }
+  colourGenerator(series) {
+    const c6 = Colour_exports.fromHsl(__privateGet(this, _hue), 0.9, 0.4);
+    __privateSet(this, _hue, wrap(__privateGet(this, _hue) + 0.1));
+    return c6;
   }
   draw() {
     if (this.paused) return;
@@ -1347,6 +1352,7 @@ _series = new WeakMap();
 _canvas = new WeakMap();
 _drawing = new WeakMap();
 _legendColour = new WeakMap();
+_hue = new WeakMap();
 _PlotElement_instances = new WeakSet();
 setupCanvas_fn = function() {
   if (__privateGet(this, _canvas) !== void 0) return __privateGet(this, _canvas);
@@ -1389,23 +1395,24 @@ __decorateClass([
 PlotElement = __decorateClass([
   t3(`plot-element`)
 ], PlotElement);
-var PlotSeries = class _PlotSeries {
-  constructor(name, plot) {
+var PlotSeries = class {
+  constructor(name, colour, plot) {
     this.name = name;
+    this.colour = colour;
     this.plot = plot;
     this.data = [];
     this.minSeen = Number.MAX_SAFE_INTEGER;
     this.maxSeen = Number.MIN_SAFE_INTEGER;
-    this.colour = Colour_exports.fromHsl(_PlotSeries.hue, 0.9, 0.4);
-    _PlotSeries.hue = wrap(_PlotSeries.hue + 0.1);
-  }
-  static {
-    this.hue = 0;
   }
   clear() {
     this.data = [];
     this.resetScale();
   }
+  /**
+   * Returns a copy of the data scaled by the current
+   * range of the data
+   * @returns 
+   */
   getScaled() {
     const r8 = this.maxSeen - this.minSeen;
     const s6 = scaler(this.minSeen, this.maxSeen);

@@ -15,20 +15,20 @@ import {
   proportion,
   relativeDifference,
   softmax
-} from "./chunk-I4LMYJRJ.js";
+} from "./chunk-HATU5YQE.js";
 import {
   Bipolar_exports,
   flip
-} from "./chunk-GPMQ4ROV.js";
+} from "./chunk-ERUN6IGZ.js";
 import {
   count
-} from "./chunk-XQGWPAMW.js";
-import "./chunk-VHEJ5XJJ.js";
-import "./chunk-CSWMME6O.js";
+} from "./chunk-OVLG22EY.js";
+import "./chunk-FT4AY56C.js";
+import "./chunk-ZRXEXVUC.js";
 import {
   linearSpace,
   quantiseEvery
-} from "./chunk-3CCQZF6R.js";
+} from "./chunk-647FAJGC.js";
 import {
   average,
   dotProduct,
@@ -42,19 +42,23 @@ import {
   totalFast,
   validNumbers,
   weight
-} from "./chunk-2MKDZQRI.js";
+} from "./chunk-NGZXMICH.js";
 import {
   interpolate,
   interpolateAngle,
   interpolatorInterval,
   interpolatorStepped,
   piPi
-} from "./chunk-3EZX4TDE.js";
+} from "./chunk-ACBFZQG5.js";
+import "./chunk-4SO3XXQP.js";
+import "./chunk-VOHY2O2W.js";
+import "./chunk-4RHG66EP.js";
+import "./chunk-HCM42F75.js";
 import {
   wrap,
   wrapInteger,
   wrapRange
-} from "./chunk-LQKA6R2Q.js";
+} from "./chunk-W3MH7W5D.js";
 import {
   scale,
   scaleClamped,
@@ -62,28 +66,24 @@ import {
   scalePercentages,
   scaler,
   scalerPercent
-} from "./chunk-S3B4O2KL.js";
-import "./chunk-IHIXEDTC.js";
-import "./chunk-GHZFZEKP.js";
+} from "./chunk-56LYTHQU.js";
 import {
   clamp,
   clampIndex
 } from "./chunk-ZJSCF2A4.js";
-import "./chunk-6TH2VSQN.js";
-import "./chunk-KNMCW5SP.js";
-import "./chunk-NXPE4HQJ.js";
+import "./chunk-YSD5376E.js";
+import "./chunk-2LQNQUVT.js";
 import {
   minMaxAvg
-} from "./chunk-5ASCYXA4.js";
+} from "./chunk-MYMJ4JUA.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-5MXEL2YC.js";
+import "./chunk-Q5FM47RE.js";
 import {
-  round,
-  roundUpToMultiple
-} from "./chunk-J3H2THXX.js";
-import "./chunk-SGQC7FGM.js";
-import "./chunk-44XJNV6Z.js";
+  round
+} from "./chunk-S5D7YRXR.js";
+import "./chunk-6UZ3OSJO.js";
+import "./chunk-CSXWZ3IC.js";
 import "./chunk-L5EJU35C.js";
 export {
   Bipolar_exports as Bipolar,
@@ -123,7 +123,6 @@ export {
   quantiseEvery,
   relativeDifference,
   round,
-  roundUpToMultiple,
   scale,
   scaleClamped,
   scalePercent,

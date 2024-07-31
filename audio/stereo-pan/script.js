@@ -1,6 +1,6 @@
 import { scaleClamped } from '../../ixfx/numbers.js';
 import { Oscillators } from '../../ixfx/modulation.js';
-import { interval } from '../../ixfx/flow.js';
+import { repeat } from '../../ixfx/flow.js';
 
 const settings = Object.freeze({
   audioId: `rainstorm`,
@@ -109,7 +109,7 @@ function setup() {
     saveState({ readingAutoPan: true });
     const autoPan = Oscillators.sine(autoPanRate);
     play();
-    for await (const v of interval(autoPan, autoPanUpdateRateMs)) {
+    for await (const v of repeat(autoPan, { delay: autoPanUpdateRateMs })) {
       // Value from oscillator will be 0..1. We need -1...1
       const pan = scaleClamped(v, 0, 1, -1, 1);
       saveState({ pan });

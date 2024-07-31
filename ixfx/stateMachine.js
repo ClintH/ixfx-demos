@@ -1,11 +1,11 @@
 import {
   StateMachineWithEvents,
   cloneState,
-  done,
   fromList,
   fromListBidirectional,
   init,
   init2,
+  isDone,
   isValidTransition,
   next,
   normaliseTargets,
@@ -15,36 +15,36 @@ import {
   to,
   validateMachine,
   validateTransition
-} from "./chunk-6IZ7GCYP.js";
-import "./chunk-GHZFZEKP.js";
+} from "./chunk-XC4MJHLC.js";
+import "./chunk-HCM42F75.js";
 import "./chunk-BWJ5AMOD.js";
 import "./chunk-IQEKYUOH.js";
 import "./chunk-ZJSCF2A4.js";
-import "./chunk-AMGGFK7I.js";
-import "./chunk-32ZT4CAA.js";
-import "./chunk-KNMCW5SP.js";
-import "./chunk-NXPE4HQJ.js";
-import "./chunk-AUYIXQZL.js";
-import "./chunk-IQYPVUM5.js";
-import "./chunk-5ASCYXA4.js";
+import "./chunk-YSD5376E.js";
+import "./chunk-2LQNQUVT.js";
+import "./chunk-CF6OEEVD.js";
+import "./chunk-HKC65PTS.js";
+import "./chunk-JEKP7EQY.js";
+import "./chunk-SPSPSDHG.js";
+import "./chunk-MYMJ4JUA.js";
 import "./chunk-7U6QARGK.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-P3TY2N4I.js";
-import "./chunk-5MXEL2YC.js";
-import "./chunk-J3H2THXX.js";
+import "./chunk-46F56PDU.js";
+import "./chunk-Q5FM47RE.js";
+import "./chunk-S5D7YRXR.js";
 import "./chunk-HOGLR6UM.js";
-import "./chunk-SGQC7FGM.js";
-import "./chunk-44XJNV6Z.js";
+import "./chunk-6UZ3OSJO.js";
+import "./chunk-CSXWZ3IC.js";
 import "./chunk-L5EJU35C.js";
 export {
   StateMachineWithEvents as WithEvents,
   cloneState,
-  done,
   init as driver,
   fromList,
   fromListBidirectional,
   init2 as init,
+  isDone,
   isValidTransition,
   next,
   normaliseTargets,

@@ -1,6 +1,5 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { repeat } from '../../ixfx/flow.js';
-import * as Random from '../../ixfx/random.js';
+import { repeatSync } from '../../ixfx/flow.js';
 import { Points, Circles, Polar } from '../../ixfx/geometry.js';
 
 const settings = Object.freeze({
@@ -51,7 +50,7 @@ const randomPoints = (circle, numberOfPoints) => {
   const generate = () => Polar.toCartesian(randomDistance(randomSource) * radius, randomSource() * piPi, circle);
 
   // Run generate() for the number of points needed, returning as an array
-  return repeat(numberOfPoints, generate);
+  return repeatSync(generate, { count: numberOfPoints });
 };
 
 

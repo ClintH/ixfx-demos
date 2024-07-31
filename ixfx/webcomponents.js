@@ -1,13 +1,12 @@
 import {
   changedDataFields
-} from "./chunk-EHDC2PRM.js";
-import "./chunk-SMLGKS2N.js";
+} from "./chunk-DWAKOV2F.js";
 import {
   round
-} from "./chunk-J3H2THXX.js";
+} from "./chunk-S5D7YRXR.js";
 import "./chunk-HOGLR6UM.js";
-import "./chunk-SGQC7FGM.js";
-import "./chunk-44XJNV6Z.js";
+import "./chunk-6UZ3OSJO.js";
+import "./chunk-CSXWZ3IC.js";
 import "./chunk-L5EJU35C.js";
 
 // src/web-components/DataDisplay.ts

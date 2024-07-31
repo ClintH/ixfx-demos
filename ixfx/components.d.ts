@@ -3,21 +3,21 @@ import * as lit from 'lit';
 import { LitElement, PropertyValues } from 'lit';
 import { K as KeyValue } from './PrimitiveTypes-F6miV4Zn.js';
 import { Ref } from 'lit/directives/ref.js';
-import { C as CanvasHelper } from './CanvasHelper-B2T6ZgU5.js';
+import { C as CanvasHelper } from './CanvasHelper-BMdwHWEB.js';
 import { a as RectPositioned, R as Rect } from './RectTypes-Brg8Cmy-.js';
 import { C as Colourish } from './Colour-B60StqKZ.js';
-import { D as DrawingHelper } from './Drawing-Cr-FMhsC.js';
+import { D as DrawingHelper } from './Drawing-BmSQo1F4.js';
 import './Scaler-C_gjBH0I.js';
 import './PointType-DYug3Yo5.js';
-import './Events-CigdLXTv.js';
-import './IntervalType-B6zEAEa4.js';
+import './Events-DJgOvcWD.js';
+import './IntervalType-B4PbUkjV.js';
 import 'colorjs.io';
 import './Types-CR0Pe5zY.js';
 import './LineType-FU9c78oU.js';
 import './PathType-BjzQ3mag.js';
 import './CircleType-HV1S_Vyw.js';
 import './ArcType-BQP6bHin.js';
-import './IStackImmutable-DwpwVyob.js';
+import './IStackImmutable-BNEmWxct.js';
 
 type Bar = {
     readonly percentage: number;
@@ -162,6 +162,7 @@ declare class PlotElement extends LitElement {
     updateColours(): void;
     plot(value: number, seriesName?: string): PlotSeries;
     plotObject(value: object): void;
+    colourGenerator(series: string): Colourish;
     draw(): void;
     drawLegend(cl: RectPositioned, d: DrawingHelper): void;
     drawLineSeries(data: number[], cp: Rect, d: DrawingHelper, colour: string): void;
@@ -190,14 +191,18 @@ declare class PlotElement extends LitElement {
 }
 declare class PlotSeries {
     name: string;
+    colour: Colourish;
     private plot;
     data: number[];
-    colour: Colourish;
     minSeen: number;
     maxSeen: number;
-    static hue: number;
-    constructor(name: string, plot: PlotElement);
+    constructor(name: string, colour: Colourish, plot: PlotElement);
     clear(): void;
+    /**
+     * Returns a copy of the data scaled by the current
+     * range of the data
+     * @returns
+     */
     getScaled(): number[];
     getScaledBy(scaler: (v: number) => number): number[];
     push(value: number): void;

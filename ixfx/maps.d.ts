@@ -1,6 +1,6 @@
-import { S as SimpleEventEmitter } from './Events-CigdLXTv.js';
-import { I as Interval } from './IntervalType-B6zEAEa4.js';
-import { I as IsEqual } from './IsEqual-Cm8Nto17.js';
+import { S as SimpleEventEmitter } from './Events-DJgOvcWD.js';
+import { I as Interval } from './IntervalType-B4PbUkjV.js';
+import { I as IsEqual } from './IsEqual-CTTf-Oj9.js';
 import { E as EitherKey } from './Types-CXzamHqZ.js';
 import { I as ICircularArray } from './CircularArray-CpJrVPp5.js';
 import { T as ToString } from './ToString-DO94OWoh.js';
@@ -85,13 +85,13 @@ declare const create: <K, V>(options?: Opts) => ExpiringMap<K, V>;
  * map.elapsedSet(`fruit`);
  * ```
  *
- * Last set/get time for a key can be manually reset using `touch(key)`.
+ * Last set/get time for a key can be manually reset using {@link touch}.
  *
  *
  * Events:
- * * `expired`: when an item is automatically removed.
- * * `removed`: when an item is manually or automatically removed.
- * * `newKey`: when a new key is added
+ * * 'expired': when an item is automatically removed.
+ * * 'removed': when an item is manually or automatically removed.
+ * * 'newKey': when a new key is added
  *
  * ```js
  * map.addEventListener(`expired`, evt => {
@@ -100,7 +100,8 @@ declare const create: <K, V>(options?: Opts) => ExpiringMap<K, V>;
  * ```
  * The map can automatically remove items based on elapsed intervals.
  *
- * @example Automatically delete items that haven't been accessed for one second
+ * @example
+ * Automatically delete items that haven't been accessed for one second
  * ```js
  * const map = new ExpiringMap({
  *  autoDeleteElapsed: 1000,
@@ -108,13 +109,16 @@ declare const create: <K, V>(options?: Opts) => ExpiringMap<K, V>;
  * });
  * ```
  *
- * @example Automatically delete the oldest item if we reach a capacity limit
- * ```
+ * @example
+ * Automatically delete the oldest item if we reach a capacity limit
+ * ```js
  * const map = new ExpiringMap({
  *  capacity: 5,
  *  evictPolicy: `oldestSet`
  * });
  * ```
+ * @typeParam K - Type of keys
+ * @typeParam V - Type of values
  */
 declare class ExpiringMap<K, V> extends SimpleEventEmitter<ExpiringMapEvents<K, V>> {
     #private;
@@ -313,8 +317,8 @@ interface IMapBase<K, V> {
  * // m is still empty, only m2 contains a value.
  * ```
  *
- * @template K Type of map keys. Typically `string`
- * @template V Type of stored values
+ * @typeParam K - Type of map keys. Typically `string`
+ * @typeParam V - Type of stored values
  */
 interface IMapImmutable<K, V> extends IMapBase<K, V> {
     /**
@@ -396,8 +400,8 @@ declare const immutable: <K, V>(dataOrMap?: ReadonlyMap<K, V> | EitherKey<K, V>)
  *
  * It is a wrapper around the in-built Map type, but adds roughly the same API as {@link IMapImmutable}.
  *
- * @template K Type of map keys. Typically `string`
- * @template V Type of stored values
+ * @typeParam K - Type of map keys. Typically `string`
+ * @typeParam V - Type of stored values
  */
 interface IMapMutable<K, V> extends IMapBase<K, V> {
     /**
@@ -568,8 +572,8 @@ type MapArrayEvents<V> = {
  * });
  * ```
  *
- * @template V Values stored under keys
- * @template M Type of data structure managing values
+ * @typeParam V - Values stored under keys
+ * @typeParam M - Type of data structure managing values
  */
 interface IMapOfMutableExtended<V, M> extends SimpleEventEmitter<MapArrayEvents<V>>, IMapOfMutable<V> {
     /**
@@ -625,77 +629,11 @@ type MapArrayOpts<V> = MapMultiOpts<V> & {
  * const map = ofArrayMutable({comparer: (a, b) => a.name === b.name });
  * ```
  * @param options Optiosn for mutable array
- * @template V Data type of items
+ * @typeParam V - Data type of items
  * @returns {@link IMapOfMutableExtended}
  */
 declare const ofArrayMutable: <V>(options?: MapArrayOpts<V>) => IMapOfMutableExtended<V, ReadonlyArray<V>>;
 
-declare class MapOfSimpleBase<V> {
-    protected map: Map<string, ReadonlyArray<V>>;
-    protected readonly groupBy: (value: V) => string;
-    protected valueEq: IsEqual<V>;
-    /**
-     * Constructor
-     * @param groupBy Creates keys for values when using `addValue`. By default uses JSON.stringify
-     * @param valueEq Compare values. By default uses JS logic for equality
-     */
-    constructor(groupBy?: (value: V) => string, valueEq?: IsEqual<V>, initial?: Array<[string, ReadonlyArray<V>]>);
-    /**
-     * Iterate over all entries
-     */
-    entriesFlat(): IterableIterator<[key: string, value: V]>;
-    entries(): IterableIterator<[key: string, value: Array<V>]>;
-    firstKeyByValue(value: V, eq?: IsEqual<V>): string | undefined;
-    /**
-     * Get all values under `key`
-     * @param key
-     * @returns
-     */
-    get(key: string): IterableIterator<V>;
-    /**
-     * Iterate over all keys
-     */
-    keys(): IterableIterator<string>;
-    /**
-     * Iterate over all values (regardless of key)
-     */
-    valuesFlat(): IterableIterator<V>;
-    /**
-     * Iterate over keys and length of values stored under keys
-     */
-    keysAndCounts(): IterableIterator<[string, number]>;
-    /**
-     * Returns _true_ if `key` exists
-     * @param key
-     * @returns
-     */
-    has(key: string): boolean;
-    /**
-     * Returns _true_ if `value` exists under `key`.
-     * @param key Key
-     * @param value Value to seek under `key`
-     * @returns _True_ if `value` exists under `key`.
-     */
-    hasKeyValue(key: string, value: V): boolean;
-    /**
-     * Debug dump of contents
-     * @returns
-     */
-    debugString(): string;
-    /**
-     * _True_ if empty
-     */
-    get isEmpty(): boolean;
-    /**
-     * Return number of values stored under `key`.
-     * Returns 0 if `key` is not found.
-     * @param key
-     * @returns
-     */
-    count(key: string): number;
-    get lengthKeys(): number;
-}
-
 /**
  * A simple mutable map of arrays, without events. It can store multiple values
  * under the same key.
@@ -711,63 +649,7 @@ declare class MapOfSimpleBase<V> {
  * const hellos = m.get(`hello`); // Get list of items under `hello`
  * ```
  *
- * Constructor takes a `groupBy` parameter, which yields a string key for a value. This is the
- * basis by which values are keyed when using `addValues`.
- *
- * Constructor takes a `valueEq` parameter, which compares values. This is used when checking
- * if a value exists under a key, for example.
- * @template V Type of items
- */
-declare class MapOfSimpleMutable<V> extends MapOfSimpleBase<V> implements IMapOfMutable<V> {
-    addKeyedValues(key: string, ...values: ReadonlyArray<V>): void;
-    /**
-     * Adds a value, automatically extracting a key via the
-     * `groupBy` function assigned in the constructor options.
-     * @param values Adds several values
-     */
-    addValue(...values: ReadonlyArray<V>): void;
-    /**
-     * Delete `value` under a particular `key`
-     * @param key
-     * @param value
-     * @returns _True_ if `value` was found under `key`
-     */
-    deleteKeyValue(key: string, value: V): boolean;
-    /**
-     * Deletes `value` regardless of key.
-     *
-     * Uses the constructor-defined equality function.
-     * @param value Value to delete
-     * @returns
-     */
-    deleteByValue(value: V): boolean;
-    /**
-     * Deletes all values under `key`,
-     * @param key
-     * @returns _True_ if `key` was found and values stored
-     */
-    delete(key: string): boolean;
-    /**
-     * Clear contents
-     */
-    clear(): void;
-}
-/**
- * A simple mutable map of arrays, without events. It can store multiple values
- * under the same key.
- *
- * For a fancier approaches, consider {@link ofArrayMutable}, {@link ofCircularMutable} or {@link ofSetMutable}.
- *
- * @example
- * ```js
- * const m = mapOfSimpleMutable();
- * m.add(`hello`, 1, 2, 3); // Adds numbers under key `hello`
- * m.delete(`hello`);       // Deletes everything under `hello`
- *
- * const hellos = m.get(`hello`); // Get list of items under `hello`
- * ```
- *
- * @template V Type of items
+ * @typeParam V - Type of items
  * @returns New instance
  */
 declare const ofSimpleMutable: <V>(groupBy?: (value: V) => string, valueEq?: IsEqual<V>) => IMapOfMutable<V>;
@@ -962,4 +844,4 @@ declare class NumberMap<K> extends Map<K, number> {
     subtract(key: K, amount?: number): number;
 }
 
-export { ExpiringMap, type ExpiringMapEvent, type ExpiringMapEvents, type Opts as ExpiringMapOpts, type IMapImmutable, type IMapMutable, type IMapOf, type IMapOfMutable, type IMapOfMutableExtended, type MapArrayEvents, type MapArrayOpts, type MapCircularOpts, type MapMultiOpts, MapOfMutableImpl, MapOfSimpleMutable, type MapSetOpts, type MultiValue, NumberMap, create as expiringMap, immutable, ofSimpleMutable as mapOfSimpleMutable, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable };
+export { type ExpiringMapEvent, type ExpiringMapEvents, type Opts as ExpiringMapOpts, type IMapImmutable, type IMapMutable, type IMapOf, type IMapOfMutable, type IMapOfMutableExtended, type MapArrayEvents, type MapArrayOpts, type MapCircularOpts, type MapMultiOpts, MapOfMutableImpl, type MapSetOpts, type MultiValue, NumberMap, create as expiringMap, immutable, ofSimpleMutable as mapOfSimpleMutable, mutable, ofArrayMutable, ofCircularMutable, ofSetMutable };

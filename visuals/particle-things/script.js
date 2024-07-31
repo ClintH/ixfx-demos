@@ -1,7 +1,7 @@
 import { Trackers, Numbers } from '../../ixfx/bundle.js';
 import { CanvasHelper } from '../../ixfx/dom.js';
 import { Points, radianToDegree } from '../../ixfx/geometry.js';
-import { repeat } from '../../ixfx/flow.js';
+import { repeatSync } from '../../ixfx/flow.js';
 import * as Util from './util.js';
 import * as Things from './thing.js';
 
@@ -21,7 +21,7 @@ let state = Object.freeze({
     y: 0.5
   },
   /** @type {readonly Things.Thing[]} */
-  things: [...repeat(40, () => Things.create())],
+  things: [...repeatSync(() => Things.create(), { count: 40 })],
   /** @type number */
   distance: 0,
   distanceAvg: Trackers.number({
@@ -37,7 +37,7 @@ let state = Object.freeze({
 const update = () => {
   const { pointA, pointB, distanceAvg } = state;
   const distance = Points.distance(pointA, pointB);
-  const angle = Points.angle(pointA, pointB);
+  const angle = Points.angleRadian(pointA, pointB);
   const angleDegrees = radianToDegree(angle);
 
   distanceAvg.seen(distance);

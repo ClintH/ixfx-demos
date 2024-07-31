@@ -1,18 +1,20 @@
 import {
   arrayTest,
   defined,
-  isFunction,
   isPlainObject,
   isPlainObjectOrPrimitive,
   isStringArray,
   nullUndef,
   throwArrayTest,
   throwNullUndef
-} from "./chunk-P3TY2N4I.js";
+} from "./chunk-46F56PDU.js";
 import {
+  functionTest,
+  isFunction,
   stringTest,
+  throwFunctionTest,
   throwStringTest
-} from "./chunk-5MXEL2YC.js";
+} from "./chunk-Q5FM47RE.js";
 import {
   ifNaN,
   integerParse,
@@ -24,11 +26,12 @@ import {
   throwIntegerTest,
   throwNumberTest,
   throwPercentTest
-} from "./chunk-44XJNV6Z.js";
+} from "./chunk-CSXWZ3IC.js";
 import "./chunk-L5EJU35C.js";
 export {
   arrayTest,
   defined,
+  functionTest,
   ifNaN,
   integerParse,
   integerTest,
@@ -43,6 +46,7 @@ export {
   stringTest,
   throwArrayTest,
   throwFromResult,
+  throwFunctionTest,
   throwIntegerTest,
   throwNullUndef,
   throwNumberTest,

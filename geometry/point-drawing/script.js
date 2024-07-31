@@ -1,6 +1,5 @@
 import { CanvasHelper } from '../../ixfx/dom.js';
-import { Points } from '../../ixfx/geometry.js';
-import { repeat } from '../../ixfx/flow.js';
+import { repeatSync } from '../../ixfx/flow.js';
 import { Colour } from '../../ixfx/visual.js';
 
 /**
@@ -23,7 +22,7 @@ const settings = Object.freeze({
 let state = Object.freeze({
   // Generate 100 random points
   // with x,y and radius on 0..1 scale
-  points: [...repeat(100, randomPoint)]
+  points: [...repeatSync(randomPoint, { count: 100 })]
 });
 
 const use = () => {

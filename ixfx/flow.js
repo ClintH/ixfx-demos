@@ -12,12 +12,11 @@ import {
   delayLoop,
   everyNth,
   forEach,
-  forEachAsync,
-  interval,
+  forEachSync,
   promiseFromEvent,
   promiseWithResolvers,
   repeat,
-  repeatAwait,
+  repeatSync,
   retryFunction,
   retryTask,
   runOnce,
@@ -27,18 +26,20 @@ import {
   throttle,
   updateOutdated,
   waitFor
-} from "./chunk-2HENLVQE.js";
-import "./chunk-DLPP7I2Q.js";
+} from "./chunk-NYNE45QF.js";
+import "./chunk-TNZP4XTK.js";
 import {
   StateMachine_exports,
   Stopwatch_exports,
   run,
   runSingle
-} from "./chunk-6IZ7GCYP.js";
+} from "./chunk-XC4MJHLC.js";
+import "./chunk-YLRZZLGG.js";
 import {
   rateMinimum,
   timeout
-} from "./chunk-IHIXEDTC.js";
+} from "./chunk-VOHY2O2W.js";
+import "./chunk-4RHG66EP.js";
 import {
   elapsedMillisecondsAbsolute,
   elapsedTicksAbsolute,
@@ -48,33 +49,31 @@ import {
   ofTotalTicks,
   relative,
   timerWithFunction
-} from "./chunk-GHZFZEKP.js";
+} from "./chunk-HCM42F75.js";
 import "./chunk-4IJNRUE7.js";
 import "./chunk-BWJ5AMOD.js";
 import "./chunk-IQEKYUOH.js";
 import "./chunk-ZJSCF2A4.js";
-import "./chunk-AMGGFK7I.js";
-import "./chunk-32ZT4CAA.js";
-import "./chunk-YLRZZLGG.js";
-import "./chunk-6TH2VSQN.js";
-import "./chunk-KNMCW5SP.js";
+import "./chunk-YSD5376E.js";
 import {
   elapsedToHumanString,
   intervalToMs,
   isInterval
-} from "./chunk-NXPE4HQJ.js";
-import "./chunk-AUYIXQZL.js";
-import "./chunk-IQYPVUM5.js";
-import "./chunk-5ASCYXA4.js";
+} from "./chunk-2LQNQUVT.js";
+import "./chunk-CF6OEEVD.js";
+import "./chunk-HKC65PTS.js";
+import "./chunk-JEKP7EQY.js";
+import "./chunk-SPSPSDHG.js";
+import "./chunk-MYMJ4JUA.js";
 import "./chunk-7U6QARGK.js";
 import "./chunk-GISMJX5E.js";
 import "./chunk-5VWJ6TUI.js";
-import "./chunk-P3TY2N4I.js";
-import "./chunk-5MXEL2YC.js";
-import "./chunk-J3H2THXX.js";
+import "./chunk-46F56PDU.js";
+import "./chunk-Q5FM47RE.js";
+import "./chunk-S5D7YRXR.js";
 import "./chunk-HOGLR6UM.js";
-import "./chunk-SGQC7FGM.js";
-import "./chunk-44XJNV6Z.js";
+import "./chunk-6UZ3OSJO.js";
+import "./chunk-CSXWZ3IC.js";
 import "./chunk-L5EJU35C.js";
 export {
   BehaviourTree_exports as BehaviourTree,
@@ -95,10 +94,9 @@ export {
   elapsedToHumanString,
   everyNth,
   forEach,
-  forEachAsync,
+  forEachSync,
   frequencyTimer,
   hasElapsed,
-  interval,
   intervalToMs,
   isInterval,
   ofTotal,
@@ -108,7 +106,7 @@ export {
   rateMinimum,
   relative,
   repeat,
-  repeatAwait,
+  repeatSync,
   retryFunction,
   retryTask,
   run,
